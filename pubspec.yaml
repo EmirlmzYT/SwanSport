@@ -1,0 +1,34 @@
+name: swansport_workspace
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+workspace:
+  - apps/swansport_app
+  - packages/swansport_core
+  - packages/swansport_design_system
+  - packages/swansport_models
+  - packages/swansport_branch_engine
+
+dev_dependencies:
+  lints: ^5.0.0
+  melos: ^8.2.2
+
+melos:
+  scripts:
+    format:check:
+      run: dart format --output=none --set-exit-if-changed .
+      description: Check formatting without changing files.
+
+    generate:
+      run: dart --version
+      description: Reserved for future code generation.
+
+    run:dev:
+      run: cd apps/swansport_app && flutter run -t lib/main_development.dart
+      description: Run the main app with the development entrypoint.
+
+    run:web:
+      run: cd apps/swansport_app && flutter run -d edge -t lib/main_development.dart
+      description: Run the Flutter web app with the development entrypoint.

@@ -1,0 +1,4 @@
+enum SwanAppEnv {
+  development,
+  production,
+}

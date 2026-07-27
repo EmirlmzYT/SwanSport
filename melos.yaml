@@ -1,0 +1,5 @@
+name: swansport
+
+packages:
+  - apps/*
+  - packages/*
