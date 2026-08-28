@@ -109,3 +109,32 @@ Stream<String> pushTokenChanges() {
   if (!pushSupported) return const Stream<String>.empty();
   return FirebaseMessaging.instance.onTokenRefresh;
 }
+
+PushMessage _message(RemoteMessage value) => PushMessage(
+      title: value.notification?.title ?? 'SwanSport',
+      body: value.notification?.body ?? '',
+      route: value.data['url'] as String?,
+    );
+
+/// Uygulama ön plandayken Android sistem bildirimi göstermediği için bu akış
+/// uygulamanın kendi görünür uyarısını besler.
+Stream<PushMessage> pushForegroundMessages() async* {
+  if (!pushSupported) return;
+  await _ensureInitialized();
+  yield* FirebaseMessaging.onMessage.map(_message);
+}
+
+/// Arka plandaki bildirime dokunulduğunda Flutter'a gelen olay.
+Stream<PushMessage> pushOpenedMessages() async* {
+  if (!pushSupported) return;
+  await _ensureInitialized();
+  yield* FirebaseMessaging.onMessageOpenedApp.map(_message);
+}
+
+/// Uygulama tamamen kapalıyken bildirime dokunularak açılmışsa ilk mesaj.
+Future<PushMessage?> pushInitialMessage() async {
+  if (!pushSupported) return null;
+  await _ensureInitialized();
+  final message = await FirebaseMessaging.instance.getInitialMessage();
+  return message == null ? null : _message(message);
+}

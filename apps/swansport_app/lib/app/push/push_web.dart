@@ -106,7 +106,8 @@ Future<PushSub> pushSubscribe() async {
 
   // Zaten abonelik varsa yenisini üretme — endpoint sabit kalsın.
   final existing =
-      await (pm.callMethod<JSPromise<JSObject?>>('getSubscription'.toJS)).toDart;
+      await (pm.callMethod<JSPromise<JSObject?>>('getSubscription'.toJS))
+          .toDart;
   final current = _toSub(existing);
   if (current != null) return current;
 
@@ -155,7 +156,8 @@ Future<String?> pushUnsubscribe() async {
     if (existing == null) return null;
 
     final sub = _toSub(existing);
-    await (existing.callMethod<JSPromise<JSBoolean>>('unsubscribe'.toJS)).toDart;
+    await (existing.callMethod<JSPromise<JSBoolean>>('unsubscribe'.toJS))
+        .toDart;
     return sub?.endpoint;
   } catch (_) {
     return null;
@@ -165,3 +167,10 @@ Future<String?> pushUnsubscribe() async {
 /// Web'de token yenileme kavramı yok — abonelik adresi değişirse
 /// `pushCurrent` zaten yenisini döner. Arayüz bütünlüğü için boş akış.
 Stream<String> pushTokenChanges() => const Stream<String>.empty();
+
+Stream<PushMessage> pushForegroundMessages() =>
+    const Stream<PushMessage>.empty();
+
+Stream<PushMessage> pushOpenedMessages() => const Stream<PushMessage>.empty();
+
+Future<PushMessage?> pushInitialMessage() async => null;

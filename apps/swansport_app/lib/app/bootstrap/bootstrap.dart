@@ -5,6 +5,7 @@ import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../config/app_environment.dart';
+import '../push/push_service.dart';
 import '../swansport_app.dart';
 import 'startup_failure_app.dart';
 
@@ -89,7 +90,7 @@ Future<void> bootstrap(
         appEnvironmentProvider.overrideWithValue(environment),
         supabaseConfigProvider.overrideWithValue(effectiveConfig),
       ],
-      child: const SwanSportApp(),
+      child: const PushLifecycleObserver(child: SwanSportApp()),
     ),
   );
 }

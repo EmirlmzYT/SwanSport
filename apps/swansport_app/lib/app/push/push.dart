@@ -42,6 +42,19 @@ class PushSub {
   final String? auth;
 }
 
+/// Taşıyıcıdan bağımsız bildirim içeriği.
+class PushMessage {
+  const PushMessage({
+    required this.title,
+    required this.body,
+    this.route,
+  });
+
+  final String title;
+  final String body;
+  final String? route;
+}
+
 /// Push aboneliğinin alınamama nedeni — kullanıcıya doğru cümleyi kurmak için.
 enum PushFailure {
   /// Platform push desteklemiyor (ör. iOS'ta ana ekrana eklenmemiş Safari).
@@ -80,3 +93,12 @@ Future<String?> pushUnsubscribe() => impl.pushUnsubscribe();
 /// token ölür ve kullanıcı sessizce bildirim almaz hale gelir. Web'de karşılığı
 /// yok, boş akış döner.
 Stream<String> pushTokenChanges() => impl.pushTokenChanges();
+
+/// Uygulama açıkken gelen bildirimler.
+Stream<PushMessage> pushForegroundMessages() => impl.pushForegroundMessages();
+
+/// Kullanıcının dokunduğu arka plan bildirimleri.
+Stream<PushMessage> pushOpenedMessages() => impl.pushOpenedMessages();
+
+/// Uygulamayı kapalıyken açan bildirimi döner.
+Future<PushMessage?> pushInitialMessage() => impl.pushInitialMessage();

@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+import '../app_navigator.dart';
 import 'push.dart';
 
 /// ---------------------------------------------------------------------------
@@ -36,8 +38,8 @@ class PushService {
   }
 
   Future<void> unregister(String endpoint) async {
-    await _c.rpc<void>('drop_push_subscription',
-        params: {'p_endpoint': endpoint});
+    await _c
+        .rpc<void>('drop_push_subscription', params: {'p_endpoint': endpoint});
   }
 
   /// Bu cihazın adresi kayıtlı mı?
@@ -118,9 +120,74 @@ void listenPushTokenChanges(WidgetRef ref) {
   _tokenSub = pushTokenChanges().listen((token) {
     unawaited(
       ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
-        (Object e) =>
-            debugPrint('SwanSport: yeni push token kaydedilemedi — $e'),
-      ),
+            (Object e) =>
+                debugPrint('SwanSport: yeni push token kaydedilemedi — $e'),
+          ),
     );
   });
+}
+
+/// Push yaşam döngüsünü ekrandan bağımsız olarak uygulama ömrüne bağlar.
+/// Böylece kullanıcı akış ekranını hiç açmasa bile token yenilenir ve bildirime
+/// dokununca hedef rota açılır.
+class PushLifecycleObserver extends ConsumerStatefulWidget {
+  const PushLifecycleObserver({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  ConsumerState<PushLifecycleObserver> createState() =>
+      _PushLifecycleObserverState();
+}
+
+class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
+  StreamSubscription<PushMessage>? _foregroundSub;
+  StreamSubscription<PushMessage>? _openedSub;
+
+  @override
+  void initState() {
+    super.initState();
+    listenPushTokenChanges(ref);
+    _foregroundSub = pushForegroundMessages().listen(_showForegroundMessage);
+    _openedSub = pushOpenedMessages().listen(_openMessage);
+    Future.microtask(() async {
+      await refreshPushSilently(ref);
+      final initial = await pushInitialMessage();
+      if (initial != null) _openMessage(initial);
+    });
+  }
+
+  void _showForegroundMessage(PushMessage message) {
+    swanMessengerKey.currentState?.showSnackBar(
+      SnackBar(
+        content: Text(message.body.isEmpty
+            ? message.title
+            : '${message.title}: ${message.body}'),
+        action: SnackBarAction(
+          label: 'Aç',
+          onPressed: () => _openMessage(message),
+        ),
+      ),
+    );
+  }
+
+  void _openMessage(PushMessage message) {
+    final navigator = swanNavigatorKey.currentState;
+    if (navigator == null) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _openMessage(message));
+      return;
+    }
+    navigator.pushNamed(pushRouteOrNotifications(message.route));
+  }
+
+  @override
+  void dispose() {
+    _foregroundSub?.cancel();
+    _openedSub?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

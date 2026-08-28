@@ -4,7 +4,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import '../../demo/demo_role.dart';
 import 'post_composer_sheet.dart';
@@ -27,15 +26,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   @override
   void initState() {
     super.initState();
-    // Push adresi sessizce değişebiliyor — tarayıcıda abonelik, Android'de
-    // FCM token'ı. Ana ekran her açıldığında kaydı tazeleyerek bildirimlerin
-    // bir gün susmasını önleriz.
-    //
-    // Tazeleme tek seferlik bir fotoğraf; dinleyici ise uygulama açıkken
-    // Google token'ı döndürürse onu da yakalar. İkisi birden gerekiyor.
-    listenPushTokenChanges(ref);
     Future.microtask(() async {
-      await refreshPushSilently(ref);
       await ensureMyCommunities(ref);
     });
   }
@@ -48,7 +39,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
 
     final profile = ref.watch(currentProfileProvider).valueOrNull;
-    final async = _tab == 0 ? ref.watch(feedProvider) : ref.watch(discoverProvider);
+    final async =
+        _tab == 0 ? ref.watch(feedProvider) : ref.watch(discoverProvider);
     final myId = Supabase.instance.client.auth.currentUser?.id;
     final unread = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
 
@@ -219,8 +211,9 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       ref.invalidate(suggestionsProvider);
                       ref.invalidate(newsProvider);
                       ref.invalidate(announcementsProvider);
-                      await ref.read(
-                          _tab == 0 ? feedProvider.future : discoverProvider.future);
+                      await ref.read(_tab == 0
+                          ? feedProvider.future
+                          : discoverProvider.future);
                     },
                     child: async.when(
                       loading: () => ListView(children: [premiumLoading()]),
@@ -302,7 +295,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       ),
     );
   }
-
 
   /// Gönderileri kulüp duyuruları ve spor haberleriyle harmanlar.
   ///
@@ -401,7 +393,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     );
   }
 }
-
 
 /// Ödenmemiş aidat şeridi.
 ///

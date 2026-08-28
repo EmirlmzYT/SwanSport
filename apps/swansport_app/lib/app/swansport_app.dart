@@ -63,6 +63,7 @@ import '../features/attendance/presentation/screens/attendance_history_screen.da
 import '../features/teams/presentation/screens/team_roster_directory_screen.dart';
 import '../features/teams/presentation/screens/team_roster_screen.dart';
 import 'config/app_environment.dart';
+import 'app_navigator.dart';
 import 'widgets/page_transitions.dart';
 
 class SwanSportApp extends ConsumerWidget {
@@ -75,6 +76,8 @@ class SwanSportApp extends ConsumerWidget {
     return MaterialApp(
       title: environment.appName,
       debugShowCheckedModeBanner: false,
+      navigatorKey: swanNavigatorKey,
+      scaffoldMessengerKey: swanMessengerKey,
       theme: SwanTheme.light().copyWith(
         pageTransitionsTheme: kSwanPageTransitions,
       ),
@@ -106,13 +109,11 @@ class SwanSportApp extends ConsumerWidget {
         '/topluluklar': (context) => const CommunitiesScreen(),
         '/kesfet': (context) => const DiscoverScreen(),
         '/ilanlar': (context) => const ListingsScreen(),
-        '/organizasyonlar': (context) =>
-            const OrganizationsScreen(),
+        '/organizasyonlar': (context) => const OrganizationsScreen(),
         '/finans': (context) => const FinanceScreen(),
         '/aidatlarim': (context) => const MyFeesScreen(),
         '/bagis': (context) => const CampaignsScreen(),
-        '/federasyon-yetkili': (context) =>
-            const FederationAdminScreen(),
+        '/federasyon-yetkili': (context) => const FederationAdminScreen(),
         '/haber-kaynaklari': (context) => const RssAdminScreen(),
         '/gizlilik': (context) => const PrivacyScreen(),
         '/devam-durumu': (context) => const AttendanceHistoryScreen(),

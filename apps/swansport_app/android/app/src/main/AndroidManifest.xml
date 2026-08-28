@@ -4,11 +4,15 @@
          derlemesinde burada olmazsa DNS çözümlemesi başarısız olur. -->
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:label="SwanSport"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="swansport_default" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
