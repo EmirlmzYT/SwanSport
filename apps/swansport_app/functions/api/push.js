@@ -130,6 +130,98 @@ async function encryptPayload(plaintext, p256dhB64, authB64) {
   return concat(salt, rs, new Uint8Array([asPublic.length]), asPublic, cipher);
 }
 
+// --------------------------------------------------------------------- FCM
+//
+// Android'de tarayıcı yok, dolayısıyla RFC 8291 şifrelemesi de yok. FCM tek
+// bir cihaz token'ı veriyor; şifrelemeyi ve teslimatı Google üstleniyor.
+//
+// Yetkilendirme VAPID'den farklı: orada isteği kendi anahtarımızla
+// imzalıyorduk, burada önce servis hesabıyla bir OAuth2 erişim token'ı alıp
+// onu taşıyoruz. İmza da ES256 değil RS256 — aynı teknik, farklı algoritma.
+
+/** Servis hesabının PEM özel anahtarını WebCrypto'ya alır. */
+async function importServiceAccountKey(pem) {
+  const body = pem
+    .replace(/-----BEGIN PRIVATE KEY-----/, '')
+    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/\s+/g, '');
+  const der = Uint8Array.from(atob(body), (c) => c.charCodeAt(0));
+  return crypto.subtle.importKey(
+    'pkcs8', der,
+    { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    false, ['sign'],
+  );
+}
+
+/**
+ * Google'dan erişim token'ı alır.
+ *
+ * Token bir saat geçerli; her bildirimde yeniden almak gereksiz gecikme
+ * olurdu. İstek başına bir kez alınıp aynı çağrıdaki tüm cihazlarda
+ * kullanılıyor.
+ */
+async function fcmAccessToken(env) {
+  const sa = JSON.parse(env.FCM_SERVICE_ACCOUNT);
+  const now = Math.floor(Date.now() / 1000);
+
+  const header = b64url(new TextEncoder().encode(
+    JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
+  const claim = b64url(new TextEncoder().encode(JSON.stringify({
+    iss: sa.client_email,
+    scope: 'https://www.googleapis.com/auth/firebase.messaging',
+    aud: sa.token_uri,
+    iat: now,
+    exp: now + 3600,
+  })));
+
+  const key = await importServiceAccountKey(sa.private_key);
+  const sig = new Uint8Array(await crypto.subtle.sign(
+    'RSASSA-PKCS1-v1_5', key, new TextEncoder().encode(`${header}.${claim}`)));
+
+  const res = await fetch(sa.token_uri, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({
+      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
+      assertion: `${header}.${claim}.${b64url(sig)}`,
+    }),
+  });
+  if (!res.ok) throw new Error(`token alınamadı: ${res.status}`);
+  return { token: (await res.json()).access_token, projectId: sa.project_id };
+}
+
+/** Tek bir Android cihazına bildirim gönderir. */
+async function sendFcm(token, projectId, sub, job) {
+  const res = await fetch(
+    `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
+    {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        message: {
+          token: sub.endpoint,
+          notification: {
+            title: job.title || 'SwanSport',
+            body: job.body || '',
+          },
+          // Uygulama açıkken hangi sayfaya gidileceği; bildirim gövdesi
+          // değil veri alanı taşır, çünkü ikisi farklı işleniyor.
+          data: { url: job.url || '/bildirimler' },
+          android: {
+            priority: 'high',
+            notification: { channel_id: 'swansport_default' },
+          },
+        },
+      }),
+    },
+  );
+  // 404: token artık geçerli değil (uygulama silinmiş).
+  return { endpoint: sub.endpoint, status: res.status, gone: res.status === 404 };
+}
+
 // ------------------------------------------------------------------ handler
 export async function onRequestPost({ request, env }) {
   if (!env.VAPID_PRIVATE || !env.PUSH_SECRET) {
@@ -153,8 +245,31 @@ export async function onRequestPost({ request, env }) {
     url: job.url || '/bildirimler',
   });
 
+  // Android cihaz varsa erişim token'ını bir kez al — her cihaz için ayrı
+  // token istemek Google'a gereksiz tur atmak olurdu.
+  const hasFcm = subs.some((s) => s.kind === 'fcm');
+  let fcm = null;
+  if (hasFcm && env.FCM_SERVICE_ACCOUNT) {
+    try {
+      fcm = await fcmAccessToken(env);
+    } catch (e) {
+      // Token alınamazsa Android cihazlar atlanır; web tarafı yine gitsin.
+      fcm = { error: String(e) };
+    }
+  }
+
   const results = await Promise.all(subs.map(async (s) => {
     try {
+      if (s.kind === 'fcm') {
+        if (!env.FCM_SERVICE_ACCOUNT) {
+          return { endpoint: s.endpoint, status: 0, error: 'FCM yapılandırılmamış' };
+        }
+        if (!fcm || fcm.error) {
+          return { endpoint: s.endpoint, status: 0, error: fcm?.error || 'token yok' };
+        }
+        return await sendFcm(fcm.token, fcm.projectId, s, job);
+      }
+
       const body = await encryptPayload(payload, s.p256dh, s.auth);
       const res = await fetch(s.endpoint, {
         method: 'POST',
@@ -174,5 +289,7 @@ export async function onRequestPost({ request, env }) {
     }
   }));
 
-  return Response.json({ sent: results.filter((r) => r.status === 201).length, results });
+  // Web push 201, FCM 200 döndürüyor — ikisi de başarı.
+  const sent = results.filter((r) => r.status === 201 || r.status === 200).length;
+  return Response.json({ sent, results });
 }

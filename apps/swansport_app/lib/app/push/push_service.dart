@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -24,6 +26,9 @@ class PushService {
     await _c.from('push_subscriptions').upsert({
       'profile_id': uid,
       'endpoint': sub.endpoint,
+      // Taşıyıcı: sunucu hangi yolla göndereceğini buna bakarak seçiyor.
+      'kind': sub.kind,
+      // FCM'de bu ikisi null; şifrelemeyi Google yapıyor.
       'p256dh': sub.p256dh,
       'auth': sub.auth,
       if (userAgent != null) 'user_agent': userAgent,
@@ -79,13 +84,43 @@ Future<void> disablePush(WidgetRef ref) async {
 /// Push adresleri tarayıcı tarafından kendiliğinden değişebiliyor; bu çağrı
 /// olmadan kullanıcı bir gün sessizce bildirim almaz hale gelir.
 Future<void> refreshPushSilently(WidgetRef ref) async {
-  if (!pushSupported || !pushPermissionGranted) return;
+  if (!pushSupported) return;
   try {
-    final sub = await pushCurrent() ?? await pushSubscribe();
+    // Android'de izin durumu ancak Firebase'e sorulduktan sonra biliniyor;
+    // `pushCurrent` izin istemeden sorar, izin yoksa null döner. Bu yüzden
+    // `pushPermissionGranted` ön kontrolü burada yapılamaz — yapılsaydı
+    // uygulama her açılışta izinsiz sayılıp abonelik hiç tazelenmezdi.
+    final sub = await pushCurrent();
+    if (sub == null) return;
     await ref.read(pushServiceProvider).register(sub);
   } catch (error) {
     // Sessiz tazeleme başarısız olursa kullanıcıyı rahatsız etme; ama izsiz
     // kalmasın — bildirimlerin neden gelmediği ancak buradan anlaşılır.
     debugPrint('SwanSport: push tazeleme başarısız — $error');
   }
+}
+
+/// FCM token'ı yenilendiğinde yeni adresi kaydeder.
+///
+/// Google token'ı kendiliğinden döndürebiliyor (uygulama güncellemesi, veri
+/// temizliği, uzun süre kullanılmama). Dinlenmezse eski token ölür ve
+/// kullanıcı sessizce bildirim almaz hale gelir — en sinsi bildirim hatası
+/// budur, çünkü hiçbir yerde hata görünmez.
+///
+/// Uygulama ömrü boyunca dinlenir; abonelik iptal edilmez.
+///
+/// Birden fazla kez çağrılması zararsız — ana ekran her açıldığında
+/// çağrıldığı için tekrar tekrar dinleyici eklememesi gerekiyor.
+StreamSubscription<String>? _tokenSub;
+
+void listenPushTokenChanges(WidgetRef ref) {
+  if (_tokenSub != null) return;
+  _tokenSub = pushTokenChanges().listen((token) {
+    unawaited(
+      ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
+        (Object e) =>
+            debugPrint('SwanSport: yeni push token kaydedilemedi — $e'),
+      ),
+    );
+  });
 }

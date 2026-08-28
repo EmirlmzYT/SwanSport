@@ -77,7 +77,7 @@ PushSub? _toSub(JSObject? subscription) {
   final endpoint = _get(json, 'endpoint');
   if (endpoint == null) return null;
 
-  return PushSub(
+  return PushSub.web(
     endpoint: (endpoint as JSString).toDart,
     p256dh: (keys.getProperty('p256dh'.toJS) as JSString).toDart,
     auth: (keys.getProperty('auth'.toJS) as JSString).toDart,
@@ -161,3 +161,7 @@ Future<String?> pushUnsubscribe() async {
     return null;
   }
 }
+
+/// Web'de token yenileme kavramı yok — abonelik adresi değişirse
+/// `pushCurrent` zaten yenisini döner. Arayüz bütünlüğü için boş akış.
+Stream<String> pushTokenChanges() => const Stream<String>.empty();
