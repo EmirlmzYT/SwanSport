@@ -205,6 +205,48 @@ class LedgerEntry {
       );
 }
 
+/// Defterin bir sayfası. [totalCount] seçilen süzgeçteki bütün satırları
+/// gösterir; yalnızca bu sayfanın uzunluğu değildir.
+class LedgerPage {
+  const LedgerPage({required this.entries, required this.totalCount});
+
+  final List<LedgerEntry> entries;
+  final int totalCount;
+
+  factory LedgerPage.fromRows(List<dynamic> rows) {
+    if (rows.isEmpty) return const LedgerPage(entries: [], totalCount: 0);
+    final maps = rows.map((r) => (r as Map).cast<String, dynamic>()).toList();
+    return LedgerPage(
+      entries: maps.map(LedgerEntry.fromMap).toList(),
+      totalCount: (maps.first['total_count'] as num?)?.toInt() ?? maps.length,
+    );
+  }
+}
+
+/// Seçilen defter aralığının tamamındaki gelir, gider ve net toplamı.
+class LedgerTotals {
+  const LedgerTotals({
+    required this.income,
+    required this.outgo,
+    required this.net,
+  });
+
+  const LedgerTotals.empty()
+      : income = 0,
+        outgo = 0,
+        net = 0;
+
+  final num income;
+  final num outgo;
+  final num net;
+
+  factory LedgerTotals.fromMap(Map<String, dynamic> m) => LedgerTotals(
+        income: (m['income'] as num?) ?? 0,
+        outgo: (m['outgo'] as num?) ?? 0,
+        net: (m['net'] as num?) ?? 0,
+      );
+}
+
 /// Bir ayın gelir/gider özeti.
 class MonthlyTotals {
   const MonthlyTotals({
@@ -319,8 +361,8 @@ class PendingInvite {
   factory PendingInvite.fromMap(Map<String, dynamic> m) => PendingInvite(
         code: (m['code'] as String?) ?? '',
         targetEmail: m['target_email'] as String?,
-        expiresAt:
-            DateTime.tryParse('${m['expires_at']}')?.toLocal() ?? DateTime.now(),
+        expiresAt: DateTime.tryParse('${m['expires_at']}')?.toLocal() ??
+            DateTime.now(),
       );
 }
 
@@ -402,8 +444,9 @@ class ExpenseService {
     if (status != null) q = q.eq('status', status);
 
     final ordered = q.order('spent_on', ascending: false);
-    final rows =
-        limit == null ? await ordered : await ordered.range(offset, offset + limit - 1);
+    final rows = limit == null
+        ? await ordered
+        : await ordered.range(offset, offset + limit - 1);
 
     return (rows as List)
         .map((r) => ExpenseRow.fromMap((r as Map).cast<String, dynamic>()))
@@ -548,19 +591,67 @@ class ExpenseService {
       _c.storage.from(docsBucket).createSignedUrl(path, 3600);
 
   // ----------------------------------------------------------- raporlar
-  Future<List<LedgerEntry>> ledger(
+  Future<LedgerPage> ledger(
     String clubId, {
     DateTime? from,
     DateTime? to,
+    String? direction,
+    int limit = 50,
+    int offset = 0,
   }) async {
     final rows = await _c.rpc<List<dynamic>>('acc_ledger', params: {
       'p_club': clubId,
       if (from != null) 'p_from': _d(from),
       if (to != null) 'p_to': _d(to),
+      if (direction != null) 'p_direction': direction,
+      'p_limit': limit,
+      'p_offset': offset,
     });
-    return rows
-        .map((r) => LedgerEntry.fromMap((r as Map).cast<String, dynamic>()))
-        .toList();
+    return LedgerPage.fromRows(rows);
+  }
+
+  Future<LedgerTotals> ledgerTotals(
+    String clubId, {
+    DateTime? from,
+    DateTime? to,
+    String? direction,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>('acc_ledger_totals', params: {
+      'p_club': clubId,
+      if (from != null) 'p_from': _d(from),
+      if (to != null) 'p_to': _d(to),
+      if (direction != null) 'p_direction': direction,
+    });
+    if (rows.isEmpty) return const LedgerTotals.empty();
+    return LedgerTotals.fromMap((rows.first as Map).cast<String, dynamic>());
+  }
+
+  /// CSV gibi kullanıcı tarafından açıkça istenen işlemler için bütün
+  /// satırları küçük sunucu sayfalarıyla toplar. Ekran bu metodu kullanmaz.
+  Future<List<LedgerEntry>> ledgerAll(
+    String clubId, {
+    DateTime? from,
+    DateTime? to,
+    String? direction,
+  }) async {
+    const pageSize = 200;
+    var offset = 0;
+    var total = 0;
+    final entries = <LedgerEntry>[];
+    do {
+      final page = await ledger(
+        clubId,
+        from: from,
+        to: to,
+        direction: direction,
+        limit: pageSize,
+        offset: offset,
+      );
+      total = page.totalCount;
+      entries.addAll(page.entries);
+      offset += page.entries.length;
+    } while (offset < total);
+    return entries;
   }
 
   Future<List<MonthlyTotals>> monthlySummary(String clubId, int year) async {
@@ -656,8 +747,7 @@ class ExpenseService {
         .toList();
   }
 
-  static String _d(DateTime d) =>
-      '${d.year.toString().padLeft(4, '0')}-'
+  static String _d(DateTime d) => '${d.year.toString().padLeft(4, '0')}-'
       '${d.month.toString().padLeft(2, '0')}-'
       '${d.day.toString().padLeft(2, '0')}';
 }
@@ -675,8 +765,7 @@ final expenseServiceProvider = Provider<ExpenseService>((ref) {
 /// yüzden aynı kulübün hem yöneticisi hem muhasebecisi olan biri için
 /// muhasebeci bayrağı hiç yanmıyordu. İki ilişki birbirinden bağımsız
 /// olduğuna göre kaynakları da bağımsız olmalı.
-final myAccountantClubIdsProvider =
-    FutureProvider<Set<String>>((ref) async {
+final myAccountantClubIdsProvider = FutureProvider<Set<String>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const {};
   final client = ref.watch(supabaseClientProvider);
   final uid = client.auth.currentUser?.id;

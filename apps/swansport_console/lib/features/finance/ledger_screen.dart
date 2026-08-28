@@ -25,14 +25,18 @@ class LedgerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
     final entries = ref.watch(ledgerProvider);
-    final totals = ref.watch(ledgerTotalsProvider);
+    final totals = ref.watch(ledgerTotalsProvider).valueOrNull ??
+        const LedgerTotals.empty();
     final drafts = ref.watch(draftExpensesProvider).valueOrNull ?? const [];
 
     final columns = _columns(context);
 
     return Column(
       children: [
-        _Toolbar(onAdd: () => showExpenseDialog(context, ref)),
+        _Toolbar(
+          onAdd: () => showExpenseDialog(context, ref),
+          onExport: () => _exportCsv(context, ref),
+        ),
         Divider(height: 1, color: t.colorScheme.outline),
         _SummaryStrip(
           income: totals.income,
@@ -44,20 +48,19 @@ class LedgerScreen extends ConsumerWidget {
         Expanded(
           child: ConsoleTable<LedgerEntry>(
             columns: columns,
-            rows: entries.valueOrNull ?? const [],
+            rows: entries.valueOrNull?.entries ?? const [],
             loading: entries.isLoading,
             error: entries.hasError ? entries.error : null,
-            // Defter sunucuda tarihe göre sıralı geliyor ve aralık zaten
-            // süzülmüş; sayfalama yerine tek liste gösteriliyor.
-            query: const ConsoleTableQuery(pageSize: 100000),
-            totalCount: (entries.valueOrNull ?? const []).length,
+            query: ref.watch(ledgerQueryProvider),
+            totalCount: entries.valueOrNull?.totalCount ?? 0,
             rowId: (e) => e.id,
             emptyMessage: 'Bu aralıkta hareket yok.',
             // Yalnızca gider satırları düzenlenebiliyor. Aidat ve bağış
             // kendi akışlarından geliyor; defterden değiştirilmeleri
             // ödeme onayını atlamak olurdu.
             onRowTap: (e) => e.isIncome ? null : _editExpense(context, ref, e),
-            onQueryChanged: (_) {},
+            onQueryChanged: (query) =>
+                ref.read(ledgerQueryProvider.notifier).state = query,
           ),
         ),
       ],
@@ -74,8 +77,8 @@ class LedgerScreen extends ConsumerWidget {
     try {
       final row = await ref.read(expenseServiceProvider).expenseById(entry.id);
       if (row == null) {
-        messenger.showSnackBar(
-            const SnackBar(content: Text('Kayıt bulunamadı.')));
+        messenger
+            .showSnackBar(const SnackBar(content: Text('Kayıt bulunamadı.')));
         return;
       }
       if (context.mounted) {
@@ -172,6 +175,30 @@ class LedgerScreen extends ConsumerWidget {
       ),
     ];
   }
+
+  Future<void> _exportCsv(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final club = await ref.read(activeClubProvider.future);
+      if (club == null) return;
+      final range = ref.read(ledgerRangeProvider);
+      final rows = await ref.read(expenseServiceProvider).ledgerAll(
+            club.id,
+            from: range.from,
+            to: range.to,
+            direction: ref.read(ledgerDirectionProvider),
+          );
+      if (!context.mounted) return;
+      await downloadCsv(
+        fileName: csvFileName('defter'),
+        columns: _columns(context),
+        rows: rows,
+      );
+    } catch (error) {
+      messenger
+          .showSnackBar(SnackBar(content: Text('CSV oluşturulamadı: $error')));
+    }
+  }
 }
 
 /// Toplama giren satır mı?
@@ -190,9 +217,10 @@ String? _statusLabel(String status) => switch (status) {
     };
 
 class _Toolbar extends ConsumerWidget {
-  const _Toolbar({required this.onAdd});
+  const _Toolbar({required this.onAdd, required this.onExport});
 
   final VoidCallback onAdd;
+  final Future<void> Function() onExport;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -221,8 +249,11 @@ class _Toolbar extends ConsumerWidget {
                 DropdownMenuItem(value: 'in', child: Text('Gelir')),
                 DropdownMenuItem(value: 'out', child: Text('Gider')),
               ],
-              onChanged: (v) =>
-                  ref.read(ledgerDirectionProvider.notifier).state = v,
+              onChanged: (v) {
+                ref.read(ledgerDirectionProvider.notifier).state = v;
+                ref.read(ledgerQueryProvider.notifier).state =
+                    const ConsoleTableQuery();
+              },
             ),
           ),
           const Spacer(),
@@ -238,14 +269,7 @@ class _Toolbar extends ConsumerWidget {
             const SizedBox(width: ConsoleDensity.sm),
           ],
           OutlinedButton.icon(
-            onPressed: () async {
-              final rows = ref.read(ledgerProvider).valueOrNull ?? const [];
-              await downloadCsv(
-                fileName: csvFileName('defter'),
-                columns: const LedgerScreen()._columns(context),
-                rows: rows,
-              );
-            },
+            onPressed: onExport,
             icon: const Icon(Icons.download_rounded, size: 17),
             label: const Text('CSV'),
           ),
@@ -271,6 +295,7 @@ class _Toolbar extends ConsumerWidget {
     if (picked == null) return;
     ref.read(ledgerRangeProvider.notifier).state =
         DateRange(picked.start, picked.end);
+    ref.read(ledgerQueryProvider.notifier).state = const ConsoleTableQuery();
   }
 }
 
