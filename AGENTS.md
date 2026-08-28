@@ -171,8 +171,10 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
 
 ### Yarım / doğrulanmamış
 
-- **Android push (FCM)** — zincir kurulu ve APK derleniyor ama **gerçek
-  cihazda hiç test edilmedi**
+- **Android push (FCM)** — izin, bildirim kanalı, ön plan uyarısı ve bildirim
+  dokunuşunda rota açma akışı `f2e16a1` ile tamamlandı; debug APK derlendi.
+  **Gerçek cihazda henüz test edilmedi**: bu makinede `adb` yok ve Cloudflare
+  tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
 - **Defterde sayfalama yok** — `acc_ledger` aralıktaki her hareketi döndürür;
@@ -187,9 +189,10 @@ Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 
 ### ⚠️ Commit durumu
 
-FCM push zinciri `d62fc88` ile, gider ve muhasebeci sistemi de `351fd9f`
-ile commit'lendi. Çalışma alanı bu noktada temiz olmalı; yeni bir değişiklik
-görürsen sahibini ve kapsamını doğrulamadan üzerine yazma.
+FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1` ve gider ile
+muhasebeci sistemi `351fd9f` ile commit'lendi. Çalışma alanı bu noktada temiz
+olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını doğrulamadan
+üzerine yazma.
 
 ---
 
