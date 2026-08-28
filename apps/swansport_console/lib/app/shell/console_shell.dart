@@ -74,9 +74,18 @@ class _Sidebar extends ConsumerWidget {
     final visible = kConsoleModules.where((m) => m.visibleTo(access)).toList();
 
     // Kitleye göre grupla — kulüp işleri ile platform işleri karışmasın.
+    //
+    // Bir modül birden fazla kitleye açık olabiliyor (mali modüller hem kulüp
+    // yetkilisine hem muhasebeciye). Başlık, kullanıcının **kendi** sahip
+    // olduğu kitleden seçiliyor: dışarıdan gelen muhasebeci mali modülleri
+    // "Kulüp" başlığı altında görmesin, "Muhasebe" altında görsün.
     final groups = <ConsoleAudience, List<ConsoleModule>>{};
     for (final m in visible) {
-      groups.putIfAbsent(m.audience, () => []).add(m);
+      final group = m.audience.firstWhere(
+        access.allows,
+        orElse: () => m.audience.first,
+      );
+      groups.putIfAbsent(group, () => []).add(m);
     }
 
     return AnimatedContainer(

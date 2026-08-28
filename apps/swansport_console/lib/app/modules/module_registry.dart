@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import '../../features/athletes/athletes_screen.dart';
 import '../../features/schedule/attendance_screen.dart';
 import '../../features/schedule/facilities_screen.dart';
+import '../../features/finance/accounts_screen.dart';
+import '../../features/finance/ledger_screen.dart';
+import '../../features/finance/report_screen.dart';
 import '../../features/platform/approvals_screen.dart';
 import '../../features/platform/platform_screens.dart';
 import '../../features/schedule/schedule_screen.dart';
@@ -22,7 +25,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Sporcular',
     icon: Icons.groups_rounded,
     route: '/sporcular',
-    audience: ConsoleAudience.clubStaff,
+    audience: {ConsoleAudience.clubStaff},
     builder: _athletes,
   ),
   ConsoleModule(
@@ -30,7 +33,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Takvim',
     icon: Icons.calendar_month_rounded,
     route: '/takvim',
-    audience: ConsoleAudience.clubStaff,
+    audience: {ConsoleAudience.clubStaff},
     builder: _schedule,
   ),
   ConsoleModule(
@@ -38,7 +41,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Yoklama',
     icon: Icons.fact_check_rounded,
     route: '/yoklama',
-    audience: ConsoleAudience.clubStaff,
+    audience: {ConsoleAudience.clubStaff},
     builder: _attendance,
   ),
   ConsoleModule(
@@ -46,10 +49,39 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Tesisler',
     icon: Icons.stadium_rounded,
     route: '/tesisler',
-    audience: ConsoleAudience.clubStaff,
+    audience: {ConsoleAudience.clubStaff},
     // Tesis yönetimi mobilde 4. kademeden açılıyor; konsolda da aynı eşik.
     minCoachLevel: 4,
     builder: _facilities,
+  ),
+
+  // ------------------------------------------------------------ mali
+  // Hem kulüp yetkilisine hem muhasebeciye açık. İkisi aynı defteri görür;
+  // fark, aidat satırlarında sporcu adının görünüp görünmemesi — o ayrım
+  // veritabanındaki RPC'lerde yapılıyor, burada değil.
+  ConsoleModule(
+    id: 'ledger',
+    label: 'Gelir–Gider',
+    icon: Icons.receipt_long_rounded,
+    route: '/defter',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _ledger,
+  ),
+  ConsoleModule(
+    id: 'accounts',
+    label: 'Kasa & Banka',
+    icon: Icons.account_balance_rounded,
+    route: '/kasa',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _accounts,
+  ),
+  ConsoleModule(
+    id: 'report',
+    label: 'Mali Rapor',
+    icon: Icons.query_stats_rounded,
+    route: '/mali-rapor',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _report,
   ),
 
   // -------------------------------------------------------- platform
@@ -58,7 +90,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Onaylar',
     icon: Icons.verified_rounded,
     route: '/onaylar',
-    audience: ConsoleAudience.platformAdmin,
+    audience: {ConsoleAudience.platformAdmin},
     builder: _approvals,
   ),
   ConsoleModule(
@@ -66,7 +98,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Kullanıcılar',
     icon: Icons.badge_rounded,
     route: '/kullanicilar',
-    audience: ConsoleAudience.platformAdmin,
+    audience: {ConsoleAudience.platformAdmin},
     builder: _users,
   ),
   ConsoleModule(
@@ -74,7 +106,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Moderasyon',
     icon: Icons.flag_rounded,
     route: '/moderasyon',
-    audience: ConsoleAudience.platformAdmin,
+    audience: {ConsoleAudience.platformAdmin},
     builder: _moderation,
   ),
   ConsoleModule(
@@ -82,7 +114,7 @@ const List<ConsoleModule> kConsoleModules = [
     label: 'Metrikler',
     icon: Icons.insights_rounded,
     route: '/metrikler',
-    audience: ConsoleAudience.platformAdmin,
+    audience: {ConsoleAudience.platformAdmin},
     builder: _metrics,
   ),
 ];
@@ -103,6 +135,12 @@ Widget _schedule(BuildContext _) => const ScheduleScreen();
 Widget _attendance(BuildContext _) => const AttendanceScreen();
 
 Widget _facilities(BuildContext _) => const FacilitiesScreen();
+
+Widget _ledger(BuildContext _) => const LedgerScreen();
+
+Widget _accounts(BuildContext _) => const AccountsScreen();
+
+Widget _report(BuildContext _) => const ReportScreen();
 
 Widget _approvals(BuildContext _) => const ApprovalsScreen();
 

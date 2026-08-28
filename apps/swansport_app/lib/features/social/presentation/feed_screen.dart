@@ -27,8 +27,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   @override
   void initState() {
     super.initState();
-    // Push adresi tarayıcı tarafından sessizce değişebiliyor; ana ekran her
-    // açıldığında kaydı tazeleyerek bildirimlerin bir gün susmasını önleriz.
+    // Push adresi sessizce değişebiliyor — tarayıcıda abonelik, Android'de
+    // FCM token'ı. Ana ekran her açıldığında kaydı tazeleyerek bildirimlerin
+    // bir gün susmasını önleriz.
+    //
+    // Tazeleme tek seferlik bir fotoğraf; dinleyici ise uygulama açıkken
+    // Google token'ı döndürürse onu da yakalar. İkisi birden gerekiyor.
+    listenPushTokenChanges(ref);
     Future.microtask(() async {
       await refreshPushSilently(ref);
       await ensureMyCommunities(ref);

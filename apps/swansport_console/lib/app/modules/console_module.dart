@@ -40,12 +40,17 @@ extension ConsoleAudienceAccess on SwanAccess {
   bool allows(ConsoleAudience a) => switch (a) {
         ConsoleAudience.clubStaff => isClubStaff,
         ConsoleAudience.platformAdmin => isPlatformAdmin,
+        ConsoleAudience.accountant => isAccountant,
         // Henüz kimseye açılmadı — modül yazıldığında burası dolacak.
-        ConsoleAudience.federation ||
-        ConsoleAudience.accountant ||
-        ConsoleAudience.marketplace =>
-          false,
+        ConsoleAudience.federation || ConsoleAudience.marketplace => false,
       };
+
+  /// Kitlelerden **herhangi biri** açıksa modül görünür.
+  ///
+  /// Mali modüller hem kulüp yetkilisine hem muhasebeciye açık; ikisi de aynı
+  /// defteri görüyor, farkları sporcu adını görüp görmemeleri (o ayrım
+  /// veritabanında, RPC'lerde yapılıyor).
+  bool allowsAny(Set<ConsoleAudience> audiences) => audiences.any(allows);
 }
 
 /// Konsolun erişim profili — paylaşılan hesabın aynısı.
@@ -76,7 +81,8 @@ class ConsoleModule {
   /// Gerçek URL yolu — konsol kullanıcısı sekme açar, yer imi koyar.
   final String route;
 
-  final ConsoleAudience audience;
+  /// Modülü görebilecek kitleler — biri yetse görünür.
+  final Set<ConsoleAudience> audience;
 
   /// Kulüp modülleri için asgari kademe (0 = kademe şartı yok).
   final int minCoachLevel;
@@ -84,9 +90,16 @@ class ConsoleModule {
   final WidgetBuilder builder;
 
   bool visibleTo(SwanAccess a) {
-    if (!a.allows(audience)) return false;
-    // Kademe eşiği kontrolü paylaşılan hesapta: kulüp yöneticisi kademesiz de
-    // olsa geçer, kuralın kendisi tek yerde durur.
-    return a.hasCoachLevel(minCoachLevel);
+    if (!a.allowsAny(audience)) return false;
+
+    // Kademe eşiği yalnızca kulüp yetkilisi ekseninde anlamlı. Muhasebecinin
+    // antrenör kademesi yok ve olması da beklenmiyor; eşik ona uygulanırsa
+    // kendisine açık olan modülü göremez.
+    if (minCoachLevel > 0 &&
+        audience.contains(ConsoleAudience.clubStaff) &&
+        !a.isAccountant) {
+      return a.hasCoachLevel(minCoachLevel);
+    }
+    return true;
   }
 }

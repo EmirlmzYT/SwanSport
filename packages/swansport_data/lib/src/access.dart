@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'club_data.dart';
+import 'expense_service.dart';
 import 'supabase_athletes.dart';
 import 'verification_service.dart';
 
@@ -26,6 +27,7 @@ class SwanAccess {
     required this.clubRole,
     required this.coachLevel,
     required this.athleteKind,
+    this.accountantClubIds = const {},
   });
 
   static const SwanAccess none = SwanAccess(
@@ -58,6 +60,19 @@ class SwanAccess {
 
   bool get isVerifiedAthlete => athleteKind != null;
   bool get isLicensedAthlete => athleteKind == 'athlete_licensed';
+
+  /// Muhasebecisi olduğu kulüplerin kimlikleri.
+  ///
+  /// Muhasebecilik **ayrı bir eksen**: kulüpte görev almak değil, dışarıdan
+  /// hizmet vermek. Bu yüzden [isClubStaff]'i etkilemiyor — muhasebeci
+  /// kulübün defterini görür ama sporcularını, kadrosunu, yoklamasını görmez.
+  /// Aynı kişi hem antrenör hem başka bir kulübün muhasebecisi olabilir.
+  final Set<String> accountantClubIds;
+
+  bool get isAccountant => accountantClubIds.isNotEmpty;
+
+  bool isAccountantOf(String? clubId) =>
+      clubId != null && accountantClubIds.contains(clubId);
 
   /// Kulüpte görev alıyor mu?
   ///
@@ -107,10 +122,17 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     }
   }
 
+  // Muhasebecilik kendi sorgusundan geliyor, kulüp listesinden türetilmiyor:
+  // aynı kulübün hem yöneticisi hem muhasebecisi olan biri için kulüp listesi
+  // yalnızca üyeliği gösteriyor ve muhasebeci bayrağı kayboluyordu.
+  final accountantClubs =
+      ref.watch(myAccountantClubIdsProvider).valueOrNull ?? const <String>{};
+
   return SwanAccess(
     isPlatformAdmin: isAdmin,
     clubRole: profile.role,
     coachLevel: level,
     athleteKind: athleteKind,
+    accountantClubIds: accountantClubs,
   );
 });

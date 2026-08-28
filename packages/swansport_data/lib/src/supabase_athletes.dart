@@ -89,18 +89,56 @@ class SupabaseAthleteService {
   String? get _uid => _client.auth.currentUser?.id;
 
   /// Giriş yapan kullanıcının aktif kulüp üyelikleri.
+  /// Kişinin eriştiği kulüpler.
+  ///
+  /// İki kaynak birleşir:
+  ///
+  /// * `club_memberships` — kulüpte görevi olanlar (yönetici, antrenör, sporcu…)
+  /// * `club_accountants` — dışarıdan hizmet veren muhasebeci
+  ///
+  /// Muhasebeci kulübün **üyesi değil**; ayrı tabloda durur ve buraya
+  /// `role: 'accountant'` ile katılır. Mevcut `role` kontrolleri yalnızca
+  /// `club_admin`/`coach` aradığı için muhasebeciye kulüp yönetim düğmeleri
+  /// açılmaz — kontrol edildi.
   Future<List<ClubRef>> fetchMyClubs() async {
     final uid = _uid;
     if (uid == null) return const [];
-    final rows = await _client
+
+    final memberRows = await _client
         .from('club_memberships')
         .select('role, clubs(id, name, city, status)')
         .eq('profile_id', uid)
         .eq('status', 'active');
-    return (rows as List)
+
+    final clubs = (memberRows as List)
         .map((r) =>
             ClubRef.fromMembershipRow((r as Map).cast<String, dynamic>()))
         .toList();
+
+    final accountantRows = await _client
+        .from('club_accountants')
+        .select('clubs(id, name, city, status)')
+        .eq('profile_id', uid)
+        .eq('status', 'active');
+
+    final seen = clubs.map((c) => c.id).toSet();
+    for (final r in accountantRows as List) {
+      final club = ((r as Map)['clubs'] as Map?)?.cast<String, dynamic>();
+      if (club == null) continue;
+      final id = club['id'] as String;
+      // Hem üye hem muhasebeci olan biri için üyelik rolü daha yetkili;
+      // ikinci kez eklemiyoruz.
+      if (seen.contains(id)) continue;
+      clubs.add(ClubRef(
+        id: id,
+        name: (club['name'] as String?) ?? '',
+        city: club['city'] as String?,
+        role: 'accountant',
+        status: (club['status'] as String?) ?? 'active',
+      ));
+    }
+
+    return clubs;
   }
 
   /// Yeni kulüp oluştur ve kullanıcıyı yönetici yap (create_club RPC).

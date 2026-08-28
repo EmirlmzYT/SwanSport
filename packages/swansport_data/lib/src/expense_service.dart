@@ -1,0 +1,747 @@
+import 'dart:typed_data';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+
+import 'supabase_athletes.dart';
+import 'supabase_scope.dart';
+
+/// ---------------------------------------------------------------------------
+/// Gider defteri ve mali raporlama.
+///
+/// Kulübün para **çıkışı** burada; girişi `finance_service.dart`'ta. İkisini
+/// birleştiren okuma `ledger()` — o da veritabanındaki `acc_ledger` RPC'sinden
+/// geliyor.
+///
+/// Muhasebeci bu servisi kullanırken sporcu adı görmez: okuma RPC'leri adı hiç
+/// seçmiyor, yerine kimlikten türetilmiş sabit bir takma gösterim dönüyor
+/// (`#A3F91C`). Bu bir arayüz kararı değil, veritabanı kararı — muhasebeciye
+/// `athletes` tablosuna RLS erişimi verilmedi.
+/// ---------------------------------------------------------------------------
+
+/// Kasa, banka ya da POS hesabı.
+class CashAccount {
+  const CashAccount({
+    required this.id,
+    required this.name,
+    required this.kind,
+    this.active = true,
+  });
+
+  final String id;
+  final String name;
+
+  /// cash | bank | pos
+  final String kind;
+  final bool active;
+
+  String get kindLabel => switch (kind) {
+        'cash' => 'Nakit kasa',
+        'pos' => 'POS',
+        _ => 'Banka',
+      };
+
+  factory CashAccount.fromMap(Map<String, dynamic> m) => CashAccount(
+        id: m['id'] as String,
+        name: (m['name'] as String?) ?? '',
+        kind: (m['kind'] as String?) ?? 'bank',
+        active: (m['active'] as bool?) ?? true,
+      );
+}
+
+/// Hesabın hareketlerden hesaplanmış durumu.
+///
+/// Bakiye veritabanında saklanmıyor; saklansaydı iptal edilen bir ödeme ya da
+/// düzeltilen bir gider sonrası hareketlerle ayrışırdı.
+class AccountBalance {
+  const AccountBalance({
+    required this.accountId,
+    required this.name,
+    required this.kind,
+    required this.income,
+    required this.outgo,
+    required this.balance,
+  });
+
+  final String accountId;
+  final String name;
+  final String kind;
+  final num income;
+  final num outgo;
+  final num balance;
+
+  factory AccountBalance.fromMap(Map<String, dynamic> m) => AccountBalance(
+        accountId: (m['account_id'] as String?) ?? '',
+        name: (m['name'] as String?) ?? '',
+        kind: (m['kind'] as String?) ?? 'bank',
+        income: (m['income'] as num?) ?? 0,
+        outgo: (m['outgo'] as num?) ?? 0,
+        balance: (m['balance'] as num?) ?? 0,
+      );
+}
+
+class ExpenseCategory {
+  const ExpenseCategory({
+    required this.id,
+    required this.name,
+    this.clubId,
+    this.sort = 100,
+  });
+
+  final String id;
+  final String name;
+
+  /// null ise tüm kulüplere açık ortak kategori.
+  final String? clubId;
+  final int sort;
+
+  bool get isShared => clubId == null;
+
+  factory ExpenseCategory.fromMap(Map<String, dynamic> m) => ExpenseCategory(
+        id: m['id'] as String,
+        name: (m['name'] as String?) ?? '',
+        clubId: m['club_id'] as String?,
+        sort: (m['sort'] as int?) ?? 100,
+      );
+}
+
+class ExpenseRow {
+  const ExpenseRow({
+    required this.id,
+    required this.amount,
+    required this.spentOn,
+    required this.status,
+    this.categoryId,
+    this.categoryName,
+    this.accountId,
+    this.accountName,
+    this.supplier,
+    this.note,
+    this.receiptPath,
+  });
+
+  final String id;
+  final num amount;
+  final DateTime spentOn;
+
+  /// draft | complete — taslak, mobilden fişle girilip tamamlanmayı bekleyen.
+  final String status;
+
+  final String? categoryId;
+  final String? categoryName;
+  final String? accountId;
+  final String? accountName;
+  final String? supplier;
+  final String? note;
+  final String? receiptPath;
+
+  bool get isDraft => status == 'draft';
+
+  factory ExpenseRow.fromMap(Map<String, dynamic> m) {
+    String? nested(String table, String field) {
+      final t = m[table];
+      return t is Map ? t[field] as String? : null;
+    }
+
+    return ExpenseRow(
+      id: m['id'] as String,
+      amount: (m['amount'] as num?) ?? 0,
+      spentOn: DateTime.tryParse('${m['spent_on']}') ?? DateTime.now(),
+      status: (m['status'] as String?) ?? 'complete',
+      categoryId: m['category_id'] as String?,
+      categoryName: nested('expense_categories', 'name'),
+      accountId: m['account_id'] as String?,
+      accountName: nested('cash_accounts', 'name'),
+      supplier: m['supplier'] as String?,
+      note: m['note'] as String?,
+      receiptPath: m['receipt_path'] as String?,
+    );
+  }
+}
+
+/// Defterdeki tek satır — gelir ya da gider.
+class LedgerEntry {
+  const LedgerEntry({
+    required this.id,
+    required this.movedOn,
+    required this.direction,
+    required this.label,
+    required this.category,
+    required this.counterpart,
+    required this.account,
+    required this.amount,
+    required this.status,
+  });
+
+  final String id;
+  final DateTime movedOn;
+
+  /// in | out
+  final String direction;
+  final String label;
+  final String category;
+
+  /// Tedarikçi, bağışçı ya da sporcunun takma gösterimi (`#A3F91C`).
+  final String counterpart;
+  final String account;
+  final num amount;
+  final String status;
+
+  bool get isIncome => direction == 'in';
+
+  /// Toplamlarda kullanılacak işaretli tutar.
+  num get signed => isIncome ? amount : -amount;
+
+  factory LedgerEntry.fromMap(Map<String, dynamic> m) => LedgerEntry(
+        id: (m['entry_id'] as String?) ?? '',
+        movedOn: DateTime.tryParse('${m['moved_on']}') ?? DateTime.now(),
+        direction: (m['direction'] as String?) ?? 'out',
+        label: (m['label'] as String?) ?? '',
+        category: (m['category'] as String?) ?? '—',
+        counterpart: (m['counterpart'] as String?) ?? '—',
+        account: (m['account'] as String?) ?? '—',
+        amount: (m['amount'] as num?) ?? 0,
+        status: (m['status'] as String?) ?? '',
+      );
+}
+
+/// Bir ayın gelir/gider özeti.
+class MonthlyTotals {
+  const MonthlyTotals({
+    required this.month,
+    required this.income,
+    required this.outgo,
+    required this.net,
+  });
+
+  final int month;
+  final num income;
+  final num outgo;
+  final num net;
+
+  factory MonthlyTotals.fromMap(Map<String, dynamic> m) => MonthlyTotals(
+        month: (m['month'] as num?)?.toInt() ?? 0,
+        income: (m['income'] as num?) ?? 0,
+        outgo: (m['outgo'] as num?) ?? 0,
+        net: (m['net'] as num?) ?? 0,
+      );
+}
+
+/// Kategori bazında gider dağılımı.
+class CategoryTotal {
+  const CategoryTotal({
+    required this.category,
+    required this.total,
+    required this.count,
+  });
+
+  final String category;
+  final num total;
+  final int count;
+
+  factory CategoryTotal.fromMap(Map<String, dynamic> m) => CategoryTotal(
+        category: (m['category'] as String?) ?? 'Kategorisiz',
+        total: (m['total'] as num?) ?? 0,
+        count: (m['entry_count'] as num?)?.toInt() ?? 0,
+      );
+}
+
+/// Ödenmemiş aidatlar — sporcu adı yerine takma gösterimle.
+class Receivable {
+  const Receivable({
+    required this.athleteCode,
+    required this.unpaidCount,
+    required this.total,
+    this.oldest,
+  });
+
+  final String athleteCode;
+  final int unpaidCount;
+  final num total;
+  final DateTime? oldest;
+
+  factory Receivable.fromMap(Map<String, dynamic> m) => Receivable(
+        athleteCode: (m['athlete_code'] as String?) ?? '—',
+        unpaidCount: (m['unpaid_count'] as num?)?.toInt() ?? 0,
+        total: (m['total'] as num?) ?? 0,
+        oldest: DateTime.tryParse('${m['oldest']}'),
+      );
+}
+
+/// Kulübün defterine erişimi olan bir muhasebeci.
+class AccountantRef {
+  const AccountantRef({
+    required this.profileId,
+    required this.name,
+    required this.status,
+    this.username,
+    this.since,
+  });
+
+  final String profileId;
+  final String name;
+
+  /// active | revoked — kayıt silinmiyor, erişim geçmişi korunuyor.
+  final String status;
+  final String? username;
+  final DateTime? since;
+
+  bool get isActive => status == 'active';
+
+  factory AccountantRef.fromMap(Map<String, dynamic> m) {
+    final p = m['profiles'];
+    return AccountantRef(
+      profileId: m['profile_id'] as String,
+      name: (p is Map ? p['full_name'] as String? : null) ?? 'Muhasebeci',
+      username: p is Map ? p['username'] as String? : null,
+      status: (m['status'] as String?) ?? 'active',
+      since: DateTime.tryParse('${m['created_at']}')?.toLocal(),
+    );
+  }
+}
+
+/// Henüz kullanılmamış, süresi dolmamış davet.
+class PendingInvite {
+  const PendingInvite({
+    required this.code,
+    required this.expiresAt,
+    this.targetEmail,
+  });
+
+  final String code;
+  final DateTime expiresAt;
+
+  /// Doluysa yalnızca bu e-posta kullanabilir.
+  final String? targetEmail;
+
+  Duration get remaining => expiresAt.difference(DateTime.now());
+
+  factory PendingInvite.fromMap(Map<String, dynamic> m) => PendingInvite(
+        code: (m['code'] as String?) ?? '',
+        targetEmail: m['target_email'] as String?,
+        expiresAt:
+            DateTime.tryParse('${m['expires_at']}')?.toLocal() ?? DateTime.now(),
+      );
+}
+
+// ============================================================== servis
+
+class ExpenseService {
+  ExpenseService(this._c);
+  final SupabaseClient _c;
+
+  /// Fiş/fatura görsellerinin bucket'ı — özel, imzalı URL ile okunur.
+  static const String docsBucket = 'finance-docs';
+
+  // ----------------------------------------------------------- hesaplar
+  Future<List<CashAccount>> accounts(String clubId) async {
+    final rows = await _c
+        .from('cash_accounts')
+        .select('id, name, kind, active')
+        .eq('club_id', clubId)
+        .eq('active', true)
+        .order('name');
+    return (rows as List)
+        .map((r) => CashAccount.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> addAccount(String clubId, String name, String kind) async {
+    await _c
+        .from('cash_accounts')
+        .insert({'club_id': clubId, 'name': name, 'kind': kind});
+  }
+
+  Future<List<AccountBalance>> balances(String clubId) async {
+    final rows = await _c
+        .rpc<List<dynamic>>('acc_account_balances', params: {'p_club': clubId});
+    return rows
+        .map((r) => AccountBalance.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  // -------------------------------------------------------- kategoriler
+  Future<List<ExpenseCategory>> categories(String clubId) async {
+    // Ortak kategoriler (club_id null) ve kulübün kendi kategorileri birlikte.
+    final rows = await _c
+        .from('expense_categories')
+        .select('id, name, club_id, sort')
+        .or('club_id.is.null,club_id.eq.$clubId')
+        .order('sort');
+    return (rows as List)
+        .map((r) => ExpenseCategory.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> addCategory(String clubId, String name) async {
+    await _c
+        .from('expense_categories')
+        .insert({'club_id': clubId, 'name': name});
+  }
+
+  // ------------------------------------------------------------ gider
+  Future<List<ExpenseRow>> expenses(
+    String clubId, {
+    DateTime? from,
+    DateTime? to,
+    String? categoryId,
+    String? status,
+    int? limit,
+    int offset = 0,
+  }) async {
+    var q = _c
+        .from('expenses')
+        .select('id, amount, spent_on, status, category_id, account_id, '
+            'supplier, note, receipt_path, '
+            'expense_categories(name), cash_accounts(name)')
+        .eq('club_id', clubId);
+
+    if (from != null) q = q.gte('spent_on', _d(from));
+    if (to != null) q = q.lte('spent_on', _d(to));
+    if (categoryId != null) q = q.eq('category_id', categoryId);
+    if (status != null) q = q.eq('status', status);
+
+    final ordered = q.order('spent_on', ascending: false);
+    final rows =
+        limit == null ? await ordered : await ordered.range(offset, offset + limit - 1);
+
+    return (rows as List)
+        .map((r) => ExpenseRow.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Tek gider kaydı — defterde bir satıra tıklanınca düzenleme için.
+  Future<ExpenseRow?> expenseById(String id) async {
+    final row = await _c
+        .from('expenses')
+        .select('id, amount, spent_on, status, category_id, account_id, '
+            'supplier, note, receipt_path, '
+            'expense_categories(name), cash_accounts(name)')
+        .eq('id', id)
+        .maybeSingle();
+    if (row == null) return null;
+    return ExpenseRow.fromMap(row.cast<String, dynamic>());
+  }
+
+  /// Tam gider kaydı (masaüstü).
+  Future<String> addExpense({
+    required String clubId,
+    required num amount,
+    required DateTime spentOn,
+    String? categoryId,
+    String? accountId,
+    String? supplier,
+    String? note,
+    String? receiptPath,
+  }) async {
+    final row = await _c
+        .from('expenses')
+        .insert({
+          'club_id': clubId,
+          'amount': amount,
+          'spent_on': _d(spentOn),
+          'status': 'complete',
+          if (categoryId != null) 'category_id': categoryId,
+          if (accountId != null) 'account_id': accountId,
+          if (supplier != null && supplier.isNotEmpty) 'supplier': supplier,
+          if (note != null && note.isNotEmpty) 'note': note,
+          if (receiptPath != null) 'receipt_path': receiptPath,
+          'entered_by': _c.auth.currentUser?.id,
+        })
+        .select('id')
+        .single();
+    return row['id'] as String;
+  }
+
+  /// Mobilden hızlı giriş — tutar ve fiş yeter, gerisi sonra tamamlanır.
+  ///
+  /// Taslak olarak kaydedilir; raporlar taslakları saymaz. Amaç fişin
+  /// kaybolmasını önlemek, mükemmel kaydı ilk anda almak değil.
+  Future<String> addDraftExpense({
+    required String clubId,
+    required num amount,
+    String? categoryId,
+    String? receiptPath,
+    String? note,
+  }) async {
+    final row = await _c
+        .from('expenses')
+        .insert({
+          'club_id': clubId,
+          'amount': amount,
+          'spent_on': _d(DateTime.now()),
+          'status': 'draft',
+          if (categoryId != null) 'category_id': categoryId,
+          if (receiptPath != null) 'receipt_path': receiptPath,
+          if (note != null && note.isNotEmpty) 'note': note,
+          'entered_by': _c.auth.currentUser?.id,
+        })
+        .select('id')
+        .single();
+    return row['id'] as String;
+  }
+
+  Future<void> updateExpense(
+    String id, {
+    num? amount,
+    DateTime? spentOn,
+    String? categoryId,
+    String? accountId,
+    String? supplier,
+    String? note,
+    String? status,
+  }) async {
+    await _c.from('expenses').update({
+      if (amount != null) 'amount': amount,
+      if (spentOn != null) 'spent_on': _d(spentOn),
+      if (categoryId != null) 'category_id': categoryId,
+      if (accountId != null) 'account_id': accountId,
+      if (supplier != null) 'supplier': supplier,
+      if (note != null) 'note': note,
+      if (status != null) 'status': status,
+    }).eq('id', id);
+  }
+
+  Future<void> deleteExpense(String id) async {
+    await _c.from('expenses').delete().eq('id', id);
+  }
+
+  /// Daha önce yazılmış tedarikçi adları — giriş sırasında öneri için.
+  ///
+  /// Ayrı bir tedarikçi tablosu yok; öneri listesi yazım farklarını
+  /// ("Migros" / "migros") azaltmak için var.
+  Future<List<String>> supplierSuggestions(String clubId) async {
+    final rows = await _c
+        .from('expenses')
+        .select('supplier')
+        .eq('club_id', clubId)
+        .not('supplier', 'is', null)
+        .order('created_at', ascending: false)
+        .limit(200);
+    final seen = <String>{};
+    for (final r in rows as List) {
+      final s = (r as Map)['supplier'] as String?;
+      if (s != null && s.trim().isNotEmpty) seen.add(s.trim());
+    }
+    return seen.toList()..sort();
+  }
+
+  // ------------------------------------------------------------ belge
+  Future<String> uploadReceipt({
+    required String clubId,
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final dot = fileName.lastIndexOf('.');
+    final ext = dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : 'jpg';
+    // Yol düzeni: {club_id}/{zaman}.{uzantı} — RLS ilk klasöre bakıyor.
+    final path = '$clubId/${DateTime.now().millisecondsSinceEpoch}.$ext';
+    await _c.storage.from(docsBucket).uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+    return path;
+  }
+
+  Future<String> receiptUrl(String path) =>
+      _c.storage.from(docsBucket).createSignedUrl(path, 3600);
+
+  // ----------------------------------------------------------- raporlar
+  Future<List<LedgerEntry>> ledger(
+    String clubId, {
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>('acc_ledger', params: {
+      'p_club': clubId,
+      if (from != null) 'p_from': _d(from),
+      if (to != null) 'p_to': _d(to),
+    });
+    return rows
+        .map((r) => LedgerEntry.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<List<MonthlyTotals>> monthlySummary(String clubId, int year) async {
+    final rows = await _c.rpc<List<dynamic>>('acc_monthly_summary',
+        params: {'p_club': clubId, 'p_year': year});
+    return rows
+        .map((r) => MonthlyTotals.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<List<CategoryTotal>> categoryBreakdown(
+    String clubId, {
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>('acc_category_breakdown', params: {
+      'p_club': clubId,
+      if (from != null) 'p_from': _d(from),
+      if (to != null) 'p_to': _d(to),
+    });
+    return rows
+        .map((r) => CategoryTotal.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<List<Receivable>> receivables(String clubId) async {
+    final rows = await _c
+        .rpc<List<dynamic>>('acc_receivables', params: {'p_club': clubId});
+    return rows
+        .map((r) => Receivable.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  // -------------------------------------------------------- muhasebeci
+  /// Kulüp adına muhasebeci davet kodu üretir — 48 saat geçerli, tek kullanım.
+  ///
+  /// [email] verilirse davet o hesaba bağlanır ve başkası kullanamaz. Zorunlu
+  /// değil ama önerilir: kodu eline geçiren kişi kulübün bütün mali verisini
+  /// görüyor.
+  ///
+  /// Yalnızca kulüp **yöneticisi** çağırabilir; antrenör çağırırsa sunucu
+  /// reddeder.
+  Future<String> createAccountantInvite(String clubId, {String? email}) async {
+    final res = await _c.rpc('create_accountant_invite', params: {
+      'p_club': clubId,
+      if (email != null && email.trim().isNotEmpty) 'p_email': email.trim(),
+    });
+    return res as String;
+  }
+
+  /// Kulübün muhasebecileri — erişimi kaldırılmış olanlar dahil.
+  Future<List<AccountantRef>> accountants(String clubId) async {
+    final rows = await _c
+        .from('club_accountants')
+        .select('profile_id, status, created_at, profiles(full_name, username)')
+        .eq('club_id', clubId)
+        .order('created_at');
+    return (rows as List)
+        .map((r) => AccountantRef.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Erişimi kaldırır. Satır silinmiyor, `revoked` işaretleniyor — kimin ne
+  /// zaman erişimi olduğunun izi kalsın.
+  Future<void> revokeAccountant(String clubId, String profileId) async {
+    await _c
+        .from('club_accountants')
+        .update({'status': 'revoked'})
+        .eq('club_id', clubId)
+        .eq('profile_id', profileId);
+  }
+
+  Future<void> restoreAccountant(String clubId, String profileId) async {
+    await _c
+        .from('club_accountants')
+        .update({'status': 'active'})
+        .eq('club_id', clubId)
+        .eq('profile_id', profileId);
+  }
+
+  /// Kulübün bekleyen muhasebeci davetleri.
+  Future<List<PendingInvite>> pendingAccountantInvites(String clubId) async {
+    final rows = await _c
+        .from('invite_codes')
+        .select('code, target_email, expires_at, used_at')
+        .eq('club_id', clubId)
+        .eq('purpose', 'accountant')
+        .isFilter('used_at', null)
+        .gt('expires_at', DateTime.now().toUtc().toIso8601String())
+        .order('expires_at', ascending: false);
+    return (rows as List)
+        .map((r) => PendingInvite.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  static String _d(DateTime d) =>
+      '${d.year.toString().padLeft(4, '0')}-'
+      '${d.month.toString().padLeft(2, '0')}-'
+      '${d.day.toString().padLeft(2, '0')}';
+}
+
+// =============================== Provider'lar ==============================
+
+final expenseServiceProvider = Provider<ExpenseService>((ref) {
+  return ExpenseService(ref.watch(supabaseClientProvider));
+});
+
+/// Muhasebecisi olunan kulüplerin kimlikleri.
+///
+/// Ayrı sorgu, kulüp listesinden türetme **değil**: `fetchMyClubs` zaten üye
+/// olunan bir kulübü ikinci kez eklemiyor (üyelik rolü daha yetkili). Bu
+/// yüzden aynı kulübün hem yöneticisi hem muhasebecisi olan biri için
+/// muhasebeci bayrağı hiç yanmıyordu. İki ilişki birbirinden bağımsız
+/// olduğuna göre kaynakları da bağımsız olmalı.
+final myAccountantClubIdsProvider =
+    FutureProvider<Set<String>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const {};
+  final client = ref.watch(supabaseClientProvider);
+  final uid = client.auth.currentUser?.id;
+  if (uid == null) return const {};
+
+  final rows = await client
+      .from('club_accountants')
+      .select('club_id')
+      .eq('profile_id', uid)
+      .eq('status', 'active');
+
+  return {
+    for (final r in rows as List) (r as Map)['club_id'] as String,
+  };
+});
+
+final cashAccountsProvider =
+    FutureProvider.autoDispose<List<CashAccount>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(expenseServiceProvider).accounts(club.id);
+});
+
+final accountBalancesProvider =
+    FutureProvider.autoDispose<List<AccountBalance>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(expenseServiceProvider).balances(club.id);
+});
+
+final expenseCategoriesProvider =
+    FutureProvider.autoDispose<List<ExpenseCategory>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(expenseServiceProvider).categories(club.id);
+});
+
+final receivablesProvider =
+    FutureProvider.autoDispose<List<Receivable>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(expenseServiceProvider).receivables(club.id);
+});
+
+/// Kulübün defterine erişimi olanlar — erişimi kaldırılmış olanlar dahil.
+///
+/// Kulübün "kim benim paramı görüyor" sorusunu yanıtlar. Bu liste olmadan
+/// erişim verilebiliyor ama görülemiyordu.
+final clubAccountantsProvider =
+    FutureProvider.autoDispose<List<AccountantRef>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(expenseServiceProvider).accountants(club.id);
+});
+
+/// Henüz kullanılmamış, süresi dolmamış muhasebeci davetleri.
+final pendingAccountantInvitesProvider =
+    FutureProvider.autoDispose<List<PendingInvite>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(expenseServiceProvider).pendingAccountantInvites(club.id);
+});

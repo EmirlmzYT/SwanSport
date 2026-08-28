@@ -5,7 +5,12 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 
-/// Veli — davet kodu ile sporcuya bağlanma (premium v3).
+/// Davet kodu girişi.
+///
+/// Tek ekran, iki amaç: veli çocuğuna bağlanıyor, muhasebeci kulübün
+/// defterine. Kodun ne işe yaradığını sunucu belirliyor (`invite_codes.purpose`),
+/// bu yüzden burada ayrı akış yok — ikinci bir ekran yazmak aynı RPC'yi iki
+/// yerden çağırmak olurdu.
 class GuardianLinkScreen extends ConsumerStatefulWidget {
   const GuardianLinkScreen({super.key});
 
@@ -67,7 +72,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
                       Text('V', style: sora(24, FontWeight.w800, Colors.white)),
                 ),
                 const SizedBox(height: 20),
-                Text('Çocuğunu bağla', style: sora(28, FontWeight.w800, ink)),
+                Text('Davet kodu', style: sora(28, FontWeight.w800, ink)),
                 const SizedBox(height: 8),
                 Text(
                     'Sporcunun (veya kulübün) verdiği tek kullanımlık davet '
@@ -103,7 +108,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
                     const Icon(Icons.schedule_rounded,
                         size: 14, color: SwanColors.textSecondary,),
                     const SizedBox(width: 6),
-                    Text('Kod 24 saat geçerli, tek kullanımlık',
+                    Text('Kod tek kullanımlık ve süreli — veren kişiden yeni kod iste',
                         style: jakarta(
                             11.5, FontWeight.w600, SwanColors.textSecondary,),),
                   ],
@@ -145,7 +150,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
       await ref.read(verificationServiceProvider).redeemInvite(code);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Bağlandın! Çocuğunun bilgilerini görebilirsin.'),
+            content: Text('Bağlandın.'),
             backgroundColor: kTeal,),);
         Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false);
       }

@@ -36,6 +36,15 @@ void main() {
     coachLevel: 0,
     athleteKind: null,
   );
+  // Disaridan hizmet veren muhasebeci: kulupte gorevi yok, yalnizca bir
+  // kulubun defterine erisimi var.
+  const accountant = SwanAccess(
+    isPlatformAdmin: false,
+    clubRole: 'member',
+    coachLevel: 0,
+    athleteKind: null,
+    accountantClubIds: {'club-1'},
+  );
   const athlete = SwanAccess(
     isPlatformAdmin: false,
     clubRole: 'athlete',
@@ -120,12 +129,66 @@ void main() {
     });
   });
 
+  group('muhasebeci', () {
+    test('mali modülleri görür', () {
+      final ids = visibleIds(accountant);
+      expect(ids, contains('ledger'));
+      expect(ids, contains('accounts'));
+      expect(ids, contains('report'));
+    });
+
+    test('sporcu ve kadro modüllerini GÖRMEZ', () {
+      // Gizliliğin arayüz tarafı. Asıl koruma veritabanında: muhasebeciye
+      // athletes tablosuna RLS erişimi verilmedi ve finans RPC'leri sporcu
+      // adını hiç seçmiyor.
+      final ids = visibleIds(accountant);
+      expect(ids, isNot(contains('athletes')));
+      expect(ids, isNot(contains('attendance')));
+      expect(ids, isNot(contains('schedule')));
+      expect(ids, isNot(contains('facilities')));
+    });
+
+    test('platform modüllerini görmez', () {
+      final ids = visibleIds(accountant);
+      expect(ids, isNot(contains('approvals')));
+      expect(ids, isNot(contains('users')));
+    });
+
+    test('kulüp yetkilisi sayılmaz', () {
+      // Muhasebecilik ayrı bir eksen; kulüpte görev almak değil.
+      expect(accountant.isClubStaff, isFalse);
+      expect(accountant.isAccountant, isTrue);
+      expect(accountant.isAccountantOf('club-1'), isTrue);
+      expect(accountant.isAccountantOf('club-2'), isFalse);
+    });
+
+    test('kademe eşiği muhasebeciye uygulanmaz', () {
+      // Tesisler 4. kademe ister ama o kulüp yetkilisi ekseninde bir kural.
+      // Muhasebecinin antrenör kademesi yok ve olması da beklenmiyor; mali
+      // modüllerin eşiği yok, o yüzden hepsini görüyor.
+      expect(accountant.coachLevel, 0);
+      expect(visibleIds(accountant), contains('ledger'));
+    });
+  });
+
+  group('mali modüller iki kitleye birden açık', () {
+    test('kulüp yetkilisi de görür', () {
+      final ids = visibleIds(coach2);
+      expect(ids, contains('ledger'));
+      expect(ids, contains('accounts'));
+      expect(ids, contains('report'));
+    });
+
+    test('sporcu görmez', () {
+      expect(visibleIds(athlete), isEmpty);
+    });
+  });
+
   group('gelecek kitleler', () {
-    test('federasyon, muhasebe ve pazar yeri henüz kimseye açık değil', () {
+    test('federasyon ve pazar yeri henüz kimseye açık değil', () {
       // Yuvalar bilerek boş: modül yazılana kadar kimse görmemeli.
-      for (final a in [platformAdmin, clubAdmin, coach4, athlete]) {
+      for (final a in [platformAdmin, clubAdmin, coach4, athlete, accountant]) {
         expect(a.allows(ConsoleAudience.federation), isFalse);
-        expect(a.allows(ConsoleAudience.accountant), isFalse);
         expect(a.allows(ConsoleAudience.marketplace), isFalse);
       }
     });

@@ -126,6 +126,7 @@ extension DemoRoleX on DemoRole {
             ..._clubStaff,
             '/home-command',
             '/finans',
+            '/gider-ekle',
             '/reports',
             '/facilities',
             '/configuration',
@@ -208,7 +209,7 @@ extension DemoRoleX on DemoRole {
     '/documents',
     '/medical-center',
   };
-  static const Set<String> _coach3 = {..._coach2, '/reports'};
+  static const Set<String> _coach3 = {..._coach2, '/reports', '/gider-ekle'};
   static const Set<String> _coach4 = {..._coach3, '/facilities'};
   static const Set<String> _coach5 = {..._coach4, '/configuration'};
 }
@@ -365,6 +366,10 @@ const Set<String> kAlwaysAllowedRoutes = {
   '/ilanlar',
   '/organizasyonlar',
   '/gizlilik',
+  // Davet kodu girmek role bağlı değil: veli de muhasebeci de aynı ekranı
+  // kullanıyor ve kodun ne açtığını sunucu belirliyor. Rolle kısıtlamak,
+  // muhasebecinin kodu girecek yeri bulamaması demekti.
+  '/veli-bagla',
 };
 
 /// Bir rotanın izinli olup olmadığı (null set = her şey izinli).
