@@ -79,6 +79,27 @@ Derleme çıkış kodunu ayrı satırda oku, `| tail` ile boru hattına sokma.
 Mobil uygulamanın testlerinde bilinen **69 başarısız** var (Supabase istemcisi
 başlatılmadan ekran açan testler). Sayı sabit; artmadıysa bir şey bozulmamıştır.
 
+## AGENTS.md güncel tutulur
+
+`AGENTS.md` bu projeyi ilk kez gören bir ajanın okuduğu dosya (Codex onu
+kendiliğinden okuyor). İş bitirdikten sonra, **rapor vermeden önce** şunlardan
+biri olduysa dosyayı güncelle:
+
+| Olan | Güncellenecek bölüm |
+|---|---|
+| Yeni modül, tablo, migration, paket | Yapı · Durum |
+| Yeni tuzak bulundu (sessiz hata, platform kuralı) | Bilinen tuzaklar |
+| Bir şey çalışır/bozuk hale geldi | Durum → Çalışan / Yarım |
+| Test sayısı değişti | Çalıştırma ve doğrulama |
+| Commit atıldı ya da yeni iş commit'lenmedi | Commit durumu |
+| Yeni sır/anahtar tanımlandı | Sırlar |
+
+Küçük düzeltmeler (lint, yeniden adlandırma, metin değişikliği) için
+güncelleme gerekmez.
+
+**Neden:** bu dosyanın değeri kodu okuyarak bulunamayacak bilgiyi taşımasında.
+Eskidiği anda tam tersine dönüyor — yanlış bilgi, hiç bilgi olmamasından kötü.
+
 ## Tuzaklar
 
 - `flutter` alt çizgiyle başlayan dosyaları (`web/_redirects`) `build/web`'e
