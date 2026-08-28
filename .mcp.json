@@ -1,0 +1,44 @@
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": [
+        "mcp-server",
+        "--disable",
+        "flutter_driver,widget_inspector,create_project"
+      ]
+    },
+    "context7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@4.0.4"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.79",
+        "--isolated"
+      ]
+    }
+  },
+  "_disabled_serena": {
+    "_neden": "Kurulu (serena 1.7.0) ama bu makinede MCP sunucusu ayaga kalkmiyor: init_project_services adiminda kilitleniyor, tools/list yanit vermiyor. --project bayragi olmadan da ayni. Acilista kilitlenen bir sunucu her oturumu yavaslatacagi icin listeden cikarildi.",
+    "_geri_almak_icin": "Bu bloktaki 'config' icerigini mcpServers altina 'serena' adiyla tasi.",
+    "_kurulum_duruyor": ".serena/project.yml ve uv tool kurulumu yerinde, silinmedi.",
+    "config": {
+      "command": "C:\\Users\\Nisa\\.local\\bin\\serena.exe",
+      "args": [
+        "start-mcp-server",
+        "--context",
+        "claude-code",
+        "--project",
+        "C:\\Users\\Nisa\\Desktop\\SwanSpor V1.0.5",
+        "--enable-web-dashboard",
+        "false"
+      ]
+    }
+  }
+}

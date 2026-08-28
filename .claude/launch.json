@@ -1,0 +1,41 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "swansport-web",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "8080",
+        "--web-hostname",
+        "localhost",
+        "-t",
+        "lib/main_development.dart",
+        "--dart-define-from-file=env/dev.json"
+      ],
+      "cwd": "apps/swansport_app",
+      "port": 8080
+    },
+    {
+      "name": "swansport-console",
+      "runtimeExecutable": "flutter",
+      "runtimeArgs": [
+        "run",
+        "-d",
+        "web-server",
+        "--web-port",
+        "8081",
+        "--web-hostname",
+        "localhost",
+        "-t",
+        "lib/main_development.dart",
+        "--dart-define-from-file=env/dev.json"
+      ],
+      "cwd": "apps/swansport_console",
+      "port": 8081
+    }
+  ]
+}

@@ -12,6 +12,11 @@ coverage/
 *.service-role.json
 *.secret.json
 
+# Local --dart-define-from-file value files (contain project keys)
+env/
+**/env/dev.json
+**/env/prod.json
+
 google-services.json
 GoogleService-Info.plist
 firebase_options.dart
@@ -24,3 +29,16 @@ windows/flutter/ephemeral/
 
 .DS_Store
 Thumbs.db
+
+# Başka araçların çalışma günlükleri — bir kere depoya sızmıştı.
+.codex-run-logs/
+
+# Wrangler yerel onbellegi
+.wrangler/
+
+# Serena yerel proje verisi (yapilandirma paylasilir, onbellek paylasilmaz)
+.serena/cache/
+.serena/project.local.yml
+
+# Yerel yedek arsivleri — depoya girmemeli (193 MB)
+*.zip
