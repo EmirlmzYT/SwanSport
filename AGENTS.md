@@ -1,7 +1,7 @@
 # SwanSport — ajanlar için proje kılavuzu
 
 Spor kulüpleri için yönetim platformu ve spor ağı. **Flutter/Dart + Supabase.**
-TypeScript değil — 151 Dart dosyası, 30 SQL migration, 14 JS dosyası (o da
+TypeScript değil — 151 Dart dosyası, 31 SQL migration, 14 JS dosyası (o da
 Cloudflare fonksiyonları).
 
 Bu dosya projeyi ilk kez gören bir ajan içindir. Kod tabanını taramadan önce
@@ -115,7 +115,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 12 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 14 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
@@ -177,8 +177,6 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
   tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
-- **Defterde sayfalama yok** — `acc_ledger` aralıktaki her hareketi döndürür;
-  veri birikince yavaşlar
 - **69 mobil test** (yukarıda)
 - **Release keystore yok** — APK elden kurulur, Play Store'a yüklenemez
 
@@ -189,10 +187,10 @@ Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 
 ### ⚠️ Commit durumu
 
-FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1` ve gider ile
-muhasebeci sistemi `351fd9f` ile commit'lendi. Çalışma alanı bu noktada temiz
-olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını doğrulamadan
-üzerine yazma.
+FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1`, gider ile
+muhasebeci sistemi `351fd9f` ve mali defter sayfalaması `43a930c` ile
+commit'lendi. Çalışma alanı bu noktada temiz olmalı; yeni bir değişiklik
+görürsen sahibini ve kapsamını doğrulamadan üzerine yazma.
 
 ---
 
