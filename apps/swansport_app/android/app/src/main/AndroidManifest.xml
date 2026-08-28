@@ -1,6 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Supabase (auth, veritabanı, dosya yükleme) için ağ erişimi gerekir.
+         Flutter bu izni yalnızca debug/profile manifest'ine ekler; release
+         derlemesinde burada olmazsa DNS çözümlemesi başarısız olur. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+
     <application
-        android:label="swansport_app"
+        android:label="SwanSport"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

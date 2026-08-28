@@ -1,0 +1,10 @@
+# Tek sayfalık uygulama yönlendirmesi.
+#
+# Konsol gerçek URL yolları kullanıyor (usePathUrlStrategy): /sporcular,
+# /onaylar, /sporcular/<id>… Bunlar sunucuda dosya olarak yok. Bu kural
+# olmadan kullanıcı /sporcular sayfasındayken yenilediğinde ya da bir derin
+# bağlantıyı açtığında Cloudflare 404 döner.
+#
+# 200 (rewrite) kullanılıyor, 301 değil: adres çubuğu olduğu gibi kalsın ki
+# go_router doğru rotayı açabilsin.
+/*    /index.html   200

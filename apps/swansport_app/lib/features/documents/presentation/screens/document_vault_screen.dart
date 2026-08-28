@@ -1,424 +1,511 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../application/document_vault_controller.dart';
-import '../../domain/models/document_vault.dart';
-import '../routing/document_detail_route_args.dart';
+import '../../../../app/media/image_pick.dart';
+import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/quick_form.dart';
 
+/// Belge Kasası — kulüp ve sporcu evrakları, geçerlilik takibiyle.
+///
+/// Eskiden yalnızca isim listeliyordu; dosyanın kendisi yoktu. Artık dosya
+/// yükleniyor, türü ve geçerlilik tarihi tutuluyor, süresi dolmadan önce
+/// hatırlatma gidiyor.
 class DocumentVaultScreen extends ConsumerStatefulWidget {
   const DocumentVaultScreen({super.key});
+
   @override
   ConsumerState<DocumentVaultScreen> createState() =>
       _DocumentVaultScreenState();
 }
 
 class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
-  final _search = TextEditingController();
-  int _navIndex = 2;
-
-  @override
-  void dispose() {
-    _search.dispose();
-    super.dispose();
-  }
+  String _filter = ''; // '' | club | athlete | person
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(documentVaultControllerProvider);
-    final controller = ref.read(documentVaultControllerProvider.notifier);
-    final dark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    final async = ref.watch(vaultDocsProvider);
+
     return Scaffold(
-      backgroundColor: dark ? SwanColors.darkBackground : SwanColors.background,
-      appBar: SwanAppBar(
-        clubName: 'Kadıköy SK',
-        roleName: 'Antrenör',
-        actions: [
-          if (state.permissions.canManageRequests)
-            IconButton(
-              key: const Key('document-create-request'),
-              tooltip: 'Evrak talebi oluştur',
-              onPressed: () => _showRequestDialog(controller),
-              icon: const Icon(Icons.note_add_rounded),
-            ),
-        ],
+      extendBody: true,
+      backgroundColor: bg,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
+                child: Row(children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('KULÜP',
+                            style: jakarta(
+                                11, FontWeight.w700, SwanColors.textSecondary,
+                                ls: 1.4)),
+                        const SizedBox(height: 3),
+                        Text('Belge Kasası',
+                            style: sora(25, FontWeight.w800, ink)),
+                      ],
+                    ),
+                  ),
+                  AddButton(onTap: _add, tooltip: 'Belge ekle'),
+                ]),
+              ),
+              _tabs(isDark, ink),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: () async {
+                    ref.invalidate(vaultDocsProvider);
+                    await ref.read(vaultDocsProvider.future);
+                  },
+                  child: async.when(
+                    loading: () => ListView(children: [premiumLoading()]),
+                    error: (e, _) =>
+                        ListView(children: [premiumError(context, '$e')]),
+                    data: (all) {
+                      final list = _filter.isEmpty
+                          ? all
+                          : all.where((d) => d.ownerType == _filter).toList();
+                      if (list.isEmpty) {
+                        return ListView(
+                          padding: const EdgeInsets.only(top: 40),
+                          children: [
+                            premiumEmpty(
+                              context,
+                              icon: Icons.folder_rounded,
+                              title: 'Belge yok',
+                              subtitle:
+                                  'Lisans, sağlık raporu, tescil belgesi ve '
+                                  'sertifikaları buraya yükle. Süresi dolmadan '
+                                  'önce hatırlatılır.',
+                              actionLabel: 'Belge ekle',
+                              onAction: _add,
+                            ),
+                          ],
+                        );
+                      }
+                      final expiring = list
+                          .where((d) => d.isExpired || d.isExpiring)
+                          .length;
+                      return ListView(
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 132),
+                        children: [
+                          if (expiring > 0) _warning(isDark, expiring),
+                          for (final d in list) _card(isDark, ink, d),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ]),
+          ),
+        ),
       ),
-      body: _body(state, controller),
-      bottomNavigationBar: SwanFloatingNavigationBar(
-        selectedIndex: _navIndex,
-        destinations: const [
-          SwanNavigationDestination(
-            icon: Icons.grid_view_rounded,
-            label: 'Ana Sayfa',
-          ),
-          SwanNavigationDestination(
-            icon: Icons.calendar_month_rounded,
-            label: 'Takvim',
-          ),
-          SwanNavigationDestination(
-            icon: Icons.folder_rounded,
-            label: 'Belgeler',
-          ),
-          SwanNavigationDestination(
-            icon: Icons.campaign_rounded,
-            label: 'Duyurular',
-          ),
-        ],
-        onDestinationSelected: (index) {
-          setState(() => _navIndex = index);
-          if (index == 0) Navigator.pushNamed(context, '/dashboard');
-          if (index == 1) Navigator.pushNamed(context, '/calendar');
-          if (index == 3) Navigator.pushNamed(context, '/announcements');
-        },
+      bottomNavigationBar: PremiumBottomNav(
+        selectedIndex: -1,
+        onSelect: (_) {},
+        onAction: () {},
       ),
     );
   }
 
-  Widget _body(DocumentVaultState state, DocumentVaultController controller) {
-    if (state.status == DocumentVaultStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    if (state.status == DocumentVaultStatus.permissionDenied) {
-      return const Center(
-        child: Text('Belge kasasını görüntüleme yetkiniz yok.'),
-      );
-    }
-    if (state.status == DocumentVaultStatus.failure) {
-      return Center(child: Text(state.error ?? 'Belgeler yüklenemedi.'));
-    }
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final wide = constraints.maxWidth >= 900;
-        final overview = _overview(state);
-        final content = _documents(state, controller);
-        return ListView(
-          key: const Key('document-vault-scroll'),
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 140),
-          children: [
-            const Text(
-              'DİJİTAL EVRAK KASASI',
-              style: TextStyle(
-                fontSize: 11,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const Text(
-              'Belgeler & Dosya Merkezi',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 16),
-            if (state.status == DocumentVaultStatus.offline)
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(12),
-                  child: Text('Çevrimdışı önbellek gösteriliyor.'),
+  Widget _tabs(bool isDark, Color ink) {
+    const items = [
+      ('', 'Tümü'),
+      ('club', 'Kulüp'),
+      ('athlete', 'Sporcu'),
+      ('person', 'Kişisel'),
+    ];
+    return SizedBox(
+      height: 38,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 20),
+        children: [
+          for (final it in items)
+            GestureDetector(
+              onTap: () => setState(() => _filter = it.$1),
+              child: Container(
+                margin: const EdgeInsets.only(right: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(
+                  color: _filter == it.$1
+                      ? kTeal
+                      : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                  borderRadius: BorderRadius.circular(11),
+                  border: Border.all(
+                      color: _filter == it.$1
+                          ? kTeal
+                          : (isDark
+                              ? const Color(0xFF233149)
+                              : const Color(0xFFEAEEF3))),
                 ),
+                child: Text(it.$2,
+                    style: jakarta(12, FontWeight.w700,
+                        _filter == it.$1 ? Colors.white : ink)),
               ),
-            if (wide)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 5, child: overview),
-                  const SizedBox(width: 24),
-                  Expanded(flex: 7, child: content),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _warning(bool isDark, int n) => Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: const Color(0xFFD9860B).withValues(alpha: .10),
+          borderRadius: BorderRadius.circular(14),
+          border:
+              Border.all(color: const Color(0xFFD9860B).withValues(alpha: .35)),
+        ),
+        child: Row(children: [
+          const Icon(Icons.warning_amber_rounded,
+              size: 18, color: Color(0xFFD9860B)),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text('$n belgenin süresi dolmuş ya da dolmak üzere.',
+                style: jakarta(12, FontWeight.w700, const Color(0xFFD9860B))),
+          ),
+        ]),
+      );
+
+  Widget _card(bool isDark, Color ink, VaultDoc d) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final (color, icon) = d.isExpired
+        ? (const Color(0xFFF43F5E), Icons.error_rounded)
+        : d.isExpiring
+            ? (const Color(0xFFD9860B), Icons.schedule_rounded)
+            : (kTeal, Icons.description_rounded);
+
+    return GestureDetector(
+      onTap: () => _actions(d),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+              color: d.isExpired
+                  ? const Color(0xFFF43F5E).withValues(alpha: .3)
+                  : line),
+        ),
+        child: Row(children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 19, color: color),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Flexible(
+                    child: Text(d.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: jakarta(13, FontWeight.w800, ink)),
+                  ),
+                  if (d.verified) ...[
+                    const SizedBox(width: 5),
+                    const Icon(Icons.verified_rounded, size: 13, color: kTeal),
+                  ],
+                ]),
+                const SizedBox(height: 2),
+                Text('${d.typeLabel} · ${d.ownerLabel}',
+                    style: jakarta(
+                        10.5, FontWeight.w500, SwanColors.textSecondary)),
+                if (d.expiresOn != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                      d.isExpired
+                          ? 'Süresi doldu · ${d.expiresOn!.day}.${d.expiresOn!.month}.${d.expiresOn!.year}'
+                          : 'Geçerli: ${d.expiresOn!.day}.${d.expiresOn!.month}.${d.expiresOn!.year}'
+                              '${d.daysLeft != null && d.daysLeft! <= 30 ? " · ${d.daysLeft} gün" : ""}',
+                      style: jakarta(10.5, FontWeight.w700, color)),
                 ],
-              )
-            else ...[
-              overview,
-              const SizedBox(height: 20),
-              content,
-            ],
-          ],
+              ],
+            ),
+          ),
+          if (d.storagePath != null)
+            const Icon(Icons.attach_file_rounded,
+                size: 15, color: SwanColors.textSecondary),
+        ]),
+      ),
+    );
+  }
+
+  // ------------------------------- eylemler --------------------------------
+  Future<void> _add() async {
+    final club = ref.read(activeClubProvider).valueOrNull;
+    if (club == null) return;
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    // 1) Tür
+    final type = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+            20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Belge türü', style: sora(17, FontWeight.w800, ink)),
+          const SizedBox(height: 8),
+          for (final e in kDocTypes.entries)
+            ListTile(
+              dense: true,
+              title: Text(e.value, style: jakarta(13, FontWeight.w600, ink)),
+              onTap: () => Navigator.pop(ctx, e.key),
+            ),
+        ]),
+      ),
+    );
+    if (type == null) return;
+
+    // 2) Sahibi — sporcu belgesi ise hangi sporcu
+    String ownerType = 'club';
+    String? ownerId;
+    if (type == 'lisans' || type == 'saglik') {
+      final athletes = ref.read(clubAthletesProvider).valueOrNull ?? const [];
+      if (athletes.isNotEmpty) {
+        final picked = await showModalBottomSheet<String>(
+          context: context,
+          backgroundColor: Colors.transparent,
+          isScrollControlled: true,
+          builder: (ctx) => Container(
+            height: MediaQuery.of(ctx).size.height * 0.6,
+            decoration: BoxDecoration(
+              color: surf,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
+            ),
+            padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+            child: Column(children: [
+              Text('Kimin belgesi?', style: sora(17, FontWeight.w800, ink)),
+              Expanded(
+                child: ListView(children: [
+                  ListTile(
+                    title: Text('Kulübe ait',
+                        style: jakarta(13, FontWeight.w600, ink)),
+                    onTap: () => Navigator.pop(ctx, ''),
+                  ),
+                  for (final a in athletes)
+                    ListTile(
+                      title: Text(a.fullName,
+                          style: jakarta(13, FontWeight.w600, ink)),
+                      onTap: () => Navigator.pop(ctx, a.id),
+                    ),
+                ]),
+              ),
+            ]),
+          ),
         );
+        if (picked == null) return;
+        if (picked.isNotEmpty) {
+          ownerType = 'athlete';
+          ownerId = picked;
+        }
+      }
+    }
+
+    // 3) Dosya (isteğe bağlı ama önerilen)
+    String? path;
+    String fileLabel = '';
+    final picked = await pickImage();
+    if (picked != null) {
+      try {
+        path = await ref.read(vaultServiceProvider).upload(picked.bytes, picked.name);
+        fileLabel = picked.name;
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('Dosya yüklenemedi: $e'),
+              backgroundColor: const Color(0xFFF43F5E)));
+        }
+      }
+    }
+
+    // 4) Künye
+    final name = FormField_('Belge adı',
+        hint: kDocTypes[type] ?? 'Belge')
+      ..controller.text = kDocTypes[type] ?? '';
+    final expires = FormField_('Geçerlilik bitişi (GG.AA.YYYY)',
+        hint: '31.12.2026', required: false);
+
+    await showQuickForm(
+      context,
+      title: 'Belge ekle',
+      note: fileLabel.isEmpty
+          ? 'Dosya eklenmedi — sonradan da eklenebilir.'
+          : 'Dosya: $fileLabel',
+      fields: [name, expires],
+      onSubmit: () async {
+        try {
+          await ref.read(vaultServiceProvider).add(
+                clubId: club.id,
+                name: name.value,
+                ownerType: ownerType,
+                ownerId: ownerId,
+                docType: type,
+                path: path,
+                expires: _parseDate(expires.value),
+              );
+          ref.invalidate(vaultDocsProvider);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Belge eklendi'), backgroundColor: kTeal));
+          }
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('Eklenemedi: $e'),
+                backgroundColor: const Color(0xFFF43F5E)));
+          }
+        }
       },
     );
   }
 
-  Widget _overview(DocumentVaultState state) {
-    final overview = state.overview!;
-    final storage = state.storage!;
-    return Column(
-      children: [
-        Container(
-          key: const Key('document-overview'),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF063337), Color(0xFF008C95)],
-            ),
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'VAULT OVERVIEW',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                '${overview.total} Toplam Belge',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 16,
-                runSpacing: 8,
-                children: [
-                  _metric('${overview.active}', 'Aktif'),
-                  _metric('${overview.expiringSoon}', 'Süresi Doluyor'),
-                  _metric('${overview.pendingApproval}', 'Onay Bekliyor'),
-                  _metric('${overview.archived}', 'Arşiv'),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          key: const Key('document-storage-overview'),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Depolama',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-                Text(
-                  '${storage.usedGb} GB / ${storage.totalGb.toStringAsFixed(0)} GB • %${storage.usagePercentage}',
-                ),
-                LinearProgressIndicator(
-                  value: storage.usedGb / storage.totalGb,
-                ),
-                Text('Durum: ${storage.health}'),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        Card(
-          child: ExpansionTile(
-            key: const Key('document-requests'),
-            title: Text('Evrak Talepleri (${state.requests.length})'),
-            children: state.requests
-                .map(
-                  (request) => ListTile(
-                    title: Text(request.title),
-                    subtitle:
-                        Text('${request.athlete} • ${request.status.name}'),
-                    trailing: state.permissions.canManageRequests
-                        ? PopupMenuButton<DocumentRequestStatus>(
-                            onSelected: (status) => ref
-                                .read(
-                                  documentVaultControllerProvider.notifier,
-                                )
-                                .setRequestStatus(request, status),
-                            itemBuilder: (_) => const [
-                              PopupMenuItem(
-                                value: DocumentRequestStatus.approved,
-                                child: Text('Onayla'),
-                              ),
-                              PopupMenuItem(
-                                value: DocumentRequestStatus.rejected,
-                                child: Text('Reddet'),
-                              ),
-                              PopupMenuItem(
-                                value: DocumentRequestStatus.pending,
-                                child: Text('Hatırlat'),
-                              ),
-                              PopupMenuItem(
-                                value: DocumentRequestStatus.cancelled,
-                                child: Text('İptal Et'),
-                              ),
-                            ],
-                          )
-                        : null,
-                  ),
-                )
-                .toList(),
-          ),
-        ),
-      ],
-    );
+  /// "31.12.2026" biçimini tarihe çevirir; tutmazsa null.
+  DateTime? _parseDate(String s) {
+    final p = s.trim().split(RegExp(r'[./-]'));
+    if (p.length != 3) return null;
+    final d = int.tryParse(p[0]), m = int.tryParse(p[1]), y = int.tryParse(p[2]);
+    if (d == null || m == null || y == null) return null;
+    return DateTime(y, m, d);
   }
 
-  Widget _documents(
-    DocumentVaultState state,
-    DocumentVaultController controller,
-  ) {
-    final documents = state.filtered;
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        TextField(
-          key: const Key('document-search-field'),
-          controller: _search,
-          onChanged: controller.search,
-          decoration: InputDecoration(
-            hintText: 'Dosya, sporcu, takım, sezon, yükleyen veya etiket ara',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: state.filter.query.isEmpty
-                ? null
-                : IconButton(
-                    key: const Key('document-search-reset'),
-                    onPressed: () {
-                      _search.clear();
-                      controller.resetSearch();
-                    },
-                    icon: const Icon(Icons.close),
-                  ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          child: Row(
-            children: [
-              ChoiceChip(
-                label: const Text('Tümü'),
-                selected: state.filter.category == null,
-                onSelected: (_) => controller.selectCategory(null),
-              ),
-              ...DocumentCategory.values.map(
-                (category) => Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: ChoiceChip(
-                    label: Text(category.name),
-                    selected: state.filter.category == category,
-                    onSelected: (_) => controller.selectCategory(category),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              FilterChip(
-                label: const Text('Favoriler'),
-                selected: state.filter.favoritesOnly,
-                onSelected: (_) => controller.toggleFavorites(),
-              ),
-              const SizedBox(width: 6),
-              FilterChip(
-                label: const Text('Sabitlenenler'),
-                selected: state.filter.pinnedOnly,
-                onSelected: (_) => controller.togglePinned(),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 16),
-        if (state.status == DocumentVaultStatus.empty)
-          const Center(
-            child: Text('Belge kasası boş.', key: Key('document-empty')),
-          )
-        else if (documents.isEmpty)
-          const Center(
-            child: Text(
-              'Aramanızla eşleşen belge bulunamadı.',
-              key: Key('document-no-results'),
-            ),
-          )
-        else
-          ...documents.map(
-            (document) => Card(
-              key: Key('document-card-${document.id.value}'),
-              child: ListTile(
-                leading: Icon(
-                  document.isPinned ? Icons.push_pin : Icons.description,
-                ),
-                title: Text(document.filename),
-                subtitle: Text(
-                  '${document.athlete.isEmpty ? document.team : document.athlete} • ${document.uploader}\n${document.tags.map((tag) => "#$tag").join(" ")}',
-                ),
-                isThreeLine: true,
-                trailing: Chip(label: Text(document.status.name)),
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  '/document-detail',
-                  arguments: DocumentDetailRouteArgs(documentId: document.id),
-                ),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
+  Future<void> _actions(VaultDoc d) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
 
-  Widget _metric(String value, String label) => SizedBox(
-        width: 90,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: .75),
-                fontSize: 11,
-              ),
-            ),
-          ],
-        ),
-      );
-
-  Future<void> _showRequestDialog(DocumentVaultController controller) async {
-    final title = TextEditingController();
-    final athlete = TextEditingController();
-    final accepted = await showDialog<bool>(
+    await showModalBottomSheet<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Evrak Talebi Oluştur'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              key: const Key('request-title'),
-              controller: title,
-              decoration: const InputDecoration(labelText: 'Belge'),
-            ),
-            TextField(
-              key: const Key('request-athlete'),
-              controller: athlete,
-              decoration: const InputDecoration(labelText: 'Sporcu'),
-            ),
-          ],
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Vazgeç'),
+        padding: EdgeInsets.fromLTRB(
+            20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(d.name, style: sora(17, FontWeight.w800, ink)),
+          Text('${d.typeLabel} · ${d.ownerLabel}',
+              style: jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+          const SizedBox(height: 14),
+          if (d.storagePath != null)
+            ListTile(
+              dense: true,
+              leading: const Icon(Icons.open_in_new_rounded,
+                  size: 20, color: kTeal),
+              title: Text('Bağlantıyı kopyala',
+                  style: jakarta(13, FontWeight.w600, ink)),
+              subtitle: Text('1 saat geçerli, tarayıcıda aç',
+                  style: jakarta(
+                      10.5, FontWeight.w500, SwanColors.textSecondary)),
+              onTap: () async {
+                Navigator.pop(ctx);
+                try {
+                  final url = await ref
+                      .read(vaultServiceProvider)
+                      .signedUrl(d.storagePath!);
+                  await Clipboard.setData(ClipboardData(text: url));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Bağlantı kopyalandı'),
+                        backgroundColor: kTeal));
+                  }
+                } catch (e) {
+                  // Kullanıcı düğmeye bastı; sessiz kalmak "çalışmıyor" gibi
+                  // görünür. Belgeye erişimin neden olmadığını söyle.
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                        content: Text('Bağlantı alınamadı: $e'),
+                        backgroundColor: const Color(0xFFF43F5E)));
+                  }
+                }
+              },
+            ),
+          ListTile(
+            dense: true,
+            leading: Icon(
+                d.verified ? Icons.gpp_bad_rounded : Icons.verified_rounded,
+                size: 20,
+                color: d.verified ? SwanColors.textSecondary : kTeal),
+            title: Text(d.verified ? 'Doğrulamayı kaldır' : 'Doğrula',
+                style: jakarta(13, FontWeight.w600, ink)),
+            onTap: () {
+              Navigator.pop(ctx);
+              _guard(() async {
+                await ref
+                    .read(vaultServiceProvider)
+                    .verify(d.id, !d.verified);
+                ref.invalidate(vaultDocsProvider);
+              }, d.verified ? 'Doğrulama kaldırıldı' : 'Belge doğrulandı');
+            },
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Oluştur'),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.delete_outline_rounded,
+                size: 20, color: Color(0xFFF43F5E)),
+            title: Text('Belgeyi sil',
+                style: jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+            onTap: () {
+              Navigator.pop(ctx);
+              _guard(() async {
+                await ref.read(vaultServiceProvider).remove(d.id);
+                ref.invalidate(vaultDocsProvider);
+              }, 'Belge silindi');
+            },
           ),
-        ],
+        ]),
       ),
     );
-    if (accepted == true &&
-        title.text.trim().isNotEmpty &&
-        athlete.text.trim().isNotEmpty) {
-      await controller.createRequest(
-        title.text.trim(),
-        athlete.text.trim(),
-        DateTime(2026, 8, 1),
-      );
+  }
+
+  Future<void> _guard(Future<void> Function() task, String ok) async {
+    try {
+      await task();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(ok), backgroundColor: kTeal));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('İşlem başarısız: $e'),
+            backgroundColor: const Color(0xFFF43F5E)));
+      }
     }
-    title.dispose();
-    athlete.dispose();
   }
 }

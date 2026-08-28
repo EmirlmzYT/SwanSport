@@ -1,0 +1,24 @@
+name: swansport_data
+description: >-
+  Supabase veri katmanı — servisler ve Riverpod sağlayıcıları. Mobil uygulama ve
+  masaüstü konsolu bu paketi paylaşır; hiçbir UI bağımlılığı yoktur.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  supabase_flutter: ^2.8.0
+  swansport_core: ^0.1.0
+  swansport_models: ^0.1.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

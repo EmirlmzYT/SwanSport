@@ -1,11 +1,11 @@
 {
-    "name": "swansport_app",
-    "short_name": "swansport_app",
+    "name": "SwanSport",
+    "short_name": "SwanSport",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#04464B",
+    "theme_color": "#008C95",
+    "description": "SwanSport — kulüp ve sporcu yönetim platformu.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

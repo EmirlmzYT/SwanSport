@@ -1,134 +1,127 @@
 # SwanSport
 
-SwanSport is a modular sports management platform for clubs, federations, coaches, athletes, parents, officials, and administrators.
+Spor kulüpleri için yönetim platformu ve spor ağı. Kulüpler, federasyonlar,
+antrenörler, sporcular, veliler ve platform yöneticileri için iki yüzey:
 
-## Project status
+- **Mobil/web uygulaması** — sahada ve günlük kullanımda; sosyal akış, mesajlaşma,
+  yoklama, aidat, doğrulama.
+- **Masaüstü konsolu** — masa başında yönetim; yoğun tablolar, toplu işlemler,
+  onay kuyrukları.
 
-This repository currently contains only the approved monorepo skeleton. Product features, Supabase schema, Firebase setup, and final design tokens have not been implemented yet.
+İkisi aynı Supabase projesini, aynı kullanıcıları ve aynı RLS politikalarını
+kullanır. Veri katmanı paylaşılır, arayüz paylaşılmaz.
 
-## Technology stack
-
-- Flutter for Android, iOS, Web, and Windows
-- Supabase for backend, PostgreSQL, Auth, Storage, and Edge Functions
-- Riverpod for state management
-- Material 3 based SwanSport design system
-- Dart workspace and Melos for monorepo management
-- GitHub Actions for basic CI
-
-## Repository structure
+## Depo yapısı
 
 ```text
-apps/swansport_app                 Main Flutter application
-packages/swansport_core            Shared core utilities
-packages/swansport_design_system   Shared Flutter design system
-packages/swansport_models          Shared Dart models and value types
-packages/swansport_branch_engine   Shared branch engine contracts
-supabase/                          Future migrations, policies, seeds, functions, tests
-docs/                              Architecture, product, security, and ADR documentation
-scripts/                           Future local automation scripts
+apps/swansport_app                 Mobil + web uygulaması (Android, Web)
+apps/swansport_console             Masaüstü yönetim konsolu (yalnızca Web)
+packages/swansport_data            Supabase veri katmanı — İKİ UYGULAMANIN ORTAK KAYNAĞI
+packages/swansport_core            Ortam ve yapılandırma tipleri
+packages/swansport_design_system   Renk paleti, tipografi, mobil bileşenler
+packages/swansport_models          Paylaşılan değer tipleri
+packages/swansport_branch_engine   Branş kuralları
+supabase/migrations                Şema — tek yetkili kaynak, numaralı ve idempotent
+supabase/seed                      Demo verisi
+docs/                              Ürün ve mimari notları
 ```
 
-## Requirements
+**`swansport_data` kritik.** Sorgular, satır modelleri ve Riverpod
+sağlayıcıları orada durur; hiçbir arayüz bağımlılığı yoktur. Bir sorguyu iki
+uygulamada ayrı ayrı yazmak, zamanla birbirinden ayrılmaları demekti.
 
-- Flutter SDK
-- Dart SDK included with Flutter
-- Melos
-- Supabase CLI, when database work starts
+Kim neyi görebilir hesabı da orada: `SwanAccess`. Mobilde rota kümesine,
+konsolda modül listesine çevrilir — ama hesabın kendisi tektir.
 
-On Windows, verify tools are available:
+## Gereksinimler
 
-```powershell
-flutter --version
-dart --version
-melos --version
+- Flutter 3.44+ / Dart 3.12+
+- Bir Supabase projesi (URL + anon anahtar)
+
+## Kurulum
+
+```bash
+flutter pub get
 ```
 
-Install Melos after Flutter is installed:
+Anahtarlar depoya girmez; `env/dev.json` ve `env/prod.json` gitignore'dadır:
 
-```powershell
-dart pub global activate melos
+```json
+{
+  "APP_ENV": "development",
+  "APP_NAME": "SwanSport",
+  "ENABLE_DEBUG_TOOLS": "true",
+  "SUPABASE_URL": "https://<proje>.supabase.co",
+  "SUPABASE_ANON_KEY": "<anon veya sb_publishable_ anahtar>"
+}
 ```
 
-## Initial setup
+## Çalıştırma
 
-```powershell
-melos bootstrap
+```bash
+cd apps/swansport_app && flutter run -t lib/main_development.dart --dart-define-from-file=env/dev.json
+```
+```bash
+cd apps/swansport_console && flutter run -d chrome -t lib/main_development.dart --dart-define-from-file=env/dev.json
 ```
 
-## Melos commands
+## Test ve analiz
 
-```powershell
-melos analyze
-melos format
-melos run format:check
-melos test
-melos clean
-melos run run:dev
-melos run run:web
+```bash
+flutter analyze packages/swansport_data apps/swansport_console apps/swansport_app
+```
+```bash
+cd packages/swansport_data && flutter test
+```
+```bash
+cd apps/swansport_console && flutter test
 ```
 
-## Run development app
+Mobil uygulamanın test paketinde bilinen bir sorun var: bir bölüm test,
+Supabase istemcisi başlatılmadan ekran açtığı için başarısız oluyor
+(`_instance._isInitialized`). Sayı uzun süredir sabit; düzeltmesi ortak bir
+test kurulumu yazmayı gerektiriyor.
 
-```powershell
-cd apps/swansport_app
-flutter run -t lib/main_development.dart --dart-define=APP_ENV=development --dart-define=APP_NAME=SwanSport --dart-define=ENABLE_DEBUG_TOOLS=true
-```
+## Dağıtım
 
-## Run production entrypoint locally
+İki uygulama **tek Cloudflare Pages projesinde**, aynı origin altında yayınlanır:
 
-This does not connect production services. It only validates production compile-time configuration.
+- `https://swansport.pages.dev/` — uygulama
+- `https://swansport.pages.dev/konsol/` — konsol
 
-```powershell
-cd apps/swansport_app
-flutter run -t lib/main_production.dart --dart-define=APP_ENV=production --dart-define=APP_NAME=SwanSport --dart-define=ENABLE_DEBUG_TOOLS=false
-```
+Aynı origin olması bir tercih: ayrı origin ayrı `localStorage` demek, o da
+uygulamada giriş yapan kullanıcının konsolda ikinci kez giriş yapması demekti.
+Aynı origin altında Supabase oturumu ikisi arasında paylaşılıyor.
 
-## Web preview
+Adımlar: [`apps/swansport_console/README.md`](apps/swansport_console/README.md)
 
-```powershell
-cd apps/swansport_app
-flutter run -d chrome -t lib/main_development.dart --dart-define=APP_ENV=development --dart-define=APP_NAME=SwanSport --dart-define=ENABLE_DEBUG_TOOLS=true
-```
+`functions/` altında üç Pages Function çalışır:
 
-## Test and analysis
+| Dosya | İş |
+|---|---|
+| `api/rss.js` | Haber akışı köprüsü (tarayıcı CORS engelini aşar) |
+| `api/push.js` | Web push gönderimi (VAPID imzalama + yük şifreleme) |
+| `konsol/[[path]].js` | Konsolun derin bağlantıları |
 
-```powershell
-melos run format:check
-melos analyze
-melos test
-```
+## Veritabanı
 
-## Environment variables
+Şema `supabase/migrations/` altında, numaralı ve idempotent dosyalarda.
+Kurulum ve yeni migration kuralları: [`supabase/README.md`](supabase/README.md)
 
-Copy `.env.example` to a local `.env.development` file when environment loading is implemented. Do not commit real secrets.
+## Kurallar
 
-Supabase is not connected yet. `SUPABASE_URL` and `SUPABASE_ANON_KEY` are placeholders.
+- Widget'tan doğrudan Supabase çağırma; veri katmanı `swansport_data`'da.
+- Yeni tabloya **RLS yaz**. Arayüzde düğme gizlemek güvenlik değildir.
+- `security definer` fonksiyonlarda yetkiyi fonksiyonun içinde doğrula.
+- Kullanıcı tarafından çağrılmaması gereken fonksiyonların iznini `public`,
+  `anon` **ve** `authenticated` rollerinden kaldır — yalnızca son ikisinden
+  almak yetmez, izin `PUBLIC`'ten miras alınır.
+- Gizli anahtarları depoya koyma.
 
-Current environment values are read at compile time with `String.fromEnvironment`.
+## Bilinen eksikler
 
-Supported non-secret values:
-
-```text
-APP_ENV=development|production
-APP_NAME=SwanSport
-ENABLE_DEBUG_TOOLS=true|false
-```
-
-Use `--dart-define` for local commands. `--dart-define-from-file` can be added later for non-secret local convenience files, but real secrets must still stay out of Flutter builds.
-
-## Contribution and coding rules
-
-- Keep UI, application logic, repositories, services, and database access separated.
-- Do not call Supabase directly from widgets.
-- Do not add unused third-party packages.
-- Keep sensitive keys out of source control.
-- Add RLS policies with sensitive database tables.
-- Keep each change scoped to the requested task.
-
-## Not implemented yet
-
-- Supabase project connection
-- Firebase and FCM
-- Database migrations
-- Real design tokens
-- Authentication, clubs, athletes, payments, notifications, or admin features
+- Android'de push bildirimi yok (FCM kurulmadı; web push çalışıyor)
+- Release imzası için keystore üretilmedi — APK elden kurulur, Play Store'a
+  yüklenemez
+- Online kart ödemesi için ödeme kuruluşu entegrasyonu yok
+- KVKK aydınlatma metni hukukçu tarafından yazılmalı

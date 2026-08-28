@@ -1,0 +1,588 @@
+<title>SwanSport Tasarım Sistemi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@500;600&display=swap">
+
+<style>
+/* ============================================================
+   SwanSport — Design reference v3 · PREMIUM
+   Rich, layered, confident. Real data viz, depth, energy.
+   Not bare, not AI-generic. Page chrome theme-aware;
+   phone mockups show the product's crafted light theme
+   plus one signature dark screen.
+   ============================================================ */
+
+:root {
+  /* Brand teal family */
+  --teal:        #008C95;
+  --teal-bright: #14B8B1;
+  --teal-deep:   #04464B;
+  --teal-wash:   #E2F4F3;
+
+  /* Curated warm energy accent (used sparingly for streaks/records) */
+  --coral: #FF7A59;
+  --gold:  #E9B949;
+
+  /* Page */
+  --bg:       #EFF3F6;
+  --surface:  #FFFFFF;
+  --ink:      #0C1626;
+  --soft:     #55637A;
+  --faint:    #8A97AC;
+  --line:     #E4E9F0;
+
+  --ok:   #10B981;
+  --warn: #F59E0B;
+  --err:  #F43F5E;
+  --info: #3B82F6;
+
+  --font-d: 'Sora', system-ui, sans-serif;
+  --font:   'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --mono:   'IBM Plex Mono', ui-monospace, monospace;
+
+  --sh-1: 0 1px 2px rgba(12,22,38,.06), 0 2px 8px rgba(12,22,38,.05);
+  --sh-2: 0 6px 16px rgba(12,22,38,.08), 0 14px 40px rgba(12,22,38,.10);
+  --sh-3: 0 30px 70px rgba(12,22,38,.22);
+  --sh-teal: 0 10px 24px rgba(0,140,149,.34);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:#080D16; --surface:#111A28; --ink:#EAF1FA; --soft:#98A6BC; --faint:#63718A; --line:#1E293B;
+    --teal:#22C7BE; --teal-wash:#0C2E2E;
+    --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-2:0 10px 30px rgba(0,0,0,.5); --sh-3:0 30px 70px rgba(0,0,0,.65);
+  }
+}
+:root[data-theme="dark"] {
+  --bg:#080D16; --surface:#111A28; --ink:#EAF1FA; --soft:#98A6BC; --faint:#63718A; --line:#1E293B;
+  --teal:#22C7BE; --teal-wash:#0C2E2E;
+  --sh-1:0 1px 2px rgba(0,0,0,.4); --sh-2:0 10px 30px rgba(0,0,0,.5); --sh-3:0 30px 70px rgba(0,0,0,.65);
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font);
+  font-size: 16px; line-height: 1.6; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+
+/* ---- hero ---- */
+.hero { padding: 84px 0 30px; position: relative; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .16em; text-transform: uppercase;
+  color: var(--teal); font-weight: 600; display: inline-flex; gap: 10px; align-items: center; }
+.eyebrow::before { content:""; width: 28px; height: 2px; background: var(--teal); border-radius: 2px; }
+.hero h1 { font-family: var(--font-d); font-weight: 800; font-size: clamp(38px, 6.5vw, 72px); line-height: .96;
+  letter-spacing: -.035em; margin: 20px 0 0; text-wrap: balance; }
+.hero h1 em { font-style: normal; background: linear-gradient(100deg, var(--teal), var(--teal-bright));
+  -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.hero .lede { max-width: 56ch; margin: 22px 0 0; font-size: clamp(16px, 2vw, 19px); color: var(--soft); }
+.hero .meta { margin-top: 28px; display: flex; flex-wrap: wrap; gap: 9px; }
+.tg { font-size: 13px; font-weight: 600; padding: 7px 14px; border-radius: 999px; background: var(--surface);
+  border: 1px solid var(--line); color: var(--soft); box-shadow: var(--sh-1); }
+
+/* ---- sections ---- */
+.section { padding: 36px 0; }
+.sh { margin-bottom: 28px; }
+.sh .k { font-family: var(--mono); font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--teal); font-weight: 600; }
+.sh h2 { font-family: var(--font-d); font-weight: 800; font-size: clamp(24px, 3.6vw, 34px); letter-spacing: -.03em; margin: 8px 0 0; }
+.sh p { margin: 8px 0 0; color: var(--faint); max-width: 56ch; }
+
+/* ---- foundations ---- */
+.found { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; }
+.fc { background: var(--surface); border: 1px solid var(--line); border-radius: 22px; padding: 22px; box-shadow: var(--sh-1); }
+.fc h3 { font-weight: 700; font-size: 13px; margin: 0 0 16px; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+.sw { display: flex; align-items: center; gap: 12px; margin-bottom: 11px; }
+.sw i { width: 30px; height: 30px; border-radius: 9px; flex: none; box-shadow: inset 0 0 0 1px rgba(0,0,0,.05); }
+.sw b { font-size: 13.5px; font-weight: 600; } .sw code { font-family: var(--mono); font-size: 11px; color: var(--faint); margin-left: auto; }
+.tset > div { margin-bottom: 15px; } .tlbl { font-family: var(--mono); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--faint); display: block; margin-bottom: 3px; }
+.t-d { font-family: var(--font-d); font-weight: 800; font-size: 30px; letter-spacing: -.03em; line-height: 1; }
+.t-h { font-weight: 700; font-size: 18px; letter-spacing: -.01em; } .t-b { font-weight: 500; font-size: 14.5px; color: var(--soft); }
+.t-m { font-family: var(--mono); font-size: 12px; color: var(--soft); }
+.pr { display: flex; gap: 12px; margin-bottom: 15px; align-items: flex-start; }
+.pr .ic { width: 34px; height: 34px; border-radius: 10px; flex: none; display: grid; place-items: center; color: var(--teal); background: var(--teal-wash); }
+.pr b { display: block; font-size: 13.5px; font-weight: 700; } .pr span { font-size: 12.5px; color: var(--faint); }
+
+/* ---- gallery ---- */
+.gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(316px, 1fr)); gap: 50px 32px; justify-items: center; }
+.fw { width: 330px; max-width: 100%; }
+.cap { margin-top: 20px; }
+.cap .k { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--teal); font-weight: 600; }
+.cap h4 { font-family: var(--font-d); font-weight: 700; font-size: 18px; letter-spacing: -.02em; margin: 5px 0 6px; }
+.cap p { font-size: 13px; color: var(--faint); line-height: 1.5; margin: 0; }
+
+/* ============ device ============ */
+.phone { width: 330px; height: 690px; border-radius: 50px; background: #05090E; padding: 11px;
+  position: relative; box-shadow: var(--sh-3), 0 0 0 1px rgba(0,0,0,.55), inset 0 0 3px rgba(255,255,255,.14); }
+.phone::before { content:""; position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+  width: 108px; height: 26px; background: #05090E; border-radius: 16px; z-index: 8; }
+.phone::after { content:""; position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  width: 108px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.5); z-index: 8; }
+
+.app {
+  --a-teal:#008C95; --a-tealb:#14B8B1; --a-teald:#04464B; --a-wash:#E2F4F3;
+  --a-bg:#F4F7FA; --a-surf:#FFFFFF; --a-alt:#F1F5F8; --a-ink:#0C1626; --a-soft:#55637A; --a-faint:#93A1AE; --a-line:#EAEEF3;
+  --a-ok:#10B981; --a-okw:#E3F7EF; --a-warn:#E08A0B; --a-warnw:#FCF1DD; --a-err:#F43F5E; --a-errw:#FDE7EB;
+  --a-info:#3B82F6; --a-infow:#E5EEFE; --a-coral:#FF7A59; --a-gold:#E9B949; --a-violet:#7C5CE6;
+  --a-sh:0 6px 16px rgba(12,22,38,.08), 0 2px 6px rgba(12,22,38,.05);
+  width: 100%; height: 100%; border-radius: 39px; overflow: hidden; background: var(--a-bg); color: var(--a-ink);
+  display: flex; flex-direction: column; font-size: 13px; position: relative;
+}
+.app.dark {
+  --a-bg:#0A111E; --a-surf:#131D2E; --a-alt:#1A2537; --a-ink:#EAF1FA; --a-soft:#93A2BA; --a-faint:#5E6D86; --a-line:#233149;
+  --a-teal:#25C9C0; --a-tealb:#3BE0D0; --a-wash:#0E312F; --a-okw:#0F2E24; --a-warnw:#2E2510; --a-errw:#33141B; --a-infow:#12213E;
+  --a-sh:0 8px 22px rgba(0,0,0,.45);
+}
+
+.sb { height: 46px; flex: none; padding: 0 26px; display: flex; align-items: flex-end; padding-bottom: 6px;
+  justify-content: space-between; font-family: var(--mono); font-weight: 600; font-size: 12.5px; }
+.sb .r { display: flex; align-items: center; gap: 6px; }
+svg { display: block; }
+
+.view { flex: 1; overflow: hidden; position: relative; }
+.pad { padding: 8px 20px 20px; }
+
+/* top bar */
+.top { display: flex; align-items: center; gap: 11px; padding: 8px 20px 6px; }
+.crest { width: 40px; height: 40px; border-radius: 13px; background: linear-gradient(145deg, var(--a-teal), var(--a-teald));
+  color: #fff; display: grid; place-items: center; font-family: var(--font-d); font-weight: 800; font-size: 17px; box-shadow: var(--sh-teal); flex: none; }
+.who .n { font-weight: 800; font-size: 14px; letter-spacing: -.01em; line-height: 1.1; }
+.who .r { font-size: 11px; color: var(--a-faint); font-weight: 600; }
+.iconbtn { width: 40px; height: 40px; border-radius: 13px; background: var(--a-surf); border: 1px solid var(--a-line);
+  display: grid; place-items: center; color: var(--a-soft); position: relative; box-shadow: var(--a-sh); }
+.iconbtn.mla { margin-left: auto; }
+.iconbtn .dot { position: absolute; top: 9px; right: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--a-coral); border: 2px solid var(--a-surf); }
+
+.klbl { font-family: var(--mono); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; color: var(--a-faint); font-weight: 600; }
+.h1 { font-family: var(--font-d); font-weight: 800; font-size: 25px; letter-spacing: -.03em; line-height: 1.05; margin: 4px 0 0; }
+.h1.sm { font-size: 21px; }
+.sub { font-size: 12px; color: var(--a-soft); margin: 3px 0 0; }
+.grp { display: flex; align-items: center; justify-content: space-between; margin: 22px 2px 12px; }
+.grp b { font-weight: 800; font-size: 14px; letter-spacing: -.01em; }
+.grp a { color: var(--a-teal); font-weight: 700; font-size: 12px; text-decoration: none; }
+
+/* avatar (gradient) */
+.av { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; flex: none;
+  font-weight: 700; font-size: 14px; color: #fff; font-family: var(--font-d); box-shadow: var(--a-sh); }
+.g1 { background: linear-gradient(145deg,#14B8B1,#008C95); }
+.g2 { background: linear-gradient(145deg,#FFB65C,#F97316); }
+.g3 { background: linear-gradient(145deg,#9E7BFF,#6D45C4); }
+.g4 { background: linear-gradient(145deg,#4FC3F7,#2563EB); }
+.av.time { background: var(--a-alt); color: var(--a-soft); font-family: var(--mono); flex-direction: column; font-size: 13px; line-height: 1; gap: 1px; box-shadow: none; }
+.av.time small { font-size: 8px; opacity: .7; }
+
+/* card */
+.card { background: var(--a-surf); border: 1px solid var(--a-line); border-radius: 22px; box-shadow: var(--a-sh); }
+
+/* ===== signature hero session card ===== */
+.hero-s { border-radius: 24px; padding: 18px; color: #fff; position: relative; overflow: hidden;
+  background: radial-gradient(120% 120% at 100% 0, #13B3AC 0%, #008C95 42%, #045A60 100%); box-shadow: var(--sh-teal); }
+.hero-s::after { content:""; position: absolute; right: -40px; top: -40px; width: 150px; height: 150px; border-radius: 50%;
+  background: rgba(255,255,255,.10); }
+.hero-s .lab { font-family: var(--mono); font-size: 9.5px; letter-spacing: .12em; text-transform: uppercase; opacity: .9; font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.hero-s .ttl { font-family: var(--font-d); font-weight: 800; font-size: 19px; letter-spacing: -.02em; margin: 10px 0 4px; }
+.hero-s .met { font-size: 12px; opacity: .92; display: flex; align-items: center; gap: 7px; }
+.hero-s .ring-row { display: flex; align-items: center; gap: 14px; margin-top: 15px; }
+.hero-s .faces { display: flex; }
+.hero-s .faces span { width: 26px; height: 26px; border-radius: 50%; border: 2px solid #0a8f97; margin-left: -8px;
+  display: grid; place-items: center; font-size: 9px; font-weight: 700; color: #fff; font-family: var(--font-d); }
+.hero-s .faces span:first-child { margin-left: 0; }
+.hero-s .cta { margin-left: auto; background: #fff; color: var(--a-teald); border: none; font-family: var(--font);
+  font-weight: 800; font-size: 12.5px; padding: 10px 16px; border-radius: 12px; display: flex; align-items: center; gap: 7px; }
+
+/* ring (donut) */
+.ring { width: 62px; height: 62px; position: relative; flex: none; }
+.ring .val { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-d); font-weight: 800; font-size: 15px; }
+
+/* stat tiles */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 11px; }
+.tile { background: var(--a-surf); border: 1px solid var(--a-line); border-radius: 18px; padding: 13px 14px; box-shadow: var(--a-sh); }
+.tile .ic { width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; margin-bottom: 9px; }
+.tile .n { font-family: var(--font-d); font-weight: 800; font-size: 22px; letter-spacing: -.03em; }
+.tile .l { font-size: 10.5px; color: var(--a-faint); font-weight: 600; margin-top: 1px; }
+.trend { font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; gap: 2px; padding: 2px 6px; border-radius: 6px; }
+.trend.up { color: var(--a-ok); background: var(--a-okw); } .trend.dn { color: var(--a-err); background: var(--a-errw); }
+
+/* list rows */
+.li { display: flex; align-items: center; gap: 13px; padding: 12px 0; border-bottom: 1px solid var(--a-line); }
+.li:last-child { border-bottom: 0; }
+.li .t { font-weight: 700; font-size: 13.5px; letter-spacing: -.01em; }
+.li .s { font-size: 11.5px; color: var(--a-faint); margin-top: 1px; }
+
+/* status chip (soft, icon+text) */
+.st { display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px; }
+.st svg { width: 11px; height: 11px; }
+.st.ok { color: var(--a-ok); background: var(--a-okw); } .st.warn { color: var(--a-warn); background: var(--a-warnw); }
+.st.info { color: var(--a-info); background: var(--a-infow); }
+
+/* buttons */
+.btn { height: 50px; border-radius: 15px; background: linear-gradient(120deg, var(--a-teal), #00A2A0); color: #fff;
+  font-weight: 800; font-size: 14.5px; border: none; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: var(--sh-teal); }
+.btn.ghost { background: var(--a-alt); color: var(--a-ink); box-shadow: none; }
+.btn.line { background: transparent; color: var(--a-ink); border: 1.5px solid var(--a-line); box-shadow: none; }
+
+/* field */
+.field { display: flex; align-items: center; gap: 11px; height: 52px; padding: 0 16px; background: var(--a-surf);
+  border: 1px solid var(--a-line); border-radius: 15px; color: var(--a-faint); font-size: 13.5px; box-shadow: var(--a-sh); }
+.field.on { box-shadow: 0 0 0 3px var(--a-wash), var(--a-sh); border-color: var(--a-teal); color: var(--a-ink); }
+.flab { font-size: 11.5px; font-weight: 700; color: var(--a-soft); margin: 0 0 7px 2px; }
+
+/* segmented */
+.seg { display: flex; background: var(--a-alt); border-radius: 13px; padding: 4px; gap: 2px; }
+.seg span { flex: 1; text-align: center; font-size: 12px; font-weight: 700; padding: 8px 0; border-radius: 10px; color: var(--a-faint); }
+.seg span.on { background: var(--a-surf); color: var(--a-ink); box-shadow: var(--a-sh); }
+
+/* progress + metric bars */
+.track { height: 7px; border-radius: 5px; background: rgba(255,255,255,.28); overflow: hidden; }
+.track.plain { background: var(--a-alt); }
+.track > i { display: block; height: 100%; border-radius: 5px; background: #fff; }
+.track.plain > i { background: linear-gradient(90deg, var(--a-teal), var(--a-tealb)); }
+.metric { display: flex; align-items: center; gap: 12px; padding: 9px 0; }
+.metric .lab { width: 82px; font-size: 12px; font-weight: 600; flex: none; }
+.metric .num { font-family: var(--mono); font-size: 12px; color: var(--a-teal); width: 26px; text-align: right; flex: none; font-weight: 600; }
+
+/* one-tap attendance */
+.taps { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; margin-top: 11px; }
+.tp { height: 38px; border-radius: 12px; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: var(--a-faint); background: var(--a-alt); }
+.tp.on.v { background: var(--a-ok); color: #fff; box-shadow: 0 6px 14px rgba(16,185,129,.34); }
+.tp.on.y { background: var(--a-err); color: #fff; box-shadow: 0 6px 14px rgba(244,63,94,.34); }
+.tp.on.m { background: var(--a-warn); color: #fff; box-shadow: 0 6px 14px rgba(245,158,11,.34); }
+.tp.on.g { background: var(--a-info); color: #fff; box-shadow: 0 6px 14px rgba(59,130,246,.34); }
+
+/* chips */
+.chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.chip { font-size: 12px; font-weight: 700; padding: 8px 14px; border-radius: 999px; background: var(--a-surf); border: 1px solid var(--a-line); color: var(--a-soft); box-shadow: var(--a-sh); }
+.chip.on { background: var(--a-ink); color: var(--a-bg); border-color: var(--a-ink); }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 7px 12px; border-radius: 11px; background: var(--a-alt); }
+
+/* ===== floating nav with center action ===== */
+.navwrap { flex: none; padding: 10px 16px 14px; }
+.nav { height: 64px; background: var(--a-surf); border: 1px solid var(--a-line); border-radius: 22px; box-shadow: 0 10px 30px rgba(12,22,38,.16);
+  display: flex; align-items: center; justify-content: space-between; padding: 0 14px; position: relative; }
+.app.dark .nav { box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.nav a { display: flex; flex-direction: column; align-items: center; gap: 4px; text-decoration: none; color: var(--a-faint); font-size: 9.5px; font-weight: 700; width: 52px; }
+.nav a svg { width: 22px; height: 22px; }
+.nav a.on { color: var(--a-teal); }
+.nav a.on svg { filter: drop-shadow(0 3px 6px rgba(0,140,149,.4)); }
+.fab { width: 54px; height: 54px; border-radius: 18px; background: linear-gradient(140deg, var(--a-tealb), var(--a-teal));
+  color: #fff; display: grid; place-items: center; box-shadow: var(--sh-teal); margin-top: -22px; border: 3px solid var(--a-surf); }
+
+/* profile cover */
+.cover { height: 122px; background: radial-gradient(130% 130% at 90% 0, #13B3AC, #008C95 45%, #04464B); position: relative; }
+.cover .back { position: absolute; top: 14px; left: 16px; width: 34px; height: 34px; border-radius: 11px; background: rgba(255,255,255,.18); display: grid; place-items: center; color: #fff; }
+.cover .more { position: absolute; top: 14px; right: 16px; width: 34px; height: 34px; border-radius: 11px; background: rgba(255,255,255,.18); display: grid; place-items: center; color: #fff; }
+.p-av { width: 76px; height: 76px; border-radius: 22px; margin-top: -38px; border: 4px solid var(--a-surf); box-shadow: var(--a-sh); }
+
+/* footer */
+.foot { margin-top: 46px; border-top: 1px solid var(--line); padding: 46px 0 76px; }
+.foot h2 { font-family: var(--font-d); font-weight: 800; font-size: 26px; letter-spacing: -.03em; margin: 0 0 12px; }
+.foot ol { margin: 0; padding-left: 22px; max-width: 60ch; } .foot li { margin: 9px 0; color: var(--soft); } .foot li b { color: var(--ink); }
+.foot .src { margin-top: 26px; font-size: 12.5px; color: var(--faint); } .foot .src a { color: var(--soft); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .fw { opacity: 0; transform: translateY(20px); animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; }
+  .fw:nth-child(2){animation-delay:.06s}.fw:nth-child(3){animation-delay:.12s}.fw:nth-child(4){animation-delay:.18s}
+  .fw:nth-child(5){animation-delay:.24s}.fw:nth-child(6){animation-delay:.3s}
+  @keyframes rise { to { opacity:1; transform:none; } }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">Tasarım Sistemi · v3 · Premium</span>
+    <h1>Sahaya çıkmaya<br><em>hazır bir ürün.</em></h1>
+    <p class="lede">Dolu ama dağınık değil. Gerçek veri, gerçek grafikler, katmanlı derinlik ve enerjisi olan bir spor platformu. Kendi elimle yapsam nasıl olurdu — işte böyle.</p>
+    <div class="meta">
+      <span class="tg">Katmanlı derinlik</span>
+      <span class="tg">Halka & çubuk grafik</span>
+      <span class="tg">Yüzen menü + aksiyon</span>
+      <span class="tg">Sora × Jakarta Sans</span>
+      <span class="tg">Açık / Koyu</span>
+    </div>
+  </header>
+
+  <section class="section">
+    <div class="sh"><span class="k">01</span><h2>Temel öğeler</h2><p>Zengin ama disiplinli bir sistem: teal ailesi, bir sıcak enerji vurgusu, güçlü tipografi.</p></div>
+    <div class="found">
+      <div class="fc">
+        <h3>Renk</h3>
+        <div class="sw"><i style="background:#008C95"></i><b>Teal</b><code>#008C95</code></div>
+        <div class="sw"><i style="background:#14B8B1"></i><b>Teal parlak</b><code>#14B8B1</code></div>
+        <div class="sw"><i style="background:#FF7A59"></i><b>Enerji (vurgu)</b><code>#FF7A59</code></div>
+        <div class="sw"><i style="background:#0C1626"></i><b>Mürekkep</b><code>#0C1626</code></div>
+        <div class="sw"><i style="background:#10B981"></i><b>Başarı</b><code>#10B981</code></div>
+      </div>
+      <div class="fc">
+        <h3>Tipografi</h3>
+        <div class="tset">
+          <div><span class="tlbl">Sora 800 · başlık & sayı</span><div class="t-d">18 · %89</div></div>
+          <div><span class="tlbl">Jakarta 700 · başlık</span><div class="t-h">İyi çalışmalar, Ahmet</div></div>
+          <div><span class="tlbl">Jakarta 500 · metin</span><div class="t-b">Herkes için tek platform.</div></div>
+          <div><span class="tlbl">Mono · veri</span><div class="t-m">TR-2026-8842</div></div>
+        </div>
+      </div>
+      <div class="fc">
+        <h3>İlkeler</h3>
+        <div class="pr"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/></svg></span><div><b>Dolu ama düzenli</b><span>Her ekran zengin; ama tek odak, net hiyerarşi.</span></div></div>
+        <div class="pr"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 18 0 9 9 0 0 0-18 0M3 12h6"/></svg></span><div><b>Veriyi göster</b><span>Halka, çubuk, trend — rakam görselleşir.</span></div></div>
+        <div class="pr"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></span><div><b>Tek dokunuş</b><span>Ana işler alttan, yüzen aksiyonla.</span></div></div>
+        <div class="pr"><span class="ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg></span><div><b>Enerji, ölçülü</b><span>Sıcak vurgu sadece rekor/seri anlarında.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="sh"><span class="k">02</span><h2>Ekranlar</h2><p>Beş çekirdek ekran, tam kalitede. Beğendiğinden başlayıp Flutter'da gerçeğini yaparız.</p></div>
+    <div class="gallery">
+
+      <!-- 1 · DASHBOARD -->
+      <div class="fw">
+        <div class="phone"><div class="app">
+          <div class="sb"><span>9:41</span><span class="r">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="currentColor" opacity=".45"/><rect x="3" y="3" width="14" height="6" rx="1.5" fill="currentColor"/><rect x="21" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".45"/></svg>
+          </span></div>
+          <div class="top">
+            <div class="crest">K</div>
+            <div class="who"><div class="n">Kadıköy SK</div><div class="r">Antrenör · U-16 Erkek</div></div>
+            <div class="iconbtn mla"><span class="dot"></span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8a6 6 0 1 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg></div>
+          </div>
+          <div class="view"><div class="pad" style="padding-top:8px;">
+            <span class="klbl">21 Ağustos · Cuma</span>
+            <div class="h1">İyi çalışmalar,<br>Ahmet Koç</div>
+
+            <div class="hero-s" style="margin-top:16px;">
+              <div class="lab">● YAKLAŞAN ANTRENMAN · 17:30</div>
+              <div class="ttl">U-16 Erkek Basketbol</div>
+              <div class="met"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21s-7-5.2-7-11a7 7 0 0 1 14 0c0 5.8-7 11-7 11Z"/><circle cx="12" cy="10" r="2.5"/></svg> Caferağa Spor Salonu · 90 dk</div>
+              <div class="ring-row">
+                <div class="ring">
+                  <svg width="62" height="62" viewBox="0 0 62 62"><circle cx="31" cy="31" r="26" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="7"/><circle cx="31" cy="31" r="26" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="20" transform="rotate(-90 31 31)"/></svg>
+                  <span class="val" style="color:#fff">%88</span>
+                </div>
+                <div class="faces">
+                  <span class="g1">CY</span><span style="background:#F97316">EK</span><span style="background:#6D45C4">AŞ</span><span style="background:rgba(255,255,255,.25)">+13</span>
+                </div>
+                <button class="cta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Yoklama</button>
+              </div>
+            </div>
+
+            <div class="tiles" style="margin-top:14px;">
+              <div class="tile">
+                <div class="ic" style="background:var(--a-okw);color:var(--a-ok)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 11a3 3 0 0 0 0-6"/></svg></div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;"><span class="n">18</span><span class="trend up">▲ Tam</span></div>
+                <div class="l">Aktif sporcu</div>
+              </div>
+              <div class="tile">
+                <div class="ic" style="background:var(--a-infow);color:var(--a-info)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/></svg></div>
+                <div style="display:flex;align-items:baseline;justify-content:space-between;"><span class="n">%89</span><span class="trend up">▲ 4%</span></div>
+                <div class="l">Sezon katılımı</div>
+              </div>
+            </div>
+          </div></div>
+          <div class="navwrap"><nav class="nav" style="pointer-events:auto">
+            <a class="on"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 11l9-8 9 8v9a2 2 0 0 1-2 2h-4v-6H9v6H5a2 2 0 0 1-2-2z"/></svg>Ana</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Takvim</a>
+            <a><span class="fab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="8" r="3.4"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 11a3 3 0 0 0 0-6M21.5 20a6.5 6.5 0 0 0-4-6"/></svg>Kadro</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v11H8l-5 4z"/></svg>Duyuru</a>
+          </nav></div>
+        </div></div>
+        <div class="cap"><div class="k">Ekran 01</div><h4>Antrenör Paneli</h4><p>İmza hero kartı: katılım halkası, sporcu yüzleri ve tek dokunuş "Yoklama". Trendli metrik tile'lar. Yüzen menü + merkez aksiyon.</p></div>
+      </div>
+
+      <!-- 2 · ATHLETE PROFILE -->
+      <div class="fw">
+        <div class="phone"><div class="app">
+          <div class="sb"><span>9:41</span><span class="r">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="currentColor" opacity=".45"/><rect x="3" y="3" width="14" height="6" rx="1.5" fill="currentColor"/><rect x="21" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".45"/></svg>
+          </span></div>
+          <div class="view">
+            <div class="cover">
+              <div class="back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 6-6 6 6 6"/></svg></div>
+              <div class="more"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></div>
+            </div>
+            <div class="pad" style="padding-top:0;">
+              <div style="display:flex;align-items:flex-end;gap:12px;">
+                <div class="av g1 p-av" style="font-size:24px;border-radius:22px;">CY</div>
+                <div style="padding-bottom:6px;flex:1;">
+                  <div style="display:flex;align-items:center;gap:7px;"><span style="font-family:var(--font-d);font-weight:800;font-size:20px;letter-spacing:-.02em;">Can Yılmaz</span><span class="st ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Aktif</span></div>
+                  <div class="sub" style="margin-top:2px;">Point Guard · <span style="font-family:var(--mono)">#10</span> · U-16 Erkek</div>
+                </div>
+              </div>
+
+              <div class="tiles" style="grid-template-columns:1fr 1fr 1fr;margin-top:16px;">
+                <div class="tile" style="text-align:center;padding:12px 6px;"><div class="n" style="font-size:19px;">%94</div><div class="l">Katılım</div></div>
+                <div class="tile" style="text-align:center;padding:12px 6px;"><div class="n" style="font-size:19px;color:var(--a-teal)">8.8</div><div class="l">Skor</div></div>
+                <div class="tile" style="text-align:center;padding:12px 6px;"><div class="n" style="font-size:19px;">14</div><div class="l">Yaş</div></div>
+              </div>
+
+              <div class="seg" style="margin-top:16px;"><span class="on">Genel</span><span>Sağlık</span><span>Belgeler</span></div>
+
+              <div class="card" style="margin-top:14px;padding:14px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;"><b style="font-size:13px;">Sağlık durumu</b><span class="st ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Geçerli</span></div>
+                <div class="sub" style="margin-top:6px;">Son rapor 15 Kas 2026 · Veli izin belgesi tam</div>
+              </div>
+
+              <div class="li" style="margin-top:6px;">
+                <div class="av g2" style="width:38px;height:38px;border-radius:12px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><path d="M4 4h16v14H8l-4 4z"/></svg></div>
+                <div style="flex:1"><div class="t">Yılmaz Ailesi · Veli</div><div class="s">+90 5•• ••• •• ••</div></div>
+                <div class="iconbtn" style="width:36px;height:36px;color:var(--a-teal);"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3-8.6A2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.4-1.2a2 2 0 0 1 2.1-.5c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2Z"/></svg></div>
+              </div>
+            </div>
+          </div>
+          <div class="navwrap"><nav class="nav" style="pointer-events:auto">
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Ana</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Takvim</a>
+            <a><span class="fab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></a>
+            <a class="on"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>Kadro</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v11H8l-5 4z"/></svg>Duyuru</a>
+          </nav></div>
+        </div></div>
+        <div class="cap"><div class="k">Ekran 02</div><h4>Sporcu Profili</h4><p>Gradyan kapak, büyük avatar, üçlü istatistik, segment sekmeler, sağlık kartı ve tek dokunuşla veli arama. Dolu ama okunur.</p></div>
+      </div>
+
+      <!-- 3 · ROSTER -->
+      <div class="fw">
+        <div class="phone"><div class="app">
+          <div class="sb"><span>9:41</span><span class="r">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="currentColor" opacity=".45"/><rect x="3" y="3" width="14" height="6" rx="1.5" fill="currentColor"/><rect x="21" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".45"/></svg>
+          </span></div>
+          <div class="pad" style="padding-bottom:8px;">
+            <div style="display:flex;align-items:flex-end;justify-content:space-between;">
+              <div><span class="klbl">Kadıköy SK</span><div class="h1 sm">Kadro · 18</div></div>
+              <div class="iconbtn"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+            </div>
+            <div class="field" style="margin-top:14px;height:48px;">
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4-4"/></svg> Sporcu ara…</div>
+            <div class="chips" style="margin-top:12px;"><span class="chip on">Bugünkü Takım</span><span class="chip">Lisans</span><span class="chip">Pozisyon</span></div>
+          </div>
+          <div class="view"><div class="pad" style="padding-top:2px;">
+            <div class="li">
+              <div class="av g1">CY</div>
+              <div style="flex:1"><div class="t">Can Yılmaz <span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#10</span></div><div class="s">Point Guard · %94 katılım</div></div>
+              <span class="st ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Aktif</span>
+            </div>
+            <div class="li">
+              <div class="av g2">EK</div>
+              <div style="flex:1"><div class="t">Efe Kaya <span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#07</span></div><div class="s">Shooting Guard · rapor bekliyor</div></div>
+              <span class="st warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M12 9v4M12 17h.01"/><path d="M10.3 3.9 2 18a2 2 0 0 0 1.7 3h16.6a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Eksik</span>
+            </div>
+            <div class="li">
+              <div class="av g3">AŞ</div>
+              <div style="flex:1"><div class="t">Arda Şen <span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#12</span></div><div class="s">Forward · %91 katılım</div></div>
+              <span class="st ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Aktif</span>
+            </div>
+            <div class="li">
+              <div class="av g4">MB</div>
+              <div style="flex:1"><div class="t">Mert Baş <span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#04</span></div><div class="s">Center · %87 katılım</div></div>
+              <span class="st ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Aktif</span>
+            </div>
+          </div></div>
+          <div class="navwrap"><nav class="nav" style="pointer-events:auto">
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Ana</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Takvim</a>
+            <a><span class="fab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></a>
+            <a class="on"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0z"/></svg>Kadro</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v11H8l-5 4z"/></svg>Duyuru</a>
+          </nav></div>
+        </div></div>
+        <div class="cap"><div class="k">Ekran 03</div><h4>Sporcu Yönetimi</h4><p>Renkli gradyan avatarlar, satır içi mini-istatistik (katılım) ve ikon+metin durum. Feed gibi akıcı, dolu ama ferah.</p></div>
+      </div>
+
+      <!-- 4 · ATTENDANCE -->
+      <div class="fw">
+        <div class="phone"><div class="app">
+          <div class="sb"><span>9:41</span><span class="r">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="currentColor" opacity=".45"/><rect x="3" y="3" width="14" height="6" rx="1.5" fill="currentColor"/><rect x="21" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".45"/></svg>
+          </span></div>
+          <div class="pad" style="padding-bottom:10px;">
+            <span class="klbl">Canlı yoklama</span>
+            <div style="display:flex;align-items:center;gap:14px;margin-top:8px;">
+              <div class="ring" style="width:56px;height:56px;">
+                <svg width="56" height="56" viewBox="0 0 56 56"><circle cx="28" cy="28" r="23" fill="none" stroke="var(--a-alt)" stroke-width="6"/><circle cx="28" cy="28" r="23" fill="none" stroke="var(--a-teal)" stroke-width="6" stroke-linecap="round" stroke-dasharray="144" stroke-dashoffset="17" transform="rotate(-90 28 28)"/></svg>
+                <span class="val" style="font-size:13px;">%88</span>
+              </div>
+              <div><div class="h1 sm">U-16 Erkek</div><div class="sub">17:30 · 16/18 işaretlendi</div></div>
+            </div>
+          </div>
+          <div class="view"><div class="pad" style="padding-top:2px;">
+            <div style="padding:12px 0;border-bottom:1px solid var(--a-line);">
+              <div style="display:flex;align-items:center;gap:11px;"><div class="av g1" style="width:36px;height:36px;border-radius:12px;font-size:12px;">CY</div><div class="t" style="flex:1">Can Yılmaz</div><span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#10</span></div>
+              <div class="taps"><div class="tp on v">Var</div><div class="tp y">Yok</div><div class="tp m">Mazeret</div><div class="tp g">Geç</div></div>
+            </div>
+            <div style="padding:12px 0;border-bottom:1px solid var(--a-line);">
+              <div style="display:flex;align-items:center;gap:11px;"><div class="av g2" style="width:36px;height:36px;border-radius:12px;font-size:12px;">EK</div><div class="t" style="flex:1">Efe Kaya</div><span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#07</span></div>
+              <div class="taps"><div class="tp v">Var</div><div class="tp y">Yok</div><div class="tp on m">Mazeret</div><div class="tp g">Geç</div></div>
+            </div>
+            <div style="padding:12px 0;">
+              <div style="display:flex;align-items:center;gap:11px;"><div class="av g3" style="width:36px;height:36px;border-radius:12px;font-size:12px;">AŞ</div><div class="t" style="flex:1">Arda Şen</div><span style="font-family:var(--mono);color:var(--a-faint);font-size:10px;">#12</span></div>
+              <div class="taps"><div class="tp on v">Var</div><div class="tp y">Yok</div><div class="tp m">Mazeret</div><div class="tp g">Geç</div></div>
+            </div>
+          </div></div>
+          <div style="flex:none;padding:12px 20px 16px;background:var(--a-surf);border-top:1px solid var(--a-line);">
+            <button class="btn">Yoklamayı Kaydet · 16/18</button>
+          </div>
+        </div></div>
+        <div class="cap"><div class="k">Ekran 04 · P1</div><h4>Yoklama — tek dokunuş</h4><p>Üstte canlı katılım halkası. Var/Yok/Mazeret/Geç tek dokunuşta, renkli geri bildirim. Kaydet altta sabit.</p></div>
+      </div>
+
+      <!-- 5 · PERFORMANCE (dark) -->
+      <div class="fw">
+        <div class="phone"><div class="app dark">
+          <div class="sb"><span>21:20</span><span class="r">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect y="7" width="3" height="4" rx="1"/><rect x="4.5" y="5" width="3" height="6" rx="1"/><rect x="9" y="2.5" width="3" height="8.5" rx="1"/><rect x="13.5" width="3" height="11" rx="1"/></svg>
+            <svg width="24" height="12" viewBox="0 0 24 12" fill="none"><rect x="1" y="1" width="19" height="10" rx="3" stroke="currentColor" opacity=".45"/><rect x="3" y="3" width="14" height="6" rx="1.5" fill="currentColor"/><rect x="21" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".45"/></svg>
+          </span></div>
+          <div class="pad" style="padding-bottom:6px;">
+            <span class="klbl">Performans</span>
+            <div style="display:flex;align-items:center;gap:12px;margin-top:8px;">
+              <div class="av g1" style="width:46px;height:46px;">CY</div>
+              <div style="flex:1"><div class="h1 sm" style="font-size:19px;">Can Yılmaz</div><div class="sub">Point Guard · Antrenman skoru</div></div>
+              <div style="text-align:right"><div style="font-family:var(--font-d);font-weight:800;font-size:24px;letter-spacing:-.03em;color:var(--a-teal)">8.8</div></div>
+            </div>
+          </div>
+          <div class="view"><div class="pad" style="padding-top:6px;">
+            <div class="card" style="padding:15px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><b style="font-size:13px;">Fiziksel testler</b><span class="badge" style="background:var(--a-wash);color:var(--a-teal);">Bu ay ▲</span></div>
+              <div class="metric"><span class="lab">Sürat</span><span style="flex:1"><span class="track plain"><i style="width:92%"></i></span></span><span class="num">92</span></div>
+              <div class="metric"><span class="lab">Dayanıklılık</span><span style="flex:1"><span class="track plain"><i style="width:78%"></i></span></span><span class="num">78</span></div>
+              <div class="metric"><span class="lab">Sıçrama</span><span style="flex:1"><span class="track plain"><i style="width:85%"></i></span></span><span class="num">85</span></div>
+              <div class="metric"><span class="lab">Çeviklik</span><span style="flex:1"><span class="track plain"><i style="width:80%"></i></span></span><span class="num">80</span></div>
+            </div>
+            <div class="grp"><b>Gelişim hedefleri</b><a>Düzenle</a></div>
+            <div class="chips">
+              <span class="badge" style="background:var(--a-wash);color:var(--a-teal);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="6"/><path d="M8.2 13 7 22l5-3 5 3-1.2-9"/></svg>3 puan atışı</span>
+              <span class="badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="0.6" fill="currentColor"/></svg>Pas isabeti</span>
+              <span class="badge"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg>Savunma</span>
+            </div>
+          </div></div>
+          <div class="navwrap"><nav class="nav" style="pointer-events:auto">
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>Ana</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="3"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>Takvim</a>
+            <a><span class="fab"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 5v14M5 12h14"/></svg></span></a>
+            <a class="on"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="11" width="4" height="9" rx="1"/><rect x="10" y="4" width="4" height="16" rx="1"/><rect x="17" y="8" width="4" height="12" rx="1"/></svg>Analiz</a>
+            <a><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 5h18v11H8l-5 4z"/></svg>Duyuru</a>
+          </nav></div>
+        </div></div>
+        <div class="cap"><div class="k">Ekran 05 · Koyu</div><h4>Performans</h4><p>Karmaşık radar yerine okunur çubuklar, madalya rozetleri. Zengin koyu tema — gece de aynı kalite.</p></div>
+      </div>
+
+    </div>
+  </section>
+
+  <footer class="foot">
+    <div class="wrap" style="padding:0;">
+      <h2>Sırada ne var?</h2>
+      <ol>
+        <li>Bu <b>premium</b> yönü onayla — hangi ekranı en çok beğendin, oradan başlayalım.</li>
+        <li>Seçtiğin ekranı <b>Flutter'da</b> birebir yaparım: halka grafik, yüzen menü + aksiyon dahil.</li>
+        <li>Aynı zengin dili <b>tüm modüllere</b> yayarız.</li>
+        <li>Arkada <b>gerçek Supabase verisi</b> ile bağlarız — hem şık hem çalışır.</li>
+      </ol>
+      <p class="src">İlham & referans: <a href="https://mobbin.com/explore/mobile/app-categories/sports">Mobbin — Sports</a> · <a href="https://dribbble.com/tags/sports-app-design">Dribbble — Sports app</a> · <a href="https://www.designstudiouiux.com/blog/mobile-navigation-ux/">Mobile Navigation UX 2026</a></p>
+    </div>
+  </footer>
+
+</div>

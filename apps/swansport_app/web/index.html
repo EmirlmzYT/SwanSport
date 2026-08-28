@@ -18,29 +18,31 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="SwanSport — kulüp ve sporcu yönetim platformu.">
+  <!-- Durum çubuğu / tarayıcı üst şeridi uygulamanın arka planıyla aynı olsun -->
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F7FA">
+  <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A111E">
+  <style>
+    html, body { margin: 0; padding: 0; height: 100%; background-color: #F4F7FA; }
+    @media (prefers-color-scheme: dark) {
+      html, body { background-color: #0A111E; }
+    }
+  </style>
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="swansport_app">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="SwanSport">
+  <link rel="apple-touch-icon" href="icons/Icon-180.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>swansport_app</title>
+  <title>SwanSport</title>
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
-
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

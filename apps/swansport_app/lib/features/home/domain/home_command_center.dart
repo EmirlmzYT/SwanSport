@@ -311,7 +311,7 @@ class FixtureHomeRepository {
       category: 'Finans',
       dueDate: DateTime(2026, 7, 25),
       priority: 'Orta',
-      actionRoute: '/financial-management',
+      actionRoute: '/finans',
     ),
   ];
 
@@ -418,7 +418,7 @@ class FixtureHomeRepository {
     HomeGlobalSearchResult(
       title: 'Aidat ödeme durumu',
       category: 'Ödeme',
-      route: '/financial-management',
+      route: '/finans',
     ),
   ];
 

@@ -6,7 +6,9 @@ environment:
 
 workspace:
   - apps/swansport_app
+  - apps/swansport_console
   - packages/swansport_core
+  - packages/swansport_data
   - packages/swansport_design_system
   - packages/swansport_models
   - packages/swansport_branch_engine

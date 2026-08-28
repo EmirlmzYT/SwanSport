@@ -1,0 +1,17 @@
+# Bu dosya bilerek boş.
+#
+# Burada eskiden şu kural vardı:
+#
+#     /*    /index.html   200
+#
+# Cloudflare o kuralı hiç uygulamadı: hedefi `/index.html` olan 200 rewrite'ları
+# "sonsuz döngü" sayıp yok sayıyor ve dağıtım günlüğüne
+# `Parsed 0 valid redirect rules` yazıyor. Yıllarca fark edilmedi çünkü mobil
+# uygulama hash yönlendirme (`/#/akis`) kullanıyor ve rewrite'a hiç ihtiyaç
+# duymuyor; eşleşmeyen yolları da Pages zaten kendiliğinden köke düşürüyor.
+#
+# Konsolun derin bağlantıları (`/konsol/sporcular`) gerçek yol kullandığı için
+# rewrite'a ihtiyaç duyuyor. O iş `functions/konsol/[[path]].js` içinde yapılıyor.
+#
+# Yeni kural eklersen dağıtım çıktısında "Parsed N valid redirect rules"
+# satırını kontrol et — sessizce yok sayılmış olabilir.

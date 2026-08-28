@@ -1,3 +1,5 @@
+import 'package:swansport_core/swansport_core.dart';
+
 import 'app/bootstrap/bootstrap.dart';
 import 'app/config/app_environment.dart';
 
@@ -13,5 +15,6 @@ void main() {
         defaultValue: 'true',
       ),
     ),
+    supabaseConfig: SupabaseConfig.fromCompileTime(),
   );
 }

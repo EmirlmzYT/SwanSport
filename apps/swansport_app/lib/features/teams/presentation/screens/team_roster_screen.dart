@@ -1,0 +1,247 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_design_system/swansport_design_system.dart';
+
+import '../../../../app/widgets/premium.dart';
+
+/// Bir takımın kadrosu — sporcu ekle/çıkar.
+///
+/// Rota argümanı: `{'id': takımId, 'name': takımAdı}`.
+class TeamRosterScreen extends ConsumerWidget {
+  const TeamRosterScreen({super.key, required this.teamId, required this.teamName});
+
+  final String teamId;
+  final String teamName;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+
+    final club = ref.watch(activeClubProvider).valueOrNull;
+    final canManage = club != null &&
+        (club.role == 'club_admin' || club.role == 'coach');
+    final roster = ref.watch(teamRosterProvider(teamId));
+
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: bg,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(teamRosterProvider(teamId));
+                await ref.read(teamRosterProvider(teamId).future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
+                children: [
+                  Row(children: [
+                    GestureDetector(
+                      onTap: () => Navigator.maybePop(context),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                            color: surf,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: line)),
+                        child: Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 15, color: ink),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('TAKIM KADROSU',
+                              style: jakarta(10.5, FontWeight.w700,
+                                  SwanColors.textSecondary,
+                                  ls: 1.3)),
+                          Text(teamName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: sora(21, FontWeight.w800, ink)),
+                        ],
+                      ),
+                    ),
+                  ]),
+                  const SizedBox(height: 18),
+
+                  roster.when(
+                    loading: premiumLoading,
+                    error: (e, _) => premiumError(context, '$e'),
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return premiumEmpty(
+                          context,
+                          icon: Icons.groups_rounded,
+                          title: 'Kadro boş',
+                          subtitle: canManage
+                              ? 'Aşağıdan kulüp sporcularını takıma ekle.'
+                              : 'Bu takıma henüz sporcu eklenmemiş.',
+                        );
+                      }
+                      return Column(
+                          children: list
+                              .map((m) => _member(context, ref, isDark, m,
+                                  canManage))
+                              .toList());
+                    },
+                  ),
+
+                  if (canManage) ...[
+                    const SizedBox(height: 22),
+                    Text('KULÜP SPORCULARI',
+                        style: jakarta(
+                            11, FontWeight.w700, SwanColors.textSecondary,
+                            ls: 1.2)),
+                    const SizedBox(height: 6),
+                    Text('Takıma eklemek için dokun.',
+                        style: jakarta(
+                            11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    const SizedBox(height: 10),
+                    _available(context, ref, isDark, roster.valueOrNull),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: PremiumBottomNav(
+        selectedIndex: -1,
+        onSelect: (_) {},
+        onAction: () {},
+      ),
+    );
+  }
+
+  Widget _member(
+      BuildContext context,
+      WidgetRef ref,
+      bool isDark,
+      ({String id, String athleteId, String name, String? jersey}) m,
+      bool canManage) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: surf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: line),
+      ),
+      child: Row(children: [
+        GradientAvatar(
+            initials: m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
+            size: 40,
+            gradientIndex: m.name.length % 4),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Text(m.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: jakarta(13.5, FontWeight.w700, ink)),
+        ),
+        if (m.jersey != null) ...[
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+            decoration: BoxDecoration(
+              color: kTeal.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child:
+                Text('#${m.jersey}', style: jakarta(11, FontWeight.w800, kTeal)),
+          ),
+          const SizedBox(width: 8),
+        ],
+        if (canManage)
+          GestureDetector(
+            onTap: () async {
+              await ref.read(clubDataServiceProvider).removeFromTeam(m.id);
+              ref.invalidate(teamRosterProvider(teamId));
+            },
+            child: Icon(Icons.remove_circle_outline_rounded,
+                size: 20, color: SwanColors.textSecondary),
+          ),
+      ]),
+    );
+  }
+
+  /// Takımda olmayan kulüp sporcuları.
+  Widget _available(
+      BuildContext context,
+      WidgetRef ref,
+      bool isDark,
+      List<({String id, String athleteId, String name, String? jersey})>?
+          roster) {
+    final athletes = ref.watch(clubAthletesProvider).valueOrNull ?? const [];
+    final inTeam = (roster ?? const []).map((m) => m.athleteId).toSet();
+    final free = athletes.where((a) => !inTeam.contains(a.id)).toList();
+
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    if (free.isEmpty) {
+      return Text('Kulüpteki tüm sporcular bu takımda.',
+          style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary));
+    }
+
+    return Column(
+      children: free.map((a) {
+        return GestureDetector(
+          onTap: () async {
+            try {
+              await ref
+                  .read(clubDataServiceProvider)
+                  .addToTeam(teamId, a.id);
+              ref.invalidate(teamRosterProvider(teamId));
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                    content: Text('Eklenemedi: $e'),
+                    backgroundColor: const Color(0xFFF43F5E)));
+              }
+            }
+          },
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(11),
+            decoration: BoxDecoration(
+              color: surf,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: line),
+            ),
+            child: Row(children: [
+              GradientAvatar(
+                  initials: a.initials,
+                  size: 34,
+                  gradientIndex: a.fullName.length % 4),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Text(a.fullName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: jakarta(13, FontWeight.w600, ink)),
+              ),
+              const Icon(Icons.add_circle_outline_rounded,
+                  size: 20, color: kTeal),
+            ]),
+          ),
+        );
+      }).toList(),
+    );
+  }
+}

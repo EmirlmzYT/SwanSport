@@ -1,324 +1,474 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../application/facility_controller.dart';
-import '../domain/facility_management.dart';
-import 'facility_route_args.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_design_system/swansport_design_system.dart';
 
-class FacilityManagementScreen extends ConsumerWidget {
+import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/quick_form.dart';
+
+/// Tesisler — salon ve sahaların haftalık kullanımı.
+///
+/// Doluluk artık elle girilmiyor: takvimdeki etkinliklerden hesaplanıyor.
+/// Elle girilen bir sayıyı kimse güncel tutmuyordu, dolayısıyla yanlış bilgi
+/// gösteriyordu. Şimdi salonun programı neyse yük de o.
+class FacilityManagementScreen extends ConsumerStatefulWidget {
   const FacilityManagementScreen({super.key});
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(facilityControllerProvider),
-        c = ref.read(facilityControllerProvider.notifier);
-    if (!state.permissions.canView) {
-      return const Scaffold(
-        body: Center(child: Text('Tesis merkezini görüntüleme yetkiniz yok.')),
-      );
-    }
-    if (state.loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    final zones = state.facilities.expand((f) => f.zones).length,
-        occupied = state.facilities
-            .expand((f) => f.zones)
-            .where((z) => z.status == ZoneStatus.occupied)
-            .length;
+  ConsumerState<FacilityManagementScreen> createState() =>
+      _FacilityManagementScreenState();
+}
+
+class _FacilityManagementScreenState
+    extends ConsumerState<FacilityManagementScreen> {
+  static const _statuses = ['Müsait', 'Bakımda', 'Kapalı'];
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    final async = ref.watch(facilityLoadProvider);
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Tesis Yönetim Merkezi')),
-      body: LayoutBuilder(
-        builder: (context, box) {
-          final overview = Column(
-            children: [
-              Container(
-                key: const Key('facility-command-center'),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF063337), Color(0xFF008C95)],
+      extendBody: true,
+      backgroundColor: bg,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(facilityLoadProvider);
+                await ref.read(facilityLoadProvider.future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
+                children: [
+                  Row(children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('KULÜP',
+                              style: jakarta(
+                                  11, FontWeight.w700, SwanColors.textSecondary,
+                                  ls: 1.4)),
+                          const SizedBox(height: 3),
+                          Text('Tesisler',
+                              style: sora(25, FontWeight.w800, ink)),
+                        ],
+                      ),
+                    ),
+                    AddButton(onTap: _add, tooltip: 'Tesis ekle'),
+                  ]),
+                  const SizedBox(height: 6),
+                  Text('Doluluk, önümüzdeki 7 günün takviminden hesaplanır.',
+                      style: jakarta(
+                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  const SizedBox(height: 16),
+                  async.when(
+                    loading: premiumLoading,
+                    error: (e, _) => premiumError(context, '$e'),
+                    data: (list) => list.isEmpty
+                        ? premiumEmpty(
+                            context,
+                            icon: Icons.stadium_rounded,
+                            title: 'Tesis tanımlı değil',
+                            subtitle:
+                                'Salon ve sahalarını ekle; takvime antrenman '
+                                'yazarken tesis seçebilir, çakışmaları '
+                                'önleyebilirsin.',
+                            actionLabel: 'Tesis ekle',
+                            onAction: _add,
+                          )
+                        : Column(
+                            children: [
+                              for (final f in list) _card(isDark, ink, f),
+                            ],
+                          ),
                   ),
-                  borderRadius: BorderRadius.circular(24),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: PremiumBottomNav(
+        selectedIndex: -1,
+        onSelect: (i) {
+          if (i == 0) Navigator.pushNamed(context, '/akis');
+          if (i == 1) Navigator.pushNamed(context, '/calendar');
+          if (i == 3) Navigator.pushNamed(context, '/athletes');
+          if (i == 4) Navigator.pushNamed(context, '/profil');
+        },
+        onAction: () => Navigator.pushNamed(context, '/attendance'),
+      ),
+    );
+  }
+
+  Widget _card(bool isDark, Color ink, FacilityLoad f) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final closed = f.status != 'Müsait';
+    // Yoğun salon uyarı rengi alır; yüzde ayrıca yazıyla da veriliyor.
+    final color = closed
+        ? SwanColors.textSecondary
+        : f.loadPercent >= 75
+            ? const Color(0xFFD9860B)
+            : kTeal;
+
+    return GestureDetector(
+      onTap: () => _openSchedule(f),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(15),
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(13),
                 ),
+                child: Icon(Icons.stadium_rounded, size: 20, color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
-                      'FACILITY COMMAND CENTER',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      '${state.facilities.length} Tesis • $zones Alan',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 23,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      '${state.facilities.where((f) => f.status == FacilityStatus.active).length} aktif • $occupied dolu • ${state.facilities.expand((f) => f.reservations).length} rezervasyon',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    Text(
-                      'Operasyon Sağlığı: %${state.facilities.map((f) => f.health).reduce((a, b) => a + b) ~/ state.facilities.length}',
-                      style: const TextStyle(color: Colors.white),
-                    ),
+                    Text(f.name, style: jakarta(13.5, FontWeight.w800, ink)),
+                    if ((f.kind ?? '').isNotEmpty)
+                      Text(f.kind!,
+                          style: jakarta(10.5, FontWeight.w500,
+                              SwanColors.textSecondary)),
                   ],
                 ),
               ),
-              Card(
-                child: ExpansionTile(
-                  title: const Text('Acil Uyarılar & Öncelikli İşlemler'),
-                  children: [
-                    for (final f in state.facilities) ...[
-                      for (final w in f.workOrders
-                          .where((w) => w.status == WorkOrderStatus.overdue))
-                        ListTile(
-                          leading: const Icon(Icons.error_outline),
-                          title: Text(w.title),
-                          subtitle: Text('${f.name} • Gecikmiş bakım'),
-                        ),
-                      for (final d in f.documents.where(
-                        (d) => d.status != FacilityDocumentStatus.valid,
-                      ))
-                        ListTile(
-                          leading: const Icon(Icons.warning_amber),
-                          title: Text(d.title),
-                          subtitle: Text('${f.name} • ${d.status.name}'),
-                        ),
-                    ],
-                  ],
+              if (closed)
+                PremiumStatusChip(
+                  label: f.status,
+                  color: f.status == 'Bakımda'
+                      ? const Color(0xFFD9860B)
+                      : SwanColors.textSecondary,
+                  icon: f.status == 'Bakımda'
+                      ? Icons.build_rounded
+                      : Icons.block_rounded,
                 ),
+            ]),
+            const SizedBox(height: 14),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(999),
+              child: LinearProgressIndicator(
+                value: f.loadPercent / 100,
+                minHeight: 7,
+                backgroundColor: line,
+                valueColor: AlwaysStoppedAnimation(color),
               ),
-            ],
-          );
-          final directory = Column(
-            children: [
-              TextField(
-                key: const Key('facility-search'),
-                onChanged: c.search,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Tesis, alan, tür, şube, kampüs veya yönetici ara',
-                ),
-              ),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Tümü'),
-                      selected: state.filter.status == null,
-                      onSelected: (_) => c.filterStatus(null),
-                    ),
-                    ...FacilityStatus.values.map(
-                      (s) => Padding(
-                        padding: const EdgeInsets.only(left: 6),
-                        child: ChoiceChip(
-                          label: Text(s.name),
-                          selected: state.filter.status == s,
-                          onSelected: (_) => c.filterStatus(s),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (state.filtered.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(32),
+            ),
+            const SizedBox(height: 8),
+            Row(children: [
+              Text(
+                  f.isIdle
+                      ? 'Bu hafta program yok'
+                      : '%${f.loadPercent} · ${f.eventCount} etkinlik · ${f.busyLabel}',
+                  style: jakarta(11.5, FontWeight.w700,
+                      f.isIdle ? SwanColors.textSecondary : color)),
+            ]),
+            if (f.nextStartsAt != null) ...[
+              const SizedBox(height: 10),
+              Divider(color: line, height: 1),
+              const SizedBox(height: 10),
+              Row(children: [
+                Icon(Icons.schedule_rounded,
+                    size: 14, color: SwanColors.textSecondary),
+                const SizedBox(width: 7),
+                Expanded(
                   child: Text(
-                    'Eşleşen tesis bulunamadı.',
-                    key: Key('facility-empty'),
-                  ),
+                      'Sıradaki: ${f.nextTitle ?? "Etkinlik"} · '
+                      '${_when(f.nextStartsAt!)}',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: jakarta(
+                          11, FontWeight.w600, SwanColors.textSecondary)),
                 ),
-              ...state.filtered.map(
-                (f) => Card(
-                  child: ListTile(
-                    key: Key('facility-${f.id.value}'),
-                    leading: const Icon(Icons.stadium),
-                    title: Text(f.name),
-                    subtitle: Text(
-                      '${f.type} • ${f.campus}\n${f.status.name} • Kapasite ${f.capacity} • Sağlık %${f.health}',
-                    ),
-                    isThreeLine: true,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/facility-detail',
-                      arguments: FacilityDetailArgs(f.id),
-                    ),
-                  ),
-                ),
-              ),
+                const Icon(Icons.chevron_right_rounded,
+                    size: 16, color: SwanColors.textSecondary),
+              ]),
             ],
-          );
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              const Text(
-                'TESİS OPERASYONLARI',
-                style:
-                    TextStyle(fontWeight: FontWeight.w900, letterSpacing: 1.3),
-              ),
-              const Text(
-                'Tesis Yönetim Merkezi',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 16),
-              if (box.maxWidth >= 840)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 5, child: overview),
-                    const SizedBox(width: 24),
-                    Expanded(flex: 7, child: directory),
-                  ],
-                )
-              else ...[overview, const SizedBox(height: 16), directory],
-            ],
-          );
-        },
+          ],
+        ),
       ),
     );
   }
-}
 
-class FacilityDetailScreen extends ConsumerWidget {
-  const FacilityDetailScreen({required this.args, super.key});
-  final FacilityDetailArgs? args;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(facilityControllerProvider),
-        c = ref.read(facilityControllerProvider.notifier);
-    if (args == null) {
-      return const Scaffold(
-        body: Center(child: Text('Geçersiz tesis bağlantısı.')),
-      );
-    }
-    final found =
-        state.facilities.where((f) => f.id.value == args!.facilityId.value);
-    if (state.loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (found.isEmpty) {
-      return const Scaffold(body: Center(child: Text('Tesis bulunamadı.')));
-    }
-    final f = found.single;
-    return Scaffold(
-      appBar: AppBar(title: Text(f.name)),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            f.name,
-            key: const Key('facility-detail-name'),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+  String _when(DateTime d) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(d.year, d.month, d.day);
+    final diff = day.difference(today).inDays;
+    final hm =
+        '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
+    if (diff == 0) return 'bugün $hm';
+    if (diff == 1) return 'yarın $hm';
+    const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    return '${days[d.weekday - 1]} $hm';
+  }
+
+  // ------------------------------- program ---------------------------------
+  Future<void> _openSchedule(FacilityLoad f) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.78,
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+        child: Column(children: [
+          Text(f.name, style: sora(18, FontWeight.w800, ink)),
+          const SizedBox(height: 3),
+          Text('Önümüzdeki 7 gün',
+              style: jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+          const SizedBox(height: 14),
+          Expanded(
+            child: Consumer(builder: (_, r, __) {
+              final slots = r.watch(facilityScheduleProvider(f.facilityId));
+              return slots.when(
+                loading: premiumLoading,
+                error: (e, _) => premiumError(context, '$e'),
+                data: (list) => list.isEmpty
+                    ? Center(
+                        child: Text(
+                            'Bu salona bu hafta hiç etkinlik yazılmamış.',
+                            textAlign: TextAlign.center,
+                            style: jakarta(12.5, FontWeight.w600,
+                                SwanColors.textSecondary)),
+                      )
+                    : ListView.builder(
+                        itemCount: list.length,
+                        itemBuilder: (_, i) {
+                          final s = list[i];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 9),
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(14),
+                              border: Border.all(color: line),
+                            ),
+                            child: Row(children: [
+                              Container(
+                                width: 4,
+                                height: 34,
+                                decoration: BoxDecoration(
+                                  color: s.kind == 'match'
+                                      ? const Color(0xFFF43F5E)
+                                      : kTeal,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                              ),
+                              const SizedBox(width: 11),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.start,
+                                  children: [
+                                    Text(s.title,
+                                        style: jakarta(
+                                            12.5, FontWeight.w700, ink)),
+                                    Text(
+                                        [
+                                          _when(s.startsAt),
+                                          if (s.teamName != null) s.teamName!,
+                                        ].join(' · '),
+                                        style: jakarta(10.5, FontWeight.w500,
+                                            SwanColors.textSecondary)),
+                                  ],
+                                ),
+                              ),
+                            ]),
+                          );
+                        },
+                      ),
+              );
+            }),
           ),
-          Text('${f.type} • ${f.status.name} • Sağlık %${f.health}'),
-          Text(
-            '${f.address}\nYönetici: ${f.manager} • ${f.contact}\nKapasite: ${f.capacity}',
-          ),
-          if (state.permissions.canEdit)
-            Wrap(
-              spacing: 8,
-              children: [
-                OutlinedButton(
-                  onPressed: () => c.lifecycle(f, FacilityStatus.active),
-                  child: const Text('Etkinleştir'),
-                ),
-                OutlinedButton(
-                  onPressed: () =>
-                      c.lifecycle(f, FacilityStatus.temporarilyClosed),
-                  child: const Text('Geçici Kapat'),
-                ),
-                if (state.permissions.canArchive)
-                  OutlinedButton(
-                    onPressed: () => c.lifecycle(f, FacilityStatus.archived),
-                    child: const Text('Arşivle'),
+          Divider(color: line, height: 18),
+          Row(children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _changeStatus(f);
+                },
+                child: Container(
+                  height: 42,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(color: line),
                   ),
-              ],
-            ),
-          _section(
-            'Alanlar',
-            f.zones.map(
-              (z) => ListTile(
-                title: Text(z.name),
-                subtitle: Text(
-                  '${z.type} • ${z.status.name} • Kapasite ${z.capacity} • ${z.openHour}:00-${z.closeHour}:00',
+                  child: Text('Durum',
+                      style: jakarta(
+                          12.5, FontWeight.w800, SwanColors.textSecondary)),
                 ),
               ),
             ),
-          ),
-          _section(
-            'Rezervasyonlar',
-            f.reservations.map(
-              (r) => ListTile(
-                title: Text(r.title),
-                subtitle: Text('${r.start} → ${r.end} • ${r.status.name}'),
-              ),
-            ),
-          ),
-          if (state.conflict case final conflict?)
-            Card(
-              color: Colors.orange.withValues(alpha: .15),
-              child: ListTile(
-                key: const Key('reservation-conflict'),
-                leading: const Icon(Icons.block),
-                title: const Text('Rezervasyon engellendi'),
-                subtitle: Text(conflict.message),
-              ),
-            ),
-          _section(
-            'Bakım Merkezi',
-            f.workOrders.map(
-              (w) => ListTile(
-                title: Text(w.title),
-                subtitle: Text(
-                  '${w.priority} • ${w.status.name} • ${w.assignee}',
+            const SizedBox(width: 9),
+            Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  Navigator.pop(ctx);
+                  Navigator.pushNamed(context, '/calendar');
+                },
+                child: Container(
+                  height: 42,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    gradient:
+                        const LinearGradient(colors: [kTealBright, kTeal]),
+                    borderRadius: BorderRadius.circular(13),
+                  ),
+                  child: Text('Takvime git',
+                      style: jakarta(12.5, FontWeight.w800, Colors.white)),
                 ),
               ),
             ),
+          ]),
+          const SizedBox(height: 6),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _remove(f);
+            },
+            child: Text('Tesisi sil',
+                style:
+                    jakarta(12, FontWeight.w700, const Color(0xFFF43F5E))),
           ),
-          _section(
-            'Ekipman Sağlığı',
-            f.equipment.map(
-              (e) => ListTile(
-                title: Text(e.name),
-                subtitle: Text(
-                  '${e.category} • ${e.condition.name} • Sağlık %${e.health}',
-                ),
-              ),
+        ]),
+      ),
+    );
+  }
+
+  // ------------------------------- eylemler --------------------------------
+  Future<void> _add() async {
+    final name = FormField_('Tesis adı', hint: 'Merkez Salon');
+    final kind = FormField_('Tür', hint: 'Kapalı salon', required: false);
+
+    await showQuickForm(
+      context,
+      title: 'Yeni tesis',
+      fields: [name, kind],
+      onSubmit: () => _guard(() async {
+        final club = ref.read(activeClubProvider).valueOrNull;
+        if (club == null) return;
+        await ref
+            .read(clubOpsServiceProvider)
+            .addFacility(club.id, name.value, kind: kind.value);
+        ref.invalidate(facilityLoadProvider);
+      }, 'Tesis eklendi'),
+    );
+  }
+
+  Future<void> _changeStatus(FacilityLoad f) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    final picked = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+            20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('${f.name} · durum', style: sora(17, FontWeight.w800, ink)),
+          const SizedBox(height: 10),
+          for (final s in _statuses)
+            ListTile(
+              dense: true,
+              leading: Icon(
+                  s == f.status
+                      ? Icons.radio_button_checked_rounded
+                      : Icons.radio_button_off_rounded,
+                  size: 19,
+                  color: s == f.status ? kTeal : SwanColors.textSecondary),
+              title: Text(s, style: jakarta(13, FontWeight.w600, ink)),
+              onTap: () => Navigator.pop(ctx, s),
             ),
-          ),
-          _section(
-            'Belgeler & Uyumluluk',
-            f.documents.map(
-              (d) => ListTile(
-                title: Text(d.title),
-                subtitle: Text('${d.type} • ${d.status.name} • ${d.owner}'),
-              ),
-            ),
-          ),
-          const Text(
-            'Sağlık Skoru Açıklaması',
-            style: TextStyle(fontWeight: FontWeight.w900),
-          ),
-          const Text(
-            'Skor; kullanılabilirlik, gecikmiş bakım, ekipman durumu, belge uyumu ve güvenli alan durumundan hesaplanır.',
-          ),
+        ]),
+      ),
+    );
+    if (picked == null || picked == f.status) return;
+
+    await _guard(() async {
+      await ref
+          .read(clubOpsServiceProvider)
+          .updateFacility(f.facilityId, status: picked);
+      ref.invalidate(facilityLoadProvider);
+    }, 'Durum güncellendi');
+  }
+
+  Future<void> _remove(FacilityLoad f) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tesisi sil'),
+        content: Text('${f.name} silinecek. Bu salona yazılmış etkinlikler '
+            'silinmez, yalnızca salon bağlantıları kalkar.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Vazgeç')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Sil')),
         ],
       ),
     );
+    if (ok != true) return;
+    await _guard(() async {
+      await ref.read(clubOpsServiceProvider).removeFacility(f.facilityId);
+      ref.invalidate(facilityLoadProvider);
+    }, 'Tesis silindi');
   }
 
-  Widget _section(String title, Iterable<Widget> children) => Card(
-        child: ExpansionTile(
-          title: Text(title),
-          children: children.isEmpty
-              ? const [ListTile(title: Text('Kayıt bulunmuyor.'))]
-              : children.toList(),
-        ),
-      );
+  Future<void> _guard(Future<void> Function() task, String ok) async {
+    try {
+      await task();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(ok), backgroundColor: kTeal));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('İşlem başarısız: $e'),
+            backgroundColor: const Color(0xFFF43F5E)));
+      }
+    }
+  }
 }

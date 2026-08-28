@@ -5,7 +5,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.swansport_app"
+    namespace = "com.swansport.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -15,8 +15,9 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.swansport_app"
+        // SwanSport'un yayın kimliği. Google Play'e bir kez yüklendikten
+        // sonra DEĞİŞTİRİLEMEZ — değiştirmek ayrı bir uygulama demektir.
+        applicationId = "com.swansport.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -27,8 +28,25 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // YAYIN İMZASI HENÜZ TANIMLI DEĞİL.
+            //
+            // Şu an hata ayıklama anahtarıyla imzalanıyor; bu APK yan yükleme
+            // (sideload) ile kurulabilir ama Google Play'e YÜKLENEMEZ ve
+            // güvenilir bir dağıtım için uygun değildir.
+            //
+            // Play'e çıkarken yapılacaklar:
+            //   1. Anahtar üret:
+            //      keytool -genkey -v -keystore swansport-release.jks             //        -keyalg RSA -keysize 2048 -validity 10000 -alias swansport
+            //   2. `android/key.properties` oluştur (ASLA depoya ekleme,
+            //      .gitignore'a gireceğinden emin ol):
+            //        storeFile=../swansport-release.jks
+            //        storePassword=...
+            //        keyPassword=...
+            //        keyAlias=swansport
+            //   3. Bu bloğu key.properties'ten okuyan bir signingConfig'e çevir.
+            //
+            // Anahtar dosyası ve parolalar kaybedilirse uygulamanın
+            // güncellenmesi mümkün olmaz; yedeğini güvenli bir yerde tut.
             signingConfig = signingConfigs.getByName("debug")
         }
     }

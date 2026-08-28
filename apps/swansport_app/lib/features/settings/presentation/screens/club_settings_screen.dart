@@ -1,503 +1,393 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../application/administration_controller.dart';
-import '../../domain/administration.dart';
-import '../routing/admin_user_detail_args.dart';
+import '../../../../app/push/push.dart';
+import '../../../../app/push/push_service.dart';
+import '../../../../app/widgets/premium.dart';
+import '../../../demo/demo_role.dart';
+import '../../../social/presentation/edit_profile_sheet.dart';
 
-class ClubSettingsScreen extends ConsumerWidget {
+/// Ayarlar.
+///
+/// Eskiden satırların hiçbiri bir yere gitmiyordu ve bildirim anahtarı yalnızca
+/// ekranda duruyordu (gerçek push sistemine bağlı değildi). Artık her satırın
+/// bir karşılığı var; karşılığı olmayan hiçbir şey burada durmuyor.
+class ClubSettingsScreen extends ConsumerStatefulWidget {
   const ClubSettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(administrationControllerProvider);
-    final controller = ref.read(administrationControllerProvider.notifier);
-
-    if (!state.permissions.canView) {
-      return const Scaffold(
-        body: Center(
-          child: Text('Yönetim merkezini görüntüleme yetkiniz yok.'),
-        ),
-      );
-    }
-
-    return Scaffold(
-      appBar: SwanAppBar(
-        clubName: 'Kadıköy SK',
-        roleName: 'Kulüp Yöneticisi',
-        actions: [
-          if (state.permissions.canInvite)
-            IconButton(
-              key: const Key('admin-invite'),
-              tooltip: 'Kullanıcı davet et',
-              onPressed: () => _invite(context, controller),
-              icon: const Icon(Icons.person_add),
-            ),
-        ],
-      ),
-      body: state.loading
-          ? const Center(child: CircularProgressIndicator())
-          : LayoutBuilder(
-              builder: (context, box) {
-                final overview =
-                    _Overview(state: state, controller: controller);
-                final directory =
-                    _Directory(state: state, controller: controller);
-
-                return ListView(
-                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 80),
-                  children: [
-                    const Text(
-                      'KULÜP YAPILANDIRMASI & YÖNETİM MERKEZİ',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.3,
-                        fontSize: 11,
-                        color: SwanColors.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text(
-                      'Operasyonel Sistem Ayarları',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.8,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    if (state.viewAs case final user?)
-                      Card(
-                        color: SwanColors.warning.withValues(alpha: .12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.visibility,
-                            color: SwanColors.warning,
-                          ),
-                          title: Text(
-                            '${user.name} olarak görüntüleniyor • Salt Okunur',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.w800,
-                              fontSize: 13,
-                            ),
-                          ),
-                          trailing: TextButton(
-                            onPressed: () => controller.viewAs(null),
-                            child: const Text(
-                              'Yöneticiye Dön',
-                              style: TextStyle(fontWeight: FontWeight.w900),
-                            ),
-                          ),
-                        ),
-                      ),
-                    if (box.maxWidth >= 900)
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 5, child: overview),
-                          const SizedBox(width: 24),
-                          Expanded(flex: 7, child: directory),
-                        ],
-                      )
-                    else ...[
-                      overview,
-                      const SizedBox(height: 16),
-                      directory,
-                    ],
-                  ],
-                );
-              },
-            ),
-    );
-  }
-
-  Future<void> _invite(
-    BuildContext context,
-    AdministrationController controller,
-  ) async {
-    final name = TextEditingController();
-    final email = TextEditingController();
-
-    final ok = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Yeni Kullanıcı Davet Et'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              key: const Key('invite-name'),
-              controller: name,
-              decoration: const InputDecoration(labelText: 'Ad Soyad'),
-            ),
-            TextField(
-              key: const Key('invite-email'),
-              controller: email,
-              decoration: const InputDecoration(labelText: 'E-posta'),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Vazgeç'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Davet Et'),
-          ),
-        ],
-      ),
-    );
-
-    if (ok == true && name.text.isNotEmpty && email.text.isNotEmpty) {
-      await controller.invite(name.text, email.text, AdminRole.coach);
-    }
-    name.dispose();
-    email.dispose();
-  }
+  ConsumerState<ClubSettingsScreen> createState() => _ClubSettingsScreenState();
 }
 
-class _Overview extends StatelessWidget {
-  const _Overview({required this.state, required this.controller});
-
-  final AdministrationState state;
-  final AdministrationController controller;
-
+class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
   @override
   Widget build(BuildContext context) {
-    final o = state.overview;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
 
-    return Column(
-      children: [
-        // ── GOVERNANCE & CAPACITY HERO ───────────────────────────────────
-        Container(
-          key: const Key('admin-overview'),
-          padding: const EdgeInsets.all(22),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF063337), Color(0xFF008C95)],
-            ),
-            borderRadius: BorderRadius.circular(24),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF008C95).withValues(alpha: 0.3),
-                blurRadius: 32,
-                offset: const Offset(0, 12),
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Text(
-                        'ORGANIZATION & HEALTH: %98',
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 10,
-                          letterSpacing: 0.8,
+    final profile = ref.watch(currentProfileProvider).valueOrNull;
+    final club = ref.watch(activeClubProvider).valueOrNull;
+    final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
+    final uid = Supabase.instance.client.auth.currentUser?.id;
+    final me = uid == null
+        ? null
+        : ref.watch(socialProfileProvider(uid)).valueOrNull;
+
+    // Kulüp bölümü yalnızca kulüpte görev alanlara gösterilir; sporcu ve veli
+    // için anlamsız satırlar olurdu.
+    final isStaff = profile?.role == 'club_admin' ||
+        profile?.role == 'coach' ||
+        profile?.role == 'official';
+
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: bg,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
+              children: [
+                Text('Ayarlar', style: sora(25, FontWeight.w800, ink)),
+                const SizedBox(height: 16),
+
+                // ------------------------------- hesap
+                _group(isDark, [
+                  GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: me == null
+                        ? null
+                        : () async {
+                            final saved =
+                                await showEditProfileSheet(context, me);
+                            if (saved == true) {
+                              ref.invalidate(socialProfileProvider(uid!));
+                              ref.invalidate(currentProfileProvider);
+                            }
+                          },
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: Row(children: [
+                        GradientAvatar(
+                            initials: profile?.initials ?? '?',
+                            size: 48,
+                            radius: 16),
+                        const SizedBox(width: 14),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(profile?.fullName ?? 'Kullanıcı',
+                                  style: jakarta(15, FontWeight.w800, ink)),
+                              Text(
+                                  '${_roleLabel(profile?.role)}'
+                                  '${club == null ? '' : ' · ${club.name}'}',
+                                  style: jakarta(11.5, FontWeight.w500,
+                                      SwanColors.textSecondary)),
+                            ],
+                          ),
                         ),
-                      ),
+                        const Icon(Icons.edit_rounded,
+                            size: 17, color: SwanColors.textSecondary),
+                      ]),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  const Icon(
-                    Icons.admin_panel_settings_rounded,
-                    color: Colors.white,
-                    size: 22,
+                ]),
+
+                _label('HESAP', ink),
+                _group(isDark, [
+                  _row(isDark, Icons.person_rounded, 'Profilim',
+                      onTap: uid == null
+                          ? null
+                          : () => Navigator.pushNamed(context, '/profil',
+                              arguments: uid)),
+                  _sep(isDark),
+                  _row(isDark, Icons.verified_user_rounded, 'Doğrulama',
+                      sub: 'Antrenör/sporcu kimliğini onaylat',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/dogrulama')),
+                  _sep(isDark),
+                  _row(isDark, Icons.receipt_long_rounded, 'Aidatlarım',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/aidatlarim')),
+                  _sep(isDark),
+                  _row(isDark, Icons.family_restroom_rounded, 'Veli bağlantısı',
+                      sub: 'Davet koduyla sporcuna bağlan',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/veli-bagla')),
+                ]),
+
+                // ------------------------------- bildirimler
+                _label('BİLDİRİMLER', ink),
+                _group(isDark, [
+                  const _PushToggleRow(),
+                  if (!pushSupported)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Text(
+                          'Bu tarayıcı bildirim desteklemiyor. iPhone '
+                          'kullanıyorsan uygulamayı ana ekrana ekleyip oradan aç.',
+                          style: jakarta(10.5, FontWeight.w500,
+                              SwanColors.textSecondary)),
+                    ),
+                ]),
+
+                // ------------------------------- kulüp
+                if (isStaff && club != null) ...[
+                  _label('KULÜP', ink),
+                  _group(isDark, [
+                    _row(isDark, Icons.badge_rounded, 'Kulüp profili',
+                        sub: club.name,
+                        onTap: () => Navigator.pushNamed(
+                            context, '/kulup-profil',
+                            arguments: club.id)),
+                    _sep(isDark),
+                    _row(isDark, Icons.tune_rounded, 'Yapılandırma',
+                        sub: 'Kimlik, roller, sezonlar',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/configuration')),
+                    _sep(isDark),
+                    _row(isDark, Icons.payments_rounded, 'Aidat & tahsilat',
+                        onTap: () => Navigator.pushNamed(context, '/finans')),
+                  ]),
+                ],
+
+                // ------------------------------- platform
+                if (isAdmin) ...[
+                  _label('PLATFORM', ink),
+                  _group(isDark, [
+                    _row(isDark, Icons.admin_panel_settings_rounded,
+                        'Yönetim paneli',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/onay-paneli')),
+                    _sep(isDark),
+                    _row(isDark, Icons.rss_feed_rounded, 'Haber kaynakları',
+                        onTap: () => Navigator.pushNamed(
+                            context, '/haber-kaynaklari')),
+                  ]),
+                ],
+
+                // ------------------------------- gizlilik & hesap
+                _label('GİZLİLİK', ink),
+                _group(isDark, [
+                  _row(isDark, Icons.shield_outlined,
+                      'Gizlilik ve engellenenler',
+                      sub: 'Engelledikleri, veri ve hesap silme',
+                      onTap: () => Navigator.pushNamed(context, '/gizlilik')),
+                  if (ref.watch(debugToolsEnabledProvider)) ...[
+                    _sep(isDark),
+                    _row(isDark, Icons.theater_comedy_outlined, 'Demo rolleri',
+                        sub: 'Yalnızca geliştirme derlemesi',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/demo-rol')),
+                  ],
+                ]),
+
+                const SizedBox(height: 24),
+                Center(
+                  child: Text('SwanSport · sürüm 1.0.5',
+                      style: jakarta(
+                          10.5, FontWeight.w600, SwanColors.textSecondary)),
+                ),
+                const SizedBox(height: 14),
+                Center(
+                  child: GestureDetector(
+                    onTap: _signOut,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 26, vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                            color: const Color(0xFFF43F5E)
+                                .withValues(alpha: .35)),
+                      ),
+                      child: Text('Çıkış Yap',
+                          style: jakarta(13.5, FontWeight.w800,
+                              const Color(0xFFF43F5E))),
+                    ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              Text(
-                '${o.active + o.invited + o.suspended} / ${o.capacity} Lisanslı Kullanıcı',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
                 ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                '${o.capacity - o.active - o.invited - o.suspended} boş koltuk  •  3 Aktif Branş',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 12,
-                ),
-              ),
-              const SizedBox(height: 14),
-              Wrap(
-                spacing: 16,
-                children: [
-                  _HeroStat(value: '${o.active}', label: '🟢 Aktif'),
-                  _HeroStat(value: '${o.invited}', label: '🟡 Davet'),
-                  _HeroStat(value: '${o.suspended}', label: '🔴 Askıda'),
-                ],
-              ),
-            ],
+              ],
+            ),
           ),
         ),
-        const SizedBox(height: 12),
+      ),
+      bottomNavigationBar: PremiumBottomNav(
+        selectedIndex: -1,
+        onSelect: (i) {
+          if (i == 0) Navigator.pushNamed(context, '/akis');
+          if (i == 1) Navigator.pushNamed(context, '/calendar');
+          if (i == 3) Navigator.pushNamed(context, '/athletes');
+          if (i == 4) Navigator.pushNamed(context, '/profil');
+        },
+        onAction: () => Navigator.pushNamed(context, '/attendance'),
+      ),
+    );
+  }
 
-        // ── CONFIGURATION VALIDATION CENTER ───────────────────────────────
-        Card(
-          child: Container(
-            padding: const EdgeInsets.all(16),
+  Future<void> _signOut() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Çıkış yap'),
+        content: const Text('Oturumun kapatılacak. Tekrar giriş yapman '
+            'gerekecek.'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Vazgeç')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Çıkış yap')),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    await Supabase.instance.client.auth.signOut();
+    if (mounted) {
+      Navigator.pushNamedAndRemoveUntil(context, '/', (_) => false);
+    }
+  }
+
+  String _roleLabel(String? role) => switch (role) {
+        'club_admin' => 'Yönetici',
+        'coach' => 'Antrenör',
+        'athlete' => 'Sporcu',
+        'parent' => 'Veli',
+        'official' => 'Görevli',
+        _ => 'Üye',
+      };
+
+  Widget _label(String t, Color ink) => Padding(
+        padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
+        child: Text(t,
+            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
+                ls: 1.2)),
+      );
+
+  Widget _group(bool isDark, List<Widget> children) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+      decoration: BoxDecoration(
+        color: surf,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: line),
+      ),
+      child: Column(children: children),
+    );
+  }
+
+  Widget _row(bool isDark, IconData icon, String label,
+      {String? sub, VoidCallback? onTap}) {
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 11),
+        child: Row(children: [
+          Icon(icon, size: 20, color: kTeal),
+          const SizedBox(width: 13),
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
-                  children: [
-                    Icon(
-                      Icons.health_and_safety_rounded,
-                      color: SwanColors.success,
-                      size: 20,
-                    ),
-                    SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'Yapılandırma Doğrulama & Sağlık',
-                        style: TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Sistem yapılandırma sağlık skoru: %98. 0 Kritik Hata, 1 Uyarı.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white70 : SwanColors.textSecondary,
-                  ),
-                ),
+                Text(label, style: jakarta(13.5, FontWeight.w600, ink)),
+                if (sub != null)
+                  Text(sub,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: jakarta(
+                          10.5, FontWeight.w500, SwanColors.textSecondary)),
               ],
             ),
           ),
-        ),
-        const SizedBox(height: 8),
+          Icon(Icons.chevron_right_rounded,
+              color: SwanColors.textSecondary, size: 20),
+        ]),
+      ),
+    );
+  }
 
-        // ── CONFIGURATION PROFILES & HISTORY LOG ─────────────────────────
-        const Card(
-          child: ExpansionTile(
-            leading: Icon(
-              Icons.dashboard_customize_rounded,
-              color: SwanColors.primary,
-            ),
-            title: Text(
-              'Şablon Profiller & Değişiklik Logu',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-            ),
-            subtitle: Text(
-              'Basketbol/Futbol profilleri ve ayar geçmişi',
-              style: TextStyle(fontSize: 12),
-            ),
+  Widget _sep(bool isDark) => Divider(
+      height: 1,
+      color: isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3));
+}
+
+/// Gerçek push anahtarı — tarayıcı aboneliğini ve veritabanı kaydını yönetir.
+class _PushToggleRow extends ConsumerWidget {
+  const _PushToggleRow();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(children: [
+        Icon(on ? Icons.notifications_active_rounded : Icons.notifications_rounded,
+            size: 20, color: kTeal),
+        const SizedBox(width: 13),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ListTile(
-                title: Text('🏀 Basketbol Akademisi Profili'),
-                subtitle:
-                    Text('90dk Antrenman, 4 Periyot Maç, EK-1 Sağlık Zorunlu'),
-                trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14),
-              ),
-              ListTile(
-                title: Text('⚽ Futbol Akademisi Profili'),
-                subtitle: Text('2 Devre Maç, Saha Seyahat Kontrol Listesi'),
-                trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14),
-              ),
-              ListTile(
-                title: Text('📜 Antrenman Süresi: 60dk → 90dk'),
-                subtitle: Text('Ahmet Koç • Bugün 14:20 • U-16 Lig Hazırlığı'),
-              ),
+              Text('Telefon bildirimleri',
+                  style: jakarta(13.5, FontWeight.w600, ink)),
+              Text(
+                  on
+                      ? 'Uygulama kapalıyken de haber verilir'
+                      : 'Mesaj ve duyurular telefonuna düşsün',
+                  style: jakarta(
+                      10.5, FontWeight.w500, SwanColors.textSecondary)),
             ],
           ),
         ),
-        const SizedBox(height: 8),
-
-        // ── ROLE & PERMISSION MANAGEMENT ──────────────────────────────────
-        Card(
-          child: ExpansionTile(
-            leading:
-                const Icon(Icons.shield_rounded, color: SwanColors.primary),
-            title: const Text(
-              'Rol & İzin Yönetimi (RBAC)',
-              style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-            ),
-            children: AdminRole.values
-                .map(
-                  (r) => ListTile(
-                    title: Text(r.name),
-                    subtitle: Text(
-                      '${FixtureAdministrationRepository().users.where((u) => u.role == r).length} kullanıcı atandı',
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
+        Switch(
+          value: on,
+          activeTrackColor: kTeal,
+          onChanged: !pushSupported
+              ? null
+              : (v) async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  try {
+                    if (v) {
+                      await enablePush(ref);
+                      messenger.showSnackBar(const SnackBar(
+                          content: Text('Bildirimler açıldı'),
+                          backgroundColor: kTeal));
+                    } else {
+                      await disablePush(ref);
+                      messenger.showSnackBar(const SnackBar(
+                          content: Text('Bildirimler kapatıldı'),
+                          backgroundColor: SwanColors.textSecondary));
+                    }
+                  } on PushException catch (e) {
+                    messenger.showSnackBar(SnackBar(
+                      content: Text(switch (e.reason) {
+                        PushFailure.denied =>
+                          'Bildirim izni reddedilmiş. Tarayıcı ayarlarından izin ver.',
+                        PushFailure.unsupported =>
+                          'Bu tarayıcı bildirim desteklemiyor.',
+                        PushFailure.failed => 'Açılamadı, tekrar dene.',
+                      }),
+                      backgroundColor: const Color(0xFFF43F5E),
+                    ));
+                  }
+                },
         ),
-
-        if (state.permissions.canDelegate)
-          const Card(
-            child: ListTile(
-              leading: Icon(Icons.assignment_ind, color: SwanColors.primary),
-              title: Text(
-                'İdari Yetki Devri (Vekalet)',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-              ),
-              subtitle: Text('S. Yılmaz • Şube Sorumlusu Vekili (3 gün kaldı)'),
-            ),
-          ),
-
-        if (state.permissions.canViewAudit)
-          Card(
-            child: ExpansionTile(
-              leading: const Icon(
-                Icons.find_in_page_rounded,
-                color: SwanColors.primary,
-              ),
-              title: const Text(
-                'İdari Denetim Kaydı (Audit Log)',
-                style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
-              ),
-              children: controller.repository.audit
-                  .map(
-                    (e) => ListTile(
-                      title: Text(e.action),
-                      subtitle: Text(e.actor),
-                    ),
-                  )
-                  .toList(),
-            ),
-          ),
-      ],
+      ]),
     );
   }
-}
-
-class _HeroStat extends StatelessWidget {
-  const _HeroStat({required this.value, required this.label});
-  final String value;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w900,
-            color: Colors.white,
-          ),
-        ),
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.white70,
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class _Directory extends StatelessWidget {
-  const _Directory({required this.state, required this.controller});
-
-  final AdministrationState state;
-  final AdministrationController controller;
-
-  @override
-  Widget build(BuildContext context) => Column(
-        children: [
-          TextField(
-            key: const Key('admin-search'),
-            onChanged: controller.search,
-            decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.search),
-              hintText: 'Ad, e-posta, takım veya şube ara',
-            ),
-          ),
-          const SizedBox(height: 8),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: [
-                ChoiceChip(
-                  label: const Text('Tüm Roller'),
-                  selected: state.filter.role == null,
-                  onSelected: (_) => controller.role(null),
-                ),
-                ...AdminRole.values.map(
-                  (r) => Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: ChoiceChip(
-                      label: Text(r.name),
-                      selected: state.filter.role == r,
-                      onSelected: (_) => controller.role(r),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (state.filtered.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(32),
-              child: Text(
-                'Eşleşen kullanıcı bulunamadı.',
-                key: Key('admin-empty'),
-              ),
-            ),
-          ...state.filtered.map(
-            (user) => Card(
-              child: ListTile(
-                key: Key('admin-user-${user.id.value}'),
-                leading: CircleAvatar(child: Text(user.name.substring(0, 1))),
-                title: Text(user.name),
-                subtitle: Text(
-                  '${user.email}\n${user.role.name} • ${user.status.name} • ${user.team}',
-                ),
-                isThreeLine: true,
-                trailing: state.permissions.canViewAs
-                    ? IconButton(
-                        tooltip: 'Salt okunur görüntüle',
-                        onPressed: () => controller.viewAs(user),
-                        icon: const Icon(Icons.visibility),
-                      )
-                    : null,
-                onTap: () => Navigator.pushNamed(
-                  context,
-                  '/admin-user-detail',
-                  arguments: AdminUserDetailArgs(user.id),
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
 }

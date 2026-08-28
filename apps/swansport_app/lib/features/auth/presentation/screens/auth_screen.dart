@@ -1,119 +1,51 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-class AuthScreen extends StatefulWidget {
+import '../../application/auth_controller.dart';
+
+class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
 
   @override
-  State<AuthScreen> createState() => _AuthScreenState();
+  ConsumerState<AuthScreen> createState() => _AuthScreenState();
 }
 
-class _AuthScreenState extends State<AuthScreen> {
+class _AuthScreenState extends ConsumerState<AuthScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _fullNameController = TextEditingController();
   bool _obscurePassword = true;
 
-  void _showRoleSelectionSheet() {
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) {
-        final isDark = Theme.of(context).brightness == Brightness.dark;
-        final bg = isDark ? SwanColors.darkSurface : SwanColors.surface;
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    _fullNameController.dispose();
+    super.dispose();
+  }
 
-        return Container(
-          decoration: BoxDecoration(
-            color: bg,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.18),
-                blurRadius: 40,
-                offset: const Offset(0, -8),
-              ),
-            ],
-          ),
-          padding: EdgeInsets.only(
-            left: 24,
-            right: 24,
-            top: 20,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 32,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color:
-                        isDark ? const Color(0xFF2E3440) : SwanColors.outline,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'Rol Seç',
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 4),
-              const Text(
-                'Hesabınızda birden fazla yetki bulundu.',
-                style: TextStyle(
-                  fontSize: 13,
-                  color: SwanColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Role Option 1 – Selected
-              _RoleOptionTile(
-                clubName: 'Kadıköy SK',
-                roleName: 'Kulüp Antrenörü (U-16 Erkek)',
-                isSelected: true,
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/dashboard');
-                },
-              ),
-              const SizedBox(height: 10),
-              _RoleOptionTile(
-                clubName: 'TBF İstanbul İl Temsilciliği',
-                roleName: 'İl Temsilcisi Yetkilisi',
-                isSelected: false,
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/dashboard');
-                },
-              ),
-              const SizedBox(height: 24),
-
-              SwanButton.primary(
-                label: 'Devam Et',
-                width: double.infinity,
-                height: 52,
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pushReplacementNamed(context, '/dashboard');
-                },
-              ),
-            ],
-          ),
-        );
-      },
+  Future<void> _submit() async {
+    final controller = ref.read(authControllerProvider.notifier);
+    final success = await controller.submit(
+      email: _emailController.text,
+      password: _passwordController.text,
+      fullName: _fullNameController.text,
     );
+
+    if (!mounted) return;
+    if (success) {
+      // Ana sayfa herkes için aynı: sosyal akış.
+      // ignore: unawaited_futures
+      Navigator.pushReplacementNamed(context, '/akis');
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final authState = ref.watch(authControllerProvider);
+    final isSignUp = authState.mode == AuthMode.signUp;
 
     return Scaffold(
       backgroundColor:
@@ -197,9 +129,11 @@ class _AuthScreenState extends State<AuthScreen> {
                         ),
                       ),
                       const SizedBox(height: 6),
-                      const Text(
-                        'Profesyonel spor yönetim platformu.',
-                        style: TextStyle(
+                      Text(
+                        isSignUp
+                            ? 'Yeni hesap oluştur.'
+                            : 'Profesyonel spor yönetim platformu.',
+                        style: const TextStyle(
                           fontSize: 13,
                           color: SwanColors.textSecondary,
                           fontWeight: FontWeight.w500,
@@ -213,11 +147,24 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            _buildInputLabel('E-posta veya TCKN'),
+                            if (isSignUp) ...[
+                              _buildInputLabel('Ad Soyad'),
+                              const SizedBox(height: 8),
+                              _buildTextField(
+                                isDark: isDark,
+                                controller: _fullNameController,
+                                hintText: 'Ahmet Koç',
+                                prefixIcon: Icons.person_outline_rounded,
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                            _buildInputLabel('E-posta'),
                             const SizedBox(height: 8),
                             _buildTextField(
                               isDark: isDark,
+                              controller: _emailController,
                               hintText: 'ornek@kulup.org',
+                              keyboardType: TextInputType.emailAddress,
                               prefixIcon: Icons.alternate_email_rounded,
                             ),
                             const SizedBox(height: 16),
@@ -225,9 +172,11 @@ class _AuthScreenState extends State<AuthScreen> {
                             const SizedBox(height: 8),
                             _buildTextField(
                               isDark: isDark,
+                              controller: _passwordController,
                               hintText: '••••••••••',
                               obscureText: _obscurePassword,
                               prefixIcon: Icons.lock_outline_rounded,
+                              onSubmitted: (_) => _submit(),
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
@@ -241,38 +190,47 @@ class _AuthScreenState extends State<AuthScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: TextButton(
-                                onPressed: () {},
-                                style: TextButton.styleFrom(
-                                  padding: EdgeInsets.zero,
-                                  minimumSize: Size.zero,
-                                  tapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                ),
-                                child: const Text(
-                                  'Şifremi Unuttum',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    color: SwanColors.primary,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                            ),
+
+                            // Error message
+                            if (authState.errorMessage != null) ...[
+                              const SizedBox(height: 14),
+                              _buildMessage(authState.errorMessage!),
+                            ],
+
                             const SizedBox(height: 20),
 
                             // Primary CTA
                             SwanButton.primary(
-                              label: 'Giriş Yap',
+                              label: isSignUp ? 'Kayıt Ol' : 'Giriş Yap',
                               width: double.infinity,
                               height: 52,
                               icon: Icons.arrow_forward_rounded,
-                              onPressed: _showRoleSelectionSheet,
+                              isLoading: authState.isSubmitting,
+                              onPressed:
+                                  authState.isSubmitting ? null : _submit,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 6),
+                            if (!isSignUp)
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: authState.isSubmitting
+                                      ? null
+                                      : () => ref
+                                          .read(authControllerProvider.notifier)
+                                          .sendPasswordReset(
+                                              _emailController.text),
+                                  child: const Text(
+                                    'Şifremi unuttum',
+                                    style: TextStyle(
+                                      fontSize: 12.5,
+                                      fontWeight: FontWeight.w700,
+                                      color: SwanColors.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            const SizedBox(height: 6),
 
                             // Divider
                             Row(
@@ -311,12 +269,20 @@ class _AuthScreenState extends State<AuthScreen> {
                             ),
                             const SizedBox(height: 12),
 
-                            // Secondary CTA
+                            // Mode toggle (sign in <-> sign up)
                             SwanButton.secondary(
-                              label: 'OTP ile Giriş Yap',
+                              label: isSignUp
+                                  ? 'Zaten hesabın var mı? Giriş yap'
+                                  : 'Hesabın yok mu? Kayıt ol',
                               width: double.infinity,
-                              icon: Icons.smartphone_rounded,
-                              onPressed: _showRoleSelectionSheet,
+                              icon: isSignUp
+                                  ? Icons.login_rounded
+                                  : Icons.person_add_alt_rounded,
+                              onPressed: authState.isSubmitting
+                                  ? null
+                                  : () => ref
+                                      .read(authControllerProvider.notifier)
+                                      .toggleMode(),
                             ),
                           ],
                         ),
@@ -369,19 +335,60 @@ class _AuthScreenState extends State<AuthScreen> {
     );
   }
 
+  Widget _buildMessage(String message) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: SwanColors.primary.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: SwanColors.primary.withValues(alpha: 0.25),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(
+            Icons.info_outline_rounded,
+            size: 18,
+            color: SwanColors.primary,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                fontSize: 12.5,
+                height: 1.35,
+                fontWeight: FontWeight.w600,
+                color: SwanColors.primary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildTextField({
     required bool isDark,
+    required TextEditingController controller,
     required String hintText,
     bool obscureText = false,
+    TextInputType? keyboardType,
     IconData? prefixIcon,
     Widget? suffixIcon,
+    ValueChanged<String>? onSubmitted,
   }) {
     final fillColor =
         isDark ? SwanColors.darkSurfaceVariant : SwanColors.surfaceVariant;
     final borderColor = isDark ? const Color(0xFF2E3440) : SwanColors.outline;
 
     return TextField(
+      controller: controller,
       obscureText: obscureText,
+      keyboardType: keyboardType,
+      onSubmitted: onSubmitted,
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: TextStyle(
@@ -410,86 +417,6 @@ class _AuthScreenState extends State<AuthScreen> {
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: SwanColors.primary, width: 1.5),
-        ),
-      ),
-    );
-  }
-}
-
-class _RoleOptionTile extends StatelessWidget {
-  final String clubName;
-  final String roleName;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const _RoleOptionTile({
-    required this.clubName,
-    required this.roleName,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? const Color(0xFF142426) : SwanColors.primaryContainer)
-              : (isDark
-                  ? SwanColors.darkSurfaceVariant
-                  : SwanColors.surfaceVariant),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isSelected
-                ? SwanColors.primary.withValues(alpha: 0.5)
-                : (isDark ? const Color(0xFF2E3440) : SwanColors.outline),
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    clubName,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 14,
-                      color: isSelected ? SwanColors.primary : null,
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    roleName,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: SwanColors.textSecondary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            if (isSelected)
-              const Padding(
-                padding: EdgeInsets.only(left: 12),
-                child: Icon(
-                  Icons.check_circle_rounded,
-                  color: SwanColors.primary,
-                  size: 22,
-                ),
-              ),
-          ],
         ),
       ),
     );

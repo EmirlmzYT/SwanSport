@@ -11,9 +11,17 @@ resolution: workspace
 dependencies:
   flutter:
     sdk: flutter
+  file_picker: ^12.0.0
   flutter_riverpod: ^2.6.1
+  google_fonts: ^6.2.1
+  http: ^1.2.2
+  qr_flutter: ^4.1.0
+  url_launcher: ^6.3.1
+  supabase_flutter: ^2.8.0
+  web: ^1.1.0
   swansport_branch_engine: ^0.1.0
   swansport_core: ^0.1.0
+  swansport_data: ^0.1.0
   swansport_design_system: ^0.1.0
   swansport_models: ^0.1.0
 

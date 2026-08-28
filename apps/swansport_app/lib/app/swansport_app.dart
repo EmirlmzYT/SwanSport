@@ -9,7 +9,7 @@ import '../features/athlete_workspace/presentation/routing/athlete_detail_route_
 import '../features/athlete_workspace/presentation/screens/athlete_detail_screen.dart';
 import '../features/athlete_workspace/presentation/screens/athlete_workspace_screen.dart';
 import '../features/attendance/presentation/screens/live_attendance_screen.dart';
-import '../features/auth/presentation/screens/auth_screen.dart';
+import '../features/auth/presentation/screens/auth_gate.dart';
 import '../features/calendar/presentation/screens/schedule_calendar_screen.dart';
 import '../features/configuration/presentation/configuration_module_args.dart';
 import '../features/configuration/presentation/configuration_screen.dart';
@@ -19,13 +19,11 @@ import '../features/documents/presentation/screens/document_detail_screen.dart';
 import '../features/documents/presentation/screens/document_vault_screen.dart';
 import '../features/facilities/presentation/facility_management_screen.dart';
 import '../features/facilities/presentation/facility_route_args.dart';
-import '../features/financial_management/presentation/financial_management_screen.dart';
-import '../features/financial_management/presentation/financial_route_args.dart';
 import '../features/home/presentation/screens/home_command_center_screen.dart';
-import '../features/home/presentation/screens/main_hub_dashboard_screen.dart';
 import '../features/home/presentation/screens/public_landing_screen.dart';
 import '../features/medical_center/presentation/medical_center_screen.dart';
 import '../features/medical_center/presentation/medical_route_args.dart';
+import '../features/performance_analytics/presentation/athlete_performance_screen.dart';
 import '../features/performance_analytics/presentation/performance_analytics_screen.dart';
 import '../features/performance_analytics/presentation/performance_route_args.dart';
 import '../features/performance_analytics/presentation/performance_workflow_editors.dart';
@@ -36,8 +34,35 @@ import '../features/reports/presentation/screens/reports_screen.dart';
 import '../features/settings/presentation/routing/admin_user_detail_args.dart';
 import '../features/settings/presentation/screens/admin_user_detail_screen.dart';
 import '../features/settings/presentation/screens/club_settings_screen.dart';
+import '../features/clubs/presentation/club_applications_screen.dart';
+import '../features/demo/demo_role_screen.dart';
+import '../features/social/presentation/connections_screen.dart';
+import '../features/communities/presentation/communities_screen.dart';
+import '../features/network/presentation/discover_screen.dart';
+import '../features/network/presentation/listings_screen.dart';
+import '../features/network/presentation/organizations_screen.dart';
+import '../features/financial_management/presentation/campaigns_screen.dart';
+import '../features/financial_management/presentation/finance_screen.dart';
+import '../features/financial_management/presentation/my_fees_screen.dart';
+import '../features/communities/presentation/community_chat_screen.dart';
+import '../features/communities/presentation/federation_admin_screen.dart';
+import '../features/communities/presentation/federation_channel_screen.dart';
+import '../features/social/presentation/feed_screen.dart';
+import '../features/social/presentation/profile_screen.dart';
+import '../features/social/presentation/messages_screen.dart';
+import '../features/social/presentation/notifications_screen.dart';
+import '../features/social/presentation/privacy_screen.dart';
+import '../features/social/presentation/rss_admin_screen.dart';
+import '../features/social/presentation/search_screen.dart';
+import '../features/verification/presentation/admin_review_screen.dart';
+import '../features/verification/presentation/club_pending_screen.dart';
+import '../features/verification/presentation/credential_screen.dart';
+import '../features/verification/presentation/guardian_link_screen.dart';
+import '../features/attendance/presentation/screens/attendance_history_screen.dart';
 import '../features/teams/presentation/screens/team_roster_directory_screen.dart';
+import '../features/teams/presentation/screens/team_roster_screen.dart';
 import 'config/app_environment.dart';
+import 'widgets/page_transitions.dart';
 
 class SwanSportApp extends ConsumerWidget {
   const SwanSportApp({super.key});
@@ -49,14 +74,17 @@ class SwanSportApp extends ConsumerWidget {
     return MaterialApp(
       title: environment.appName,
       debugShowCheckedModeBanner: false,
-      theme: SwanTheme.light(),
-      darkTheme: SwanTheme.dark(),
+      theme: SwanTheme.light().copyWith(
+        pageTransitionsTheme: kSwanPageTransitions,
+      ),
+      darkTheme: SwanTheme.dark().copyWith(
+        pageTransitionsTheme: kSwanPageTransitions,
+      ),
       initialRoute: '/',
       routes: {
-        '/': (context) => const AuthScreen(),
+        '/': (context) => const AuthGate(),
         '/home-command': (context) => const HomeCommandCenterScreen(),
         '/landing': (context) => const PublicLandingScreen(),
-        '/hub': (context) => const MainHubDashboardScreen(),
         '/dashboard': (context) => const CoachDashboardScreen(),
         '/athletes': (context) => const AthleteWorkspaceScreen(),
         '/attendance': (context) => const LiveAttendanceScreen(),
@@ -65,15 +93,114 @@ class SwanSportApp extends ConsumerWidget {
         '/teams': (context) => const TeamRosterDirectoryScreen(),
         '/documents': (context) => const DocumentVaultScreen(),
         '/settings': (context) => const ClubSettingsScreen(),
+        '/dogrulama': (context) => const CredentialScreen(),
+        '/veli-bagla': (context) => const GuardianLinkScreen(),
+        '/onay-paneli': (context) => const AdminReviewScreen(),
+        '/demo-rol': (context) => const DemoRoleScreen(),
+        '/akis': (context) => const FeedScreen(),
+        '/ara': (context) => const SearchScreen(),
+        '/bildirimler': (context) => const NotificationsScreen(),
+        '/mesajlar': (context) => const MessagesScreen(),
+        '/topluluklar': (context) => const CommunitiesScreen(),
+        '/kesfet': (context) => const DiscoverScreen(),
+        '/ilanlar': (context) => const ListingsScreen(),
+        '/organizasyonlar': (context) =>
+            const OrganizationsScreen(),
+        '/finans': (context) => const FinanceScreen(),
+        '/aidatlarim': (context) => const MyFeesScreen(),
+        '/bagis': (context) => const CampaignsScreen(),
+        '/federasyon-yetkili': (context) =>
+            const FederationAdminScreen(),
+        '/haber-kaynaklari': (context) => const RssAdminScreen(),
+        '/gizlilik': (context) => const PrivacyScreen(),
+        '/devam-durumu': (context) => const AttendanceHistoryScreen(),
+        '/basvurular': (context) => const ClubApplicationsScreen(),
         '/configuration': (context) => const ConfigurationScreen(),
         '/facilities': (context) => const FacilityManagementScreen(),
         '/medical-center': (context) => const MedicalCenterScreen(),
         '/reports': (context) => const ReportsScreen(),
-        '/financial-management': (context) => const FinancialManagementScreen(),
         '/performance-analytics': (context) =>
             const PerformanceAnalyticsScreen(),
       },
       onGenerateRoute: (settings) {
+        // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
+        if (settings.name == '/profil' || settings.name == '/kulup-profil') {
+          final args = settings.arguments;
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => ProfileScreen(
+              id: args is String ? args : null,
+              isClub: settings.name == '/kulup-profil',
+            ),
+          );
+        }
+        if (settings.name == '/sporcu-performans') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => AthletePerformanceScreen(
+              athleteId: '${m['id'] ?? ''}',
+              athleteName: '${m['name'] ?? 'Sporcu'}',
+            ),
+          );
+        }
+        if (settings.name == '/baglantilar') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => ConnectionsScreen(
+              profileId: '${m['id'] ?? ''}',
+              initialTab: (m['tab'] as int?) ?? 0,
+              title: m['name'] as String?,
+            ),
+          );
+        }
+        if (settings.name == '/takim-kadro') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => TeamRosterScreen(
+              teamId: '${m['id'] ?? ''}',
+              teamName: '${m['name'] ?? 'Takım'}',
+            ),
+          );
+        }
+        if (settings.name == '/federasyon') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => FederationChannelScreen(
+              communityId: '${m['id'] ?? ''}',
+              title: '${m['name'] ?? 'Federasyon'}',
+            ),
+          );
+        }
+        if (settings.name == '/topluluk') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => CommunityChatScreen(
+              communityId: '${m['id'] ?? ''}',
+              title: '${m['name'] ?? 'Topluluk'}',
+            ),
+          );
+        }
+        if (settings.name == '/sohbet') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => ChatScreen(
+              otherId: '${m['id'] ?? ''}',
+              otherName: '${m['name'] ?? 'Sohbet'}',
+            ),
+          );
+        }
         if (settings.name == '/athlete-detail') {
           final args = settings.arguments;
 
@@ -129,51 +256,6 @@ class SwanSportApp extends ConsumerWidget {
             settings: settings,
             builder: (_) => ConfigurationModuleScreen(
               args: args is ConfigurationModuleArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/facility-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => FacilityDetailScreen(
-              args: args is FacilityDetailArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/medical-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => MedicalDetailScreen(
-              args: args is MedicalDetailArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/financial-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => FinancialDetailScreen(
-              args: args is FinancialDetailArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => PerformanceDetailScreen(
-              args: args is PerformanceDetailArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-team-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => TeamPerformanceScreen(
-              args: args is TeamPerformanceArgs ? args : null,
             ),
           );
         }

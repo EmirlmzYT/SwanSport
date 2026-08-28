@@ -1,522 +1,362 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../application/medical_controller.dart';
-import '../domain/medical_center.dart';
-import 'medical_route_args.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_design_system/swansport_design_system.dart';
 
-class MedicalCenterScreen extends ConsumerWidget {
+import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/quick_form.dart';
+
+/// Sağlık Merkezi — sporcuların sakatlık/uygunluk kayıtları.
+///
+/// Eskiden sabit örnek verilerle doluydu; artık `injuries` tablosundan okuyor
+/// ve kayıt eklenip güncellenebiliyor.
+class MedicalCenterScreen extends ConsumerStatefulWidget {
   const MedicalCenterScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(medicalControllerProvider);
-    final c = ref.read(medicalControllerProvider.notifier);
-    final metrics = state.metrics;
-
-    if (state.loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sağlık Merkezi & Sporcu Sağlığı'),
-        actions: [
-          DropdownButton<MedicalRole>(
-            key: const Key('medical-role-switcher'),
-            value: state.currentRole,
-            onChanged: (role) {
-              if (role != null) c.changeRole(role);
-            },
-            items: MedicalRole.values
-                .map(
-                  (r) => DropdownMenuItem(
-                    value: r,
-                    child: Text(r.name),
-                  ),
-                )
-                .toList(),
-          ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: LayoutBuilder(
-        builder: (context, box) {
-          final overview = Column(
-            children: [
-              Container(
-                key: const Key('medical-command-center'),
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
-                  ),
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'MEDICAL COMMAND CENTER',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      '${metrics.totalAthletes} Sporcu • Uyum Skoru: %${metrics.complianceScore}',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${metrics.healthyAthletes} Sağlıklı • ${metrics.injuredAthletes} Sakat • ${metrics.rehabCases} Rehabilitasyon • ${metrics.expiringCertificates} Süresi Dolan Rapor',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              Card(
-                child: ExpansionTile(
-                  key: const Key('medical-alerts-tile'),
-                  title: Row(
-                    children: [
-                      const Icon(Icons.error, color: Colors.red),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Tıbbi Uyarı Merkezi (${state.alerts.length})',
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  children: [
-                    if (state.alerts.isEmpty)
-                      const ListTile(title: Text('Aktif tıbbi uyarı yok.'))
-                    else
-                      for (final a in state.alerts)
-                        ListTile(
-                          key: Key('alert-${a.id.value}'),
-                          leading: Icon(
-                            a.severity == AlertSeverity.critical
-                                ? Icons.gpp_maybe
-                                : Icons.info,
-                            color: a.severity == AlertSeverity.critical
-                                ? Colors.red
-                                : Colors.amber,
-                          ),
-                          title: Text(a.title),
-                          subtitle: Text('${a.athleteName} • ${a.message}'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.check),
-                            onPressed: () => c.dismissAlert(a.id),
-                          ),
-                        ),
-                  ],
-                ),
-              ),
-              Card(
-                child: ExpansionTile(
-                  key: const Key('medical-appointments'),
-                  title: Text(
-                    'Tıbbi Randevular (${state.appointments.length})',
-                  ),
-                  children: state.appointments
-                      .map(
-                        (appointment) => ListTile(
-                          leading: const Icon(Icons.event_available),
-                          title: Text(appointment.type),
-                          subtitle: Text(
-                            '${appointment.professional} • ${appointment.location}\n'
-                            '${appointment.start} • ${appointment.status.name}',
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              Card(
-                child: ExpansionTile(
-                  key: const Key('medical-clearances'),
-                  title: Text(
-                    'Tıbbi Onaylar (${state.clearances.length})',
-                  ),
-                  children: state.clearances
-                      .map(
-                        (clearance) => ListTile(
-                          leading: const Icon(Icons.verified_user),
-                          title: Text(clearance.type),
-                          subtitle: Text(
-                            '${clearance.issuer} • ${clearance.status.name}\n'
-                            'Geçerlilik: ${clearance.expiresAt}',
-                          ),
-                        ),
-                      )
-                      .toList(),
-                ),
-              ),
-              if (state.permissions.canViewDoctorNotes)
-                Card(
-                  child: ExpansionTile(
-                    key: const Key('medical-audit'),
-                    title: Text('Tıbbi Denetim Kaydı (${state.audit.length})'),
-                    children: state.audit.isEmpty
-                        ? const [
-                            ListTile(title: Text('Henüz denetim kaydı yok.')),
-                          ]
-                        : state.audit
-                            .map(
-                              (entry) => ListTile(
-                                leading: const Icon(Icons.history),
-                                title: Text(entry.action),
-                                subtitle: Text(
-                                  '${entry.actor} (${entry.role}) • '
-                                  '${entry.previousValue} → ${entry.newValue}\n'
-                                  '${entry.timestamp} • ${entry.confidentiality}',
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                ),
-            ],
-          );
-
-          final directory = Column(
-            children: [
-              TextField(
-                key: const Key('medical-search'),
-                onChanged: c.search,
-                decoration: const InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  hintText: 'Sporcu, branş, takım veya sakatlık türü ara...',
-                ),
-              ),
-              const SizedBox(height: 8),
-              SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: Row(
-                  children: [
-                    ChoiceChip(
-                      label: const Text('Tümü'),
-                      selected: state.filter.eligibility == null,
-                      onSelected: (_) => c.filterEligibility(null),
-                    ),
-                    ...MedicalEligibilityStatus.values.map(
-                      (s) => Padding(
-                        padding: const EdgeInsets.only(left: 6),
-                        child: ChoiceChip(
-                          label: Text(_statusLabel(s)),
-                          selected: state.filter.eligibility == s,
-                          onSelected: (_) => c.filterEligibility(s),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-              if (state.filtered.isEmpty)
-                const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Text(
-                    'Eşleşen tıbbi profil bulunamadı.',
-                    key: Key('medical-empty'),
-                  ),
-                ),
-              for (final p in state.filtered)
-                Card(
-                  child: ListTile(
-                    key: Key('medical-${p.id.value}'),
-                    leading: _statusIcon(p.eligibility),
-                    title: Text(p.athleteName),
-                    subtitle: Text(
-                      '${p.branch} • ${p.team}\nKan: ${p.bloodType} • Uygunluk: ${_statusLabel(p.eligibility)}',
-                    ),
-                    isThreeLine: true,
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => Navigator.pushNamed(
-                      context,
-                      '/medical-detail',
-                      arguments: MedicalDetailArgs(p.id),
-                    ),
-                  ),
-                ),
-            ],
-          );
-
-          return ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              const Text(
-                'SAĞLIK YÖNETİM MERKEZİ',
-                style: TextStyle(
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.3,
-                ),
-              ),
-              const Text(
-                'Sporcu Sağlığı & Tıbbi Uygunluk',
-                style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 16),
-              if (box.maxWidth >= 840)
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(flex: 5, child: overview),
-                    const SizedBox(width: 24),
-                    Expanded(flex: 7, child: directory),
-                  ],
-                )
-              else ...[
-                overview,
-                const SizedBox(height: 16),
-                directory,
-              ],
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  String _statusLabel(MedicalEligibilityStatus s) {
-    switch (s) {
-      case MedicalEligibilityStatus.eligible:
-        return 'Uygun';
-      case MedicalEligibilityStatus.temporarilyRestricted:
-        return 'Geçici Kısıtlı';
-      case MedicalEligibilityStatus.rehabilitation:
-        return 'Rehabilitasyon';
-      case MedicalEligibilityStatus.suspended:
-        return 'Tıbbi Askı';
-      case MedicalEligibilityStatus.clearanceRequired:
-        return 'Onay Gerekli';
-    }
-  }
-
-  Widget _statusIcon(MedicalEligibilityStatus s) {
-    switch (s) {
-      case MedicalEligibilityStatus.eligible:
-        return const Icon(Icons.check_circle, color: Colors.green);
-      case MedicalEligibilityStatus.temporarilyRestricted:
-        return const Icon(Icons.warning, color: Colors.orange);
-      case MedicalEligibilityStatus.rehabilitation:
-        return const Icon(Icons.healing, color: Colors.blue);
-      case MedicalEligibilityStatus.suspended:
-        return const Icon(Icons.cancel, color: Colors.red);
-      case MedicalEligibilityStatus.clearanceRequired:
-        return const Icon(Icons.help, color: Colors.purple);
-    }
-  }
+  ConsumerState<MedicalCenterScreen> createState() =>
+      _MedicalCenterScreenState();
 }
 
-class MedicalDetailScreen extends ConsumerWidget {
-  final MedicalDetailArgs? args;
-
-  const MedicalDetailScreen({required this.args, super.key});
+class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
+  /// Durum → (etiket, renk, ikon). Renk tek başına anlam taşımasın diye her
+  /// durum ikon ve yazıyla birlikte gösteriliyor.
+  static const _states = {
+    'injured': ('Sakat', Color(0xFFF43F5E), Icons.personal_injury_rounded),
+    'pending': ('Takipte', Color(0xFFD9860B), Icons.help_rounded),
+    'fit': ('Sağlam', Color(0xFF10B981), Icons.check_circle_rounded),
+  };
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(medicalControllerProvider);
-    final c = ref.read(medicalControllerProvider.notifier);
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
 
-    if (args == null) {
-      return const Scaffold(
-        body: Center(child: Text('Geçersiz tıbbi profil bağlantısı.')),
-      );
-    }
-
-    final found = state.profiles.where((p) => p.id == args!.athleteId);
-    if (state.loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (found.isEmpty) {
-      return const Scaffold(
-        body: Center(child: Text('Sağlık profili bulunamadı.')),
-      );
-    }
-
-    final p = found.single;
-    final perms = state.permissions;
+    final async = ref.watch(injuriesProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text('${p.athleteName} - Sağlık Profili')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Text(
-            p.athleteName,
-            key: const Key('medical-detail-name'),
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
-          ),
-          Text('${p.branch} • ${p.team} • Kan Grubu: ${p.bloodType}'),
-          Text(
-            'Boy: ${p.heightCm} cm • Kilo: ${p.weightKg} kg • Baskın Taraf: ${p.dominantHand} el / ${p.dominantFoot} ayak',
-          ),
-          const SizedBox(height: 12),
-          if (perms.canClearEligibility)
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Tıbbi Uygunluk Güncelleme (Doktor Yetkisi)',
-                      style: TextStyle(fontWeight: FontWeight.bold),
+      extendBody: true,
+      backgroundColor: bg,
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(injuriesProvider);
+                await ref.read(injuriesProvider.future);
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
+                children: [
+                  Row(children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('KULÜP',
+                              style: jakarta(
+                                  11, FontWeight.w700, SwanColors.textSecondary,
+                                  ls: 1.4)),
+                          const SizedBox(height: 3),
+                          Text('Sağlık Merkezi',
+                              style: sora(25, FontWeight.w800, ink)),
+                        ],
+                      ),
                     ),
-                    const SizedBox(height: 8),
-                    Wrap(
-                      spacing: 8,
-                      children: MedicalEligibilityStatus.values
-                          .map(
-                            (status) => OutlinedButton(
-                              onPressed: () =>
-                                  c.updateEligibility(p.id, status),
-                              child: Text(status.name),
-                            ),
-                          )
-                          .toList(),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          _section(
-            'Acil Durum İletişim',
-            p.emergencyContacts.map(
-              (e) => ListTile(
-                leading: const Icon(Icons.phone),
-                title: Text('${e.name} (${e.relation})'),
-                subtitle: Text(e.phone),
-              ),
-            ),
-          ),
-          _section(
-            'Alerjiler & Kronik Durumlar',
-            p.allergies.map(
-              (a) => ListTile(
-                leading: Icon(
-                  Icons.warning,
-                  color: a.isCritical ? Colors.red : Colors.amber,
-                ),
-                title: Text(a.title),
-                subtitle: Text('${a.category} • Critical: ${a.isCritical}'),
-              ),
-            ),
-          ),
-          _section(
-            'Aktif İlaçlar & Doping Kontrolü',
-            p.medications.map(
-              (m) => ListTile(
-                leading: const Icon(Icons.medication),
-                title: Text(m.name),
-                subtitle: Text(
-                  '${m.dosage} • ${m.duration}\nReçete Eden: ${m.physician} • Doping Uyumlu: ${m.isAntiDopingCompliant}',
-                ),
-              ),
-            ),
-          ),
-          _section(
-            'Sağlık Belgeleri & Raporlar',
-            p.certificates.map(
-              (cert) => ListTile(
-                leading: const Icon(Icons.description),
-                title: Text(cert.title),
-                subtitle: Text(
-                  '${cert.type} • Durum: ${cert.state.name}\nGeçerlilik: ${cert.expirationDate.toString().split(' ')[0]}',
-                ),
-              ),
-            ),
-          ),
-          _section(
-            'Sakatlık Geçmişi & Rehabilitasyon',
-            p.injuries.map(
-              (inj) => ListTile(
-                leading: const Icon(Icons.local_hospital, color: Colors.red),
-                title: Text('${inj.type} (${inj.bodyRegion})'),
-                subtitle: Text(
-                  'Şiddet: ${inj.severity.name} • Dr. ${inj.physician}\nTahmini İyileşme: ${inj.estimatedRecovery}',
-                ),
-              ),
-            ),
-          ),
-          _section(
-            'Randevular',
-            state.appointments
-                .where((appointment) => appointment.athleteId == p.id)
-                .map(
-                  (appointment) => ListTile(
-                    title: Text(appointment.type),
-                    subtitle: Text(
-                      '${appointment.professional} • ${appointment.location}\n'
-                      '${appointment.start} • ${appointment.status.name}',
-                    ),
+                    AddButton(onTap: _addRecord, tooltip: 'Kayıt ekle'),
+                  ]),
+                  const SizedBox(height: 18),
+                  async.when(
+                    loading: premiumLoading,
+                    error: (e, _) => premiumError(context, '$e'),
+                    data: (list) {
+                      if (list.isEmpty) {
+                        return premiumEmpty(
+                          context,
+                          icon: Icons.medical_services_rounded,
+                          title: 'Sağlık kaydı yok',
+                          subtitle:
+                              'Sakatlanan ya da durumu izlenen sporcular için '
+                              'kayıt ekle.',
+                          actionLabel: 'Kayıt ekle',
+                          onAction: _addRecord,
+                        );
+                      }
+                      return Column(children: [
+                        _summary(isDark, ink, list),
+                        const SizedBox(height: 18),
+                        for (final r in list) _row(isDark, ink, r),
+                      ]);
+                    },
                   ),
-                ),
-          ),
-          _section(
-            'Tıbbi Onay & Return-to-Play',
-            state.clearances
-                .where((clearance) => clearance.athleteId == p.id)
-                .map(
-                  (clearance) => ListTile(
-                    title: Text(clearance.type),
-                    subtitle: Text(
-                      '${clearance.status.name} • ${clearance.issuer}\n'
-                      'Son geçerlilik: ${clearance.expiresAt}',
-                    ),
-                  ),
-                ),
-          ),
-          if (perms.canViewDoctorNotes && p.confidentialDoctorNotes != null)
-            Card(
-              color: Colors.blue.withValues(alpha: 0.1),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.lock, color: Colors.blue),
-                        SizedBox(width: 8),
-                        Text(
-                          'Gizli Klinik Doktor Notları',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      p.confidentialDoctorNotes!,
-                      key: const Key('confidential-doctor-notes'),
-                    ),
-                  ],
-                ),
+                ],
               ),
             ),
-        ],
+          ),
+        ),
+      ),
+      bottomNavigationBar: PremiumBottomNav(
+        selectedIndex: -1,
+        onSelect: (i) {
+          if (i == 0) Navigator.pushNamed(context, '/akis');
+          if (i == 1) Navigator.pushNamed(context, '/calendar');
+          if (i == 3) Navigator.pushNamed(context, '/athletes');
+          if (i == 4) Navigator.pushNamed(context, '/profil');
+        },
+        onAction: () => Navigator.pushNamed(context, '/attendance'),
       ),
     );
   }
 
-  Widget _section(String title, Iterable<Widget> children) {
-    return Card(
-      child: ExpansionTile(
-        title: Text(title),
-        children: children.isEmpty
-            ? const [ListTile(title: Text('Kayıt bulunmuyor.'))]
-            : children.toList(),
+  Widget _summary(bool isDark, Color ink, List<InjuryRow> list) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    int count(String s) => list.where((r) => r.status == s).length;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: surf,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: line),
+      ),
+      child: Row(children: [
+        for (final e in _states.entries)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(children: [
+                  Icon(e.value.$3, size: 14, color: e.value.$2),
+                  const SizedBox(width: 5),
+                  Text('${count(e.key)}',
+                      style: sora(20, FontWeight.w800, ink)),
+                ]),
+                const SizedBox(height: 2),
+                Text(e.value.$1,
+                    style: jakarta(
+                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+              ],
+            ),
+          ),
+      ]),
+    );
+  }
+
+  Widget _row(bool isDark, Color ink, InjuryRow r) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final st = _states[r.status] ?? _states['fit']!;
+
+    return GestureDetector(
+      onTap: () => _actions(r),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 9),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: line),
+        ),
+        child: Row(children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: st.$2.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(st.$3, size: 19, color: st.$2),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(r.athleteName,
+                    style: jakarta(13.5, FontWeight.w800, ink)),
+                const SizedBox(height: 2),
+                Text(
+                    r.note?.trim().isNotEmpty == true
+                        ? r.note!
+                        : '${r.createdAt.day}.${r.createdAt.month}.${r.createdAt.year}',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: jakarta(
+                        11, FontWeight.w500, SwanColors.textSecondary)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          PremiumStatusChip(label: st.$1, color: st.$2, icon: st.$3),
+        ]),
       ),
     );
+  }
+
+  Future<void> _addRecord() async {
+    final athletes = ref.read(clubAthletesProvider).valueOrNull ?? const [];
+    if (athletes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Kadroda sporcu yok'),
+          backgroundColor: Color(0xFFF43F5E)));
+      return;
+    }
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    final athleteId = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        height: MediaQuery.of(ctx).size.height * 0.6,
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
+        child: Column(children: [
+          Text('Hangi sporcu?', style: sora(17, FontWeight.w800, ink)),
+          const SizedBox(height: 10),
+          Expanded(
+            child: ListView.builder(
+              itemCount: athletes.length,
+              itemBuilder: (_, i) => ListTile(
+                title: Text(athletes[i].fullName,
+                    style: jakarta(13, FontWeight.w600, ink)),
+                onTap: () => Navigator.pop(ctx, athletes[i].id),
+              ),
+            ),
+          ),
+        ]),
+      ),
+    );
+    if (athleteId == null) return;
+
+    final status = await _pickStatus();
+    if (status == null) return;
+
+    final note = FormField_('Not', hint: 'Ayak bileği burkulması',
+        required: false);
+    await showQuickForm(
+      context,
+      title: 'Sağlık kaydı',
+      fields: [note],
+      onSubmit: () => _guard(() async {
+        final club = ref.read(activeClubProvider).valueOrNull;
+        if (club == null) return;
+        await ref
+            .read(clubOpsServiceProvider)
+            .addInjury(club.id, athleteId, status, note: note.value);
+        ref.invalidate(injuriesProvider);
+      }, 'Kayıt eklendi'),
+    );
+  }
+
+  Future<String?> _pickStatus() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+            20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text('Durum', style: sora(17, FontWeight.w800, ink)),
+          const SizedBox(height: 8),
+          for (final e in _states.entries)
+            ListTile(
+              leading: Icon(e.value.$3, color: e.value.$2),
+              title: Text(e.value.$1,
+                  style: jakarta(13.5, FontWeight.w600, ink)),
+              onTap: () => Navigator.pop(ctx, e.key),
+            ),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _actions(InjuryRow r) async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => Container(
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.fromLTRB(
+            20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          Text(r.athleteName, style: sora(17, FontWeight.w800, ink)),
+          const SizedBox(height: 12),
+          for (final e in _states.entries)
+            if (e.key != r.status)
+              ListTile(
+                dense: true,
+                leading: Icon(e.value.$3, color: e.value.$2, size: 20),
+                title: Text('${e.value.$1} olarak işaretle',
+                    style: jakarta(13, FontWeight.w600, ink)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _guard(() async {
+                    await ref
+                        .read(clubOpsServiceProvider)
+                        .updateInjury(r.id, status: e.key);
+                    ref.invalidate(injuriesProvider);
+                  }, 'Durum güncellendi');
+                },
+              ),
+          const Divider(height: 18),
+          ListTile(
+            dense: true,
+            leading: const Icon(Icons.delete_outline_rounded,
+                size: 20, color: Color(0xFFF43F5E)),
+            title: Text('Kaydı sil',
+                style: jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+            onTap: () {
+              Navigator.pop(ctx);
+              _guard(() async {
+                await ref.read(clubOpsServiceProvider).removeInjury(r.id);
+                ref.invalidate(injuriesProvider);
+              }, 'Kayıt silindi');
+            },
+          ),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _guard(Future<void> Function() task, String ok) async {
+    try {
+      await task();
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(ok), backgroundColor: kTeal));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('İşlem başarısız: $e'),
+            backgroundColor: const Color(0xFFF43F5E)));
+      }
+    }
   }
 }

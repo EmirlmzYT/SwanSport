@@ -1,416 +1,230 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-class PublicLandingScreen extends StatelessWidget {
+import '../../../../app/widgets/premium.dart';
+import '../../../auth/application/auth_controller.dart';
+
+/// Herkese açık karşılama ekranı — premium tasarım (v3).
+///
+/// Oturum durumuna duyarlı: giriş yapılmışsa doğrudan panele geçirir,
+/// yapılmamışsa giriş/kayıt sunar.
+class PublicLandingScreen extends ConsumerWidget {
   const PublicLandingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const _PublicLandingContent();
-  }
-}
-
-class _PublicLandingContent extends StatelessWidget {
-  const _PublicLandingContent();
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? SwanColors.darkBackground : SwanColors.background;
+    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+
+    final enabled = ref.watch(isSupabaseEnabledProvider);
+    final signedIn =
+        enabled && Supabase.instance.client.auth.currentSession != null;
 
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(6),
-              decoration: BoxDecoration(
-                color: SwanColors.primary,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: const Icon(
-                Icons.sports_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 10),
-            const Text(
-              'SwanSport',
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.login_rounded),
-            tooltip: 'Giriş Yap',
-            onPressed: () => Navigator.pushNamed(context, '/'),
-          ),
-          IconButton(
-            key: const Key('landing-to-hub-btn'),
-            icon:
-                const Icon(Icons.dashboard_rounded, color: SwanColors.primary),
-            tooltip: 'Ana Hub Dashboard',
-            onPressed: () => Navigator.pushNamed(context, '/hub'),
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 32),
-        children: [
-          // Hero Section
-          Container(
-            key: const Key('landing-hero'),
-            padding: const EdgeInsets.all(32),
-            decoration: BoxDecoration(
-              color: const Color(0xFF008C95),
-              borderRadius: BorderRadius.circular(32),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF008C95).withValues(alpha: 0.3),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 560),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
               children: [
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text(
-                    'ENTERPRISE SPORTS MANAGEMENT PLATFORM',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 1.2,
+                // Marka
+                Row(children: [
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [kTealBright, kTeal, kTealDeep],
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: kTeal.withValues(alpha: 0.34),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
                     ),
+                    alignment: Alignment.center,
+                    child: Text('S',
+                        style: sora(26, FontWeight.w800, Colors.white)),
                   ),
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  'Spor Kulüpleri & Akademiler İçin\nGeleceğin Dijital Yönetim Platformu',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    height: 1.15,
-                  ),
-                ),
+                  const SizedBox(width: 12),
+                  Text('SwanSport', style: sora(20, FontWeight.w800, ink)),
+                ]),
+                const SizedBox(height: 32),
+
+                Text('Spor kulübünüzün\ndijital merkezi.',
+                    style: sora(32, FontWeight.w800, ink)),
                 const SizedBox(height: 12),
-                const Text(
-                  'SwanSport; sporcu takibinden medikal merkeze, finans yönetiminden performans analitiğine kadar 15 entegre enterprise modül ile kulübünüzü tek merkezden yönetmenizi sağlar.',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 15,
-                    height: 1.4,
-                  ),
+                Text(
+                  'Kadro, antrenman, yoklama, aidat ve sağlık takibi tek '
+                  'platformda. Roller belgeyle doğrulanır — kim ne yapabilir, '
+                  'net.',
+                  style:
+                      jakarta(14.5, FontWeight.w500, SwanColors.textSecondary),
                 ),
-                const SizedBox(height: 24),
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  children: [
-                    ElevatedButton.icon(
-                      key: const Key('hero-launch-hub-btn'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.white,
-                        foregroundColor: const Color(0xFF008C95),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
+                const SizedBox(height: 28),
+
+                // Öne çıkanlar
+                _feature(isDark, Icons.verified_user_rounded,
+                    'Belgeyle doğrulanmış roller',
+                    'Antrenör kademeleri ve sporcu lisansları platformca onaylanır.'),
+                _feature(isDark, Icons.groups_rounded, 'Kadro & yoklama',
+                    'Sporcuları yönet, tek dokunuşla yoklama al.'),
+                _feature(isDark, Icons.calendar_month_rounded,
+                    'Antrenman & maç takvimi',
+                    'Program herkese anında ulaşsın.'),
+                _feature(isDark, Icons.family_restroom_rounded, 'Veli erişimi',
+                    'Veliler davet koduyla çocuklarına bağlanır.'),
+                _feature(isDark, Icons.payments_rounded, 'Aidat & sağlık',
+                    'Ödemeleri ve sakatlıkları tek yerden izle.'),
+
+                const SizedBox(height: 30),
+
+                // CTA
+                if (signedIn) ...[
+                  _primaryButton(
+                    label: 'Panele Git',
+                    icon: Icons.arrow_forward_rounded,
+                    onTap: () => Navigator.pushNamedAndRemoveUntil(
+                        context, '/dashboard', (_) => false),
+                  ),
+                ] else ...[
+                  _primaryButton(
+                    label: 'Giriş Yap',
+                    icon: Icons.login_rounded,
+                    onTap: () {
+                      final ctrl = ref.read(authControllerProvider.notifier);
+                      if (ref.read(authControllerProvider).mode !=
+                          AuthMode.signIn) {
+                        ctrl.toggleMode();
+                      }
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/', (_) => false);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  GestureDetector(
+                    onTap: () {
+                      final ctrl = ref.read(authControllerProvider.notifier);
+                      if (ref.read(authControllerProvider).mode !=
+                          AuthMode.signUp) {
+                        ctrl.toggleMode();
+                      }
+                      Navigator.pushNamedAndRemoveUntil(
+                          context, '/', (_) => false);
+                    },
+                    child: Container(
+                      height: 52,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: surf,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: line),
                       ),
-                      onPressed: () => Navigator.pushNamed(context, '/hub'),
-                      icon: const Icon(Icons.dashboard_rounded),
-                      label: const Text(
-                        'Ana Hub Dashboard\'u Başlat',
-                        style: TextStyle(fontWeight: FontWeight.w900),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.person_add_alt_rounded,
+                              size: 18, color: kTeal),
+                          const SizedBox(width: 8),
+                          Text('Hesap Oluştur',
+                              style: jakarta(14.5, FontWeight.w800, ink)),
+                        ],
                       ),
                     ),
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        side: const BorderSide(color: Colors.white54),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 24,
-                          vertical: 14,
-                        ),
-                      ),
-                      onPressed: () => Navigator.pushNamed(context, '/'),
-                      icon: const Icon(Icons.login_rounded),
-                      label: const Text('Kulüp Girişi'),
-                    ),
-                  ],
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+                Center(
+                  child: Text('Kulüpler, antrenörler, sporcular ve veliler için',
+                      textAlign: TextAlign.center,
+                      style: jakarta(
+                          11.5, FontWeight.w500, SwanColors.textSecondary)),
                 ),
               ],
             ),
           ),
-
-          const SizedBox(height: 48),
-
-          // 15 Enterprise Modules Section
-          const Text(
-            'ENTERPRISE MODÜL EKOSİSTEMİ',
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.5,
-              color: SwanColors.primary,
-            ),
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            '15 Entegre İşletim Modülü',
-            style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 16),
-
-          GridView.count(
-            key: const Key('landing-modules-grid'),
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: MediaQuery.of(context).size.width >= 840 ? 3 : 1,
-            childAspectRatio: 2.5,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
-            children: const [
-              _ModuleCard(
-                icon: Icons.sports_soccer,
-                title: 'Sporcu Yönetimi (Screen 3)',
-                desc:
-                    'Sporcu kimlikleri, lisanslar, veli eşleşmesi ve kadro takibi.',
-                route: '/athletes',
-              ),
-              _ModuleCard(
-                icon: Icons.fact_check,
-                title: 'Yoklama & Katılım (Screen 4)',
-                desc: 'Canlı sahadan yoklama alma ve devamsızlık uyarıları.',
-                route: '/attendance',
-              ),
-              _ModuleCard(
-                icon: Icons.calendar_month,
-                title: 'Takvim & Program (Screen 6)',
-                desc: 'Antrenman, maç ve etkinlik takvim yönetimi.',
-                route: '/calendar',
-              ),
-              _ModuleCard(
-                icon: Icons.campaign,
-                title: 'İletişim & Duyuru (Screen 7)',
-                desc: 'Veli ve sporculara anlık duyuru ve onay takibi.',
-                route: '/announcements',
-              ),
-              _ModuleCard(
-                icon: Icons.groups,
-                title: 'Takımlar & Şubeler (Screen 5/9)',
-                desc: 'Şube bazlı takım ve antrenör kadro yapılandırması.',
-                route: '/teams',
-              ),
-              _ModuleCard(
-                icon: Icons.folder,
-                title: 'Evrak & Belgeler (Screen 8)',
-                desc: 'Sözleşme, muvafakatname ve lisans belgeleri.',
-                route: '/documents',
-              ),
-              _ModuleCard(
-                icon: Icons.settings,
-                title: 'Kulüp Ayarları (Screen 9)',
-                desc: 'Şube yetkileri, rol tanımları ve kulüp politikaları.',
-                route: '/settings',
-              ),
-              _ModuleCard(
-                icon: Icons.tune,
-                title: 'Konfigürasyon (Screen 10)',
-                desc: 'Sistem parametreleri ve dinamik alan ayarları.',
-                route: '/configuration',
-              ),
-              _ModuleCard(
-                icon: Icons.stadium,
-                title: 'Tesis Yönetimi (Screen 11)',
-                desc: 'Saha, salon doluluk oranları ve bakım takibi.',
-                route: '/facilities',
-              ),
-              _ModuleCard(
-                icon: Icons.medical_services,
-                title: 'Medikal Merkez (Screen 12)',
-                desc: 'Sağlık raporları, sakatlık takibi ve uygunluk.',
-                route: '/medical-center',
-              ),
-              _ModuleCard(
-                icon: Icons.analytics,
-                title: 'Raporlama & BI (Screen 13)',
-                desc: 'Yönetsel karar destek ve iş zekası raporları.',
-                route: '/reports',
-              ),
-              _ModuleCard(
-                icon: Icons.account_balance_wallet,
-                title: 'Finans Yönetimi (Screen 14)',
-                desc: 'Aidat takibi, faturalar, giderler ve bütçe.',
-                route: '/financial-management',
-              ),
-              _ModuleCard(
-                icon: Icons.insights,
-                title: 'Performans Analizi (Screen 15)',
-                desc: 'Fiziksel testler, teknik/taktik skoring ve IDP.',
-                route: '/performance-analytics',
-              ),
-              _ModuleCard(
-                icon: Icons.dashboard,
-                title: 'Koç Paneli (Screen 2)',
-                desc: 'Antrenör komuta merkezi ve günlük özetler.',
-                route: '/dashboard',
-              ),
-              _ModuleCard(
-                icon: Icons.lock,
-                title: 'Giriş & Güvenlik (Screen 1)',
-                desc: 'Güvenli giriş, biyometrik doğrulama ve oturum.',
-                route: '/',
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 48),
-
-          Wrap(
-            key: const Key('landing-commercial-placeholders'),
-            spacing: 16,
-            runSpacing: 16,
-            children: [
-              SizedBox(
-                width: 320,
-                child: Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.sell_outlined),
-                    title: const Text('Kurumsal Fiyatlandırma'),
-                    subtitle: const Text(
-                      'Fiyatlandırma entegrasyonu henüz bağlı değil.',
-                    ),
-                    trailing: TextButton(
-                      onPressed: () =>
-                          ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Fiyatlandırma yakında paylaşılacak.'),
-                        ),
-                      ),
-                      child: const Text('Bilgi Al'),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 320,
-                child: Card(
-                  child: ListTile(
-                    leading: const Icon(Icons.contact_support_outlined),
-                    title: const Text('Kurumsal İletişim'),
-                    subtitle: const Text(
-                      'İletişim altyapısı için güvenli yönlendirme yer tutucusu.',
-                    ),
-                    trailing: TextButton(
-                      onPressed: () =>
-                          ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('İletişim kanalı yakında açılacak.'),
-                        ),
-                      ),
-                      child: const Text('İletişim'),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 32),
-
-          // Footer
-          Center(
-            child: Text(
-              '© 2026 SwanSport Enterprise Sports Platform • Tüm Hakları Saklıdır',
-              style: TextStyle(
-                color: isDark ? Colors.white54 : SwanColors.textSecondary,
-                fontSize: 12,
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
-}
 
-class _ModuleCard extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String desc;
-  final String route;
-
-  const _ModuleCard({
-    required this.icon,
-    required this.title,
-    required this.desc,
-    required this.route,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Card(
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, route),
-        borderRadius: BorderRadius.circular(16),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: SwanColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(icon, color: SwanColors.primary, size: 24),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w900,
-                        fontSize: 13,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      desc,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color:
-                            isDark ? Colors.white70 : SwanColors.textSecondary,
-                      ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+  Widget _primaryButton({
+    required String label,
+    required IconData icon,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 54,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(colors: [kTealBright, kTeal]),
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: kTeal.withValues(alpha: 0.34),
+              blurRadius: 18,
+              offset: const Offset(0, 8),
+            ),
+          ],
         ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: jakarta(15, FontWeight.w800, Colors.white)),
+            const SizedBox(width: 8),
+            Icon(icon, size: 18, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _feature(bool isDark, IconData icon, String title, String sub) {
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: kTeal.withValues(alpha: 0.10),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: kTeal, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: jakarta(13.5, FontWeight.w800, ink)),
+                const SizedBox(height: 2),
+                Text(sub,
+                    style: jakarta(
+                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
