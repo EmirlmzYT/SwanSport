@@ -121,13 +121,13 @@ cd packages/swansport_data && flutter test     # 14 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # +96 -69 — bu SABİT
+cd apps/swansport_app && flutter test          # +97 -68
 ```
 
-**Mobil uygulamada 69 test başarısız ve bu beklenen.** Hepsinin kökü tek:
-testler Supabase istemcisi başlatılmadan ekran açıyor
-(`_instance._isInitialized`). Sayı artmadıysa bir şey bozulmamıştır.
-Düzeltmesi ortak bir test kurulumu yazmak — yapılmadı.
+Mobil testlerde ortak Supabase ve bellek içi `shared_preferences` kurulumu
+`cfc985c` ile eklendi; eski `_instance._isInitialized` kök nedeni kalktı.
+Kalan **68 test** artık ayrı ekran/test uyumsuzluklarıdır; tek bir başlangıç
+hatasına indirgenemez.
 
 Derleme çıkış kodunu ayrı satırda oku, `| tail` ile boru hattına sokma.
 
@@ -189,8 +189,9 @@ Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 
 FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1`, gider ile
 muhasebeci sistemi `351fd9f` ve mali defter sayfalaması `43a930c` ile
-commit'lendi. Çalışma alanı bu noktada temiz olmalı; yeni bir değişiklik
-görürsen sahibini ve kapsamını doğrulamadan üzerine yazma.
+commit'lendi. Mobil test kurulumu da `cfc985c` ile kaydedildi. Çalışma alanı
+bu noktada temiz olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını
+doğrulamadan üzerine yazma.
 
 ---
 
