@@ -1,7 +1,7 @@
 # SwanSport — ajanlar için proje kılavuzu
 
 Spor kulüpleri için yönetim platformu ve spor ağı. **Flutter/Dart + Supabase.**
-TypeScript değil — 151 Dart dosyası, 31 SQL migration, 14 JS dosyası (o da
+TypeScript değil — 151 Dart dosyası, 32 SQL migration, 14 JS dosyası (o da
 Cloudflare fonksiyonları).
 
 Bu dosya projeyi ilk kez gören bir ajan içindir. Kod tabanını taramadan önce
@@ -115,7 +115,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 14 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 15 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
@@ -160,9 +160,9 @@ yoksa kullanıcı eski derlemeye bakar ve "hani" der. Bu yaşandı.
 ### Çalışan
 
 Sosyal akış, mesajlaşma, şehir bazlı antrenör toplulukları, federasyon
-duyuru kanalları, sporcu/kadro, takvim ve tekrarlayan antrenman, yoklama,
-performans testleri, sağlık, belgeler, tesisler, aidat ve bağış, kimlik
-doğrulama, platform yönetim paneli, keşif/ilanlar/organizasyonlar.
+duyuru kanalları, sporcu/kadro, takvim ve tekrarlayan antrenman, yoklama ve
+denetim izi, performans testleri, sağlık, belgeler, tesisler, aidat ve bağış,
+kimlik doğrulama, platform yönetim paneli, keşif/ilanlar/organizasyonlar.
 
 Masaüstü konsolu: sporcular, takvim, yoklama, tesisler, gelir–gider, kasa,
 mali rapor, onaylar, kullanıcılar, moderasyon, metrikler.
@@ -181,6 +181,8 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
+- **Yoklama denetim izi** — `0032_attendance_audit.sql` hazır; bağlı bir
+  Supabase ortamı olmadığı için migration ve RLS canlıda henüz denenmedi
 
 ### Dış bağımlılık bekleyen
 
@@ -192,9 +194,9 @@ Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1`, gider ile
 muhasebeci sistemi `351fd9f` ve mali defter sayfalaması `43a930c` ile
 commit'lendi. Mobil test kurulumu da `cfc985c` ile kaydedildi. Çalışma alanı
-Android yayın imzası yapılandırması `2cc8d65` ile eklendi. Çalışma alanı bu
-noktada temiz olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını
-doğrulamadan üzerine yazma.
+Android yayın imzası yapılandırması `2cc8d65`, yoklama denetim izi de
+`601b00b` ile eklendi. Çalışma alanı bu noktada temiz olmalı; yeni bir
+değişiklik görürsen sahibini ve kapsamını doğrulamadan üzerine yazma.
 
 ---
 
