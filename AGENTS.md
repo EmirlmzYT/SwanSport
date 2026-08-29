@@ -304,8 +304,8 @@ malzeme ilanları, halka açık kortlar (çift dokunuş düzeltmesiyle) ve kort
 partneri arama şemada var. `0038_turf_venues.sql` **henüz sürülmedi.** Yeni
 migration yazarken numarayı 0039'dan sürdür.
 
-Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri aramayı
-içeriyor, halı saha panosunu (0038 sürülüp derlenene kadar) içermiyor.
+Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri arama ve
+halı saha doluluk panosunu içeriyor.
 
 ### Yarım / doğrulanmamış
 
@@ -326,10 +326,9 @@ içeriyor, halı saha panosunu (0038 sürülüp derlenene kadar) içermiyor.
 - **Kort partneri arama** — şema canlıda (0037), web dağıtıldı, kortların
   branşı set edildi (kullanıcı 2026-08-30'da onayladı). Uçtan uca hiç
   denenmedi — en az iki hesap, aynı şehir, aynı branş ilgi alanı gerekiyor.
-- **Halı saha doluluk panosu** — kod ve testler hazır, `0038_turf_venues.sql`
-  **canlıda çalıştırılmadı**, mobil derleme dağıtılmadı. Migration sürülse
-  bile konsoldan hiç saha eklenmedi; saha eklenip yönetici daveti
-  redeem edilmeden ekranın düzenleme tarafı hiç test edilemez.
+- **Halı saha doluluk panosu** — şema canlıda (0038), web dağıtıldı. Ama
+  **konsoldan hiç saha eklenmedi**; saha eklenip yönetici daveti redeem
+  edilmeden ekranın düzenleme tarafı hiç test edilemez.
 
 ### Dış bağımlılık bekleyen
 
