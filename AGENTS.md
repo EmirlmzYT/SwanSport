@@ -95,6 +95,14 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   fonksiyonlar editörden test edilemez, boş döner. Bu bir hata değildir.
   Yetki gerektiren şeyleri ürünün kendisinden test et.
 
+**Konum**
+- `geolocator` yalnızca kort tarafında kullanılıyor. Android'de
+  `ACCESS_FINE_LOCATION` izni manifest'te; arka planda konum **izlenmiyor**,
+  yalnızca kullanıcı bir eylem yaparken isteniyor.
+- İstemcinin gönderdiği koordinata güvenilmez: yetki kararı sunucudaki
+  `meters_between` ile veriliyor. `court_service.dart` içindeki Dart kopyası
+  yalnızca listeyi yakınlığa göre **sıralamak** için.
+
 **Flutter / dağıtım**
 - `flutter` alt çizgiyle başlayan dosyaları (`web/_redirects`) `build/web`'e
   **kopyalamaz** — dağıtımda elle kopyalanır
@@ -115,7 +123,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 40 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 62 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
@@ -186,9 +194,49 @@ Para biçimlendirme (`fmtMoney`, `fmtDate`, `kMonthNames`) artık
 `swansport_data/lib/src/money.dart` içinde — konsol ve mobil aynı kaynağı
 kullanıyor.
 
+### Halka açık kortlar — ayrı bir dünya
+
+`courts`, `court_slots`, `court_slot_players`, `court_players` (0035). Konya'da
+halka açık tenis kortlarında sıra sistemi. Sahadaki kuralı değiştirmiyor,
+dijitalleştiriyor: *orada olan oynar* — sistem yalnızca beklemeyi kortun
+kenarından eve taşıyor. Bu yüzden hiçbir resmî yaptırıma ihtiyacı yok.
+
+Kulübün `facilities` tablosuyla karıştırma: o kulübe ait, koordinatsız,
+yalnızca üyeye görünür. Kort halka açık, koordinatı şart.
+
+**Ayrılabilirlik kuralı — bunu bozmayın.** Kort dünyası bir gün kendi
+uygulamasına ayrılacak (hesap aynı kalacak). İki kural:
+
+1. Kort verisi kulüp tablolarına karışmaz — gelmeme sayacı `profiles`'a değil
+   `court_players`'a yazılıyor.
+2. `apps/swansport_app/lib/features/courts/` altında kulüp kavramı geçmez.
+   Kontrolü basit:
+   `grep -rnE "activeClub|isClubStaff|athlete|invoice" apps/swansport_app/lib/features/courts/`
+   → **boş dönmeli.** Bozulursa ancak ayrılma günü fark edilir, o zaman geç olur.
+
+Sıra kuralları (`claim_slot` içinde, tek yerde): kişi başına tek aktif kutu ·
+en fazla 3 saat ileri · sırası gelince konum kanıtı (10 dk, yoksa kutu düşer) ·
+üç kez üst üste gelmeyene bir hafta yasak · iptal cezasız · uzatma yalnızca
+sonraki kutu boşsa.
+
+**`unique (court_id, starts_at)` bilerek konuldu:** iki kişi aynı saniyede aynı
+saati alamaz, çakışmayı veritabanı çözer. Bunu koda taşımayın.
+
+**Doğrulama kademesi** `profiles.verification_tier`: `none | location | phone
+| id`. Bugün yalnızca `location` erişilebilir (kortta bir kez bulunmak).
+SMS ve TC altyapı olarak duruyor, **kullanılmıyor** — SMS mesaj başına para
+yakıyor, TC ise kayıt sürtünmesini artırıp hedef kitleyi kaçırıyor.
+`SwanAccess.rankOf` ile SQL'deki `verification_rank` aynı sırayı tutmalı.
+
+**Konum sahtecilik sınırı:** konumu istemci gönderiyor, sunucu mesafeyi
+hesaplıyor. `Position.isMocked` sıradan istismarı kesiyor ama kararlı biri
+aşar. Bedava tenis kortu için kabul edilen bir risk; gerçek çözüm korta QR
+asmak ve o da belediye görüşmesine bağlı.
+
 Migration'lar **0034'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
 defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı ve malzeme
-ilanları şemada var. Yeni migration yazarken numarayı 0035'ten sürdür.
+ilanları şemada var. `0035_public_courts.sql` **henüz sürülmedi.**
+Yeni migration yazarken numarayı 0036'dan sürdür.
 
 Web dağıtımı 2026-08-29'da yapıldı; canlı derleme malzeme ilanlarını
 içeriyor.
@@ -204,6 +252,11 @@ içeriyor.
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
+
+- **Halka açık kortlar** — kod ve testler hazır, `0035_public_courts.sql`
+  **canlıda çalıştırılmadı**. Ayrıca konsoldan en az bir kort eklenmeden
+  ekran boş görünür; koordinat olmadan kimse kortta olduğunu doğrulayamaz.
+  Belediye görüşmesi plan sonrası yapılacak.
 
 ### Dış bağımlılık bekleyen
 

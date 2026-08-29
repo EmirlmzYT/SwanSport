@@ -364,6 +364,11 @@ const Set<String> kAlwaysAllowedRoutes = {
   '/bagis',
   '/kesfet',
   '/ilanlar',
+  // Halka açık kortlar herkese açık: kulübü olmayan kullanıcının uygulamada
+  // göreceği ilk değerli şey bu. Rol duvarının arkasına konursa bu özelliğin
+  // varlık sebebi ortadan kalkar.
+  '/kortlar',
+  '/oyuncu-aranan',
   '/organizasyonlar',
   '/gizlilik',
   // Davet kodu girmek role bağlı değil: veli de muhasebeci de aynı ekranı

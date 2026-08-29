@@ -11,10 +11,19 @@ import 'supabase_scope.dart';
 
 // ============================ Kimlik (profil) ==============================
 class ProfileInfo {
-  const ProfileInfo({required this.id, required this.fullName, this.role});
+  const ProfileInfo({
+    required this.id,
+    required this.fullName,
+    this.role,
+    this.verificationTier = 'none',
+  });
   final String id;
   final String fullName;
   final String? role;
+
+  /// Hesabın kimlik doğrulama kademesi: none | location | phone | id.
+  /// Kulüp/antrenörlük/lisans belgelerinden ayrı bir eksen.
+  final String verificationTier;
 
   String get firstName => fullName.split(' ').first;
   String get initials {
@@ -33,7 +42,7 @@ final currentProfileProvider = FutureProvider<ProfileInfo?>((ref) async {
   if (uid == null) return null;
   final row = await client
       .from('profiles')
-      .select('id, full_name')
+      .select('id, full_name, verification_tier')
       .eq('id', uid)
       .maybeSingle();
   final club = await ref.watch(activeClubProvider.future);
@@ -44,6 +53,7 @@ final currentProfileProvider = FutureProvider<ProfileInfo?>((ref) async {
         ? 'Kullanıcı'
         : row['full_name'] as String,
     role: club?.role,
+    verificationTier: (row['verification_tier'] as String?) ?? 'none',
   );
 });
 

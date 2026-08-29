@@ -28,6 +28,7 @@ class SwanAccess {
     required this.coachLevel,
     required this.athleteKind,
     this.accountantClubIds = const {},
+    this.verificationTier = 'none',
   });
 
   static const SwanAccess none = SwanAccess(
@@ -36,6 +37,25 @@ class SwanAccess {
     coachLevel: 0,
     athleteKind: null,
   );
+
+  /// Kimlik doğrulama kademesi: none | location | phone | id.
+  ///
+  /// Belge doğrulamasından (lisans, antrenörlük) ayrı bir eksen — o belgeler
+  /// "ne yapabilirsin"i, bu "gerçek bir insan olduğun ne kadar biliniyor"u
+  /// söylüyor. Bugün yalnızca `location` erişilebilir.
+  final String verificationTier;
+
+  /// Kademe sıralaması — sunucudaki `verification_rank` ile aynı.
+  static int rankOf(String tier) => switch (tier) {
+        'id' => 3,
+        'phone' => 2,
+        'location' => 1,
+        _ => 0,
+      };
+
+  /// Verilen kademeyi karşılıyor mu?
+  bool hasVerificationTier(String minimum) =>
+      rankOf(verificationTier) >= rankOf(minimum);
 
   /// Platform yöneticisi mi (`profiles.is_platform_admin`).
   final bool isPlatformAdmin;
@@ -142,5 +162,6 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     coachLevel: level,
     athleteKind: athleteKind,
     accountantClubIds: accountantClubs,
+    verificationTier: profile.verificationTier,
   );
 });

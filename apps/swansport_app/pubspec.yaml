@@ -26,6 +26,7 @@ dependencies:
   swansport_data: ^0.1.0
   swansport_design_system: ^0.1.0
   swansport_models: ^0.1.0
+  geolocator: ^14.0.3
 
 dev_dependencies:
   flutter_lints: ^5.0.0
