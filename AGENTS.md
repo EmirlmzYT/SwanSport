@@ -121,13 +121,12 @@ cd packages/swansport_data && flutter test     # 15 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # +125 -18
+cd apps/swansport_app && flutter test          # 105 test, hepsi geçer
 ```
 
 Mobil testlerde ortak Supabase ve bellek içi `shared_preferences` kurulumu
 `cfc985c` ile eklendi; eski `_instance._isInitialized` kök nedeni kalktı.
-Kalan **18 test** artık ayrı ekran/test uyumsuzluklarıdır; tek bir başlangıç
-hatasına indirgenemez. Sabit genişlikte uzun etiketlerin düğme taşması
+Sabit genişlikte uzun etiketlerin düğme taşması
 `d509945`, eksik ekip performansı rotası `d6e85f6`, duyuru araması
 `e96855f`, gerçek Supabase sporcu ayrıntı testleri de `5978e0d` ile
 tamamlandı.
@@ -180,7 +179,7 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
   tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
-- **18 mobil test** (yukarıda)
+- Mobil test paketi geçiyor (yukarıda)
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
