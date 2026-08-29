@@ -117,14 +117,22 @@ StreamSubscription<String>? _tokenSub;
 
 void listenPushTokenChanges(WidgetRef ref) {
   if (_tokenSub != null) return;
-  _tokenSub = pushTokenChanges().listen((token) {
-    unawaited(
-      ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
-            (Object e) =>
-                debugPrint('SwanSport: yeni push token kaydedilemedi — $e'),
-          ),
+  try {
+    _tokenSub = pushTokenChanges().listen(
+      (token) {
+        unawaited(
+          ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
+                (Object e) =>
+                    debugPrint('SwanSport: yeni push token kaydedilemedi — $e'),
+              ),
+        );
+      },
+      onError: (Object error, StackTrace stackTrace) => debugPrint(
+          'SwanSport: push token dinleyicisi başlatılamadı — $error'),
     );
-  });
+  } catch (error) {
+    debugPrint('SwanSport: push token dinleyicisi başlatılamadı — $error');
+  }
 }
 
 /// Push yaşam döngüsünü ekrandan bağımsız olarak uygulama ömrüne bağlar.
