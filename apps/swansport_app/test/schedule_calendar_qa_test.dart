@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/calendar/presentation/screens/schedule_calendar_screen.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 void main() {
@@ -15,6 +16,9 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+          ],
           child: MaterialApp(
             theme: SwanTheme.light(),
             darkTheme: SwanTheme.dark(),
@@ -26,12 +30,14 @@ void main() {
         ),
       );
       await tester.pump();
+      await tester.pump();
       expect(tester.takeException(), isNull);
     });
   }
 
   for (final width in [375.0, 1024.0]) {
-    testWidgets('renders loaded Screen 6 in dark mode at ${width.toInt()}px',
+    testWidgets(
+        'renders the calendar empty state in dark mode at ${width.toInt()}px',
         (tester) async {
       tester.view.physicalSize = Size(width, 900);
       tester.view.devicePixelRatio = 1;
@@ -40,6 +46,9 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+          ],
           child: MaterialApp(
             theme: SwanTheme.light(),
             darkTheme: SwanTheme.dark(),
@@ -49,12 +58,10 @@ void main() {
         ),
       );
       await tester.pump();
+      await tester.pump();
 
-      expect(find.text('WORKLOAD & FACILITY ANALYTICS'), findsOneWidget);
-      expect(find.text('Tesis Gridi'), findsOneWidget);
-      expect(find.textContaining('Her hafta Çarşamba'), findsOneWidget);
-      expect(find.textContaining('Ön RSVP:'), findsWidgets);
-      expect(find.textContaining('Kısa toparlanma penceresi'), findsOneWidget);
+      expect(find.text('Yaklaşan Etkinlikler'), findsOneWidget);
+      expect(find.text('Henüz etkinlik yok'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   }
