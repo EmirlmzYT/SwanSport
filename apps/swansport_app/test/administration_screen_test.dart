@@ -26,14 +26,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('directory search and view-as work', (tester) async {
+  testWidgets('settings account shortcuts render', (tester) async {
     await pump(tester, 600, ThemeMode.light);
-    await tester.enterText(find.byKey(const Key('admin-search')), 'Selin');
-    await tester.pump();
-    expect(find.text('Selin Yılmaz'), findsOneWidget);
-    await tester.tap(find.byTooltip('Salt okunur görüntüle'));
-    await tester.pump();
-    expect(find.textContaining('Salt Okunur'), findsOneWidget);
+    expect(find.text('Ayarlar'), findsOneWidget);
+    expect(find.text('Profilim'), findsOneWidget);
+    expect(find.text('Veli bağlantısı'), findsOneWidget);
+    expect(find.text('Gizlilik ve engellenenler'), findsOneWidget);
   });
 
   testWidgets('responsive and dark layouts do not overflow', (tester) async {
@@ -49,17 +47,16 @@ void main() {
     }
   });
 
-  testWidgets('typed directory detail navigation works', (tester) async {
+  testWidgets('platform management route guards non-admin users',
+      (tester) async {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     await tester.pumpWidget(const ProviderScope(child: SwanSportApp()));
     await tester.pumpAndSettle();
     final nav = tester.state<NavigatorState>(find.byType(Navigator));
-    unawaited(nav.pushNamed('/settings'));
+    unawaited(nav.pushNamed('/onay-paneli'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('admin-user-user_ahmet')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('admin-user-detail-name')), findsOneWidget);
+    expect(find.text('Yetkin yok'), findsOneWidget);
   });
 }
