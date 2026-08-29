@@ -233,10 +233,10 @@ hesaplıyor. `Position.isMocked` sıradan istismarı kesiyor ama kararlı biri
 aşar. Bedava tenis kortu için kabul edilen bir risk; gerçek çözüm korta QR
 asmak ve o da belediye görüşmesine bağlı.
 
-Migration'lar **0034'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
-defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı ve malzeme
-ilanları şemada var. `0035_public_courts.sql` **henüz sürülmedi.**
-Yeni migration yazarken numarayı 0036'dan sürdür.
+Migration'lar **0035'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
+defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı, malzeme
+ilanları ve halka açık kortlar şemada var. Yeni migration yazarken numarayı
+0036'dan sürdür.
 
 Web dağıtımı 2026-08-29'da yapıldı; canlı derleme malzeme ilanlarını
 içeriyor.
@@ -253,10 +253,10 @@ içeriyor.
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
 
-- **Halka açık kortlar** — kod ve testler hazır, `0035_public_courts.sql`
-  **canlıda çalıştırılmadı**. Ayrıca konsoldan en az bir kort eklenmeden
-  ekran boş görünür; koordinat olmadan kimse kortta olduğunu doğrulayamaz.
-  Belediye görüşmesi plan sonrası yapılacak.
+- **Halka açık kortlar** — şema canlıda, web dağıtıldı. Ama **konsoldan
+  henüz kort eklenmedi**; kort eklenmeden ekran boş görünür ve koordinat
+  olmadan kimse kortta olduğunu doğrulayamaz. Gerçek cihazda konum akışı da
+  denenmedi. Belediye görüşmesi bundan sonra.
 
 ### Dış bağımlılık bekleyen
 
