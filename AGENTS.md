@@ -178,7 +178,9 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
 - **69 mobil test** (yukarıda)
-- **Release keystore yok** — APK elden kurulur, Play Store'a yüklenemez
+- **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
+  derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
+  `android/key.properties` ile sağlamalı
 
 ### Dış bağımlılık bekleyen
 
@@ -190,7 +192,8 @@ Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1`, gider ile
 muhasebeci sistemi `351fd9f` ve mali defter sayfalaması `43a930c` ile
 commit'lendi. Mobil test kurulumu da `cfc985c` ile kaydedildi. Çalışma alanı
-bu noktada temiz olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını
+Android yayın imzası yapılandırması `2cc8d65` ile eklendi. Çalışma alanı bu
+noktada temiz olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını
 doğrulamadan üzerine yazma.
 
 ---
