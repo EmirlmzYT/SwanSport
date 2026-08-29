@@ -172,6 +172,48 @@ class AttendanceMark {
       );
 }
 
+/// Yoklama hücresindeki bir değişikliğin sunucu tarafındaki denetim kaydı.
+///
+/// Yalnızca kulüp personeli, `attendance_audit` RPC'si üzerinden okuyabilir.
+/// Bu model arayüz bilgisi taşımaz; hem mobil hem konsol aynı kaynağı kullanır.
+class AttendanceAuditRow {
+  const AttendanceAuditRow({
+    required this.id,
+    required this.eventId,
+    required this.eventTitle,
+    required this.athleteId,
+    required this.status,
+    required this.createdAt,
+    this.athleteName,
+    this.previousStatus,
+    this.actorName,
+  });
+
+  final String id;
+  final String? eventId;
+  final String eventTitle;
+  final String? athleteId;
+  final String? athleteName;
+  final String? previousStatus;
+  final String status;
+  final String? actorName;
+  final DateTime createdAt;
+
+  factory AttendanceAuditRow.fromMap(Map<String, dynamic> map) =>
+      AttendanceAuditRow(
+        id: (map['id'] as String?) ?? '',
+        eventId: map['event_id'] as String?,
+        eventTitle: (map['event_title'] as String?) ?? 'Etkinlik',
+        athleteId: map['athlete_id'] as String?,
+        athleteName: map['athlete_name'] as String?,
+        previousStatus: map['previous_status'] as String?,
+        status: (map['status'] as String?) ?? 'present',
+        actorName: map['actor_name'] as String?,
+        createdAt: DateTime.tryParse('${map['created_at']}')?.toLocal() ??
+            DateTime.now(),
+      );
+}
+
 class DocRow {
   const DocRow({required this.name, required this.kind, this.sizeLabel});
   final String name;
@@ -185,8 +227,8 @@ class DocRow {
 }
 
 class TeamRow {
-  const TeamRow({
-    required this.id,required this.name, this.ageGroup, this.gender});
+  const TeamRow(
+      {required this.id, required this.name, this.ageGroup, this.gender});
   final String id;
   final String name;
   final String? ageGroup;
@@ -312,6 +354,22 @@ class ClubDataService {
           'status': status,
         },
     ], onConflict: 'event_id,athlete_id');
+  }
+
+  /// En yeni yoklama değişiklikleri. Yetki kontrolü doğrudan RPC'dedir;
+  /// istemcinin görünümü bu kontrolün yerine geçmez.
+  Future<List<AttendanceAuditRow>> attendanceAudit(
+    String clubId, {
+    int limit = 50,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>('attendance_audit', params: {
+      'p_club': clubId,
+      'p_limit': limit,
+    });
+    return rows
+        .map((row) =>
+            AttendanceAuditRow.fromMap((row as Map).cast<String, dynamic>()))
+        .toList();
   }
 
   Future<void> addEvent(String clubId, String title, String? place, String kind,
@@ -541,10 +599,9 @@ final teamsProvider = FutureProvider.autoDispose<List<TeamRow>>(
     (ref) => _forClub(ref, (s, id) => s.teams(id), const []));
 
 /// Bir takımın kadrosu.
-final teamRosterProvider = FutureProvider.autoDispose
-    .family<List<({String id, String athleteId, String name, String? jersey})>,
-        String>((ref, teamId) async {
+final teamRosterProvider = FutureProvider.autoDispose.family<
+    List<({String id, String athleteId, String name, String? jersey})>,
+    String>((ref, teamId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(clubDataServiceProvider).teamRoster(teamId);
 });
-

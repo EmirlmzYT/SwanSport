@@ -38,11 +38,14 @@ class AttendanceScreen extends ConsumerWidget {
         Divider(height: 1, color: t.colorScheme.outline),
         Expanded(
           child: switch ((events, athletes)) {
-            (AsyncError(:final error), _) => _message(t, 'Antrenmanlar '
+            (AsyncError(:final error), _) => _message(
+                t,
+                'Antrenmanlar '
                 'yüklenemedi: $error'),
             (_, AsyncError(:final error)) =>
               _message(t, 'Sporcular yüklenemedi: $error'),
-            (AsyncLoading(), _) || (_, AsyncLoading()) =>
+            (AsyncLoading(), _) ||
+            (_, AsyncLoading()) =>
               const Center(child: CircularProgressIndicator(strokeWidth: 2)),
             _ => _grid(
                 context,
@@ -98,12 +101,10 @@ class AttendanceScreen extends ConsumerWidget {
                       width: nameWidth,
                       child: Padding(
                         padding: const EdgeInsets.only(
-                            left: ConsoleDensity.lg,
-                            bottom: ConsoleDensity.sm),
+                            left: ConsoleDensity.lg, bottom: ConsoleDensity.sm),
                         child: Align(
                           alignment: Alignment.bottomLeft,
-                          child:
-                              Text('SPORCU', style: t.textTheme.labelSmall),
+                          child: Text('SPORCU', style: t.textTheme.labelSmall),
                         ),
                       ),
                     ),
@@ -112,8 +113,8 @@ class AttendanceScreen extends ConsumerWidget {
                         width: cellWidth,
                         child: _EventHeader(
                           event: e,
-                          onMarkAll: () => _markColumn(
-                              context, ref, e, athletes, 'present'),
+                          onMarkAll: () =>
+                              _markColumn(context, ref, e, athletes, 'present'),
                         ),
                       ),
                   ],
@@ -178,12 +179,15 @@ class AttendanceScreen extends ConsumerWidget {
         ? _cycle.first
         : _cycle[(_cycle.indexOf(current) + 1) % _cycle.length];
 
-    await _write(context, ref, (svc, clubId) => svc.markAttendance(
-          clubId: clubId,
-          eventId: event.id,
-          athleteId: athlete.id,
-          status: next,
-        ));
+    await _write(
+        context,
+        ref,
+        (svc, clubId) => svc.markAttendance(
+              clubId: clubId,
+              eventId: event.id,
+              athleteId: athlete.id,
+              status: next,
+            ));
   }
 
   Future<void> _markColumn(
@@ -193,12 +197,15 @@ class AttendanceScreen extends ConsumerWidget {
     List<AthleteRow> athletes,
     String status,
   ) async {
-    await _write(context, ref, (svc, clubId) => svc.markAttendanceBulk(
-          clubId: clubId,
-          eventId: event.id,
-          athleteIds: athletes.map((a) => a.id).toList(),
-          status: status,
-        ));
+    await _write(
+        context,
+        ref,
+        (svc, clubId) => svc.markAttendanceBulk(
+              clubId: clubId,
+              eventId: event.id,
+              athleteIds: athletes.map((a) => a.id).toList(),
+              status: status,
+            ));
   }
 
   /// Yazma + yenileme + hata bildirimi tek yerde.
@@ -216,6 +223,7 @@ class AttendanceScreen extends ConsumerWidget {
     try {
       await run(ref.read(clubDataServiceProvider), club.id);
       ref.invalidate(attendanceMarksProvider);
+      ref.invalidate(attendanceAuditProvider);
     } catch (e) {
       // RLS reddi burada görünür olmalı — sessiz başarısızlık, yoklamayı
       // kaydettiğini sanan bir antrenör demek.
@@ -383,9 +391,7 @@ class _Cell extends StatelessWidget {
                       : color.withValues(alpha: .5)),
               borderRadius: BorderRadius.circular(7),
             ),
-            child: icon == null
-                ? null
-                : Icon(icon, size: 15, color: color),
+            child: icon == null ? null : Icon(icon, size: 15, color: color),
           ),
         ),
       ),
@@ -397,22 +403,90 @@ class _Cell extends StatelessWidget {
 ///
 /// Hücreler ikon + renk taşıyor; ikisi birlikte, çünkü renk tek başına
 /// taşıyıcı olsaydı renk körlüğünde ızgara okunmazdı.
-class _Legend extends StatelessWidget {
+class _Legend extends ConsumerWidget {
   const _Legend();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(
           horizontal: ConsoleDensity.lg, vertical: ConsoleDensity.sm),
       child: Row(
         children: [
-          Text('Hücreye tıkla: katıldı → gelmedi → geç geldi → izinli. '
-              'Sütun başlığına tıkla: hepsini katıldı işaretle.',
-              style: t.textTheme.bodySmall),
+          Expanded(
+            child: Text(
+                'Hücreye tıkla: katıldı → gelmedi → geç geldi → '
+                'izinli. Sütun başlığına tıkla: hepsini katıldı işaretle.',
+                style: t.textTheme.bodySmall),
+          ),
+          TextButton.icon(
+            onPressed: () => _showAuditTrail(context),
+            icon: const Icon(Icons.history_rounded, size: 17),
+            label: const Text('İşlem geçmişi'),
+          ),
         ],
       ),
     );
   }
+}
+
+Future<void> _showAuditTrail(BuildContext context) {
+  return showDialog<void>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('Yoklama işlem geçmişi'),
+      content: SizedBox(
+        width: 620,
+        height: 440,
+        child: Consumer(builder: (_, dialogRef, __) {
+          final audit = dialogRef.watch(attendanceAuditProvider);
+          return audit.when(
+            loading: () =>
+                const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+            error: (error, _) => Center(
+              child: Text('İşlem geçmişi yüklenemedi: $error'),
+            ),
+            data: (rows) {
+              if (rows.isEmpty) {
+                return const Center(
+                  child: Text('Henüz kaydedilmiş yoklama işlemi yok.'),
+                );
+              }
+              return ListView.separated(
+                itemCount: rows.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (_, index) {
+                  final row = rows[index];
+                  final before = row.previousStatus == null
+                      ? 'ilk kayıt'
+                      : _statusLabel[row.previousStatus] ?? row.previousStatus!;
+                  final after = _statusLabel[row.status] ?? row.status;
+                  final when =
+                      '${row.createdAt.day.toString().padLeft(2, '0')}.'
+                      '${row.createdAt.month.toString().padLeft(2, '0')} '
+                      '${row.createdAt.hour.toString().padLeft(2, '0')}:'
+                      '${row.createdAt.minute.toString().padLeft(2, '0')}';
+                  return ListTile(
+                    dense: true,
+                    title: Text(row.athleteName ?? 'Silinmiş sporcu'),
+                    subtitle: Text('${row.eventTitle} · $before → $after\n'
+                        '${row.actorName ?? 'Bilinmeyen kullanıcı'} · $when'),
+                    isThreeLine: true,
+                    leading: const Icon(Icons.fact_check_outlined),
+                  );
+                },
+              );
+            },
+          );
+        }),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(dialogContext),
+          child: const Text('Kapat'),
+        ),
+      ],
+    ),
+  );
 }

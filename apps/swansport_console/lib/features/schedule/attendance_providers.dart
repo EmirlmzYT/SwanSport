@@ -44,6 +44,14 @@ final attendanceMarksProvider =
   };
 });
 
+/// Son yoklama işlemleri — kimin hangi hücreyi ne zaman değiştirdiği.
+final attendanceAuditProvider =
+    FutureProvider.autoDispose<List<AttendanceAuditRow>>((ref) async {
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(clubDataServiceProvider).attendanceAudit(club.id);
+});
+
 /// Izgaranın satırları — kulübün tüm aktif sporcuları.
 ///
 /// Burada sayfalama yok: yoklama ızgarasının anlamı herkesi bir arada
