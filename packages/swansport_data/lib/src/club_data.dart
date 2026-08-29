@@ -113,6 +113,26 @@ class EventRow {
       };
 }
 
+/// Bir sporcunun etkinlik için verdiği katılım yanıtı.
+class EventRsvp {
+  const EventRsvp({required this.status, this.note, required this.updatedAt});
+  final String status;
+  final String? note;
+  final DateTime updatedAt;
+}
+
+/// Yetkili kulüp personeli için kimlik içermeyen katılım toplamları.
+class EventRsvpSummary {
+  const EventRsvpSummary({
+    required this.attending,
+    required this.uncertain,
+    required this.unavailable,
+  });
+  final int attending;
+  final int uncertain;
+  final int unavailable;
+}
+
 class InvoiceRow {
   const InvoiceRow(
       {required this.id,
@@ -494,6 +514,41 @@ class ClubDataService {
     }).eq('id', eventId);
   }
 
+  Future<void> setEventRsvp(String eventId, String status, {String? note}) =>
+      _c.rpc<void>('set_event_rsvp', params: {
+        'p_event': eventId,
+        'p_status': status,
+        'p_note': note,
+      });
+
+  Future<EventRsvp?> myEventRsvp(String eventId) async {
+    final rows = await _c.rpc<List<dynamic>>('my_event_rsvp', params: {
+      'p_event': eventId,
+    });
+    if (rows.isEmpty) return null;
+    final row = (rows.first as Map).cast<String, dynamic>();
+    return EventRsvp(
+      status: row['status'] as String,
+      note: row['note'] as String?,
+      updatedAt: DateTime.tryParse('${row['updated_at']}')?.toLocal() ??
+          DateTime.now(),
+    );
+  }
+
+  Future<EventRsvpSummary> eventRsvpSummary(String eventId) async {
+    final rows = await _c.rpc<List<dynamic>>('event_rsvp_summary', params: {
+      'p_event': eventId,
+    });
+    final row = rows.isEmpty
+        ? const <String, dynamic>{}
+        : (rows.first as Map).cast<String, dynamic>();
+    return EventRsvpSummary(
+      attending: (row['attending'] as num?)?.toInt() ?? 0,
+      uncertain: (row['uncertain'] as num?)?.toInt() ?? 0,
+      unavailable: (row['unavailable'] as num?)?.toInt() ?? 0,
+    );
+  }
+
   // ----------------------------- takım kadrosu ---------------------------
 
   /// Takımdaki sporcular.
@@ -583,6 +638,20 @@ final announcementsProvider = FutureProvider.autoDispose<List<AnnouncementRow>>(
 
 final eventsProvider = FutureProvider.autoDispose<List<EventRow>>(
     (ref) => _forClub(ref, (s, id) => s.events(id), const []));
+
+final myEventRsvpProvider =
+    FutureProvider.autoDispose.family<EventRsvp?, String>((ref, eventId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return null;
+  return ref.watch(clubDataServiceProvider).myEventRsvp(eventId);
+});
+
+final eventRsvpSummaryProvider = FutureProvider.autoDispose
+    .family<EventRsvpSummary, String>((ref, eventId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return const EventRsvpSummary(attending: 0, uncertain: 0, unavailable: 0);
+  }
+  return ref.watch(clubDataServiceProvider).eventRsvpSummary(eventId);
+});
 
 final invoicesProvider = FutureProvider.autoDispose<List<InvoiceRow>>(
     (ref) => _forClub(ref, (s, id) => s.invoices(id), const []));

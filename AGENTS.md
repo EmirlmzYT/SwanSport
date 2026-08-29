@@ -162,7 +162,8 @@ yoksa kullanıcı eski derlemeye bakar ve "hani" der. Bu yaşandı.
 ### Çalışan
 
 Sosyal akış, mesajlaşma, şehir bazlı antrenör toplulukları, federasyon
-duyuru kanalları, sporcu/kadro, takvim ve tekrarlayan antrenman, yoklama ve
+duyuru kanalları, sporcu/kadro, takvim ve tekrarlayan antrenman, etkinlik
+katılım onayı (RSVP), yoklama ve
 denetim izi, performans testleri, sağlık, belgeler, tesisler, aidat ve bağış,
 kimlik doğrulama, platform yönetim paneli, keşif/ilanlar/organizasyonlar.
 
@@ -185,6 +186,8 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
   `android/key.properties` ile sağlamalı
 - **Yoklama denetim izi** — `0032_attendance_audit.sql` hazır; bağlı bir
   Supabase ortamı olmadığı için migration ve RLS canlıda henüz denenmedi
+- **Etkinlik katılım onayı** — `0033_event_rsvp.sql` hazır; sporcu yanıtı ve
+  yetkili toplamı kodda bağlı, migration/RPC'ler canlı Supabase'de henüz denenmedi
 
 ### Dış bağımlılık bekleyen
 

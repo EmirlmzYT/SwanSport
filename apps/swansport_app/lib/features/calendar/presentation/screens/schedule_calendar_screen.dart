@@ -24,8 +24,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
     final club = ref.watch(activeClubProvider).valueOrNull;
     // Maç sonucunu yalnızca kulüp yetkilisi girebilir.
-    final canManage = club != null &&
-        (club.role == 'club_admin' || club.role == 'coach');
+    final canManage =
+        club != null && (club.role == 'club_admin' || club.role == 'coach');
     final async = ref.watch(eventsProvider);
 
     return Scaffold(
@@ -88,11 +88,10 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         );
                       }
                       return Column(
-                        children:
-                            events
-                                .map((e) => _eventCard(
-                                    context, ref, isDark, e, canManage))
-                                .toList(),
+                        children: events
+                            .map((e) =>
+                                _eventCard(context, ref, isDark, e, canManage))
+                            .toList(),
                       );
                     },
                   ),
@@ -114,21 +113,20 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     );
   }
 
-
   /// Mac sonucunu kaydeder (yalnizca kulup yetkilisi).
   Future<void> _setResult(
       BuildContext context, WidgetRef ref, EventRow e) async {
-    final opponent = FormField_('Rakip', hint: 'Kad\u0131k\u00f6y SK',
-        required: false)
-      ..controller.text = e.opponent ?? '';
+    final opponent =
+        FormField_('Rakip', hint: 'Kad\u0131k\u00f6y SK', required: false)
+          ..controller.text = e.opponent ?? '';
     final home = FormField_('Bizim skor',
         hint: '3', keyboard: TextInputType.number, required: false)
       ..controller.text = e.homeScore?.toString() ?? '';
     final away = FormField_('Rakip skor',
         hint: '1', keyboard: TextInputType.number, required: false)
       ..controller.text = e.awayScore?.toString() ?? '';
-    final note = FormField_('Not', hint: 'K\u0131sa de\u011ferlendirme',
-        required: false);
+    final note = FormField_('Not',
+        hint: 'K\u0131sa de\u011ferlendirme', required: false);
 
     final ok = await showQuickForm(
       context,
@@ -152,79 +150,155 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
     final color = Color(_kindColor[e.kind] ?? 0xFF008C95);
+    final isAthlete =
+        ref.watch(activeClubProvider).valueOrNull?.role == 'athlete';
     return GestureDetector(
       onTap: (canManage && e.kind == 'match')
           ? () => _setResult(context, ref, e)
           : null,
       child: Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: line),
-      ),
-      child: Row(
-        children: [
-          Column(
-            children: [
-              Text(_hm(e.startsAt), style: sora(14, FontWeight.w800, ink)),
-              Text('${e.startsAt.day}.${e.startsAt.month}',
-                  style:
-                      jakarta(10, FontWeight.w500, SwanColors.textSecondary)),
-            ],
-          ),
-          const SizedBox(width: 14),
-          Container(width: 3, height: 40, color: color),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(e.title, style: jakarta(13.5, FontWeight.w700, ink)),
-                const SizedBox(height: 2),
-                Row(
+                Column(
                   children: [
-                    Icon(Icons.place_rounded,
-                        size: 12, color: SwanColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Flexible(
-                      child: Text(e.place ?? '—',
-                          style: jakarta(
-                              11.5, FontWeight.w500, SwanColors.textSecondary)),
-                    ),
+                    Text(_hm(e.startsAt),
+                        style: sora(14, FontWeight.w800, ink)),
+                    Text('${e.startsAt.day}.${e.startsAt.month}',
+                        style: jakarta(
+                            10, FontWeight.w500, SwanColors.textSecondary)),
                   ],
                 ),
+                const SizedBox(width: 14),
+                Container(width: 3, height: 40, color: color),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(e.title, style: jakarta(13.5, FontWeight.w700, ink)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Icon(Icons.place_rounded,
+                              size: 12, color: SwanColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(e.place ?? '—',
+                                style: jakarta(11.5, FontWeight.w500,
+                                    SwanColors.textSecondary)),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: color.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(e.kindLabel,
+                      style: jakarta(10, FontWeight.w700, color)),
+                ),
+                // Skor girilmisse rozet olarak goster
+                if (e.hasResult) ...[
+                  const SizedBox(width: 6),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: kTeal.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(e.scoreLabel,
+                        style: jakarta(11, FontWeight.w800, kTeal)),
+                  ),
+                ],
               ],
             ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child:
-                Text(e.kindLabel, style: jakarta(10, FontWeight.w700, color)),
-          ),
-          // Skor girilmisse rozet olarak goster
-          if (e.hasResult) ...[
-            const SizedBox(width: 6),
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-              decoration: BoxDecoration(
-                color: kTeal.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(e.scoreLabel,
-                  style: jakarta(11, FontWeight.w800, kTeal)),
-            ),
+            if (isAthlete) ...[
+              const SizedBox(height: 12),
+              _rsvpActions(context, ref, e),
+            ] else if (canManage) ...[
+              const SizedBox(height: 10),
+              _rsvpSummary(ref, e),
+            ],
           ],
-        ],
+        ),
       ),
-    ),
     );
+  }
+
+  Widget _rsvpActions(BuildContext context, WidgetRef ref, EventRow event) {
+    final current =
+        ref.watch(myEventRsvpProvider(event.id)).valueOrNull?.status;
+    return Row(children: [
+      _rsvpButton(
+          context, ref, event, 'attending', 'Katılacağım', kTeal, current),
+      const SizedBox(width: 7),
+      _rsvpButton(context, ref, event, 'uncertain', 'Belirsiz',
+          const Color(0xFFD9860B), current),
+      const SizedBox(width: 7),
+      _rsvpButton(context, ref, event, 'unavailable', 'Katılamam',
+          const Color(0xFFF43F5E), current),
+    ]);
+  }
+
+  Widget _rsvpButton(BuildContext context, WidgetRef ref, EventRow event,
+      String status, String label, Color color, String? current) {
+    final selected = current == status;
+    return Expanded(
+        child: GestureDetector(
+      onTap: () async {
+        try {
+          await ref
+              .read(clubDataServiceProvider)
+              .setEventRsvp(event.id, status);
+          ref.invalidate(myEventRsvpProvider(event.id));
+          ref.invalidate(eventRsvpSummaryProvider(event.id));
+        } catch (error) {
+          if (context.mounted)
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Katılım durumu kaydedilemedi: $error')),
+            );
+        }
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 5),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: selected ? .18 : .08),
+          borderRadius: BorderRadius.circular(10),
+          border:
+              Border.all(color: color.withValues(alpha: selected ? .8 : .3)),
+        ),
+        child: Text(label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: jakarta(10, FontWeight.w700, color)),
+      ),
+    ));
+  }
+
+  Widget _rsvpSummary(WidgetRef ref, EventRow event) {
+    final summary = ref.watch(eventRsvpSummaryProvider(event.id)).valueOrNull;
+    if (summary == null) return const SizedBox.shrink();
+    return Text(
+        'Katılım onayı: ${summary.attending} geliyor · '
+        '${summary.uncertain} belirsiz · ${summary.unavailable} gelemiyor',
+        style: jakarta(10.5, FontWeight.w600, SwanColors.textSecondary));
   }
 
   /// Etkinlik ekleme.
@@ -243,7 +317,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     var minutes = 90;
     FacilityRow? facility;
     var repeatOn = false;
-    var weekdays = <int>{1, 3, 5};        // Pzt / Çar / Cum
+    var weekdays = <int>{1, 3, 5}; // Pzt / Çar / Cum
     var until = DateTime.now().add(const Duration(days: 90));
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -258,8 +332,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => StatefulBuilder(builder: (ctx, setLocal) {
-        Widget pill(String label, String value, VoidCallback onTap) =>
-            Expanded(
+        Widget pill(String label, String value, VoidCallback onTap) => Expanded(
               child: GestureDetector(
                 onTap: onTap,
                 child: Container(
@@ -276,8 +349,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(label,
-                          style: jakarta(9.5, FontWeight.w700,
-                              SwanColors.textSecondary, ls: .8)),
+                          style: jakarta(
+                              9.5, FontWeight.w700, SwanColors.textSecondary,
+                              ls: .8)),
                       const SizedBox(height: 2),
                       Text(value, style: jakarta(13, FontWeight.w800, ink)),
                     ],
@@ -289,8 +363,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
         return Container(
           decoration: BoxDecoration(
             color: surf,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: EdgeInsets.fromLTRB(
               20, 18, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
@@ -304,8 +377,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                 style: jakarta(14, FontWeight.w700, ink),
                 decoration: InputDecoration(
                   labelText: 'Başlık',
-                  labelStyle: jakarta(
-                      12, FontWeight.w600, SwanColors.textSecondary),
+                  labelStyle:
+                      jakarta(12, FontWeight.w600, SwanColors.textSecondary),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -330,10 +403,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                   final picked = await showDatePicker(
                     context: ctx,
                     initialDate: day,
-                    firstDate: DateTime.now()
-                        .subtract(const Duration(days: 365)),
-                    lastDate:
-                        DateTime.now().add(const Duration(days: 730)),
+                    firstDate:
+                        DateTime.now().subtract(const Duration(days: 365)),
+                    lastDate: DateTime.now().add(const Duration(days: 730)),
                   );
                   if (picked != null) setLocal(() => day = picked);
                 }),
@@ -357,8 +429,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text('TESİS',
-                      style: jakarta(10, FontWeight.w800,
-                          SwanColors.textSecondary, ls: 1.1)),
+                      style: jakarta(
+                          10, FontWeight.w800, SwanColors.textSecondary,
+                          ls: 1.1)),
                 ),
                 const SizedBox(height: 7),
                 Wrap(spacing: 6, runSpacing: 6, children: [
@@ -384,10 +457,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                           size: 15, color: Color(0xFFD9860B)),
                       const SizedBox(width: 6),
                       Expanded(
-                        child: Text(
-                            'Bu tesis "${facility!.status}" durumda.',
-                            style: jakarta(11, FontWeight.w600,
-                                const Color(0xFFD9860B))),
+                        child: Text('Bu tesis "${facility!.status}" durumda.',
+                            style: jakarta(
+                                11, FontWeight.w600, const Color(0xFFD9860B))),
                       ),
                     ]),
                   ),
@@ -401,8 +473,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       ? 'Yer (opsiyonel)'
                       : 'Farklı yer (opsiyonel)',
                   hintText: 'Deplasman, rakip saha…',
-                  labelStyle: jakarta(
-                      12, FontWeight.w600, SwanColors.textSecondary),
+                  labelStyle:
+                      jakarta(12, FontWeight.w600, SwanColors.textSecondary),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -439,8 +511,13 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                     const SizedBox(height: 6),
                     Wrap(spacing: 6, runSpacing: 6, children: [
                       for (final d in const [
-                        (1, 'Pzt'), (2, 'Sal'), (3, 'Çar'), (4, 'Per'),
-                        (5, 'Cum'), (6, 'Cmt'), (7, 'Paz'),
+                        (1, 'Pzt'),
+                        (2, 'Sal'),
+                        (3, 'Çar'),
+                        (4, 'Per'),
+                        (5, 'Cum'),
+                        (6, 'Cmt'),
+                        (7, 'Paz'),
                       ])
                         GestureDetector(
                           onTap: () => setLocal(() {
@@ -453,13 +530,16 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                             decoration: BoxDecoration(
                               color: weekdays.contains(d.$1)
                                   ? kTeal
-                                  : (isDark ? const Color(0xFF131D2E)
-                                            : Colors.white),
+                                  : (isDark
+                                      ? const Color(0xFF131D2E)
+                                      : Colors.white),
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: line),
                             ),
                             child: Text(d.$2,
-                                style: jakarta(11, FontWeight.w800,
+                                style: jakarta(
+                                    11,
+                                    FontWeight.w800,
                                     weekdays.contains(d.$1)
                                         ? Colors.white
                                         : SwanColors.textSecondary)),
@@ -482,8 +562,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         Icon(Icons.event_busy_rounded,
                             size: 15, color: SwanColors.textSecondary),
                         const SizedBox(width: 8),
-                        Text(
-                            'Bitiş: ${until.day}.${until.month}.${until.year}',
+                        Text('Bitiş: ${until.day}.${until.month}.${until.year}',
                             style: jakarta(12, FontWeight.w700, kTeal)),
                       ]),
                     ),
@@ -503,8 +582,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         border: Border.all(color: line),
                       ),
                       child: Text('Vazgeç',
-                          style: jakarta(13, FontWeight.w700,
-                              SwanColors.textSecondary)),
+                          style: jakarta(
+                              13, FontWeight.w700, SwanColors.textSecondary)),
                     ),
                   ),
                 ),
@@ -517,13 +596,12 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       height: 46,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [kTealBright, kTeal]),
+                        gradient:
+                            const LinearGradient(colors: [kTealBright, kTeal]),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Text('Ekle',
-                          style:
-                              jakarta(13.5, FontWeight.w800, Colors.white)),
+                          style: jakarta(13.5, FontWeight.w800, Colors.white)),
                     ),
                   ),
                 ),
@@ -645,8 +723,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
             for (final c in clash)
               Padding(
                 padding: const EdgeInsets.only(bottom: 6),
-                child: Text(
-                    '• ${c.title} — ${hm(c.startsAt)}-${hm(c.endsAt)}'
+                child: Text('• ${c.title} — ${hm(c.startsAt)}-${hm(c.endsAt)}'
                     '${c.teamName == null ? '' : ' (${c.teamName})'}'),
               ),
             const SizedBox(height: 6),
