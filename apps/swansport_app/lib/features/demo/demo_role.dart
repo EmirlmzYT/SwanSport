@@ -370,6 +370,7 @@ const Set<String> kAlwaysAllowedRoutes = {
   '/kortlar',
   '/oyuncu-aranan',
   '/partner-ara',
+  '/halisahalar',
   '/organizasyonlar',
   '/gizlilik',
   // Davet kodu girmek role bağlı değil: veli de muhasebeci de aynı ekranı

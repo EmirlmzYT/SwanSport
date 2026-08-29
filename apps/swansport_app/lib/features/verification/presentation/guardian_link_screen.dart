@@ -7,10 +7,10 @@ import '../../../app/widgets/premium.dart';
 
 /// Davet kodu girişi.
 ///
-/// Tek ekran, iki amaç: veli çocuğuna bağlanıyor, muhasebeci kulübün
-/// defterine. Kodun ne işe yaradığını sunucu belirliyor (`invite_codes.purpose`),
-/// bu yüzden burada ayrı akış yok — ikinci bir ekran yazmak aynı RPC'yi iki
-/// yerden çağırmak olurdu.
+/// Tek ekran, üç amaç: veli çocuğuna bağlanıyor, muhasebeci kulübün
+/// defterine, halı saha görevlisi sahasına. Kodun ne işe yaradığını sunucu
+/// belirliyor (`invite_codes.purpose`), bu yüzden burada ayrı akış yok —
+/// ikinci bir ekran yazmak aynı RPC'yi üç yerden çağırmak olurdu.
 class GuardianLinkScreen extends ConsumerStatefulWidget {
   const GuardianLinkScreen({super.key});
 

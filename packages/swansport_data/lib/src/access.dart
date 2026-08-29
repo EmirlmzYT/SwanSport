@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'club_data.dart';
 import 'expense_service.dart';
 import 'supabase_athletes.dart';
+import 'turf_service.dart';
 import 'verification_service.dart';
 
 /// Bir kişinin SwanSport'taki konumu — tek kaynak.
@@ -29,6 +30,7 @@ class SwanAccess {
     required this.athleteKind,
     this.accountantClubIds = const {},
     this.verificationTier = 'none',
+    this.managedTurfFieldIds = const {},
   });
 
   static const SwanAccess none = SwanAccess(
@@ -102,6 +104,15 @@ class SwanAccess {
   bool isAccountantOf(String? clubId) =>
       clubId != null && accountantClubIds.contains(clubId);
 
+  /// Yönettiği halı sahaların kimlikleri.
+  ///
+  /// `turf_field_managers`'tan gelir (club_accountants ile birebir aynı
+  /// şekil) — bu da courts/club dünyalarından ayrı, üçüncü bir eksen: sahibi
+  /// olan, ücretli, dışarıdan bir işletme ilişkisi.
+  final Set<String> managedTurfFieldIds;
+
+  bool isTurfManagerOf(String fieldId) => managedTurfFieldIds.contains(fieldId);
+
   /// Kulüpte görev alıyor mu?
   ///
   /// İki yoldan biri yeter: kulüpteki rolü ya da onaylanmış antrenörlük
@@ -156,6 +167,9 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
   final accountantClubs =
       ref.watch(myAccountantClubIdsProvider).valueOrNull ?? const <String>{};
 
+  final managedTurfFields =
+      ref.watch(myManagedTurfFieldIdsProvider).valueOrNull ?? const <String>{};
+
   return SwanAccess(
     isPlatformAdmin: isAdmin,
     clubRole: profile.role,
@@ -163,5 +177,6 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     athleteKind: athleteKind,
     accountantClubIds: accountantClubs,
     verificationTier: profile.verificationTier,
+    managedTurfFieldIds: managedTurfFields,
   );
 });

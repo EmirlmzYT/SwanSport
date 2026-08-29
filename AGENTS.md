@@ -270,21 +270,50 @@ kort eşleştirmeye hiç girmiyor. **Millet Bahçesi ve Şefikcan Parkı'nın
 branşı henüz elle güncellenmedi**, güncellenene kadar partner arama aday
 havuzu bu iki kort için boş kalır.
 
-Migration'lar **0036'ya kadar canlıda kurulu** (2026-08-30 doğrulandı):
-mali defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı,
-malzeme ilanları ve halka açık kortlar (çift dokunuş düzeltmesiyle) şemada
-var. `0037_partner_search.sql` **henüz sürülmedi.** Yeni migration yazarken
-numarayı 0038'den sürdür.
+#### Halı saha doluluk panosu (0038)
 
-Web dağıtımı 2026-08-29'da yapıldı; canlı derleme malzeme ilanlarını
-içeriyor, kort partneri arama (0037 sürülüp derlenene kadar) içermiyor.
+`turf_fields`, `turf_field_managers`, `turf_occupancy`. Kort sisteminden
+**kasıtlı olarak daha hafif**: halı sahanın sahibi var, ücretli, rezervasyon
+telefonla/yerinde yapılıyor — burası yalnızca **ilan panosu**, rezervasyon
+kilidi ve ödeme yok. İşletme yetkilisi hangi saatlerin dolu olduğunu
+işaretliyor, oyuncu görüp arıyor, döndüğünde işaretliyor.
+
+`courts`'tan farkı: **rekabet yok**, tek yetkili kişi bir gerçeği yazıyor.
+Bu yüzden `claim_slot` gibi bir RPC yok — `turf_occupancy_manage` RLS
+kuralı (`is_turf_manager(field_id)`) yetkiyi doğrudan kesiyor, mobil
+`.from('turf_occupancy').insert()/.delete()` çağırıyor. `turf_occupancy`'de
+ayrı bir `status` sütunu da yok: **satır varsa dolu, yoksa boş.**
+
+**Davet sıfırdan yazılmadı** — kulüp muhasebecisi daveti zaten `invite_codes`
++ `redeem_invite_code`'da vardı (`purpose` alanıyla ayrışıyor), üçüncü dal
+(`turf_manager`) eklendi. Kod `/veli-bagla` ekranından girilir — o ekran
+zaten amaç-bağımsız tasarlanmıştı, dokunulmadı.
+
+**Tek ekran, iki rol.** Ayrı bir "Saha Yönetimi" ekranı yok: `/halisahalar`
+→ `/halisaha` courts'un kort listesi/ayrıntısı deseninin aynısı, yönetici
+olan kişi (`SwanAccess.isTurfManagerOf`) aynı ekranda fazladan bir dokunma
+kontrolü görüyor.
+
+Sahalar courts gibi **elle ekleniyor** (konsol), yöneticisi de yalnızca
+platform yöneticisinin ürettiği davet koduyla atanıyor — işletme kendi
+kaydolamıyor.
+
+Migration'lar **0037'ye kadar canlıda kurulu** (2026-08-30 doğrulandı):
+mali defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı,
+malzeme ilanları, halka açık kortlar (çift dokunuş düzeltmesiyle) ve kort
+partneri arama şemada var. `0038_turf_venues.sql` **henüz sürülmedi.** Yeni
+migration yazarken numarayı 0039'dan sürdür.
+
+Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri aramayı
+içeriyor, halı saha panosunu (0038 sürülüp derlenene kadar) içermiyor.
 
 ### Yarım / doğrulanmamış
 
 - **Android push (FCM)** — izin, bildirim kanalı, ön plan uyarısı ve bildirim
   dokunuşunda rota açma akışı `f2e16a1` ile tamamlandı; debug APK derlendi.
-  **Gerçek cihazda henüz test edilmedi**: bu makinede `adb` yok ve Cloudflare
-  tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
+  Cloudflare tarafında `FCM_SERVICE_ACCOUNT` sırrı **tanımlı** (2026-08-30
+  `wrangler pages secret list` ile doğrulandı). **Gerçek cihazda bildirimin
+  ulaştığı henüz doğrulanmadı** — bu makinede `adb` yok.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
@@ -294,11 +323,13 @@ içeriyor, kort partneri arama (0037 sürülüp derlenene kadar) içermiyor.
 - **Halka açık kortlar** — şema canlıda, web dağıtıldı, sıra alma gerçek
   cihazda denendi ve doğrulandı (0036 sonrası). Belediye görüşmesi bundan
   sonra.
-- **Kort partneri arama** — kod ve testler hazır, `0037_partner_search.sql`
-  **canlıda çalıştırılmadı**, mobil derleme dağıtılmadı. Migration sürülse
-  bile Millet Bahçesi/Şefikcan'ın branşı elle set edilmeden aday havuzu boş
-  kalır (yukarıdaki "Kort partneri arama" bölümüne bak). Uçtan uca hiç
+- **Kort partneri arama** — şema canlıda (0037), web dağıtıldı, kortların
+  branşı set edildi (kullanıcı 2026-08-30'da onayladı). Uçtan uca hiç
   denenmedi — en az iki hesap, aynı şehir, aynı branş ilgi alanı gerekiyor.
+- **Halı saha doluluk panosu** — kod ve testler hazır, `0038_turf_venues.sql`
+  **canlıda çalıştırılmadı**, mobil derleme dağıtılmadı. Migration sürülse
+  bile konsoldan hiç saha eklenmedi; saha eklenip yönetici daveti
+  redeem edilmeden ekranın düzenleme tarafı hiç test edilemez.
 
 ### Dış bağımlılık bekleyen
 
