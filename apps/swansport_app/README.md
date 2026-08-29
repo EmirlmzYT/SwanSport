@@ -72,6 +72,29 @@ flutter build apk --release --split-per-abi -t lib/main_production.dart \
   --dart-define-from-file=env/prod.json
 ```
 
+### Play Store imzası
+
+İlk Play Store yüklemesinden önce, `android/` klasöründe kendi yayın anahtarını
+oluştur ve güvenli bir yerde yedekle. Anahtar kaybolursa uygulamanın sonraki
+sürümleri aynı uygulama kimliğiyle yayımlanamaz.
+
+```bash
+cd android
+keytool -genkey -v -keystore swansport-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias swansport
+```
+
+Ardından `android/key.properties` oluştur:
+
+```properties
+storeFile=swansport-release.jks
+storePassword=<mağaza-parolası>
+keyPassword=<anahtar-parolası>
+keyAlias=swansport
+```
+
+Bu dosya ve `.jks` anahtarı git tarafından izlenmez. İkisini de sohbete ya da
+depoya koyma.
+
 ## Ortam davranışı
 
 **Development** — Supabase yapılandırılmamışsa ya da erişilemiyorsa uygulama

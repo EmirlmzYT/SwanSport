@@ -23,6 +23,9 @@ firebase_options.dart
 
 android/.gradle/
 android/local.properties
+android/key.properties
+*.jks
+*.keystore
 ios/Pods/
 ios/.symlinks/
 windows/flutter/ephemeral/
