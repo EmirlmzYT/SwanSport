@@ -121,15 +121,16 @@ cd packages/swansport_data && flutter test     # 15 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # +106 -59
+cd apps/swansport_app && flutter test          # +112 -53
 ```
 
 Mobil testlerde ortak Supabase ve bellek içi `shared_preferences` kurulumu
 `cfc985c` ile eklendi; eski `_instance._isInitialized` kök nedeni kalktı.
-Kalan **59 test** artık ayrı ekran/test uyumsuzluklarıdır; tek bir başlangıç
+Kalan **53 test** artık ayrı ekran/test uyumsuzluklarıdır; tek bir başlangıç
 hatasına indirgenemez. Sabit genişlikte uzun etiketlerin düğme taşması
-`d509945`, eksik ekip performansı rotası `d6e85f6`, duyuru araması da
-`e96855f` ile tamamlandı.
+`d509945`, eksik ekip performansı rotası `d6e85f6`, duyuru araması
+`e96855f`, gerçek Supabase sporcu ayrıntı testleri de `5978e0d` ile
+tamamlandı.
 
 Derleme çıkış kodunu ayrı satırda oku, `| tail` ile boru hattına sokma.
 
@@ -179,7 +180,7 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
   tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
-- **59 mobil test** (yukarıda)
+- **53 mobil test** (yukarıda)
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
@@ -200,7 +201,8 @@ Android yayın imzası yapılandırması `2cc8d65`, yoklama denetim izi de
 `601b00b` ile eklendi. Dar ekran düğme düzeltmesi `d509945` ile kaydedildi.
 Ekip performansı rotası `d6e85f6` ile tamamlandı. Çalışma alanı bu noktada
 temiz olmalı; duyuru araması `e96855f` ile eklendi. Yeni bir değişiklik
-görürsen sahibini ve kapsamını doğrulamadan üzerine yazma.
+görürsen sahibini ve kapsamını doğrulamadan üzerine yazma. Sporcu ayrıntı
+test düzeltmesi `5978e0d` ile kaydedildi.
 
 ---
 
