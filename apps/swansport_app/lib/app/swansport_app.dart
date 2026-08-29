@@ -271,6 +271,15 @@ class SwanSportApp extends ConsumerWidget {
             ),
           );
         }
+        if (settings.name == '/performance-team-detail') {
+          final args = settings.arguments;
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => TeamPerformanceScreen(
+              args: args is TeamPerformanceArgs ? args : null,
+            ),
+          );
+        }
         if (settings.name == '/performance-development-plan') {
           final args = settings.arguments;
           return MaterialPageRoute<void>(
