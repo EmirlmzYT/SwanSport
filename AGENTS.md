@@ -121,14 +121,14 @@ cd packages/swansport_data && flutter test     # 15 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # +104 -61
+cd apps/swansport_app && flutter test          # +105 -60
 ```
 
 Mobil testlerde ortak Supabase ve bellek içi `shared_preferences` kurulumu
 `cfc985c` ile eklendi; eski `_instance._isInitialized` kök nedeni kalktı.
-Kalan **61 test** artık ayrı ekran/test uyumsuzluklarıdır; tek bir başlangıç
-hatasına indirgenemez. Sabit genişlikte uzun etiketlerin düğme taşması da
-`d509945` ile kapatıldı.
+Kalan **60 test** artık ayrı ekran/test uyumsuzluklarıdır; tek bir başlangıç
+hatasına indirgenemez. Sabit genişlikte uzun etiketlerin düğme taşması
+`d509945`, eksik ekip performansı rotası `d6e85f6` ile kapatıldı.
 
 Derleme çıkış kodunu ayrı satırda oku, `| tail` ile boru hattına sokma.
 
@@ -178,7 +178,7 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
   tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
-- **61 mobil test** (yukarıda)
+- **60 mobil test** (yukarıda)
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
@@ -197,8 +197,9 @@ muhasebeci sistemi `351fd9f` ve mali defter sayfalaması `43a930c` ile
 commit'lendi. Mobil test kurulumu da `cfc985c` ile kaydedildi. Çalışma alanı
 Android yayın imzası yapılandırması `2cc8d65`, yoklama denetim izi de
 `601b00b` ile eklendi. Dar ekran düğme düzeltmesi `d509945` ile kaydedildi.
-Çalışma alanı bu noktada temiz olmalı; yeni bir değişiklik görürsen sahibini
-ve kapsamını doğrulamadan üzerine yazma.
+Ekip performansı rotası `d6e85f6` ile tamamlandı. Çalışma alanı bu noktada
+temiz olmalı; yeni bir değişiklik görürsen sahibini ve kapsamını doğrulamadan
+üzerine yazma.
 
 ---
 
