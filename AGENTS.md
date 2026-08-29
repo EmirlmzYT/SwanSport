@@ -186,9 +186,12 @@ Para biçimlendirme (`fmtMoney`, `fmtDate`, `kMonthNames`) artık
 `swansport_data/lib/src/money.dart` içinde — konsol ve mobil aynı kaynağı
 kullanıyor.
 
-Migration'lar **0033'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
-defter sayfalaması, yoklama denetim izi ve etkinlik katılım onayı şemada var.
-Yeni migration yazarken numarayı 0034'ten sürdür.
+Migration'lar **0034'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
+defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı ve malzeme
+ilanları şemada var. Yeni migration yazarken numarayı 0035'ten sürdür.
+
+Web dağıtımı 2026-08-29'da yapıldı; canlı derleme malzeme ilanlarını
+içeriyor.
 
 ### Yarım / doğrulanmamış
 
@@ -201,11 +204,6 @@ Yeni migration yazarken numarayı 0034'ten sürdür.
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
-
-- **Malzeme ilanları** — kod ve testler hazır, `0034_equipment_listings.sql`
-  **canlıda henüz çalıştırılmadı**. Migration sürülmeden pano eski dört türü
-  gösterir; fiyat/görsel sütunları olmadığı için arama RPC'si de eski imzada
-  kalır.
 
 ### Dış bağımlılık bekleyen
 
