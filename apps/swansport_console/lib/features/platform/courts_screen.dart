@@ -52,6 +52,10 @@ class ConsoleCourtsScreen extends ConsumerWidget {
                 leading: const Icon(Icons.sports_tennis_rounded),
                 title: Text(c.name),
                 subtitle: Text([
+                  if ((c.sportName ?? '').isNotEmpty)
+                    c.sportName!
+                  else
+                    '⚠ branş seçilmemiş',
                   if ((c.venue ?? '').isNotEmpty) c.venue!,
                   if (c.where.isNotEmpty) c.where,
                   '${c.opensAt}–${c.closesAt}',
@@ -103,6 +107,8 @@ class _CourtDialogState extends ConsumerState<_CourtDialog> {
   late final _capacity =
       TextEditingController(text: '${widget.court?.capacity ?? 4}');
 
+  late String? _sportCode = widget.court?.sportCode;
+
   bool _busy = false;
   String? _error;
 
@@ -153,6 +159,7 @@ class _CourtDialogState extends ConsumerState<_CourtDialog> {
         'opens_at': _opens.text.trim(),
         'closes_at': _closes.text.trim(),
         'capacity': int.tryParse(_capacity.text.trim()) ?? 4,
+        'sport_code': _sportCode,
       };
       if (widget.court == null) {
         await client.from('courts').insert(row);
@@ -186,6 +193,8 @@ class _CourtDialogState extends ConsumerState<_CourtDialog> {
           ),
         );
 
+    final sports = ref.watch(sportsProvider);
+
     return AlertDialog(
       title: Text(widget.court == null ? 'Kort ekle' : 'Kortu düzenle'),
       content: SizedBox(
@@ -193,6 +202,34 @@ class _CourtDialogState extends ConsumerState<_CourtDialog> {
         child: SingleChildScrollView(
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             field('Kort adı', _name, hint: 'Millet Bahçesi Kort 1'),
+            sports.when(
+              loading: () => const LinearProgressIndicator(),
+              error: (e, _) => Text('Branş listesi yüklenemedi: $e'),
+              data: (list) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: DropdownButtonFormField<String>(
+                  initialValue: _sportCode,
+                  decoration: const InputDecoration(
+                    labelText: 'Branş',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: [
+                    for (final s in list)
+                      DropdownMenuItem(value: s.code, child: Text(s.name)),
+                  ],
+                  onChanged: (v) => setState(() => _sportCode = v),
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12),
+              child: Text(
+                  'Branş, "partner arıyorum" ekranındaki eşleşmenin hangi '
+                  'kortlara bakacağını belirliyor — boş bırakılırsa bu kort '
+                  'o eşleşmeye hiç girmez.',
+                  style: TextStyle(fontSize: 12)),
+            ),
             field('Tesis', _venue, hint: 'Millet Bahçesi'),
             field('İlçe', _district, hint: 'Selçuklu'),
             Row(children: [

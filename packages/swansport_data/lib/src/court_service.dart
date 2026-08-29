@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'community_service.dart' show CityRow;
 import 'supabase_scope.dart';
 
 /// ---------------------------------------------------------------------------
@@ -29,6 +30,8 @@ class Court {
     this.venue,
     this.cityName,
     this.district,
+    this.sportCode,
+    this.sportName,
     this.distanceMeters,
   });
 
@@ -45,6 +48,12 @@ class Court {
   final String? venue;
   final String? cityName;
   final String? district;
+
+  /// `sports.code` — partner arama sistemi "kort branşları"nı buradan
+  /// türetiyor (`court_sport_codes`); boşsa o kort branş eşleştirmesine
+  /// hiç girmiyor.
+  final String? sportCode;
+  final String? sportName;
 
   /// Kullanıcının konumu biliniyorsa doldurulur; bilinmiyorsa null.
   final double? distanceMeters;
@@ -73,11 +82,14 @@ class Court {
         venue: venue,
         cityName: cityName,
         district: district,
+        sportCode: sportCode,
+        sportName: sportName,
         distanceMeters: meters,
       );
 
   factory Court.fromMap(Map<String, dynamic> m) {
     final city = m['cities'];
+    final sport = m['sports'];
     return Court(
       id: m['id'] as String,
       name: (m['name'] as String?) ?? '',
@@ -89,6 +101,8 @@ class Court {
       venue: m['venue'] as String?,
       cityName: city is Map ? city['name'] as String? : null,
       district: m['district'] as String?,
+      sportCode: m['sport_code'] as String?,
+      sportName: sport is Map ? sport['name'] as String? : null,
     );
   }
 
@@ -216,6 +230,78 @@ class JoinRequest {
   bool get isPending => status == 'pending';
 }
 
+/// Bana gelen, yanıtlamadığım partner isteği.
+class IncomingPartnerPing {
+  const IncomingPartnerPing({
+    required this.requestId,
+    required this.sportCode,
+    required this.sportName,
+    required this.requesterId,
+    required this.requesterName,
+    required this.createdAt,
+  });
+
+  final String requestId;
+  final String sportCode;
+  final String sportName;
+  final String requesterId;
+  final String requesterName;
+  final DateTime createdAt;
+
+  factory IncomingPartnerPing.fromMap(Map<String, dynamic> m) =>
+      IncomingPartnerPing(
+        requestId: m['request_id'] as String,
+        sportCode: (m['sport_code'] as String?) ?? '',
+        sportName: (m['sport_name'] as String?) ?? '',
+        requesterId: (m['requester_id'] as String?) ?? '',
+        requesterName: ((m['requester_name'] as String?) ?? '').trim().isEmpty
+            ? 'Biri'
+            : (m['requester_name'] as String).trim(),
+        createdAt:
+            DateTime.tryParse('${m['created_at']}')?.toLocal() ?? DateTime.now(),
+      );
+}
+
+/// Benim açık ya da az önce eşleşmiş partner isteğim.
+class MyPartnerRequest {
+  const MyPartnerRequest({
+    required this.id,
+    required this.sportCode,
+    required this.sportName,
+    required this.status,
+    required this.createdAt,
+    required this.expiresAt,
+    this.acceptedBy,
+    this.acceptedByName,
+  });
+
+  final String id;
+  final String sportCode;
+  final String sportName;
+
+  /// open | matched
+  final String status;
+  final DateTime createdAt;
+  final DateTime expiresAt;
+  final String? acceptedBy;
+  final String? acceptedByName;
+
+  bool get isMatched => status == 'matched' && acceptedBy != null;
+
+  factory MyPartnerRequest.fromMap(Map<String, dynamic> m) => MyPartnerRequest(
+        id: m['id'] as String,
+        sportCode: (m['sport_code'] as String?) ?? '',
+        sportName: (m['sport_name'] as String?) ?? '',
+        status: (m['status'] as String?) ?? 'open',
+        createdAt:
+            DateTime.tryParse('${m['created_at']}')?.toLocal() ?? DateTime.now(),
+        expiresAt:
+            DateTime.tryParse('${m['expires_at']}')?.toLocal() ?? DateTime.now(),
+        acceptedBy: m['accepted_by'] as String?,
+        acceptedByName: m['accepted_by_name'] as String?,
+      );
+}
+
 /// İki koordinat arası mesafe (metre).
 ///
 /// Sunucuda da aynı hesap var (`meters_between`); buradaki yalnızca listeyi
@@ -240,7 +326,7 @@ class CourtService {
     var q = _c
         .from('courts')
         .select('id, name, venue, district, lat, lng, opens_at, closes_at, '
-            'capacity, cities(name)')
+            'capacity, sport_code, cities(name), sports(name)')
         .eq('active', true);
     if (cityCode != null && cityCode.isNotEmpty) {
       q = q.eq('city_code', cityCode);
@@ -343,6 +429,81 @@ class CourtService {
       );
     }).toList();
   }
+
+  // --------------------------- partner arama --------------------------------
+
+  /// Kortu olan branşlar — partner arama seçicisi bunu kullanır. Branşsız
+  /// kort (`courts.sport_code` boş) bu listeye hiç girmez.
+  Future<List<CityRow>> courtSportCodes() async {
+    final rows = await _c.rpc<List<dynamic>>('court_sport_codes');
+    return rows
+        .map((r) => CityRow(
+              code: (r as Map)['code'] as String,
+              name: r['name'] as String,
+            ))
+        .toList();
+  }
+
+  /// Kullanıcının ilgilendiği branşlar — aday havuzuna girmek için önce bu.
+  Future<Set<String>> mySportInterests() async {
+    final uid = _c.auth.currentUser?.id;
+    if (uid == null) return {};
+    final rows = await _c
+        .from('sport_interests')
+        .select('sport_code')
+        .eq('profile_id', uid);
+    return (rows as List)
+        .map((r) => (r as Map)['sport_code'] as String)
+        .toSet();
+  }
+
+  Future<void> setSportInterest(String sportCode, bool interested) async {
+    final uid = _c.auth.currentUser!.id;
+    if (interested) {
+      await _c.from('sport_interests').upsert(
+          {'profile_id': uid, 'sport_code': sportCode},
+          onConflict: 'profile_id,sport_code');
+    } else {
+      await _c
+          .from('sport_interests')
+          .delete()
+          .eq('profile_id', uid)
+          .eq('sport_code', sportCode);
+    }
+  }
+
+  Future<String> seekPartner({
+    required String sportCode,
+    double? lat,
+    double? lng,
+  }) =>
+      _c.rpc<String>('seek_partner',
+          params: {'p_sport': sportCode, 'p_lat': lat, 'p_lng': lng});
+
+  Future<void> respondPartnerPing({
+    required String requestId,
+    required bool accept,
+  }) =>
+      _c.rpc<void>('respond_partner_ping',
+          params: {'p_request': requestId, 'p_accept': accept});
+
+  Future<void> cancelPartnerRequest(String id) =>
+      _c.rpc<void>('cancel_partner_request', params: {'p_id': id});
+
+  Future<List<IncomingPartnerPing>> incomingPartnerPings() async {
+    final rows =
+        await _c.rpc<List<dynamic>>('my_incoming_partner_pings');
+    return rows
+        .map((r) =>
+            IncomingPartnerPing.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<MyPartnerRequest?> myOpenPartnerRequest() async {
+    final rows = await _c.rpc<List<dynamic>>('my_open_partner_request');
+    if (rows.isEmpty) return null;
+    return MyPartnerRequest.fromMap((rows.first as Map).cast<String, dynamic>());
+  }
 }
 
 // =============================== Provider'lar ==============================
@@ -381,4 +542,28 @@ final joinRequestsProvider =
     return Future.value(const <JoinRequest>[]);
   }
   return ref.watch(courtServiceProvider).joinRequests(slotId);
+});
+
+final courtSportCodesProvider = FutureProvider.autoDispose<List<CityRow>>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+  return ref.watch(courtServiceProvider).courtSportCodes();
+});
+
+final mySportInterestsProvider = FutureProvider.autoDispose<Set<String>>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const {});
+  return ref.watch(courtServiceProvider).mySportInterests();
+});
+
+final incomingPartnerPingsProvider =
+    FutureProvider.autoDispose<List<IncomingPartnerPing>>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return Future.value(const <IncomingPartnerPing>[]);
+  }
+  return ref.watch(courtServiceProvider).incomingPartnerPings();
+});
+
+final myOpenPartnerRequestProvider =
+    FutureProvider.autoDispose<MyPartnerRequest?>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
+  return ref.watch(courtServiceProvider).myOpenPartnerRequest();
 });

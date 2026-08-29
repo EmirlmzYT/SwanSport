@@ -193,4 +193,57 @@ void main() {
       expect(s.remaining, 2);
     });
   });
+
+  group('IncomingPartnerPing.fromMap', () {
+    test('isim boşsa "Biri" gösterir — bildirimin sahipsiz görünmemesi için',
+        () {
+      final p = IncomingPartnerPing.fromMap({
+        'request_id': 'r1',
+        'sport_code': 'tenis',
+        'sport_name': 'Tenis',
+        'requester_id': 'u1',
+        'requester_name': '   ',
+        'created_at': '2026-08-30T10:00:00Z',
+      });
+      expect(p.requesterName, 'Biri');
+    });
+
+    test('gerçek isim baştaki/sondaki boşluktan arındırılır', () {
+      final p = IncomingPartnerPing.fromMap({
+        'request_id': 'r1',
+        'sport_code': 'tenis',
+        'sport_name': 'Tenis',
+        'requester_id': 'u1',
+        'requester_name': '  Emir  ',
+        'created_at': '2026-08-30T10:00:00Z',
+      });
+      expect(p.requesterName, 'Emir');
+    });
+  });
+
+  group('MyPartnerRequest.isMatched', () {
+    MyPartnerRequest req({required String status, String? acceptedBy}) =>
+        MyPartnerRequest(
+          id: 'req1',
+          sportCode: 'tenis',
+          sportName: 'Tenis',
+          status: status,
+          createdAt: DateTime(2026, 8, 30, 10),
+          expiresAt: DateTime(2026, 8, 30, 12),
+          acceptedBy: acceptedBy,
+        );
+
+    test('status matched ve kabul eden biri varsa eşleşmiş sayılır', () {
+      expect(req(status: 'matched', acceptedBy: 'u2').isMatched, isTrue);
+    });
+
+    test('status open iken eşleşmiş sayılmaz', () {
+      expect(req(status: 'open').isMatched, isFalse);
+    });
+
+    test('status matched ama kabul eden bilgisi gelmemişse eşleşmiş '
+        'sayılmaz — yarım veriyle "sohbete geç" gösterilmemeli', () {
+      expect(req(status: 'matched').isMatched, isFalse);
+    });
+  });
 }

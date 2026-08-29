@@ -233,13 +233,51 @@ hesaplıyor. `Position.isMocked` sıradan istismarı kesiyor ama kararlı biri
 aşar. Bedava tenis kortu için kabul edilen bir risk; gerçek çözüm korta QR
 asmak ve o da belediye görüşmesine bağlı.
 
-Migration'lar **0035'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
-defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı, malzeme
-ilanları ve halka açık kortlar şemada var. Yeni migration yazarken numarayı
-0036'dan sürdür.
+**Çift dokunuş tuzağı (0036'da düzeltildi):** `claim_slot`/`extend_slot`'ta
+ağ gecikmesiyle iki istek üst üste gidince ikisi de "zaten sıram var mı"
+kontrolünü kutu henüz yazılmadan geçip unique kısıtına çarpıyordu — çakışan
+her zaman kendi isteğiydi ama "başkası aldı" diyordu. Düzeltme: çakışma
+anında satırın sahibine bakılıyor, sahibi çağıran kişiyse hata değil, var
+olan kutu dönüyor. Gerçek cihazda denendi, doğrulandı (2026-08-30).
+
+#### Kort partneri arama (0037)
+
+`sport_interests`, `partner_requests`, `partner_request_pings`. Kort
+sisteminin tamamlayıcısı: `open_slots` saat almış olmayı şart koşuyor, bu
+saat almadan "şimdi/yakında oynamak istiyorum" diyebilmeyi çözüyor. Biri
+`seek_partner` çağırınca sistem yakındaki ilgili kişilere toplu bildirim
+atıyor (`send_attendance_reminders`'daki toplu-insert deseniyle); kabul
+onaylı — `respond_partner_ping`, atomik `update ... where status='open'` ile
+iki kişinin aynı isteği neredeyse aynı anda kabul etmesini `claim_slot`'un
+unique kısıtıyla aynı ilkeyle çözüyor (satır kilidi, ikinci çağrının WHERE'i
+artık tutmuyor).
+
+**"Yakınında" ŞEHİR bazlı, GPS değil — bilinçli karar.** Kime bildirim
+gideceğine karar vermek için tüm adayların canlı konumunu bilmek gerekirdi;
+bu arka planda sürekli izleme demek, courts'ta bilerek kaçınılan şey.
+`profiles.city_code` ile kaba eşleşiyor. İsteyenin kendi konumu yine yalnızca
+o an alınıyor (`place.dart`), ama kime bildirim gideceğine karışmıyor.
+
+**Güven mekanizması courts ile paylaşılıyor, tekrar yazılmadı:**
+`verification_tier` ve `court_players.banned_until` aynen kullanılıyor.
+Somut sonucu: **yeni kullanıcı önce bir kortu fiziksel ziyaret etmeden
+partner arayamaz** — doğrulama oradan geliyor. Bu bir tuzak değil, bilinçli
+sıra: kort → doğrulan → partner ara.
+
+**Konsol kort formu artık branş istiyor** (`sport_code` dropdown,
+`courts_screen.dart`). `court_sport_codes()` RPC'si buna dayanıyor — branşsız
+kort eşleştirmeye hiç girmiyor. **Millet Bahçesi ve Şefikcan Parkı'nın
+branşı henüz elle güncellenmedi**, güncellenene kadar partner arama aday
+havuzu bu iki kort için boş kalır.
+
+Migration'lar **0036'ya kadar canlıda kurulu** (2026-08-30 doğrulandı):
+mali defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı,
+malzeme ilanları ve halka açık kortlar (çift dokunuş düzeltmesiyle) şemada
+var. `0037_partner_search.sql` **henüz sürülmedi.** Yeni migration yazarken
+numarayı 0038'den sürdür.
 
 Web dağıtımı 2026-08-29'da yapıldı; canlı derleme malzeme ilanlarını
-içeriyor.
+içeriyor, kort partneri arama (0037 sürülüp derlenene kadar) içermiyor.
 
 ### Yarım / doğrulanmamış
 
@@ -253,10 +291,14 @@ içeriyor.
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
 
-- **Halka açık kortlar** — şema canlıda, web dağıtıldı. Ama **konsoldan
-  henüz kort eklenmedi**; kort eklenmeden ekran boş görünür ve koordinat
-  olmadan kimse kortta olduğunu doğrulayamaz. Gerçek cihazda konum akışı da
-  denenmedi. Belediye görüşmesi bundan sonra.
+- **Halka açık kortlar** — şema canlıda, web dağıtıldı, sıra alma gerçek
+  cihazda denendi ve doğrulandı (0036 sonrası). Belediye görüşmesi bundan
+  sonra.
+- **Kort partneri arama** — kod ve testler hazır, `0037_partner_search.sql`
+  **canlıda çalıştırılmadı**, mobil derleme dağıtılmadı. Migration sürülse
+  bile Millet Bahçesi/Şefikcan'ın branşı elle set edilmeden aday havuzu boş
+  kalır (yukarıdaki "Kort partneri arama" bölümüne bak). Uçtan uca hiç
+  denenmedi — en az iki hesap, aynı şehir, aynı branş ilgi alanı gerekiyor.
 
 ### Dış bağımlılık bekleyen
 

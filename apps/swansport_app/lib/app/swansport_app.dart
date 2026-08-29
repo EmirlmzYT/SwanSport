@@ -48,6 +48,7 @@ import '../features/communities/presentation/community_chat_screen.dart';
 import '../features/communities/presentation/federation_admin_screen.dart';
 import '../features/communities/presentation/federation_channel_screen.dart';
 import '../features/courts/presentation/courts_screen.dart';
+import '../features/courts/presentation/find_partner_screen.dart';
 import '../features/courts/presentation/open_slots_screen.dart';
 import '../features/social/presentation/feed_screen.dart';
 import '../features/social/presentation/profile_screen.dart';
@@ -113,6 +114,7 @@ class SwanSportApp extends ConsumerWidget {
         '/ilanlar': (context) => const ListingsScreen(),
         '/kortlar': (context) => const CourtsScreen(),
         '/oyuncu-aranan': (context) => const OpenSlotsScreen(),
+        '/partner-ara': (context) => const FindPartnerScreen(),
         '/organizasyonlar': (context) => const OrganizationsScreen(),
         '/finans': (context) => const FinanceScreen(),
         '/aidatlarim': (context) => const MyFeesScreen(),
