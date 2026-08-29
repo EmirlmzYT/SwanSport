@@ -6,14 +6,31 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 
 /// İletişim & Duyurular — Supabase verisine bağlı, premium tasarım (v3).
-class AnnouncementsScreen extends ConsumerWidget {
+class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AnnouncementsScreen> createState() =>
+      _AnnouncementsScreenState();
+}
+
+class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
+  final _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(announcementsProvider);
 
@@ -58,10 +75,56 @@ class AnnouncementsScreen extends ConsumerWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
+                  TextField(
+                    key: const Key('communication-search-field'),
+                    controller: _search,
+                    onChanged: (value) => setState(() => _query = value.trim()),
+                    style: jakarta(13.5, FontWeight.w500, ink),
+                    decoration: InputDecoration(
+                      hintText: 'Duyurularda ara…',
+                      hintStyle: jakarta(
+                          13, FontWeight.w500, SwanColors.textSecondary),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 19),
+                      suffixIcon: _query.isEmpty
+                          ? null
+                          : IconButton(
+                              key: const Key('communication-search-clear'),
+                              tooltip: 'Aramayı temizle',
+                              icon: const Icon(Icons.close_rounded, size: 18),
+                              onPressed: () {
+                                _search.clear();
+                                setState(() => _query = '');
+                              },
+                            ),
+                      filled: true,
+                      fillColor: surf,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(14),
+                        borderSide: BorderSide(color: line),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                   async.when(
                     loading: premiumLoading,
                     error: (e, _) => premiumError(context, '$e'),
                     data: (items) {
+                      final needle = _query.toLowerCase();
+                      final filtered = needle.isEmpty
+                          ? items
+                          : items
+                              .where((item) =>
+                                  item.title.toLowerCase().contains(needle) ||
+                                  item.body.toLowerCase().contains(needle))
+                              .toList();
+                      if (filtered.isEmpty && needle.isNotEmpty) {
+                        return premiumEmpty(
+                          context,
+                          icon: Icons.search_off_rounded,
+                          title: 'Duyuru bulunamadı',
+                          subtitle: 'Başlık veya içerikte “$_query” geçmiyor.',
+                        );
+                      }
                       if (items.isEmpty) {
                         return premiumEmpty(
                           context,
@@ -77,7 +140,8 @@ class AnnouncementsScreen extends ConsumerWidget {
                         );
                       }
                       return Column(
-                        children: items.map((a) => _card(isDark, a)).toList(),
+                        children:
+                            filtered.map((a) => _card(isDark, a)).toList(),
                       );
                     },
                   ),

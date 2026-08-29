@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/announcements/presentation/screens/announcements_screen.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 void main() {
   testWidgets('searches through the real communication search field',
@@ -11,8 +12,20 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
-      const ProviderScope(
-        child: MaterialApp(home: AnnouncementsScreen()),
+      ProviderScope(
+        overrides: [
+          announcementsProvider.overrideWith(
+            (ref) => Future.value([
+              AnnouncementRow(
+                title: 'Sezon açılışı',
+                body: 'İlk antrenman pazartesi günü başlıyor.',
+                pinned: true,
+                createdAt: DateTime(2026, 8, 29),
+              ),
+            ]),
+          ),
+        ],
+        child: const MaterialApp(home: AnnouncementsScreen()),
       ),
     );
     await tester.pumpAndSettle();
