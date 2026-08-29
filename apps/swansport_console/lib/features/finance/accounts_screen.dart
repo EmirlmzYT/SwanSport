@@ -4,7 +4,6 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/theme/console_theme.dart';
 import '../../app/widgets/status_pill.dart';
-import 'money.dart';
 
 /// Kasa, banka ve POS hesapları.
 ///

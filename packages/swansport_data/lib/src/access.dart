@@ -61,6 +61,14 @@ class SwanAccess {
   bool get isVerifiedAthlete => athleteKind != null;
   bool get isLicensedAthlete => athleteKind == 'athlete_licensed';
 
+  /// Onaylanmış en az bir belgesi var mı?
+  ///
+  /// Veritabanındaki `has_approved_credential()` ile aynı soruyu sorar.
+  /// Kişisel malzeme ilanı bu şarta bağlı: karşındakinin kim olduğu belli
+  /// olmadan ikinci el alışverişi güven taşımıyor. Buradaki kontrol yalnızca
+  /// arayüzü doğru göstermek için — asıl engel `create_listing` içinde.
+  bool get hasApprovedCredential => coachLevel > 0 || isVerifiedAthlete;
+
   /// Muhasebecisi olduğu kulüplerin kimlikleri.
   ///
   /// Muhasebecilik **ayrı bir eksen**: kulüpte görev almak değil, dışarıdan

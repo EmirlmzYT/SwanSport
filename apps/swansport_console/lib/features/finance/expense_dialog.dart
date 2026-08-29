@@ -5,7 +5,6 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/theme/console_theme.dart';
 import 'ledger_providers.dart';
-import 'money.dart';
 
 /// Gider ekleme / düzenleme penceresi.
 ///

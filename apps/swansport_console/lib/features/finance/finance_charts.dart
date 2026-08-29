@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/theme/console_theme.dart';
-import 'money.dart';
 
 /// Mali grafiklerin paleti.
 ///

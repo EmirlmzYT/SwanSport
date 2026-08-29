@@ -10,7 +10,6 @@ import '../../app/widgets/status_pill.dart';
 import 'accountants_dialog.dart';
 import 'expense_dialog.dart';
 import 'ledger_providers.dart';
-import 'money.dart';
 
 /// Gelir–gider defteri.
 ///

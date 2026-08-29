@@ -20,6 +20,7 @@ export 'src/community_service.dart';
 export 'src/expense_service.dart';
 export 'src/finance_service.dart';
 export 'src/moderation_service.dart';
+export 'src/money.dart';
 export 'src/network_service.dart';
 export 'src/news_service.dart';
 export 'src/notification_service.dart';

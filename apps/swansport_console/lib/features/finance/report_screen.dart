@@ -6,7 +6,6 @@ import '../../app/theme/console_theme.dart';
 import '../../app/widgets/status_pill.dart';
 import 'finance_charts.dart';
 import 'ledger_providers.dart';
-import 'money.dart';
 
 /// Yılı seçen durum — grafik ve tablo aynı yılı gösteriyor.
 final reportYearProvider = StateProvider<int>((ref) => DateTime.now().year);

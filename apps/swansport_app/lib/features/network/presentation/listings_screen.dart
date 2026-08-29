@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import 'equipment_listing_sheet.dart';
 
 /// İlanlar — sporcu arayan kulüp, kulüp arayan sporcu/antrenör ve seçmeler.
 ///
@@ -19,13 +20,10 @@ class ListingsScreen extends ConsumerStatefulWidget {
 }
 
 class _ListingsScreenState extends ConsumerState<ListingsScreen> {
-  // DiscoverFilter yeniden kullanılıyor; `district` alanı burada ilan türünü
-  // taşıyor (ilan aramasında ilçe filtresi kullanılmıyor).
   var _filter = const DiscoverFilter();
 
-  ListingKind? get _kind => _filter.district.isEmpty
-      ? null
-      : ListingKindX.fromCode(_filter.district);
+  ListingKind? get _kind =>
+      _filter.kind.isEmpty ? null : ListingKindX.fromCode(_filter.kind);
 
   @override
   Widget build(BuildContext context) {
@@ -149,14 +147,20 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
         children: [
-          chip('Tümü', _kind == null,
-              () => setState(() => _filter = _filter.copyWith(district: ''))),
+          chip(
+              'Tümü',
+              _kind == null,
+              () => setState(() => _filter =
+                  _filter.copyWith(kind: '', clearPriceMax: true))),
           for (final k in ListingKind.values)
             chip(
                 k.shortLabel,
                 _kind == k,
-                () => setState(
-                    () => _filter = _filter.copyWith(district: k.code))),
+                () => setState(() => _filter = _filter.copyWith(
+                    kind: k.code,
+                    // Fiyat tavanı yalnızca satılıkta anlamlı; tür
+                    // değişince taşınmasın.
+                    clearPriceMax: k != ListingKind.equipmentSale))),
           chip(
             _filter.sport.isEmpty
                 ? 'Branş'
@@ -219,7 +223,9 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   Widget _card(bool isDark, Color ink, Listing l) {
     final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
     final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final accent = l.isTryout ? const Color(0xFFD9860B) : kTeal;
+    final accent = l.isTryout
+        ? const Color(0xFFD9860B)
+        : (l.isEquipment ? const Color(0xFF5B6ABF) : kTeal);
 
     return GestureDetector(
       onTap: () => _openDetail(l),
@@ -234,6 +240,22 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if ((l.imageUrl ?? '').isNotEmpty) ...[
+              ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: AspectRatio(
+                  aspectRatio: 16 / 9,
+                  child: Image.network(
+                    l.imageUrl!,
+                    fit: BoxFit.cover,
+                    // Görsel gelmezse kart bozulmasın: ilan metni zaten
+                    // kendi başına anlamlı.
+                    errorBuilder: (_, __, ___) => Container(color: line),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 11),
+            ],
             Row(children: [
               SocialAvatar(
                 initials: l.byline.isEmpty ? '?' : l.byline[0].toUpperCase(),
@@ -261,11 +283,24 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                 color: accent,
                 icon: l.isTryout
                     ? Icons.sports_rounded
-                    : Icons.person_search_rounded,
+                    : (l.isEquipment
+                        ? Icons.inventory_2_rounded
+                        : Icons.person_search_rounded),
               ),
             ]),
             const SizedBox(height: 11),
-            Text(l.title, style: jakarta(14, FontWeight.w800, ink)),
+            Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Expanded(
+                  child: Text(l.title,
+                      style: jakarta(14, FontWeight.w800, ink))),
+              if (l.kind == ListingKind.equipmentSale) ...[
+                const SizedBox(width: 8),
+                Text(
+                    // Fiyatın boş olması "pazarlıklı" demek.
+                    l.price == null ? 'Pazarlıklı' : fmtMoney(l.price!),
+                    style: jakarta(13.5, FontWeight.w800, accent)),
+              ],
+            ]),
             if (l.criteria.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(l.criteria,
@@ -288,54 +323,68 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
               ]),
             ],
             const SizedBox(height: 12),
-            Row(children: [
-              if (l.canManage)
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () => _openApplicants(l),
-                    child: Container(
-                      height: 40,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        color: kTeal.withValues(alpha: .10),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text('${l.applicationCount} başvuru',
-                          style: jakarta(12.5, FontWeight.w800, kTeal)),
-                    ),
-                  ),
-                )
-              else
-                Expanded(
-                  child: GestureDetector(
-                    onTap: l.applied ? null : () => _apply(l),
-                    child: Container(
-                      height: 40,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        gradient: l.applied
-                            ? null
-                            : const LinearGradient(
-                                colors: [kTealBright, kTeal]),
-                        color: l.applied ? null : null,
-                        borderRadius: BorderRadius.circular(12),
-                        border: l.applied ? Border.all(color: line) : null,
-                      ),
-                      child: Text(l.applied ? 'Başvuruldu' : 'Başvur',
-                          style: jakarta(
-                              12.5,
-                              FontWeight.w800,
-                              l.applied
-                                  ? SwanColors.textSecondary
-                                  : Colors.white)),
-                    ),
-                  ),
-                ),
-            ]),
+            Row(children: [Expanded(child: _cardAction(l, line, accent))]),
           ],
         ),
       ),
     );
+  }
+
+  /// Kartın altındaki tek eylem düğmesi.
+  ///
+  /// Malzeme ilanında başvuru akışı kullanılmıyor: kimse malzemeye
+  /// "başvurmaz", pazarlık eder. Bu yüzden mevcut sohbet ekranına
+  /// yönlendiriyoruz — yeni bir mesajlaşma yazılmadı.
+  Widget _cardAction(Listing l, Color line, Color accent) {
+    Widget button(String text, Color fg,
+            {VoidCallback? onTap, Gradient? gradient, Color? fill}) =>
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: gradient,
+              color: fill,
+              borderRadius: BorderRadius.circular(12),
+              border: (gradient == null && fill == null)
+                  ? Border.all(color: line)
+                  : null,
+            ),
+            child: Text(text, style: jakarta(12.5, FontWeight.w800, fg)),
+          ),
+        );
+
+    if (l.isEquipment) {
+      if (l.canManage) {
+        return button('Satıldı olarak işaretle', accent,
+            onTap: () => _close(l), fill: accent.withValues(alpha: .10));
+      }
+      return button('Satıcıya yaz', Colors.white,
+          onTap: () => _messageOwner(l),
+          gradient: LinearGradient(
+              colors: [accent.withValues(alpha: .85), accent]));
+    }
+
+    if (l.canManage) {
+      return button('${l.applicationCount} başvuru', kTeal,
+          onTap: () => _openApplicants(l), fill: kTeal.withValues(alpha: .10));
+    }
+
+    return button(
+      l.applied ? 'Başvuruldu' : 'Başvur',
+      l.applied ? SwanColors.textSecondary : Colors.white,
+      onTap: l.applied ? null : () => _apply(l),
+      gradient: l.applied
+          ? null
+          : const LinearGradient(colors: [kTealBright, kTeal]),
+    );
+  }
+
+  /// İlan sahibiyle sohbeti açar. Rota ve ekran hazır (`/sohbet`).
+  void _messageOwner(Listing l) {
+    Navigator.pushNamed(context, '/sohbet',
+        arguments: {'id': l.ownerId, 'name': l.byline});
   }
 
   // ------------------------------- eylemler --------------------------------
@@ -602,6 +651,23 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
     final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
 
+    // Malzeme ilanı kulüpsüz de verilebilir; kişisel ilanda onaylanmış bir
+    // belge aranıyor. Asıl engel `create_listing` içinde — buradaki kontrol
+    // yalnızca kapalı bir seçeneği tıklatıp hata aldırmamak için.
+    final access = ref.read(swanAccessProvider);
+    bool enabled(ListingKind k) {
+      if (club != null) return true;
+      if (k == ListingKind.clubWanted) return true;
+      if (k.isEquipment) return access.hasApprovedCredential;
+      return false;
+    }
+
+    String? blockReason(ListingKind k) {
+      if (enabled(k)) return null;
+      if (k.isEquipment) return 'Onaylanmış bir belgen olmalı';
+      return 'Kulüp gerekiyor';
+    }
+
     final kind = await showModalBottomSheet<ListingKind>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -617,24 +683,45 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
           const SizedBox(height: 10),
           for (final k in ListingKind.values)
             ListTile(
-              enabled: k == ListingKind.clubWanted || club != null,
+              enabled: enabled(k),
               leading: Icon(
                   k == ListingKind.tryout
                       ? Icons.sports_rounded
-                      : Icons.person_search_rounded,
+                      : (k.isEquipment
+                          ? Icons.inventory_2_rounded
+                          : Icons.person_search_rounded),
                   color: kTeal),
               title: Text(k.label, style: jakarta(13.5, FontWeight.w600, ink)),
-              subtitle: k != ListingKind.clubWanted && club == null
-                  ? Text('Kulüp gerekiyor',
+              subtitle: blockReason(k) == null
+                  ? null
+                  : Text(blockReason(k)!,
                       style: jakarta(11, FontWeight.w500,
-                          SwanColors.textSecondary))
-                  : null,
+                          SwanColors.textSecondary)),
               onTap: () => Navigator.pop(ctx, k),
             ),
         ]),
       ),
     );
     if (kind == null) return;
+    if (!mounted) return;
+
+    if (kind.isEquipment) {
+      final created = await showModalBottomSheet<bool>(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (_) =>
+            EquipmentListingSheet(kind: kind, clubId: club?.id),
+      );
+      if (created == true) {
+        ref.invalidate(listingsProvider(_filter));
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+              content: Text('İlan yayımlandı'), backgroundColor: kTeal));
+        }
+      }
+      return;
+    }
 
     final title = FormField_('Başlık',
         hint: kind == ListingKind.tryout

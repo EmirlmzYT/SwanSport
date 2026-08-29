@@ -115,14 +115,17 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 15 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_console && flutter test      # 50 test, hepsi geçer
+cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_app && flutter test          # 105 test, hepsi geçer
 ```
+
+Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
+ile birlikte `swansport_data`'ya geçti. Toplam sayı korunuyor.
 
 Mobil testlerde ortak Supabase ve bellek içi `shared_preferences` kurulumu
 `cfc985c` ile eklendi; eski `_instance._isInitialized` kök nedeni kalktı.
@@ -172,6 +175,21 @@ mali rapor, onaylar, kullanıcılar, moderasyon, metrikler.
 
 Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
 
+İlan panosu (`listings`) hem insan hem **malzeme** ilanı taşıyor:
+`equipment_sale` / `equipment_wanted`. Ayrı bir "ürünler" tablosu yok — bu
+bir ilan panosu, mağaza değil; ödeme, kargo ve iade yok, taraflar mevcut
+`/sohbet` ekranından anlaşır. Kişisel malzeme ilanı **onaylanmış belge**
+istiyor (`has_approved_credential`); platformun dolandırıcılığa karşı tek
+gerçek avantajı bu.
+
+Para biçimlendirme (`fmtMoney`, `fmtDate`, `kMonthNames`) artık
+`swansport_data/lib/src/money.dart` içinde — konsol ve mobil aynı kaynağı
+kullanıyor.
+
+Migration'lar **0033'e kadar canlıda kurulu** (2026-08-29 doğrulandı): mali
+defter sayfalaması, yoklama denetim izi ve etkinlik katılım onayı şemada var.
+Yeni migration yazarken numarayı 0034'ten sürdür.
+
 ### Yarım / doğrulanmamış
 
 - **Android push (FCM)** — izin, bildirim kanalı, ön plan uyarısı ve bildirim
@@ -180,31 +198,27 @@ Web push çalışıyor (RFC 8291 + VAPID, `functions/api/push.js`).
   tarafında `FCM_SERVICE_ACCOUNT` sırrı tanımlanmalı.
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
-- Mobil test paketi geçiyor (yukarıda)
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
   derleniyor, fakat Play Store'a yüklemek için kullanıcı kendi anahtarını
   `android/key.properties` ile sağlamalı
-- **Yoklama denetim izi** — `0032_attendance_audit.sql` hazır; bağlı bir
-  Supabase ortamı olmadığı için migration ve RLS canlıda henüz denenmedi
-- **Etkinlik katılım onayı** — `0033_event_rsvp.sql` hazır; sporcu yanıtı ve
-  yetkili toplamı kodda bağlı, migration/RPC'ler canlı Supabase'de henüz denenmedi
+
+- **Malzeme ilanları** — kod ve testler hazır, `0034_equipment_listings.sql`
+  **canlıda henüz çalıştırılmadı**. Migration sürülmeden pano eski dört türü
+  gösterir; fiyat/görsel sütunları olmadığı için arama RPC'si de eski imzada
+  kalır.
 
 ### Dış bağımlılık bekleyen
 
 Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 (hukukçu), Supabase'de "Confirm email" ayarı.
 
-### ⚠️ Commit durumu
+### Commit durumu
 
-FCM temel zinciri `d62fc88`, bildirim yaşam döngüsü `f2e16a1`, gider ile
-muhasebeci sistemi `351fd9f` ve mali defter sayfalaması `43a930c` ile
-commit'lendi. Mobil test kurulumu da `cfc985c` ile kaydedildi. Çalışma alanı
-Android yayın imzası yapılandırması `2cc8d65`, yoklama denetim izi de
-`601b00b` ile eklendi. Dar ekran düğme düzeltmesi `d509945` ile kaydedildi.
-Ekip performansı rotası `d6e85f6` ile tamamlandı. Çalışma alanı bu noktada
-temiz olmalı; duyuru araması `e96855f` ile eklendi. Yeni bir değişiklik
-görürsen sahibini ve kapsamını doğrulamadan üzerine yazma. Sporcu ayrıntı
-test düzeltmesi `5978e0d` ile kaydedildi.
+Çalışma alanı temiz; her iş kendi commit'inde. Ne yapıldığını `git log --oneline`
+söyler, burada tekrarlanmaz — commit listesini elle sürdürmek onu eskitiyordu.
+
+Beklenmedik bir değişiklik görürsen sahibini ve kapsamını doğrulamadan üzerine
+yazma.
 
 ---
 

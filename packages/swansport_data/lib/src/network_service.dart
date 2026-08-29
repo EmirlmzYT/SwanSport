@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'social_service.dart' show kPostMediaBucket;
 import 'supabase_scope.dart';
 
 /// ---------------------------------------------------------------------------
@@ -63,7 +66,18 @@ class FilterOption {
 // =============================== İLANLAR ===================================
 
 /// İlan türleri. Seçme de bir ilandır — ayrı bir sistem değil.
-enum ListingKind { athleteWanted, coachWanted, clubWanted, tryout }
+///
+/// Malzeme türleri (equipment*) aynı panoda durur: sahiplik, şehir/branş
+/// filtresi ve arama zaten burada. Ayrı bir "ürünler" sistemi kurmak panoyu
+/// ikiye bölerdi.
+enum ListingKind {
+  athleteWanted,
+  coachWanted,
+  clubWanted,
+  tryout,
+  equipmentSale,
+  equipmentWanted,
+}
 
 extension ListingKindX on ListingKind {
   String get code => switch (this) {
@@ -71,6 +85,8 @@ extension ListingKindX on ListingKind {
         ListingKind.coachWanted => 'coach_wanted',
         ListingKind.clubWanted => 'club_wanted',
         ListingKind.tryout => 'tryout',
+        ListingKind.equipmentSale => 'equipment_sale',
+        ListingKind.equipmentWanted => 'equipment_wanted',
       };
 
   String get label => switch (this) {
@@ -78,6 +94,8 @@ extension ListingKindX on ListingKind {
         ListingKind.coachWanted => 'Antrenör aranıyor',
         ListingKind.clubWanted => 'Kulüp arıyorum',
         ListingKind.tryout => 'Seçme',
+        ListingKind.equipmentSale => 'Satılık malzeme',
+        ListingKind.equipmentWanted => 'Malzeme aranıyor',
       };
 
   String get shortLabel => switch (this) {
@@ -85,13 +103,41 @@ extension ListingKindX on ListingKind {
         ListingKind.coachWanted => 'Antrenör',
         ListingKind.clubWanted => 'Kulüp arayan',
         ListingKind.tryout => 'Seçme',
+        ListingKind.equipmentSale => 'Satılık',
+        ListingKind.equipmentWanted => 'Malzeme aranan',
       };
+
+  /// Malzeme ilanı mı? Ekran ve form bu ayrıma göre dallanıyor: malzemede
+  /// yaş/mevki sorulmaz, başvuru yerine mesajlaşma açılır.
+  bool get isEquipment =>
+      this == ListingKind.equipmentSale || this == ListingKind.equipmentWanted;
 
   static ListingKind fromCode(String c) => switch (c) {
         'coach_wanted' => ListingKind.coachWanted,
         'club_wanted' => ListingKind.clubWanted,
         'tryout' => ListingKind.tryout,
+        'equipment_sale' => ListingKind.equipmentSale,
+        'equipment_wanted' => ListingKind.equipmentWanted,
         _ => ListingKind.athleteWanted,
+      };
+}
+
+/// Malzemenin durumu. Veritabanında `listings.condition` (new | used).
+enum ListingCondition { isNew, used }
+
+extension ListingConditionX on ListingCondition {
+  String get code =>
+      switch (this) { ListingCondition.isNew => 'new', ListingCondition.used => 'used' };
+
+  String get label => switch (this) {
+        ListingCondition.isNew => 'Sıfır',
+        ListingCondition.used => 'İkinci el',
+      };
+
+  static ListingCondition? fromCode(String? c) => switch (c) {
+        'new' => ListingCondition.isNew,
+        'used' => ListingCondition.used,
+        _ => null,
       };
 }
 
@@ -121,6 +167,9 @@ class Listing {
     this.location,
     this.quota,
     this.deadline,
+    this.price,
+    this.condition,
+    this.imageUrl,
   });
 
   final String id;
@@ -148,19 +197,32 @@ class Listing {
   final int? quota;
   final DateTime? deadline;
 
+  /// Yalnızca satılık malzemede dolu. Boş olması "pazarlıklı" demek —
+  /// ayrı bir bayrak tutulmuyor.
+  final num? price;
+  final ListingCondition? condition;
+  final String? imageUrl;
+
   bool get isTryout => kind == ListingKind.tryout;
+  bool get isEquipment => kind.isEquipment;
   String get byline => clubName ?? ownerName;
 
   /// İlanın altında görünen özet satırı — yalnızca dolu alanlar.
+  ///
+  /// Malzemede yaş, mevki ve kademe anlamsız; onların yerine durum gösterilir.
   String get criteria {
     final p = <String>[
       if ((sportName ?? '').isNotEmpty) sportName!,
       if ((cityName ?? '').isNotEmpty)
         [if ((district ?? '').isNotEmpty) district!, cityName!].join(', '),
-      if (ageMin != null || ageMax != null)
-        '${ageMin ?? ''}–${ageMax ?? ''} yaş',
-      if ((position ?? '').isNotEmpty) position!,
-      if (coachLevelMin != null) '${coachLevelMin}. kademe+',
+      if (isEquipment) ...[
+        if (condition != null) condition!.label,
+      ] else ...[
+        if (ageMin != null || ageMax != null)
+          '${ageMin ?? ''}–${ageMax ?? ''} yaş',
+        if ((position ?? '').isNotEmpty) position!,
+        if (coachLevelMin != null) '${coachLevelMin}. kademe+',
+      ],
     ];
     return p.join(' · ');
   }
@@ -193,6 +255,9 @@ class Listing {
         deadline: m['deadline'] == null
             ? null
             : DateTime.tryParse('${m['deadline']}'),
+        price: m['price'] as num?,
+        condition: ListingConditionX.fromCode(m['condition'] as String?),
+        imageUrl: url(m['image_path'] as String?),
         applicationCount: (m['application_count'] as int?) ?? 0,
         applied: (m['applied'] as bool?) ?? false,
         canManage: (m['can_manage'] as bool?) ?? false,
@@ -384,6 +449,7 @@ class NetworkService {
     int? level,
     bool verifiedOnly = false,
     String? query,
+    num? priceMax,
   }) async {
     final rows = await _c.rpc<List<dynamic>>('search_listings', params: {
       if (kind != null && kind.isNotEmpty) 'p_kind': kind,
@@ -393,6 +459,7 @@ class NetworkService {
       if (level != null) 'p_level': level,
       'p_verified': verifiedOnly,
       if (query != null && query.isNotEmpty) 'p_query': query,
+      if (priceMax != null) 'p_price_max': priceMax,
     });
     return rows
         .map((r) => Listing.fromMap((r as Map).cast<String, dynamic>(), _url))
@@ -416,6 +483,9 @@ class NetworkService {
     int? quota,
     String? requirements,
     DateTime? deadline,
+    num? price,
+    ListingCondition? condition,
+    String? imagePath,
   }) async {
     return await _c.rpc<String>('create_listing', params: {
       'p_kind': kind,
@@ -439,7 +509,32 @@ class NetworkService {
         'p_requirements': requirements.trim(),
       if (deadline != null)
         'p_deadline': deadline.toIso8601String().split('T').first,
+      if (price != null) 'p_price': price,
+      if (condition != null) 'p_condition': condition.code,
+      if (imagePath != null) 'p_image_path': imagePath,
     });
+  }
+
+  /// İlan görselini yükler ve depodaki yolunu döner.
+  ///
+  /// `post-media` zaten public bir bucket ve `{uid}/...` düzeninde çalışıyor;
+  /// ilan görseli de herkese açık olmalı, imzalı URL'e gerek yok. Desen
+  /// `SocialService.createPost` ile aynı.
+  Future<String> uploadListingImage({
+    required Uint8List bytes,
+    required String fileName,
+  }) async {
+    final uid = _c.auth.currentUser?.id;
+    if (uid == null) throw StateError('Oturum bulunamadı');
+    final dot = fileName.lastIndexOf('.');
+    final ext = dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : 'jpg';
+    final path = '$uid/ilan-${DateTime.now().millisecondsSinceEpoch}.$ext';
+    await _c.storage.from(kPostMediaBucket).uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+    return path;
   }
 
   Future<void> closeListing(String id) =>
@@ -612,6 +707,8 @@ class DiscoverFilter {
     this.district = '',
     this.sport = '',
     this.verifiedOnly = false,
+    this.kind = '',
+    this.priceMax,
   });
 
   final String query;
@@ -620,11 +717,22 @@ class DiscoverFilter {
   final String sport;
   final bool verifiedOnly;
 
+  /// İlan türü kodu (`equipment_sale` vb.), boşsa "tümü".
+  ///
+  /// Eskiden bu bilgi [district] alanına sıkıştırılmıştı; ilçe ilanlarda
+  /// kullanılmadığı için işe yarıyordu ama alan adı yalan söylüyordu.
+  final String kind;
+
+  /// Malzeme ilanlarında fiyat tavanı.
+  final num? priceMax;
+
   bool get isEmpty =>
       query.isEmpty &&
       city.isEmpty &&
       district.isEmpty &&
       sport.isEmpty &&
+      kind.isEmpty &&
+      priceMax == null &&
       !verifiedOnly;
 
   DiscoverFilter copyWith({
@@ -633,6 +741,9 @@ class DiscoverFilter {
     String? district,
     String? sport,
     bool? verifiedOnly,
+    String? kind,
+    num? priceMax,
+    bool clearPriceMax = false,
   }) =>
       DiscoverFilter(
         query: query ?? this.query,
@@ -640,6 +751,8 @@ class DiscoverFilter {
         district: district ?? this.district,
         sport: sport ?? this.sport,
         verifiedOnly: verifiedOnly ?? this.verifiedOnly,
+        kind: kind ?? this.kind,
+        priceMax: clearPriceMax ? null : (priceMax ?? this.priceMax),
       );
 
   /// Provider anahtarı olarak kullanılabilmesi için değer eşitliği.
@@ -650,10 +763,13 @@ class DiscoverFilter {
       other.city == city &&
       other.district == district &&
       other.sport == sport &&
-      other.verifiedOnly == verifiedOnly;
+      other.verifiedOnly == verifiedOnly &&
+      other.kind == kind &&
+      other.priceMax == priceMax;
 
   @override
-  int get hashCode => Object.hash(query, city, district, sport, verifiedOnly);
+  int get hashCode =>
+      Object.hash(query, city, district, sport, verifiedOnly, kind, priceMax);
 }
 
 final discoverClubsProvider = FutureProvider.autoDispose
@@ -684,10 +800,11 @@ final listingsProvider = FutureProvider.autoDispose
     return Future.value(const <Listing>[]);
   }
   return ref.watch(networkServiceProvider).searchListings(
-        kind: f.district, // district alanı ilan ekranında "tür" olarak kullanılır
+        kind: f.kind,
         sport: f.sport,
         city: f.city,
         verifiedOnly: f.verifiedOnly,
+        priceMax: f.priceMax,
         query: f.query,
       );
 });
