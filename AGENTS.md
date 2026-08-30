@@ -168,12 +168,27 @@ yoksa kullanıcı eski derlemeye bakar ve "hani" der. Bu yaşandı.
 
 ### APK güncelleme bildirimi
 
-Play Store'da değiliz; APK sideload ile dağıtılıyor. Gerçek otomatik
-güncelleme yok — `apps/swansport_app/lib/app/update/update_checker.dart`
+Play Store'da değiliz; APK sideload ile dağıtılıyor.
+`apps/swansport_app/lib/app/update/update_checker.dart`
 açılışta **public** GitHub deposunun (`EmirlmzYT/SwanSport`) en son
 release'ini (`/releases/latest` API'si, kimlik doğrulama gerektirmiyor)
-kendi sürümüyle kıyaslıyor, yeniyse banner gösterip `.apk` uzantılı asset'e
-yönlendiriyor. Yalnızca Android'de çalışır (`update_gate.dart`'ta
+kendi sürümüyle kıyaslıyor, yeniyse banner gösteriyor. "Güncelle" denince APK **uygulama içinde**
+indiriliyor (ilerleme çubuğuyla, `update_downloader.dart`) ve Android
+kurulum ekranı açılıyor.
+
+**Sınır:** Android yine "bilinmeyen kaynaklardan kuruluma izin ver" iznini ve
+kendi kurulum onay ekranını gösterir — bu işletim sistemi seviyesinde,
+atlatılamaz. Kaldırılan şey tarayıcıya atlayıp indirilenler klasöründe dosya
+arama adımı. Kurulum başlatılamazsa diyalog tarayıcıya düşme seçeneği
+sunuyor.
+
+İndirme kodu elle yazıldı (`http` zaten bağımlılık): hazır "güncelleyici"
+paketlerinin hepsi çok az kullanılan küçük paketlerdi, güncelleme yolu gibi
+kritik bir yere bakımsız kod konmadı. Üçüncü parti yalnızca son adımda —
+`apk_sideload` Android'in FileProvider + kurulum intent'ini hallediyor.
+`REQUEST_INSTALL_PACKAGES` izni ve FileProvider o paketin manifest'inden
+birleşiyor, bizim manifest'e elle eklenmedi. **Play Store'a gidilirse bu izin
+politika gerekçesi ister** — o gün bu mekanizma zaten gereksizleşir, kaldırın. Yalnızca Android'de çalışır (`update_gate.dart`'ta
 `kIsWeb`/`TargetPlatform.android` kontrolü) — web zaten her deploy'da
 otomatik güncel.
 

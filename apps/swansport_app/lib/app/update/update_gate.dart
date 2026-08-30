@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../app_navigator.dart';
 import 'update_checker.dart';
+import 'update_downloader.dart';
 
 /// Uygulama açılışında bir kez güncelleme kontrolü yapar, varsa kalıcı bir
 /// banner gösterir.
@@ -39,13 +40,13 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
     final update = await checkForUpdate();
     if (update == null) return;
 
-    // Bu sürümü zaten kapatmışsa bir daha aynı açılışta göstermeyelim de,
-    // sonraki açılışlarda tekrar hatırlatalım — dismissed bilgisi kalıcı
-    // değil, bilerek: güncellemeyi unutmak kolay olmasın.
+    // Bu sürümü bugün kapatmışsa tekrar göstermeyelim; yarın yine
+    // hatırlatalım — güncellemeyi unutmak kolay olmasın diye kalıcı olarak
+    // susturmuyoruz.
     final prefs = await SharedPreferences.getInstance();
-    final dismissedThisSession = prefs.getString('update_dismissed_run') ==
-        '${DateTime.now().year}${DateTime.now().month}${DateTime.now().day}${update.version}';
-    if (dismissedThisSession) return;
+    if (prefs.getString('update_dismissed_run') == _dismissKey(update.version)) {
+      return;
+    }
 
     final messenger = swanMessengerKey.currentState;
     if (messenger == null) return;
@@ -57,25 +58,120 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
         TextButton(
           onPressed: () async {
             messenger.hideCurrentMaterialBanner();
-            final today = DateTime.now();
             final prefs2 = await SharedPreferences.getInstance();
-            await prefs2.setString('update_dismissed_run',
-                '${today.year}${today.month}${today.day}${update.version}');
+            await prefs2.setString(
+                'update_dismissed_run', _dismissKey(update.version));
           },
           child: const Text('Sonra'),
         ),
         FilledButton(
-          onPressed: () async {
+          onPressed: () {
             messenger.hideCurrentMaterialBanner();
-            await launchUrl(Uri.parse(update.downloadUrl),
-                mode: LaunchMode.externalApplication);
+            _startDownload(update);
           },
-          child: const Text('İndir'),
+          child: const Text('Güncelle'),
         ),
       ],
     ));
   }
 
+  String _dismissKey(String version) {
+    final now = DateTime.now();
+    return '${now.year}-${now.month}-${now.day}-$version';
+  }
+
+  void _startDownload(UpdateInfo update) {
+    final context = swanNavigatorKey.currentContext;
+    if (context == null) return;
+
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _DownloadDialog(update: update),
+    );
+  }
+
   @override
   Widget build(BuildContext context) => widget.child;
+}
+
+/// İndirme ilerlemesini gösterir, bitince Android kurulum ekranını açar.
+///
+/// Başarısız olursa tarayıcıya düşme seçeneği sunuyor — uygulama içi kurulum
+/// cihaz ayarlarına bağlı olduğu için her telefonda çalışacağının garantisi
+/// yok, kullanıcıyı çıkmaz sokakta bırakmamalı.
+class _DownloadDialog extends StatefulWidget {
+  const _DownloadDialog({required this.update});
+  final UpdateInfo update;
+
+  @override
+  State<_DownloadDialog> createState() => _DownloadDialogState();
+}
+
+class _DownloadDialogState extends State<_DownloadDialog> {
+  double? _progress = 0;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _run();
+  }
+
+  Future<void> _run() async {
+    try {
+      await downloadAndInstall(
+        widget.update.downloadUrl,
+        onProgress: (p) {
+          if (mounted) setState(() => _progress = p);
+        },
+      );
+      // Kurulum ekranı açıldı; bu diyaloğun işi bitti.
+      if (mounted) Navigator.of(context).pop();
+    } on UpdateDownloadException catch (e) {
+      if (mounted) setState(() => _error = e.message);
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Beklenmeyen bir hata: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_error != null) {
+      return AlertDialog(
+        title: const Text('Güncelleme yapılamadı'),
+        content: Text(_error!),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Kapat'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await launchUrl(Uri.parse(widget.update.downloadUrl),
+                  mode: LaunchMode.externalApplication);
+            },
+            child: const Text('Tarayıcıda aç'),
+          ),
+        ],
+      );
+    }
+
+    final percent = _progress == null ? null : (_progress! * 100).round();
+
+    return AlertDialog(
+      title: Text('${widget.update.version} indiriliyor'),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        LinearProgressIndicator(value: _progress),
+        const SizedBox(height: 12),
+        Text(percent == null ? 'İndiriliyor…' : '%$percent'),
+        const SizedBox(height: 8),
+        const Text(
+            'İndirme bitince Android kurulum ekranı açılacak. İlk seferde '
+            '"bilinmeyen kaynaklara izin ver" sorabilir.',
+            style: TextStyle(fontSize: 12)),
+      ]),
+    );
+  }
 }
