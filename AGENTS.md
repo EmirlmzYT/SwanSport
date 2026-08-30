@@ -322,22 +322,41 @@ Sahalar courts gibi **elle ekleniyor** (konsol), yöneticisi de yalnızca
 platform yöneticisinin ürettiği davet koduyla atanıyor — işletme kendi
 kaydolamıyor.
 
-**"Bu saati istiyorum" bildirimi (0039) — bağlayıcı rezervasyon değil.**
+**"Bu saati istiyorum" (0039 + 0040) — bağlayıcı rezervasyon değil, sohbet.**
 Gerçek boşluk şuydu: müşteri telefonla arar, görevli sözlü "tamam" der,
 uygulamayı işaretlemeyi unutur, pano bayatlar. Çözüm iki taraflı kilitli
-rezervasyon değil: `request_turf_slot` RPC'si sahanın yöneticilerine "biri
-bu saati istiyor" bildirimi atıyor (`turf_slot_requests` ile aynı kişi aynı
-hücreye tekrar dokununca ikinci bildirim gitmiyor), yönetici telefonla
-konuşup anlaşırsa **zaten var olan** `markOccupied` akışıyla kendisi
-işaretliyor. Uygulama hiçbir zaman "onaylandı" demiyor — bu bilinçli:
-iki taraflı kilit courts'taki yarış durumu problemini gerçek parayla geri
-açardı.
+rezervasyon **değil**: `request_turf_slot` RPC'si oyuncunun ağzından sahanın
+aktif yöneticilerine **gerçek bir doğrudan mesaj** gönderiyor (0040), iki
+taraf var olan `/mesajlar` ekranından anlaşıyor, yönetici kesinleşince
+`markOccupied` ile hücreyi kendisi işaretliyor.
+
+`turf_slot_requests` tablosu duruyor ama artık iki iş yapıyor: şeritte
+"İstendi" durumunu göstermek ve **aynı kişinin aynı hücreye tekrar dokununca
+ikinci mesaj göndermesini engellemek** (unique kısıt + idempotent RPC).
+
+Uygulama hiçbir zaman "onaylandı" demiyor — bu bilinçli: iki taraflı kilit,
+courts'taki yarış durumu problemini gerçek parayla geri açardı (iki kişi aynı
+saati isteyip yönetici ikisine de "tamam" derse sorumluluk SwanSport'a
+kalırdı). Yöneticisi atanmamış sahada RPC hata veriyor — mesaj gidecek kimse
+yokken "gönderildi" demek kullanıcıyı yanıltırdı.
+
+**Doğrudan mesajlar 0040'a kadar hiç bildirim üretmiyordu.**
+`NotificationService.send` yalnızca `direct_messages`'a satır atıyordu;
+`notifications`'a hiçbir şey yazılmadığı için push da gitmiyordu — birine
+mesaj attığında karşı taraf ancak uygulamayı kendi açarsa görüyordu. Tek
+istisna `send_club_message`'ti (bildirimi elle yazıyordu). 0040 bunu
+`trg_notify_direct_message` tetikleyicisine taşıdı: artık **tek kaynak**
+tetikleyici, `send_club_message`'in elle yazan satırı kaldırıldı (ikisi
+birden kalsaydı kulüp mesajlarında çift bildirim olurdu).
 
 Migration'lar **0038'e kadar canlıda kurulu** (2026-08-30 doğrulandı): mali
 defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı, malzeme
 ilanları, halka açık kortlar (çift dokunuş düzeltmesiyle), kort partneri
-arama ve halı saha doluluk panosu şemada var. `0039_turf_slot_requests.sql`
-**henüz sürülmedi.** Yeni migration yazarken numarayı 0040'tan sürdür.
+arama ve halı saha doluluk panosu şemada var.
+`0039_turf_slot_requests.sql` ve `0040_dm_notify_and_turf_chat.sql`
+**henüz sürülmedi** — sırayla çalıştırılmalı (0039 `turf_occupancy_grid`'i
+yeniden yazıyor, 0040 `request_turf_slot`'u). Yeni migration yazarken
+numarayı 0041'den sürdür.
 
 Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri arama ve
 halı saha doluluk panosunu içeriyor.
@@ -364,11 +383,17 @@ halı saha doluluk panosunu içeriyor.
 - **Halı saha doluluk panosu** — şema canlıda (0038), web dağıtıldı. Ama
   **konsoldan hiç saha eklenmedi**; saha eklenip yönetici daveti redeem
   edilmeden ekranın düzenleme tarafı hiç test edilemez.
-- **"Bu saati istiyorum" bildirimi** — kod ve testler hazır,
-  `0039_turf_slot_requests.sql` **canlıda çalıştırılmadı**, mobil derleme
-  dağıtılmadı. `turf_occupancy_grid` dönüş tipini değiştirdiği için bu
-  migration önce fonksiyonu `drop` ediyor — sırayla (0038 sonra 0039)
-  çalıştırılmalı.
+- **"Bu saati istiyorum" → sohbet** — kod ve testler hazır,
+  `0039_turf_slot_requests.sql` ve `0040_dm_notify_and_turf_chat.sql`
+  **canlıda çalıştırılmadı**, mobil derleme dağıtılmadı. Sırayla
+  çalıştırılmalı (0039 `turf_occupancy_grid`'i dönüş tipi değiştiği için
+  `drop` edip yeniden yazıyor, 0040 `request_turf_slot`'u sohbet açacak
+  şekilde değiştiriyor).
+- **Doğrudan mesaj bildirimi (0040)** — tetikleyici yazıldı ama **hiç
+  denenmedi**. Sürüldükten sonra iki hesapla kontrol et: A'dan B'ye mesaj →
+  B'ye push düşmeli. Ayrıca kulüp adına gönderilen mesajda **çift bildirim
+  gelmediğini** doğrula (`send_club_message`'in elle yazan satırı kaldırıldı,
+  ama canlıda eski sürüm kalmışsa iki bildirim gelir).
 
 ### Dış bağımlılık bekleyen
 

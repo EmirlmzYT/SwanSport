@@ -181,17 +181,18 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
     );
   }
 
-  /// Bağlayıcı bir rezervasyon değil — sahanın yöneticilerine "biri bu
-  /// saati istiyor" diye haber gider, son söz hâlâ yönetici.
+  /// Bağlayıcı bir rezervasyon değil: saha yöneticisine oyuncunun ağzından
+  /// gerçek bir mesaj gider, iki taraf sohbetten anlaşır. Son söz hâlâ
+  /// yönetici — kesinleşince hücreyi o işaretler.
   Future<void> _request(TurfSlot s) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('${s.hourLabel} için haber ver'),
-        content: Text(
-            'Saha yöneticisine bu saati istediğin bildirilir. Rezervasyon '
-            'kesinleşmiş sayılmaz${(_field.phone ?? '').isNotEmpty ? ' — '
-                'kesinleştirmek için ${_field.phone} numarasını da ara' : ''}.'),
+        title: Text('${s.hourLabel} için sor'),
+        content: const Text(
+            'Saha yöneticisine bu saati sorduğunu bildiren bir mesaj '
+            'gönderilecek ve sohbet açılacak. Rezervasyon, yönetici onaylayana '
+            'kadar kesinleşmiş sayılmaz.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -199,7 +200,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Haber ver'),
+            child: const Text('Mesaj gönder'),
           ),
         ],
       ),
@@ -212,12 +213,27 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           .read(turfServiceProvider)
           .requestSlot(fieldId: _field.id, startsAt: s.startsAt);
       ref.invalidate(turfOccupancyGridProvider(_field.id));
-      _say('İsteğin gönderildi.');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Mesajın gönderildi.'),
+        action: SnackBarAction(
+          label: 'Sohbete git',
+          onPressed: () => Navigator.pushNamed(context, '/mesajlar'),
+        ),
+      ));
     } catch (e) {
-      _say('$e');
+      _say(_readable(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  /// Postgres istisnaları `PostgrestException(message: …)` diye geliyor;
+  /// kullanıcıya ham hata gösterilmez.
+  String _readable(Object e) {
+    final text = '$e';
+    final match = RegExp(r'message: ([^,]+)').firstMatch(text);
+    return match?.group(1)?.trim() ?? 'Bir şeyler ters gitti.';
   }
 
   Future<void> _toggle(TurfSlot s) async {
@@ -229,7 +245,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
             .markFree(fieldId: _field.id, startsAt: s.startsAt);
         ref.invalidate(turfOccupancyGridProvider(_field.id));
       } catch (e) {
-        _say('$e');
+        _say(_readable(e));
       } finally {
         if (mounted) setState(() => _busy = false);
       }
@@ -251,7 +267,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           );
       ref.invalidate(turfOccupancyGridProvider(_field.id));
     } catch (e) {
-      _say('$e');
+      _say(_readable(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }
