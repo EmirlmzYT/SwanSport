@@ -68,6 +68,7 @@ import '../features/teams/presentation/screens/team_roster_directory_screen.dart
 import '../features/teams/presentation/screens/team_roster_screen.dart';
 import 'config/app_environment.dart';
 import 'app_navigator.dart';
+import 'update/update_gate.dart';
 import 'widgets/page_transitions.dart';
 
 class SwanSportApp extends ConsumerWidget {
@@ -88,6 +89,7 @@ class SwanSportApp extends ConsumerWidget {
       darkTheme: SwanTheme.dark().copyWith(
         pageTransitionsTheme: kSwanPageTransitions,
       ),
+      builder: (context, child) => AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthGate(),

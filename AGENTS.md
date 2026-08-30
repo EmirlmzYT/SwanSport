@@ -166,6 +166,29 @@ cd apps/swansport_app && npx wrangler pages deploy build/web --project-name=swan
 Ekranda görünmesi gereken bir değişiklik yaptıysan **dağıtımı da yap** —
 yoksa kullanıcı eski derlemeye bakar ve "hani" der. Bu yaşandı.
 
+### APK güncelleme bildirimi
+
+Play Store'da değiliz; APK sideload ile dağıtılıyor. Gerçek otomatik
+güncelleme yok — `apps/swansport_app/lib/app/update/update_checker.dart`
+açılışta **public** GitHub deposunun (`EmirlmzYT/SwanSport`) en son
+release'ini (`/releases/latest` API'si, kimlik doğrulama gerektirmiyor)
+kendi sürümüyle kıyaslıyor, yeniyse banner gösterip `.apk` uzantılı asset'e
+yönlendiriyor. Yalnızca Android'de çalışır (`update_gate.dart`'ta
+`kIsWeb`/`TargetPlatform.android` kontrolü) — web zaten her deploy'da
+otomatik güncel.
+
+**Yeni bir APK yayınlarken:**
+
+1. `apps/swansport_app/pubspec.yaml`'daki `version:` satırını artır
+   (`0.1.1+2` gibi — nokta kısmı sürüm adı, `+` sonrası build numarası;
+   yalnızca build artsa bile kullanıcıya haber gider).
+2. `cd apps/swansport_app && flutter build apk --release -t lib/main_production.dart --dart-define-from-file=env/prod.json`
+3. `gh release create v<pubspec-sürümü> apps/swansport_app/build/app/outputs/flutter-apk/app-release.apk --repo EmirlmzYT/SwanSport --title "..." --notes "..."`
+
+Tag adı **`v` + pubspec sürümü** olmalı (`v0.1.1+2`) — kod bunu ayrıştırıyor.
+Zaten kurulu APK'lar bir sonraki açılışta otomatik haber alır, sen ayrıca
+dosya göndermek zorunda kalmazsın.
+
 ---
 
 ## Durum

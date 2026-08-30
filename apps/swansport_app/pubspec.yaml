@@ -1,7 +1,7 @@
 name: swansport_app
 description: SwanSport MVP Flutter application shell.
 publish_to: none
-version: 0.1.0+1
+version: 0.1.1+2
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -27,6 +27,7 @@ dependencies:
   swansport_design_system: ^0.1.0
   swansport_models: ^0.1.0
   geolocator: ^14.0.3
+  package_info_plus: ^10.2.1
 
 dev_dependencies:
   flutter_lints: ^5.0.0
