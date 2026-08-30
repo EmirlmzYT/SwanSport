@@ -193,6 +193,12 @@ class NotificationService {
         .toList();
   }
 
+  /// Zil rozeti — okunmamış bildirimler, **mesajlar hariç**.
+  ///
+  /// 0040'tan beri her doğrudan mesaj bir `notifications` satırı da üretiyor
+  /// (`trg_notify_direct_message`). Mesajlar burada sayılsaydı aynı mesaj
+  /// hem zilde hem mesaj ikonunda görünür, kullanıcı iki yerde okunmamış
+  /// sanırdı. İki sayaç birbirini dışlıyor: mesajlar [unreadMessageCount].
   Future<int> unreadCount() async {
     final uid = _uid;
     if (uid == null) return 0;
@@ -200,6 +206,23 @@ class NotificationService {
         .from('notifications')
         .select('id')
         .eq('profile_id', uid)
+        .neq('kind', 'message')
+        .isFilter('read_at', null);
+    return (rows as List).length;
+  }
+
+  /// Mesaj rozeti — okunmamış doğrudan mesajlar.
+  ///
+  /// `notifications` yerine doğrudan `direct_messages` sayılıyor: sohbet
+  /// okunduğunda `mark_conversation_read` bu tabloyu güncelliyor, bildirim
+  /// satırını değil. Kaynak neyse sayaç orada olmalı.
+  Future<int> unreadMessageCount() async {
+    final uid = _uid;
+    if (uid == null) return 0;
+    final rows = await _c
+        .from('direct_messages')
+        .select('id')
+        .eq('recipient_id', uid)
         .isFilter('read_at', null);
     return (rows as List).length;
   }
@@ -320,6 +343,11 @@ final notificationsProvider =
 final unreadNotificationsProvider = FutureProvider.autoDispose<int>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(0);
   return ref.watch(notificationServiceProvider).unreadCount();
+});
+
+final unreadMessagesProvider = FutureProvider.autoDispose<int>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(0);
+  return ref.watch(notificationServiceProvider).unreadMessageCount();
 });
 
 

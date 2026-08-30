@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
 
 /// Sporcu Ana Ekranı — sporcunun kendi gözünden (premium v3).
@@ -64,7 +65,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
-                    _bell(surf, line),
+                    const InboxActions(),
                   ]),
                   const SizedBox(height: 18),
 
@@ -412,16 +413,6 @@ class AthleteHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _bell(Color surf, Color line) => Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-            color: surf,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: line)),
-        child: Icon(Icons.notifications_none_rounded,
-            size: 20, color: SwanColors.textSecondary),
-      );
 
   // ------------------------------------------------------------- yardımcılar
   String _todayLabel() {

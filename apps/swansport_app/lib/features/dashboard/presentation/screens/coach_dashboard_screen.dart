@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../athlete_workspace/presentation/screens/athlete_home_screen.dart';
 import '../../../demo/demo_role.dart';
@@ -112,7 +113,7 @@ class CoachDashboardScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      _bell(isDark),
+                      const InboxActions(),
                     ],
                   ),
                   const SizedBox(height: 18),
@@ -403,21 +404,6 @@ class CoachDashboardScreen extends ConsumerWidget {
     );
   }
 
-  Widget _bell(bool isDark) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: line),
-      ),
-      child: Icon(Icons.notifications_none_rounded,
-          size: 20, color: SwanColors.textSecondary),
-    );
-  }
 
   String _roleLabel(String role) => switch (role) {
         'club_admin' => 'Yönetici',

@@ -103,6 +103,19 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   `meters_between` ile veriliyor. `court_service.dart` içindeki Dart kopyası
   yalnızca listeyi yakınlığa göre **sıralamak** için.
 
+**Ekran kabuğu (üst bar / alt bar)**
+- **Kural:** üst sağ = gelen kutusu (zil + mesaj, ikisi de rozetli ve
+  tıklanır, `app/widgets/inbox_actions.dart`), alt bar = bölümler arası
+  gezinme, **header'daki avatar yalnızca kimlik göstergesi** — gezinme
+  hedefi değil, Profil zaten alt barda. Aynı hedefe iki buton koyma.
+- Zil ve mesaj rozetleri **birbirini dışlar**: 0040'tan beri her doğrudan
+  mesaj bir `notifications` satırı da üretiyor, o yüzden `unreadCount()`
+  `kind <> 'message'` süzüyor ve mesajlar `unreadMessageCount()` ile ayrı
+  sayılıyor. Bu ayrımı bozarsan aynı mesaj iki rozette birden görünür.
+- Zil beş ana ekranda **ölüydü** (düz `Container`, `onTap` yok) ve bu ancak
+  elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
+  çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
+
 **Modül menüsü**
 - Menüye modül eklerken `kAllModules` **ve** `kModuleGroup`'a birlikte satır
   ekle (`app/widgets/module_launcher.dart`). Yalnızca birincisine eklersen
@@ -139,7 +152,7 @@ cd packages/swansport_data && flutter test     # 84 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 129 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 135 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`

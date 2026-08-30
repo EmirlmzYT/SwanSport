@@ -10,7 +10,7 @@ import 'post_composer_sheet.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/post_card.dart';
-import 'widgets/social_widgets.dart';
+import '../../../app/widgets/inbox_actions.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -42,7 +42,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final async =
         _tab == 0 ? ref.watch(feedProvider) : ref.watch(discoverProvider);
     final myId = Supabase.instance.client.auth.currentUser?.id;
-    final unread = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
 
     return Scaffold(
       extendBody: true,
@@ -95,57 +94,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    // Bildirimler — okunmamış varsa rozetli
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/bildirimler'),
-                      child: Stack(clipBehavior: Clip.none, children: [
-                        Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(13),
-                            border: Border.all(
-                                color: isDark
-                                    ? const Color(0xFF233149)
-                                    : const Color(0xFFEAEEF3)),
-                          ),
-                          child: Icon(Icons.notifications_none_rounded,
-                              size: 21, color: SwanColors.textSecondary),
-                        ),
-                        if (unread > 0)
-                          Positioned(
-                            top: -3,
-                            right: -3,
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 5, vertical: 1),
-                              constraints: const BoxConstraints(minWidth: 17),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF43F5E),
-                                borderRadius: BorderRadius.circular(999),
-                                border: Border.all(color: bg, width: 1.5),
-                              ),
-                              child: Text(unread > 9 ? '9+' : '$unread',
-                                  textAlign: TextAlign.center,
-                                  style: jakarta(
-                                      9.5, FontWeight.w800, Colors.white)),
-                            ),
-                          ),
-                      ]),
-                    ),
-                    const SizedBox(width: 8),
-                    GestureDetector(
-                      onTap: () => myId == null
-                          ? null
-                          : Navigator.pushNamed(context, '/profil',
-                              arguments: myId),
-                      child: SocialAvatar(
-                        initials: profile?.initials ?? '?',
-                        size: 40,
-                        gradientIndex: 1,
-                      ),
-                    ),
+                    const InboxActions(),
                   ]),
                 ),
 
