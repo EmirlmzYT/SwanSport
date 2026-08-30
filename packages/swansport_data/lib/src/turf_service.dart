@@ -94,11 +94,16 @@ class TurfSlot {
     required this.startsAt,
     required this.occupied,
     this.note,
+    this.requestedByMe = false,
   });
 
   final DateTime startsAt;
   final bool occupied;
   final String? note;
+
+  /// Bu hücreyi ben "istiyorum" diye işaretledim mi — bağlayıcı bir
+  /// rezervasyon değil, yalnızca sahanın yöneticisine giden bir haber.
+  final bool requestedByMe;
 
   String get hourLabel =>
       '${startsAt.hour.toString().padLeft(2, '0')}:'
@@ -109,6 +114,7 @@ class TurfSlot {
             DateTime.tryParse('${m['starts_at']}')?.toLocal() ?? DateTime.now(),
         occupied: (m['occupied'] as bool?) ?? false,
         note: m['note'] as String?,
+        requestedByMe: (m['requested_by_me'] as bool?) ?? false,
       );
 }
 
@@ -170,6 +176,18 @@ class TurfService {
     });
     return res;
   }
+
+  /// "Bu saati istiyorum" — bağlayıcı değil, sahanın yöneticilerine bildirim
+  /// gider. Aynı kişi aynı hücreye tekrar dokunursa ikinci bir bildirim
+  /// gitmez (sunucu tarafında sessizce yutulur).
+  Future<void> requestSlot({
+    required String fieldId,
+    required DateTime startsAt,
+  }) =>
+      _c.rpc<void>('request_turf_slot', params: {
+        'p_field': fieldId,
+        'p_starts_at': startsAt.toUtc().toIso8601String(),
+      });
 }
 
 // =============================== Provider'lar ==============================

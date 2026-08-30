@@ -133,31 +133,91 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
     final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
     final freeColor = const Color(0xFF3FB950);
     final busyColor = const Color(0xFFD64545);
+    final requestedColor = const Color(0xFFD9860B);
+
+    final VoidCallback? onTap;
+    if (isManager) {
+      onTap = _busy ? null : () => _toggle(s);
+    } else if (!s.occupied && !s.requestedByMe) {
+      onTap = _busy ? null : () => _request(s);
+    } else {
+      onTap = null;
+    }
+
+    final Color fg;
+    final String label;
+    if (s.occupied) {
+      fg = busyColor;
+      label = 'Dolu';
+    } else if (s.requestedByMe) {
+      fg = requestedColor;
+      label = 'İstendi';
+    } else {
+      fg = freeColor;
+      label = 'Boş';
+    }
 
     return GestureDetector(
-      onTap: (!isManager || _busy) ? null : () => _toggle(s),
+      onTap: onTap,
       child: Container(
         width: 68,
         padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: s.occupied
-              ? busyColor.withValues(alpha: .12)
-              : freeColor.withValues(alpha: .10),
+          color: fg.withValues(alpha: s.occupied || s.requestedByMe ? .12 : .10),
           borderRadius: BorderRadius.circular(11),
           border: Border.all(
-              color: s.occupied ? busyColor.withValues(alpha: .3) : line),
+              color: (s.occupied || s.requestedByMe)
+                  ? fg.withValues(alpha: .3)
+                  : line),
         ),
         child: Column(children: [
           Text(s.hourLabel,
-              style: jakarta(
-                  12.5, FontWeight.w800, s.occupied ? busyColor : ink)),
-          Text(s.occupied ? 'Dolu' : 'Boş',
-              style: jakarta(9.5, FontWeight.w700,
-                  s.occupied ? busyColor : freeColor)),
+              style: jakarta(12.5, FontWeight.w800,
+                  (s.occupied || s.requestedByMe) ? fg : ink)),
+          Text(label, style: jakarta(9.5, FontWeight.w700, fg)),
         ]),
       ),
     );
+  }
+
+  /// Bağlayıcı bir rezervasyon değil — sahanın yöneticilerine "biri bu
+  /// saati istiyor" diye haber gider, son söz hâlâ yönetici.
+  Future<void> _request(TurfSlot s) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text('${s.hourLabel} için haber ver'),
+        content: Text(
+            'Saha yöneticisine bu saati istediğin bildirilir. Rezervasyon '
+            'kesinleşmiş sayılmaz${(_field.phone ?? '').isNotEmpty ? ' — '
+                'kesinleştirmek için ${_field.phone} numarasını da ara' : ''}.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Haber ver'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(turfServiceProvider)
+          .requestSlot(fieldId: _field.id, startsAt: s.startsAt);
+      ref.invalidate(turfOccupancyGridProvider(_field.id));
+      _say('İsteğin gönderildi.');
+    } catch (e) {
+      _say('$e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
   }
 
   Future<void> _toggle(TurfSlot s) async {

@@ -290,19 +290,31 @@ ayrı bir `status` sütunu da yok: **satır varsa dolu, yoksa boş.**
 zaten amaç-bağımsız tasarlanmıştı, dokunulmadı.
 
 **Tek ekran, iki rol.** Ayrı bir "Saha Yönetimi" ekranı yok: `/halisahalar`
-→ `/halisaha` courts'un kort listesi/ayrıntısı deseninin aynısı, yönetici
-olan kişi (`SwanAccess.isTurfManagerOf`) aynı ekranda fazladan bir dokunma
-kontrolü görüyor.
+listesinden ayrıntıya `Navigator.push` ile geçiliyor (courts'un kort
+listesi/ayrıntısı deseninin aynısı — ayrıntı ekranının da adlı bir rotası
+yok, ikisi de tutarlı). Yönetici olan kişi (`SwanAccess.isTurfManagerOf`)
+aynı ekranda fazladan bir dokunma kontrolü görüyor.
 
 Sahalar courts gibi **elle ekleniyor** (konsol), yöneticisi de yalnızca
 platform yöneticisinin ürettiği davet koduyla atanıyor — işletme kendi
 kaydolamıyor.
 
-Migration'lar **0037'ye kadar canlıda kurulu** (2026-08-30 doğrulandı):
-mali defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı,
-malzeme ilanları, halka açık kortlar (çift dokunuş düzeltmesiyle) ve kort
-partneri arama şemada var. `0038_turf_venues.sql` **henüz sürülmedi.** Yeni
-migration yazarken numarayı 0039'dan sürdür.
+**"Bu saati istiyorum" bildirimi (0039) — bağlayıcı rezervasyon değil.**
+Gerçek boşluk şuydu: müşteri telefonla arar, görevli sözlü "tamam" der,
+uygulamayı işaretlemeyi unutur, pano bayatlar. Çözüm iki taraflı kilitli
+rezervasyon değil: `request_turf_slot` RPC'si sahanın yöneticilerine "biri
+bu saati istiyor" bildirimi atıyor (`turf_slot_requests` ile aynı kişi aynı
+hücreye tekrar dokununca ikinci bildirim gitmiyor), yönetici telefonla
+konuşup anlaşırsa **zaten var olan** `markOccupied` akışıyla kendisi
+işaretliyor. Uygulama hiçbir zaman "onaylandı" demiyor — bu bilinçli:
+iki taraflı kilit courts'taki yarış durumu problemini gerçek parayla geri
+açardı.
+
+Migration'lar **0038'e kadar canlıda kurulu** (2026-08-30 doğrulandı): mali
+defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı, malzeme
+ilanları, halka açık kortlar (çift dokunuş düzeltmesiyle), kort partneri
+arama ve halı saha doluluk panosu şemada var. `0039_turf_slot_requests.sql`
+**henüz sürülmedi.** Yeni migration yazarken numarayı 0040'tan sürdür.
 
 Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri arama ve
 halı saha doluluk panosunu içeriyor.
@@ -329,6 +341,11 @@ halı saha doluluk panosunu içeriyor.
 - **Halı saha doluluk panosu** — şema canlıda (0038), web dağıtıldı. Ama
   **konsoldan hiç saha eklenmedi**; saha eklenip yönetici daveti redeem
   edilmeden ekranın düzenleme tarafı hiç test edilemez.
+- **"Bu saati istiyorum" bildirimi** — kod ve testler hazır,
+  `0039_turf_slot_requests.sql` **canlıda çalıştırılmadı**, mobil derleme
+  dağıtılmadı. `turf_occupancy_grid` dönüş tipini değiştirdiği için bu
+  migration önce fonksiyonu `drop` ediyor — sırayla (0038 sonra 0039)
+  çalıştırılmalı.
 
 ### Dış bağımlılık bekleyen
 

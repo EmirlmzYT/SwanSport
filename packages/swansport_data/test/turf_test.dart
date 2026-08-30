@@ -130,4 +130,34 @@ void main() {
       expect(SwanAccess.none.isTurfManagerOf('f1'), isFalse);
     });
   });
+
+  group('TurfSlot.requestedByMe', () {
+    test('fromMap requested_by_me alanını okur', () {
+      final s = TurfSlot.fromMap({
+        'starts_at': '2026-08-30T18:00:00Z',
+        'occupied': false,
+        'requested_by_me': true,
+      });
+      expect(s.requestedByMe, isTrue);
+    });
+
+    test('alan eksikse istenmemiş sayılır', () {
+      final s = TurfSlot.fromMap({
+        'starts_at': '2026-08-30T18:00:00Z',
+        'occupied': false,
+      });
+      expect(s.requestedByMe, isFalse);
+    });
+
+    test('dolu bir hücre aynı zamanda istenmiş de olabilir — biri istedi, '
+        'yönetici telefonla anlaşıp işaretledi', () {
+      final s = TurfSlot.fromMap({
+        'starts_at': '2026-08-30T18:00:00Z',
+        'occupied': true,
+        'requested_by_me': true,
+      });
+      expect(s.occupied, isTrue);
+      expect(s.requestedByMe, isTrue);
+    });
+  });
 }
