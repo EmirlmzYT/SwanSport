@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../features/demo/demo_role.dart';
 import 'premium.dart';
+import 'recent_modules.dart';
 
 /// Modül kataloğu ve alttan açılan başlatıcı menü.
 ///
@@ -38,15 +39,15 @@ const List<(IconData, String, String, int)> kAllModules = [
       0xFF008C95),
   (Icons.group_add_rounded, 'Başvurular', '/basvurular', 0xFF10B981),
   (Icons.person_rounded, 'Profilim', '/profil', 0xFF7C5CE6),
-  (Icons.home_rounded, 'Panel', '/dashboard', 0xFF008C95),
+  (Icons.home_rounded, 'Antrenör Paneli', '/dashboard', 0xFF008C95),
   (Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command', 0xFF0EA5E9),
   (Icons.groups_rounded, 'Sporcular', '/athletes', 0xFF008C95),
   (Icons.calendar_month_rounded, 'Takvim', '/calendar', 0xFF3B82F6),
-  (Icons.checklist_rounded, 'Yoklama', '/attendance', 0xFF10B981),
-  (Icons.fact_check_rounded, 'Devam Durumu', '/devam-durumu', 0xFF10B981),
+  (Icons.checklist_rounded, 'Yoklama Al', '/attendance', 0xFF10B981),
+  (Icons.fact_check_rounded, 'Devam Geçmişi', '/devam-durumu', 0xFF10B981),
   (Icons.campaign_rounded, 'Duyurular', '/announcements', 0xFFFF7A59),
   (Icons.bar_chart_rounded, 'Performans', '/performance-analytics', 0xFF7C5CE6),
-  (Icons.payments_rounded, 'Aidat', '/finans', 0xFFE9B949),
+  (Icons.payments_rounded, 'Aidat Yönetimi', '/finans', 0xFFE9B949),
   (Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle', 0xFFC2410C),
   (Icons.receipt_long_rounded, 'Aidatlarım', '/aidatlarim', 0xFF10B981),
   (Icons.volunteer_activism_rounded, 'Bağış', '/bagis', 0xFFFF7A59),
@@ -72,41 +73,52 @@ const List<(IconData, String, String, int)> kAllModules = [
 /// yerine kullanıcının aradığı şeyi öbek başlığından bulmasını sağlar.
 /// Burada adı geçmeyen rota "Diğer" öbeğine düşer.
 const Map<String, String> kModuleGroup = {
+  // Spor yapmanın kendisi: nerede, kiminle, hangi malzemeyle.
+  // Bu beşi tek bir kullanıcı yolculuğu — akış/mesaj kalabalığının arasına
+  // dağıtıldıklarında hiçbiri bulunamıyordu.
+  '/kortlar': 'Spor Yap',
+  '/halisahalar': 'Spor Yap',
+  '/partner-ara': 'Spor Yap',
+  '/oyuncu-aranan': 'Spor Yap',
+  '/ilanlar': 'Spor Yap',
+
   '/akis': 'Sosyal',
   '/ara': 'Sosyal',
   '/kesfet': 'Sosyal',
-  '/ilanlar': 'Sosyal',
-  '/kortlar': 'Sosyal',
-  '/oyuncu-aranan': 'Sosyal',
-  '/partner-ara': 'Sosyal',
-  '/halisahalar': 'Sosyal',
-  '/organizasyonlar': 'Sosyal',
-  '/bildirimler': 'Sosyal',
-  '/mesajlar': 'Sosyal',
   '/topluluklar': 'Sosyal',
-  '/profil': 'Sosyal',
-  '/dashboard': 'Kulüp',
-  '/home-command': 'Kulüp',
-  '/athletes': 'Kulüp',
-  '/teams': 'Kulüp',
-  '/calendar': 'Kulüp',
-  '/attendance': 'Kulüp',
-  '/devam-durumu': 'Kulüp',
-  '/announcements': 'Kulüp',
-  '/performance-analytics': 'Kulüp',
-  '/finans': 'İşletme',
-  '/gider-ekle': 'İşletme',
-  '/aidatlarim': 'Kişisel',
-  '/bagis': 'Sosyal',
-  '/medical-center': 'İşletme',
-  '/reports': 'İşletme',
-  '/documents': 'İşletme',
-  '/facilities': 'İşletme',
-  '/dogrulama': 'Hesap',
-  '/veli-bagla': 'Hesap',
-  '/basvurular': 'Hesap',
-  '/gizlilik': 'Hesap',
-  '/settings': 'Hesap',
+  '/organizasyonlar': 'Sosyal',
+  '/mesajlar': 'Sosyal',
+  '/bildirimler': 'Sosyal',
+
+  '/dashboard': 'Kulübüm',
+  '/home-command': 'Kulübüm',
+  '/athletes': 'Kulübüm',
+  '/teams': 'Kulübüm',
+  '/calendar': 'Kulübüm',
+  '/attendance': 'Kulübüm',
+  '/devam-durumu': 'Kulübüm',
+  '/announcements': 'Kulübüm',
+  '/performance-analytics': 'Kulübüm',
+
+  '/finans': 'Kulüp İşleri',
+  '/gider-ekle': 'Kulüp İşleri',
+  '/medical-center': 'Kulüp İşleri',
+  '/reports': 'Kulüp İşleri',
+  '/documents': 'Kulüp İşleri',
+  '/facilities': 'Kulüp İşleri',
+
+  // Kendi hesabına, kendi parana, kendi belgene dair olanlar.
+  // `/aidatlarim` burada, `/finans` (kulübün aidat yönetimi) yukarıda —
+  // adları benziyor ama biri senin borcun, öbürü kulübün defteri.
+  '/profil': 'Hesabım',
+  '/aidatlarim': 'Hesabım',
+  '/bagis': 'Hesabım',
+  '/dogrulama': 'Hesabım',
+  '/veli-bagla': 'Hesabım',
+  '/basvurular': 'Hesabım',
+  '/gizlilik': 'Hesabım',
+  '/settings': 'Hesabım',
+
   '/onay-paneli': 'Yönetim',
   '/haber-kaynaklari': 'Yönetim',
   '/federasyon-yetkili': 'Yönetim',
@@ -114,11 +126,11 @@ const Map<String, String> kModuleGroup = {
 };
 
 const List<String> kModuleGroupOrder = [
+  'Spor Yap',
   'Sosyal',
-  'Kişisel',
-  'Kulüp',
-  'İşletme',
-  'Hesap',
+  'Kulübüm',
+  'Kulüp İşleri',
+  'Hesabım',
   'Yönetim',
   'Diğer',
 ];
@@ -199,37 +211,13 @@ void showModuleLauncher(BuildContext context) {
             const _ClubSwitcherRow(),
             const SizedBox(height: 6),
 
-            // Öbek öbek, tek renk. Sayfa uzarsa sheet içinde kayar.
             Flexible(
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    for (final g in groupModules(modules)) ...[
-                      moduleGroupLabel(g.$1),
-                      GridView.count(
-                        crossAxisCount: 4,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        mainAxisSpacing: 16,
-                        crossAxisSpacing: 8,
-                        childAspectRatio: 0.86,
-                        children: [
-                          for (final m in g.$2)
-                            ModuleTile(
-                              icon: m.$1,
-                              label: m.$2,
-                              onTap: () {
-                                Navigator.of(sheetContext).pop();
-                                Navigator.of(context).pushNamed(m.$3);
-                              },
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 20),
-                    ],
-                  ],
-                ),
+              child: _LauncherBody(
+                modules: modules,
+                onOpen: (route) {
+                  Navigator.of(sheetContext).pop();
+                  Navigator.of(context).pushNamed(route);
+                },
               ),
             ),
 
@@ -380,4 +368,185 @@ class _ClubSwitcherRow extends ConsumerWidget {
       ),
     );
   }
+}
+
+
+/// Türkçe duyarsız arama için harf katlama.
+///
+/// `'İlanlar'.toLowerCase()` Dart'ta birleşik noktalı bir `i` üretiyor ve
+/// kullanıcının yazdığı düz `ilan` ile eşleşmiyor — Türkçe'de bu klasik
+/// tuzak. Burada İ/I/ı hepsi düz `i`'ye katlanıyor, böylece "halı" arayan da
+/// "hali" arayan da Halı Sahalar'ı buluyor.
+String foldTr(String input) {
+  const map = {
+    'İ': 'i', 'I': 'i', 'ı': 'i',
+    'Ş': 's', 'ş': 's',
+    'Ğ': 'g', 'ğ': 'g',
+    'Ü': 'u', 'ü': 'u',
+    'Ö': 'o', 'ö': 'o',
+    'Ç': 'c', 'ç': 'c',
+  };
+  final buf = StringBuffer();
+  for (final ch in input.split('')) {
+    buf.write(map[ch] ?? ch.toLowerCase());
+  }
+  return buf.toString();
+}
+
+/// Modülleri arama metnine göre süzer. Boş sorgu hepsini döndürür.
+List<(IconData, String, String, int)> filterModules(
+  List<(IconData, String, String, int)> modules,
+  String query,
+) {
+  final q = foldTr(query.trim());
+  if (q.isEmpty) return modules;
+  return modules.where((m) => foldTr(m.$2).contains(q)).toList();
+}
+
+/// Menünün gövdesi: arama + son kullanılanlar + öbeklenmiş ızgara.
+///
+/// Ayrı bir widget çünkü arama metni durum tutuyor; `showModuleLauncher`
+/// bir fonksiyon ve durum tutamaz.
+class _LauncherBody extends StatefulWidget {
+  const _LauncherBody({required this.modules, required this.onOpen});
+
+  final List<(IconData, String, String, int)> modules;
+  final void Function(String route) onOpen;
+
+  @override
+  State<_LauncherBody> createState() => _LauncherBodyState();
+}
+
+class _LauncherBodyState extends State<_LauncherBody> {
+  final _search = TextEditingController();
+  String _query = '';
+  List<String> _recent = const [];
+
+  @override
+  void initState() {
+    super.initState();
+    recentRoutes().then((r) {
+      if (mounted) setState(() => _recent = r);
+    });
+  }
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  void _open(String route) {
+    // Sırayı kaydet, ama açılışı bekletme — kayıt başarısız olsa bile
+    // kullanıcı ekrana gitmeli.
+    pushRecent(route);
+    widget.onOpen(route);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final field = isDark ? const Color(0xFF1A2537) : const Color(0xFFF4F7FA);
+
+    final filtered = filterModules(widget.modules, _query);
+    final searching = _query.trim().isNotEmpty;
+
+    // Son kullanılanlar yalnızca kullanıcının hâlâ erişebildiği modüller —
+    // rolü değişmişse eski kısayol ölü bağlantı olmamalı.
+    final byRoute = {for (final m in widget.modules) m.$3: m};
+    final recentModules = [
+      for (final r in _recent)
+        if (byRoute[r] != null) byRoute[r]!,
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        TextField(
+          controller: _search,
+          onChanged: (v) => setState(() => _query = v),
+          style: jakarta(13.5, FontWeight.w600, ink),
+          decoration: InputDecoration(
+            hintText: 'Modül ara',
+            hintStyle:
+                jakarta(13.5, FontWeight.w600, SwanColors.textSecondary),
+            prefixIcon:
+                const Icon(Icons.search_rounded, size: 19, color: kTeal),
+            suffixIcon: searching
+                ? IconButton(
+                    icon: const Icon(Icons.close_rounded, size: 18),
+                    onPressed: () {
+                      _search.clear();
+                      setState(() => _query = '');
+                    },
+                  )
+                : null,
+            filled: true,
+            fillColor: field,
+            isDense: true,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(13),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Flexible(
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (searching) ...[
+                  if (filtered.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 28),
+                      child: Center(
+                        child: Text('Eşleşen modül yok',
+                            style: jakarta(13, FontWeight.w600,
+                                SwanColors.textSecondary)),
+                      ),
+                    )
+                  else
+                    // Aramada öbek başlıkları gösterilmiyor: sonuç zaten
+                    // az, başlıklar gürültü olurdu.
+                    _grid(filtered),
+                ] else ...[
+                  if (recentModules.isNotEmpty) ...[
+                    moduleGroupLabel('Son kullandıkların'),
+                    _grid(recentModules),
+                    const SizedBox(height: 20),
+                  ],
+                  for (final g in groupModules(widget.modules)) ...[
+                    moduleGroupLabel(g.$1),
+                    _grid(g.$2),
+                    const SizedBox(height: 20),
+                  ],
+                ],
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _grid(List<(IconData, String, String, int)> items) => GridView.count(
+        crossAxisCount: 4,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 8,
+        childAspectRatio: 0.86,
+        children: [
+          for (final m in items)
+            ModuleTile(
+              icon: m.$1,
+              label: m.$2,
+              onTap: () => _open(m.$3),
+            ),
+        ],
+      );
 }

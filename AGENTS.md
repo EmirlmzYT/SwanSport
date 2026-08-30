@@ -103,6 +103,16 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   `meters_between` ile veriliyor. `court_service.dart` içindeki Dart kopyası
   yalnızca listeyi yakınlığa göre **sıralamak** için.
 
+**Modül menüsü**
+- Menüye modül eklerken `kAllModules` **ve** `kModuleGroup`'a birlikte satır
+  ekle (`app/widgets/module_launcher.dart`). Yalnızca birincisine eklersen
+  modül sessizce "Diğer" öbeğine düşer ve kimse fark etmez — bu gerçekten
+  yaşandı, dört modül böyle yanlış yere düştü. `module_launcher_test.dart`
+  artık bunu yakalıyor, testi silme.
+- Aramada `foldTr` kullanılıyor: `'İlanlar'.toLowerCase()` Dart'ta birleşik
+  noktalı `i` üretiyor ve kullanıcının yazdığı `ilan` ile **eşleşmiyor**.
+  Türkçe metinle eşleştirme yapan her yerde bu tuzak var.
+
 **Flutter / dağıtım**
 - `flutter` alt çizgiyle başlayan dosyaları (`web/_redirects`) `build/web`'e
   **kopyalamaz** — dağıtımda elle kopyalanır
@@ -123,13 +133,13 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 62 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 84 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 105 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 129 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
