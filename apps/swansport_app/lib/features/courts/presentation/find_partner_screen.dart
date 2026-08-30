@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_tabs.dart';
 
 /// Kort partneri arama.
 ///
@@ -14,13 +15,19 @@ import '../../../app/widgets/premium.dart';
 ///
 /// AYRILABİLİRLİK: kulüp kavramı geçmez.
 class FindPartnerScreen extends ConsumerStatefulWidget {
-  const FindPartnerScreen({super.key});
+  const FindPartnerScreen({this.initialTab = 0, super.key});
+
+  /// 0 = Partner ara, 1 = Oyuncu aranan oyunlar.
+  ///
+  /// Eski `/oyuncu-aranan` rotası korunuyor ve ikinci sekmeye açılıyor.
+  final int initialTab;
 
   @override
   ConsumerState<FindPartnerScreen> createState() => _FindPartnerScreenState();
 }
 
 class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
+  late int _tab = widget.initialTab;
   String? _selectedSport;
   bool _busy = false;
 
@@ -42,45 +49,196 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       appBar: AppBar(
         backgroundColor: bg,
         elevation: 0,
-        title: Text('Partner Ara', style: sora(19, FontWeight.w800, ink)),
+        title: Text('Partner Bul', style: sora(19, FontWeight.w800, ink)),
       ),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref.invalidate(myOpenPartnerRequestProvider);
-          ref.invalidate(incomingPartnerPingsProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 8, 20, 24),
-          children: [
-            if (!verified) _verifyBanner(isDark, ink),
-
-            _sectionTitle(ink, 'Gelen istekler'),
-            const SizedBox(height: 8),
-            inbox.when(
-              loading: premiumLoading,
-              error: (e, _) => premiumError(context, '$e'),
-              data: (pings) => pings.isEmpty
-                  ? _emptyLine('Şu an sana gelen bir istek yok.')
-                  : Column(
-                      children: [
-                        for (final p in pings) _pingCard(isDark, ink, p),
-                      ],
-                    ),
-            ),
-
-            const SizedBox(height: 22),
-            _sectionTitle(ink, 'Benim isteğim'),
-            const SizedBox(height: 8),
-            myRequest.when(
-              loading: premiumLoading,
-              error: (e, _) => premiumError(context, '$e'),
-              data: (req) => req == null
-                  ? _seekForm(context, isDark, ink, verified, sports, interests)
-                  : _myRequestCard(isDark, ink, req),
-            ),
-          ],
+      body: Column(children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          child: SwanSegmentedTabs(
+            labels: const ['Partner ara', 'Oyuncu aranan'],
+            selected: _tab,
+            onSelect: (i) => setState(() => _tab = i),
+          ),
         ),
+        // IndexedStack: sekme değişince doldurulmuş form (seçili branş)
+        // kaybolmasın diye gövde canlı tutuluyor.
+        Expanded(
+          child: IndexedStack(
+            index: _tab,
+            children: [
+              _seekTab(isDark, ink, verified, sports, interests, myRequest, inbox),
+              _openSlotsTab(isDark, ink, verified),
+            ],
+          ),
+        ),
+      ]),
+    );
+  }
+
+  // ------------------------------- sekmeler --------------------------------
+
+  Widget _seekTab(
+    bool isDark,
+    Color ink,
+    bool verified,
+    AsyncValue<List<CityRow>> sports,
+    AsyncValue<Set<String>> interests,
+    AsyncValue<MyPartnerRequest?> myRequest,
+    AsyncValue<List<IncomingPartnerPing>> inbox,
+  ) {
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(myOpenPartnerRequestProvider);
+        ref.invalidate(incomingPartnerPingsProvider);
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        children: [
+          if (!verified) _verifyBanner(isDark, ink),
+          _sectionTitle(ink, 'Gelen istekler'),
+          const SizedBox(height: 8),
+          inbox.when(
+            loading: premiumLoading,
+            error: (e, _) => premiumError(context, '$e'),
+            data: (pings) => pings.isEmpty
+                ? _emptyLine('Şu an sana gelen bir istek yok.')
+                : Column(children: [
+                    for (final p in pings) _pingCard(isDark, ink, p),
+                  ]),
+          ),
+          const SizedBox(height: 22),
+          _sectionTitle(ink, 'Benim isteğim'),
+          const SizedBox(height: 8),
+          myRequest.when(
+            loading: premiumLoading,
+            error: (e, _) => premiumError(context, '$e'),
+            data: (req) => req == null
+                ? _seekForm(context, isDark, ink, verified, sports, interests)
+                : _myRequestCard(isDark, ink, req),
+          ),
+        ],
       ),
+    );
+  }
+
+  Widget _openSlotsTab(bool isDark, Color ink, bool verified) {
+    final async = ref.watch(openSlotsProvider(null));
+    return async.when(
+      loading: premiumLoading,
+      error: (e, _) => premiumError(context, '$e'),
+      data: (slots) {
+        if (slots.isEmpty) {
+          return premiumEmpty(
+            context,
+            icon: Icons.group_add_rounded,
+            title: 'Şu an oyuncu arayan yok',
+            subtitle:
+                'Sen saat alırken "oyuncu arıyorum" dersen burada görünürsün.',
+          );
+        }
+        return RefreshIndicator(
+          onRefresh: () async => ref.invalidate(openSlotsProvider(null)),
+          child: ListView.builder(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            itemCount: slots.length,
+            itemBuilder: (_, i) =>
+                _openSlotCard(isDark, ink, slots[i], verified),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _openSlotCard(bool isDark, Color ink, OpenSlot s, bool verified) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+
+    final hour = '${s.startsAt.hour.toString().padLeft(2, '0')}:'
+        '${s.startsAt.minute.toString().padLeft(2, '0')}';
+    final where = [
+      if ((s.venue ?? '').isNotEmpty) s.venue!,
+      if ((s.cityName ?? '').isNotEmpty) s.cityName!,
+    ].join(' · ');
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 11),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: surf,
+        borderRadius: BorderRadius.circular(17),
+        border: Border.all(color: line),
+      ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Row(children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$hour · ${s.courtName}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: jakarta(14, FontWeight.w800, ink)),
+                const SizedBox(height: 3),
+                Text([s.ownerName, if (where.isNotEmpty) where].join(' · '),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: jakarta(
+                        11.5, FontWeight.w600, SwanColors.textSecondary)),
+              ],
+            ),
+          ),
+          PremiumStatusChip(
+              label: '${s.remaining} kişi',
+              color: const Color(0xFFD9860B),
+              icon: Icons.group_add_rounded),
+        ]),
+        const SizedBox(height: 12),
+        GestureDetector(
+          onTap: (s.requested || !verified)
+              ? null
+              : () async {
+                  try {
+                    await ref.read(courtServiceProvider).requestJoin(s.slotId);
+                    ref.invalidate(openSlotsProvider(null));
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text(
+                              'İsteğin gönderildi. Sahibi onaylayınca haber vereceğiz.')));
+                    }
+                  } catch (e) {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context)
+                          .showSnackBar(SnackBar(content: Text('$e')));
+                    }
+                  }
+                },
+          child: Container(
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              gradient: (s.requested || !verified)
+                  ? null
+                  : const LinearGradient(colors: [kTealBright, kTeal]),
+              borderRadius: BorderRadius.circular(12),
+              border: (s.requested || !verified)
+                  ? Border.all(color: line)
+                  : null,
+            ),
+            child: Text(
+                s.requested
+                    ? 'İstek gönderildi'
+                    : (verified
+                        ? 'Katılmak istiyorum'
+                        : 'Önce kortta doğrulanmalısın'),
+                style: jakarta(
+                    12.5,
+                    FontWeight.w800,
+                    (s.requested || !verified)
+                        ? SwanColors.textSecondary
+                        : Colors.white)),
+          ),
+        ),
+      ]),
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/quick_actions.dart';
 import '../../../demo/demo_role.dart';
 
 /// Komuta Merkezi (Ekran 0) — Supabase verisine bağlı, premium (v3).
@@ -128,15 +129,27 @@ class HomeCommandCenterScreen extends ConsumerWidget {
                   ],
 
                   _label('HIZLI İŞLEMLER', ink),
-                  Row(children: [
-                    _quick(context, isDark, Icons.checklist_rounded, 'Yoklama',
-                        '/attendance'),
-                    const SizedBox(width: 10),
-                    _quick(context, isDark, Icons.campaign_rounded, 'Duyuru',
-                        '/announcements'),
-                    const SizedBox(width: 10),
-                    _quick(context, isDark, Icons.groups_rounded, 'Kadro',
-                        '/athletes'),
+                  const QuickActions(actions: [
+                    QuickAction(
+                        icon: Icons.checklist_rounded,
+                        label: 'Yoklama',
+                        route: '/attendance'),
+                    QuickAction(
+                        icon: Icons.campaign_rounded,
+                        label: 'Duyuru',
+                        route: '/announcements'),
+                    QuickAction(
+                        icon: Icons.groups_rounded,
+                        label: 'Kadro',
+                        route: '/athletes'),
+                    QuickAction(
+                        icon: Icons.calendar_month_rounded,
+                        label: 'Takvim',
+                        route: '/calendar'),
+                    QuickAction(
+                        icon: Icons.bar_chart_rounded,
+                        label: 'Performans',
+                        route: '/performance-analytics'),
                   ]),
                 ],
               ),
@@ -262,36 +275,6 @@ class HomeCommandCenterScreen extends ConsumerWidget {
     );
   }
 
-  Widget _quick(BuildContext context, bool isDark, IconData icon, String label,
-      String route) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, route),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          decoration: BoxDecoration(
-              color: surf,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: line)),
-          child: Column(children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                  color: kTeal.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(12)),
-              child: Icon(icon, color: kTeal, size: 20),
-            ),
-            const SizedBox(height: 8),
-            Text(label, style: jakarta(11.5, FontWeight.w700, ink)),
-          ]),
-        ),
-      ),
-    );
-  }
 
 }
 

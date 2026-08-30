@@ -103,6 +103,31 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   `meters_between` ile veriliyor. `court_service.dart` içindeki Dart kopyası
   yalnızca listeyi yakınlığa göre **sıralamak** için.
 
+**Birleşen sayfalar — eski rotalar korunur**
+- Üç sayfa sekmeli tek sayfaya birleşti: **Sahalar** (`/kortlar` +
+  `/halisahalar`), **Mesajlar** (`/mesajlar` + `/topluluklar`), **Partner
+  Bul** (`/partner-ara` + `/oyuncu-aranan`). **Eski rotaların hepsi hâlâ
+  tanımlı** ve doğru sekmeye açılıyor (`initialTab`) — `push_route`'un
+  ürettiği bildirim derin bağlantıları bunlara dayanıyor, kaldırma.
+  `merged_routes_test.dart` bu sözleşmeyi koruyor.
+- Gizlilik menüden çıkarıldı ama rotası duruyor: Ayarlar'ın içinden
+  açılıyor (`club_settings_screen`), üst düzey menüde ayrı giriş gereksizdi.
+- Sekme çubuğu için `app/widgets/swan_tabs.dart` kullan, yerel kopya yazma:
+  `SwanSegmentedTabs` (2–3 kısa etiket) ve `SwanPillTabs` (çok etiket +
+  rozet). **İki stil bilerek ayrı** — tek stile zorlamak `finance_screen`'in
+  dört sekmesini ve rozetini bozardı.
+- Ekranlar arası kısayol için `app/widgets/quick_actions.dart`. Uygulama bir
+  menü kataloğu gibi çalışıyordu; bu bileşen "sayfa sayfayı açar" akışını
+  taşıyor.
+
+**Bilerek birleştirilmeyen ikisi**
+- **Yoklama Al + Devam Geçmişi:** biri yazma akışı (`_marks` state'i, kendi
+  kaydet barı), öbürü salt okuma. Sekme değiştirmek **işaretlenmiş ama
+  kaydedilmemiş yoklamayı yakar.**
+- **Antrenör Paneli + Komuta Merkezi:** ikisi aynı veriyi gösteriyor ama
+  `coach_dashboard` aynı zamanda rol yönlendiricisi (sporcu/veli/üye için
+  başka ekran döndürüyor). Doğrusu sekme değil, birini silmek — ayrı karar.
+
 **Ekran kabuğu (üst bar / alt bar)**
 - **Kural:** üst sağ = gelen kutusu (zil + mesaj, ikisi de rozetli ve
   tıklanır, `app/widgets/inbox_actions.dart`), alt bar = bölümler arası
@@ -152,7 +177,7 @@ cd packages/swansport_data && flutter test     # 84 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 135 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 139 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`

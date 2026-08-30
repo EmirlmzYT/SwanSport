@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import 'edit_profile_sheet.dart';
+import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
 
 /// Sohbet listesi — gruplar ve birebir sohbetler tek akışta (WhatsApp gibi).
@@ -12,7 +15,13 @@ import 'widgets/social_widgets.dart';
 /// durması bilinçli: kişi bu ekranda "kiminle konuşayım" modunda oluyor,
 /// grubu ayrı bir kutuya koymak onu görünmez kılıyordu.
 class MessagesScreen extends ConsumerStatefulWidget {
-  const MessagesScreen({super.key});
+  const MessagesScreen({this.initialTab = 0, super.key});
+
+  /// 0 = Sohbetler, 1 = Topluluklar.
+  ///
+  /// Eski `/topluluklar` rotası korunuyor ve ikinci sekmeye açılıyor —
+  /// bildirimlerdeki derin bağlantılar kırılmasın diye.
+  final int initialTab;
 
   @override
   ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
@@ -30,6 +39,8 @@ class _Entry {
 }
 
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
+  late int _tab = widget.initialTab;
+
   @override
   void initState() {
     super.initState();
@@ -78,22 +89,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    Text('Sohbetler', style: sora(22, FontWeight.w800, ink)),
+                    Text('Mesajlar', style: sora(22, FontWeight.w800, ink)),
                     const Spacer(),
-                    // Katılabileceği toplulukları keşfet
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/topluluklar'),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.forum_outlined, size: 17, color: ink),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
                     GestureDetector(
                       onTap: () => Navigator.pushNamed(context, '/ara'),
                       child: Container(
@@ -108,6 +105,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     ),
                   ]),
                 ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: SwanSegmentedTabs(
+                    labels: const ['Sohbetler', 'Topluluklar'],
+                    selected: _tab,
+                    onSelect: (i) => setState(() => _tab = i),
+                  ),
+                ),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -115,12 +120,17 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                       ref.invalidate(communityListProvider);
                       await ref.read(conversationsProvider.future);
                     },
-                    child: dms.when(
-                      loading: () => ListView(children: [premiumLoading()]),
-                      error: (e, _) =>
-                          ListView(children: [premiumError(context, '$e')]),
-                      data: (list) => _list(isDark, list, groups),
-                    ),
+                    // Sohbetler = katıldığın gruplar + birebir mesajlar.
+                    // Topluluklar = katılabileceklerin tamamı.
+                    child: _tab == 0
+                        ? dms.when(
+                            loading: () =>
+                                ListView(children: [premiumLoading()]),
+                            error: (e, _) => ListView(
+                                children: [premiumError(context, '$e')]),
+                            data: (list) => _list(isDark, list, groups),
+                          )
+                        : _communitiesTab(isDark),
                   ),
                 ),
               ],
@@ -332,7 +342,191 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       ),
     );
   }
+
+  // --------------------------- Topluluklar sekmesi --------------------------
+  //
+  // Sohbetler sekmesi yalnızca KATILDIĞIN grupları gösteriyor
+  // (`groups.where((g) => g.joined)`); bu sekme katılabileceklerin tamamını
+  // listeliyor. İkisi aynı `communityListProvider`'ı okuyor, farkları süzgeç.
+
+  Widget _communitiesTab(bool isDark) {
+    final async = ref.watch(communityListProvider);
+    return async.when(
+      loading: () => ListView(children: [premiumLoading()]),
+      error: (e, _) => ListView(children: [premiumError(context, '$e')]),
+      data: (list) {
+        if (list.isEmpty) {
+          return ListView(
+            padding: const EdgeInsets.fromLTRB(20, 30, 20, 132),
+            children: [_emptyState(isDark)],
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
+          itemCount: list.length,
+          itemBuilder: (_, i) => _communityTile(isDark, list[i]),
+        );
+      },
+    );
+  }
+
+  Widget _emptyState(bool isDark) {
+    final uid = Supabase.instance.client.auth.currentUser?.id;
+    final me = uid == null
+        ? null
+        : ref.watch(socialProfileProvider(uid)).valueOrNull;
+    final hasCity = (me?.cityCode ?? '').isNotEmpty;
+
+    if (!hasCity) {
+      return Column(children: [
+        premiumEmpty(
+          context,
+          icon: Icons.location_city_rounded,
+          title: 'Şehrini seç',
+          subtitle:
+              'Topluluklar şehre göre kurulu. Şehrini seçince ilinin antrenör '
+              'grubuna otomatik katılırsın.',
+        ),
+        const SizedBox(height: 14),
+        Center(
+          child: GestureDetector(
+            onTap: () async {
+              if (me == null) return;
+              final saved = await showEditProfileSheet(context, me);
+              if (saved == true && mounted) {
+                ref.invalidate(socialProfileProvider(me.id));
+                await ref.read(communityServiceProvider).ensureMine();
+                ref.invalidate(communityListProvider);
+              }
+            },
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [kTealBright, kTeal]),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text('Şehrimi seç',
+                  style: jakarta(13, FontWeight.w800, Colors.white)),
+            ),
+          ),
+        ),
+      ]);
+    }
+
+    return premiumEmpty(
+      context,
+      icon: Icons.forum_outlined,
+      title: 'Topluluk yok',
+      subtitle:
+          'Topluluklar şimdilik doğrulanmış antrenörlere açık. Antrenör '
+          'kademeni doğrulattığında ilinin grubu burada görünür.',
+    );
+  }
+
+  Widget _communityTile(bool isDark, CommunityRow c) {
+    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+
+    return GestureDetector(
+      onTap: () {
+        if (!c.joined) {
+          _join(c);
+          return;
+        }
+        Navigator.pushNamed(
+            context, c.isFederation ? '/federasyon' : '/topluluk',
+            arguments: {'id': c.id, 'name': c.name});
+      },
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(13),
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: line),
+        ),
+        child: Row(children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
+              color: kTeal.withValues(alpha: .10),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+                c.isFederation ? Icons.campaign_rounded : Icons.forum_rounded,
+                size: 21,
+                color: kTeal),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(c.name, style: jakarta(13.5, FontWeight.w700, ink)),
+                const SizedBox(height: 3),
+                Text(
+                  c.joined
+                      ? (c.lastBody?.trim().isNotEmpty == true
+                          ? c.lastBody!
+                          : '${c.memberCount} üye · henüz mesaj yok')
+                      : 'Katılmak için dokun · ${c.memberCount} üye',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          if (!c.joined)
+            Text('Katıl', style: jakarta(12, FontWeight.w800, kTeal))
+          else
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              if (c.lastAt != null)
+                Text(shortAgo(c.lastAt!),
+                    style: jakarta(
+                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+              if (c.unread > 0) ...[
+                const SizedBox(height: 5),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  constraints: const BoxConstraints(minWidth: 20),
+                  decoration: BoxDecoration(
+                    color: kTeal,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(c.unread > 99 ? '99+' : '${c.unread}',
+                      textAlign: TextAlign.center,
+                      style: jakarta(10, FontWeight.w800, Colors.white)),
+                ),
+              ],
+            ]),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> _join(CommunityRow c) async {
+    try {
+      await ref.read(communityServiceProvider).join(c.id);
+      ref.invalidate(communityListProvider);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('${c.name} grubuna katıldın'),
+          backgroundColor: kTeal));
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text('Katılamadın: $e'),
+          backgroundColor: const Color(0xFFF43F5E)));
+    }
+  }
 }
+
 
 /// Birebir sohbet ekranı.
 class ChatScreen extends ConsumerStatefulWidget {
@@ -556,4 +750,5 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       ),
     );
   }
+
 }

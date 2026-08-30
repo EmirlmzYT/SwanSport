@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_tabs.dart';
 import '../../demo/demo_role.dart';
 import 'post_composer_sheet.dart';
 import 'widgets/feed_entry.dart';
@@ -36,7 +37,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
 
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final async =
@@ -137,18 +137,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 // Sekmeler
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF1A2537)
-                          : const Color(0xFFF1F5F8),
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: Row(children: [
-                      _segment('Takip', 0, ink, surf),
-                      _segment('Keşfet', 1, ink, surf),
-                    ]),
+                  child: SwanSegmentedTabs(
+                    labels: const ['Takip', 'Keşfet'],
+                    selected: _tab,
+                    onSelect: (i) => setState(() => _tab = i),
                   ),
                 ),
 
@@ -313,34 +305,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
   }
 
-  Widget _segment(String label, int i, Color ink, Color surf) {
-    final on = _tab == i;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _tab = i),
-        child: Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            color: on ? surf : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: on
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: .06),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    )
-                  ]
-                : null,
-          ),
-          child: Text(label,
-              style: jakarta(
-                  13, FontWeight.w800, on ? ink : SwanColors.textSecondary)),
-        ),
-      ),
-    );
-  }
 }
 
 /// Ödenmemiş aidat şeridi.

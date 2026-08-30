@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/quick_actions.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../athlete_workspace/presentation/widgets/athlete_profile_section.dart';
 import '../../clubs/presentation/club_apply_button.dart';
@@ -189,6 +190,26 @@ class ProfileScreen extends ConsumerWidget {
 
                       // Eylemler
                       _actions(context, ref, p, isDark, ink, surf, line),
+
+                      // Kişisel şeyler kendi sayfandan açılmalı — bunlar
+                      // için modül menüsüne dönmek gerekiyordu.
+                      if (p.isMe) ...[
+                        const SizedBox(height: 14),
+                        const QuickActions(actions: [
+                          QuickAction(
+                              icon: Icons.receipt_long_rounded,
+                              label: 'Aidatlarım',
+                              route: '/aidatlarim'),
+                          QuickAction(
+                              icon: Icons.folder_rounded,
+                              label: 'Belgelerim',
+                              route: '/documents'),
+                          QuickAction(
+                              icon: Icons.verified_user_rounded,
+                              label: 'Doğrulama',
+                              route: '/dogrulama'),
+                        ]),
+                      ],
 
                       // Künye bölümleri: sporcuysa başarılar, antrenörse
                       // kademe/kulüpler, kulüpse kadro.

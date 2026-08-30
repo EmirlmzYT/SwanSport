@@ -58,7 +58,7 @@ void main() {
     });
 
     test('noktasız ı ile noktalı i aynı sayılır', () {
-      expect(foldTr('Halı'), foldTr('Hali'));
+      expect(foldTr('Aranıyor'), foldTr('Araniyor'));
     });
 
     test('diğer Türkçe harfler katlanır', () {
@@ -77,9 +77,9 @@ void main() {
       expect(filterModules(kAllModules, '   ').length, kAllModules.length);
     });
 
-    test('"kort" yalnızca Kortlar\'ı bulur', () {
-      final r = filterModules(kAllModules, 'kort');
-      expect(r.map((m) => m.$3), contains('/kortlar'));
+    test('"partner" yalnızca Partner Ara\'yı bulur', () {
+      final r = filterModules(kAllModules, 'partner');
+      expect(r.map((m) => m.$3), contains('/partner-ara'));
       expect(r.length, 1);
     });
 
@@ -88,9 +88,10 @@ void main() {
       expect(r.map((m) => m.$3), contains('/ilanlar'));
     });
 
-    test('"hali" noktasız ı\'lı Halı Sahalar\'ı bulur', () {
-      final r = filterModules(kAllModules, 'hali');
-      expect(r.map((m) => m.$3), contains('/halisahalar'));
+    test('"aidatlarim" noktasız ı\'lı Aidatlarım\'ı bulur', () {
+      // Kullanıcı düz klavyeyle 'aidatlarim' yazıyor, etiket 'Aidatlarım'.
+      final r = filterModules(kAllModules, 'aidatlarim');
+      expect(r.map((m) => m.$3), contains('/aidatlarim'));
     });
 
     test('eşleşme yoksa boş liste', () {

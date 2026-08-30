@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
 
 /// Takipçiler / takip edilenler listesi.
@@ -79,18 +80,10 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                 // Sekmeler
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: isDark
-                          ? const Color(0xFF1A2537)
-                          : const Color(0xFFF1F5F8),
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child: Row(children: [
-                      _seg('Takipçiler', 0, ink, surf),
-                      _seg('Takip Edilenler', 1, ink, surf),
-                    ]),
+                  child: SwanSegmentedTabs(
+                    labels: const ['Takipçiler', 'Takip Edilenler'],
+                    selected: _tab,
+                    onSelect: (i) => setState(() => _tab = i),
                   ),
                 ),
 
@@ -132,25 +125,6 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
     );
   }
 
-  Widget _seg(String label, int i, Color ink, Color surf) {
-    final on = _tab == i;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _tab = i),
-        child: Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            color: on ? surf : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Text(label,
-              style: jakarta(
-                  12.5, FontWeight.w800, on ? ink : SwanColors.textSecondary)),
-        ),
-      ),
-    );
-  }
 
   Widget _tile(bool isDark, SuggestionRow r) {
     final surf = isDark ? const Color(0xFF131D2E) : Colors.white;

@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_tabs.dart';
 
 /// Doğrulama — antrenör/sporcu kimlik başvurusu + durum (premium v3).
 class CredentialScreen extends ConsumerStatefulWidget {
@@ -52,14 +53,10 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 const SizedBox(height: 16),
 
                 // Mod: Antrenör / Sporcu
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                      color: alt, borderRadius: BorderRadius.circular(13),),
-                  child: Row(children: [
-                    _segItem('Antrenör', 0, ink, surf),
-                    _segItem('Sporcu', 1, ink, surf),
-                  ],),
+                SwanSegmentedTabs(
+                  labels: const ['Antrenör', 'Sporcu'],
+                  selected: _mode,
+                  onSelect: (i) => setState(() => _mode = i),
                 ),
                 const SizedBox(height: 18),
 
@@ -381,33 +378,6 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     );
   }
 
-  Widget _segItem(String label, int i, Color ink, Color surf) {
-    final on = _mode == i;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _mode = i),
-        child: Container(
-          alignment: Alignment.center,
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            color: on ? surf : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: on
-                ? [
-                    BoxShadow(
-                        color: Colors.black.withValues(alpha: .06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),),
-                  ]
-                : null,
-          ),
-          child: Text(label,
-              style: jakarta(
-                  13, FontWeight.w800, on ? ink : SwanColors.textSecondary,),),
-        ),
-      ),
-    );
-  }
 
   Widget _kademeItem(int n) {
     final on = _kademe == n;
