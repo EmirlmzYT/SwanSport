@@ -178,6 +178,16 @@ class NotificationService {
   String? get _uid => _c.auth.currentUser?.id;
 
   // ----------------------------- bildirimler ---------------------------
+  /// Bildirim listesi — **mesajlar hariç**.
+  ///
+  /// Zil sayacıyla aynı kural. Ayrılmasaydı tutarsızlık çıkıyordu: sohbeti
+  /// okuduğunda `mark_conversation_read` yalnızca `direct_messages`'ı
+  /// güncelliyor, `notifications` satırı okunmamış kalıyor. Rozet onu
+  /// saymadığı için "0" diyor ama liste okunmamış gösteriyordu — kullanıcıya
+  /// hiçbir zaman temizlenmeyen bir bildirim gibi görünürdü.
+  ///
+  /// Mesajların zaten kendi ekranı var; bildirim akışında ikinci kez
+  /// görünmeleri gürültü.
   Future<List<NotificationRow>> list({int limit = 50}) async {
     final uid = _uid;
     if (uid == null) return const [];
@@ -186,6 +196,7 @@ class NotificationService {
         .select('id, kind, title, body, actor_id, entity_type, entity_id, '
             'read_at, created_at')
         .eq('profile_id', uid)
+        .neq('kind', 'message')
         .order('created_at', ascending: false)
         .limit(limit);
     return (rows as List)
