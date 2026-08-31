@@ -355,6 +355,28 @@ Tag adı **`v` + pubspec sürümü** olmalı (`v0.1.1+2`) — kod bunu ayrışt�
 Zaten kurulu APK'lar bir sonraki açılışta otomatik haber alır, sen ayrıca
 dosya göndermek zorunda kalmazsın.
 
+**Web'e dağıtmak APK'yı güncellemez.** Bu ikisi ayrı zincir ve karıştırmak
+kolay: 31 Ağustos – 1 Eylül'de web beş kez dağıtıldı, APK'daki kullanıcılar
+30 Ağustos kodunda kaldı. Kimse hata görmedi çünkü ortada hata yoktu —
+sunacak yeni sürüm yoktu. **Mobil tarafta iş bitirdiysen sürümü artırıp
+release yayınlamayı ayrı bir adım olarak say.**
+
+**İmza sürekliliği.** `android/key.properties` yok, yani release APK
+**debug anahtarıyla** (`~/.android/debug.keystore`) imzalanıyor. Android
+imzası farklı bir güncellemeyi kurmaz — kullanıcı "Uygulama yüklenmedi"
+alır ve bunu ancak şikayetten öğrenirsin. O keystore silinir ya da yeniden
+üretilirse **kurulu tüm APK'lar güncellenemez hâle gelir**; tek çıkış
+kaldırıp yeniden kurmak, ki o da oturumu ve yerel tercihleri siler.
+Yayınlamadan önce doğrula:
+
+```bash
+"$ANDROID_SDK/build-tools/36.0.0/apksigner.bat" verify --print-certs <apk> | grep -i "SHA-256"
+```
+
+v0.1.3+4 ve v0.2.0+5 için bu değer
+`6da57755e82f50e0804010df82bed862e2813a4ba433be72741e4c8e821915bb`.
+Değişmişse yayınlama, önce sebebini bul.
+
 ---
 
 ## Durum
