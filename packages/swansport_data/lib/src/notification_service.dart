@@ -487,41 +487,80 @@ final messagesProvider =
   return ref.watch(notificationServiceProvider).messagesWith(otherId);
 });
 
-/// Sohbet — geçmiş + canlı, tek akışta.
+/// Geçmiş + canlı akışı tek listede birleştirir.
 ///
-/// Önce [NotificationService.messagesWith] ile geçmişi bir kez veriyor
-/// (ekran boş beklemesin), sonra [NotificationService.dmStream]'e abone olup
-/// gelen her şeyi id'ye göre birleştiriyor. Aynı mesaj iki kaynaktan da
-/// gelebiliyor; `Map` ile tekilleştirmek sıralamadan daha güvenli, çünkü
-/// `read_at` güncellenince aynı id yeni hâliyle geliyor ve üstüne yazması
-/// **isteniyor** — çift tik böyle çalışıyor.
-final chatProvider =
-    StreamProvider.autoDispose.family<List<MessageRow>, String>(
-        (ref, otherId) async* {
-  if (!ref.watch(isSupabaseEnabledProvider)) {
-    yield const <MessageRow>[];
-    return;
-  }
-  final svc = ref.watch(notificationServiceProvider);
-
-  final history = await svc.messagesWith(otherId);
-  yield history;
+/// Sağlayıcıdan ayrı bir fonksiyon **test edilebilsin diye**: buradaki
+/// dayanıklılık davranışı bir kez canlıda kırıldı (akış kurulamayınca sohbet
+/// "Veri yüklenemedi" gösteriyordu) ve gözle bakarak fark edilmiyor.
+///
+/// Sözleşme:
+/// - Geçmiş her zaman ilk yayınlanır; ekran boş beklemez.
+/// - Aynı id iki kaynaktan gelirse **yenisi kazanır** — `read_at`
+///   güncellenince aynı mesaj yeni hâliyle geliyor, çift tik böyle çalışıyor.
+/// - Canlı akış kurulamazsa hata **yukarı taşınmaz**; yoklamaya düşülür.
+///   Elinde duran mesajları göstermek yerine hata sayfası açmak, sohbeti
+///   tamamen kullanılmaz yapıyordu.
+Stream<List<MessageRow>> mergeChat({
+  required Future<List<MessageRow>> Function() history,
+  required Stream<List<MessageRow>> Function(DateTime since) live,
+  Future<List<MessageRow>> Function()? poll,
+  Duration pollEvery = const Duration(seconds: 5),
+}) async* {
+  final first = await history();
+  yield first;
 
   // Akışın başlangıcı: geçmişin son mesajı. Geçmiş boşsa kısa bir pencere —
   // `now` demek, abone olurken saniyeler içinde gelen mesajı kaçırmak demek
   // (istemci ve sunucu saati birebir aynı değil).
-  final since = history.isEmpty
+  final since = first.isEmpty
       ? DateTime.now().subtract(const Duration(minutes: 2))
-      : history.last.createdAt;
+      : first.last.createdAt;
 
-  final byId = {for (final m in history) m.id: m};
-  await for (final live in svc.dmStream(otherId, since: since)) {
-    for (final m in live) {
-      byId[m.id] = m;
+  final byId = {for (final m in first) m.id: m};
+  List<MessageRow> merged() => byId.values.toList()
+    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+
+  try {
+    await for (final batch in live(since)) {
+      for (final m in batch) {
+        byId[m.id] = m;
+      }
+      yield merged();
     }
-    yield byId.values.toList()
-      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  } catch (_) {
+    // Canlı akış kurulamadı. Sebebi çok: tablo `supabase_realtime`
+    // publication'ında değil (0042 öncesi tam olarak bu), websocket engelli,
+    // ağ kopuk. Hiçbiri sohbeti bozmamalı.
+    final fallback = poll;
+    if (fallback == null) return;
+    while (true) {
+      await Future<void>.delayed(pollEvery);
+      try {
+        for (final m in await fallback()) {
+          byId[m.id] = m;
+        }
+        yield merged();
+      } catch (_) {
+        // Geçici hata: bir sonraki turda tekrar denenir. Ekrandaki
+        // mesajlar kaybolmasın diye burada da hata taşımıyoruz.
+      }
+    }
   }
+}
+
+/// Sohbet — geçmiş + canlı, tek akışta.
+final chatProvider =
+    StreamProvider.autoDispose.family<List<MessageRow>, String>(
+        (ref, otherId) {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return Stream.value(const <MessageRow>[]);
+  }
+  final svc = ref.watch(notificationServiceProvider);
+  return mergeChat(
+    history: () => svc.messagesWith(otherId),
+    live: (since) => svc.dmStream(otherId, since: since),
+    poll: () => svc.messagesWith(otherId),
+  );
 });
 
 /// Sohbet listesini canlı tutan sinyal.

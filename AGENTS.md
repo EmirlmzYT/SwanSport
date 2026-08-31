@@ -193,6 +193,12 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   değil.
 - `replica identity full` olmadan UPDATE olayları eski satırı taşımıyor.
   DM'de bu okundu bilgisi demek — onsuz çift tik hiç görünmez.
+- **Akış hatası ekranı düşürmemeli.** Publication'da olmayan bir tabloya
+  `.stream()` açmak hata fırlatıyor; bu hata `StreamProvider`'dan yukarı
+  taşınırsa ekran, elinde duran veriyi göstermek yerine "Veri yüklenemedi"
+  diyor. Bir kez canlıda böyle kırıldı. `mergeChat`
+  (`notification_service.dart`) deseni: geçmişi her hâlükârda yayınla, akış
+  hatasını yut, yoklamaya düş. `dm_test.dart` bunu sabitliyor.
 
 **Gezinme ve giriş noktaları**
 - Modül menüsü (`module_launcher.dart`, `kAllModules`, `kModuleGroup`) tasarım
@@ -233,7 +239,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 97 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 102 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer

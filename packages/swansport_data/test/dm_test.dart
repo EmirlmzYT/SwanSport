@@ -95,4 +95,85 @@ void main() {
       expect(out.map((m) => m.id).toList(), ['a', 'b']);
     });
   });
+
+  group('mergeChat — dayanıklılık', () {
+    MessageRow m(String id, {DateTime? readAt, DateTime? at}) => MessageRow(
+          id: id,
+          body: id,
+          createdAt: at ?? DateTime(2026, 9, 1, 12),
+          isMine: true,
+          readAt: readAt,
+        );
+
+    test('canlı akış patlarsa geçmiş EKRANDA KALIR', () async {
+      // Canlıda kırılan tam olarak buydu: akış kurulamayınca hata yukarı
+      // taşınıyor ve sohbet "Veri yüklenemedi" gösteriyordu — oysa geçmiş
+      // çoktan yüklenmişti.
+      final out = await mergeChat(
+        history: () async => [m('a')],
+        live: (_) => Stream.error(StateError('realtime yok')),
+        // yoklama yok: akış patlayınca sessizce bitmeli, patlamamalı
+      ).toList();
+
+      expect(out.length, 1);
+      expect(out.single.single.id, 'a');
+    });
+
+    test('akış patlayınca yoklamaya düşer ve mesaj gelmeye devam eder',
+        () async {
+      var polls = 0;
+      final out = await mergeChat(
+        history: () async => [m('a')],
+        live: (_) => Stream.error(StateError('realtime yok')),
+        poll: () async {
+          polls++;
+          return [m('a'), m('b', at: DateTime(2026, 9, 1, 12, 5))];
+        },
+        pollEvery: const Duration(milliseconds: 5),
+      ).take(2).toList();
+
+      expect(polls, greaterThan(0));
+      expect(out.last.map((x) => x.id).toList(), ['a', 'b']);
+    });
+
+    test('yoklama da hata verirse ekrandaki mesajlar kaybolmaz', () async {
+      var n = 0;
+      final out = await mergeChat(
+        history: () async => [m('a')],
+        live: (_) => Stream.error(StateError('yok')),
+        poll: () async {
+          n++;
+          if (n < 3) throw StateError('ağ koptu');
+          return [m('a'), m('c', at: DateTime(2026, 9, 1, 12, 9))];
+        },
+        pollEvery: const Duration(milliseconds: 5),
+      ).take(2).toList();
+
+      // İlk iki yoklama patladı ama akış ölmedi; üçüncüsü verdi.
+      expect(out.last.map((x) => x.id).toList(), ['a', 'c']);
+    });
+
+    test('akış çalışırken okundu bilgisi geçmişin üstüne yazar', () async {
+      final read = DateTime(2026, 9, 1, 12, 30);
+      final out = await mergeChat(
+        history: () async => [m('a')],
+        live: (_) => Stream.value([m('a', readAt: read)]),
+      ).toList();
+
+      expect(out.last.single.isRead, isTrue,
+          reason: 'yeni hâli kazanmazsa çift tik hiç görünmez');
+    });
+
+    test('geçmiş yüklenemezse hata TAŞINIR', () async {
+      // Bu gerçek bir hata: elinde gösterecek bir şey yok, kullanıcıya
+      // söylemek gerekiyor. Yutulacak olan yalnızca canlı akış hatası.
+      expect(
+        mergeChat(
+          history: () async => throw StateError('ağ yok'),
+          live: (_) => const Stream.empty(),
+        ).toList(),
+        throwsStateError,
+      );
+    });
+  });
 }

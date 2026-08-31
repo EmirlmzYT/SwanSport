@@ -69,8 +69,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     // sayısı); gelen satırı istemcide listeye işlemek o mantığın ikinci bir
     // kopyası olurdu ve ikisi zamanla ayrışırdı. Sinyal gelince baştan
     // çekiyoruz — liste küçük, maliyeti önemsiz.
-    ref.listen(dmChangesProvider, (_, __) {
-      ref.invalidate(conversationsProvider);
+    ref.listen(dmChangesProvider, (_, next) {
+      // Yalnızca gerçek bir olayda tazele. Akış kurulamazsa (tablo realtime
+      // publication'ında değilse) hata durumu geliyor; onu tazeleme sebebi
+      // saymak boşuna istek demek.
+      if (next is AsyncData) ref.invalidate(conversationsProvider);
     });
 
     final dms = ref.watch(conversationsProvider);
@@ -491,6 +494,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   /// tekrar tekrar çağırmamak için.
   final Set<String> _marked = {};
 
+  /// Mesaj bazlı işaretleme kullanılamıyor (0042 çalıştırılmamış olabilir);
+  /// sohbet bazlı olana düşüldü.
+  ///
+  /// Bayrak olmadan her yeniden çizimde başarısız bir RPC tekrar
+  /// deneniyordu — saniyede birkaç kez 404.
+  bool _perMessageMarkUnavailable = false;
+
   @override
   void initState() {
     super.initState();
@@ -521,14 +531,31 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         .toList();
     if (ids.isEmpty) return;
     _marked.addAll(ids);
+    final svc = ref.read(notificationServiceProvider);
+
     Future.microtask(() async {
       try {
-        await ref.read(notificationServiceProvider).markMessagesRead(ids);
+        if (_perMessageMarkUnavailable) {
+          // Yedek yol: bütün sohbeti işaretle. Daha kaba ama her zaman var.
+          await svc.markConversationRead(widget.otherId);
+        } else {
+          await svc.markMessagesRead(ids);
+        }
         if (mounted) ref.invalidate(conversationsProvider);
       } catch (_) {
-        // Okundu işareti kritik değil; başarısız olursa sohbete tekrar
-        // girildiğinde `markConversationRead` toparlıyor.
-        _marked.removeAll(ids);
+        if (_perMessageMarkUnavailable) {
+          // İkisi de olmadı: okundu işareti kritik değil, sessizce geç.
+          // `_marked`'i geri almıyoruz — geri alsak her karede tekrar
+          // denenirdi.
+          return;
+        }
+        _perMessageMarkUnavailable = true;
+        try {
+          await svc.markConversationRead(widget.otherId);
+          if (mounted) ref.invalidate(conversationsProvider);
+        } catch (_) {
+          // sessiz
+        }
       }
     });
   }
