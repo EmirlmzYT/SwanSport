@@ -103,6 +103,33 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   `meters_between` ile veriliyor. `court_service.dart` içindeki Dart kopyası
   yalnızca listeyi yakınlığa göre **sıralamak** için.
 
+**Tasarım jetonları — `app/design/`**
+- `swan_type` (7 adım), `swan_palette`, `swan_shape`. **Ham sayı yazma:**
+  `jakarta(11.5, ...)` yerine `SwanType.caption(...)`. Ölçtüğümde 28 farklı
+  yazı boyutu vardı, 1001 çağrıda — görsel hiyerarşi bu yüzden kurulamıyordu.
+- **Konsolun `swansport_design_system` paketinden ayrı, bilerek.** O paketi
+  masaüstü konsolu da kullanıyor; mobil-sosyal dili oraya taşımak konsolu
+  bozar. Kanıt olarak konsol testleri 40'ta sabit tutuluyor.
+- Palet çakışması çözüldü: ekranların gerçekte kullandığı değerler kazandı
+  (`0xFF131D2E`, 196 kullanım), tasarım sistemindeki `0xFF171A1F` değil.
+- Koyu temada **saf siyah yok** — navy/charcoal (brief kuralı).
+- `accent` (teal) yalnızca birincil aksiyon ve aktif durum içindir;
+  dekoratif teal için jeton bilerek yok.
+
+**Gezinme — 5 öğe, modül menüsü YOK**
+- `SwanBottomNav`: Ana Sayfa · Keşfet · + · Mesajlar · Profil. Parametre
+  almaz; aktif sekmeyi açık rotadan çıkarır. Eskisi
+  `selectedIndex/onSelect/onAction` istiyordu ve 31 ekranın 25'i boş geçiyordu.
+- **Rol-uyarlamalı yuvalar kaldırıldı** — aynı konum kişiden kişiye farklı
+  şey açıyordu, kas hafızası kurulamıyordu. Rol farkı artık sekmede değil
+  **içerikte**: antrenörün yoklaması Ana Sayfa'daki "Bugün" ve
+  Profil > Yönetim'de.
+- **`module_launcher.dart` silindi ama hiçbir rota silinmedi.** Keşif
+  modülleri `explore_screen`'e, kişisel/yönetim `management_section`'a
+  taşındı. `navigation_test.dart` her rotanın bir giriş noktası olduğunu
+  doğruluyor — yeni rota eklerken oraya da satır ekle, yoksa rota tanımlı
+  kalır ama hiçbir yerden açılamaz.
+
 **Birleşen sayfalar — eski rotalar korunur**
 - Üç sayfa sekmeli tek sayfaya birleşti: **Sahalar** (`/kortlar` +
   `/halisahalar`), **Mesajlar** (`/mesajlar` + `/topluluklar`), **Partner
@@ -177,7 +204,7 @@ cd packages/swansport_data && flutter test     # 84 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 139 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 127 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
