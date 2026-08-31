@@ -3,6 +3,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Antrenör kabul edilirken kademe ve süpervizör seçimi.
 ///
@@ -32,10 +33,10 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final grip = isDark ? const Color(0xFF2E3B4E) : const Color(0xFFE4E9F0);
 
     return Container(
@@ -113,15 +114,15 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                 Container(
                   padding: const EdgeInsets.all(13),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF43F5E).withValues(alpha: .10),
+                    color: SwanPalette.light.danger.withValues(alpha: .10),
                     borderRadius: BorderRadius.circular(13),
                     border: Border.all(
-                        color: const Color(0xFFF43F5E).withValues(alpha: .35)),
+                        color: SwanPalette.light.danger.withValues(alpha: .35)),
                   ),
                   child: Text(
                       'Kulüpte uygun süpervizör yok. Önce 2. kademe veya üstü '
                       'bir antrenör eklemelisin.',
-                      style: SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w600)),
+                      style: SwanType.caption(SwanPalette.light.danger, w: FontWeight.w600)),
                 )
               else
                 ...widget.supervisors.map((s) {

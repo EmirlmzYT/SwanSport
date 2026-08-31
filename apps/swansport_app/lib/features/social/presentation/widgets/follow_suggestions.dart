@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import 'social_widgets.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Takip akışı boşken gösterilen "kimi takip etsem?" bölümü.
 class FollowSuggestions extends ConsumerWidget {
@@ -17,7 +18,7 @@ class FollowSuggestions extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final async = ref.watch(suggestionsProvider);
 
     return Column(
@@ -97,8 +98,8 @@ class FollowSuggestions extends ConsumerWidget {
   }
 
   Widget _exploreButton(bool isDark, Color ink) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: onExplore,
       child: Container(
@@ -159,9 +160,9 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final s = widget.suggestion;
 
     return GestureDetector(

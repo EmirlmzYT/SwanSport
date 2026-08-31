@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Canlı Yoklama — Supabase sporcuları + sunucuya kayıt, premium (v3).
 class LiveAttendanceScreen extends ConsumerStatefulWidget {
@@ -20,9 +21,9 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
   final Map<String, String> _marks = {};
   bool _saving = false;
 
-  static const _opts = [
-    ('present', 'Var', Color(0xFF10B981)),
-    ('absent', 'Yok', Color(0xFFF43F5E)),
+  static final _opts = [
+    ('present', 'Var', SwanPalette.light.success),
+    ('absent', 'Yok', SwanPalette.light.danger),
     ('excused', 'Mazeret', Color(0xFFF59E0B)),
     ('late', 'Geç', Color(0xFF3B82F6)),
   ];
@@ -30,10 +31,10 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(clubAthletesProvider);
@@ -80,8 +81,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                             size: 52,
                             stroke: 6,
                             track: isDark
-                                ? const Color(0xFF1A2537)
-                                : const Color(0xFFF1F5F8),
+                                ? SwanPalette.dark.surfaceAlt
+                                : SwanPalette.light.surfaceAlt,
                             progress: kTeal,
                             center: Text('%${(pct * 100).round()}',
                                 style: SwanType.h3(ink)),
@@ -153,7 +154,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
   }
 
   Widget _tile(bool isDark, AthleteRow a, int i, Color line) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       decoration:
           BoxDecoration(border: Border(bottom: BorderSide(color: line))),
@@ -189,7 +190,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
 
   Widget _tap(String id, String value, String label, Color color, bool isDark) {
     final on = _marks[id] == value;
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     return Expanded(
       child: GestureDetector(
         onTap: () => setState(() => _marks[id] = value),
@@ -233,7 +234,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               content: Text('Hata: $e'),
-              backgroundColor: const Color(0xFFF43F5E)),
+              backgroundColor: SwanPalette.light.danger),
         );
       }
     } finally {

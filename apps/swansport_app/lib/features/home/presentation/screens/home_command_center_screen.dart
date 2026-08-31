@@ -9,6 +9,7 @@ import '../../../../app/widgets/quick_actions.dart';
 import '../../../demo/demo_role.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Komuta Merkezi (Ekran 0) — Supabase verisine bağlı, premium (v3).
 class HomeCommandCenterScreen extends ConsumerWidget {
@@ -17,10 +18,10 @@ class HomeCommandCenterScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final profile = ref.watch(currentProfileProvider).valueOrNull;
@@ -90,7 +91,7 @@ class HomeCommandCenterScreen extends ConsumerWidget {
                       if (isAdmin) ...[
                         _div(line),
                         _kpi(ink, '${n(pending)}', 'Onay',
-                            const Color(0xFFD9860B)),
+                            SwanPalette.light.warning),
                       ],
                     ]),
                   ),
@@ -194,9 +195,9 @@ class HomeCommandCenterScreen extends ConsumerWidget {
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final hm =
         '${t.hour.toString().padLeft(2, '0')}:${t.minute.toString().padLeft(2, '0')}';
     return Container(
@@ -233,25 +234,25 @@ class HomeCommandCenterScreen extends ConsumerWidget {
   }
 
   Widget _approvalCard(bool isDark, int count) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
           color: surf,
           borderRadius: BorderRadius.circular(16),
           border:
-              Border.all(color: const Color(0xFFD9860B).withValues(alpha: .4))),
+              Border.all(color: SwanPalette.light.warning.withValues(alpha: .4))),
       child: Row(children: [
         Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-              color: const Color(0xFFD9860B).withValues(alpha: .12),
+              color: SwanPalette.light.warning.withValues(alpha: .12),
               borderRadius: BorderRadius.circular(12)),
-          child: const Icon(Icons.admin_panel_settings_rounded,
-              color: Color(0xFFD9860B), size: 20),
+          child: Icon(Icons.admin_panel_settings_rounded,
+              color: SwanPalette.light.warning, size: 20),
         ),
         const SizedBox(width: 12),
         Expanded(

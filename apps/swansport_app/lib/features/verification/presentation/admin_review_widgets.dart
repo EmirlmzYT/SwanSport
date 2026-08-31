@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Onay panelinin durum tutmayan parçaları.
 ///
@@ -16,16 +17,16 @@ import '../../../app/design/swan_type.dart';
 /// Acik bir sikayet satiri.
 Widget adminReportRow(
     BuildContext context, WidgetRef ref, bool isDark, ReportRow r) {
-  final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-  final ink = isDark ? Colors.white : SwanColors.textPrimary;
+  final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+  final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
   return Container(
     margin: const EdgeInsets.only(bottom: 10),
     padding: const EdgeInsets.all(13),
     decoration: BoxDecoration(
-      color: const Color(0xFFF43F5E).withValues(alpha: .06),
+      color: SwanPalette.light.danger.withValues(alpha: .06),
       borderRadius: BorderRadius.circular(16),
       border:
-          Border.all(color: const Color(0xFFF43F5E).withValues(alpha: .3)),
+          Border.all(color: SwanPalette.light.danger.withValues(alpha: .3)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,11 +36,11 @@ Widget adminReportRow(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: const Color(0xFFF43F5E).withValues(alpha: .12),
+              color: SwanPalette.light.danger.withValues(alpha: .12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: const Icon(Icons.flag_rounded,
-                size: 19, color: Color(0xFFF43F5E)),
+            child: Icon(Icons.flag_rounded,
+                size: 19, color: SwanPalette.light.danger),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -99,7 +100,7 @@ Widget adminReportRow(
                 height: 40,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                    color: const Color(0xFFF43F5E),
+                    color: SwanPalette.light.danger,
                     borderRadius: BorderRadius.circular(12)),
                 child: Text("\u0130\u00e7eri\u011fi sil",
                     style: SwanType.caption(Colors.white, w: FontWeight.w800)),
@@ -130,7 +131,7 @@ Future<void> adminHandleReport(BuildContext context, WidgetRef ref, String id,
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text("\u0130\u015flem ba\u015far\u0131s\u0131z: $e"),
-          backgroundColor: const Color(0xFFF43F5E)));
+          backgroundColor: SwanPalette.light.danger));
     }
   }
 }
@@ -176,9 +177,9 @@ String adminDocLabel(String t) => switch (t) {
 Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType,
     String ownerId, String title,) async {
   final isDark = Theme.of(context).brightness == Brightness.dark;
-  final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-  final ink = isDark ? Colors.white : SwanColors.textPrimary;
-  final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+  final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+  final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+  final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
   await showDialog<void>(
     context: context,

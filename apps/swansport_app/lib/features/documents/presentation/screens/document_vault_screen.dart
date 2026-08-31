@@ -9,6 +9,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Belge Kasası — kulüp ve sporcu evrakları, geçerlilik takibiyle.
 ///
@@ -29,8 +30,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final async = ref.watch(vaultDocsProvider);
 
@@ -138,14 +139,14 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 decoration: BoxDecoration(
                   color: _filter == it.$1
                       ? kTeal
-                      : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                      : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
                   borderRadius: BorderRadius.circular(11),
                   border: Border.all(
                       color: _filter == it.$1
                           ? kTeal
                           : (isDark
-                              ? const Color(0xFF233149)
-                              : const Color(0xFFEAEEF3))),
+                              ? SwanPalette.dark.line
+                              : SwanPalette.light.line)),
                 ),
                 child: Text(it.$2,
                     style: SwanType.caption(_filter == it.$1 ? Colors.white : ink, w: FontWeight.w700)),
@@ -160,29 +161,29 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         margin: const EdgeInsets.only(bottom: 12),
         padding: const EdgeInsets.all(13),
         decoration: BoxDecoration(
-          color: const Color(0xFFD9860B).withValues(alpha: .10),
+          color: SwanPalette.light.warning.withValues(alpha: .10),
           borderRadius: BorderRadius.circular(14),
           border:
-              Border.all(color: const Color(0xFFD9860B).withValues(alpha: .35)),
+              Border.all(color: SwanPalette.light.warning.withValues(alpha: .35)),
         ),
         child: Row(children: [
-          const Icon(Icons.warning_amber_rounded,
-              size: 18, color: Color(0xFFD9860B)),
+          Icon(Icons.warning_amber_rounded,
+              size: 18, color: SwanPalette.light.warning),
           const SizedBox(width: 10),
           Expanded(
             child: Text('$n belgenin süresi dolmuş ya da dolmak üzere.',
-                style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
+                style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
           ),
         ]),
       );
 
   Widget _card(bool isDark, Color ink, VaultDoc d) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final (color, icon) = d.isExpired
-        ? (const Color(0xFFF43F5E), Icons.error_rounded)
+        ? (SwanPalette.light.danger, Icons.error_rounded)
         : d.isExpiring
-            ? (const Color(0xFFD9860B), Icons.schedule_rounded)
+            ? (SwanPalette.light.warning, Icons.schedule_rounded)
             : (kTeal, Icons.description_rounded);
 
     return GestureDetector(
@@ -195,7 +196,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
               color: d.isExpired
-                  ? const Color(0xFFF43F5E).withValues(alpha: .3)
+                  ? SwanPalette.light.danger.withValues(alpha: .3)
                   : line),
         ),
         child: Row(children: [
@@ -254,8 +255,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     if (club == null) return;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     // 1) Tür
     final type = await showModalBottomSheet<String>(
@@ -341,7 +342,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text('Dosya yüklenemedi: $e'),
-              backgroundColor: const Color(0xFFF43F5E)));
+              backgroundColor: SwanPalette.light.danger));
         }
       }
     }
@@ -380,7 +381,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('Eklenemedi: $e'),
-                backgroundColor: const Color(0xFFF43F5E)));
+                backgroundColor: SwanPalette.light.danger));
           }
         }
       },
@@ -398,8 +399,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
   Future<void> _actions(VaultDoc d) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -443,7 +444,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                         content: Text('Bağlantı alınamadı: $e'),
-                        backgroundColor: const Color(0xFFF43F5E)));
+                        backgroundColor: SwanPalette.light.danger));
                   }
                 }
               },
@@ -468,10 +469,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           ),
           ListTile(
             dense: true,
-            leading: const Icon(Icons.delete_outline_rounded,
-                size: 20, color: Color(0xFFF43F5E)),
+            leading: Icon(Icons.delete_outline_rounded,
+                size: 20, color: SwanPalette.light.danger),
             title: Text('Belgeyi sil',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
@@ -496,7 +497,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

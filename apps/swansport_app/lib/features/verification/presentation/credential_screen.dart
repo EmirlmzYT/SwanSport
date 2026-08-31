@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Doğrulama — antrenör/sporcu kimlik başvurusu + durum (premium v3).
 class CredentialScreen extends ConsumerStatefulWidget {
@@ -31,10 +32,10 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final async = ref.watch(myCredentialsProvider);
 
     return Scaffold(
@@ -194,7 +195,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   Widget _sportPicker(bool isDark, Color alt, Color ink) {
     final sports = ref.watch(sportsProvider).valueOrNull ?? const <CityRow>[];
     final selected = sports.where((c) => c.code == _sportCode).firstOrNull;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return GestureDetector(
       onTap: sports.isEmpty ? null : () => _pickSport(sports),
@@ -222,8 +223,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
 
   Future<void> _pickSport(List<CityRow> sports) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final search = TextEditingController();
 
     final picked = await showModalBottomSheet<String>(
@@ -287,9 +288,9 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     // Branşsız başvuru kabul edilmez — antrenörde de sporcuda da. Federasyon
     // kanalı, rozet etiketi ve keşif filtreleri bu alana dayanıyor.
     if (_sportCode == null || _sportCode!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Önce branşını seç'),
-          backgroundColor: Color(0xFFF43F5E),),);
+          backgroundColor: SwanPalette.light.danger,),);
       return;
     }
     setState(() => _busy = true);
@@ -322,7 +323,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Hata: $e'),
-            backgroundColor: const Color(0xFFF43F5E),),);
+            backgroundColor: SwanPalette.light.danger,),);
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -330,13 +331,13 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   }
 
   Widget _credRow(bool isDark, CredentialRow c) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final (color, icon) = switch (c.status) {
-      'approved' => (const Color(0xFF10B981), Icons.check_circle_rounded),
-      'rejected' => (const Color(0xFFF43F5E), Icons.cancel_rounded),
-      _ => (const Color(0xFFD9860B), Icons.schedule_rounded),
+      'approved' => (SwanPalette.light.success, Icons.check_circle_rounded),
+      'rejected' => (SwanPalette.light.danger, Icons.cancel_rounded),
+      _ => (SwanPalette.light.warning, Icons.schedule_rounded),
     };
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -376,14 +377,14 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   }
 
   Widget _uploadTile(bool isDark, String docType, String label) {
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final picked = _docs[docType];
     final uploading = _uploading.contains(docType);
     final done = picked != null;
 
-    final Color borderColor = done ? const Color(0xFF10B981) : line;
+    final Color borderColor = done ? SwanPalette.light.success : line;
 
     return GestureDetector(
       onTap: (uploading || _busy) ? null : () => _pickAndUpload(docType),
@@ -391,7 +392,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: done ? const Color(0xFF10B981).withValues(alpha: .06) : null,
+          color: done ? SwanPalette.light.success.withValues(alpha: .06) : null,
           border: Border.all(color: borderColor, width: 1.5),
           borderRadius: BorderRadius.circular(16),
         ),
@@ -400,7 +401,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: done ? const Color(0xFF10B981).withValues(alpha: .12) : alt,
+              color: done ? SwanPalette.light.success.withValues(alpha: .12) : alt,
               borderRadius: BorderRadius.circular(12),
             ),
             child: uploading
@@ -414,7 +415,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                         : Icons.upload_file_rounded,
                     size: 20,
                     color: done
-                        ? const Color(0xFF10B981)
+                        ? SwanPalette.light.success
                         : SwanColors.textSecondary,),
           ),
           const SizedBox(width: 12),
@@ -469,7 +470,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Yükleme hatası: $e'),
-            backgroundColor: const Color(0xFFF43F5E),),);
+            backgroundColor: SwanPalette.light.danger,),);
       }
     } finally {
       if (mounted) setState(() => _uploading.remove(docType));
@@ -477,7 +478,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   }
 
   Widget _back(BuildContext context, Color surf, bool isDark, Color ink) {
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: () => Navigator.maybePop(context),
       child: Container(

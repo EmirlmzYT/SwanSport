@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kulüp profilindeki "Kulübe Başvur" düğmesi.
 ///
@@ -23,15 +24,15 @@ class ClubApplyButton extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final myClubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
     final isMember = myClubs.any((c) => c.id == clubId);
     if (isMember) {
       return _info(surf, line, ink, Icons.check_circle_rounded,
-          'Bu kulübün üyesisin', const Color(0xFF10B981));
+          'Bu kulübün üyesisin', SwanPalette.light.success);
     }
 
     final apps = ref.watch(myApplicationsProvider).valueOrNull ?? const [];
@@ -41,12 +42,12 @@ class ClubApplyButton extends ConsumerWidget {
 
     if (existing.isNotEmpty && existing.first.isPending) {
       return _info(surf, line, ink, Icons.schedule_rounded,
-          'Başvurun inceleniyor', const Color(0xFFD9860B));
+          'Başvurun inceleniyor', SwanPalette.light.warning);
     }
     if (existing.isNotEmpty && existing.first.status == 'rejected') {
       return Column(children: [
         _info(surf, line, ink, Icons.cancel_rounded, 'Başvurun reddedildi',
-            const Color(0xFFF43F5E)),
+            SwanPalette.light.danger),
         const SizedBox(height: 8),
         _applyButton(context, ref, isDark, ink, label: 'Tekrar Başvur'),
       ]);
@@ -79,8 +80,8 @@ class ClubApplyButton extends ConsumerWidget {
   Widget _applyButton(
       BuildContext context, WidgetRef ref, bool isDark, Color ink,
       {String label = 'Kulübe Başvur'}) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: () => _openSheet(context, ref),
       child: Container(
@@ -160,7 +161,7 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
                   : 'Başvuru gönderilemedi: $e';
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(msg), backgroundColor: const Color(0xFFF43F5E)));
+            content: Text(msg), backgroundColor: SwanPalette.light.danger));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -170,10 +171,10 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final grip = isDark ? const Color(0xFF2E3B4E) : const Color(0xFFE4E9F0);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 

@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Lig / turnuva / kupa organizasyonları.
 ///
@@ -24,10 +25,10 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final async = ref.watch(organizationsProvider(''));
 
@@ -108,8 +109,8 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
   }
 
   Widget _card(bool isDark, Color ink, Organization o) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return GestureDetector(
       onTap: () => _openDetail(o),
@@ -129,8 +130,8 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
               color: const Color(0xFFE9B949).withValues(alpha: .14),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Icon(Icons.emoji_events_rounded,
-                size: 21, color: Color(0xFFD9860B)),
+            child: Icon(Icons.emoji_events_rounded,
+                size: 21, color: SwanPalette.light.warning),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -174,9 +175,9 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
   // ------------------------------- detay -----------------------------------
   Future<void> _openDetail(Organization o) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     var tab = 0;
 
     await showModalBottomSheet<void>(
@@ -484,7 +485,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Fikstür oluşturulamadı: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

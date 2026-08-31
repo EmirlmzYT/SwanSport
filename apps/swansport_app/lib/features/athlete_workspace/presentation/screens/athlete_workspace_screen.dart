@@ -8,6 +8,7 @@ import '../../../../app/widgets/premium.dart';
 import '../routing/athlete_detail_route_args.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Sporcu Yönetimi (Kadro) — Supabase verisine bağlı, premium tasarım (v3).
 class AthleteWorkspaceScreen extends ConsumerStatefulWidget {
@@ -26,8 +27,8 @@ class _AthleteWorkspaceScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final clubAsync = ref.watch(activeClubProvider);
     final athletesAsync = ref.watch(clubAthletesProvider);
@@ -133,13 +134,13 @@ class _AthleteWorkspaceScreenState
       );
 
   Widget _error(bool isDark, String msg) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Padding(
       padding: const EdgeInsets.only(top: 50),
       child: Column(
         children: [
-          const Icon(Icons.cloud_off_rounded,
-              size: 40, color: Color(0xFFF43F5E)),
+          Icon(Icons.cloud_off_rounded,
+              size: 40, color: SwanPalette.light.danger),
           const SizedBox(height: 12),
           Text('Veri yüklenemedi', style: SwanType.bodySm(ink, w: FontWeight.w700)),
           const SizedBox(height: 6),
@@ -152,7 +153,7 @@ class _AthleteWorkspaceScreenState
   }
 
   Widget _noClub(bool isDark) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Padding(
       padding: const EdgeInsets.only(top: 50),
       child: Column(
@@ -180,7 +181,7 @@ class _AthleteWorkspaceScreenState
   }
 
   Widget _empty(bool isDark, ClubRef club) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Padding(
       padding: const EdgeInsets.only(top: 50),
       child: Column(
@@ -209,8 +210,8 @@ class _AthleteWorkspaceScreenState
   // ------------------------------------------------------------- satır
   Widget _athleteRow(
       BuildContext context, bool isDark, AthleteRow a, int index, bool isLast) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ok = a.isActive;
     return InkWell(
       onTap: () => Navigator.pushNamed(
@@ -243,7 +244,7 @@ class _AthleteWorkspaceScreenState
             const SizedBox(width: 8),
             PremiumStatusChip(
               label: ok ? 'Aktif' : 'Pasif',
-              color: ok ? const Color(0xFF10B981) : const Color(0xFFD9860B),
+              color: ok ? SwanPalette.light.success : SwanPalette.light.warning,
               icon: ok
                   ? Icons.check_circle_rounded
                   : Icons.pause_circle_filled_rounded,
@@ -324,7 +325,7 @@ class _AthleteWorkspaceScreenState
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
             content: Text('Hata: $e'),
-            backgroundColor: const Color(0xFFF43F5E)),
+            backgroundColor: SwanPalette.light.danger),
       );
     }
   }
@@ -335,8 +336,8 @@ class _AthleteWorkspaceScreenState
     required String action,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -403,8 +404,8 @@ class _AthleteWorkspaceScreenState
   }
 
   Widget _searchField(bool isDark) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
       height: 48,
       decoration: BoxDecoration(
@@ -427,10 +428,10 @@ class _AthleteWorkspaceScreenState
   }
 
   Widget _chip(bool isDark, String label, bool active, VoidCallback onTap) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -448,8 +449,8 @@ class _AthleteWorkspaceScreenState
   }
 
   Widget _iconBtn(bool isDark, IconData icon) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
       width: 40,
       height: 40,

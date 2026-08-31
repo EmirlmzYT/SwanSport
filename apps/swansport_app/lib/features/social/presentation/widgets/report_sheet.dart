@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// İçerik şikayet sayfasını açar. Gönderildiyse true döner.
 Future<bool?> showReportSheet(
@@ -61,7 +62,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
           : 'Gönderilemedi: $e';
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(msg), backgroundColor: const Color(0xFFF43F5E)));
+            content: Text(msg), backgroundColor: SwanPalette.light.danger));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -71,10 +72,10 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final grip = isDark ? const Color(0xFF2E3B4E) : const Color(0xFFE4E9F0);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
@@ -163,7 +164,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
                 height: 52,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF43F5E),
+                  color: SwanPalette.light.danger,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(_busy ? 'Gönderiliyor…' : 'Şikayeti Gönder',

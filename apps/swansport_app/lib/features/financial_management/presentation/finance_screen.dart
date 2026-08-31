@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kulüp finansı — aidat tahakkuku, tahsilat onayı ve planlar.
 ///
@@ -38,8 +39,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return Scaffold(
       extendBody: true,
@@ -74,8 +75,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                             color: isDark
-                                ? const Color(0xFF233149)
-                                : const Color(0xFFEAEEF3)),
+                                ? SwanPalette.dark.line
+                                : SwanPalette.light.line),
                       ),
                       child: Icon(Icons.account_balance_rounded,
                           size: 17, color: ink),
@@ -127,14 +128,14 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               decoration: BoxDecoration(
                 color: active
                     ? kTeal
-                    : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                    : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                     color: active
                         ? kTeal
                         : (isDark
-                            ? const Color(0xFF233149)
-                            : const Color(0xFFEAEEF3))),
+                            ? SwanPalette.dark.line
+                            : SwanPalette.light.line)),
               ),
               child: Row(children: [
                 Text(labels[i],
@@ -147,7 +148,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     decoration: BoxDecoration(
                       color: active
                           ? Colors.white.withValues(alpha: .25)
-                          : const Color(0xFFF43F5E),
+                          : SwanPalette.light.danger,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('$pending',
@@ -215,8 +216,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
   Widget _summaryCard(bool isDark, Color ink) {
     final s = ref.watch(financeSummaryProvider).valueOrNull;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -268,7 +269,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: SwanType.bodySm(alert ? const Color(0xFFF43F5E) : ink, w: FontWeight.w800)),
+                style: SwanType.bodySm(alert ? SwanPalette.light.danger : ink, w: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(label,
                 style:
@@ -278,12 +279,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       );
 
   Widget _feeRow(bool isDark, Color ink, FeeRow f) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final (color, icon) = f.isPaid
-        ? (const Color(0xFF10B981), Icons.check_circle_rounded)
+        ? (SwanPalette.light.success, Icons.check_circle_rounded)
         : f.overdue
-            ? (const Color(0xFFF43F5E), Icons.error_rounded)
+            ? (SwanPalette.light.danger, Icons.error_rounded)
             : (SwanColors.textSecondary, Icons.schedule_rounded);
 
     return Container(
@@ -348,8 +349,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   // ------------------------------ 2) ÖDEMELER ------------------------------
   Widget _paymentsTab(bool isDark, Color ink) {
     final pending = ref.watch(pendingPaymentsProvider);
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
@@ -433,7 +434,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                     border: Border.all(color: line),
                                   ),
                                   child: Text('Reddet',
-                                      style: SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                                      style: SwanType.caption(SwanPalette.light.danger, w: FontWeight.w800)),
                                 ),
                               ),
                             ),
@@ -445,7 +446,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                   height: 40,
                                   alignment: Alignment.center,
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFF10B981),
+                                    color: SwanPalette.light.success,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text('Onayla',
@@ -468,8 +469,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final plans = ref.watch(feePlansProvider);
     final athletes = ref.watch(clubAthletesProvider).valueOrNull ?? const [];
     final assigns = ref.watch(feeAssignmentsProvider).valueOrNull ?? const {};
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
@@ -583,8 +584,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
   Widget _button(bool isDark, IconData icon, String label, VoidCallback onTap,
       {bool subtle = false}) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -626,7 +627,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -649,7 +650,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Tahakkuk başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -679,15 +680,15 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   Future<void> _assign(String athleteId, String athleteName) async {
     final plans = ref.read(feePlansProvider).valueOrNull ?? const <FeePlan>[];
     if (plans.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Önce bir aidat planı ekle'),
-          backgroundColor: Color(0xFFF43F5E)));
+          backgroundColor: SwanPalette.light.danger));
       return;
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final planId = await showModalBottomSheet<String>(
       context: context,
@@ -710,10 +711,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               onTap: () => Navigator.pop(ctx, p.id),
             ),
           ListTile(
-            leading: const Icon(Icons.delete_outline_rounded,
-                color: Color(0xFFF43F5E)),
+            leading: Icon(Icons.delete_outline_rounded,
+                color: SwanPalette.light.danger),
             title: Text('Aidatı kaldır',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
             onTap: () => Navigator.pop(ctx, '__remove__'),
           ),
         ]),
@@ -762,8 +763,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     if (athletes.isEmpty) return;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final athleteId = await showModalBottomSheet<String>(
       context: context,

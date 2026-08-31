@@ -55,6 +55,12 @@ class SwanPalette {
   /// Aksiyonun soluk zemini (seçili sekme arkası, ikon kutusu).
   final Color accentSoft;
 
+  /// Anlam renkleri.
+  ///
+  /// Değerler ekranların gerçekte kullandığından alındı, uydurulmadı:
+  /// `danger` 140 yerde, `warning` 66, `success` 41 kez geçiyordu. İlk
+  /// yazdığımda kendi değerlerimi koymuştum ve tam da eleştirdiğim hataya
+  /// düşmüştüm — eski tasarım sistemi de böyle kaymıştı.
   final Color success;
   final Color warning;
   final Color danger;
@@ -71,9 +77,9 @@ class SwanPalette {
     inkMuted: Color(0xFF6B7280),
     accent: Color(0xFF008C95),
     accentSoft: Color(0x1A008C95),
-    success: Color(0xFF3FB950),
+    success: Color(0xFF10B981),
     warning: Color(0xFFD9860B),
-    danger: Color(0xFFD64545),
+    danger: Color(0xFFF43F5E),
     isDark: false,
   );
 
@@ -90,9 +96,9 @@ class SwanPalette {
     inkMuted: Color(0xFF8A97AC),
     accent: Color(0xFF2FBFB6),
     accentSoft: Color(0x1A2FBFB6),
-    success: Color(0xFF3FB950),
+    success: Color(0xFF10B981),
     warning: Color(0xFFD9860B),
-    danger: Color(0xFFE05C5C),
+    danger: Color(0xFFF43F5E),
     isDark: true,
   );
 

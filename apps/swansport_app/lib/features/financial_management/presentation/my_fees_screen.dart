@@ -8,6 +8,7 @@ import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Sporcu/veli tarafı — "borcum ne, nasıl öderim".
 ///
@@ -24,10 +25,10 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final fees = ref.watch(myFeesProvider);
 
@@ -122,8 +123,8 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
   }
 
   Widget _totalCard(bool isDark, Color ink, num total, int count) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -140,7 +141,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                   style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               const SizedBox(height: 4),
               Text(money(total),
-                  style: SwanType.h1(total > 0 ? ink : const Color(0xFF10B981))),
+                  style: SwanType.h1(total > 0 ? ink : SwanPalette.light.success)),
               const SizedBox(height: 2),
               Text(count == 0 ? 'Borcun yok' : '$count ödenmemiş kalem',
                   style: SwanType.caption(SwanColors.textSecondary)),
@@ -152,20 +153,20 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                 ? Icons.account_balance_wallet_rounded
                 : Icons.verified_rounded,
             size: 34,
-            color: total > 0 ? kTeal : const Color(0xFF10B981)),
+            color: total > 0 ? kTeal : SwanPalette.light.success),
       ]),
     );
   }
 
   Widget _feeCard(bool isDark, Color ink, FeeRow f) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final color = f.isPaid
-        ? const Color(0xFF10B981)
+        ? SwanPalette.light.success
         : f.pendingDeclared
-            ? const Color(0xFFD9860B)
+            ? SwanPalette.light.warning
             : f.overdue
-                ? const Color(0xFFF43F5E)
+                ? SwanPalette.light.danger
                 : SwanColors.textSecondary;
 
     return Container(
@@ -176,7 +177,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
             color: f.overdue && !f.isPaid
-                ? const Color(0xFFF43F5E).withValues(alpha: .35)
+                ? SwanPalette.light.danger.withValues(alpha: .35)
                 : line),
       ),
       child: Column(
@@ -261,8 +262,8 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
   Future<void> _showIban(FeeRow f) async {
     if (f.clubId == null) return;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final info = await ref.read(financeServiceProvider).bankInfo(f.clubId!);
     if (!mounted) return;
@@ -340,9 +341,9 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
   /// Ödeme bildirimi — tutar, yöntem ve isteğe bağlı dekont.
   Future<void> _declare(FeeRow f) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final amountCtrl = TextEditingController(text: '${f.amount.round()}');
     var method = 'havale';
@@ -395,8 +396,8 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                         color: method == m
                             ? kTeal
                             : (isDark
-                                ? const Color(0xFF1A2537)
-                                : const Color(0xFFF1F5F8)),
+                                ? SwanPalette.dark.surfaceAlt
+                                : SwanPalette.light.surfaceAlt),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -448,7 +449,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                         size: 17,
                         color: receiptPath == null
                             ? SwanColors.textSecondary
-                            : const Color(0xFF10B981)),
+                            : SwanPalette.light.success),
                     const SizedBox(width: 8),
                     Text(
                         busy
@@ -499,7 +500,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Gönderilemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

@@ -9,6 +9,7 @@ import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Arama — kulüpler, antrenörler ve sporcular.
 class SearchScreen extends ConsumerStatefulWidget {
@@ -80,11 +81,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final list = _visible;
 
     return Scaffold(
@@ -206,9 +207,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _chip(bool isDark, String label, int i) {
     final on = _filter == i;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: () => setState(() => _filter = i),
       child: Container(
@@ -225,14 +226,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Widget _tile(bool isDark, SuggestionRow r) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final (badgeLabel, badgeColor) = switch (r.kind) {
       'club' => ('Kulüp', kTeal),
       'coach' => ('Antrenör', const Color(0xFF7C5CE6)),
-      'athlete' => ('Sporcu', const Color(0xFF10B981)),
+      'athlete' => ('Sporcu', SwanPalette.light.success),
       _ => ('Üye', SwanColors.textSecondary),
     };
 

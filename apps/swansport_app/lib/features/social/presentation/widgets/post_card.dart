@@ -9,6 +9,7 @@ import '../comments_sheet.dart';
 import 'report_sheet.dart';
 import 'social_widgets.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Akıştaki tek gönderi kartı — Instagram benzeri.
 class PostCard extends ConsumerStatefulWidget {
@@ -71,8 +72,8 @@ class _PostCardState extends ConsumerState<PostCard> {
   /// Gönderi menüsü — sahibine silme, diğerlerine şikayet ve engelleme.
   Future<void> _openMenu() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final isMine =
         widget.post.authorId == Supabase.instance.client.auth.currentUser?.id;
 
@@ -101,14 +102,14 @@ class _PostCardState extends ConsumerState<PostCard> {
               _editPost();
             }),
             _menuItem(ctx, Icons.delete_outline_rounded, 'Gönderiyi sil',
-                const Color(0xFFF43F5E), () {
+                SwanPalette.light.danger, () {
               Navigator.pop(ctx);
               _confirmDelete();
             }),
           ]
           else ...[
             _menuItem(ctx, Icons.flag_outlined, 'Şikayet et',
-                const Color(0xFFF43F5E), () {
+                SwanPalette.light.danger, () {
               Navigator.pop(ctx);
               showReportSheet(context,
                   targetType: 'post', targetId: widget.post.id);
@@ -135,8 +136,8 @@ class _PostCardState extends ConsumerState<PostCard> {
 
   Future<void> _confirmBlock() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -157,7 +158,7 @@ class _PostCardState extends ConsumerState<PostCard> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Engelle',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -176,7 +177,7 @@ class _PostCardState extends ConsumerState<PostCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Engellenemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -185,8 +186,8 @@ class _PostCardState extends ConsumerState<PostCard> {
   /// Gönderi metnini düzenler (görsel değişmez).
   Future<void> _editPost() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final ctrl = TextEditingController(text: widget.post.body);
 
     final ok = await showDialog<bool>(
@@ -233,15 +234,15 @@ class _PostCardState extends ConsumerState<PostCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Güncellenemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
 
   Future<void> _confirmDelete() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final yes = await showDialog<bool>(
       context: context,
@@ -261,7 +262,7 @@ class _PostCardState extends ConsumerState<PostCard> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -281,7 +282,7 @@ class _PostCardState extends ConsumerState<PostCard> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Silinemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -298,8 +299,8 @@ class _PostCardState extends ConsumerState<PostCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final p = widget.post;
 
     // Brief §5: "Her postu ayrı büyük beyaz kutuya koyma." Kart kabuğu
@@ -405,7 +406,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                 icon: _liked
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
-                color: _liked ? const Color(0xFFF43F5E) : null,
+                color: _liked ? SwanPalette.light.danger : null,
                 label: _likes > 0 ? compactCount(_likes) : 'Beğen',
                 onTap: _toggleLike,
               ),

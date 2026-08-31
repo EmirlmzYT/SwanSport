@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Fişle hızlı gider girişi.
 ///
@@ -42,9 +43,9 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
 
     final categories = ref.watch(expenseCategoriesProvider);
 
@@ -165,7 +166,7 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                 if (_error != null) ...[
                   const SizedBox(height: 14),
                   Text(_error!,
-                      style: SwanType.caption(const Color(0xFFF43F5E))),
+                      style: SwanType.caption(SwanPalette.light.danger)),
                 ],
 
                 const SizedBox(height: 22),

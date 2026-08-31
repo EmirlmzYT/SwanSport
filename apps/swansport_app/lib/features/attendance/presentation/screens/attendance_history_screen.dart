@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Yoklama geçmişi — sporcu bazında katılım oranı (son 90 gün).
 class AttendanceHistoryScreen extends ConsumerWidget {
@@ -14,8 +15,8 @@ class AttendanceHistoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(attendanceSummaryProvider);
@@ -82,8 +83,8 @@ class AttendanceHistoryScreen extends ConsumerWidget {
 
   /// Kulüp geneli özet.
   Widget _overview(bool isDark, List<AttendanceStat> list) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final present = list.fold<int>(0, (a, r) => a + r.present);
     final total = list.fold<int>(0, (a, r) => a + r.total);
     final rate = total == 0 ? 0 : (100 * present / total).round();
@@ -100,10 +101,10 @@ class AttendanceHistoryScreen extends ConsumerWidget {
           value: rate / 100,
           track: line,
           progress: rate >= 80
-              ? const Color(0xFF10B981)
+              ? SwanPalette.light.success
               : rate >= 50
-                  ? const Color(0xFFD9860B)
-                  : const Color(0xFFF43F5E),
+                  ? SwanPalette.light.warning
+                  : SwanPalette.light.danger,
           size: 74,
         ),
         const SizedBox(width: 18),
@@ -127,17 +128,17 @@ class AttendanceHistoryScreen extends ConsumerWidget {
   }
 
   Widget _row(bool isDark, AttendanceStat r) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final color = r.total == 0
         ? SwanColors.textSecondary
         : r.rate >= 80
-            ? const Color(0xFF10B981)
+            ? SwanPalette.light.success
             : r.rate >= 50
-                ? const Color(0xFFD9860B)
-                : const Color(0xFFF43F5E);
+                ? SwanPalette.light.warning
+                : SwanPalette.light.danger;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),

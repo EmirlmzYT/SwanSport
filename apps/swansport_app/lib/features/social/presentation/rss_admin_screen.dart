@@ -8,6 +8,7 @@ import '../../../app/widgets/quick_form.dart';
 import '../../demo/demo_role.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Haber kaynakları yönetimi — yalnızca platform yöneticisi.
 ///
@@ -18,10 +19,10 @@ class RssAdminScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
     final async = ref.watch(rssSourcesProvider);
@@ -133,9 +134,9 @@ class RssAdminScreen extends ConsumerWidget {
 
   Widget _row(
       BuildContext context, WidgetRef ref, bool isDark, RssSource s) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -217,8 +218,8 @@ class RssAdminScreen extends ConsumerWidget {
   Future<void> _remove(
       BuildContext context, WidgetRef ref, RssSource s) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final yes = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -237,7 +238,7 @@ class RssAdminScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
           ),
         ],
       ),

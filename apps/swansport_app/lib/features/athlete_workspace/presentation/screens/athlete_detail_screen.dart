@@ -8,6 +8,7 @@ import '../../../../app/widgets/premium.dart';
 import '../routing/athlete_detail_route_args.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Sporcu Profili — Supabase verisine bağlı, premium tasarım (v3).
 class AthleteDetailScreen extends ConsumerWidget {
@@ -20,8 +21,8 @@ class AthleteDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final id = args?.athleteId.value;
     final async = id == null
@@ -87,8 +88,8 @@ class AthleteDetailScreen extends ConsumerWidget {
                                       PremiumStatusChip(
                                         label: a.isActive ? 'Aktif' : 'Pasif',
                                         color: a.isActive
-                                            ? const Color(0xFF10B981)
-                                            : const Color(0xFFD9860B),
+                                            ? SwanPalette.light.success
+                                            : SwanPalette.light.warning,
                                         icon: a.isActive
                                             ? Icons.check_circle_rounded
                                             : Icons.pause_circle_filled_rounded,
@@ -159,18 +160,18 @@ class AthleteDetailScreen extends ConsumerWidget {
 
   /// 18 yaş altı sporcularda veli bağı zorunludur.
   Widget _guardianWarning(bool isDark) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFD9860B).withValues(alpha: .10),
+        color: SwanPalette.light.warning.withValues(alpha: .10),
         borderRadius: BorderRadius.circular(16),
         border:
-            Border.all(color: const Color(0xFFD9860B).withValues(alpha: .4)),
+            Border.all(color: SwanPalette.light.warning.withValues(alpha: .4)),
       ),
       child: Row(children: [
-        const Icon(Icons.family_restroom_rounded,
-            size: 20, color: Color(0xFFD9860B)),
+        Icon(Icons.family_restroom_rounded,
+            size: 20, color: SwanPalette.light.warning),
         const SizedBox(width: 11),
         Expanded(
           child: Column(
@@ -227,8 +228,8 @@ class AthleteDetailScreen extends ConsumerWidget {
           .createGuardianInvite(athleteId);
       if (!context.mounted) return;
       final isDark = Theme.of(context).brightness == Brightness.dark;
-      final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-      final ink = isDark ? Colors.white : SwanColors.textPrimary;
+      final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+      final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
       await showDialog<void>(
         context: context,
         builder: (ctx) => AlertDialog(
@@ -292,7 +293,7 @@ class AthleteDetailScreen extends ConsumerWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Kod üretilemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E),
+            backgroundColor: SwanPalette.light.danger,
           ),
         );
       }
@@ -339,9 +340,9 @@ class AthleteDetailScreen extends ConsumerWidget {
   }
 
   Widget _stat(bool isDark, String value, String label, {bool accent = false}) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
@@ -365,9 +366,9 @@ class AthleteDetailScreen extends ConsumerWidget {
   }
 
   Widget _card(bool isDark, String title, String value) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(

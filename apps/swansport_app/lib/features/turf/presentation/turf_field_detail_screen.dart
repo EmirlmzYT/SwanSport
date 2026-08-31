@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Sahanın haftalık doluluk şeridi.
 ///
@@ -28,8 +29,8 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final async = ref.watch(turfOccupancyGridProvider(_field.id));
     final isManager =
@@ -130,10 +131,10 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
   }
 
   Widget _cell(bool isDark, Color ink, TurfSlot s, bool isManager) {
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final freeColor = const Color(0xFF3FB950);
     final busyColor = const Color(0xFFD64545);
-    final requestedColor = const Color(0xFFD9860B);
+    final requestedColor = SwanPalette.light.warning;
 
     final VoidCallback? onTap;
     if (isManager) {

@@ -36,8 +36,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final access = ref.watch(swanAccessProvider);
     final verified = access.hasVerificationTier('location');
@@ -152,8 +152,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   }
 
   Widget _openSlotCard(bool isDark, Color ink, OpenSlot s, bool verified) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final hour = '${s.startsAt.hour.toString().padLeft(2, '0')}:'
         '${s.startsAt.minute.toString().padLeft(2, '0')}';
@@ -190,7 +190,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           ),
           PremiumStatusChip(
               label: '${s.remaining} kişi',
-              color: const Color(0xFFD9860B),
+              color: SwanPalette.light.warning,
               icon: Icons.group_add_rounded),
         ]),
         const SizedBox(height: 12),
@@ -273,8 +273,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       );
 
   Widget _pingCard(bool isDark, Color ink, IncomingPartnerPing p) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     Widget button(String text, VoidCallback onTap,
             {bool filled = true, Color color = kTeal}) =>
@@ -306,11 +306,11 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFFD9860B).withValues(alpha: .12),
+            color: SwanPalette.light.warning.withValues(alpha: .12),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.handshake_rounded,
-              color: Color(0xFFD9860B), size: 20),
+          child: Icon(Icons.handshake_rounded,
+              color: SwanPalette.light.warning, size: 20),
         ),
         const SizedBox(width: 11),
         Expanded(
@@ -343,8 +343,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     AsyncValue<List<CityRow>> sports,
     AsyncValue<Set<String>> interests,
   ) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -430,8 +430,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   }
 
   Widget _myRequestCard(bool isDark, Color ink, MyPartnerRequest req) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     if (req.isMatched) {
       return Container(
@@ -515,7 +515,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? kTeal : (isDark ? const Color(0xFF1A2537) : const Color(0xFFF4F7FA)),
+          color: selected ? kTeal : (isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA)),
           borderRadius: BorderRadius.circular(11),
         ),
         child: Text(label,

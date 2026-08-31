@@ -7,6 +7,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Takvim & Program — Supabase verisine bağlı, premium tasarım (v3).
 class ScheduleCalendarScreen extends ConsumerWidget {
@@ -22,8 +23,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final club = ref.watch(activeClubProvider).valueOrNull;
     // Maç sonucunu yalnızca kulüp yetkilisi girebilir.
     final canManage =
@@ -137,9 +138,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
 
   Widget _eventCard(BuildContext context, WidgetRef ref, bool isDark,
       EventRow e, bool canManage) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final color = Color(_kindColor[e.kind] ?? 0xFF008C95);
     final isAthlete =
         ref.watch(activeClubProvider).valueOrNull?.role == 'athlete';
@@ -238,10 +239,10 @@ class ScheduleCalendarScreen extends ConsumerWidget {
           context, ref, event, 'attending', 'Katılacağım', kTeal, current),
       const SizedBox(width: 7),
       _rsvpButton(context, ref, event, 'uncertain', 'Belirsiz',
-          const Color(0xFFD9860B), current),
+          SwanPalette.light.warning, current),
       const SizedBox(width: 7),
       _rsvpButton(context, ref, event, 'unavailable', 'Katılamam',
-          const Color(0xFFF43F5E), current),
+          SwanPalette.light.danger, current),
     ]);
   }
 
@@ -310,9 +311,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     var until = DateTime.now().add(const Duration(days: 90));
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final facilities =
         ref.read(facilitiesProvider).valueOrNull ?? const <FacilityRow>[];
 
@@ -330,8 +331,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? const Color(0xFF1A2537)
-                        : const Color(0xFFF1F5F8),
+                        ? SwanPalette.dark.surfaceAlt
+                        : SwanPalette.light.surfaceAlt,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -437,12 +438,12 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
                     child: Row(children: [
-                      const Icon(Icons.warning_amber_rounded,
-                          size: 15, color: Color(0xFFD9860B)),
+                      Icon(Icons.warning_amber_rounded,
+                          size: 15, color: SwanPalette.light.warning),
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text('Bu tesis "${facility!.status}" durumda.',
-                            style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w600)),
+                            style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w600)),
                       ),
                     ]),
                   ),
@@ -470,8 +471,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                 padding: const EdgeInsets.all(13),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const Color(0xFF1A2537)
-                      : const Color(0xFFF1F5F8),
+                      ? SwanPalette.dark.surfaceAlt
+                      : SwanPalette.light.surfaceAlt,
                   borderRadius: BorderRadius.circular(14),
                 ),
                 child: Column(children: [
@@ -621,9 +622,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     if (repeatOn) {
       if (weekdays.isEmpty) {
         if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text('En az bir gün seç'),
-              backgroundColor: Color(0xFFF43F5E)));
+              backgroundColor: SwanPalette.light.danger));
         }
         return;
       }
@@ -652,7 +653,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
               content: Text('Seri oluşturulamadı: $e'),
-              backgroundColor: const Color(0xFFF43F5E)));
+              backgroundColor: SwanPalette.light.danger));
         }
       }
       return;
@@ -678,7 +679,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Eklenemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

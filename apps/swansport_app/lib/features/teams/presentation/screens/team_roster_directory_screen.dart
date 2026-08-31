@@ -7,6 +7,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Takımlar & Antrenman Grupları — Supabase verisine bağlı, premium (v3).
 class TeamRosterDirectoryScreen extends ConsumerWidget {
@@ -15,8 +16,8 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final club = ref.watch(activeClubProvider).valueOrNull;
     final canManage = club != null &&
         (club.role == 'club_admin' || club.role == 'coach');
@@ -70,9 +71,9 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
   }
 
   Widget _card(BuildContext context, bool isDark, TeamRow t, int index) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final sub = [t.ageGroup, t.gender].where((e) => e != null).join(' · ');
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/takim-kadro',

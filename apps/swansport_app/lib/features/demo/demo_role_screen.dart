@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../app/widgets/premium.dart';
 import 'demo_role.dart';
 import '../../app/design/swan_type.dart';
+import '../../app/design/swan_palette.dart';
 
 /// DEMO — rol değiştirici ekran (/demo-rol).
 /// Rolleri gruplu listeler; seçince demoRoleProvider'ı ayarlar ve o rolün
@@ -15,10 +16,10 @@ class DemoRoleScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final active = ref.watch(demoRoleProvider);
 
@@ -133,9 +134,9 @@ class DemoRoleScreen extends ConsumerWidget {
 
   Widget _roleCard(BuildContext context, WidgetRef ref, bool isDark,
       DemoRole role, bool selected, bool isCoach) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final count = role.allowedRoutes.length;
     final kademe = role.kademe;
 
@@ -209,10 +210,10 @@ class DemoRoleScreen extends ConsumerWidget {
   }
 
   List<Color> _roleColors(DemoRole role) => switch (role.group) {
-        DemoRoleGroup.platform => const [Color(0xFFF43F5E), Color(0xFFB91C3C)],
+        DemoRoleGroup.platform => [SwanPalette.light.danger, Color(0xFFB91C3C)],
         DemoRoleGroup.club => const [kTealBright, kTealDeep],
         DemoRoleGroup.coach => const [Color(0xFF7C5CE6), Color(0xFF4C3AA8)],
-        DemoRoleGroup.athlete => const [Color(0xFF10B981), Color(0xFF047857)],
+        DemoRoleGroup.athlete => [SwanPalette.light.success, Color(0xFF047857)],
         DemoRoleGroup.family => const [Color(0xFF4FC3F7), Color(0xFF2563EB)],
         DemoRoleGroup.member => const [Color(0xFF94A3B8), Color(0xFF64748B)],
       };
@@ -237,14 +238,14 @@ class DemoRoleScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-        color: const Color(0xFFD9860B).withValues(alpha: .08),
+        color: SwanPalette.light.warning.withValues(alpha: .08),
         borderRadius: BorderRadius.circular(14),
         border:
-            Border.all(color: const Color(0xFFD9860B).withValues(alpha: .3)),
+            Border.all(color: SwanPalette.light.warning.withValues(alpha: .3)),
       ),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        const Icon(Icons.info_outline_rounded,
-            size: 17, color: Color(0xFFD9860B)),
+        Icon(Icons.info_outline_rounded,
+            size: 17, color: SwanPalette.light.warning),
         const SizedBox(width: 10),
         Expanded(
           child: Column(

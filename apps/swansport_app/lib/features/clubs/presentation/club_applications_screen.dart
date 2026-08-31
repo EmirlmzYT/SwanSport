@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import 'coach_accept_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kulübe gelen katılım başvuruları — yetkili kabul eder veya reddeder.
 class ClubApplicationsScreen extends ConsumerWidget {
@@ -15,8 +16,8 @@ class ClubApplicationsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(clubPendingApplicationsProvider);
@@ -118,9 +119,9 @@ class ClubApplicationsScreen extends ConsumerWidget {
 
   Widget _incoming(BuildContext context, WidgetRef ref, bool isDark,
       ClubApplicationRow a) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -156,11 +157,11 @@ class ClubApplicationsScreen extends ConsumerWidget {
                 ],
               ),
             ),
-            _mini2(const Color(0xFFF43F5E), Icons.close_rounded,
+            _mini2(SwanPalette.light.danger, Icons.close_rounded,
                 () => _run(context, ref, a.id, false)),
             const SizedBox(width: 6),
             _mini2(
-                const Color(0xFF10B981),
+                SwanPalette.light.success,
                 Icons.check_rounded,
                 () => a.desiredRole == 'coach'
                     ? _acceptCoach(context, ref, a)
@@ -173,8 +174,8 @@ class ClubApplicationsScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
                 color: isDark
-                    ? const Color(0xFF1A2537)
-                    : const Color(0xFFF1F5F8),
+                    ? SwanPalette.dark.surfaceAlt
+                    : SwanPalette.light.surfaceAlt,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(a.message!,
@@ -203,16 +204,16 @@ class ClubApplicationsScreen extends ConsumerWidget {
   /// Kulüpten sana gelen katılım teklifi — kabul/ret sende.
   Widget _offer(BuildContext context, WidgetRef ref, bool isDark,
       ClubApplicationRow a) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFD9860B).withValues(alpha: .08),
+        color: SwanPalette.light.warning.withValues(alpha: .08),
         borderRadius: BorderRadius.circular(16),
         border:
-            Border.all(color: const Color(0xFFD9860B).withValues(alpha: .4)),
+            Border.all(color: SwanPalette.light.warning.withValues(alpha: .4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -222,10 +223,10 @@ class ClubApplicationsScreen extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                  color: const Color(0xFFD9860B).withValues(alpha: .15),
+                  color: SwanPalette.light.warning.withValues(alpha: .15),
                   borderRadius: BorderRadius.circular(12)),
-              child: const Icon(Icons.mail_rounded,
-                  size: 19, color: Color(0xFFD9860B)),
+              child: Icon(Icons.mail_rounded,
+                  size: 19, color: SwanPalette.light.warning),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -297,13 +298,13 @@ class ClubApplicationsScreen extends ConsumerWidget {
   }
 
   Widget _mineRow(bool isDark, ClubApplicationRow a) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final (color, icon) = switch (a.status) {
-      'accepted' => (const Color(0xFF10B981), Icons.check_circle_rounded),
-      'rejected' => (const Color(0xFFF43F5E), Icons.cancel_rounded),
-      _ => (const Color(0xFFD9860B), Icons.schedule_rounded),
+      'accepted' => (SwanPalette.light.success, Icons.check_circle_rounded),
+      'rejected' => (SwanPalette.light.danger, Icons.cancel_rounded),
+      _ => (SwanPalette.light.warning, Icons.schedule_rounded),
     };
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -364,7 +365,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -384,7 +385,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

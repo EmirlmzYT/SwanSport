@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../auth/application/auth_controller.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Herkese açık karşılama ekranı — premium tasarım (v3).
 ///
@@ -18,10 +19,10 @@ class PublicLandingScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final enabled = ref.watch(isSupabaseEnabledProvider);
     final signedIn =
@@ -196,7 +197,7 @@ class PublicLandingScreen extends ConsumerWidget {
   }
 
   Widget _feature(bool isDark, IconData icon, String title, String sub) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(

@@ -3,6 +3,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Ağdan yüklenen avatar; görsel yoksa baş harflerle degrade avatara düşer.
 class SocialAvatar extends StatelessWidget {
@@ -140,7 +141,7 @@ class _RatioImageState extends State<RatioImage> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final placeholder = widget.background ??
-        (isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8));
+        (isDark ? SwanPalette.dark.surfaceAlt : SwanPalette.light.surfaceAlt);
     final ratio = (_ratio ?? 1).clamp(kMinPostAspect, kMaxPostAspect);
 
     return ClipRRect(
@@ -227,7 +228,7 @@ class SocialStat extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Column(
       children: [
         Text(compactCount(value), style: SwanType.h3(ink)),

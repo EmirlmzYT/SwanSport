@@ -9,6 +9,7 @@ import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// İlanlar — sporcu arayan kulüp, kulüp arayan sporcu/antrenör ve seçmeler.
 ///
@@ -30,10 +31,10 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final async = ref.watch(listingsProvider(_filter));
 
@@ -122,14 +123,14 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
             decoration: BoxDecoration(
               color: active
                   ? kTeal
-                  : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                  : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
               borderRadius: BorderRadius.circular(11),
               border: Border.all(
                   color: active
                       ? kTeal
                       : (isDark
-                          ? const Color(0xFF233149)
-                          : const Color(0xFFEAEEF3))),
+                          ? SwanPalette.dark.line
+                          : SwanPalette.light.line)),
             ),
             child: Text(label,
                 style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w700)),
@@ -182,8 +183,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   Future<String?> _pickSport(List<CityRow> sports) async {
     if (sports.isEmpty) return null;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return showModalBottomSheet<String>(
       context: context,
@@ -218,10 +219,10 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   }
 
   Widget _card(bool isDark, Color ink, Listing l) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final accent = l.isTryout
-        ? const Color(0xFFD9860B)
+        ? SwanPalette.light.warning
         : (l.isEquipment ? const Color(0xFF5B6ABF) : kTeal);
 
     return GestureDetector(
@@ -305,15 +306,15 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
             if (l.isTryout && l.startsAt != null) ...[
               const SizedBox(height: 8),
               Row(children: [
-                const Icon(Icons.event_rounded,
-                    size: 14, color: Color(0xFFD9860B)),
+                Icon(Icons.event_rounded,
+                    size: 14, color: SwanPalette.light.warning),
                 const SizedBox(width: 6),
                 Text(
                     '${l.startsAt!.day}.${l.startsAt!.month}.${l.startsAt!.year}'
                     ' · ${l.startsAt!.hour.toString().padLeft(2, '0')}:'
                     '${l.startsAt!.minute.toString().padLeft(2, '0')}'
                     '${(l.location ?? '').isEmpty ? '' : ' · ${l.location}'}',
-                    style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
+                    style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
               ]),
             ],
             const SizedBox(height: 12),
@@ -384,8 +385,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   // ------------------------------- eylemler --------------------------------
   Future<void> _openDetail(Listing l) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -433,7 +434,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                 const SizedBox(height: 8),
                 Text(
                     'Son başvuru: ${l.deadline!.day}.${l.deadline!.month}.${l.deadline!.year}',
-                    style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
+                    style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
               ],
               const SizedBox(height: 20),
               if (l.canManage)
@@ -448,10 +449,10 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: const Color(0xFFF43F5E).withValues(alpha: .4)),
+                          color: SwanPalette.light.danger.withValues(alpha: .4)),
                     ),
                     child: Text('İlanı kapat',
-                        style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                        style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
                   ),
                 )
               else if (!l.applied)
@@ -508,15 +509,15 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Kapatılamadı: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
 
   Future<void> _openApplicants(Listing l) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -587,16 +588,16 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
               if (!a.isPending)
                 Text(a.status == 'accepted' ? 'Kabul edildi' : 'Reddedildi',
                     style: SwanType.caption(a.status == 'accepted'
-                            ? const Color(0xFF10B981)
+                            ? SwanPalette.light.success
                             : SwanColors.textSecondary, w: FontWeight.w800)),
             ],
           ),
         ),
         if (a.isPending) ...[
-          _mini(const Color(0xFFF43F5E), Icons.close_rounded,
+          _mini(SwanPalette.light.danger, Icons.close_rounded,
               () => _review(l, a, false)),
           const SizedBox(width: 6),
-          _mini(const Color(0xFF10B981), Icons.check_rounded,
+          _mini(SwanPalette.light.success, Icons.check_rounded,
               () => _review(l, a, true)),
         ],
       ]),
@@ -624,7 +625,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -634,8 +635,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   Future<void> _create() async {
     final club = ref.read(activeClubProvider).valueOrNull;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     // Malzeme ilanı kulüpsüz de verilebilir; kişisel ilanda onaylanmış bir
     // belge aranıyor. Asıl engel `create_listing` içinde — buradaki kontrol

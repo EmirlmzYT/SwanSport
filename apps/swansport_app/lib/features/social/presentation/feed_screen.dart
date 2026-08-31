@@ -14,6 +14,7 @@ import 'widgets/today_strip.dart';
 import '../../../app/widgets/inbox_actions.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -37,8 +38,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final async =
@@ -110,13 +111,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 14),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? const Color(0xFF1A2537)
-                            : const Color(0xFFF1F5F8),
+                            ? SwanPalette.dark.surfaceAlt
+                            : SwanPalette.light.surfaceAlt,
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
                             color: isDark
-                                ? const Color(0xFF233149)
-                                : const Color(0xFFEAEEF3)),
+                                ? SwanPalette.dark.line
+                                : SwanPalette.light.line),
                       ),
                       child: Row(children: [
                         Icon(Icons.search_rounded,

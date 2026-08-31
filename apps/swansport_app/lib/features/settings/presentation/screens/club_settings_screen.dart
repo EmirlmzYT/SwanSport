@@ -11,6 +11,7 @@ import '../../../demo/demo_role.dart';
 import '../../../social/presentation/edit_profile_sheet.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Ayarlar.
 ///
@@ -28,8 +29,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final club = ref.watch(activeClubProvider).valueOrNull;
@@ -204,11 +205,11 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(14),
                         border: Border.all(
-                            color: const Color(0xFFF43F5E)
+                            color: SwanPalette.light.danger
                                 .withValues(alpha: .35)),
                       ),
                       child: Text('Çıkış Yap',
-                          style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                          style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -261,8 +262,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
       );
 
   Widget _group(bool isDark, List<Widget> children) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
       decoration: BoxDecoration(
@@ -276,7 +277,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
 
   Widget _row(bool isDark, IconData icon, String label,
       {String? sub, VoidCallback? onTap}) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -307,7 +308,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
 
   Widget _sep(bool isDark) => Divider(
       height: 1,
-      color: isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3));
+      color: isDark ? SwanPalette.dark.line : SwanPalette.light.line);
 }
 
 /// Gerçek push anahtarı — tarayıcı aboneliğini ve veritabanı kaydını yönetir.
@@ -317,7 +318,7 @@ class _PushToggleRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
 
     return Padding(
@@ -368,7 +369,7 @@ class _PushToggleRow extends ConsumerWidget {
                           'Bu tarayıcı bildirim desteklemiyor.',
                         PushFailure.failed => 'Açılamadı, tekrar dene.',
                       }),
-                      backgroundColor: const Color(0xFFF43F5E),
+                      backgroundColor: SwanPalette.light.danger,
                     ));
                   }
                 },

@@ -58,10 +58,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final dms = ref.watch(conversationsProvider);
     final groups = ref.watch(communityListProvider).valueOrNull ?? const [];
@@ -448,7 +448,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Katılamadın: $e'),
-          backgroundColor: const Color(0xFFF43F5E)));
+          backgroundColor: SwanPalette.light.danger));
     }
   }
 }
@@ -501,7 +501,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Gönderilemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -511,11 +511,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final async = ref.watch(messagesProvider(widget.otherId));
 
     return Scaffold(
@@ -636,9 +636,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _bubble(bool isDark, MessageRow m) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF1A2537) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = isDark ? SwanPalette.dark.surfaceAlt : Colors.white;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Align(
       alignment: m.isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(

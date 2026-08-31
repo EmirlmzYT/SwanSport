@@ -20,8 +20,8 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(performanceOverviewProvider);
@@ -97,8 +97,8 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
       int withTests,
       List<({String athleteId, String name, int tests, int goals, int progress, DateTime? lastTest})>
           rows) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final openGoals = rows.fold<int>(0, (n, r) => n + r.goals);
     final coverage = total == 0 ? 0.0 : withTests / total;
 
@@ -142,8 +142,8 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
       bool isDark,
       Color ink,
       ({String athleteId, String name, int tests, int goals, int progress, DateTime? lastTest}) r) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final never = r.tests == 0;
 
     return GestureDetector(
@@ -177,7 +177,7 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
                         ? 'Henüz ölçüm yok'
                         : '${r.tests} test · ${r.goals} açık hedef'
                             '${r.lastTest == null ? '' : ' · son ${r.lastTest!.day}.${r.lastTest!.month}'}',
-                    style: SwanType.caption(never ? const Color(0xFFD9860B)
+                    style: SwanType.caption(never ? SwanPalette.light.warning
                               : SwanColors.textSecondary)),
               ],
             ),

@@ -8,6 +8,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kulüp profilinin künye bölümü — adres, iletişim, kuruluş, branş.
 ///
@@ -24,9 +25,9 @@ class ClubIdentitySection extends ConsumerWidget {
     if (d == null) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     if (!d.hasAnyDetail && !d.canManage) return const SizedBox.shrink();
 
@@ -195,9 +196,9 @@ class ClubCoachesSection extends ConsumerWidget {
     if (list.isEmpty) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Padding(
       padding: const EdgeInsets.only(top: 20),
@@ -264,9 +265,9 @@ class ClubAchievementsSection extends ConsumerWidget {
     if (list.isEmpty && !canManage) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Padding(
       padding: const EdgeInsets.only(top: 20),
@@ -309,8 +310,8 @@ class ClubAchievementsSection extends ConsumerWidget {
                         color: const Color(0xFFE9B949).withValues(alpha: .14),
                         borderRadius: BorderRadius.circular(11),
                       ),
-                      child: const Icon(Icons.emoji_events_rounded,
-                          size: 18, color: Color(0xFFD9860B)),
+                      child: Icon(Icons.emoji_events_rounded,
+                          size: 18, color: SwanPalette.light.warning),
                     ),
                     const SizedBox(width: 11),
                     Expanded(

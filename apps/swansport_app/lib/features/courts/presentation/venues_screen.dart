@@ -10,6 +10,7 @@ import '../../turf/presentation/turf_field_detail_screen.dart';
 import 'court_detail_screen.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Sahalar — halka açık kortlar ve halı sahalar tek sayfada.
 ///
@@ -52,10 +53,10 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Scaffold(
       extendBody: true,
@@ -208,8 +209,8 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
   // -------------------------------- kartlar --------------------------------
 
   Widget _shell(bool isDark, {required Widget child, required VoidCallback onTap}) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: onTap,
       child: Container(

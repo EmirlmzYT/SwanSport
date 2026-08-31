@@ -8,6 +8,7 @@ import '../../../app/widgets/quick_form.dart';
 import 'configuration_module_args.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kulüp Yapılandırma.
 ///
@@ -26,8 +27,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final identity = ref.watch(clubIdentityProvider).valueOrNull;
@@ -93,8 +94,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
 
   // ------------------------------- kimlik ---------------------------------
   Widget _identityCard(bool isDark, Color ink, ClubIdentity? c) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -138,7 +139,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
             if (c?.isPending ?? false)
               PremiumStatusChip(
                   label: 'Onay bekliyor',
-                  color: const Color(0xFFD9860B),
+                  color: SwanPalette.light.warning,
                   icon: Icons.schedule_rounded),
           ]),
           const SizedBox(height: 14),
@@ -188,8 +189,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
   // ------------------------------- üyeler ---------------------------------
   Widget _membersSection(bool isDark, Color ink) {
     final members = ref.watch(clubMembersAdminProvider);
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -254,8 +255,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
 
   Future<void> _memberActions(ClubMember m, int adminCount) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     // Kulübün tek yöneticisi rolünü değiştiremez; yoksa kulüp yönetimsiz kalır.
     final locked = m.isAdmin && adminCount <= 1;
@@ -284,7 +285,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                   'Kulübün tek yöneticisi. Rolünü değiştirmek için önce başka '
                   'birini yönetici yap.',
                   textAlign: TextAlign.center,
-                  style: SwanType.caption(const Color(0xFFD9860B))),
+                  style: SwanType.caption(SwanPalette.light.warning)),
             ),
           if (!locked) ...[
             for (final r in const [
@@ -311,11 +312,11 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
             const Divider(height: 18),
             ListTile(
               dense: true,
-              leading: const Icon(Icons.person_remove_rounded,
-                  size: 19, color: Color(0xFFF43F5E)),
+              leading: Icon(Icons.person_remove_rounded,
+                  size: 19, color: SwanPalette.light.danger),
               title: Text('Kulüpten çıkar',
                   style:
-                      SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
+                      SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
               onTap: () {
                 Navigator.pop(ctx);
                 _removeMember(m);
@@ -380,8 +381,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
   // ------------------------------- sezonlar --------------------------------
   Widget _seasonsSection(bool isDark, Color ink) {
     final seasons = ref.watch(clubSeasonsProvider);
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -472,8 +473,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
 
   Future<void> _seasonActions(SeasonRow s) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -509,10 +510,10 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
             ),
           ListTile(
             dense: true,
-            leading: const Icon(Icons.delete_outline_rounded,
-                size: 20, color: Color(0xFFF43F5E)),
+            leading: Icon(Icons.delete_outline_rounded,
+                size: 20, color: SwanPalette.light.danger),
             title: Text('Sezonu sil',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
@@ -535,8 +536,8 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
 
   Widget _link(bool isDark, Color ink, IconData icon, String title, String sub,
       VoidCallback onTap) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -578,7 +579,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

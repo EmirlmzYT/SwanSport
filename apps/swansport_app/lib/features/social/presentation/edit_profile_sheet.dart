@@ -9,6 +9,7 @@ import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Profil düzenleme sayfasını açar. Kaydedilirse true döner.
 Future<bool?> showEditProfileSheet(BuildContext context, SocialProfile p) {
@@ -55,7 +56,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
         _avatarName = picked.name;
       });
     } catch (e) {
-      _snack('Görsel seçilemedi: $e', const Color(0xFFF43F5E));
+      _snack('Görsel seçilemedi: $e', SwanPalette.light.danger);
     }
   }
 
@@ -82,7 +83,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       final msg = '$e'.contains('duplicate') || '$e'.contains('unique')
           ? 'Bu kullanıcı adı alınmış, başka bir tane dene.'
           : 'Kaydedilemedi: $e';
-      _snack(msg, const Color(0xFFF43F5E));
+      _snack(msg, SwanPalette.light.danger);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -96,8 +97,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final grip = isDark ? const Color(0xFF2E3B4E) : const Color(0xFFE4E9F0);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
@@ -211,9 +212,9 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   /// İl seçici — 81 il veritabanından gelir, tek kaynak.
   /// Şehir topluluk üyeliğini belirlediği için serbest metin değil, seçim.
   Widget _cityField(bool isDark) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final cities = ref.watch(citiesProvider).valueOrNull ?? const <CityRow>[];
     final selected = cities.where((c) => c.code == _cityCode).firstOrNull;
 
@@ -261,8 +262,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   Future<String?> _pickFrom(
       List<CityRow> items, String? current, String title) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final search = TextEditingController();
 
     final picked = await showModalBottomSheet<String>(
@@ -324,9 +325,9 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
   Widget _field(bool isDark, String label, TextEditingController ctrl,
       String hint,
       {int maxLines = 1, String? prefix}) {
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

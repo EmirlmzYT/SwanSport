@@ -9,6 +9,7 @@ import 'test_categories.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_shape.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Bir sporcunun performans dosyası — test seyri ve gelişim hedefleri.
 ///
@@ -26,10 +27,10 @@ class AthletePerformanceScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final canManage =
         ref.watch(canManageAthleteProvider(athleteId)).valueOrNull ?? false;
@@ -164,8 +165,8 @@ class AthletePerformanceScreen extends ConsumerWidget {
   }
 
   Widget _empty(bool isDark, IconData icon, String text) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -187,8 +188,8 @@ class AthletePerformanceScreen extends ConsumerWidget {
   // ------------------------------------------------------- test kartı
   Widget _seriesCard(BuildContext context, WidgetRef ref, bool isDark,
       TestSeries s, bool canManage) {
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final color = categoryColor(s.category, isDark);
 
     final change = s.changePercent;
@@ -242,13 +243,13 @@ class AthletePerformanceScreen extends ConsumerWidget {
                             : Icons.trending_down_rounded,
                         size: 13,
                         color: improved
-                            ? const Color(0xFF10B981)
-                            : const Color(0xFFF43F5E)),
+                            ? SwanPalette.light.success
+                            : SwanPalette.light.danger),
                     const SizedBox(width: 3),
                     Text('${change.abs().toStringAsFixed(1)}%',
                         style: SwanType.caption(improved
-                                ? const Color(0xFF10B981)
-                                : const Color(0xFFF43F5E), w: FontWeight.w700)),
+                                ? SwanPalette.light.success
+                                : SwanPalette.light.danger, w: FontWeight.w700)),
                   ]),
               ],
             ),
@@ -332,14 +333,14 @@ class AthletePerformanceScreen extends ConsumerWidget {
   // ------------------------------------------------------- hedef kartı
   Widget _goalCard(BuildContext context, WidgetRef ref, bool isDark,
       DevelopmentGoal g, bool canManage) {
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     // Durum rengi ayrı bir palettir; kategori renkleriyle karışmaz.
     final (statusColor, statusIcon) = switch (g.status) {
-      'done' => (const Color(0xFF10B981), Icons.check_circle_rounded),
-      'at_risk' => (const Color(0xFFF43F5E), Icons.warning_rounded),
-      _ => (const Color(0xFFD9860B), Icons.schedule_rounded),
+      'done' => (SwanPalette.light.success, Icons.check_circle_rounded),
+      'at_risk' => (SwanPalette.light.danger, Icons.warning_rounded),
+      _ => (SwanPalette.light.warning, Icons.schedule_rounded),
     };
 
     // Brief §16: "Her metriği ayrı büyük kart haline getirme." Kabuk kalktı;
@@ -410,8 +411,8 @@ class AthletePerformanceScreen extends ConsumerWidget {
   Widget _step(BuildContext context, WidgetRef ref, DevelopmentGoal g,
       int delta, String label) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return GestureDetector(
       onTap: () async {
         await ref

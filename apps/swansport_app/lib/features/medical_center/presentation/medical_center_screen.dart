@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Sağlık Merkezi — sporcuların sakatlık/uygunluk kayıtları.
 ///
@@ -23,17 +24,17 @@ class MedicalCenterScreen extends ConsumerStatefulWidget {
 class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
   /// Durum → (etiket, renk, ikon). Renk tek başına anlam taşımasın diye her
   /// durum ikon ve yazıyla birlikte gösteriliyor.
-  static const _states = {
-    'injured': ('Sakat', Color(0xFFF43F5E), Icons.personal_injury_rounded),
-    'pending': ('Takipte', Color(0xFFD9860B), Icons.help_rounded),
-    'fit': ('Sağlam', Color(0xFF10B981), Icons.check_circle_rounded),
+  static final _states = {
+    'injured': ('Sakat', SwanPalette.light.danger, Icons.personal_injury_rounded),
+    'pending': ('Takipte', SwanPalette.light.warning, Icons.help_rounded),
+    'fit': ('Sağlam', SwanPalette.light.success, Icons.check_circle_rounded),
   };
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final async = ref.watch(injuriesProvider);
 
@@ -102,8 +103,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
   }
 
   Widget _summary(bool isDark, Color ink, List<InjuryRow> list) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     int count(String s) => list.where((r) => r.status == s).length;
 
     return Container(
@@ -136,8 +137,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
   }
 
   Widget _row(bool isDark, Color ink, InjuryRow r) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final st = _states[r.status] ?? _states['fit']!;
 
     return GestureDetector(
@@ -188,15 +189,15 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
   Future<void> _addRecord() async {
     final athletes = ref.read(clubAthletesProvider).valueOrNull ?? const [];
     if (athletes.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Kadroda sporcu yok'),
-          backgroundColor: Color(0xFFF43F5E)));
+          backgroundColor: SwanPalette.light.danger));
       return;
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final athleteId = await showModalBottomSheet<String>(
       context: context,
@@ -249,8 +250,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
 
   Future<String?> _pickStatus() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return showModalBottomSheet<String>(
       context: context,
@@ -279,8 +280,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
 
   Future<void> _actions(InjuryRow r) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -315,10 +316,10 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
           const Divider(height: 18),
           ListTile(
             dense: true,
-            leading: const Icon(Icons.delete_outline_rounded,
-                size: 20, color: Color(0xFFF43F5E)),
+            leading: Icon(Icons.delete_outline_rounded,
+                size: 20, color: SwanPalette.light.danger),
             title: Text('Kaydı sil',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
@@ -343,7 +344,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Profil sayfasındaki "Sporcu" bölümü — künye + başarılar.
 ///
@@ -27,7 +28,7 @@ class AthleteProfileSection extends ConsumerWidget {
         ref.watch(achievementsProvider(athlete.id)).valueOrNull ?? const [];
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,9 +87,9 @@ class AthleteProfileSection extends ConsumerWidget {
 
   // ------------------------------------------------------------- künye
   Widget _card(BuildContext context, bool isDark, AthleteSportInfo a) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final chips = <(String, String)>[
       if (a.branch != null) ('Branş', a.branch!),
@@ -138,9 +139,9 @@ class AthleteProfileSection extends ConsumerWidget {
               ),
             ),
             if (a.status == 'active')
-              const PremiumStatusChip(
+              PremiumStatusChip(
                   label: 'Aktif',
-                  color: Color(0xFF10B981),
+                  color: SwanPalette.light.success,
                   icon: Icons.check_circle_rounded),
           ]),
           if (chips.isNotEmpty) ...[
@@ -161,8 +162,8 @@ class AthleteProfileSection extends ConsumerWidget {
   }
 
   Widget _chip(bool isDark, String label, String value) {
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
@@ -183,8 +184,8 @@ class AthleteProfileSection extends ConsumerWidget {
 
   // --------------------------------------------------------- başarılar
   Widget _emptyAchievements(bool isDark, bool canManage) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(18),
@@ -209,9 +210,9 @@ class AthleteProfileSection extends ConsumerWidget {
 
   Widget _achievement(BuildContext context, WidgetRef ref, bool isDark,
       Achievement a, bool canManage) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final medal = switch (a.placement) {
       1 => const Color(0xFFE9B949),

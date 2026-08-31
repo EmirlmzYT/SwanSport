@@ -8,6 +8,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../demo/demo_role.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kulüp onay bekliyor — belgeler platform yöneticisince incelenene kadar
 /// yöneticinin karşılaştığı kilitli ekran (premium v3).
@@ -31,10 +32,10 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
@@ -54,15 +55,15 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                     width: 92,
                     height: 92,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFFF5B23E), Color(0xFFD9860B)],
+                        colors: [Color(0xFFF5B23E), SwanPalette.light.warning],
                       ),
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFD9860B).withValues(alpha: .34),
+                          color: SwanPalette.light.warning.withValues(alpha: .34),
                           blurRadius: 26,
                           offset: const Offset(0, 12),
                         ),
@@ -176,20 +177,20 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                       height: 50,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: const Color(0xFFD9860B).withValues(alpha: .10),
+                        color: SwanPalette.light.warning.withValues(alpha: .10),
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
                             color:
-                                const Color(0xFFD9860B).withValues(alpha: .4)),
+                                SwanPalette.light.warning.withValues(alpha: .4)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.admin_panel_settings_rounded,
-                              size: 18, color: Color(0xFFD9860B)),
+                          Icon(Icons.admin_panel_settings_rounded,
+                              size: 18, color: SwanPalette.light.warning),
                           const SizedBox(width: 8),
                           Text('Onay Paneli (Yönetici)',
-                              style: SwanType.bodySm(const Color(0xFFD9860B), w: FontWeight.w800)),
+                              style: SwanType.bodySm(SwanPalette.light.warning, w: FontWeight.w800)),
                         ],
                       ),
                     ),
@@ -207,7 +208,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                       }
                     },
                     child: Text('Çıkış Yap',
-                        style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                        style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -220,9 +221,9 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
 
   Widget _uploadTile(
       bool isDark, String clubId, String docType, String label) {
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final fileName = _uploaded[docType];
     final uploading = _uploading.contains(docType);
     final done = fileName != null;
@@ -233,9 +234,9 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: done ? const Color(0xFF10B981).withValues(alpha: .06) : null,
+          color: done ? SwanPalette.light.success.withValues(alpha: .06) : null,
           border: Border.all(
-              color: done ? const Color(0xFF10B981) : line, width: 1.5),
+              color: done ? SwanPalette.light.success : line, width: 1.5),
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(children: [
@@ -243,7 +244,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: done ? const Color(0xFF10B981).withValues(alpha: .12) : alt,
+              color: done ? SwanPalette.light.success.withValues(alpha: .12) : alt,
               borderRadius: BorderRadius.circular(12),
             ),
             child: uploading
@@ -258,7 +259,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                         : Icons.upload_file_rounded,
                     size: 20,
                     color: done
-                        ? const Color(0xFF10B981)
+                        ? SwanPalette.light.success
                         : SwanColors.textSecondary),
           ),
           const SizedBox(width: 12),
@@ -305,7 +306,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
         _snack('Belge yüklendi', kTeal);
       }
     } catch (e) {
-      if (mounted) _snack('Yükleme hatası: $e', const Color(0xFFF43F5E));
+      if (mounted) _snack('Yükleme hatası: $e', SwanPalette.light.danger);
     } finally {
       if (mounted) setState(() => _uploading.remove(docType));
     }
@@ -319,7 +320,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
   Widget _step(Color ink, bool done, IconData icon, String title, String sub,
       {bool active = false}) {
     final Color accent = active
-        ? const Color(0xFFD9860B)
+        ? SwanPalette.light.warning
         : (done ? kTeal : SwanColors.textSecondary);
     return Row(
       children: [

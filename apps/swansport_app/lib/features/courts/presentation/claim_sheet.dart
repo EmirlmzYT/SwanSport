@@ -4,6 +4,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kutu alırken verilen bilgiler.
 class ClaimResult {
@@ -42,10 +43,10 @@ class _ClaimSheetState extends State<ClaimSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final field = isDark ? const Color(0xFF1A2537) : const Color(0xFFF4F7FA);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final field = isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA);
 
     final hour = '${widget.startsAt.hour.toString().padLeft(2, '0')}:'
         '${widget.startsAt.minute.toString().padLeft(2, '0')}';

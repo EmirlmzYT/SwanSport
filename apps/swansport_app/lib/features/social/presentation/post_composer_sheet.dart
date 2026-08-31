@@ -10,6 +10,7 @@ import '../../../app/widgets/premium.dart';
 import '../../demo/demo_role.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Gönderi oluşturma sayfasını açar. Paylaşım yapıldıysa true döner.
 Future<bool?> showPostComposer(BuildContext context) {
@@ -50,14 +51,14 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
         _imageName = picked.name;
       });
     } catch (e) {
-      _snack('Görsel seçilemedi: $e', const Color(0xFFF43F5E));
+      _snack('Görsel seçilemedi: $e', SwanPalette.light.danger);
     }
   }
 
   Future<void> _share(String? clubId) async {
     final text = _ctrl.text.trim();
     if (text.isEmpty && _imageBytes == null) {
-      _snack('Bir şeyler yaz ya da görsel ekle', const Color(0xFFD9860B));
+      _snack('Bir şeyler yaz ya da görsel ekle', SwanPalette.light.warning);
       return;
     }
     setState(() => _busy = true);
@@ -70,7 +71,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
           );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      _snack('Paylaşılamadı: $e', const Color(0xFFF43F5E));
+      _snack('Paylaşılamadı: $e', SwanPalette.light.danger);
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -84,10 +85,10 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final alt = isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final grip = isDark ? const Color(0xFF2E3B4E) : const Color(0xFFE4E9F0);
     final bottom = MediaQuery.of(context).viewInsets.bottom;
 
@@ -136,14 +137,14 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: const Color(0xFFD9860B).withValues(alpha: .10),
+                color: SwanPalette.light.warning.withValues(alpha: .10),
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                    color: const Color(0xFFD9860B).withValues(alpha: .4)),
+                    color: SwanPalette.light.warning.withValues(alpha: .4)),
               ),
               child: Row(children: [
-                const Icon(Icons.verified_user_rounded,
-                    size: 20, color: Color(0xFFD9860B)),
+                Icon(Icons.verified_user_rounded,
+                    size: 20, color: SwanPalette.light.warning),
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text(

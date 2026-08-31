@@ -9,6 +9,7 @@ import '../../demo/demo_role.dart';
 import 'admin_review_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Platform Yönetimi — sistem yöneticisinin paneli.
 ///
@@ -46,8 +47,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
 
     return Scaffold(
@@ -128,14 +129,14 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
               decoration: BoxDecoration(
                 color: active
                     ? kTeal
-                    : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                    : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                     color: active
                         ? kTeal
                         : (isDark
-                            ? const Color(0xFF233149)
-                            : const Color(0xFFEAEEF3)),),
+                            ? SwanPalette.dark.line
+                            : SwanPalette.light.line),),
               ),
               child: Row(children: [
                 Text(labels[i],
@@ -150,7 +151,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                     decoration: BoxDecoration(
                       color: active
                           ? Colors.white.withValues(alpha: .25)
-                          : const Color(0xFFF43F5E),
+                          : SwanPalette.light.danger,
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('$pending',
@@ -226,15 +227,15 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   Widget _statsBoard(bool isDark, Color ink) {
     final async = ref.watch(platformStatsProvider);
     final s = async.valueOrNull;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     Widget cell(String label, int value, {bool alert = false}) => Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('$value',
-                  style: SwanType.h2(alert && value > 0 ? const Color(0xFFF43F5E) : ink),),
+                  style: SwanType.h2(alert && value > 0 ? SwanPalette.light.danger : ink),),
               const SizedBox(height: 2),
               Text(label,
                   style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),),
@@ -273,8 +274,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
 
   Widget _shortcut(bool isDark, Color ink, IconData icon, String title,
       String sub, VoidCallback onTap,) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -307,8 +308,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
 
   // ------------------------------ 2) KİŞİLER -------------------------------
   Widget _peopleTab(bool isDark, Color ink) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final people = ref.watch(adminPeopleProvider(_query));
 
     return ListView(
@@ -347,8 +348,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   }
 
   Widget _personRow(bool isDark, Color ink, AdminPerson p) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
@@ -402,7 +403,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF1A2537) : const Color(0xFFF1F5F8),
+              color: isDark ? SwanPalette.dark.surfaceAlt : SwanPalette.light.surfaceAlt,
               borderRadius: BorderRadius.circular(11),
             ),
             child: Icon(Icons.more_horiz_rounded, size: 18, color: ink),
@@ -414,8 +415,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
 
   Future<void> _openPerson(AdminPerson p) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -459,7 +460,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
 
   Widget _sheetAction(Color ink, IconData icon, String label, VoidCallback onTap,
       {bool danger = false,}) {
-    final color = danger ? const Color(0xFFF43F5E) : ink;
+    final color = danger ? SwanPalette.light.danger : ink;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
@@ -515,7 +516,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E),),);
+            backgroundColor: SwanPalette.light.danger,),);
       }
     }
   }
@@ -523,8 +524,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   // ------------------------------- 3) GEÇMİŞ -------------------------------
   Widget _historyTab(bool isDark, Color ink) {
     final log = ref.watch(reviewLogProvider);
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
@@ -554,8 +555,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                           height: 32,
                           decoration: BoxDecoration(
                             color: (r.approved
-                                    ? const Color(0xFF10B981)
-                                    : const Color(0xFFF43F5E))
+                                    ? SwanPalette.light.success
+                                    : SwanPalette.light.danger)
                                 .withValues(alpha: .12),
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -565,8 +566,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                                   : Icons.close_rounded,
                               size: 16,
                               color: r.approved
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFF43F5E),),
+                                  ? SwanPalette.light.success
+                                  : SwanPalette.light.danger,),
                         ),
                         const SizedBox(width: 11),
                         Expanded(
@@ -613,8 +614,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   // ------------------------------ 4) EKSİKLER ------------------------------
   Widget _gapsTab(bool isDark, Color ink) {
     final list = ref.watch(sportlessCredentialsProvider);
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
@@ -693,7 +694,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Atanamadı: $e'),
-            backgroundColor: const Color(0xFFF43F5E),),);
+            backgroundColor: SwanPalette.light.danger,),);
       }
     }
   }
@@ -702,13 +703,13 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   Future<String?> _pickSport(String title) async {
     final sports = ref.read(sportsProvider).valueOrNull ?? const <CityRow>[];
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     if (sports.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           content: Text('Branş listesi yüklenemedi — FEDERATION.sql çalıştı mı?'),
-          backgroundColor: Color(0xFFF43F5E),),);
+          backgroundColor: SwanPalette.light.danger,),);
       return null;
     }
 
@@ -762,8 +763,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     }
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     var level = c.coachLevel ?? 2;
     String? sportCode;
     var sportLabel = c.sportName ?? 'Başvurudaki branş';
@@ -804,8 +805,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                         color: level == i
                             ? kTeal
                             : (isDark
-                                ? const Color(0xFF1A2537)
-                                : const Color(0xFFF1F5F8)),
+                                ? SwanPalette.dark.surfaceAlt
+                                : SwanPalette.light.surfaceAlt),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text('$i',
@@ -835,8 +836,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 15),
                 decoration: BoxDecoration(
                   color: isDark
-                      ? const Color(0xFF1A2537)
-                      : const Color(0xFFF1F5F8),
+                      ? SwanPalette.dark.surfaceAlt
+                      : SwanPalette.light.surfaceAlt,
                   borderRadius: BorderRadius.circular(13),
                 ),
                 child: Row(children: [
@@ -856,7 +857,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                 height: 50,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF10B981),
+                  color: SwanPalette.light.success,
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text('Onayla',
@@ -909,8 +910,8 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   Future<String?> _askNote(String title, String hint) async {
     final ctrl = TextEditingController();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final ok = await showDialog<bool>(
       context: context,
@@ -940,7 +941,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Reddet',
                 style:
-                    SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800),),
+                    SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800),),
           ),
         ],
       ),
@@ -997,9 +998,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       VoidCallback? onDocs,
       required VoidCallback onReject,
       required VoidCallback onApprove,}) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(13),
@@ -1026,9 +1027,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
           adminMiniButton(const Color(0xFF2563EB), Icons.folder_open_rounded, onDocs),
           const SizedBox(width: 6),
         ],
-        adminMiniButton(const Color(0xFFF43F5E), Icons.close_rounded, onReject),
+        adminMiniButton(SwanPalette.light.danger, Icons.close_rounded, onReject),
         const SizedBox(width: 6),
-        adminMiniButton(const Color(0xFF10B981), Icons.check_rounded, onApprove),
+        adminMiniButton(SwanPalette.light.success, Icons.check_rounded, onApprove),
       ],),
     );
   }
@@ -1047,7 +1048,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Hata: $e'),
-            backgroundColor: const Color(0xFFF43F5E),),);
+            backgroundColor: SwanPalette.light.danger,),);
       }
     }
   }

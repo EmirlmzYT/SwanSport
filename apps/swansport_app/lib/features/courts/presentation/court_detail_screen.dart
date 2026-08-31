@@ -8,6 +8,7 @@ import '../../../app/widgets/premium.dart';
 import 'claim_sheet.dart';
 import 'join_requests_sheet.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kortun saat şeridi.
 ///
@@ -31,8 +32,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final async = ref.watch(courtTimelineProvider(_court.id));
     final access = ref.watch(swanAccessProvider);
@@ -116,14 +117,14 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
       );
 
   Widget _slotRow(bool isDark, Color ink, TimelineSlot s, bool verified) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final (Color dot, String label) = switch (s) {
       _ when s.isFree => (const Color(0xFF3FB950), 'Boş'),
       _ when s.mine => (kTeal, s.isPlaying ? 'Sen · oynuyorsun' : 'Sen'),
       _ => (
-          const Color(0xFFD9860B),
+          SwanPalette.light.warning,
           '${s.ownerName ?? 'Oyuncu'}${s.isPlaying ? ' · oynuyor' : ''}'
         ),
     };
@@ -203,7 +204,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
 
     if (s.lookingForPlayers && verified) {
       return button('Katıl', () => _requestJoin(s),
-          filled: false, color: const Color(0xFFD9860B));
+          filled: false, color: SwanPalette.light.warning);
     }
 
     return const SizedBox.shrink();

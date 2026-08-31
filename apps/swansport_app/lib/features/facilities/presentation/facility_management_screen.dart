@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Tesisler — salon ve sahaların haftalık kullanımı.
 ///
@@ -28,8 +29,8 @@ class _FacilityManagementScreenState
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final async = ref.watch(facilityLoadProvider);
 
@@ -99,14 +100,14 @@ class _FacilityManagementScreenState
   }
 
   Widget _card(bool isDark, Color ink, FacilityLoad f) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final closed = f.status != 'Müsait';
     // Yoğun salon uyarı rengi alır; yüzde ayrıca yazıyla da veriliyor.
     final color = closed
         ? SwanColors.textSecondary
         : f.loadPercent >= 75
-            ? const Color(0xFFD9860B)
+            ? SwanPalette.light.warning
             : kTeal;
 
     return GestureDetector(
@@ -148,7 +149,7 @@ class _FacilityManagementScreenState
                 PremiumStatusChip(
                   label: f.status,
                   color: f.status == 'Bakımda'
-                      ? const Color(0xFFD9860B)
+                      ? SwanPalette.light.warning
                       : SwanColors.textSecondary,
                   icon: f.status == 'Bakımda'
                       ? Icons.build_rounded
@@ -215,9 +216,9 @@ class _FacilityManagementScreenState
   // ------------------------------- program ---------------------------------
   Future<void> _openSchedule(FacilityLoad f) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -266,7 +267,7 @@ class _FacilityManagementScreenState
                                 height: 34,
                                 decoration: BoxDecoration(
                                   color: s.kind == 'match'
-                                      ? const Color(0xFFF43F5E)
+                                      ? SwanPalette.light.danger
                                       : kTeal,
                                   borderRadius: BorderRadius.circular(4),
                                 ),
@@ -344,7 +345,7 @@ class _FacilityManagementScreenState
             },
             child: Text('Tesisi sil',
                 style:
-                    SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w700)),
+                    SwanType.caption(SwanPalette.light.danger, w: FontWeight.w700)),
           ),
         ]),
       ),
@@ -373,8 +374,8 @@ class _FacilityManagementScreenState
 
   Future<void> _changeStatus(FacilityLoad f) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final picked = await showModalBottomSheet<String>(
       context: context,
@@ -449,7 +450,7 @@ class _FacilityManagementScreenState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('İşlem başarısız: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

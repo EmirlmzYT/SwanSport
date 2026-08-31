@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Bağış kampanyaları — herkese açık.
 ///
@@ -23,10 +24,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final list = ref.watch(campaignsProvider(''));
     final club = ref.watch(activeClubProvider).valueOrNull;
@@ -105,8 +106,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   }
 
   Widget _card(bool isDark, Color ink, Campaign c) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return GestureDetector(
       onTap: () => _openDonors(c),
@@ -142,7 +143,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
               else if (c.canManage && c.pendingCount > 0)
                 PremiumStatusChip(
                     label: '${c.pendingCount} onay',
-                    color: const Color(0xFFD9860B),
+                    color: SwanPalette.light.warning,
                     icon: Icons.schedule_rounded),
             ]),
             if (c.description != null && c.description!.trim().isNotEmpty) ...[
@@ -252,7 +253,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('Açılamadı: $e'),
-                backgroundColor: const Color(0xFFF43F5E)));
+                backgroundColor: SwanPalette.light.danger));
           }
         }
       },
@@ -269,7 +270,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Kampanya kapatılamadı: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }
@@ -301,7 +302,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content: Text('Gönderilemedi: $e'),
-                backgroundColor: const Color(0xFFF43F5E)));
+                backgroundColor: SwanPalette.light.danger));
           }
         }
       },
@@ -311,8 +312,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
   /// Destekçi listesi — kulüp görevlisi buradan bekleyen bağışları onaylar.
   Future<void> _openDonors(Campaign c) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -362,7 +363,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                           style: SwanType.caption(SwanColors.textSecondary)),
                                     if (d.isPending)
                                       Text('Onay bekliyor',
-                                          style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
+                                          style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
                                   ],
                                 ),
                               ),
@@ -384,7 +385,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 11, vertical: 7),
                                     decoration: BoxDecoration(
-                                      color: const Color(0xFF10B981),
+                                      color: SwanPalette.light.success,
                                       borderRadius:
                                           BorderRadius.circular(10),
                                     ),

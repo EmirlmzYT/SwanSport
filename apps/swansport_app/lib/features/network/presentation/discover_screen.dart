@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Keşfet — kulüpleri il, ilçe, branş ve doğrulanmışlık filtreleriyle bul.
 ///
@@ -32,10 +33,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final async = ref.watch(discoverClubsProvider(_filter));
 
@@ -154,14 +155,14 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           decoration: BoxDecoration(
             color: active
                 ? kTeal
-                : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
             borderRadius: BorderRadius.circular(11),
             border: Border.all(
                 color: active
                     ? kTeal
                     : (isDark
-                        ? const Color(0xFF233149)
-                        : const Color(0xFFEAEEF3))),
+                        ? SwanPalette.dark.line
+                        : SwanPalette.light.line)),
           ),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             if (icon != null) ...[
@@ -219,8 +220,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       ValueChanged<String> onPick) async {
     if (options.isEmpty) return;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final picked = await showModalBottomSheet<String>(
       context: context,
@@ -266,8 +267,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   Widget _card(bool isDark, Color ink, DiscoveredClub c) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return GestureDetector(
       onTap: () =>

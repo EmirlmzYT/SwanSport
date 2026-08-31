@@ -12,6 +12,7 @@ import '../../../home/presentation/screens/member_home_screen.dart';
 import '../../../verification/presentation/club_pending_screen.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_palette.dart';
 
 /// Antrenör Paneli — Supabase verisine bağlı, premium tasarım (v3).
 class CoachDashboardScreen extends ConsumerWidget {
@@ -20,8 +21,8 @@ class CoachDashboardScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final demoRole = ref.watch(demoRoleProvider);
@@ -149,7 +150,7 @@ class CoachDashboardScreen extends ConsumerWidget {
                         isDark,
                         icon: Icons.groups_rounded,
                         iconBg: const Color(0xFFE3F7EF),
-                        iconFg: const Color(0xFF10B981),
+                        iconFg: SwanPalette.light.success,
                         value: athletes.maybeWhen(
                             data: (a) => '${a.length}', orElse: () => '—'),
                         label: 'Aktif sporcu',
@@ -309,9 +310,9 @@ class CoachDashboardScreen extends ConsumerWidget {
       );
 
   Widget _noEvent(BuildContext context, bool isDark) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -360,9 +361,9 @@ class CoachDashboardScreen extends ConsumerWidget {
     required String value,
     required String label,
   }) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Expanded(
       child: Container(
         padding: const EdgeInsets.fromLTRB(14, 13, 14, 13),

@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Gizlilik ve hesap — engellenenler, şifre değiştirme, hesap silme.
 class PrivacyScreen extends ConsumerStatefulWidget {
@@ -20,10 +21,10 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final blocks = ref.watch(myBlocksProvider);
 
     return Scaffold(
@@ -124,16 +125,16 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                 Container(
                   padding: const EdgeInsets.all(15),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFF43F5E).withValues(alpha: .08),
+                    color: SwanPalette.light.danger.withValues(alpha: .08),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                        color: const Color(0xFFF43F5E).withValues(alpha: .35)),
+                        color: SwanPalette.light.danger.withValues(alpha: .35)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Hesabını sil',
-                          style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                          style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
                       const SizedBox(height: 5),
                       Text(
                           'Hesabın ve tüm içeriğin (gönderiler, yorumlar, '
@@ -147,7 +148,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                           height: 44,
                           alignment: Alignment.center,
                           decoration: BoxDecoration(
-                            color: const Color(0xFFF43F5E),
+                            color: SwanPalette.light.danger,
                             borderRadius: BorderRadius.circular(13),
                           ),
                           child: Text('Hesabımı Sil',
@@ -169,9 +170,9 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
 
   Widget _tile(bool isDark, IconData icon, String title, String sub,
       VoidCallback onTap) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -211,8 +212,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
   Future<void> _changePassword() async {
     final ctrl = TextEditingController();
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final ok = await showDialog<bool>(
       context: context,
@@ -254,14 +255,14 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
     final msg = ref.read(authControllerProvider).errorMessage;
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(done ? 'Şifren güncellendi' : (msg ?? 'Güncellenemedi')),
-      backgroundColor: done ? kTeal : const Color(0xFFF43F5E),
+      backgroundColor: done ? kTeal : SwanPalette.light.danger,
     ));
   }
 
   Future<void> _deleteAccount() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final confirm = TextEditingController();
 
     final ok = await showDialog<bool>(
@@ -298,7 +299,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Hesabımı sil',
-                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -306,9 +307,9 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
     if (ok != true) return;
     if (confirm.text.trim().toUpperCase() != 'SİL') {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Onay metni eşleşmedi'),
-            backgroundColor: Color(0xFFD9860B)));
+            backgroundColor: SwanPalette.light.warning));
       }
       return;
     }
@@ -323,7 +324,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Silinemedi: $e'),
-            backgroundColor: const Color(0xFFF43F5E)));
+            backgroundColor: SwanPalette.light.danger));
       }
     }
   }

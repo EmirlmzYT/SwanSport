@@ -48,10 +48,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final async = ref.watch(categorizedNotificationsProvider(_category));
 
     return Scaffold(
@@ -161,14 +161,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 decoration: BoxDecoration(
                   color: _category == c.$1
                       ? kTeal
-                      : (isDark ? const Color(0xFF1A2537) : Colors.white),
+                      : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                       color: _category == c.$1
                           ? kTeal
                           : (isDark
-                              ? const Color(0xFF233149)
-                              : const Color(0xFFEAEEF3))),
+                              ? SwanPalette.dark.line
+                              : SwanPalette.light.line)),
                 ),
                 child: Text(c.$2,
                     style: SwanType.caption(_category == c.$1 ? Colors.white : ink, w: FontWeight.w700)),
@@ -182,8 +182,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(
                     color: isDark
-                        ? const Color(0xFF233149)
-                        : const Color(0xFFEAEEF3)),
+                        ? SwanPalette.dark.line
+                        : SwanPalette.light.line),
               ),
               child: Icon(Icons.tune_rounded,
                   size: 15, color: SwanColors.textSecondary),
@@ -200,8 +200,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   /// listelenir, yalnızca telefon titremez.
   Future<void> _openPrefs() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     await showModalBottomSheet<void>(
       context: context,
@@ -260,16 +260,16 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Widget _tile(bool isDark, NotificationRow n) {
 
     final (icon, color) = switch (n.kind) {
-      'like' => (Icons.favorite_rounded, const Color(0xFFF43F5E)),
+      'like' => (Icons.favorite_rounded, SwanPalette.light.danger),
       'comment' => (Icons.mode_comment_rounded, const Color(0xFF2563EB)),
       'follow' => (Icons.person_add_rounded, const Color(0xFF7C5CE6)),
-      'application' => (Icons.group_add_rounded, const Color(0xFF10B981)),
-      'offer' => (Icons.mail_rounded, const Color(0xFFD9860B)),
+      'application' => (Icons.group_add_rounded, SwanPalette.light.success),
+      'offer' => (Icons.mail_rounded, SwanPalette.light.warning),
       'announcement' => (Icons.campaign_rounded, kTeal),
       'fee_reminder' => (Icons.account_balance_wallet_rounded,
-          Color(0xFFD9860B)),
+          SwanPalette.light.warning),
       'attendance_reminder' => (Icons.checklist_rounded, Color(0xFF2563EB)),
-      'payment' => (Icons.payments_rounded, Color(0xFF10B981)),
+      'payment' => (Icons.payments_rounded, SwanPalette.light.success),
       'donation' => (Icons.volunteer_activism_rounded, Color(0xFFFF7A59)),
       _ => (Icons.verified_rounded, kTeal),
     };
@@ -399,9 +399,9 @@ class _PushBanner extends ConsumerWidget {
     if (!pushSupported) return const SizedBox.shrink();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
+    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
+    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
 
     return Padding(
@@ -464,12 +464,12 @@ class _PushBanner extends ConsumerWidget {
             'Bu tarayıcı bildirim desteklemiyor. iPhone kullanıyorsan uygulamayı ana ekrana ekleyip oradan aç.',
           PushFailure.failed => 'Bildirim açılamadı, tekrar dener misin?',
         }),
-        backgroundColor: const Color(0xFFF43F5E),
+        backgroundColor: SwanPalette.light.danger,
       ));
     } catch (e) {
       messenger.showSnackBar(SnackBar(
           content: Text('Bildirim açılamadı: $e'),
-          backgroundColor: const Color(0xFFF43F5E)));
+          backgroundColor: SwanPalette.light.danger));
     }
   }
 }
