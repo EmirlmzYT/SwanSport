@@ -7,6 +7,8 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import 'test_categories.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_shape.dart';
 
 /// Bir sporcunun performans dosyası — test seyri ve gelişim hedefleri.
 ///
@@ -194,7 +196,6 @@ class AthletePerformanceScreen extends ConsumerWidget {
   // ------------------------------------------------------- test kartı
   Widget _seriesCard(BuildContext context, WidgetRef ref, bool isDark,
       TestSeries s, bool canManage) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
     final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
     final color = categoryColor(s.category, isDark);
@@ -202,13 +203,13 @@ class AthletePerformanceScreen extends ConsumerWidget {
     final change = s.changePercent;
     final improved = s.improved;
 
+    // Brief §16: "Her metriği ayrı büyük kart haline getirme." Kabuk kalktı;
+    // metrikler ince ayırıcıyla akıyor, ölçüm değeri öne çıkıyor.
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: SwanSpace.lg),
+      padding: const EdgeInsets.only(bottom: SwanSpace.lg),
       decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: line),
+        border: Border(bottom: BorderSide(color: line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,18 +233,16 @@ class AthletePerformanceScreen extends ConsumerWidget {
                   Text(s.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(13.5, FontWeight.w800, ink)),
+                      style: SwanType.body(ink, w: FontWeight.w700)),
                   Text(categoryLabel(s.category),
-                      style: jakarta(
-                          11, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(s.latest.valueLabel,
-                    style: sora(18, FontWeight.w800, ink)),
+                Text(s.latest.valueLabel, style: SwanType.h2(ink)),
                 if (change != null && improved != null)
                   Row(children: [
                     Icon(
@@ -345,7 +344,6 @@ class AthletePerformanceScreen extends ConsumerWidget {
   // ------------------------------------------------------- hedef kartı
   Widget _goalCard(BuildContext context, WidgetRef ref, bool isDark,
       DevelopmentGoal g, bool canManage) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
     final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
 
@@ -356,13 +354,13 @@ class AthletePerformanceScreen extends ConsumerWidget {
       _ => (const Color(0xFFD9860B), Icons.schedule_rounded),
     };
 
+    // Brief §16: "Her metriği ayrı büyük kart haline getirme." Kabuk kalktı;
+    // metrikler ince ayırıcıyla akıyor, ölçüm değeri öne çıkıyor.
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: SwanSpace.lg),
+      padding: const EdgeInsets.only(bottom: SwanSpace.lg),
       decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: line),
+        border: Border(bottom: BorderSide(color: line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

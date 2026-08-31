@@ -5,6 +5,9 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_shape.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Performans — kulüp kadrosunun test ve gelişim durumu.
 ///
@@ -39,12 +42,10 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Text((club?.name ?? 'KULÜP').toUpperCase(),
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                  Text(club?.name ?? 'Kulüp',
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   const SizedBox(height: 3),
-                  Text('Performans', style: sora(25, FontWeight.w800, ink)),
+                  Text('Performans', style: SwanType.h1(ink)),
                   const SizedBox(height: 18),
                   async.when(
                     loading: premiumLoading,
@@ -80,11 +81,13 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _label(String t) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+  /// Bölüm başlığı. Büyük harf değil — brief: "çok fazla uppercase
+  /// kullanma". Ayrımı boyut ve ağırlık yapıyor.
+  Widget _label(String t) => Builder(
+        builder: (context) => Padding(
+          padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+          child: Text(t, style: SwanType.h3(context.swan.ink)),
+        ),
       );
 
   Widget _summary(
@@ -112,15 +115,12 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Ölçüm kapsamı',
-                  style: jakarta(
-                      10.5, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
               const SizedBox(height: 3),
-              Text('$withTests / $total',
-                  style: sora(23, FontWeight.w800, ink)),
+              Text('$withTests / $total', style: SwanType.display(ink)),
               const SizedBox(height: 3),
               Text('$openGoals açık gelişim hedefi',
-                  style: jakarta(
-                      11, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -131,7 +131,7 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
           size: 56,
           stroke: 6,
           center: Text('%${(coverage * 100).round()}',
-              style: jakarta(11, FontWeight.w800, ink)),
+              style: SwanType.caption(ink, w: FontWeight.w800)),
         ),
       ]),
     );
