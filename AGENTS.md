@@ -249,6 +249,31 @@ cp -r apps/swansport_console/build/web apps/swansport_app/build/web/konsol && cp
 cd apps/swansport_app && npx wrangler pages deploy build/web --project-name=swansport --branch=main
 ```
 
+**`-t` ve `--dart-define-from-file` unutulursa build başarılı olur, uygulama
+ölür.** Düz `flutter build web --release` çıkış kodu 0 verir, analyzer temiz,
+testler geçer — ama tarayıcıda gri ekran açılır ve konsola
+`LateInitializationError: Field '' has not been initialized.` düşer. Sebep:
+Supabase anahtarları derlemeye girmez, `Supabase.initialize` başarısız olur,
+`Supabase.instance.client` okunduğu anda patlar. Hiçbir yerel doğrulama bunu
+yakalamaz; yalnızca canlıda görünür. Dağıtımdan sonra derlemede anahtarın
+gerçekten olduğunu doğrula:
+
+```bash
+grep -c "gokkimnokigqxmbppvle" apps/swansport_app/build/web/main.dart.js
+```
+
+Konsol `build/web/konsol/` altında duruyor ve `flutter build web` onu
+**silmiyor** — mobil yeniden derlendiğinde konsol yerinde kalıyor. Yine de
+konsolda değişiklik yaptıysan kopyalama adımını atlama.
+
+**Doğrularken taze sekme aç.** Tarayıcı aracının konsol arabelleği sayfa
+yenilemede temizlenmiyor; bozuk bir yüklemeden kalan hata, düzeltilmiş
+sayfada da görünmeye devam ediyor. Aynı sekmede yenileyip "hata duruyor"
+diye okumak yanlış teşhise götürüyor — bu oturumda iki kez oldu.
+
+`curl` bu makinede TLS hatası (exit 35) veriyor; `HTTP 000` "site kapalı"
+demek değil, "curl bağlanamadı" demek. Canlı doğrulamayı tarayıcıyla yap.
+
 Ekranda görünmesi gereken bir değişiklik yaptıysan **dağıtımı da yap** —
 yoksa kullanıcı eski derlemeye bakar ve "hani" der. Bu yaşandı.
 
