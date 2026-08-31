@@ -76,8 +76,13 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 
 Derleme çıkış kodunu ayrı satırda oku, `| tail` ile boru hattına sokma.
 
-Mobil uygulamanın testlerinde bilinen **69 başarısız** var (Supabase istemcisi
-başlatılmadan ekran açan testler). Sayı sabit; artmadıysa bir şey bozulmamıştır.
+**Testlerin hepsi geçer** — başarısız test normal değildir, kırıldıysa
+düzelt. Sayılar: `swansport_data` 84, `swansport_console` 40,
+`swansport_app` 139.
+
+*(Eskiden burada "bilinen 69 başarısız var" yazıyordu; o kök neden
+`cfc985c` ile giderildi — ortak Supabase ve bellek içi `shared_preferences`
+kurulumu eklendi. Not güncellenmediği için bir süre yanlış bilgi taşıdı.)*
 
 ## AGENTS.md güncel tutulur
 
