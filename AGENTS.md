@@ -253,6 +253,19 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 Taban: **0 hata, 0 uyarı**, ~2340 `info` (lint önerisi). `info` sayısı
 gürültü; `error` ve `warning` sıfır kalmalı.
 
+**Migration yazdıysan söz dizimini denetle.** Migration'lar Supabase SQL
+Editor'e elle yapıştırılıyor; söz dizimi hatası ancak orada, yarım uygulanmış
+bir migration olarak ortaya çıkıyor — en kötü yer.
+
+```bash
+pip install pglast && python tools/check_migrations.py
+```
+
+Gerçek PostgreSQL ayrıştırıcısını kullanıyor, çalıştırmıyor. **Sınırı var:**
+söz dizimi dışında bir şey doğrulamıyor — olmayan tabloya referans, yanlış
+tip, eksik izin hepsi buradan geçer. "Parse oldu" ile "çalışır" aynı şey
+değil.
+
 **`analyze` temiz diye derleme temiz sayma.** İkisi ayrı ön uç kullanıyor ve
 test derleyicisi bazı çözümleme hatalarını `analyze`'dan önce/farklı
 yakalıyor. Bir işi bitirmeden önce ikisini de çalıştır.
