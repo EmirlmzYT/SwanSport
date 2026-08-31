@@ -47,4 +47,21 @@ void main() {
     // Bayrak gerçekten yazıldı mı — yazılmazsa tanıtım her açılışta çıkardı.
     expect(await onboardingSeen(), isTrue);
   });
+
+  testWidgets('hızlı iki dokunuş iki sayfa ilerletir', (tester) async {
+    SharedPreferences.setMockInitialValues({});
+
+    app.main();
+    await tester.pumpAndSettle();
+
+    // Canlida bu senaryo tek sayfa ilerletiyordu: `nextPage` hedefi ucus
+    // halindeki kaydirma konumundan hesapliyor ve ikinci dokunus yutuluyor.
+    await tester.tap(find.text('Devam'));
+    await tester.pump(const Duration(milliseconds: 60));
+    await tester.tap(find.text('Devam'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Başla'), findsOneWidget,
+        reason: 'iki dokunustan sonra son sayfada olmali');
+  });
 }

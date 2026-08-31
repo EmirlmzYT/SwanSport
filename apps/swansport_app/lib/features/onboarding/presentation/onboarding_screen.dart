@@ -102,11 +102,19 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   void _next() {
-    if (_page >= kOnboardingPages.length - 1) {
+    final next = _page + 1;
+    if (next >= kOnboardingPages.length) {
       _finish();
       return;
     }
-    _controller.nextPage(
+    // `nextPage` DEĞİL `animateToPage`: `nextPage` hedefi uçuş hâlindeki
+    // kaydırma konumundan hesaplıyor. Animasyon sürerken ikinci kez basınca
+    // "sonraki" yine aynı sayfaya yuvarlanıyor ve dokunuş sessizce yutuluyor —
+    // canlıda iki hızlı dokunuş tek sayfa ilerletti. Hedefi burada tutup
+    // doğrudan ona gidiyoruz.
+    setState(() => _page = next);
+    _controller.animateToPage(
+      next,
       duration: const Duration(milliseconds: 260),
       curve: Curves.easeOutCubic,
     );
