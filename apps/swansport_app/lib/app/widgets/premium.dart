@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import 'swan_skeleton.dart';
+
 
 // Modül kataloğu ayrı dosyada. `import` alt bardaki menü düğmesinin onu
 // çağırabilmesi için; `export` ise mevcut `import 'premium.dart'` satırlarının
@@ -202,10 +204,13 @@ class _RingPainter extends CustomPainter {
 
 /// ------------------------- Ortak veri-durum yardımcıları -------------------
 
-Widget premiumLoading() => const Padding(
-      padding: EdgeInsets.only(top: 60),
-      child: Center(child: CircularProgressIndicator(color: kTeal)),
-    );
+/// Yükleniyor göstergesi — 39 ekranın ortak hâli.
+///
+/// Dönen çemberdi; brief §21 "skeleton loading → soft shimmer" istiyor.
+/// İskelet gelecek içeriğin biçimini önceden gösterdiği için aynı süre
+/// daha kısa hissettiriyor. Şekli `swan_skeleton.dart`'tan geliyor;
+/// buradan değiştirmek 39 ekranı birden değiştirir.
+Widget premiumLoading() => const SwanListSkeleton();
 
 Widget premiumError(BuildContext context, String msg) {
   final isDark = Theme.of(context).brightness == Brightness.dark;
