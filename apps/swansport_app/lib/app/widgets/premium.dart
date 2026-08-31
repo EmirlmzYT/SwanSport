@@ -4,6 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../design/swan_palette.dart';
+import '../design/swan_shape.dart';
+import '../design/swan_type.dart';
 import 'swan_skeleton.dart';
 
 
@@ -213,21 +216,19 @@ class _RingPainter extends CustomPainter {
 Widget premiumLoading() => const SwanListSkeleton();
 
 Widget premiumError(BuildContext context, String msg) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final ink = isDark ? Colors.white : SwanColors.textPrimary;
+  final c = context.swan;
   return Padding(
     padding: const EdgeInsets.only(top: 50),
     child: Column(
       children: [
-        const Icon(Icons.cloud_off_rounded, size: 40, color: Color(0xFFF43F5E)),
-        const SizedBox(height: 12),
-        Text('Veri yüklenemedi', style: jakarta(14, FontWeight.w700, ink)),
-        const SizedBox(height: 6),
-        Text(
-          msg,
-          textAlign: TextAlign.center,
-          style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary),
-        ),
+        Icon(Icons.cloud_off_rounded, size: 40, color: c.danger),
+        const SizedBox(height: SwanSpace.md),
+        Text('Veri yüklenemedi',
+            style: SwanType.body(c.ink, w: FontWeight.w700)),
+        const SizedBox(height: SwanSpace.xs),
+        Text(msg,
+            textAlign: TextAlign.center,
+            style: SwanType.bodySm(c.inkMuted)),
       ],
     ),
   );
@@ -241,8 +242,7 @@ Widget premiumEmpty(
   String? actionLabel,
   VoidCallback? onAction,
 }) {
-  final isDark = Theme.of(context).brightness == Brightness.dark;
-  final ink = isDark ? Colors.white : SwanColors.textPrimary;
+  final c = context.swan;
   return Padding(
     padding: const EdgeInsets.only(top: 50),
     child: Column(
@@ -251,19 +251,17 @@ Widget premiumEmpty(
           width: 64,
           height: 64,
           decoration: BoxDecoration(
-            color: kTeal.withValues(alpha: 0.10),
-            borderRadius: BorderRadius.circular(20),
+            color: c.accentSoft,
+            borderRadius: BorderRadius.circular(SwanRadius.lg),
           ),
-          child: Icon(icon, color: kTeal, size: 30),
+          child: Icon(icon, color: c.accent, size: 30),
         ),
-        const SizedBox(height: 16),
-        Text(title, style: sora(18, FontWeight.w800, ink)),
-        const SizedBox(height: 6),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),
-        ),
+        const SizedBox(height: SwanSpace.lg),
+        Text(title, style: SwanType.h3(c.ink)),
+        const SizedBox(height: SwanSpace.xs),
+        Text(subtitle,
+            textAlign: TextAlign.center,
+            style: SwanType.bodySm(c.inkMuted)),
         if (actionLabel != null && onAction != null) ...[
           const SizedBox(height: 20),
           GestureDetector(
