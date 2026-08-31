@@ -151,7 +151,9 @@ class _CreateButton extends StatelessWidget {
         width: 46,
         height: 46,
         decoration: BoxDecoration(
-          color: c.accent,
+          // `accent` değil `accentFill`: üstünde beyaz ikon var. Koyu temada
+          // parlak teal + beyaz 2.27:1 veriyordu, eşik 3:1.
+          color: c.accentFill,
           borderRadius: BorderRadius.circular(SwanRadius.md),
         ),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),

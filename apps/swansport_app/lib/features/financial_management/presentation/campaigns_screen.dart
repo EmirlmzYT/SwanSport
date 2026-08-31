@@ -385,7 +385,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                     padding: const EdgeInsets.symmetric(
                                         horizontal: 11, vertical: 7),
                                     decoration: BoxDecoration(
-                                      color: SwanPalette.light.success,
+                                      // Üstünde beyaz metin var: `success`
+                                      // ile 2.54:1 kalıyordu, eşik 3:1.
+                                      color: SwanPalette.light.successFill,
                                       borderRadius:
                                           BorderRadius.circular(10),
                                     ),

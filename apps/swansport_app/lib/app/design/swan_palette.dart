@@ -24,6 +24,8 @@ class SwanPalette {
     required this.inkMuted,
     required this.accent,
     required this.accentSoft,
+    required this.accentFill,
+    required this.successFill,
     required this.success,
     required this.warning,
     required this.danger,
@@ -47,6 +49,10 @@ class SwanPalette {
   final Color ink;
 
   /// İkincil metin, meta, zaman.
+  ///
+  /// Açık temada `0xFF6B7280` idi ve zemine karşı tam **4.50:1** veriyordu —
+  /// eşiğin üstünde ama bir yuvarlama kadar uzağında. Bir tık koyulaştırıldı;
+  /// zaman ve alt satır metinleri uygulamanın her yerinde.
   final Color inkMuted;
 
   /// Marka rengi — yalnızca birincil aksiyon ve aktif durum.
@@ -54,6 +60,21 @@ class SwanPalette {
 
   /// Aksiyonun soluk zemini (seçili sekme arkası, ikon kutusu).
   final Color accentSoft;
+
+  /// **Dolu düğme zemini** — üstünde beyaz metin durur.
+  ///
+  /// `accent`'ten ayrı, çünkü ikisi çelişiyor: `accent` koyu yüzeyde
+  /// *okunacak* bir metin rengi (açık olmalı), bu ise *üstünde beyaz metin
+  /// okunacak* bir zemin (koyu olmalı). Koyu temada tek renk ikisini birden
+  /// yapamıyor — beyaz/parlak teal kontrastı 2.27:1 çıkıyordu, eşik 3:1.
+  /// `swan_contrast_test.dart` bunu yakaladı.
+  final Color accentFill;
+
+  /// Onay düğmesi zemini — üstünde beyaz metin durur.
+  ///
+  /// `success` ikon ve etiket rengi; bu onun koyu karşılığı. Beyaz metin
+  /// `success` üstünde 2.54:1 kalıyordu.
+  final Color successFill;
 
   /// Anlam renkleri.
   ///
@@ -74,9 +95,11 @@ class SwanPalette {
     surfaceAlt: Color(0xFFF1F5F8),
     line: Color(0xFFEAEEF3),
     ink: Color(0xFF111827),
-    inkMuted: Color(0xFF6B7280),
+    inkMuted: Color(0xFF636B77),
     accent: Color(0xFF008C95),
     accentSoft: Color(0x1A008C95),
+    accentFill: Color(0xFF008C95),
+    successFill: Color(0xFF047857),
     success: Color(0xFF10B981),
     warning: Color(0xFFD9860B),
     danger: Color(0xFFF43F5E),
@@ -96,6 +119,8 @@ class SwanPalette {
     inkMuted: Color(0xFF8A97AC),
     accent: Color(0xFF2FBFB6),
     accentSoft: Color(0x1A2FBFB6),
+    accentFill: Color(0xFF00767E),
+    successFill: Color(0xFF047857),
     success: Color(0xFF10B981),
     warning: Color(0xFFD9860B),
     danger: Color(0xFFF43F5E),
