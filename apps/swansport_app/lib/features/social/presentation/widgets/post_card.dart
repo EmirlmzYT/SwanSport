@@ -22,11 +22,31 @@ class PostCard extends ConsumerStatefulWidget {
   ConsumerState<PostCard> createState() => _PostCardState();
 }
 
-class _PostCardState extends ConsumerState<PostCard> {
+class _PostCardState extends ConsumerState<PostCard>
+    with SingleTickerProviderStateMixin {
+  /// Beğeni "pop"u — brief §21: "like → micro scale animation".
+  /// 1.0 → 1.3 → 1.0, tek seferlik ve kısa. Uzun ya da yaylı bir animasyon
+  /// akışta her beğenide göze batardı.
+  late final AnimationController _likePop = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 260),
+  );
+
+  late final Animation<double> _likeScale = TweenSequence<double>([
+    TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.3), weight: 40),
+    TweenSequenceItem(tween: Tween(begin: 1.3, end: 1.0), weight: 60),
+  ]).animate(CurvedAnimation(parent: _likePop, curve: Curves.easeOut));
+
   late bool _liked = widget.post.likedByMe;
   late int _likes = widget.post.likeCount;
   late int _comments = widget.post.commentCount;
   bool _busy = false;
+
+  @override
+  void dispose() {
+    _likePop.dispose();
+    super.dispose();
+  }
 
   @override
   void didUpdateWidget(covariant PostCard old) {
@@ -46,6 +66,8 @@ class _PostCardState extends ConsumerState<PostCard> {
       _liked = next;
       _likes += next ? 1 : -1;
     });
+    // Yalnızca beğenirken; beğeniyi geri alırken pop tuhaf duruyor.
+    if (next) _likePop.forward(from: 0);
     try {
       await ref.read(socialServiceProvider).setLike(widget.post.id, next);
     } catch (_) {
@@ -409,6 +431,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                 color: _liked ? SwanPalette.light.danger : null,
                 label: _likes > 0 ? compactCount(_likes) : 'Beğen',
                 onTap: _toggleLike,
+                scale: _likeScale,
               ),
               _action(
                 icon: Icons.mode_comment_outlined,
@@ -427,6 +450,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     required String label,
     required VoidCallback onTap,
     Color? color,
+    Animation<double>? scale,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final c = color ??
@@ -437,7 +461,10 @@ class _PostCardState extends ConsumerState<PostCard> {
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(children: [
-          Icon(icon, size: 21, color: c),
+          scale == null
+              ? Icon(icon, size: 21, color: c)
+              : ScaleTransition(
+                  scale: scale, child: Icon(icon, size: 21, color: c)),
           const SizedBox(width: 6),
           Text(label, style: SwanType.caption(c, w: FontWeight.w700)),
         ]),
