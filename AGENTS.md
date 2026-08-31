@@ -179,6 +179,21 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Realtime**
+- Bir tablonun canlı akması için **`supabase_realtime` publication'ına
+  eklenmiş olması** şart. Eklenmeden `.stream()` yazmak sessizce çalışmıyor:
+  abonelik kuruluyor, hata da vermiyor, ilk anlık görüntü bile geliyor — ama
+  hiçbir güncelleme düşmüyor. DM'ler tam bu yüzden canlı değildi; 0016
+  yalnızca `community_messages`'ı eklemiş, `direct_messages` 0042'ye kadar
+  dışarıda kalmıştı.
+- `.stream()` **tek bir filtre** kabul ediyor. Bir DM sohbeti
+  `(ben→o) VEYA (o→ben)` demek ve bu bir `or`; stream API'sinde yeri yok.
+  Çözüm: filtreyi zamana koy (`gte('created_at', ...)`), karşı tarafı
+  istemcide süz. RLS zaten başkasının satırını vermiyor, güvenlik açığı
+  değil.
+- `replica identity full` olmadan UPDATE olayları eski satırı taşımıyor.
+  DM'de bu okundu bilgisi demek — onsuz çift tik hiç görünmez.
+
 **Gezinme ve giriş noktaları**
 - Modül menüsü (`module_launcher.dart`, `kAllModules`, `kModuleGroup`) tasarım
   turunda **kaldırıldı**; rotalar duruyor, giriş noktaları Keşfet ve
@@ -218,7 +233,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 90 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 97 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
@@ -569,6 +584,7 @@ halı saha doluluk panosunu içeriyor.
 > | `0039` | Uygulandı | `turf_slot_requests` tablosu REST'ten okunuyor |
 > | `0041` | Uygulandı | `court_usage_stats` anon'a **401 permission denied** veriyor — fonksiyon var, izin doğru kapalı (yok olsaydı 404 gelirdi) |
 > | `0040` | **Doğrulanmadı** | Yalnızca fonksiyon + tetikleyici içeriyor, ikisi de anon'a görünmez |
+> | `0042` | **Çalıştırılmadı** | DM'lerin canlı akması buna bağlı — çalıştırılmadan mesajlar yine yenilemeyle geliyor |
 >
 > `0040`'ı doğrulamak için `tools/verify_0040.sql`'i SQL Editor'e yapıştır:
 > tetikleyicinin varlığını, `send_club_message`'in elle bildirim yazmayı

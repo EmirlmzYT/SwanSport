@@ -80,13 +80,41 @@ class MessageRow {
     required this.body,
     required this.createdAt,
     required this.isMine,
+    this.readAt,
+    this.status = MessageStatus.sent,
   });
 
   final String id;
   final String body;
   final DateTime createdAt;
   final bool isMine;
+
+  /// Karşı tarafın okuduğu an. Sütun 0009'dan beri vardı ama hiç
+  /// okunmuyordu — çift tik bu yüzden hiç görünmedi.
+  final DateTime? readAt;
+
+  /// Yalnızca **kendi** mesajlarım için anlamlı: sunucuya ulaşmadan önce
+  /// ekranda görünen mesajın durumu.
+  final MessageStatus status;
+
+  bool get isRead => readAt != null;
+
+  MessageRow copyWith({MessageStatus? status}) => MessageRow(
+        id: id,
+        body: body,
+        createdAt: createdAt,
+        isMine: isMine,
+        readAt: readAt,
+        status: status ?? this.status,
+      );
 }
+
+/// Gönderim durumu — iyimser gönderim için.
+///
+/// Eskiden mesaj sunucuya ulaşana kadar ekranda yoktu ve hata olursa yazdığın
+/// metin `SnackBar` ile birlikte kayboluyordu. Şimdi mesaj hemen görünüyor,
+/// başarısız olursa yerinde duruyor ve tekrar denenebiliyor.
+enum MessageStatus { sending, sent, failed }
 
 
 /// Velinin bir çocuğuna ait özet.
@@ -308,20 +336,80 @@ class NotificationService {
     if (uid == null) return const [];
     final rows = await _c
         .from('direct_messages')
-        .select('id, sender_id, body, created_at')
+        .select('id, sender_id, body, created_at, read_at')
         .or('and(sender_id.eq.$uid,recipient_id.eq.$otherId),'
             'and(sender_id.eq.$otherId,recipient_id.eq.$uid)')
         .order('created_at');
-    return (rows as List).map((r) {
-      final m = (r as Map).cast<String, dynamic>();
-      return MessageRow(
+    return (rows as List)
+        .map((r) => _message((r as Map).cast<String, dynamic>(), uid))
+        .toList();
+  }
+
+  MessageRow _message(Map<String, dynamic> m, String uid) => MessageRow(
         id: m['id'] as String,
         body: (m['body'] as String?) ?? '',
         createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
             DateTime.now(),
         isMine: m['sender_id'] == uid,
+        readAt: m['read_at'] == null
+            ? null
+            : DateTime.tryParse('${m['read_at']}')?.toLocal(),
       );
-    }).toList();
+
+  /// Belirli bir andan sonraki DM'ler — canlı.
+  ///
+  /// **Neden filtresiz abone oluyoruz:** `.stream()` tek bir filtre kabul
+  /// ediyor, oysa bir sohbet `(ben→o) VEYA (o→ben)` demek. Bu bir `or` ve
+  /// stream API'sinde yeri yok. Filtreyi zamana koyup karşı tarafı istemcide
+  /// süzüyoruz.
+  ///
+  /// Güvenlik açığı değil: RLS (`dm_read_own`, 0009) zaten yalnızca benim
+  /// taraf olduğum satırları veriyor, Realtime da ona uyuyor. Başkasının
+  /// mesajı bu akışa hiç girmiyor.
+  ///
+  /// `since` ilk anlık görüntüyü sınırlıyor. Olmasaydı abone olurken bütün
+  /// mesaj geçmişi bir kerede çekilirdi; geçmiş zaten [messagesWith] ile
+  /// geliyor, buranın işi yalnızca kuyruğu canlı tutmak.
+  Stream<List<MessageRow>> dmStream(String otherId, {required DateTime since}) {
+    final uid = _uid;
+    if (uid == null) return const Stream.empty();
+    return _c
+        .from('direct_messages')
+        .stream(primaryKey: ['id'])
+        .gte('created_at', since.toUtc().toIso8601String())
+        .order('created_at')
+        .map((rows) => rows
+            .map((r) => r.cast<String, dynamic>())
+            .where((m) =>
+                (m['sender_id'] == uid && m['recipient_id'] == otherId) ||
+                (m['sender_id'] == otherId && m['recipient_id'] == uid))
+            .map((m) => _message(m, uid))
+            .toList());
+  }
+
+  /// Bütün DM hareketleri — sohbet listesini tazelemek için.
+  ///
+  /// İçeriğiyle ilgilenmiyoruz, yalnızca "bir şey değişti" sinyali. Liste
+  /// `my_conversations` RPC'siyle hesaplanıyor (okunmamış sayısı, son mesaj);
+  /// onu istemcide yeniden kurmak yerine sinyal gelince baştan çekiyoruz.
+  Stream<void> dmChanges({required DateTime since}) {
+    if (_uid == null) return const Stream.empty();
+    return _c
+        .from('direct_messages')
+        .stream(primaryKey: ['id'])
+        .gte('created_at', since.toUtc().toIso8601String())
+        .map((_) {});
+  }
+
+  /// Yalnızca verilen mesajları okundu işaretler (bana gelenlerden).
+  ///
+  /// `markConversationRead` bütün sohbeti yazıyor; ekrandayken her yeni
+  /// mesajda onu çağırmak gereksiz yük.
+  Future<int> markMessagesRead(List<String> ids) async {
+    if (ids.isEmpty) return 0;
+    final n =
+        await _c.rpc<dynamic>('mark_messages_read', params: {'p_ids': ids});
+    return (n as num?)?.toInt() ?? 0;
   }
 
   Future<void> send(String otherId, String body) async {
@@ -397,4 +485,55 @@ final messagesProvider =
     FutureProvider.autoDispose.family<List<MessageRow>, String>((ref, otherId) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
   return ref.watch(notificationServiceProvider).messagesWith(otherId);
+});
+
+/// Sohbet — geçmiş + canlı, tek akışta.
+///
+/// Önce [NotificationService.messagesWith] ile geçmişi bir kez veriyor
+/// (ekran boş beklemesin), sonra [NotificationService.dmStream]'e abone olup
+/// gelen her şeyi id'ye göre birleştiriyor. Aynı mesaj iki kaynaktan da
+/// gelebiliyor; `Map` ile tekilleştirmek sıralamadan daha güvenli, çünkü
+/// `read_at` güncellenince aynı id yeni hâliyle geliyor ve üstüne yazması
+/// **isteniyor** — çift tik böyle çalışıyor.
+final chatProvider =
+    StreamProvider.autoDispose.family<List<MessageRow>, String>(
+        (ref, otherId) async* {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    yield const <MessageRow>[];
+    return;
+  }
+  final svc = ref.watch(notificationServiceProvider);
+
+  final history = await svc.messagesWith(otherId);
+  yield history;
+
+  // Akışın başlangıcı: geçmişin son mesajı. Geçmiş boşsa kısa bir pencere —
+  // `now` demek, abone olurken saniyeler içinde gelen mesajı kaçırmak demek
+  // (istemci ve sunucu saati birebir aynı değil).
+  final since = history.isEmpty
+      ? DateTime.now().subtract(const Duration(minutes: 2))
+      : history.last.createdAt;
+
+  final byId = {for (final m in history) m.id: m};
+  await for (final live in svc.dmStream(otherId, since: since)) {
+    for (final m in live) {
+      byId[m.id] = m;
+    }
+    yield byId.values.toList()
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  }
+});
+
+/// Sohbet listesini canlı tutan sinyal.
+///
+/// Ekran bunu `ref.listen` ile dinleyip [conversationsProvider]'ı
+/// geçersiz kılıyor. Ayrı bir sağlayıcı çünkü listenin kendisi bir RPC ile
+/// hesaplanıyor (okunmamış sayısı, son mesaj) ve onu istemcide yeniden
+/// kurmak, iki yerde ayrışacak bir mantık kopyası olurdu.
+final dmChangesProvider = StreamProvider.autoDispose<void>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const Stream.empty();
+  // Liste ekranı açıldığı andan sonrası yeterli: geçmiş zaten listede.
+  return ref
+      .watch(notificationServiceProvider)
+      .dmChanges(since: DateTime.now().subtract(const Duration(minutes: 2)));
 });

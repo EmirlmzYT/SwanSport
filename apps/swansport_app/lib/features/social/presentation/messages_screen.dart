@@ -63,6 +63,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
+    // Yeni bir DM geldiğinde listeyi tazele.
+    //
+    // `conversationsProvider` bir RPC ile hesaplanıyor (son mesaj, okunmamış
+    // sayısı); gelen satırı istemcide listeye işlemek o mantığın ikinci bir
+    // kopyası olurdu ve ikisi zamanla ayrışırdı. Sinyal gelince baştan
+    // çekiyoruz — liste küçük, maliyeti önemsiz.
+    ref.listen(dmChangesProvider, (_, __) {
+      ref.invalidate(conversationsProvider);
+    });
+
     final dms = ref.watch(conversationsProvider);
     final groups = ref.watch(communityListProvider).valueOrNull ?? const [];
 
@@ -468,7 +478,18 @@ class ChatScreen extends ConsumerStatefulWidget {
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
-  bool _sending = false;
+
+  /// Sunucuya henüz ulaşmamış kendi mesajlarım.
+  ///
+  /// Eskiden mesaj gidip dönene kadar ekranda yoktu ve hata olursa yazdığın
+  /// metin `SnackBar` ile birlikte kayboluyordu — uzun bir mesajı baştan
+  /// yazmak gerekiyordu. Şimdi hemen görünüyor; başarısız olursa yerinde
+  /// duruyor ve dokununca tekrar deneniyor.
+  final List<MessageRow> _pending = [];
+
+  /// Okundu işaretlenmek üzere gönderilenler — aynı mesaj için RPC'yi
+  /// tekrar tekrar çağırmamak için.
+  final Set<String> _marked = {};
 
   @override
   void initState() {
@@ -488,24 +509,80 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.dispose();
   }
 
+  /// Sohbet ekrandayken gelen mesajları okundu işaretler.
+  ///
+  /// Eskiden yalnızca ekrana **girerken** işaretleniyordu: sen sohbetteyken
+  /// gelen mesaj okunmamış kalıyor, karşı taraf çift tik görmüyor ve senin
+  /// rozetin dolu duruyordu.
+  void _markVisible(List<MessageRow> list) {
+    final ids = list
+        .where((m) => !m.isMine && !m.isRead && !_marked.contains(m.id))
+        .map((m) => m.id)
+        .toList();
+    if (ids.isEmpty) return;
+    _marked.addAll(ids);
+    Future.microtask(() async {
+      try {
+        await ref.read(notificationServiceProvider).markMessagesRead(ids);
+        if (mounted) ref.invalidate(conversationsProvider);
+      } catch (_) {
+        // Okundu işareti kritik değil; başarısız olursa sohbete tekrar
+        // girildiğinde `markConversationRead` toparlıyor.
+        _marked.removeAll(ids);
+      }
+    });
+  }
+
   Future<void> _send() async {
     final text = _ctrl.text.trim();
-    if (text.isEmpty || _sending) return;
-    setState(() => _sending = true);
+    if (text.isEmpty) return;
+    _ctrl.clear();
+    await _deliver(text);
+  }
+
+  /// Bir metni gönderir; ekranda önce "gönderiliyor" olarak görünür.
+  Future<void> _deliver(String text, {String? retryId}) async {
+    final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
+    setState(() {
+      _pending
+        ..removeWhere((m) => m.id == id)
+        ..add(MessageRow(
+          id: id,
+          body: text,
+          createdAt: DateTime.now(),
+          isMine: true,
+          status: MessageStatus.sending,
+        ));
+    });
+    _scrollToEnd();
+
     try {
       await ref.read(notificationServiceProvider).send(widget.otherId, text);
-      _ctrl.clear();
-      ref.invalidate(messagesProvider(widget.otherId));
+      // Gerçek mesaj akıştan gelecek; yereldeki kopyayı düşür.
+      if (mounted) setState(() => _pending.removeWhere((m) => m.id == id));
       ref.invalidate(conversationsProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Gönderilemedi: $e'),
-            backgroundColor: SwanPalette.light.danger));
-      }
-    } finally {
-      if (mounted) setState(() => _sending = false);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        final i = _pending.indexWhere((m) => m.id == id);
+        if (i >= 0) {
+          _pending[i] = _pending[i].copyWith(status: MessageStatus.failed);
+        }
+      });
     }
+  }
+
+  void _scrollToEnd() {
+    // Kare çizildikten sonra: `maxScrollExtent` yeni mesaj eklenmeden önce
+    // eski değerini veriyor ve liste bir mesaj yukarıda kalıyordu.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!_scroll.hasClients) return;
+      _scroll.animateTo(
+        _scroll.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
+    });
   }
 
   @override
@@ -516,7 +593,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
-    final async = ref.watch(messagesProvider(widget.otherId));
+    final async = ref.watch(chatProvider(widget.otherId));
 
     return Scaffold(
       backgroundColor: bg,
@@ -561,7 +638,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     loading: () => premiumLoading(),
                     error: (e, _) => premiumError(context, '$e'),
                     data: (list) {
-                      if (list.isEmpty) {
+                      _markVisible(list);
+                      // Sunucudakiler + henüz gitmemiş kendi mesajlarım.
+                      final all = [...list, ..._pending];
+                      if (all.isEmpty) {
                         return Center(
                           child: Text('Sohbeti başlat',
                               style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
@@ -570,8 +650,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       return ListView.builder(
                         controller: _scroll,
                         padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                        itemCount: list.length,
-                        itemBuilder: (_, i) => _bubble(isDark, list[i]),
+                        itemCount: all.length,
+                        itemBuilder: (_, i) => _bubble(isDark, all[i]),
                       );
                     },
                   ),
@@ -606,7 +686,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     ),
                     const SizedBox(width: 10),
                     GestureDetector(
-                      onTap: _sending ? null : _send,
+                      // Artık kilitlenmiyor: mesaj hemen listeye düşüyor,
+                      // gönderim arkada sürüyor. Arka arkaya iki mesaj
+                      // yazabilmek için düğmenin beklemesi gerekmiyor.
+                      onTap: _send,
                       child: Container(
                         width: 46,
                         height: 46,
@@ -615,14 +698,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               colors: [kTealBright, kTeal]),
                           borderRadius: BorderRadius.circular(15),
                         ),
-                        child: _sending
-                            ? const Padding(
-                                padding: EdgeInsets.all(13),
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white),
-                              )
-                            : const Icon(Icons.send_rounded,
-                                color: Colors.white, size: 19),
+                        child: const Icon(Icons.send_rounded,
+                            color: Colors.white, size: 19),
                       ),
                     ),
                   ]),
@@ -641,7 +718,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Align(
       alignment: m.isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
+      child: GestureDetector(
+        onTap: m.status == MessageStatus.failed
+            ? () => _deliver(m.body, retryId: m.id)
+            : null,
+        child: Container(
         constraints: const BoxConstraints(maxWidth: 300),
         margin: const EdgeInsets.only(bottom: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -665,12 +746,50 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 style: SwanType.bodySm(m.isMine ? Colors.white : ink)
                     .copyWith(height: 1.35)),
             const SizedBox(height: 3),
-            Text(shortAgo(m.createdAt),
-                style: SwanType.caption(m.isMine ? Colors.white70 : SwanColors.textSecondary, w: FontWeight.w600)),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                    m.status == MessageStatus.failed
+                        ? 'Gönderilemedi · dokun, tekrar dene'
+                        : shortAgo(m.createdAt),
+                    style: SwanType.caption(
+                        m.isMine ? Colors.white70 : SwanColors.textSecondary,
+                        w: FontWeight.w600)),
+                if (m.isMine) ...[
+                  const SizedBox(width: 5),
+                  _tick(m),
+                ],
+              ],
+            ),
           ],
         ),
       ),
+      ),
     );
   }
+
+  /// Gönderim/okundu göstergesi — yalnızca kendi mesajlarımda.
+  ///
+  /// Renk tek başına anlam taşımıyor: saat/durum metni hemen yanında duruyor
+  /// ve başarısız gönderimde metnin kendisi "Gönderilemedi" diyor. Tik
+  /// görülemezse de bilgi kaybolmuyor.
+  Widget _tick(MessageRow m) => switch (m.status) {
+        MessageStatus.sending => const SizedBox(
+            width: 11,
+            height: 11,
+            child: CircularProgressIndicator(
+                strokeWidth: 1.4, color: Colors.white70),
+          ),
+        MessageStatus.failed => const Icon(Icons.refresh_rounded,
+            size: 13, color: Colors.white),
+        MessageStatus.sent => Icon(
+            m.isRead ? Icons.done_all_rounded : Icons.done_rounded,
+            size: 13,
+            // Okundu tiki beyaz, okunmamış soluk — ikisi de teal balonun
+            // üstünde. `accent` burada kullanılamaz: zemin zaten teal.
+            color: m.isRead ? Colors.white : Colors.white60,
+          ),
+      };
 
 }
