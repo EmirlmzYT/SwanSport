@@ -200,6 +200,21 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   (`notification_service.dart`) deseni: geçmişi her hâlükârda yayınla, akış
   hatasını yut, yoklamaya düş. `dm_test.dart` bunu sabitliyor.
 
+**Sohbet ekranı**
+- Klavye dolgusuna `viewInsets.bottom` **ekleme**. Scaffold
+  `resizeToAvoidBottomInset` ile gövdeyi zaten küçültüyor; üstüne eklemek aynı
+  boşluğu iki kez sayıyor ve yazı alanı klavyenin bir boy yukarısına fırlıyor.
+  İki sohbet ekranında da bu hata vardı.
+- Mesaj listesi `reverse: true` (WhatsApp deseni): en yeni mesaj sıfır
+  konumunda. Klavye açılınca liste kaydığı yerde kalmıyor. Öğelere sondan
+  erişiliyor, `_scrollToEnd` **sıfıra** gidiyor — `maxScrollExtent` ters
+  listede en eski mesaj demek.
+- `OpenChat` (`push_service.dart`) açık sohbeti tutuyor; push dinleyicisi
+  o kişiden gelen ön plan uyarısını bastırıyor. Eşleşme **ada** göre, çünkü
+  push yükü gönderen kimliğini taşımıyor — yalnızca `"<Ad> size yazdı"`.
+  Ad tutmazsa bildirim gösteriliyor: yanlışlıkla göstermek, yanlışlıkla
+  gizlemekten iyi.
+
 **Gezinme ve giriş noktaları**
 - Modül menüsü (`module_launcher.dart`, `kAllModules`, `kModuleGroup`) tasarım
   turunda **kaldırıldı**; rotalar duruyor, giriş noktaları Keşfet ve

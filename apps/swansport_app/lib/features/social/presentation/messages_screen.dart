@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'edit_profile_sheet.dart';
 import '../../../app/widgets/swan_tabs.dart';
@@ -504,6 +505,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   @override
   void initState() {
     super.initState();
+    // Push dinleyicisi bunu okuyup bu kişiden gelen ön plan uyarısını
+    // bastırıyor — mesaj zaten sohbete canlı düşüyor.
+    OpenChat.open(widget.otherId, widget.otherName);
     Future.microtask(() async {
       await ref
           .read(notificationServiceProvider)
@@ -514,6 +518,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    OpenChat.close(widget.otherId);
     _ctrl.dispose();
     _scroll.dispose();
     super.dispose();
@@ -600,12 +605,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   void _scrollToEnd() {
-    // Kare çizildikten sonra: `maxScrollExtent` yeni mesaj eklenmeden önce
-    // eski değerini veriyor ve liste bir mesaj yukarıda kalıyordu.
+    // Liste `reverse: true`: en yeni mesaj **sıfır** konumunda. Eskiden
+    // `maxScrollExtent`'e gidiliyordu, ters listede orası en eski mesaj.
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scroll.hasClients) return;
       _scroll.animateTo(
-        _scroll.position.maxScrollExtent,
+        0,
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
       );
@@ -674,18 +679,35 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                               style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
                         );
                       }
+                      // `reverse: true` — WhatsApp/Telegram deseni.
+                      //
+                      // Liste alttan yukarı kuruluyor: en yeni mesaj sıfır
+                      // konumunda duruyor. Kazancı, klavye açılıp gövde
+                      // küçülünce listenin **kaydığı yerde kalmaması** —
+                      // düz listede son mesaj klavyenin altında kalıyordu ve
+                      // elle aşağı kaydırmak gerekiyordu.
+                      //
+                      // Bedeli, öğelere sondan erişmek; onu burada yapıyoruz.
                       return ListView.builder(
                         controller: _scroll,
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
+                        reverse: true,
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                         itemCount: all.length,
-                        itemBuilder: (_, i) => _bubble(isDark, all[i]),
+                        itemBuilder: (_, i) =>
+                            _bubble(isDark, all[all.length - 1 - i]),
                       );
                     },
                   ),
                 ),
+                  // `viewInsets.bottom` EKLENMİYOR.
+                  //
+                  // Scaffold `resizeToAvoidBottomInset` ile gövdeyi klavye
+                  // kadar zaten küçültüyor. Üstüne bir de klavye yüksekliğini
+                  // dolgu olarak eklemek aynı boşluğu iki kez sayıyordu: yazı
+                  // alanı klavyenin bir boy yukarısına fırlıyor, arada kocaman
+                  // bir boşluk kalıyordu.
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      14, 6, 14, 12 + MediaQuery.of(context).viewInsets.bottom),
+                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
                   child: Row(children: [
                     Expanded(
                       child: TextField(

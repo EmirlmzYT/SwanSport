@@ -209,9 +209,15 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                     },
                   ),
                 ),
+                  // `viewInsets.bottom` EKLENMİYOR.
+                  //
+                  // Scaffold `resizeToAvoidBottomInset` ile gövdeyi klavye
+                  // kadar zaten küçültüyor. Üstüne bir de klavye yüksekliğini
+                  // dolgu olarak eklemek aynı boşluğu iki kez sayıyordu: yazı
+                  // alanı klavyenin bir boy yukarısına fırlıyor, arada kocaman
+                  // bir boşluk kalıyordu.
                 Padding(
-                  padding: EdgeInsets.fromLTRB(
-                      14, 6, 14, 12 + MediaQuery.of(context).viewInsets.bottom),
+                  padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
                   child: Row(children: [
                     Expanded(
                       child: TextField(

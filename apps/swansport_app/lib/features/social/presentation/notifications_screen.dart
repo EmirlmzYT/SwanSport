@@ -100,6 +100,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   ]),
                 ),
                 const _PushBanner(),
+                const _PushDiagnosticsPanel(),
                 _categoryBar(isDark, ink),
                 Expanded(
                   child: RefreshIndicator(
@@ -472,4 +473,80 @@ class _PushBanner extends ConsumerWidget {
           backgroundColor: SwanPalette.light.danger));
     }
   }
+}
+
+/// Bildirim zincirinin durumu — yalnızca bir sorun varken görünür.
+///
+/// **Neden var:** APK'da bildirimlerin hiç gelmediği bildirildi ve statik
+/// denetimde bir eksik bulunamadı: `google-services.json` paket adıyla
+/// uyuşuyor, `POST_NOTIFICATIONS` tanımlı, kanal `MainActivity` içinde
+/// kuruluyor, sunucu doğru kanala gönderiyor. Hata çalışma anında ve elle
+/// bakmadan görünmüyordu.
+///
+/// Her şey yolundayken **hiç çizilmiyor**: çalışan bir şeyin yanına
+/// "çalışıyor" kutusu koymak ekranı kalabalıklaştırıyor ve zamanla
+/// güvenilirliğini yitiriyor.
+class _PushDiagnosticsPanel extends ConsumerWidget {
+  const _PushDiagnosticsPanel();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!pushSupported) return const SizedBox.shrink();
+
+    final diag = ref.watch(pushDiagnosticsProvider).valueOrNull;
+    if (diag == null || diag.healthy) return const SizedBox.shrink();
+
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = isDark ? SwanPalette.dark : SwanPalette.light;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: c.warning.withValues(alpha: .08),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: c.warning.withValues(alpha: .30)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(Icons.info_outline_rounded, size: 17, color: c.warning),
+              const SizedBox(width: 8),
+              Text('Bildirimler neden gelmiyor',
+                  style: SwanType.caption(c.ink, w: FontWeight.w800)),
+            ]),
+            const SizedBox(height: 8),
+            Text(diag.summary, style: SwanType.caption(c.inkMuted)),
+            const SizedBox(height: 10),
+            // Ham durum: destek almak gerekirse bu üç satır yeter.
+            _row(c, 'İzin', diag.permission),
+            _row(c, 'Cihaz adresi', diag.token != null),
+            _row(c, 'Sunucuya kayıt', diag.registered),
+            if (diag.error != null) ...[
+              const SizedBox(height: 6),
+              SelectableText(diag.error!,
+                  style: SwanType.caption(c.danger)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Durum yalnızca renkle anlatılmıyor: ikon ve "var/yok" metni birlikte.
+  Widget _row(SwanPalette c, String label, bool ok) => Padding(
+        padding: const EdgeInsets.only(top: 3),
+        child: Row(children: [
+          Icon(ok ? Icons.check_rounded : Icons.close_rounded,
+              size: 13, color: ok ? c.success : c.danger),
+          const SizedBox(width: 6),
+          Text(label, style: SwanType.caption(c.inkMuted)),
+          const Spacer(),
+          Text(ok ? 'var' : 'yok',
+              style: SwanType.caption(ok ? c.success : c.danger,
+                  w: FontWeight.w700)),
+        ]),
+      );
 }

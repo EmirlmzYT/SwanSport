@@ -65,6 +65,124 @@ final pushEnabledProvider = FutureProvider.autoDispose<bool>((ref) async {
   return ref.watch(pushServiceProvider).isRegistered(sub.endpoint);
 });
 
+/// Şu an açık olan sohbetin karşı tarafı.
+///
+/// **Neden düz bir değişken, sağlayıcı değil:** bunu okuyan yer bir widget
+/// değil, uygulama ömrü boyunca yaşayan push dinleyicisi. Riverpod'a taşımak
+/// yalnızca yaşam döngüsü karmaşası ekler; burada tutulan şey tek bir geçici
+/// UI durumu.
+///
+/// [ChatScreen] açılırken doldurur, kapanırken temizler.
+class OpenChat {
+  OpenChat._();
+
+  static String? peerId;
+  static String? peerName;
+
+  static void open(String id, String name) {
+    peerId = id;
+    peerName = name;
+  }
+
+  static void close(String id) {
+    // Kimlik kontrolü şart: iki sohbet arasında geçerken yeni ekranın
+    // `initState`'i eskisinin `dispose`'undan **önce** çalışıyor. Kontrolsüz
+    // temizlemek yeni açılan sohbeti kapalı sayardı.
+    if (peerId == id) {
+      peerId = null;
+      peerName = null;
+    }
+  }
+
+  /// Bu bildirim, şu an ekranda açık olan sohbetten mi geliyor?
+  ///
+  /// Push yükü gönderenin kimliğini taşımıyor, yalnızca başlığı:
+  /// `"<Ad> size yazdı"` (0040'taki `notify_direct_message`). Bu yüzden
+  /// eşleştirme **ada** göre yapılıyor.
+  ///
+  /// Kasıtlı olarak temkinli: ad tutmazsa bildirim **gösteriliyor**. Yanlışlıkla
+  /// göstermek, yanlışlıkla gizlemekten iyi — gizlenen mesajı kullanıcı hiç
+  /// öğrenemez.
+  static bool matches(String title) {
+    final name = peerName?.trim();
+    if (name == null || name.isEmpty) return false;
+    return title.trim().toLowerCase().startsWith(name.toLowerCase());
+  }
+}
+
+/// Bildirim zincirinin çalışma anındaki durumu.
+///
+/// **Neden var:** APK'da bildirimlerin hiç gelmediği bildirildi ve statik
+/// denetimde bir eksik bulunamadı — `google-services.json`, izin, kanal,
+/// sunucu yükü hepsi doğruydu. Hata çalışma anında ve elle bakmadan
+/// görünmüyor. Bu ekran kopmanın **hangi halkada** olduğunu söylüyor:
+/// izin mi verilmemiş, token mı alınamıyor, sunucuya mı kaydedilmemiş.
+class PushDiagnostics {
+  const PushDiagnostics({
+    required this.supported,
+    required this.permission,
+    required this.token,
+    required this.registered,
+    this.error,
+  });
+
+  final bool supported;
+  final bool permission;
+  final String? token;
+  final bool registered;
+  final String? error;
+
+  bool get healthy => supported && permission && token != null && registered;
+
+  /// Kopmanın ilk halkası — kullanıcıya tek cümlede ne yapacağını söyler.
+  String get summary {
+    if (!supported) return 'Bu platformda bildirim desteklenmiyor.';
+    if (error != null) return 'Kontrol sırasında hata: $error';
+    if (!permission) {
+      return 'İzin verilmemiş. Telefon Ayarlar > Uygulamalar > SwanSport > '
+          'Bildirimler bölümünden izin ver, sonra anahtarı aç.';
+    }
+    if (token == null) {
+      return 'İzin var ama cihaz adresi alınamıyor. Genellikle Google Play '
+          'Servisleri eksik ya da ağ FCM\'e ulaşamıyor.';
+    }
+    if (!registered) {
+      return 'Cihaz adresi var ama sunucuya kaydedilmemiş. Anahtarı kapatıp '
+          'tekrar aç.';
+    }
+    return 'Bildirim zinciri kurulu. Gelmiyorsa sorun gönderim tarafında.';
+  }
+}
+
+/// Zinciri baştan sona yoklar.
+final pushDiagnosticsProvider =
+    FutureProvider.autoDispose<PushDiagnostics>((ref) async {
+  if (!pushSupported) {
+    return const PushDiagnostics(
+        supported: false, permission: false, token: null, registered: false);
+  }
+  try {
+    final sub = await pushCurrent();
+    final registered = sub == null
+        ? false
+        : await ref.read(pushServiceProvider).isRegistered(sub.endpoint);
+    return PushDiagnostics(
+      supported: true,
+      permission: pushPermissionGranted,
+      token: sub?.endpoint,
+      registered: registered,
+    );
+  } catch (e) {
+    return PushDiagnostics(
+      supported: true,
+      permission: pushPermissionGranted,
+      token: null,
+      registered: false,
+      error: '$e',
+    );
+  }
+});
+
 /// Bildirimleri açar. Hata durumunda [PushException] fırlatır.
 Future<void> enablePush(WidgetRef ref) async {
   final sub = await pushSubscribe();
@@ -166,6 +284,13 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   void _showForegroundMessage(PushMessage message) {
+    // Zaten o sohbetin içindeysen uyarı gösterme: mesaj sohbete canlı
+    // düşüyor, üstüne bir de ekranın altından şerit çıkması gürültü.
+    //
+    // Yalnızca **o kişiden** gelen bastırılıyor; başkası yazarsa uyarı
+    // çıkmaya devam ediyor, yoksa haberin olmazdı.
+    if (OpenChat.matches(message.title)) return;
+
     swanMessengerKey.currentState?.showSnackBar(
       SnackBar(
         content: Text(message.body.isEmpty
