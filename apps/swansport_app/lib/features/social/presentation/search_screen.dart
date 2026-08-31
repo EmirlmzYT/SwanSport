@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Arama — kulüpler, antrenörler ve sporcular.
 class SearchScreen extends ConsumerStatefulWidget {
@@ -199,11 +200,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

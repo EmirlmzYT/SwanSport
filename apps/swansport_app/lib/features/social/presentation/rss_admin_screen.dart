@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../demo/demo_role.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Haber kaynakları yönetimi — yalnızca platform yöneticisi.
 ///
@@ -129,11 +130,7 @@ class RssAdminScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

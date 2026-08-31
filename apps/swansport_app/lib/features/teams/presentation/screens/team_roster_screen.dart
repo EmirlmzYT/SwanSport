@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 
 /// Bir takımın kadrosu — sporcu ekle/çıkar.
 ///
@@ -117,11 +118,7 @@ class TeamRosterScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

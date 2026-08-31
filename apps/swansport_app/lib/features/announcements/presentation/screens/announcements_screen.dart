@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 
 /// İletişim & Duyurular — Supabase verisine bağlı, premium tasarım (v3).
 class AnnouncementsScreen extends ConsumerStatefulWidget {
@@ -151,15 +152,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: 4,
-        onSelect: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/akis');
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-        },
-        onAction: () => Navigator.pushNamed(context, '/attendance'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

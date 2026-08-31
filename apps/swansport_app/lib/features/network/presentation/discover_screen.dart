@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Keşfet — kulüpleri il, ilçe, branş ve doğrulanmışlık filtreleriyle bul.
 ///
@@ -131,11 +132,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

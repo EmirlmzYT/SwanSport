@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import 'coach_accept_sheet.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Kulübe gelen katılım başvuruları — yetkili kabul eder veya reddeder.
 class ClubApplicationsScreen extends ConsumerWidget {
@@ -115,11 +116,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

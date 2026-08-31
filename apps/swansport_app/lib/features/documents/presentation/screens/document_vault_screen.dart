@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/media/image_pick.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 
 /// Belge Kasası — kulüp ve sporcu evrakları, geçerlilik takibiyle.
 ///
@@ -112,11 +113,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

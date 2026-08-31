@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Takipçiler / takip edilenler listesi.
 ///
@@ -117,11 +118,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

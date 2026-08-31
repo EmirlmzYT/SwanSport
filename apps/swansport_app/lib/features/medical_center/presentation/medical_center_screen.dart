@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Sağlık Merkezi — sporcuların sakatlık/uygunluk kayıtları.
 ///
@@ -98,16 +99,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/akis');
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-          if (i == 4) Navigator.pushNamed(context, '/profil');
-        },
-        onAction: () => Navigator.pushNamed(context, '/attendance'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

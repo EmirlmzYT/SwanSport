@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import 'test_categories.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Bir sporcunun performans dosyası — test seyri ve gelişim hedefleri.
 ///
@@ -165,11 +166,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

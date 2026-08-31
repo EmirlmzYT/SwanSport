@@ -6,6 +6,7 @@ import 'package:swansport_models/swansport_models.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../routing/athlete_detail_route_args.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 
 /// Sporcu Yönetimi (Kadro) — Supabase verisine bağlı, premium tasarım (v3).
 class AthleteWorkspaceScreen extends ConsumerStatefulWidget {
@@ -122,15 +123,7 @@ class _AthleteWorkspaceScreenState
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: 3,
-        onSelect: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/akis');
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 4) Navigator.pushNamed(context, '/profil');
-        },
-        onAction: () => Navigator.pushNamed(context, '/attendance'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

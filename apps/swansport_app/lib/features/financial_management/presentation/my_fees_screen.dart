@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Sporcu/veli tarafı — "borcum ne, nasıl öderim".
 ///
@@ -76,11 +77,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

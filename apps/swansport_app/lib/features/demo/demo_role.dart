@@ -363,6 +363,7 @@ const Set<String> kAlwaysAllowedRoutes = {
   '/aidatlarim',
   '/bagis',
   '/kesfet',
+  '/kulupler',
   '/ilanlar',
   // Halka açık kortlar herkese açık: kulübü olmayan kullanıcının uygulamada
   // göreceği ilk değerli şey bu. Rol duvarının arkasına konursa bu özelliğin

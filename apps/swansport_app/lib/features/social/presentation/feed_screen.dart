@@ -12,6 +12,7 @@ import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/post_card.dart';
 import '../../../app/widgets/inbox_actions.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -223,17 +224,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: 0,
-        onSelect: (i) {
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-          if (i == 4 && myId != null) {
-            Navigator.pushNamed(context, '/profil', arguments: myId);
-          }
-        },
-        onAction: () => _openComposer(context),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

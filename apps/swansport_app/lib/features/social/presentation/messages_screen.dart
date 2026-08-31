@@ -8,6 +8,7 @@ import '../../../app/widgets/premium.dart';
 import 'edit_profile_sheet.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Sohbet listesi — gruplar ve birebir sohbetler tek akışta (WhatsApp gibi).
 ///
@@ -138,11 +139,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

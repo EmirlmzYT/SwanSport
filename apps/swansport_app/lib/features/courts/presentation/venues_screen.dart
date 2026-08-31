@@ -8,6 +8,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import '../../turf/presentation/turf_field_detail_screen.dart';
 import 'court_detail_screen.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Sahalar — halka açık kortlar ve halı sahalar tek sayfada.
 ///
@@ -118,11 +119,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

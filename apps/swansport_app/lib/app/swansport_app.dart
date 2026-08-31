@@ -38,6 +38,7 @@ import '../features/clubs/presentation/club_applications_screen.dart';
 import '../features/demo/demo_role_screen.dart';
 import '../features/social/presentation/connections_screen.dart';
 import '../features/network/presentation/discover_screen.dart';
+import '../features/network/presentation/explore_screen.dart';
 import '../features/network/presentation/listings_screen.dart';
 import '../features/network/presentation/organizations_screen.dart';
 import '../features/financial_management/presentation/campaigns_screen.dart';
@@ -110,7 +111,8 @@ class SwanSportApp extends ConsumerWidget {
         '/bildirimler': (context) => const NotificationsScreen(),
         '/mesajlar': (context) => const MessagesScreen(),
         '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
-        '/kesfet': (context) => const DiscoverScreen(),
+        '/kesfet': (context) => const ExploreScreen(),
+        '/kulupler': (context) => const DiscoverScreen(),
         '/ilanlar': (context) => const ListingsScreen(),
         '/kortlar': (context) => const VenuesScreen(),
         '/oyuncu-aranan': (context) => const FindPartnerScreen(initialTab: 1),

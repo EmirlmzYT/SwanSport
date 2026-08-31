@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Bağış kampanyaları — herkese açık.
 ///
@@ -98,11 +99,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

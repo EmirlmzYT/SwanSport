@@ -10,6 +10,7 @@ import '../../../demo/demo_role.dart';
 import '../../../home/presentation/screens/guardian_home_screen.dart';
 import '../../../home/presentation/screens/member_home_screen.dart';
 import '../../../verification/presentation/club_pending_screen.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 
 /// Antrenör Paneli — Supabase verisine bağlı, premium tasarım (v3).
 class CoachDashboardScreen extends ConsumerWidget {
@@ -173,15 +174,7 @@ class CoachDashboardScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: 0,
-        onSelect: (i) {
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-          if (i == 4) Navigator.pushNamed(context, '/profil');
-        },
-        onAction: () => Navigator.pushNamed(context, '/attendance'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

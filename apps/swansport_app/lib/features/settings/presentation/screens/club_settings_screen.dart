@@ -9,6 +9,7 @@ import '../../../../app/push/push_service.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../demo/demo_role.dart';
 import '../../../social/presentation/edit_profile_sheet.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 
 /// Ayarlar.
 ///
@@ -219,16 +220,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/akis');
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-          if (i == 4) Navigator.pushNamed(context, '/profil');
-        },
-        onAction: () => Navigator.pushNamed(context, '/attendance'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

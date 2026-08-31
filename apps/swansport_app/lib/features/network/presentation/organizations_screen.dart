@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Lig / turnuva / kupa organizasyonları.
 ///
@@ -101,11 +102,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

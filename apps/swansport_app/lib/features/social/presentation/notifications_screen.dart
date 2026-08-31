@@ -7,6 +7,7 @@ import '../../../app/push/push.dart';
 import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Bildirimler — beğeni, yorum, takip, başvuru ve onay hareketleri.
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -138,11 +139,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// İlanlar — sporcu arayan kulüp, kulüp arayan sporcu/antrenör ve seçmeler.
 ///
@@ -107,11 +108,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Kulüp finansı — aidat tahakkuku, tahsilat onayı ve planlar.
 ///
@@ -102,11 +103,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

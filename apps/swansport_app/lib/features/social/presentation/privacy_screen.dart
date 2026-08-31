@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../auth/application/auth_controller.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Gizlilik ve hesap — engellenenler, şifre değiştirme, hesap silme.
 class PrivacyScreen extends ConsumerStatefulWidget {
@@ -170,11 +171,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (_) {},
-        onAction: () {},
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Performans — kulüp kadrosunun test ve gelişim durumu.
 ///
@@ -75,16 +76,7 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: -1,
-        onSelect: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/akis');
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-          if (i == 4) Navigator.pushNamed(context, '/profil');
-        },
-        onAction: () => Navigator.pushNamed(context, '/attendance'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 

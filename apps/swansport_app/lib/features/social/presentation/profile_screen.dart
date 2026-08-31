@@ -15,7 +15,9 @@ import 'widgets/post_card.dart';
 import '../../clubs/presentation/club_detail_sections.dart';
 import '../../network/presentation/swan_card_sheet.dart';
 import 'widgets/profile_sections.dart';
+import 'widgets/management_section.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/widgets/swan_bottom_nav.dart';
 
 /// Detaylı profil sayfası — kişi veya kulüp.
 ///
@@ -225,6 +227,10 @@ class ProfileScreen extends ConsumerWidget {
                         ClubMembersSection(clubId: p.id),
                       ],
 
+                      // Modül menüsünün ikinci yarısı buraya taşındı.
+                      // Yalnızca kendi profilinde ve role göre süzülü.
+                      if (p.isMe) const ManagementSection(),
+
                       const SizedBox(height: 22),
                       Text('GÖNDERİLER',
                           style: jakarta(
@@ -268,15 +274,7 @@ class ProfileScreen extends ConsumerWidget {
           ),
         ),
       ),
-      bottomNavigationBar: PremiumBottomNav(
-        selectedIndex: 4,
-        onSelect: (i) {
-          if (i == 0) Navigator.pushNamed(context, '/akis');
-          if (i == 1) Navigator.pushNamed(context, '/calendar');
-          if (i == 3) Navigator.pushNamed(context, '/athletes');
-        },
-        onAction: () => Navigator.pushNamed(context, '/akis'),
-      ),
+      bottomNavigationBar: const SwanBottomNav(),
     );
   }
 
