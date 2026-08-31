@@ -540,19 +540,20 @@ halı saha doluluk panosunu içeriyor.
 
 ### Yarım / doğrulanmamış
 
-> **ÖNCE BUNU OKU — canlıda çalıştırılmamış migration var.**
+> **Migration durumu** (2026-09-01, kullanıcı 0040 ve 0041'i çalıştırdı)
 >
-> `0040_dm_notify_and_turf_chat.sql` ve `0041_court_usage_stats.sql` Supabase
-> SQL Editor'de **çalıştırılmadı**. İkisi de idempotent (`create or replace`,
-> `drop trigger if exists`), tekrar çalıştırmak zararsız — emin değilsen
-> çalıştır.
+> | Migration | Durum | Nasıl doğrulandı |
+> |---|---|---|
+> | `0039` | Uygulandı | `turf_slot_requests` tablosu REST'ten okunuyor |
+> | `0041` | Uygulandı | `court_usage_stats` anon'a **401 permission denied** veriyor — fonksiyon var, izin doğru kapalı (yok olsaydı 404 gelirdi) |
+> | `0040` | **Doğrulanmadı** | Yalnızca fonksiyon + tetikleyici içeriyor, ikisi de anon'a görünmez |
 >
-> Bunlar çalıştırılmadan:
-> - doğrudan mesajlarda bildirim düşmüyor (`trg_notify_direct_message` yok),
-> - konsoldaki kort ölçüm bölümü hata gösteriyor (`court_usage_stats` yok).
+> `0040`'ı doğrulamak için `tools/verify_0040.sql`'i SQL Editor'e yapıştır:
+> tetikleyicinin varlığını, `send_club_message`'in elle bildirim yazmayı
+> bıraktığını ve hiçbir fonksiyonda çift imza kalmadığını (HTTP 300 tuzağı)
+> kontrol eder.
 >
-> `0039` çalıştırılmış — `turf_slot_requests` tablosu canlıda var, REST ile
-> doğrulandı (2026-09-01). Bu not eskiden "0039 çalıştırılmadı" diyordu.
+> Hepsi idempotent; emin değilsen tekrar çalıştır, zararı yok.
 
 - **Android push (FCM)** — izin, bildirim kanalı, ön plan uyarısı ve bildirim
   dokunuşunda rota açma akışı `f2e16a1` ile tamamlandı; debug APK derlendi.
