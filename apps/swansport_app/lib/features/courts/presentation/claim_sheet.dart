@@ -3,6 +3,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kutu alırken verilen bilgiler.
 class ClaimResult {
@@ -58,11 +59,10 @@ class _ClaimSheetState extends State<ClaimSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: jakarta(13, FontWeight.w700, ink)),
+                  Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                   const SizedBox(height: 2),
                   Text(hint,
-                      style: jakarta(
-                          11, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 ],
               ),
             ),
@@ -72,7 +72,7 @@ class _ClaimSheetState extends State<ClaimSheet> {
               width: 38,
               child: Text('$value',
                   textAlign: TextAlign.center,
-                  style: jakarta(15, FontWeight.w800, ink)),
+                  style: SwanType.body(ink, w: FontWeight.w800)),
             ),
             _round(Icons.add_rounded, field, ink,
                 value < max ? () => onChanged(value + 1) : null),
@@ -95,10 +95,10 @@ class _ClaimSheetState extends State<ClaimSheet> {
         ),
         const SizedBox(height: 14),
         Text('$hour · ${widget.court.name}',
-            style: sora(16, FontWeight.w800, ink)),
+            style: SwanType.h3(ink)),
         const SizedBox(height: 4),
         Text('Bir saat senin.',
-            style: jakarta(12, FontWeight.w600, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
 
         stepper('Yanındakiler', 'Uygulamada olmayan arkadaşların', _guests,
             _guests + _room, (v) => setState(() => _guests = v)),
@@ -118,7 +118,7 @@ class _ClaimSheetState extends State<ClaimSheet> {
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text('Saati al',
-                style: jakarta(14, FontWeight.w800, Colors.white)),
+                style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
           ),
         ),
         const SizedBox(height: 10),
@@ -126,7 +126,7 @@ class _ClaimSheetState extends State<ClaimSheet> {
             'Gelemezsen iptal et — cezası yok. Haber vermeden gelmemek '
             'sıranı ve sonrakini yakıyor.',
             textAlign: TextAlign.center,
-            style: jakarta(10.5, FontWeight.w600, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
       ]),
     );
   }

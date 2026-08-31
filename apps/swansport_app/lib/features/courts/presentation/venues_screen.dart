@@ -9,6 +9,7 @@ import '../../../app/widgets/swan_tabs.dart';
 import '../../turf/presentation/turf_field_detail_screen.dart';
 import 'court_detail_screen.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Sahalar — halka açık kortlar ve halı sahalar tek sayfada.
 ///
@@ -84,7 +85,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                   const SizedBox(width: 14),
                   Expanded(
                     child: Text('Sahalar',
-                        style: sora(20, FontWeight.w800, ink)),
+                        style: SwanType.h2(ink)),
                   ),
                   // Kortu gördün ama oynayacak kimsen yok — akış burada
                   // kopuyordu, menüye dönmek gerekiyordu.
@@ -99,7 +100,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                           color: kTeal.withValues(alpha: .10),
                           borderRadius: BorderRadius.circular(12)),
                       child: Text('Partner bul',
-                          style: jakarta(11.5, FontWeight.w800, kTeal)),
+                          style: SwanType.caption(kTeal, w: FontWeight.w800)),
                     ),
                   ),
                 ]),
@@ -254,19 +255,18 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
               Text(court.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(14, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               if (subtitle.isNotEmpty) ...[
                 const SizedBox(height: 3),
                 Text(subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
               const SizedBox(height: 3),
               Text('${court.opensAt} – ${court.closesAt}',
                   style:
-                      jakarta(11, FontWeight.w600, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ],
           ),
         ),
@@ -302,17 +302,16 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
               Text(field.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(14, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 3),
               Text(subtitle,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(
-                      11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               const SizedBox(height: 3),
               Text('${field.opensAt} – ${field.closesAt}',
                   style:
-                      jakarta(11, FontWeight.w600, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ],
           ),
         ),

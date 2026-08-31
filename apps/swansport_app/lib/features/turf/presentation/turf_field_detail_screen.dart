@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Sahanın haftalık doluluk şeridi.
 ///
@@ -42,10 +43,10 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_field.name, style: sora(16, FontWeight.w800, ink)),
+            Text(_field.name, style: SwanType.h3(ink)),
             Text('${_field.venueName} · ${_field.opensAt}–${_field.closesAt}',
                 style:
-                    jakarta(11, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       ),
@@ -89,8 +90,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                 ],
                 if (_field.phone != null && _field.phone!.isNotEmpty)
                   Text('Rezervasyon için ara: ${_field.phone}',
-                      style: jakarta(
-                          11.5, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
             ),
           );
@@ -115,7 +115,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
             child: Text(
                 'Bu sahayı sen yönetiyorsun — bir saate dokunarak dolu/boş '
                 'işaretleyebilirsin.',
-                style: jakarta(11.5, FontWeight.w700, ink)),
+                style: SwanType.caption(ink, w: FontWeight.w700)),
           ),
         ]),
       );
@@ -126,7 +126,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
     ];
     final label = '${gunler[day.weekday - 1]} · ${day.day.toString().padLeft(2, '0')}.'
         '${day.month.toString().padLeft(2, '0')}';
-    return Text(label, style: jakarta(13, FontWeight.w800, ink));
+    return Text(label, style: SwanType.bodySm(ink, w: FontWeight.w800));
   }
 
   Widget _cell(bool isDark, Color ink, TurfSlot s, bool isManager) {
@@ -175,7 +175,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           Text(s.hourLabel,
               style: jakarta(12.5, FontWeight.w800,
                   (s.occupied || s.requestedByMe) ? fg : ink)),
-          Text(label, style: jakarta(9.5, FontWeight.w700, fg)),
+          Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
         ]),
       ),
     );

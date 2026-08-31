@@ -7,6 +7,7 @@ import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
 import 'claim_sheet.dart';
 import 'join_requests_sheet.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kortun saat şeridi.
 ///
@@ -45,10 +46,10 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_court.name, style: sora(16, FontWeight.w800, ink)),
+            Text(_court.name, style: SwanType.h3(ink)),
             Text('${_court.opensAt} – ${_court.closesAt}',
                 style:
-                    jakarta(11, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       ),
@@ -68,8 +69,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               Text(
                   'En fazla 3 saat ilerisi alınabilir. Sıranı aldıktan sonra '
                   'korta varınca uygulamadan onaylaman gerekiyor.',
-                  style: jakarta(
-                      11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ],
           ),
         ),
@@ -91,13 +91,13 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Sıra alabilmek için bir kez kortta ol',
-              style: jakarta(13, FontWeight.w800, ink)),
+              style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(
               'Kortta olduğunu bir kez doğrula, bundan sonra evden sıra '
               'alabilirsin. Bu, sahte hesapların sırayı doldurmasını engelliyor.',
               style:
-                  jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const SizedBox(height: 11),
           GestureDetector(
             onTap: _busy ? null : _verifyHere,
@@ -109,7 +109,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text('Kortta olduğumu doğrula',
-                  style: jakarta(12.5, FontWeight.w800, Colors.white)),
+                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
             ),
           ),
         ]),
@@ -139,7 +139,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
       child: Row(children: [
         SizedBox(
           width: 46,
-          child: Text(s.hourLabel, style: jakarta(14, FontWeight.w800, ink)),
+          child: Text(s.hourLabel, style: SwanType.bodySm(ink, w: FontWeight.w800)),
         ),
         Container(
           width: 8,
@@ -154,10 +154,10 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(12.5, FontWeight.w700, ink)),
+                  style: SwanType.caption(ink, w: FontWeight.w700)),
               if (s.lookingForPlayers)
                 Text('${s.needed} oyuncu aranıyor',
-                    style: jakarta(11, FontWeight.w700, kTeal)),
+                    style: SwanType.caption(kTeal, w: FontWeight.w700)),
             ],
           ),
         ),
@@ -180,8 +180,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(text,
-                style: jakarta(
-                    11.5, FontWeight.w800, filled ? Colors.white : color)),
+                style: SwanType.caption(filled ? Colors.white : color, w: FontWeight.w800)),
           ),
         );
 

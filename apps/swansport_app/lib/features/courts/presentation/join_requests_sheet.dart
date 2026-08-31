@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Oyununa katılmak isteyenler.
 ///
@@ -39,7 +40,7 @@ class JoinRequestsSheet extends ConsumerWidget {
               BoxDecoration(color: line, borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(height: 14),
-        Text('Katılmak isteyenler', style: sora(16, FontWeight.w800, ink)),
+        Text('Katılmak isteyenler', style: SwanType.h3(ink)),
         const SizedBox(height: 12),
         async.when(
           loading: premiumLoading,
@@ -50,8 +51,7 @@ class JoinRequestsSheet extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 26),
                 child: Text('Henüz isteyen yok.',
-                    style: jakarta(
-                        12.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               );
             }
             return Column(
@@ -111,7 +111,7 @@ class JoinRequestsSheet extends ConsumerWidget {
           child: Text(r.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(13, FontWeight.w700, ink)),
+              style: SwanType.bodySm(ink, w: FontWeight.w700)),
         ),
         action('Kabul', kTeal, true),
         const SizedBox(width: 7),

@@ -6,6 +6,8 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_palette.dart';
 
 /// Kort partneri arama.
 ///
@@ -49,7 +51,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       appBar: AppBar(
         backgroundColor: bg,
         elevation: 0,
-        title: Text('Partner Bul', style: sora(19, FontWeight.w800, ink)),
+        title: Text('Partner Bul', style: SwanType.h3(ink)),
       ),
       body: Column(children: [
         Padding(
@@ -177,13 +179,12 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                 Text('$hour · ${s.courtName}',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(14, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 3),
                 Text([s.ownerName, if (where.isNotEmpty) where].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
             ),
           ),
@@ -230,12 +231,11 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                     : (verified
                         ? 'Katılmak istiyorum'
                         : 'Önce kortta doğrulanmalısın'),
-                style: jakarta(
-                    12.5,
-                    FontWeight.w800,
+                style: SwanType.caption(
                     (s.requested || !verified)
-                        ? SwanColors.textSecondary
-                        : Colors.white)),
+                        ? context.swan.inkMuted
+                        : Colors.white,
+                    w: FontWeight.w800)),
           ),
         ),
       ]),
@@ -243,12 +243,12 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   }
 
   Widget _sectionTitle(Color ink, String text) =>
-      Text(text, style: jakarta(13, FontWeight.w800, ink));
+      Text(text, style: SwanType.bodySm(ink, w: FontWeight.w800));
 
   Widget _emptyLine(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(text,
-            style: jakarta(12, FontWeight.w600, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
       );
 
   Widget _verifyBanner(bool isDark, Color ink) => Container(
@@ -261,14 +261,14 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('Partner aramak için önce bir kortu doğrula',
-              style: jakarta(13, FontWeight.w800, ink)),
+              style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(
               'Herhangi bir kortta bir kez "kortta olduğumu doğrula" dedikten '
               'sonra buradan partner arayabilirsin. Bu, sahte hesapların '
               'bildirimlerle seni rahatsız etmesini engelliyor.',
               style:
-                  jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
         ]),
       );
 
@@ -289,8 +289,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(text,
-                style: jakarta(
-                    11.5, FontWeight.w800, filled ? Colors.white : color)),
+                style: SwanType.caption(filled ? Colors.white : color, w: FontWeight.w800)),
           ),
         );
 
@@ -321,10 +320,9 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               Text('${p.requesterName} · ${p.sportName}',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               Text('Müsait misin, gitmek ister misin?',
-                  style: jakarta(
-                      11, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ],
           ),
         ),
@@ -364,7 +362,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                 'Henüz hiçbir kortta branş tanımlı değil — partner arama '
                 'yakında burada olacak.',
                 style:
-                    jakarta(12, FontWeight.w600, SwanColors.textSecondary));
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600));
           }
 
           final myInterests = interests.valueOrNull ?? {};
@@ -373,11 +371,11 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
 
           return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text('İlgilendiğin branşlar',
-                style: jakarta(12.5, FontWeight.w800, ink)),
+                style: SwanType.caption(ink, w: FontWeight.w800)),
             const SizedBox(height: 4),
             Text('Seçtiğin branşlarda başkası partner arayınca haber verilir.',
                 style:
-                    jakarta(11, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -391,7 +389,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               ],
             ),
             const SizedBox(height: 18),
-            Text('Partner arıyorum', style: jakarta(12.5, FontWeight.w800, ink)),
+            Text('Partner arıyorum', style: SwanType.caption(ink, w: FontWeight.w800)),
             const SizedBox(height: 10),
             Wrap(
               spacing: 8,
@@ -425,8 +423,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             Text(
                 'Yakınındaki ilgili kişilere bildirim gider. İki saat içinde '
                 'kimse kabul etmezse istek kendiliğinden düşer.',
-                style: jakarta(
-                    10.5, FontWeight.w600, SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ]);
         },
       ),
@@ -447,11 +444,11 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text('${req.sportName} · partnerin bulundu',
-              style: jakarta(13, FontWeight.w800, ink)),
+              style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 4),
           Text('${req.acceptedByName} müsait olduğunu söyledi.',
               style:
-                  jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
@@ -466,7 +463,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Text('Sohbete geç',
-                  style: jakarta(13, FontWeight.w800, Colors.white)),
+                  style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
             ),
           ),
         ]),
@@ -486,11 +483,10 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('${req.sportName} için aranıyor',
-                  style: jakarta(13, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 3),
               Text('Yanıt gelene kadar bekleniyor.',
-                  style: jakarta(
-                      11, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ],
           ),
         ),
@@ -505,8 +501,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text('İptal et',
-                style: jakarta(
-                    11.5, FontWeight.w800, const Color(0xFFD64545))),
+                style: SwanType.caption(const Color(0xFFD64545),
+                    w: FontWeight.w800)),
           ),
         ),
       ]),
@@ -524,8 +520,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           borderRadius: BorderRadius.circular(11),
         ),
         child: Text(label,
-            style: jakarta(
-                12, FontWeight.w700, selected ? Colors.white : ink)),
+            style: SwanType.caption(selected ? Colors.white : ink, w: FontWeight.w700)),
       ),
     );
   }
