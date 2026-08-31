@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Koyu tema açılış rengi. Stok şablon burada `Theme.Black` üzerinden SAF
+     SİYAH (#000000) gösteriyordu ve uygulama #0A111E ile açılıyordu — brief
+     "saf siyah kullanma" diyor, üstelik geçiş gözle görülüyordu. -->
+<resources>
+    <color name="swan_bg">#FF0A111E</color>
+</resources>

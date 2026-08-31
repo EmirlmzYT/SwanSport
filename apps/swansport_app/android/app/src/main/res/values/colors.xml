@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Açılış penceresi rengi — `lib/app/design/swan_palette.dart` ile aynı olmalı.
+     Bu renk, süreç başlarken Flutter ilk kareyi çizene kadar ekranda duruyor;
+     paletle uyuşmazsa her açılışta görünür bir renk patlaması oluyor.
+     values-night/ içinde koyu karşılığı var. -->
+<resources>
+    <color name="swan_bg">#FFF4F7FA</color>
+</resources>
