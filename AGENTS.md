@@ -112,6 +112,17 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   bozar. Kanıt olarak konsol testleri 40'ta sabit tutuluyor.
 - Palet çakışması çözüldü: ekranların gerçekte kullandığı değerler kazandı
   (`0xFF131D2E`, 196 kullanım), tasarım sistemindeki `0xFF171A1F` değil.
+  **Anlam renklerinde de aynı hata bir kez tekrarlandı** — jetonları ilk
+  yazarken `danger`'a kendi değerimi koymuştum, ekranlar 140 yerde başkasını
+  kullanıyordu. Yeni bir jeton eklerken **önce say**: `grep -rho
+  "Color(0xFF……)" | sort | uniq -c`. Uydurma, ölç.
+- **Ham `jakarta()`/`sora()` çağrısı `features/` altında sıfır.** 1001 çağrı
+  yedi adıma indi. Yeni ekranda ham sayı yazma.
+- Sabit hex 801'den 91'e indi; kalanlar tekil ve anlamlı (kategori renkleri,
+  marka gradyanları). Jetonlar `isDark ? SwanPalette.dark : .light` biçiminde
+  okunuyor — `context.swan` yalnızca `context` kapsamdayken çalışır, yardımcı
+  metotların çoğunda değil.
+- Jeton okuyan ifade **`const` olamaz** (derleme zamanı sabit değil).
 - Koyu temada **saf siyah yok** — navy/charcoal (brief kuralı).
 - `accent` (teal) yalnızca birincil aksiyon ve aktif durum içindir;
   dekoratif teal için jeton bilerek yok.
