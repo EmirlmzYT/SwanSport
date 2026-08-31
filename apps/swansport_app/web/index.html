@@ -23,9 +23,53 @@
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#F4F7FA">
   <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0A111E">
   <style>
+    /* Renkler `lib/app/design/swan_palette.dart` ile aynı olmalı: bu ekran
+       Flutter acilana kadar gorunuyor, ton farki "iki ayri uygulama" hissi
+       veriyor. bg/ink/accent sirasiyla acik ve koyu tema. */
     html, body { margin: 0; padding: 0; height: 100%; background-color: #F4F7FA; }
     @media (prefers-color-scheme: dark) {
       html, body { background-color: #0A111E; }
+    }
+
+    /* Acilis ekrani. main.dart.js ~4 MB; inip acilana kadar ekran duz renkti
+       ve yavas baglantida uygulama acilmiyor gibi gorunuyordu. */
+    #swan-splash {
+      position: fixed; inset: 0; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      transition: opacity .35s ease; z-index: 9999;
+    }
+    #swan-splash.done { opacity: 0; pointer-events: none; }
+    #swan-splash .mark {
+      width: 62px; height: 62px; border-radius: 18px;
+      background: linear-gradient(135deg, #14B8B1, #008C95);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 30px; font-weight: 800; letter-spacing: -1px;
+      box-shadow: 0 10px 30px rgba(0, 140, 149, .28);
+    }
+    #swan-splash .name {
+      font-size: 19px; font-weight: 700; letter-spacing: -.4px; color: #111827;
+    }
+    #swan-splash .bar {
+      width: 132px; height: 3px; border-radius: 2px;
+      background: rgba(17, 24, 39, .10); overflow: hidden;
+    }
+    #swan-splash .bar i {
+      display: block; width: 40%; height: 100%; border-radius: 2px;
+      background: #008C95; animation: swan-slide 1.15s ease-in-out infinite;
+    }
+    @keyframes swan-slide {
+      0%   { transform: translateX(-100%); }
+      100% { transform: translateX(330%); }
+    }
+    @media (prefers-color-scheme: dark) {
+      #swan-splash .name { color: #FFFFFF; }
+      #swan-splash .bar  { background: rgba(255, 255, 255, .12); }
+      #swan-splash .bar i { background: #2FBFB6; }
+    }
+    /* Hareketi azalt tercihi: cubuk kaymaz, sabit bir nabizla durur. */
+    @media (prefers-reduced-motion: reduce) {
+      #swan-splash .bar i { animation: none; width: 100%; opacity: .55; }
     }
   </style>
 
@@ -43,6 +87,23 @@
   <link rel="manifest" href="manifest.json">
 </head>
 <body>
+  <div id="swan-splash" role="status" aria-label="SwanSport yukleniyor">
+    <div class="mark">S</div>
+    <div class="name">SwanSport</div>
+    <div class="bar"><i></i></div>
+  </div>
+
+  <script>
+    // Flutter ilk kareyi cizince acilis ekrani silinir. Flutter'in kendi
+    // olayini bekliyoruz; sabit bir zamanlayici yavas cihazda erken kaldirip
+    // bos ekran birakiyordu.
+    window.addEventListener('flutter-first-frame', function () {
+      var el = document.getElementById('swan-splash');
+      if (!el) return;
+      el.classList.add('done');
+      setTimeout(function () { el.remove(); }, 400);
+    });
+  </script>
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>
