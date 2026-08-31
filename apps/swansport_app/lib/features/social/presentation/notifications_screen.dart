@@ -523,7 +523,10 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
             // Ham durum: destek almak gerekirse bu üç satır yeter.
             _row(c, 'İzin', diag.permission),
             _row(c, 'Cihaz adresi', diag.token != null),
-            _row(c, 'Sunucuya kayıt', diag.registered),
+            _row(c, 'Sunucuya kayıt', diag.registered,
+                note: diag.state == PushSubState.otherAccount
+                    ? 'başka hesapta'
+                    : null),
             if (diag.error != null) ...[
               const SizedBox(height: 6),
               SelectableText(diag.error!,
@@ -536,7 +539,7 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
   }
 
   /// Durum yalnızca renkle anlatılmıyor: ikon ve "var/yok" metni birlikte.
-  Widget _row(SwanPalette c, String label, bool ok) => Padding(
+  Widget _row(SwanPalette c, String label, bool ok, {String? note}) => Padding(
         padding: const EdgeInsets.only(top: 3),
         child: Row(children: [
           Icon(ok ? Icons.check_rounded : Icons.close_rounded,
@@ -544,7 +547,7 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
           const SizedBox(width: 6),
           Text(label, style: SwanType.caption(c.inkMuted)),
           const Spacer(),
-          Text(ok ? 'var' : 'yok',
+          Text(note ?? (ok ? 'var' : 'yok'),
               style: SwanType.caption(ok ? c.success : c.danger,
                   w: FontWeight.w700)),
         ]),

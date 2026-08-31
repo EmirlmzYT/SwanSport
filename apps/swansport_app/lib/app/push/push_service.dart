@@ -17,24 +17,64 @@ import 'push.dart';
 /// servisine iletir.
 /// ---------------------------------------------------------------------------
 
+/// Cihaz adresinin sunucudaki durumu.
+enum PushSubState {
+  /// Bu hesaba kayıtlı — beklenen hâl.
+  mine,
+
+  /// Kayıtlı ama **başka bir hesaba**. Aynı telefonda hesap değiştirilince
+  /// oluşuyor ve eski kodda `42501`'in sebebiydi.
+  otherAccount,
+
+  /// Hiç kaydedilmemiş.
+  missing,
+
+  /// Oturum yok.
+  noSession,
+}
+
 class PushService {
   PushService(this._c);
   final SupabaseClient _c;
 
   /// Cihazı kaydeder. Aynı adres tekrar gelirse satır güncellenir.
+  ///
+  /// **RPC üzerinden, doğrudan `upsert` ile değil.** Doğrudan upsert
+  /// `42501` veriyordu: `endpoint` globalde tekil ve RLS politikası
+  /// `using (profile_id = auth.uid())`. Postgres `ON CONFLICT DO UPDATE`'te
+  /// `USING`'i **mevcut satıra** uyguluyor, yani cihaz daha önce başka bir
+  /// hesapla kaydedildiyse yeni hesap o satıra dokunamıyordu. Aynı telefonda
+  /// iki hesapla giriş yapmak bunu tetiklemeye yetiyor ve sonuç: bildirim
+  /// aç/kapa çalışmıyor, cihaz hiç kaydedilmiyor, bildirim hiç gelmiyor.
+  ///
+  /// `register_push_subscription` (0043) `security definer` ve adresi o an
+  /// giriş yapmış kişiye devrediyor — FCM token'ı kullanıcıya değil uygulama
+  /// kurulumuna ait, telefonda hesap değişince bildirimler de değişmeli.
   Future<void> register(PushSub sub, {String? userAgent}) async {
     final uid = _c.auth.currentUser?.id;
     if (uid == null) return;
-    await _c.from('push_subscriptions').upsert({
-      'profile_id': uid,
-      'endpoint': sub.endpoint,
-      // Taşıyıcı: sunucu hangi yolla göndereceğini buna bakarak seçiyor.
-      'kind': sub.kind,
-      // FCM'de bu ikisi null; şifrelemeyi Google yapıyor.
-      'p256dh': sub.p256dh,
-      'auth': sub.auth,
-      if (userAgent != null) 'user_agent': userAgent,
-    }, onConflict: 'endpoint');
+    try {
+      await _c.rpc<void>('register_push_subscription', params: {
+        'p_endpoint': sub.endpoint,
+        'p_kind': sub.kind,
+        'p_p256dh': sub.p256dh,
+        'p_auth': sub.auth,
+        'p_user_agent': userAgent,
+      });
+    } on PostgrestException catch (e) {
+      // 0043 henüz çalıştırılmadıysa fonksiyon yok (PGRST202). Eski yola
+      // düş: kendi cihazını ilk kez kaydeden kullanıcı için o da çalışıyor,
+      // yalnızca hesap değişimi senaryosunda 42501 veriyor.
+      if (e.code != 'PGRST202') rethrow;
+      await _c.from('push_subscriptions').upsert({
+        'profile_id': uid,
+        'endpoint': sub.endpoint,
+        'kind': sub.kind,
+        'p256dh': sub.p256dh,
+        'auth': sub.auth,
+        if (userAgent != null) 'user_agent': userAgent,
+      }, onConflict: 'endpoint');
+    }
   }
 
   Future<void> unregister(String endpoint) async {
@@ -43,13 +83,36 @@ class PushService {
   }
 
   /// Bu cihazın adresi kayıtlı mı?
-  Future<bool> isRegistered(String endpoint) async {
-    final rows = await _c
-        .from('push_subscriptions')
-        .select('id')
-        .eq('endpoint', endpoint)
-        .limit(1);
-    return (rows as List).isNotEmpty;
+  Future<bool> isRegistered(String endpoint) async =>
+      await subscriptionState(endpoint) == PushSubState.mine;
+
+  /// Cihaz adresinin sunucudaki durumu.
+  ///
+  /// Düz `select` yetmiyor: RLS başkasına ait satırı **boş** döndürüyor ve
+  /// tanılama bunu "kayıt yok" diye gösteriyordu — oysa satır vardı, başka
+  /// hesabındı. Yanlış teşhis, yanlış çözüme götürüyor.
+  Future<PushSubState> subscriptionState(String endpoint) async {
+    try {
+      final v = await _c.rpc<dynamic>('push_subscription_state',
+          params: {'p_endpoint': endpoint});
+      return switch ('$v') {
+        'mine' => PushSubState.mine,
+        'other_account' => PushSubState.otherAccount,
+        'no_session' => PushSubState.noSession,
+        _ => PushSubState.missing,
+      };
+    } on PostgrestException catch (e) {
+      if (e.code != 'PGRST202') rethrow;
+      // 0043 yoksa eski yolla bak — "başka hesapta" ayrımını yapamıyor.
+      final rows = await _c
+          .from('push_subscriptions')
+          .select('id')
+          .eq('endpoint', endpoint)
+          .limit(1);
+      return (rows as List).isNotEmpty
+          ? PushSubState.mine
+          : PushSubState.missing;
+    }
   }
 }
 
@@ -122,17 +185,20 @@ class PushDiagnostics {
     required this.supported,
     required this.permission,
     required this.token,
-    required this.registered,
+    required this.state,
     this.error,
   });
 
   final bool supported;
   final bool permission;
   final String? token;
-  final bool registered;
+  final PushSubState state;
   final String? error;
 
-  bool get healthy => supported && permission && token != null && registered;
+  bool get registered => state == PushSubState.mine;
+
+  bool get healthy =>
+      supported && permission && token != null && registered && error == null;
 
   /// Kopmanın ilk halkası — kullanıcıya tek cümlede ne yapacağını söyler.
   String get summary {
@@ -145,6 +211,15 @@ class PushDiagnostics {
     if (token == null) {
       return 'İzin var ama cihaz adresi alınamıyor. Genellikle Google Play '
           'Servisleri eksik ya da ağ FCM\'e ulaşamıyor.';
+    }
+    if (state == PushSubState.otherAccount) {
+      // 0043 öncesinin asıl hatası. `endpoint` globalde tekil ve RLS
+      // politikası mevcut satıra bakıyor; başka hesabın satırına dokunmaya
+      // çalışan insert `42501` ile düşüyordu.
+      return 'Bu cihaz başka bir hesaba kayıtlı — aynı telefonda başka bir '
+          'hesapla giriş yapılmış. Anahtarı kapatıp tekrar aç; cihaz bu '
+          'hesaba devredilecek. Hata sürerse 0043 migration çalıştırılmamış '
+          'demektir.';
     }
     if (!registered) {
       return 'Cihaz adresi var ama sunucuya kaydedilmemiş. Anahtarı kapatıp '
@@ -159,25 +234,29 @@ final pushDiagnosticsProvider =
     FutureProvider.autoDispose<PushDiagnostics>((ref) async {
   if (!pushSupported) {
     return const PushDiagnostics(
-        supported: false, permission: false, token: null, registered: false);
+      supported: false,
+      permission: false,
+      token: null,
+      state: PushSubState.missing,
+    );
   }
   try {
     final sub = await pushCurrent();
-    final registered = sub == null
-        ? false
-        : await ref.read(pushServiceProvider).isRegistered(sub.endpoint);
+    final state = sub == null
+        ? PushSubState.missing
+        : await ref.read(pushServiceProvider).subscriptionState(sub.endpoint);
     return PushDiagnostics(
       supported: true,
       permission: pushPermissionGranted,
       token: sub?.endpoint,
-      registered: registered,
+      state: state,
     );
   } catch (e) {
     return PushDiagnostics(
       supported: true,
       permission: pushPermissionGranted,
       token: null,
-      registered: false,
+      state: PushSubState.missing,
       error: '$e',
     );
   }

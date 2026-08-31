@@ -200,6 +200,22 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   (`notification_service.dart`) deseni: geçmişi her hâlükârda yayınla, akış
   hatasını yut, yoklamaya düş. `dm_test.dart` bunu sabitliyor.
 
+**Push kaydı**
+- Cihaz kaydı `register_push_subscription` RPC'siyle yapılıyor (0043),
+  doğrudan `upsert` ile **değil**. Sebep: `push_subscriptions.endpoint`
+  globalde tekil ve RLS `using (profile_id = auth.uid())`. Postgres
+  `ON CONFLICT DO UPDATE`'te `USING`'i **mevcut satıra** uyguluyor, yani cihaz
+  daha önce başka bir hesapla kaydedildiyse yeni hesap o satıra dokunamıyor ve
+  insert `42501` ile düşüyor. Aynı telefonda iki hesapla giriş yapmak yeter.
+  Belirti: aç/kapa çalışmıyor **ve** bildirim hiç gelmiyor — tek hata, iki
+  belirti.
+- Cihaz adresi yeni hesaba **devrediliyor**. FCM token'ı kullanıcıya değil
+  uygulama kurulumuna ait; telefonda hesap değişince o cihaza gidecek
+  bildirimler de yeni hesabın olmalı.
+- Kayıt kontrolü de RPC (`push_subscription_state`): düz `select` başkasına
+  ait satırı RLS yüzünden **boş** döndürüyor ve tanılama bunu "kayıt yok"
+  diye gösteriyordu — yanlış teşhis.
+
 **Sohbet ekranı**
 - Klavye dolgusuna `viewInsets.bottom` **ekleme**. Scaffold
   `resizeToAvoidBottomInset` ile gövdeyi zaten küçültüyor; üstüne eklemek aynı
@@ -606,6 +622,7 @@ halı saha doluluk panosunu içeriyor.
 > | `0041` | Uygulandı | `court_usage_stats` anon'a **401 permission denied** veriyor — fonksiyon var, izin doğru kapalı (yok olsaydı 404 gelirdi) |
 > | `0040` | **Doğrulanmadı** | Yalnızca fonksiyon + tetikleyici içeriyor, ikisi de anon'a görünmez |
 > | `0042` | **Çalıştırılmadı** | DM'lerin canlı akması buna bağlı — çalıştırılmadan mesajlar yine yenilemeyle geliyor |
+> | `0043` | **Çalıştırılmadı** | Bildirim aç/kapa'nın `42501` vermesini düzeltiyor; çalıştırılmadan aynı telefonda hesap değiştirmiş kullanıcı bildirim açamıyor |
 >
 > `0040`'ı doğrulamak için `tools/verify_0040.sql`'i SQL Editor'e yapıştır:
 > tetikleyicinin varlığını, `send_club_message`'in elle bildirim yazmayı
