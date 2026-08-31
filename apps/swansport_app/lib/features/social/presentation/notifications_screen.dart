@@ -5,6 +5,9 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/push/push.dart';
 import '../../../app/push/push_service.dart';
+import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_shape.dart';
+import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -125,11 +128,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             ],
                           );
                         }
-                        return ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
-                          itemCount: list.length,
-                          itemBuilder: (_, i) => _tile(isDark, list[i]),
-                        );
+                        return _groupedList(isDark, list);
                       },
                     ),
                   ),
@@ -261,9 +260,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _tile(bool isDark, NotificationRow n) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
 
     final (icon, color) = switch (n.kind) {
       'like' => (Icons.favorite_rounded, const Color(0xFFF43F5E)),
@@ -280,51 +276,97 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       _ => (Icons.verified_rounded, kTeal),
     };
 
+    final c = context.swan;
+
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: () => _open(n),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: n.isUnread ? kTeal.withValues(alpha: .06) : surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-              color: n.isUnread ? kTeal.withValues(alpha: .3) : line),
-        ),
-        child: Row(children: [
+        // Okunmamışı kutuyla değil sol kenardaki ince şeritle işaretliyoruz —
+        // brief §9: "Bildirimleri devasa kartlara koyma."
+        padding: const EdgeInsets.fromLTRB(
+            SwanSpace.md, SwanSpace.md, 0, SwanSpace.md),
+        decoration: n.isUnread
+            ? BoxDecoration(
+                border: Border(
+                    left: BorderSide(color: c.accent, width: 3)))
+            : null,
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
               color: color.withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(SwanRadius.md),
             ),
             child: Icon(icon, size: 19, color: color),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: SwanSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(n.title,
-                    style: jakarta(13, FontWeight.w700, ink)),
+                    style: SwanType.bodySm(c.ink,
+                        w: n.isUnread ? FontWeight.w800 : FontWeight.w700)),
                 if (n.body != null && n.body!.trim().isNotEmpty) ...[
                   const SizedBox(height: 2),
                   Text(n.body!,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(c.inkMuted)),
                 ],
                 const SizedBox(height: 3),
                 Text(shortAgo(n.createdAt),
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(c.inkMuted)),
               ],
             ),
           ),
         ]),
       ),
+    );
+  }
+
+  /// Zamana göre gruplu liste — brief §9: "Bugün / Bu hafta".
+  ///
+  /// Gruplama sunucuda değil burada: `createdAt` zaten geliyor, ekstra sorgu
+  /// gerekmiyor.
+  Widget _groupedList(bool isDark, List<NotificationRow> list) {
+    final c = context.swan;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final weekStart = today.subtract(const Duration(days: 7));
+
+    final buckets = <String, List<NotificationRow>>{
+      'Bugün': [],
+      'Bu hafta': [],
+      'Daha önce': [],
+    };
+    for (final n in list) {
+      final at = n.createdAt;
+      if (!at.isBefore(today)) {
+        buckets['Bugün']!.add(n);
+      } else if (at.isAfter(weekStart)) {
+        buckets['Bu hafta']!.add(n);
+      } else {
+        buckets['Daha önce']!.add(n);
+      }
+    }
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(
+          SwanSpace.lg, 0, SwanSpace.lg, 132),
+      children: [
+        for (final e in buckets.entries)
+          if (e.value.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(
+                  top: SwanSpace.lg, bottom: SwanSpace.xs),
+              child: Text(e.key, style: SwanType.h3(c.ink)),
+            ),
+            for (final n in e.value) _tile(isDark, n),
+          ],
+      ],
     );
   }
 

@@ -4,6 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_shape.dart';
+import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import 'edit_profile_sheet.dart';
 import '../../../app/widgets/swan_tabs.dart';
@@ -187,148 +190,109 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   /// Grup satırı — birebir sohbetle aynı iskelet, avatar yerine grup simgesi.
-  Widget _groupTile(bool isDark, CommunityRow g) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+  // --------------------------------- döşeme --------------------------------
+  //
+  // Brief §8: *"Toplulukları da ayrı ağır kartlar olarak değil, normal sohbet
+  // listesiyle aynı görsel dilde göster."* İki döşeme zaten yapı olarak
+  // aynıydı (yalnızca baştaki widget farklıydı) ama ikisi de yüzey + kenarlık
+  // + 16 radius'luk birer kartdı. Kabuk kalktı; WhatsApp/Instagram DM gibi
+  // düz bir liste kaldı.
+
+  Widget _groupTile(bool isDark, CommunityRow g) => _conversationTile(
+        leading: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: context.swan.accentSoft,
+            borderRadius: BorderRadius.circular(SwanRadius.md),
+          ),
+          child: Icon(
+              g.isFederation ? Icons.campaign_rounded : Icons.forum_rounded,
+              size: 22,
+              color: context.swan.accent),
+        ),
+        title: g.name,
+        // Henüz mesajı olmayan grupta üye sayısı bağlam veriyor.
+        subtitle: g.lastBody?.trim().isNotEmpty == true
+            ? g.lastBody!
+            : '${g.memberCount} üye · henüz mesaj yok',
+        at: g.lastAt,
+        unread: g.unread,
+        // Federasyon kanalı sohbet değil duyuru panosu — ayrı ekrana gider.
+        onTap: () => Navigator.pushNamed(
+            context, g.isFederation ? '/federasyon' : '/topluluk',
+            arguments: {'id': g.id, 'name': g.name}),
+      );
+
+  Widget _tile(BuildContext context, bool isDark, ConversationRow c) =>
+      _conversationTile(
+        leading: SocialAvatar(
+            initials: c.initials,
+            imageUrl: c.otherAvatarUrl,
+            size: 52,
+            gradientIndex: c.otherName.length % 4),
+        title: c.otherName,
+        subtitle: c.lastBody,
+        at: c.lastAt,
+        unread: c.unread,
+        onTap: () => Navigator.pushNamed(context, '/sohbet',
+            arguments: {'id': c.otherId, 'name': c.otherName}),
+      );
+
+  Widget _conversationTile({
+    required Widget leading,
+    required String title,
+    required String subtitle,
+    required DateTime? at,
+    required int unread,
+    required VoidCallback onTap,
+  }) {
+    final c = context.swan;
+    final unreadStyle = unread > 0;
 
     return GestureDetector(
-      // Federasyon kanalı sohbet değil duyuru panosu — ayrı ekrana gider.
-      onTap: () => Navigator.pushNamed(
-          context, g.isFederation ? '/federasyon' : '/topluluk',
-          arguments: {'id': g.id, 'name': g.name}),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line),
-        ),
+      behavior: HitTestBehavior.opaque,
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
         child: Row(children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: kTeal.withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: Icon(
-                g.isFederation ? Icons.campaign_rounded : Icons.forum_rounded,
-                size: 21,
-                color: kTeal),
-          ),
-          const SizedBox(width: 12),
+          leading,
+          const SizedBox(width: SwanSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(children: [
                   Expanded(
-                    child: Text(g.name,
+                    child: Text(title,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(13.5, FontWeight.w800, ink)),
+                        style: SwanType.body(c.ink, w: FontWeight.w700)),
                   ),
-                  if (g.lastAt != null)
-                    Text(shortAgo(g.lastAt!),
-                        style: jakarta(
-                            10.5, FontWeight.w600, SwanColors.textSecondary)),
+                  if (at != null)
+                    Text(shortAgo(at), style: SwanType.caption(c.inkMuted)),
                 ]),
                 const SizedBox(height: 2),
                 Row(children: [
                   Expanded(
-                    child: Text(
-                        g.lastBody?.trim().isNotEmpty == true
-                            ? g.lastBody!
-                            : '${g.memberCount} üye · henüz mesaj yok',
+                    child: Text(subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(
-                            12,
-                            g.unread > 0 ? FontWeight.w700 : FontWeight.w500,
-                            g.unread > 0 ? ink : SwanColors.textSecondary)),
+                        style: SwanType.bodySm(
+                            unreadStyle ? c.ink : c.inkMuted,
+                            w: unreadStyle ? FontWeight.w700 : FontWeight.w500)),
                   ),
-                  if (g.unread > 0) ...[
-                    const SizedBox(width: 8),
+                  if (unreadStyle) ...[
+                    const SizedBox(width: SwanSpace.sm),
                     Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 7, vertical: 2),
                       decoration: BoxDecoration(
-                          color: kTeal,
+                          color: c.accent,
                           borderRadius: BorderRadius.circular(999)),
-                      child: Text(g.unread > 99 ? '99+' : '${g.unread}',
-                          style: jakarta(10, FontWeight.w800, Colors.white)),
-                    ),
-                  ],
-                ]),
-              ],
-            ),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Widget _tile(BuildContext context, bool isDark, ConversationRow c) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    return GestureDetector(
-      onTap: () => Navigator.pushNamed(context, '/sohbet',
-          arguments: {'id': c.otherId, 'name': c.otherName}),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line),
-        ),
-        child: Row(children: [
-          SocialAvatar(
-              initials: c.initials,
-              imageUrl: c.otherAvatarUrl,
-              size: 46,
-              gradientIndex: c.otherName.length % 4),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [
-                  Expanded(
-                    child: Text(c.otherName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: jakarta(13.5, FontWeight.w800, ink)),
-                  ),
-                  Text(shortAgo(c.lastAt),
-                      style: jakarta(
-                          10.5, FontWeight.w600, SwanColors.textSecondary)),
-                ]),
-                const SizedBox(height: 2),
-                Row(children: [
-                  Expanded(
-                    child: Text(c.lastBody,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: jakarta(
-                            12,
-                            c.unread > 0 ? FontWeight.w700 : FontWeight.w500,
-                            c.unread > 0 ? ink : SwanColors.textSecondary)),
-                  ),
-                  if (c.unread > 0) ...[
-                    const SizedBox(width: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 7, vertical: 2),
-                      decoration: BoxDecoration(
-                          color: kTeal,
-                          borderRadius: BorderRadius.circular(999)),
-                      child: Text('${c.unread}',
-                          style:
-                              jakarta(10, FontWeight.w800, Colors.white)),
+                      child: Text(unread > 99 ? '99+' : '$unread',
+                          style: SwanType.caption(Colors.white,
+                              w: FontWeight.w800)),
                     ),
                   ],
                 ]),
@@ -421,87 +385,52 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  Widget _communityTile(bool isDark, CommunityRow c) {
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
+  /// Topluluklar sekmesi döşemesi.
+  ///
+  /// Sohbet döşemesiyle aynı görsel dil; tek farkı katılmadığın gruplarda
+  /// son mesaj yerine "Katıl" çağrısı olması.
+  Widget _communityTile(bool isDark, CommunityRow g) {
+    final c = context.swan;
+
+    if (g.joined) {
+      return _groupTile(isDark, g);
+    }
 
     return GestureDetector(
-      onTap: () {
-        if (!c.joined) {
-          _join(c);
-          return;
-        }
-        Navigator.pushNamed(
-            context, c.isFederation ? '/federasyon' : '/topluluk',
-            arguments: {'id': c.id, 'name': c.name});
-      },
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line),
-        ),
+      behavior: HitTestBehavior.opaque,
+      onTap: () => _join(g),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
         child: Row(children: [
           Container(
-            width: 46,
-            height: 46,
+            width: 52,
+            height: 52,
             decoration: BoxDecoration(
-              color: kTeal.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(14),
+              color: c.surfaceAlt,
+              borderRadius: BorderRadius.circular(SwanRadius.md),
             ),
             child: Icon(
-                c.isFederation ? Icons.campaign_rounded : Icons.forum_rounded,
-                size: 21,
-                color: kTeal),
+                g.isFederation ? Icons.campaign_rounded : Icons.forum_rounded,
+                size: 22,
+                color: c.inkMuted),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: SwanSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c.name, style: jakarta(13.5, FontWeight.w700, ink)),
-                const SizedBox(height: 3),
-                Text(
-                  c.joined
-                      ? (c.lastBody?.trim().isNotEmpty == true
-                          ? c.lastBody!
-                          : '${c.memberCount} üye · henüz mesaj yok')
-                      : 'Katılmak için dokun · ${c.memberCount} üye',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary),
-                ),
+                Text(g.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.body(c.ink, w: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text('${g.memberCount} üye',
+                    style: SwanType.bodySm(c.inkMuted)),
               ],
             ),
           ),
-          const SizedBox(width: 8),
-          if (!c.joined)
-            Text('Katıl', style: jakarta(12, FontWeight.w800, kTeal))
-          else
-            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              if (c.lastAt != null)
-                Text(shortAgo(c.lastAt!),
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
-              if (c.unread > 0) ...[
-                const SizedBox(height: 5),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  constraints: const BoxConstraints(minWidth: 20),
-                  decoration: BoxDecoration(
-                    color: kTeal,
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text(c.unread > 99 ? '99+' : '${c.unread}',
-                      textAlign: TextAlign.center,
-                      style: jakarta(10, FontWeight.w800, Colors.white)),
-                ),
-              ],
-            ]),
+          const SizedBox(width: SwanSpace.sm),
+          Text('Katıl', style: SwanType.bodySm(c.accent, w: FontWeight.w800)),
         ]),
       ),
     );
