@@ -1,11 +1,9 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../features/demo/demo_role.dart';
 
 // Modül kataloğu ayrı dosyada. `import` alt bardaki menü düğmesinin onu
 // çağırabilmesi için; `export` ise mevcut `import 'premium.dart'` satırlarının

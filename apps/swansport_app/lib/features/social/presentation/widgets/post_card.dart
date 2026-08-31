@@ -297,18 +297,19 @@ class _PostCardState extends ConsumerState<PostCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
     final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
     final p = widget.post;
 
+    // Brief §5: "Her postu ayrı büyük beyaz kutuya koyma." Kart kabuğu
+    // (yüzey + border + 20 radius) kalktı; gönderiler zeminin üstünde ince
+    // bir ayırıcıyla akıyor, medya tam genişlikte oturuyor.
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: line),
+        border: Border(bottom: BorderSide(color: line)),
       ),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -390,12 +391,11 @@ class _PostCardState extends ConsumerState<PostCard> {
                       .copyWith(height: 1.45)),
             ),
 
-          // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış
+          // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış.
+          // Kart kabuğu kalktığı için artık tam genişlik: brief §5
+          // "içeriklerin ekranı doldurması".
           if (p.imageUrl != null)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              child: RatioImage(image: NetworkImage(p.imageUrl!)),
-            ),
+            RatioImage(image: NetworkImage(p.imageUrl!)),
 
           // Eylemler
           Padding(

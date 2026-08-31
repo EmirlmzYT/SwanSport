@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -11,6 +10,7 @@ import 'post_composer_sheet.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/post_card.dart';
+import 'widgets/today_strip.dart';
 import '../../../app/widgets/inbox_actions.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 
@@ -42,7 +42,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final async =
         _tab == 0 ? ref.watch(feedProvider) : ref.watch(discoverProvider);
-    final myId = Supabase.instance.client.auth.currentUser?.id;
 
     return Scaffold(
       extendBody: true,
@@ -99,7 +98,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   ]),
                 ),
 
-                const _FeeBanner(),
+                const TodayStrip(),
 
                 // Arama çubuğu — dokununca arama ekranını açar
                 Padding(
@@ -302,78 +301,3 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 ///
 /// Veli, borcunu ödemek için modül menüsünü karıştırmak zorunda kalmasın:
 /// borç varsa ana ekranın tepesinde duruyor, yoksa hiç görünmüyor.
-class _FeeBanner extends ConsumerWidget {
-  const _FeeBanner();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final fees = ref.watch(myFeesProvider).valueOrNull ?? const <FeeRow>[];
-    final open = fees.where((f) => !f.isPaid).toList();
-    if (open.isEmpty) return const SizedBox.shrink();
-
-    final total = open.fold<num>(0, (n, f) => n + f.amount);
-    final overdue = open.any((f) => f.overdue);
-    final waiting = open.every((f) => f.pendingDeclared);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final accent = waiting
-        ? const Color(0xFFD9860B)
-        : overdue
-            ? const Color(0xFFF43F5E)
-            : kTeal;
-
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-      child: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, '/aidatlarim'),
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-          decoration: BoxDecoration(
-            color: surf,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: accent.withValues(alpha: .35)),
-          ),
-          child: Row(children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: .12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(
-                  waiting
-                      ? Icons.schedule_rounded
-                      : Icons.account_balance_wallet_rounded,
-                  size: 19,
-                  color: accent),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                      waiting
-                          ? 'Ödemen onay bekliyor'
-                          : overdue
-                              ? 'Gecikmiş aidat borcun var'
-                              : 'Aidat borcun var',
-                      style: jakarta(12.5, FontWeight.w800, ink)),
-                  const SizedBox(height: 2),
-                  Text(
-                      '${money(total)} · ${open.length} kalem'
-                      '${waiting ? "" : " · ödemek için dokun"}',
-                      style: jakarta(
-                          11, FontWeight.w500, SwanColors.textSecondary)),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, size: 18, color: accent),
-          ]),
-        ),
-      ),
-    );
-  }
-}
