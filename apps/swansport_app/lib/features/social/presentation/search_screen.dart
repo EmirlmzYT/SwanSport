@@ -8,6 +8,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Arama — kulüpler, antrenörler ve sporcular.
 class SearchScreen extends ConsumerStatefulWidget {
@@ -121,11 +122,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         onChanged: _onChanged,
                         onSubmitted: _run,
                         textInputAction: TextInputAction.search,
-                        style: jakarta(14, FontWeight.w600, ink),
+                        style: SwanType.bodySm(ink, w: FontWeight.w600),
                         decoration: InputDecoration(
                           hintText: 'Kulüp, antrenör veya sporcu ara…',
-                          hintStyle: jakarta(
-                              13, FontWeight.w500, SwanColors.textSecondary),
+                          hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                           prefixIcon: Icon(Icons.search_rounded,
                               size: 20, color: SwanColors.textSecondary),
                           suffixIcon: _ctrl.text.isEmpty
@@ -219,8 +219,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           border: Border.all(color: on ? kTeal : line),
         ),
         child: Text(label,
-            style: jakarta(12.5, FontWeight.w700,
-                on ? Colors.white : SwanColors.textSecondary)),
+            style: SwanType.caption(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w700)),
       ),
     );
   }
@@ -266,13 +265,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 Text(r.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(13.5, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 if (r.subtitle != null)
                   Text(r.subtitle!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -284,7 +282,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(badgeLabel,
-                style: jakarta(10, FontWeight.w800, badgeColor)),
+                style: SwanType.caption(badgeColor, w: FontWeight.w800)),
           ),
         ]),
       ),

@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Malzeme ilanı formu.
 ///
@@ -125,7 +126,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
     InputDecoration deco(String hint) => InputDecoration(
           hintText: hint,
           hintStyle:
-              jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+              SwanType.bodySm(SwanColors.textSecondary),
           filled: true,
           fillColor: field,
           contentPadding:
@@ -146,7 +147,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
 
     Widget label(String text) => Padding(
           padding: const EdgeInsets.only(bottom: 6, top: 14),
-          child: Text(text, style: jakarta(12, FontWeight.w700, ink)),
+          child: Text(text, style: SwanType.caption(ink, w: FontWeight.w700)),
         );
 
     return Container(
@@ -165,12 +166,12 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
                 color: line, borderRadius: BorderRadius.circular(2)),
           ),
           const SizedBox(height: 14),
-          Text(widget.kind.label, style: sora(17, FontWeight.w800, ink)),
+          Text(widget.kind.label, style: SwanType.h3(ink)),
 
           label('Başlık'),
           TextField(
             controller: _title,
-            style: jakarta(13.5, FontWeight.w600, ink),
+            style: SwanType.bodySm(ink, w: FontWeight.w600),
             decoration: deco(
                 _isSale ? '5 kulvar şamandırası' : 'İkinci el kürek arıyoruz'),
           ),
@@ -184,7 +185,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
               ],
-              style: jakarta(13.5, FontWeight.w600, ink),
+              style: SwanType.bodySm(ink, w: FontWeight.w600),
               decoration: deco('Boş bırakırsan "Pazarlıklı" görünür'),
             ),
           ],
@@ -206,8 +207,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
                           color: _condition == c ? kTeal : line),
                     ),
                     child: Text(c.label,
-                        style: jakarta(13, FontWeight.w700,
-                            _condition == c ? Colors.white : ink)),
+                        style: SwanType.bodySm(_condition == c ? Colors.white : ink, w: FontWeight.w700)),
                   ),
                 ),
               ),
@@ -219,7 +219,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
           TextField(
             controller: _body,
             maxLines: 3,
-            style: jakarta(13.5, FontWeight.w600, ink),
+            style: SwanType.bodySm(ink, w: FontWeight.w600),
             decoration: deco('Durumu, kaç yıllık, neden satılıyor…'),
           ),
 
@@ -241,8 +241,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
                           size: 18, color: SwanColors.textSecondary),
                       const SizedBox(width: 8),
                       Text('Fotoğraf ekle',
-                          style: jakarta(13, FontWeight.w600,
-                              SwanColors.textSecondary)),
+                          style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
                     ])
                   : Image.memory(_image!.bytes,
                       fit: BoxFit.cover, width: double.infinity),
@@ -252,7 +251,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
           if (_error != null) ...[
             const SizedBox(height: 14),
             Text(_error!,
-                style: jakarta(12, FontWeight.w600, const Color(0xFFD64545))),
+                style: SwanType.caption(const Color(0xFFD64545), w: FontWeight.w600)),
           ],
 
           const SizedBox(height: 20),
@@ -274,7 +273,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
                       height: 18,
                       child: CircularProgressIndicator(strokeWidth: 2))
                   : Text('Yayımla',
-                      style: jakarta(14, FontWeight.w800, Colors.white)),
+                      style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
             ),
           ),
         ]),

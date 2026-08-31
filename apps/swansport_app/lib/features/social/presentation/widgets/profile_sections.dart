@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import 'social_widgets.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Antrenör künyesi — kademe, kulüpler ve deneyim.
 ///
@@ -39,9 +40,7 @@ class CoachProfileSection extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 22),
-        Text('ANTRENÖRLÜK',
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+        Text('Antrenörlük', style: SwanType.h3(ink)),
         const SizedBox(height: 10),
         Container(
           padding: const EdgeInsets.all(16),
@@ -74,15 +73,14 @@ class CoachProfileSection extends ConsumerWidget {
                           topLevel > 0
                               ? '$topLevel. Kademe Antrenör'
                               : 'Antrenör',
-                          style: jakarta(13.5, FontWeight.w800, ink)),
+                          style: SwanType.bodySm(ink, w: FontWeight.w800)),
                       Text(
                           clubs.length == 1
                               ? clubs.first.clubName
                               : '${clubs.length} kulüpte görevli',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: jakarta(11.5, FontWeight.w500,
-                              SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary)),
                     ],
                   ),
                 ),
@@ -95,7 +93,7 @@ class CoachProfileSection extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('$years yıl',
-                        style: jakarta(11, FontWeight.w800, kTeal)),
+                        style: SwanType.caption(kTeal, w: FontWeight.w800)),
                   ),
               ]),
               const SizedBox(height: 14),
@@ -113,12 +111,11 @@ class CoachProfileSection extends ConsumerWidget {
                           child: Text(c.clubName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: jakarta(12.5, FontWeight.w700, ink)),
+                              style: SwanType.caption(ink, w: FontWeight.w700)),
                         ),
                         if (c.level != null)
                           Text('${c.level}. kademe',
-                              style: jakarta(11.5, FontWeight.w700,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                       ]),
                     ),
                   )),
@@ -152,13 +149,11 @@ class ClubMembersSection extends ConsumerWidget {
         const SizedBox(height: 22),
         Row(children: [
           Expanded(
-            child: Text('KADRO',
-                style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                    ls: 1.2)),
+            child: Text('Kadro', style: SwanType.h3(ink)),
           ),
           Text('${members.length} kişi',
               style:
-                  jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
         ]),
         const SizedBox(height: 10),
         ...members.take(12).map((m) => GestureDetector(
@@ -185,7 +180,7 @@ class ClubMembersSection extends ConsumerWidget {
                     child: Text(m.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(13, FontWeight.w700, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w700)),
                   ),
                   Container(
                     padding:
@@ -195,7 +190,7 @@ class ClubMembersSection extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(m.role,
-                        style: jakarta(10.5, FontWeight.w800, kTeal)),
+                        style: SwanType.caption(kTeal, w: FontWeight.w800)),
                   ),
                 ]),
               ),
@@ -203,7 +198,7 @@ class ClubMembersSection extends ConsumerWidget {
         if (members.length > 12)
           Text('ve ${members.length - 12} kişi daha',
               style:
-                  jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary)),
       ],
     );
   }

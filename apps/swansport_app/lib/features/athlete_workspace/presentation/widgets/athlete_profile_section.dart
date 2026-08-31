@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Profil sayfasındaki "Sporcu" bölümü — künye + başarılar.
 ///
@@ -34,9 +35,7 @@ class AthleteProfileSection extends ConsumerWidget {
         const SizedBox(height: 22),
         Row(children: [
           Expanded(
-            child: Text('SPORCU KÜNYESİ',
-                style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                    ls: 1.2)),
+            child: Text('Sporcu Künyesi', style: SwanType.h3(ink)),
           ),
           if (canManage)
             GestureDetector(
@@ -44,7 +43,7 @@ class AthleteProfileSection extends ConsumerWidget {
               child: Row(children: [
                 const Icon(Icons.edit_rounded, size: 15, color: kTeal),
                 const SizedBox(width: 5),
-                Text('Düzenle', style: jakarta(12, FontWeight.w800, kTeal)),
+                Text('Düzenle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ]),
             ),
         ]),
@@ -54,9 +53,7 @@ class AthleteProfileSection extends ConsumerWidget {
         const SizedBox(height: 22),
         Row(children: [
           Expanded(
-            child: Text('BAŞARILAR',
-                style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                    ls: 1.2)),
+            child: Text('Başarılar', style: SwanType.h3(ink)),
           ),
           if (canManage)
             GestureDetector(
@@ -64,7 +61,7 @@ class AthleteProfileSection extends ConsumerWidget {
               child: Row(children: [
                 const Icon(Icons.add_rounded, size: 16, color: kTeal),
                 const SizedBox(width: 4),
-                Text('Ekle', style: jakarta(12, FontWeight.w800, kTeal)),
+                Text('Ekle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ]),
             ),
         ]),
@@ -79,10 +76,10 @@ class AthleteProfileSection extends ConsumerWidget {
           const SizedBox(height: 6),
           Text('Sportif bilgileri kulüp yönetir.',
               style:
-                  jakarta(10.5, FontWeight.w500, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary)),
         ],
         const SizedBox(height: 4),
-        Text('', style: jakarta(1, FontWeight.w400, ink)),
+        Text('', style: SwanType.caption(ink, w: FontWeight.w400)),
       ],
     );
   }
@@ -134,10 +131,9 @@ class AthleteProfileSection extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(a.isIndividual ? 'Ferdi Sporcu' : 'Lisanslı Sporcu',
-                      style: jakarta(13.5, FontWeight.w800, ink)),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   Text(a.clubName ?? 'Kulübe bağlı değil',
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
@@ -157,8 +153,7 @@ class AthleteProfileSection extends ConsumerWidget {
           ] else ...[
             const SizedBox(height: 12),
             Text('Henüz künye bilgisi girilmemiş.',
-                style: jakarta(
-                    12, FontWeight.w500, SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary)),
           ],
         ],
       ),
@@ -178,10 +173,9 @@ class AthleteProfileSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label.toUpperCase(),
-              style: jakarta(9, FontWeight.w800, SwanColors.textSecondary,
-                  ls: .8)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
           const SizedBox(height: 2),
-          Text(value, style: jakarta(13, FontWeight.w800, ink)),
+          Text(value, style: SwanType.bodySm(ink, w: FontWeight.w800)),
         ],
       ),
     );
@@ -208,7 +202,7 @@ class AthleteProfileSection extends ConsumerWidget {
                 ? 'Henüz başarı eklenmemiş. Yukarıdaki “Ekle” ile başla.'
                 : 'Henüz başarı eklenmemiş.',
             textAlign: TextAlign.center,
-            style: jakarta(12, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       ]),
     );
   }
@@ -258,7 +252,7 @@ class AthleteProfileSection extends ConsumerWidget {
               Text(a.title,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13.5, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 2),
               Text(
                   [
@@ -268,15 +262,13 @@ class AthleteProfileSection extends ConsumerWidget {
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
               if (a.note != null && a.note!.trim().isNotEmpty) ...[
                 const SizedBox(height: 4),
                 Text(a.note!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ],
           ),

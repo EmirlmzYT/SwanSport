@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Takvim & Program — Supabase verisine bağlı, premium tasarım (v3).
 class ScheduleCalendarScreen extends ConsumerWidget {
@@ -52,13 +53,10 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('TAKVİM',
-                                style: jakarta(11, FontWeight.w700,
-                                    SwanColors.textSecondary,
-                                    ls: 1.4)),
+                            Text('Takvim', style: SwanType.h3(ink)),
                             const SizedBox(height: 3),
                             Text('Yaklaşan Etkinlikler',
-                                style: sora(22, FontWeight.w800, ink)),
+                                style: SwanType.h2(ink)),
                           ],
                         ),
                       ),
@@ -165,10 +163,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                 Column(
                   children: [
                     Text(_hm(e.startsAt),
-                        style: sora(14, FontWeight.w800, ink)),
+                        style: SwanType.h3(ink)),
                     Text('${e.startsAt.day}.${e.startsAt.month}',
-                        style: jakarta(
-                            10, FontWeight.w500, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary)),
                   ],
                 ),
                 const SizedBox(width: 14),
@@ -178,7 +175,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(e.title, style: jakarta(13.5, FontWeight.w700, ink)),
+                      Text(e.title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                       const SizedBox(height: 2),
                       Row(
                         children: [
@@ -187,8 +184,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(e.place ?? '—',
-                                style: jakarta(11.5, FontWeight.w500,
-                                    SwanColors.textSecondary)),
+                                style: SwanType.caption(SwanColors.textSecondary)),
                           ),
                         ],
                       ),
@@ -203,7 +199,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text(e.kindLabel,
-                      style: jakarta(10, FontWeight.w700, color)),
+                      style: SwanType.caption(color, w: FontWeight.w700)),
                 ),
                 // Skor girilmisse rozet olarak goster
                 if (e.hasResult) ...[
@@ -216,7 +212,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(e.scoreLabel,
-                        style: jakarta(11, FontWeight.w800, kTeal)),
+                        style: SwanType.caption(kTeal, w: FontWeight.w800)),
                   ),
                 ],
               ],
@@ -280,7 +276,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
         child: Text(label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: jakarta(10, FontWeight.w700, color)),
+            style: SwanType.caption(color, w: FontWeight.w700)),
       ),
     ));
   }
@@ -291,7 +287,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
     return Text(
         'Katılım onayı: ${summary.attending} geliyor · '
         '${summary.uncertain} belirsiz · ${summary.unavailable} gelemiyor',
-        style: jakarta(10.5, FontWeight.w600, SwanColors.textSecondary));
+        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600));
   }
 
   /// Etkinlik ekleme.
@@ -342,11 +338,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(label,
-                          style: jakarta(
-                              9.5, FontWeight.w700, SwanColors.textSecondary,
-                              ls: .8)),
+                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text(value, style: jakarta(13, FontWeight.w800, ink)),
+                      Text(value, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                     ],
                   ),
                 ),
@@ -362,16 +356,16 @@ class ScheduleCalendarScreen extends ConsumerWidget {
               20, 18, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
           child: SingleChildScrollView(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Text('Etkinlik ekle', style: sora(18, FontWeight.w800, ink)),
+              Text('Etkinlik ekle', style: SwanType.h3(ink)),
               const SizedBox(height: 16),
               TextField(
                 controller: titleCtrl,
                 autofocus: true,
-                style: jakarta(14, FontWeight.w700, ink),
+                style: SwanType.bodySm(ink, w: FontWeight.w700),
                 decoration: InputDecoration(
                   labelText: 'Başlık',
                   labelStyle:
-                      jakarta(12, FontWeight.w600, SwanColors.textSecondary),
+                      SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -421,10 +415,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
               if (facilities.isNotEmpty) ...[
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: Text('TESİS',
-                      style: jakarta(
-                          10, FontWeight.w800, SwanColors.textSecondary,
-                          ls: 1.1)),
+                  child: Text('Tesis', style: SwanType.h3(ink)),
                 ),
                 const SizedBox(height: 7),
                 Wrap(spacing: 6, runSpacing: 6, children: [
@@ -451,8 +442,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text('Bu tesis "${facility!.status}" durumda.',
-                            style: jakarta(
-                                11, FontWeight.w600, const Color(0xFFD9860B))),
+                            style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w600)),
                       ),
                     ]),
                   ),
@@ -460,14 +450,14 @@ class ScheduleCalendarScreen extends ConsumerWidget {
               ],
               TextField(
                 controller: placeCtrl,
-                style: jakarta(13, FontWeight.w500, ink),
+                style: SwanType.bodySm(ink),
                 decoration: InputDecoration(
                   labelText: facilities.isEmpty
                       ? 'Yer (opsiyonel)'
                       : 'Farklı yer (opsiyonel)',
                   hintText: 'Deplasman, rakip saha…',
                   labelStyle:
-                      jakarta(12, FontWeight.w600, SwanColors.textSecondary),
+                      SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -492,7 +482,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text('Tekrarla',
-                          style: jakarta(13, FontWeight.w700, ink)),
+                          style: SwanType.bodySm(ink, w: FontWeight.w700)),
                     ),
                     Switch(
                       value: repeatOn,
@@ -530,12 +520,9 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                               border: Border.all(color: line),
                             ),
                             child: Text(d.$2,
-                                style: jakarta(
-                                    11,
-                                    FontWeight.w800,
-                                    weekdays.contains(d.$1)
+                                style: SwanType.caption(weekdays.contains(d.$1)
                                         ? Colors.white
-                                        : SwanColors.textSecondary)),
+                                        : SwanColors.textSecondary, w: FontWeight.w800)),
                           ),
                         ),
                     ]),
@@ -556,7 +543,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                             size: 15, color: SwanColors.textSecondary),
                         const SizedBox(width: 8),
                         Text('Bitiş: ${until.day}.${until.month}.${until.year}',
-                            style: jakarta(12, FontWeight.w700, kTeal)),
+                            style: SwanType.caption(kTeal, w: FontWeight.w700)),
                       ]),
                     ),
                   ],
@@ -575,8 +562,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         border: Border.all(color: line),
                       ),
                       child: Text('Vazgeç',
-                          style: jakarta(
-                              13, FontWeight.w700, SwanColors.textSecondary)),
+                          style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
                     ),
                   ),
                 ),
@@ -594,7 +580,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Text('Ekle',
-                          style: jakarta(13.5, FontWeight.w800, Colors.white)),
+                          style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                     ),
                   ),
                 ),

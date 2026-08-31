@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Federasyon duyuru kanalı.
 ///
@@ -88,10 +89,9 @@ class _FederationChannelScreenState
                           Text(widget.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: sora(18, FontWeight.w800, ink)),
+                              style: SwanType.h3(ink)),
                           Text('Resmî duyuru kanalı',
-                              style: jakarta(10.5, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -146,7 +146,7 @@ class _FederationChannelScreenState
               backgroundColor: kTeal,
               icon: const Icon(Icons.campaign_rounded, color: Colors.white),
               label: Text('Duyuru',
-                  style: jakarta(13, FontWeight.w800, Colors.white)),
+                  style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
             )
           : null,
     );
@@ -183,10 +183,9 @@ class _FederationChannelScreenState
                   Text(a.senderName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(12.5, FontWeight.w800, ink)),
+                      style: SwanType.caption(ink, w: FontWeight.w800)),
                   Text(shortAgo(a.createdAt),
-                      style: jakarta(
-                          10.5, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 ],
               ),
             ),
@@ -207,13 +206,13 @@ class _FederationChannelScreenState
                     color: kTeal),
                 const SizedBox(width: 4),
                 Text(a.cityName ?? 'Tüm Türkiye',
-                    style: jakarta(10, FontWeight.w800, kTeal)),
+                    style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ]),
             ),
           ]),
           const SizedBox(height: 12),
           Text(a.body,
-              style: jakarta(13.5, FontWeight.w500, ink).copyWith(height: 1.45)),
+              style: SwanType.bodySm(ink).copyWith(height: 1.45)),
           const SizedBox(height: 12),
           Divider(color: line, height: 1),
           const SizedBox(height: 4),
@@ -230,8 +229,7 @@ class _FederationChannelScreenState
                     a.replyCount == 0
                         ? 'Soru sor'
                         : '${a.replyCount} yanıt',
-                    style: jakarta(12, FontWeight.w700,
-                        a.replyCount == 0 ? SwanColors.textSecondary : kTeal)),
+                    style: SwanType.caption(a.replyCount == 0 ? SwanColors.textSecondary : kTeal, w: FontWeight.w700)),
                 const Spacer(),
                 const Icon(Icons.chevron_right_rounded,
                     size: 17, color: SwanColors.textSecondary),
@@ -266,18 +264,18 @@ class _FederationChannelScreenState
           padding: EdgeInsets.fromLTRB(
               20, 16, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('Duyuru yayımla', style: sora(19, FontWeight.w800, ink)),
+            Text('Duyuru yayımla', style: SwanType.h3(ink)),
             const SizedBox(height: 16),
             TextField(
               controller: ctrl,
               minLines: 4,
               maxLines: 10,
               autofocus: true,
-              style: jakarta(13.5, FontWeight.w500, ink),
+              style: SwanType.bodySm(ink),
               decoration: InputDecoration(
                 hintText: 'Duyuru metni…',
                 hintStyle:
-                    jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                    SwanType.bodySm(SwanColors.textSecondary),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(15)),
               ),
@@ -288,7 +286,7 @@ class _FederationChannelScreenState
               Icon(Icons.send_rounded, size: 16, color: SwanColors.textSecondary),
               const SizedBox(width: 8),
               Text('Kime:',
-                  style: jakarta(12, FontWeight.w700, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
               const SizedBox(width: 10),
               Expanded(
                 child: GestureDetector(
@@ -311,7 +309,7 @@ class _FederationChannelScreenState
                                 : cities
                                     .firstWhere((c) => c.code == cityCode)
                                     .name,
-                            style: jakarta(12.5, FontWeight.w800, kTeal)),
+                            style: SwanType.caption(kTeal, w: FontWeight.w800)),
                       ),
                       const Icon(Icons.expand_more_rounded,
                           size: 18, color: kTeal),
@@ -331,7 +329,7 @@ class _FederationChannelScreenState
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text('Yayımla',
-                    style: jakarta(14, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
           ]),
@@ -379,14 +377,14 @@ class _FederationChannelScreenState
         ),
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 16),
         child: Column(children: [
-          Text('Kime gitsin?', style: sora(18, FontWeight.w800, ink)),
+          Text('Kime gitsin?', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           Expanded(
             child: ListView(children: [
               ListTile(
                 leading: const Icon(Icons.public_rounded, color: kTeal),
                 title: Text('Tüm Türkiye',
-                    style: jakarta(13.5, FontWeight.w700, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 trailing: current == null
                     ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                     : null,
@@ -395,7 +393,7 @@ class _FederationChannelScreenState
               for (final c in cities)
                 ListTile(
                   title:
-                      Text(c.name, style: jakarta(13.5, FontWeight.w600, ink)),
+                      Text(c.name, style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   trailing: c.code == current
                       ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                       : null,
@@ -484,7 +482,7 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
       padding: EdgeInsets.fromLTRB(
           20, 14, 20, 14 + MediaQuery.of(context).viewInsets.bottom),
       child: Column(children: [
-        Text('Duyuru yanıtları', style: sora(17, FontWeight.w800, ink)),
+        Text('Duyuru yanıtları', style: SwanType.h3(ink)),
         const SizedBox(height: 12),
         // Duyurunun kendisi bağlam olarak üstte kalsın.
         Container(
@@ -497,7 +495,7 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
           child: Text(widget.announcement.body,
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(12.5, FontWeight.w500, ink).copyWith(height: 1.4)),
+              style: SwanType.caption(ink).copyWith(height: 1.4)),
         ),
         const SizedBox(height: 12),
         Expanded(
@@ -508,8 +506,7 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
               if (list.isEmpty) {
                 return Center(
                   child: Text('İlk soruyu sen sor',
-                      style: jakarta(
-                          12.5, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 );
               }
               return ListView.builder(
@@ -538,16 +535,14 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
                                   child: Text(r.senderName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: jakarta(
-                                          12, FontWeight.w800, ink)),
+                                      style: SwanType.caption(ink, w: FontWeight.w800)),
                                 ),
                                 Text(shortAgo(r.createdAt),
-                                    style: jakarta(10, FontWeight.w600,
-                                        SwanColors.textSecondary)),
+                                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                               ]),
                               const SizedBox(height: 2),
                               Text(r.body,
-                                  style: jakarta(12.5, FontWeight.w500, ink)
+                                  style: SwanType.caption(ink)
                                       .copyWith(height: 1.35)),
                             ],
                           ),
@@ -567,12 +562,12 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
               controller: _ctrl,
               minLines: 1,
               maxLines: 4,
-              style: jakarta(13, FontWeight.w500, ink),
+              style: SwanType.bodySm(ink),
               onSubmitted: (_) => _send(),
               decoration: InputDecoration(
                 hintText: 'Sorunu yaz…',
                 hintStyle:
-                    jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),
+                    SwanType.caption(SwanColors.textSecondary),
                 filled: true,
                 fillColor: alt,
                 contentPadding:

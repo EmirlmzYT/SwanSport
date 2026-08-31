@@ -8,6 +8,7 @@ import '../../../../app/widgets/premium.dart';
 import '../comments_sheet.dart';
 import 'report_sheet.dart';
 import 'social_widgets.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Akıştaki tek gönderi kartı — Instagram benzeri.
 class PostCard extends ConsumerStatefulWidget {
@@ -127,7 +128,7 @@ class _PostCardState extends ConsumerState<PostCard> {
     return ListTile(
       onTap: onTap,
       leading: Icon(icon, size: 21, color: color),
-      title: Text(label, style: jakarta(14, FontWeight.w700, color)),
+      title: Text(label, style: SwanType.bodySm(color, w: FontWeight.w700)),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     );
   }
@@ -142,21 +143,21 @@ class _PostCardState extends ConsumerState<PostCard> {
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Text('Kullanıcıyı engelle',
-            style: sora(17, FontWeight.w800, ink)),
+            style: SwanType.h3(ink)),
         content: Text(
             '${widget.post.displayName} artık gönderilerini göremeyecek ve '
             'sana mesaj gönderemeyecek. Karşılıklı takip kaldırılır.',
-            style: jakarta(13, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.bodySm(SwanColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Engelle',
-                style: jakarta(13, FontWeight.w800, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
           ),
         ],
       ),
@@ -194,23 +195,23 @@ class _PostCardState extends ConsumerState<PostCard> {
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Text('Gönderiyi düzenle',
-            style: sora(17, FontWeight.w800, ink)),
+            style: SwanType.h3(ink)),
         content: TextField(
           controller: ctrl,
           minLines: 3,
           maxLines: 8,
           autofocus: true,
-          style: jakarta(13.5, FontWeight.w500, ink),
+          style: SwanType.bodySm(ink),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Kaydet', style: jakarta(13, FontWeight.w800, kTeal)),
+            child: Text('Kaydet', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -247,20 +248,20 @@ class _PostCardState extends ConsumerState<PostCard> {
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Gönderiyi sil', style: sora(17, FontWeight.w800, ink)),
+        title: Text('Gönderiyi sil', style: SwanType.h3(ink)),
         content: Text('Bu gönderi kalıcı olarak silinecek.',
-            style: jakarta(13, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.bodySm(SwanColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
                 style:
-                    jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: jakarta(13, FontWeight.w800, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
           ),
         ],
       ),
@@ -339,7 +340,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                           child: Text(p.displayName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: jakarta(13.5, FontWeight.w800, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
                         ),
                         if (p.isClubPost) ...[
                           const SizedBox(width: 4),
@@ -351,8 +352,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                         p.isClubPost
                             ? 'Kulüp · ${shortAgo(p.createdAt)}'
                             : shortAgo(p.createdAt),
-                        style: jakarta(
-                            11, FontWeight.w500, SwanColors.textSecondary),
+                        style: SwanType.caption(SwanColors.textSecondary),
                       ),
                     ],
                   ),
@@ -367,7 +367,7 @@ class _PostCardState extends ConsumerState<PostCard> {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child:
-                      Text('HABER', style: jakarta(9.5, FontWeight.w800, kCoral)),
+                      Text('HABER', style: SwanType.caption(kCoral, w: FontWeight.w800)),
                 ),
               // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
               GestureDetector(
@@ -387,7 +387,7 @@ class _PostCardState extends ConsumerState<PostCard> {
             Padding(
               padding: EdgeInsets.fromLTRB(14, 0, 14, p.imageUrl == null ? 12 : 10),
               child: Text(p.body,
-                  style: jakarta(13.5, FontWeight.w500, ink, ls: 0)
+                  style: SwanType.bodySm(ink)
                       .copyWith(height: 1.45)),
             ),
 
@@ -438,7 +438,7 @@ class _PostCardState extends ConsumerState<PostCard> {
         child: Row(children: [
           Icon(icon, size: 21, color: c),
           const SizedBox(width: 6),
-          Text(label, style: jakarta(12.5, FontWeight.w700, c)),
+          Text(label, style: SwanType.caption(c, w: FontWeight.w700)),
         ]),
       ),
     );

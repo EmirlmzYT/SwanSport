@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Sağlık Merkezi — sporcuların sakatlık/uygunluk kayıtları.
 ///
@@ -57,13 +58,10 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('KULÜP',
-                              style: jakarta(
-                                  11, FontWeight.w700, SwanColors.textSecondary,
-                                  ls: 1.4)),
+                          Text('Kulüp', style: SwanType.h3(ink)),
                           const SizedBox(height: 3),
                           Text('Sağlık Merkezi',
-                              style: sora(25, FontWeight.w800, ink)),
+                              style: SwanType.h2(ink)),
                         ],
                       ),
                     ),
@@ -125,12 +123,11 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                   Icon(e.value.$3, size: 14, color: e.value.$2),
                   const SizedBox(width: 5),
                   Text('${count(e.key)}',
-                      style: sora(20, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                 ]),
                 const SizedBox(height: 2),
                 Text(e.value.$1,
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
             ),
           ),
@@ -169,7 +166,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(r.athleteName,
-                    style: jakarta(13.5, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(
                     r.note?.trim().isNotEmpty == true
@@ -177,8 +174,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                         : '${r.createdAt.day}.${r.createdAt.month}.${r.createdAt.year}',
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -214,14 +210,14 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
         ),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
         child: Column(children: [
-          Text('Hangi sporcu?', style: sora(17, FontWeight.w800, ink)),
+          Text('Hangi sporcu?', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               itemCount: athletes.length,
               itemBuilder: (_, i) => ListTile(
                 title: Text(athletes[i].fullName,
-                    style: jakarta(13, FontWeight.w600, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 onTap: () => Navigator.pop(ctx, athletes[i].id),
               ),
             ),
@@ -267,13 +263,13 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Durum', style: sora(17, FontWeight.w800, ink)),
+          Text('Durum', style: SwanType.h3(ink)),
           const SizedBox(height: 8),
           for (final e in _states.entries)
             ListTile(
               leading: Icon(e.value.$3, color: e.value.$2),
               title: Text(e.value.$1,
-                  style: jakarta(13.5, FontWeight.w600, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w600)),
               onTap: () => Navigator.pop(ctx, e.key),
             ),
         ]),
@@ -297,7 +293,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(r.athleteName, style: sora(17, FontWeight.w800, ink)),
+          Text(r.athleteName, style: SwanType.h3(ink)),
           const SizedBox(height: 12),
           for (final e in _states.entries)
             if (e.key != r.status)
@@ -305,7 +301,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                 dense: true,
                 leading: Icon(e.value.$3, color: e.value.$2, size: 20),
                 title: Text('${e.value.$1} olarak işaretle',
-                    style: jakarta(13, FontWeight.w600, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 onTap: () {
                   Navigator.pop(ctx);
                   _guard(() async {
@@ -322,7 +318,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
             leading: const Icon(Icons.delete_outline_rounded,
                 size: 20, color: Color(0xFFF43F5E)),
             title: Text('Kaydı sil',
-                style: jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {

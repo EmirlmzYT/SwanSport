@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Doğrulama — antrenör/sporcu kimlik başvurusu + durum (premium v3).
 class CredentialScreen extends ConsumerStatefulWidget {
@@ -48,7 +49,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 Row(children: [
                   _back(context, surf, isDark, ink),
                   const SizedBox(width: 14),
-                  Text('Doğrulama', style: sora(22, FontWeight.w800, ink)),
+                  Text('Doğrulama', style: SwanType.h2(ink)),
                 ],),
                 const SizedBox(height: 16),
 
@@ -61,10 +62,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 const SizedBox(height: 18),
 
                 if (_mode == 0) ...[
-                  Text('KADEME',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2,),),
+                  Text('Kademe', style: SwanType.h3(ink),),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(4),
@@ -75,14 +73,10 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                   ),
                   const SizedBox(height: 6),
                   Text(_kademeLabel(_kademe),
-                      style: jakarta(
-                          12.5, FontWeight.w600, SwanColors.textSecondary,),),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),),
 
                   const SizedBox(height: 18),
-                  Text('BRANŞ',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2,),),
+                  Text('Branş', style: SwanType.h3(ink),),
                   const SizedBox(height: 8),
                   _sportPicker(isDark, alt, ink),
                   const SizedBox(height: 6),
@@ -90,27 +84,19 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       'Belgen hangi branşa aitse onu seç. Platform bu branşta '
                       'onaylar ve ilgili federasyonun duyuru kanalına '
                       'eklenirsin.',
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary,),),
+                      style: SwanType.caption(SwanColors.textSecondary),),
                 ] else ...[
-                  Text('BRANŞ',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2,),),
+                  Text('Branş', style: SwanType.h3(ink),),
                   const SizedBox(height: 8),
                   _sportPicker(isDark, alt, ink),
                   const SizedBox(height: 6),
                   Text(
                       'Lisansın hangi branşa aitse onu seç. Ferdi sporcu da bir '
                       'branşta yarışır; ferdi olmak kulübü olmamak demektir.',
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary,),),
+                      style: SwanType.caption(SwanColors.textSecondary),),
 
                   const SizedBox(height: 18),
-                  Text('SPORCU DOĞRULAMASI',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2,),),
+                  Text('Sporcu Doğrulaması', style: SwanType.h3(ink),),
                   const SizedBox(height: 8),
                   // Lisanslı/ferdi ayrımı seçilmez: bir kulübe bağlıysan
                   // lisanslı, değilsen ferdi sporcu sayılırsın.
@@ -130,18 +116,14 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                             'Bir kulübe bağlıysan lisanslı sporcu, değilsen '
                             'ferdi sporcu olarak görünürsün. Kulübe katılınca '
                             'otomatik güncellenir.',
-                            style: jakarta(11.5, FontWeight.w500,
-                                SwanColors.textSecondary,),),
+                            style: SwanType.caption(SwanColors.textSecondary),),
                       ),
                     ],),
                   ),
                 ],
 
                 const SizedBox(height: 18),
-                Text('BELGELER',
-                    style: jakarta(
-                        11, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 1.2,),),
+                Text('Belgeler', style: SwanType.h3(ink),),
                 const SizedBox(height: 8),
                 if (_mode == 0) ...[
                   _uploadTile(isDark, 'kademe_belgesi', 'Kademe belgesi'),
@@ -153,7 +135,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                     'ⓘ PDF veya fotoğraf (JPG/PNG) yükleyebilirsin. '
                     'Belgeler yalnızca sana ve platform yöneticisine görünür.',
                     style:
-                        jakarta(11, FontWeight.w500, SwanColors.textSecondary),),
+                        SwanType.caption(SwanColors.textSecondary),),
                 const SizedBox(height: 16),
 
                 GestureDetector(
@@ -173,16 +155,13 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       ],
                     ),
                     child: Text(_busy ? 'Gönderiliyor…' : 'Doğrulamaya Gönder',
-                        style: jakarta(14.5, FontWeight.w800, Colors.white),),
+                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800),),
                   ),
                 ),
 
                 // Mevcut başvurular
                 const SizedBox(height: 24),
-                Text('BAŞVURULARIM',
-                    style: jakarta(
-                        11, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 1.2,),),
+                Text('Başvurularım', style: SwanType.h3(ink),),
                 const SizedBox(height: 10),
                 async.when(
                   loading: () => const Padding(
@@ -190,13 +169,11 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       child: Center(
                           child: CircularProgressIndicator(color: kTeal),),),
                   error: (e, _) => Text('Yüklenemedi: $e',
-                      style: jakarta(
-                          12, FontWeight.w500, SwanColors.textSecondary,),),
+                      style: SwanType.caption(SwanColors.textSecondary),),
                   data: (creds) {
                     if (creds.isEmpty) {
                       return Text('Henüz başvuru yok.',
-                          style: jakarta(
-                              12.5, FontWeight.w500, SwanColors.textSecondary,),);
+                          style: SwanType.caption(SwanColors.textSecondary),);
                     }
                     return Column(
                         children:
@@ -233,8 +210,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
           Expanded(
             child: Text(
               selected?.name ?? 'Branş seç',
-              style: jakarta(13.5, FontWeight.w600,
-                  selected == null ? SwanColors.textSecondary : ink,),
+              style: SwanType.bodySm(selected == null ? SwanColors.textSecondary : ink, w: FontWeight.w600),
             ),
           ),
           const Icon(Icons.expand_more_rounded,
@@ -269,17 +245,17 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
           padding: EdgeInsets.fromLTRB(
               20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom,),
           child: Column(children: [
-            Text('Branş seç', style: sora(18, FontWeight.w800, ink)),
+            Text('Branş seç', style: SwanType.h3(ink)),
             const SizedBox(height: 12),
             TextField(
               controller: search,
               autofocus: true,
               onChanged: (_) => setSheet(() {}),
-              style: jakarta(13.5, FontWeight.w500, ink),
+              style: SwanType.bodySm(ink),
               decoration: InputDecoration(
                 hintText: 'Ara…',
                 hintStyle:
-                    jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                    SwanType.bodySm(SwanColors.textSecondary),
                 prefixIcon: const Icon(Icons.search_rounded, size: 19),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),),
@@ -291,7 +267,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 itemCount: list.length,
                 itemBuilder: (_, i) => ListTile(
                   title: Text(list[i].name,
-                      style: jakarta(13.5, FontWeight.w600, ink),),
+                      style: SwanType.bodySm(ink, w: FontWeight.w600),),
                   trailing: list[i].code == _sportCode
                       ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                       : null,
@@ -372,7 +348,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       ),
       child: Row(children: [
         Expanded(
-            child: Text(c.label, style: jakarta(13.5, FontWeight.w700, ink)),),
+            child: Text(c.label, style: SwanType.bodySm(ink, w: FontWeight.w700)),),
         PremiumStatusChip(label: c.statusLabel, color: color, icon: icon),
       ],),
     );
@@ -393,8 +369,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text('$n',
-              style: jakarta(13, FontWeight.w800,
-                  on ? Colors.white : SwanColors.textSecondary,),),
+              style: SwanType.bodySm(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800),),
         ),
       ),
     );
@@ -447,13 +422,12 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: jakarta(13, FontWeight.w700, ink)),
+                Text(label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 if (done)
                   Text(picked.fileName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11, FontWeight.w500, SwanColors.textSecondary,),),
+                      style: SwanType.caption(SwanColors.textSecondary),),
               ],
             ),
           ),
@@ -465,7 +439,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             )
           else if (!uploading)
             Text('Yükle',
-                style: jakarta(12, FontWeight.w800, kTeal),),
+                style: SwanType.caption(kTeal, w: FontWeight.w800),),
         ],),
       ),
     );

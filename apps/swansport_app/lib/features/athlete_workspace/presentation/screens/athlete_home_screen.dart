@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Sporcu Ana Ekranı — sporcunun kendi gözünden (premium v3).
 ///
@@ -58,11 +59,10 @@ class AthleteHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(profile?.fullName ?? 'Sporcu',
-                              style: jakarta(14, FontWeight.w800, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
                           Text(
                               club?.name != null ? 'Sporcu · ${club!.name}' : 'Sporcu',
-                              style: jakarta(11, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -71,12 +71,10 @@ class AthleteHomeScreen extends ConsumerWidget {
                   const SizedBox(height: 18),
 
                   Text(_todayLabel().toUpperCase(),
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                   const SizedBox(height: 4),
                   Text('Merhaba, $name',
-                      style: sora(25, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   const SizedBox(height: 16),
 
                   // Sıradaki antrenman/maç — hero
@@ -99,10 +97,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
 
                   // Kısayollar
-                  Text('KISAYOLLAR',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2)),
+                  Text('Kısayollar', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
                   Row(children: [
                     _quick(context, isDark, Icons.calendar_month_rounded,
@@ -203,19 +198,19 @@ class AthleteHomeScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(999),
               ),
               child: Text('SIRADAKİ · ${_kindLabel(e.kind).toUpperCase()}',
-                  style: jakarta(10, FontWeight.w800, Colors.white, ls: .5)),
+                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
             ),
             const Spacer(),
             const Icon(Icons.sports_rounded, color: Colors.white, size: 20),
           ]),
           const SizedBox(height: 16),
-          Text(e.title, style: sora(21, FontWeight.w800, Colors.white)),
+          Text(e.title, style: SwanType.h2(Colors.white)),
           const SizedBox(height: 6),
           Row(children: [
             const Icon(Icons.schedule_rounded, size: 15, color: Colors.white70),
             const SizedBox(width: 6),
             Text('${_dayLabel(d)} · $hm',
-                style: jakarta(12.5, FontWeight.w600, Colors.white)),
+                style: SwanType.caption(Colors.white, w: FontWeight.w600)),
             const SizedBox(width: 14),
             if (e.place != null) ...[
               const Icon(Icons.place_rounded, size: 15, color: Colors.white70),
@@ -224,7 +219,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                 child: Text(e.place!,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(12.5, FontWeight.w600, Colors.white)),
+                    style: SwanType.caption(Colors.white, w: FontWeight.w600)),
               ),
             ],
           ]),
@@ -259,11 +254,10 @@ class AthleteHomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(text, style: jakarta(14, FontWeight.w700, ink)),
+              Text(text, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               const SizedBox(height: 2),
               Text('Antrenörün program eklediğinde burada görürsün.',
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -310,7 +304,7 @@ class AthleteHomeScreen extends ConsumerWidget {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(12.5, FontWeight.w700, ink)),
+                  style: SwanType.caption(ink, w: FontWeight.w700)),
             ),
           ]),
         ),
@@ -321,14 +315,13 @@ class AthleteHomeScreen extends ConsumerWidget {
   Widget _label(String t, Color ink) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Text(text,
-            style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
@@ -352,17 +345,17 @@ class AthleteHomeScreen extends ConsumerWidget {
               color: kTeal.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(12)),
           alignment: Alignment.center,
-          child: Text(hm, style: sora(12, FontWeight.w800, kTeal)),
+          child: Text(hm, style: SwanType.h3(kTeal)),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: jakarta(13, FontWeight.w700, ink)),
+              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               Text('${_dayLabel(t)} · $place',
                   style:
-                      jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -393,14 +386,14 @@ class AthleteHomeScreen extends ConsumerWidget {
               child: Text(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
             ),
           ]),
           const SizedBox(height: 4),
           Text(body,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
       ),
     );

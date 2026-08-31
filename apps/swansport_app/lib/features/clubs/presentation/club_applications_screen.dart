@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import 'coach_accept_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kulübe gelen katılım başvuruları — yetkili kabul eder veya reddeder.
 class ClubApplicationsScreen extends ConsumerWidget {
@@ -42,18 +43,13 @@ class ClubApplicationsScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
                   Text((club?.name ?? 'SWANSPORT').toUpperCase(),
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                   const SizedBox(height: 3),
-                  Text('Başvurular', style: sora(25, FontWeight.w800, ink)),
+                  Text('Başvurular', style: SwanType.h2(ink)),
                   const SizedBox(height: 18),
 
                   if (canReview) ...[
-                    Text('KULÜBÜNE GELENLER',
-                        style: jakarta(
-                            11, FontWeight.w700, SwanColors.textSecondary,
-                            ls: 1.2)),
+                    Text('Kulübüne Gelenler', style: SwanType.h3(ink)),
                     const SizedBox(height: 10),
                     async.when(
                       loading: premiumLoading,
@@ -78,10 +74,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('SANA GELEN TEKLİFLER',
-                                      style: jakarta(11, FontWeight.w700,
-                                          SwanColors.textSecondary,
-                                          ls: 1.2)),
+                                  Text('Sana Gelen Teklifler', style: SwanType.h3(ink)),
                                   const SizedBox(height: 10),
                                   ...offers.map(
                                       (o) => _offer(context, ref, isDark, o)),
@@ -91,10 +84,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                         orElse: () => const SizedBox.shrink(),
                       ),
 
-                  Text('BENİM BAŞVURULARIM',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2)),
+                  Text('Benim Başvurularım', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
                   mine.when(
                     loading: premiumLoading,
@@ -123,7 +113,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Text(text,
-            style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _incoming(BuildContext context, WidgetRef ref, bool isDark,
@@ -160,10 +150,9 @@ class ClubApplicationsScreen extends ConsumerWidget {
                   Text(a.personName ?? 'Kişi',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(13.5, FontWeight.w800, ink)),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   Text('${a.roleLabel} olarak katılmak istiyor',
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
@@ -189,7 +178,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(a.message!,
-                  style: jakarta(12, FontWeight.w500, ink)
+                  style: SwanType.caption(ink)
                       .copyWith(height: 1.4)),
             ),
           ],
@@ -246,10 +235,9 @@ class ClubApplicationsScreen extends ConsumerWidget {
                   Text(a.clubName ?? 'Kulüp',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(13.5, FontWeight.w800, ink)),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   Text('${a.roleLabel} olarak katılman için davet etti',
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
@@ -265,7 +253,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
               ),
               child: Text(a.message!,
                   style:
-                      jakarta(12, FontWeight.w500, ink).copyWith(height: 1.4)),
+                      SwanType.caption(ink).copyWith(height: 1.4)),
             ),
           ],
           const SizedBox(height: 12),
@@ -281,8 +269,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text('Reddet',
-                      style: jakarta(
-                          13, FontWeight.w800, SwanColors.textSecondary)),
+                      style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -299,7 +286,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text('Kabul Et',
-                      style: jakarta(13, FontWeight.w800, Colors.white)),
+                      style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -334,10 +321,9 @@ class ClubApplicationsScreen extends ConsumerWidget {
               Text(a.clubName ?? 'Kulüp',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13.5, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               Text('${a.roleLabel} başvurusu',
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),

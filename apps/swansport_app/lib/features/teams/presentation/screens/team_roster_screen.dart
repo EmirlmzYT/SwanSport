@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Bir takımın kadrosu — sporcu ekle/çıkar.
 ///
@@ -63,14 +64,11 @@ class TeamRosterScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('TAKIM KADROSU',
-                              style: jakarta(10.5, FontWeight.w700,
-                                  SwanColors.textSecondary,
-                                  ls: 1.3)),
+                          Text('Takım Kadrosu', style: SwanType.h3(ink)),
                           Text(teamName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: sora(21, FontWeight.w800, ink)),
+                              style: SwanType.h2(ink)),
                         ],
                       ),
                     ),
@@ -101,14 +99,10 @@ class TeamRosterScreen extends ConsumerWidget {
 
                   if (canManage) ...[
                     const SizedBox(height: 22),
-                    Text('KULÜP SPORCULARI',
-                        style: jakarta(
-                            11, FontWeight.w700, SwanColors.textSecondary,
-                            ls: 1.2)),
+                    Text('Kulüp Sporcuları', style: SwanType.h3(ink)),
                     const SizedBox(height: 6),
                     Text('Takıma eklemek için dokun.',
-                        style: jakarta(
-                            11.5, FontWeight.w500, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary)),
                     const SizedBox(height: 10),
                     _available(context, ref, isDark, roster.valueOrNull),
                   ],
@@ -149,7 +143,7 @@ class TeamRosterScreen extends ConsumerWidget {
           child: Text(m.name,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(13.5, FontWeight.w700, ink)),
+              style: SwanType.bodySm(ink, w: FontWeight.w700)),
         ),
         if (m.jersey != null) ...[
           Container(
@@ -159,7 +153,7 @@ class TeamRosterScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(999),
             ),
             child:
-                Text('#${m.jersey}', style: jakarta(11, FontWeight.w800, kTeal)),
+                Text('#${m.jersey}', style: SwanType.caption(kTeal, w: FontWeight.w800)),
           ),
           const SizedBox(width: 8),
         ],
@@ -193,7 +187,7 @@ class TeamRosterScreen extends ConsumerWidget {
 
     if (free.isEmpty) {
       return Text('Kulüpteki tüm sporcular bu takımda.',
-          style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary));
+          style: SwanType.caption(SwanColors.textSecondary));
     }
 
     return Column(
@@ -231,7 +225,7 @@ class TeamRosterScreen extends ConsumerWidget {
                 child: Text(a.fullName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(13, FontWeight.w600, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
               ),
               const Icon(Icons.add_circle_outline_rounded,
                   size: 20, color: kTeal),

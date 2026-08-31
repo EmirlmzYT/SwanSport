@@ -170,15 +170,14 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
                 Text(r.name.isEmpty ? 'Sporcu' : r.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(13.5, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(
                     never
                         ? 'Henüz ölçüm yok'
                         : '${r.tests} test · ${r.goals} açık hedef'
                             '${r.lastTest == null ? '' : ' · son ${r.lastTest!.day}.${r.lastTest!.month}'}',
-                    style: jakarta(10.5, FontWeight.w500,
-                        never ? const Color(0xFFD9860B)
+                    style: SwanType.caption(never ? const Color(0xFFD9860B)
                               : SwanColors.textSecondary)),
               ],
             ),
@@ -198,7 +197,7 @@ class PerformanceAnalyticsScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 4),
                 Text('%${r.progress}',
-                    style: jakarta(10, FontWeight.w700, kTeal)),
+                    style: SwanType.caption(kTeal, w: FontWeight.w700)),
               ]),
             ),
           const SizedBox(width: 6),

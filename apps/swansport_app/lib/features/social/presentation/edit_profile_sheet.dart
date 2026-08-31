@@ -8,6 +8,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Profil düzenleme sayfasını açar. Kaydedilirse true döner.
 Future<bool?> showEditProfileSheet(BuildContext context, SocialProfile p) {
@@ -120,7 +121,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Profili Düzenle', style: sora(20, FontWeight.w800, ink)),
+            Text('Profili Düzenle', style: SwanType.h2(ink)),
             const SizedBox(height: 18),
 
             // Avatar
@@ -189,7 +190,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                   ],
                 ),
                 child: Text(_busy ? 'Kaydediliyor…' : 'Kaydet',
-                    style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
             const SizedBox(height: 4),
@@ -197,8 +198,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text('Vazgeç',
-                    style: jakarta(
-                        13, FontWeight.w700, SwanColors.textSecondary)),
+                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
               ),
             ),
           ],
@@ -220,9 +220,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('ŞEHİR',
-            style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                ls: 1.1)),
+        Text('Şehir', style: SwanType.h3(ink)),
         const SizedBox(height: 7),
         GestureDetector(
           onTap: cities.isEmpty ? null : () => _pickCity(cities),
@@ -238,8 +236,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               Expanded(
                 child: Text(
                   selected?.name ?? 'Şehir seç',
-                  style: jakarta(13.5, FontWeight.w500,
-                      selected == null ? SwanColors.textSecondary : ink),
+                  style: SwanType.bodySm(selected == null ? SwanColors.textSecondary : ink),
                 ),
               ),
               const Icon(Icons.expand_more_rounded,
@@ -249,7 +246,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
         ),
         const SizedBox(height: 6),
         Text('İlinin antrenör topluluğuna katılmak için gerekli.',
-            style: jakarta(10.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       ],
     );
   }
@@ -287,17 +284,16 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           padding: EdgeInsets.fromLTRB(
               20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom),
           child: Column(children: [
-            Text(title, style: sora(18, FontWeight.w800, ink)),
+            Text(title, style: SwanType.h3(ink)),
             const SizedBox(height: 12),
             TextField(
               controller: search,
               autofocus: true,
               onChanged: (_) => setSheet(() {}),
-              style: jakarta(13.5, FontWeight.w500, ink),
+              style: SwanType.bodySm(ink),
               decoration: InputDecoration(
                 hintText: 'Ara…',
-                hintStyle: jakarta(
-                    13, FontWeight.w500, SwanColors.textSecondary),
+                hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                 prefixIcon: const Icon(Icons.search_rounded, size: 19),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14)),
@@ -309,7 +305,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                 itemCount: list.length,
                 itemBuilder: (_, i) => ListTile(
                   title: Text(list[i].name,
-                      style: jakarta(13.5, FontWeight.w600, ink)),
+                      style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   trailing: list[i].code == current
                       ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                       : null,
@@ -335,19 +331,18 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label.toUpperCase(),
-            style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                ls: 1.1)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
         const SizedBox(height: 7),
         TextField(
           controller: ctrl,
           maxLines: maxLines,
-          style: jakarta(13.5, FontWeight.w600, ink),
+          style: SwanType.bodySm(ink, w: FontWeight.w600),
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefix,
-            prefixStyle: jakarta(13.5, FontWeight.w700, SwanColors.textSecondary),
+            prefixStyle: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700),
             hintStyle:
-                jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                SwanType.bodySm(SwanColors.textSecondary),
             filled: true,
             fillColor: alt,
             contentPadding:

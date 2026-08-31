@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Federasyon yetkilisi atama — yalnızca platform yöneticisi.
 ///
@@ -106,7 +107,7 @@ class _FederationAdminScreenState
                   ),
                   const SizedBox(width: 14),
                   Text('Federasyon Yetkilileri',
-                      style: sora(19, FontWeight.w800, ink)),
+                      style: SwanType.h3(ink)),
                 ]),
               ),
               Expanded(
@@ -114,9 +115,7 @@ class _FederationAdminScreenState
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
                   children: [
                     Text('1 · KANAL SEÇ',
-                        style: jakarta(
-                            10.5, FontWeight.w800, SwanColors.textSecondary,
-                            ls: 1.1)),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                     const SizedBox(height: 10),
                     channels.when(
                       loading: () => premiumLoading(),
@@ -142,12 +141,9 @@ class _FederationAdminScreenState
                                           : line),
                                 ),
                                 child: Text(c.name,
-                                    style: jakarta(
-                                        12,
-                                        FontWeight.w700,
-                                        _channel?.id == c.id
+                                    style: SwanType.caption(_channel?.id == c.id
                                             ? Colors.white
-                                            : ink)),
+                                            : ink, w: FontWeight.w700)),
                               ),
                             ),
                         ],
@@ -155,18 +151,15 @@ class _FederationAdminScreenState
                     ),
                     const SizedBox(height: 24),
                     Text('2 · KİŞİ ARA',
-                        style: jakarta(
-                            10.5, FontWeight.w800, SwanColors.textSecondary,
-                            ls: 1.1)),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                     const SizedBox(height: 10),
                     TextField(
                       controller: _search,
                       onChanged: _find,
-                      style: jakarta(13.5, FontWeight.w500, ink),
+                      style: SwanType.bodySm(ink),
                       decoration: InputDecoration(
                         hintText: 'Ad veya kullanıcı adı…',
-                        hintStyle: jakarta(
-                            13, FontWeight.w500, SwanColors.textSecondary),
+                        hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                         prefixIcon: const Icon(Icons.search_rounded, size: 19),
                         filled: true,
                         fillColor: surf,
@@ -178,8 +171,7 @@ class _FederationAdminScreenState
                     const SizedBox(height: 12),
                     if (_channel == null)
                       Text('Önce bir kanal seç.',
-                          style: jakarta(
-                              12, FontWeight.w600, SwanColors.textSecondary))
+                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600))
                     else
                       for (final r in _results)
                         Container(
@@ -202,14 +194,12 @@ class _FederationAdminScreenState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(r.name,
-                                      style: jakarta(
-                                          13, FontWeight.w700, ink)),
+                                      style: SwanType.bodySm(ink, w: FontWeight.w700)),
                                   if (r.subtitle != null)
                                     Text(r.subtitle!,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: jakarta(11, FontWeight.w500,
-                                            SwanColors.textSecondary)),
+                                        style: SwanType.caption(SwanColors.textSecondary)),
                                 ],
                               ),
                             ),
@@ -224,8 +214,7 @@ class _FederationAdminScreenState
                                   borderRadius: BorderRadius.circular(11),
                                 ),
                                 child: Text('Yetkili yap',
-                                    style: jakarta(
-                                        11.5, FontWeight.w800, Colors.white)),
+                                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                               ),
                             ),
                           ]),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import 'premium.dart';
+import '../../app/design/swan_type.dart';
 
 /// Basit bir form alanı tanımı.
 class FormField_ {
@@ -117,12 +118,11 @@ class _QuickFormState extends State<_QuickForm> {
               ),
             ),
             const SizedBox(height: 16),
-            Text(widget.title, style: sora(20, FontWeight.w800, ink)),
+            Text(widget.title, style: SwanType.h2(ink)),
             if (widget.note != null) ...[
               const SizedBox(height: 6),
               Text(widget.note!,
-                  style: jakarta(
-                      12, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
             const SizedBox(height: 18),
 
@@ -135,11 +135,11 @@ class _QuickFormState extends State<_QuickForm> {
               TextField(
                 controller: f.controller,
                 keyboardType: f.keyboard,
-                style: jakarta(13.5, FontWeight.w600, ink),
+                style: SwanType.bodySm(ink, w: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: f.hint,
                   hintStyle:
-                      jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                      SwanType.bodySm(SwanColors.textSecondary),
                   filled: true,
                   fillColor: alt,
                   contentPadding: const EdgeInsets.symmetric(
@@ -166,8 +166,7 @@ class _QuickFormState extends State<_QuickForm> {
                       color: const Color(0xFFF43F5E).withValues(alpha: .35)),
                 ),
                 child: Text(_error!,
-                    style: jakarta(
-                        12, FontWeight.w600, const Color(0xFFF43F5E))),
+                    style: SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w600)),
               ),
               const SizedBox(height: 14),
             ],
@@ -189,7 +188,7 @@ class _QuickFormState extends State<_QuickForm> {
                   ],
                 ),
                 child: Text(_busy ? 'Kaydediliyor…' : widget.action,
-                    style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
             const SizedBox(height: 4),
@@ -197,8 +196,7 @@ class _QuickFormState extends State<_QuickForm> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text('Vazgeç',
-                    style: jakarta(
-                        13, FontWeight.w700, SwanColors.textSecondary)),
+                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
               ),
             ),
           ],

@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Yorumlar sayfasını alttan açar. Eklenen yorum sayısını döner.
 Future<int?> showCommentsSheet(BuildContext context, String postId) {
@@ -89,7 +90,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
             Row(
               children: [
                 const SizedBox(width: 20),
-                Text('Yorumlar', style: sora(18, FontWeight.w800, ink)),
+                Text('Yorumlar', style: SwanType.h3(ink)),
                 const Spacer(),
                 IconButton(
                   onPressed: () => Navigator.pop(context, _added),
@@ -110,8 +111,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                     padding: const EdgeInsets.all(24),
                     child: Text('Yorumlar yüklenemedi: $e',
                         textAlign: TextAlign.center,
-                        style: jakarta(
-                            12.5, FontWeight.w500, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary)),
                   ),
                 ),
                 data: (list) {
@@ -124,11 +124,10 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                               size: 34, color: SwanColors.textSecondary),
                           const SizedBox(height: 10),
                           Text('Henüz yorum yok',
-                              style: jakarta(13.5, FontWeight.w700, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w700)),
                           const SizedBox(height: 3),
                           Text('İlk yorumu sen yaz.',
-                              style: jakarta(11.5, FontWeight.w500,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary)),
                         ],
                       ),
                     );
@@ -151,12 +150,11 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                     controller: _ctrl,
                     minLines: 1,
                     maxLines: 4,
-                    style: jakarta(13.5, FontWeight.w500, ink),
+                    style: SwanType.bodySm(ink),
                     onSubmitted: (_) => _send(),
                     decoration: InputDecoration(
                       hintText: 'Yorum yaz…',
-                      hintStyle: jakarta(
-                          13, FontWeight.w500, SwanColors.textSecondary),
+                      hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                       filled: true,
                       fillColor: alt,
                       contentPadding: const EdgeInsets.symmetric(
@@ -237,12 +235,11 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                     child: Text(c.authorName ?? 'Kullanıcı',
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(12.5, FontWeight.w800, ink)),
+                        style: SwanType.caption(ink, w: FontWeight.w800)),
                   ),
                   const SizedBox(width: 6),
                   Text(shortAgo(c.createdAt),
-                      style: jakarta(
-                          10.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   if (c.profileId ==
                       Supabase.instance.client.auth.currentUser?.id) ...[
                     const Spacer(),
@@ -256,7 +253,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                 ]),
                 const SizedBox(height: 2),
                 Text(c.body,
-                    style: jakarta(13, FontWeight.w500, ink)
+                    style: SwanType.bodySm(ink)
                         .copyWith(height: 1.4)),
               ],
             ),

@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Gizlilik ve hesap — engellenenler, şifre değiştirme, hesap silme.
 class PrivacyScreen extends ConsumerStatefulWidget {
@@ -52,23 +53,19 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                   ),
                   const SizedBox(width: 14),
                   Text('Gizlilik ve Hesap',
-                      style: sora(21, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                 ]),
                 const SizedBox(height: 22),
 
                 // --- Şifre ---
-                Text('GÜVENLİK',
-                    style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 1.2)),
+                Text('Güvenlik', style: SwanType.h3(ink)),
                 const SizedBox(height: 10),
                 _tile(isDark, Icons.lock_reset_rounded, 'Şifreyi değiştir',
                     'Yeni bir şifre belirle', _changePassword),
                 const SizedBox(height: 22),
 
                 // --- Engellenenler ---
-                Text('ENGELLENENLER',
-                    style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 1.2)),
+                Text('Engellenenler', style: SwanType.h3(ink)),
                 const SizedBox(height: 10),
                 blocks.when(
                   loading: premiumLoading,
@@ -76,8 +73,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                   data: (list) {
                     if (list.isEmpty) {
                       return Text('Kimseyi engellemedin.',
-                          style: jakarta(
-                              12.5, FontWeight.w500, SwanColors.textSecondary));
+                          style: SwanType.caption(SwanColors.textSecondary));
                     }
                     return Column(
                       children: list.map((b) {
@@ -100,7 +96,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                               child: Text(b.name,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: jakarta(13.5, FontWeight.w700, ink)),
+                                  style: SwanType.bodySm(ink, w: FontWeight.w700)),
                             ),
                             GestureDetector(
                               onTap: () async {
@@ -112,7 +108,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                               },
                               child: Text('Kaldır',
                                   style:
-                                      jakarta(12.5, FontWeight.w800, kTeal)),
+                                      SwanType.caption(kTeal, w: FontWeight.w800)),
                             ),
                           ]),
                         );
@@ -123,9 +119,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                 const SizedBox(height: 26),
 
                 // --- Hesabı sil ---
-                Text('HESAP',
-                    style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 1.2)),
+                Text('Hesap', style: SwanType.h3(ink)),
                 const SizedBox(height: 10),
                 Container(
                   padding: const EdgeInsets.all(15),
@@ -139,15 +133,13 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Hesabını sil',
-                          style: jakarta(
-                              14, FontWeight.w800, const Color(0xFFF43F5E))),
+                          style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
                       const SizedBox(height: 5),
                       Text(
                           'Hesabın ve tüm içeriğin (gönderiler, yorumlar, '
                           'mesajlar) kalıcı olarak silinir. Bu işlem geri '
                           'alınamaz.',
-                          style: jakarta(
-                              12, FontWeight.w500, SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary)),
                       const SizedBox(height: 12),
                       GestureDetector(
                         onTap: _deleteAccount,
@@ -160,7 +152,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                           ),
                           child: Text('Hesabımı Sil',
                               style:
-                                  jakarta(13.5, FontWeight.w800, Colors.white)),
+                                  SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                         ),
                       ),
                     ],
@@ -203,10 +195,9 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: jakarta(13.5, FontWeight.w700, ink)),
+                Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 Text(sub,
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -228,16 +219,16 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Yeni şifre', style: sora(17, FontWeight.w800, ink)),
+        title: Text('Yeni şifre', style: SwanType.h3(ink)),
         content: TextField(
           controller: ctrl,
           obscureText: true,
           autofocus: true,
-          style: jakarta(14, FontWeight.w600, ink),
+          style: SwanType.bodySm(ink, w: FontWeight.w600),
           decoration: InputDecoration(
             hintText: 'En az 6 karakter',
             hintStyle:
-                jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                SwanType.bodySm(SwanColors.textSecondary),
           ),
         ),
         actions: [
@@ -245,11 +236,11 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
                 style:
-                    jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Kaydet', style: jakarta(13, FontWeight.w800, kTeal)),
+            child: Text('Kaydet', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -278,7 +269,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Emin misin?', style: sora(17, FontWeight.w800, ink)),
+        title: Text('Emin misin?', style: SwanType.h3(ink)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -286,13 +277,13 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
             Text('Bu işlem geri alınamaz. Onaylamak için aşağıya '
                 '“SİL” yaz.',
                 style:
-                    jakarta(13, FontWeight.w500, SwanColors.textSecondary)),
+                    SwanType.bodySm(SwanColors.textSecondary)),
             const SizedBox(height: 12),
             TextField(
               controller: confirm,
               autofocus: true,
               textCapitalization: TextCapitalization.characters,
-              style: jakarta(14, FontWeight.w800, ink),
+              style: SwanType.bodySm(ink, w: FontWeight.w800),
               decoration: const InputDecoration(hintText: 'SİL'),
             ),
           ],
@@ -302,12 +293,12 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
                 style:
-                    jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Hesabımı sil',
-                style: jakarta(13, FontWeight.w800, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
           ),
         ],
       ),

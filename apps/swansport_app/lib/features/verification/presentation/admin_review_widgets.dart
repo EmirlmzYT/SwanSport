@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Onay panelinin durum tutmayan parçaları.
 ///
@@ -46,10 +47,9 @@ Widget adminReportRow(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(r.targetLabel + " \u00b7 " + r.reasonLabel,
-                    style: jakarta(13, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 Text("Bildiren: " + (r.reporterName ?? "Kullan\u0131c\u0131"),
-                    style: jakarta(
-                        11, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -57,7 +57,7 @@ Widget adminReportRow(
         if (r.detail != null && r.detail!.trim().isNotEmpty) ...[
           const SizedBox(height: 9),
           Text(r.detail!,
-              style: jakarta(12, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
         const SizedBox(height: 11),
         Row(children: [
@@ -71,8 +71,7 @@ Widget adminReportRow(
                 decoration: BoxDecoration(
                     color: surf, borderRadius: BorderRadius.circular(12)),
                 child: Text("Yok say",
-                    style: jakarta(
-                        12.5, FontWeight.w800, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
               ),
             ),
           ),
@@ -87,7 +86,7 @@ Widget adminReportRow(
                 decoration: BoxDecoration(
                     color: surf, borderRadius: BorderRadius.circular(12)),
                 child: Text("\u0130ncelendi",
-                    style: jakarta(12.5, FontWeight.w800, ink)),
+                    style: SwanType.caption(ink, w: FontWeight.w800)),
               ),
             ),
           ),
@@ -103,7 +102,7 @@ Widget adminReportRow(
                     color: const Color(0xFFF43F5E),
                     borderRadius: BorderRadius.circular(12)),
                 child: Text("\u0130\u00e7eri\u011fi sil",
-                    style: jakarta(12.5, FontWeight.w800, Colors.white)),
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
               ),
             ),
           ),
@@ -163,7 +162,7 @@ Widget adminCrest() => Container(
 Widget adminNoneText(bool isDark, String text) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Text(text,
-          style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),),
+          style: SwanType.caption(SwanColors.textSecondary),),
     );
 
 String adminDocLabel(String t) => switch (t) {
@@ -187,7 +186,7 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
       backgroundColor: surf,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
       title: Text('Belgeler · $title',
-          style: sora(17, FontWeight.w800, ink),),
+          style: SwanType.h3(ink),),
       content: SizedBox(
         width: 360,
         child: FutureBuilder<List<({String docType, String url})>>(
@@ -202,14 +201,12 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
             }
             if (snap.hasError) {
               return Text('Yüklenemedi: ${snap.error}',
-                  style: jakarta(
-                      12, FontWeight.w500, SwanColors.textSecondary,),);
+                  style: SwanType.caption(SwanColors.textSecondary),);
             }
             final docs = snap.data ?? const [];
             if (docs.isEmpty) {
               return Text('Bu başvuruya belge eklenmemiş.',
-                  style: jakarta(
-                      12.5, FontWeight.w500, SwanColors.textSecondary,),);
+                  style: SwanType.caption(SwanColors.textSecondary),);
             }
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -236,7 +233,7 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
                         const SizedBox(width: 10),
                         Expanded(
                           child: Text(adminDocLabel(d.docType),
-                              style: jakarta(13, FontWeight.w700, ink),),
+                              style: SwanType.bodySm(ink, w: FontWeight.w700),),
                         ),
                         const Icon(Icons.copy_rounded,
                             size: 15, color: SwanColors.textSecondary,),
@@ -245,8 +242,7 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
                   ),
                 const SizedBox(height: 2),
                 Text('Bağlantıyı kopyalayıp tarayıcıda aç (1 saat geçerli).',
-                    style: jakarta(
-                        10.5, FontWeight.w500, SwanColors.textSecondary,),),
+                    style: SwanType.caption(SwanColors.textSecondary),),
               ],
             );
           },
@@ -256,7 +252,7 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
         TextButton(
           onPressed: () => Navigator.pop(ctx),
           child: Text('Kapat',
-              style: jakarta(13, FontWeight.w800, kTeal),),
+              style: SwanType.bodySm(kTeal, w: FontWeight.w800),),
         ),
       ],
     ),

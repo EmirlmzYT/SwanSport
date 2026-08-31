@@ -173,8 +173,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
         ),
         child: Column(children: [
           Text(s.hourLabel,
-              style: jakarta(12.5, FontWeight.w800,
-                  (s.occupied || s.requestedByMe) ? fg : ink)),
+              style: SwanType.caption((s.occupied || s.requestedByMe) ? fg : ink, w: FontWeight.w800)),
           Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
         ]),
       ),

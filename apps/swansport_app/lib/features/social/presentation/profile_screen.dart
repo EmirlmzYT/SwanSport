@@ -240,8 +240,7 @@ class ProfileScreen extends ConsumerWidget {
                       postsAsync.when(
                         loading: () => premiumLoading(),
                         error: (e, _) => Text('Yüklenemedi: $e',
-                            style: jakarta(12, FontWeight.w500,
-                                SwanColors.textSecondary)),
+                            style: SwanType.caption(SwanColors.textSecondary)),
                         data: (posts) {
                           if (posts.isEmpty) {
                             return Padding(
@@ -253,8 +252,7 @@ class ProfileScreen extends ConsumerWidget {
                                       color: SwanColors.textSecondary),
                                   const SizedBox(height: 10),
                                   Text('Henüz gönderi yok',
-                                      style: jakarta(
-                                          13, FontWeight.w700, ink)),
+                                      style: SwanType.bodySm(ink, w: FontWeight.w700)),
                                 ]),
                               ),
                             );
@@ -295,7 +293,7 @@ class ProfileScreen extends ConsumerWidget {
       ),
       const SizedBox(width: 14),
       Text(isClub ? 'Kulüp Profili' : 'Profil',
-          style: sora(18, FontWeight.w800, ink)),
+          style: SwanType.h3(ink)),
       const Spacer(),
       // SwanSport Kartı — paylaşılabilir QR kimlik.
       if (p != null)
@@ -388,7 +386,7 @@ class ProfileScreen extends ConsumerWidget {
                     const Icon(Icons.edit_rounded, size: 18, color: kTeal),
                     const SizedBox(width: 8),
                     Text('Kulüp Profilini Düzenle',
-                        style: jakarta(13.5, FontWeight.w800, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   ],
                 ),
               ),

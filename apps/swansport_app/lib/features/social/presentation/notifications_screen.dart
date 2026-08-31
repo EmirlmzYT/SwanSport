@@ -81,7 +81,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    Text('Bildirimler', style: sora(22, FontWeight.w800, ink)),
+                    Text('Bildirimler', style: SwanType.h2(ink)),
                     const Spacer(),
                     GestureDetector(
                       onTap: () =>
@@ -171,8 +171,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                               : const Color(0xFFEAEEF3))),
                 ),
                 child: Text(c.$2,
-                    style: jakarta(11.5, FontWeight.w700,
-                        _category == c.$1 ? Colors.white : ink)),
+                    style: SwanType.caption(_category == c.$1 ? Colors.white : ink, w: FontWeight.w700)),
               ),
             ),
           GestureDetector(
@@ -218,11 +217,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Bildirim tercihleri', style: sora(18, FontWeight.w800, ink)),
+          Text('Bildirim tercihleri', style: SwanType.h3(ink)),
           const SizedBox(height: 4),
           Text('Kapattığın kategori telefonuna düşmez; uygulamada yine görünür.',
               textAlign: TextAlign.center,
-              style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 14),
           Flexible(
             child: Consumer(builder: (_, r, __) {
@@ -238,10 +237,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                         value: p.enabled,
                         activeTrackColor: kTeal,
                         title: Text(p.label,
-                            style: jakarta(13, FontWeight.w700, ink)),
+                            style: SwanType.bodySm(ink, w: FontWeight.w700)),
                         subtitle: Text(p.hint,
-                            style: jakarta(11, FontWeight.w500,
-                                SwanColors.textSecondary)),
+                            style: SwanType.caption(SwanColors.textSecondary)),
                         onChanged: (v) async {
                           await ref
                               .read(notificationServiceProvider)
@@ -424,13 +422,13 @@ class _PushBanner extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(on ? 'Telefon bildirimleri açık' : 'Telefon bildirimleri kapalı',
-                    style: jakarta(12.5, FontWeight.w700, ink)),
+                    style: SwanType.caption(ink, w: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text(
                     on
                         ? 'Uygulama kapalıyken de haber verilir.'
                         : 'Aç ki mesaj ve duyurular telefonuna düşsün.',
-                    style: jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

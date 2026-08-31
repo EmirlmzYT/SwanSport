@@ -8,6 +8,7 @@ import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// İlanlar — sporcu arayan kulüp, kulüp arayan sporcu/antrenör ve seçmeler.
 ///
@@ -62,7 +63,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Text('İlanlar', style: sora(22, FontWeight.w800, ink)),
+                  Text('İlanlar', style: SwanType.h2(ink)),
                   const Spacer(),
                   AddButton(onTap: _create, tooltip: 'İlan ver'),
                 ]),
@@ -131,8 +132,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                           : const Color(0xFFEAEEF3))),
             ),
             child: Text(label,
-                style: jakarta(
-                    12, FontWeight.w700, active ? Colors.white : ink)),
+                style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w700)),
           ),
         );
 
@@ -197,17 +197,17 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         ),
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
         child: Column(children: [
-          Text('Branş', style: sora(17, FontWeight.w800, ink)),
+          Text('Branş', style: SwanType.h3(ink)),
           Expanded(
             child: ListView(children: [
               ListTile(
-                title: Text('Hepsi', style: jakarta(13.5, FontWeight.w600, ink)),
+                title: Text('Hepsi', style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 onTap: () => Navigator.pop(ctx, ''),
               ),
               for (final s in sports)
                 ListTile(
                   title:
-                      Text(s.name, style: jakarta(13.5, FontWeight.w600, ink)),
+                      Text(s.name, style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   onTap: () => Navigator.pop(ctx, s.code),
                 ),
             ]),
@@ -268,10 +268,9 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     Text(l.byline,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(12, FontWeight.w700, ink)),
+                        style: SwanType.caption(ink, w: FontWeight.w700)),
                     Text(shortAgo(l.createdAt),
-                        style: jakarta(
-                            10, FontWeight.w600, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -289,20 +288,19 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
             Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
               Expanded(
                   child: Text(l.title,
-                      style: jakarta(14, FontWeight.w800, ink))),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800))),
               if (l.kind == ListingKind.equipmentSale) ...[
                 const SizedBox(width: 8),
                 Text(
                     // Fiyatın boş olması "pazarlıklı" demek.
                     l.price == null ? 'Pazarlıklı' : fmtMoney(l.price!),
-                    style: jakarta(13.5, FontWeight.w800, accent)),
+                    style: SwanType.bodySm(accent, w: FontWeight.w800)),
               ],
             ]),
             if (l.criteria.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(l.criteria,
-                  style: jakarta(
-                      11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ],
             if (l.isTryout && l.startsAt != null) ...[
               const SizedBox(height: 8),
@@ -315,8 +313,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     ' · ${l.startsAt!.hour.toString().padLeft(2, '0')}:'
                     '${l.startsAt!.minute.toString().padLeft(2, '0')}'
                     '${(l.location ?? '').isEmpty ? '' : ' · ${l.location}'}',
-                    style: jakarta(
-                        11.5, FontWeight.w700, const Color(0xFFD9860B))),
+                    style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
               ]),
             ],
             const SizedBox(height: 12),
@@ -348,7 +345,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                   ? Border.all(color: line)
                   : null,
             ),
-            child: Text(text, style: jakarta(12.5, FontWeight.w800, fg)),
+            child: Text(text, style: SwanType.caption(fg, w: FontWeight.w800)),
           ),
         );
 
@@ -408,37 +405,35 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l.title, style: sora(19, FontWeight.w800, ink)),
+              Text(l.title, style: SwanType.h3(ink)),
               const SizedBox(height: 4),
               Text('${l.kind.label} · ${l.byline}',
-                  style: jakarta(12, FontWeight.w600, kTeal)),
+                  style: SwanType.caption(kTeal, w: FontWeight.w600)),
               if (l.criteria.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(l.criteria,
-                    style: jakarta(
-                        12.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
               if ((l.body ?? '').isNotEmpty) ...[
                 const SizedBox(height: 14),
                 Text(l.body!,
-                    style: jakarta(13.5, FontWeight.w500, ink)
+                    style: SwanType.bodySm(ink)
                         .copyWith(height: 1.5)),
               ],
               if (l.isTryout) ...[
                 const SizedBox(height: 14),
                 if (l.quota != null)
                   Text('Kontenjan: ${l.quota}',
-                      style: jakarta(12.5, FontWeight.w700, ink)),
+                      style: SwanType.caption(ink, w: FontWeight.w700)),
                 if ((l.location ?? '').isNotEmpty)
                   Text('Yer: ${l.location}',
-                      style: jakarta(12.5, FontWeight.w600, ink)),
+                      style: SwanType.caption(ink, w: FontWeight.w600)),
               ],
               if (l.deadline != null) ...[
                 const SizedBox(height: 8),
                 Text(
                     'Son başvuru: ${l.deadline!.day}.${l.deadline!.month}.${l.deadline!.year}',
-                    style: jakarta(
-                        12, FontWeight.w700, const Color(0xFFD9860B))),
+                    style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
               ],
               const SizedBox(height: 20),
               if (l.canManage)
@@ -456,8 +451,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                           color: const Color(0xFFF43F5E).withValues(alpha: .4)),
                     ),
                     child: Text('İlanı kapat',
-                        style: jakarta(
-                            13, FontWeight.w800, const Color(0xFFF43F5E))),
+                        style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
                   ),
                 )
               else if (!l.applied)
@@ -475,7 +469,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text('Başvur',
-                        style: jakarta(13.5, FontWeight.w800, Colors.white)),
+                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
             ],
@@ -536,9 +530,9 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         ),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
         child: Column(children: [
-          Text('Başvurular', style: sora(17, FontWeight.w800, ink)),
+          Text('Başvurular', style: SwanType.h3(ink)),
           Text(l.title,
-              style: jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const SizedBox(height: 14),
           Expanded(
             child: Consumer(builder: (_, r, __) {
@@ -549,8 +543,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                 data: (rows) => rows.isEmpty
                     ? Center(
                         child: Text('Henüz başvuru yok',
-                            style: jakarta(12.5, FontWeight.w600,
-                                SwanColors.textSecondary)))
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)))
                     : ListView.builder(
                         itemCount: rows.length,
                         itemBuilder: (_, i) => _applicantRow(ink, l, rows[i]),
@@ -580,26 +573,22 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(a.name, style: jakarta(13, FontWeight.w700, ink)),
+              Text(a.name, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               if (a.subtitle.isNotEmpty)
                 Text(a.subtitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               if ((a.note ?? '').isNotEmpty)
                 Text(a.note!,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(11, FontWeight.w500, ink)),
+                    style: SwanType.caption(ink)),
               if (!a.isPending)
                 Text(a.status == 'accepted' ? 'Kabul edildi' : 'Reddedildi',
-                    style: jakarta(
-                        10.5,
-                        FontWeight.w800,
-                        a.status == 'accepted'
+                    style: SwanType.caption(a.status == 'accepted'
                             ? const Color(0xFF10B981)
-                            : SwanColors.textSecondary)),
+                            : SwanColors.textSecondary, w: FontWeight.w800)),
             ],
           ),
         ),
@@ -676,7 +665,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Ne ilanı vereceksin?', style: sora(17, FontWeight.w800, ink)),
+          Text('Ne ilanı vereceksin?', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           for (final k in ListingKind.values)
             ListTile(
@@ -688,12 +677,11 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                           ? Icons.inventory_2_rounded
                           : Icons.person_search_rounded),
                   color: kTeal),
-              title: Text(k.label, style: jakarta(13.5, FontWeight.w600, ink)),
+              title: Text(k.label, style: SwanType.bodySm(ink, w: FontWeight.w600)),
               subtitle: blockReason(k) == null
                   ? null
                   : Text(blockReason(k)!,
-                      style: jakarta(11, FontWeight.w500,
-                          SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
               onTap: () => Navigator.pop(ctx, k),
             ),
         ]),

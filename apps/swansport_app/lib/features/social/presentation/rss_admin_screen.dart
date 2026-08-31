@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../demo/demo_role.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Haber kaynakları yönetimi — yalnızca platform yöneticisi.
 ///
@@ -60,12 +61,9 @@ class RssAdminScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('PLATFORM YÖNETİCİSİ',
-                              style: jakarta(
-                                  10.5, FontWeight.w700, SwanColors.textSecondary,
-                                  ls: 1.3)),
+                          Text('Platform Yöneticisi', style: SwanType.h3(ink)),
                           Text('Haber Kaynakları',
-                              style: sora(21, FontWeight.w800, ink)),
+                              style: SwanType.h2(ink)),
                         ],
                       ),
                     ),
@@ -98,8 +96,7 @@ class RssAdminScreen extends ConsumerWidget {
                               'Eklediğin RSS akışları herkesin ana sayfasında '
                               'haber olarak görünür. Kapattığın kaynak akıştan '
                               'çıkar ama silinmez.',
-                              style: jakarta(11.5, FontWeight.w500,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary)),
                         ),
                       ]),
                     ),
@@ -169,12 +166,11 @@ class RssAdminScreen extends ConsumerWidget {
               Text(s.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13.5, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               Text(s.url,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(
-                      11, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -228,20 +224,20 @@ class RssAdminScreen extends ConsumerWidget {
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Kaynağı sil', style: sora(17, FontWeight.w800, ink)),
+        title: Text('Kaynağı sil', style: SwanType.h3(ink)),
         content: Text('“${s.name}” kaldırılacak.',
-            style: jakarta(13, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.bodySm(SwanColors.textSecondary)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
                 style:
-                    jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: jakarta(13, FontWeight.w800, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
           ),
         ],
       ),

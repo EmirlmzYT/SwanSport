@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Yoklama geçmişi — sporcu bazında katılım oranı (son 90 gün).
 class AttendanceHistoryScreen extends ConsumerWidget {
@@ -36,15 +37,12 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
                   Text((club?.name ?? 'SWANSPORT').toUpperCase(),
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                   const SizedBox(height: 3),
-                  Text('Devam Durumu', style: sora(25, FontWeight.w800, ink)),
+                  Text('Devam Durumu', style: SwanType.h2(ink)),
                   const SizedBox(height: 4),
                   Text('Son 90 gün',
-                      style: jakarta(
-                          12, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   const SizedBox(height: 18),
 
                   async.when(
@@ -114,18 +112,13 @@ class AttendanceHistoryScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Kulüp ortalaması',
-                  style: jakarta(
-                      11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               const SizedBox(height: 2),
               Text('%$rate katılım',
-                  style: sora(
-                      20,
-                      FontWeight.w800,
-                      isDark ? Colors.white : SwanColors.textPrimary)),
+                  style: SwanType.h2(isDark ? Colors.white : SwanColors.textPrimary)),
               const SizedBox(height: 4),
               Text('$present / $total yoklama',
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -167,7 +160,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
               Text(r.name,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13.5, FontWeight.w700, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w700)),
               const SizedBox(height: 4),
               // Katılım çubuğu
               ClipRRect(
@@ -184,14 +177,13 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                   r.total == 0
                       ? 'Kayıt yok'
                       : '${r.present} katıldı · ${r.absent} gelmedi',
-                  style: jakarta(
-                      11, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
         const SizedBox(width: 12),
         Text(r.total == 0 ? '—' : '%${r.rate}',
-            style: sora(16, FontWeight.w800, color)),
+            style: SwanType.h3(color)),
       ]),
     );
   }

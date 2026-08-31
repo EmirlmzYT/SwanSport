@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// İletişim & Duyurular — Supabase verisine bağlı, premium tasarım (v3).
 class AnnouncementsScreen extends ConsumerStatefulWidget {
@@ -59,12 +60,10 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(club?.name.toUpperCase() ?? 'KULÜP',
-                                style: jakarta(11, FontWeight.w700,
-                                    SwanColors.textSecondary,
-                                    ls: 1.4)),
+                                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                             const SizedBox(height: 3),
                             Text('Duyurular',
-                                style: sora(22, FontWeight.w800, ink)),
+                                style: SwanType.h2(ink)),
                           ],
                         ),
                       ),
@@ -80,11 +79,10 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                     key: const Key('communication-search-field'),
                     controller: _search,
                     onChanged: (value) => setState(() => _query = value.trim()),
-                    style: jakarta(13.5, FontWeight.w500, ink),
+                    style: SwanType.bodySm(ink),
                     decoration: InputDecoration(
                       hintText: 'Duyurularda ara…',
-                      hintStyle: jakarta(
-                          13, FontWeight.w500, SwanColors.textSecondary),
+                      hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                       prefixIcon: const Icon(Icons.search_rounded, size: 19),
                       suffixIcon: _query.isEmpty
                           ? null
@@ -180,16 +178,16 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
               ],
               Expanded(
                 child:
-                    Text(a.title, style: jakarta(14.5, FontWeight.w800, ink)),
+                    Text(a.title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(a.body,
-              style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 10),
           Text(_ago(a.createdAt),
-              style: jakarta(10.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
       ),
     );
@@ -211,19 +209,19 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           backgroundColor: surf,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-          title: Text('Duyuru Yaz', style: sora(18, FontWeight.w800, ink)),
+          title: Text('Duyuru Yaz', style: SwanType.h3(ink)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               TextField(
                 controller: titleCtrl,
-                style: jakarta(14, FontWeight.w700, ink),
+                style: SwanType.bodySm(ink, w: FontWeight.w700),
                 decoration: const InputDecoration(labelText: 'Başlık'),
               ),
               TextField(
                 controller: bodyCtrl,
                 maxLines: 3,
-                style: jakarta(13, FontWeight.w500, ink),
+                style: SwanType.bodySm(ink),
                 decoration: const InputDecoration(labelText: 'İçerik'),
               ),
               const SizedBox(height: 6),
@@ -234,7 +232,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                     activeColor: kTeal,
                     onChanged: (v) => setLocal(() => pinned = v ?? false),
                   ),
-                  Text('Sabitle', style: jakarta(12.5, FontWeight.w600, ink)),
+                  Text('Sabitle', style: SwanType.caption(ink, w: FontWeight.w600)),
                 ],
               ),
             ],
@@ -244,11 +242,11 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
               onPressed: () => Navigator.pop(ctx, false),
               child: Text('İptal',
                   style:
-                      jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                      SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text('Paylaş', style: jakarta(13, FontWeight.w800, kTeal)),
+              child: Text('Paylaş', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
             ),
           ],
         ),
@@ -295,7 +293,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           children: [
             const Icon(Icons.add_rounded, size: 18, color: Colors.white),
             const SizedBox(width: 4),
-            Text('Yeni', style: jakarta(13, FontWeight.w800, Colors.white)),
+            Text('Yeni', style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
           ],
         ),
       );

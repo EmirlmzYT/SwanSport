@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// İçerik şikayet sayfasını açar. Gönderildiyse true döner.
 Future<bool?> showReportSheet(
@@ -97,17 +98,15 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Şikayet Et', style: sora(20, FontWeight.w800, ink)),
+            Text('Şikayet Et', style: SwanType.h2(ink)),
             const SizedBox(height: 6),
             Text('Şikayetin platform yöneticisine iletilir; kimliğin '
                 'içeriği paylaşan kişiyle paylaşılmaz.',
                 style:
-                    jakarta(12, FontWeight.w500, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary)),
             const SizedBox(height: 18),
 
-            Text('SEBEP',
-                style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                    ls: 1.1)),
+            Text('Sebep', style: SwanType.h3(ink)),
             const SizedBox(height: 8),
             ...kReportReasons.map((r) {
               final on = _reason == r.key;
@@ -129,7 +128,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
                         size: 19,
                         color: on ? kTeal : SwanColors.textSecondary),
                     const SizedBox(width: 11),
-                    Text(r.label, style: jakarta(13, FontWeight.w700, ink)),
+                    Text(r.label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                   ]),
                 ),
               );
@@ -140,11 +139,11 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               controller: _detail,
               minLines: 2,
               maxLines: 4,
-              style: jakarta(13.5, FontWeight.w500, ink),
+              style: SwanType.bodySm(ink),
               decoration: InputDecoration(
                 hintText: 'Eklemek istediğin bir şey var mı? (isteğe bağlı)',
                 hintStyle:
-                    jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),
+                    SwanType.caption(SwanColors.textSecondary),
                 filled: true,
                 fillColor: alt,
                 contentPadding: const EdgeInsets.all(14),
@@ -168,15 +167,14 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text(_busy ? 'Gönderiliyor…' : 'Şikayeti Gönder',
-                    style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text('Vazgeç',
-                    style: jakarta(
-                        13, FontWeight.w700, SwanColors.textSecondary)),
+                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
               ),
             ),
           ],

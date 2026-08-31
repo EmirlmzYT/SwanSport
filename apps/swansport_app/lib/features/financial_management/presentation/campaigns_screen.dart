@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Bağış kampanyaları — herkese açık.
 ///
@@ -56,7 +57,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Text('Bağış', style: sora(22, FontWeight.w800, ink)),
+                  Text('Bağış', style: SwanType.h2(ink)),
                   const Spacer(),
                   if (club != null) AddButton(onTap: _create, tooltip: 'Kampanya aç'),
                 ]),
@@ -126,11 +127,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(c.title,
-                        style: jakarta(14, FontWeight.w800, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                     const SizedBox(height: 2),
                     Text(c.clubName ?? 'Kulüp',
-                        style: jakarta(
-                            11, FontWeight.w600, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -150,7 +150,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
               Text(c.description!,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(12, FontWeight.w500, SwanColors.textSecondary)
+                  style: SwanType.caption(SwanColors.textSecondary)
                       .copyWith(height: 1.4)),
             ],
             const SizedBox(height: 14),
@@ -168,14 +168,12 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             const SizedBox(height: 9),
             Row(children: [
               Text(money(c.collected),
-                  style: jakarta(13, FontWeight.w800, kTeal)),
+                  style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
               Text('  /  ${money(c.target)}',
-                  style: jakarta(
-                      11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               const Spacer(),
               Text('%${c.percent} · ${c.supporters} destekçi',
-                  style: jakarta(
-                      11, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             ]),
             if (c.isActive) ...[
               const SizedBox(height: 13),
@@ -192,8 +190,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                           border: Border.all(color: line),
                         ),
                         child: Text('Kapat',
-                            style: jakarta(12.5, FontWeight.w800,
-                                SwanColors.textSecondary)),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                       ),
                     ),
                   ),
@@ -213,7 +210,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                       ),
                       child: Text('Bağış yap',
                           style:
-                              jakarta(12.5, FontWeight.w800, Colors.white)),
+                              SwanType.caption(Colors.white, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -329,10 +326,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         ),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
         child: Column(children: [
-          Text(c.title, style: sora(17, FontWeight.w800, ink)),
+          Text(c.title, style: SwanType.h3(ink)),
           const SizedBox(height: 3),
           Text('${money(c.collected)} · ${c.supporters} destekçi',
-              style: jakarta(11.5, FontWeight.w600, kTeal)),
+              style: SwanType.caption(kTeal, w: FontWeight.w600)),
           const SizedBox(height: 14),
           Expanded(
             child: Consumer(builder: (_, r, __) {
@@ -343,8 +340,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 data: (list) => list.isEmpty
                     ? Center(
                         child: Text('Henüz destekçi yok',
-                            style: jakarta(12.5, FontWeight.w600,
-                                SwanColors.textSecondary)),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                       )
                     : ListView.builder(
                         itemCount: list.length,
@@ -359,24 +355,20 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(d.name,
-                                        style: jakarta(
-                                            12.5, FontWeight.w700, ink)),
+                                        style: SwanType.caption(ink, w: FontWeight.w700)),
                                     if (d.message != null &&
                                         d.message!.trim().isNotEmpty)
                                       Text(d.message!,
-                                          style: jakarta(11, FontWeight.w500,
-                                              SwanColors.textSecondary)),
+                                          style: SwanType.caption(SwanColors.textSecondary)),
                                     if (d.isPending)
                                       Text('Onay bekliyor',
-                                          style: jakarta(
-                                              10, FontWeight.w700,
-                                              const Color(0xFFD9860B))),
+                                          style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
                                   ],
                                 ),
                               ),
                               Text(money(d.amount),
                                   style:
-                                      jakarta(13, FontWeight.w800, kTeal)),
+                                      SwanType.bodySm(kTeal, w: FontWeight.w800)),
                               if (d.canManage && d.isPending) ...[
                                 const SizedBox(width: 10),
                                 GestureDetector(
@@ -397,8 +389,7 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                           BorderRadius.circular(10),
                                     ),
                                     child: Text('Onayla',
-                                        style: jakarta(11, FontWeight.w800,
-                                            Colors.white)),
+                                        style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                                   ),
                                 ),
                               ],

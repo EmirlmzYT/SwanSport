@@ -92,8 +92,7 @@ class JoinRequestsSheet extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(label,
-                style: jakarta(11.5, FontWeight.w800,
-                    accept ? Colors.white : color)),
+                style: SwanType.caption(accept ? Colors.white : color, w: FontWeight.w800)),
           ),
         );
 

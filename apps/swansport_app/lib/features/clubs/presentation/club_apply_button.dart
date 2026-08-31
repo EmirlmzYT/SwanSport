@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kulüp profilindeki "Kulübe Başvur" düğmesi.
 ///
@@ -69,7 +70,7 @@ class ClubApplyButton extends ConsumerWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Text(text, style: jakarta(13.5, FontWeight.w800, color)),
+          Text(text, style: SwanType.bodySm(color, w: FontWeight.w800)),
         ],
       ),
     );
@@ -95,7 +96,7 @@ class ClubApplyButton extends ConsumerWidget {
           children: [
             const Icon(Icons.group_add_rounded, size: 18, color: kTeal),
             const SizedBox(width: 8),
-            Text(label, style: jakarta(13.5, FontWeight.w800, ink)),
+            Text(label, style: SwanType.bodySm(ink, w: FontWeight.w800)),
           ],
         ),
       ),
@@ -195,15 +196,14 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Kulübe Başvur', style: sora(20, FontWeight.w800, ink)),
+          Text('Kulübe Başvur', style: SwanType.h2(ink)),
           const SizedBox(height: 4),
           Text(widget.clubName,
-              style: jakarta(13, FontWeight.w700, kTeal)),
+              style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
           const SizedBox(height: 18),
 
           Text('NE OLARAK KATILMAK İSTİYORSUN?',
-              style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                  ls: 1.1)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(4),
@@ -217,18 +217,17 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
           const SizedBox(height: 16),
 
           Text('MESAJIN (İSTEĞE BAĞLI)',
-              style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                  ls: 1.1)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
           const SizedBox(height: 8),
           TextField(
             controller: _msg,
             minLines: 2,
             maxLines: 4,
-            style: jakarta(13.5, FontWeight.w500, ink),
+            style: SwanType.bodySm(ink),
             decoration: InputDecoration(
               hintText: 'Kendini kısaca tanıt…',
               hintStyle:
-                  jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                  SwanType.bodySm(SwanColors.textSecondary),
               filled: true,
               fillColor: alt,
               contentPadding: const EdgeInsets.all(14),
@@ -259,14 +258,14 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
                 ],
               ),
               child: Text(_busy ? 'Gönderiliyor…' : 'Başvuruyu Gönder',
-                  style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                  style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
             ),
           ),
           const SizedBox(height: 8),
           Center(
             child: Text('Kulüp yetkilisi başvurunu inceleyip karar verecek.',
                 style:
-                    jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary)),
           ),
         ],
       ),
@@ -286,8 +285,7 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(label,
-              style: jakarta(
-                  12.5, FontWeight.w800, on ? ink : SwanColors.textSecondary)),
+              style: SwanType.caption(on ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
         ),
       ),
     );

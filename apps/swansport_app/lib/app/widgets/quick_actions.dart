@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import 'premium.dart';
+import '../../app/design/swan_type.dart';
 
 /// Bir ekrandan ilgili ekranlara geçiş kısayolları.
 ///
@@ -101,7 +102,7 @@ class _QuickCard extends StatelessWidget {
           Text(action.label,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(11.5, FontWeight.w700, ink)),
+              style: SwanType.caption(ink, w: FontWeight.w700)),
         ]),
       ),
     );

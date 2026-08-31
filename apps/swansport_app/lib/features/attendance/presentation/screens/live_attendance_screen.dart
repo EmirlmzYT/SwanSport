@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Canlı Yoklama — Supabase sporcuları + sunucuya kayıt, premium (v3).
 class LiveAttendanceScreen extends ConsumerStatefulWidget {
@@ -68,12 +69,9 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('CANLI YOKLAMA',
-                                    style: jakarta(10, FontWeight.w700,
-                                        SwanColors.textSecondary,
-                                        ls: 1.2)),
+                                Text('Canlı Yoklama', style: SwanType.h3(ink)),
                                 Text(club?.name ?? 'Kadro',
-                                    style: sora(18, FontWeight.w800, ink)),
+                                    style: SwanType.h3(ink)),
                               ],
                             ),
                           ),
@@ -86,7 +84,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                                 : const Color(0xFFF1F5F8),
                             progress: kTeal,
                             center: Text('%${(pct * 100).round()}',
-                                style: sora(12, FontWeight.w800, ink)),
+                                style: SwanType.h3(ink)),
                           ),
                         ],
                       ),
@@ -145,7 +143,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                       _saving
                           ? 'Kaydediliyor…'
                           : 'Yoklamayı Kaydet · ${_marks.length}',
-                      style: jakarta(14.5, FontWeight.w800, Colors.white),
+                      style: SwanType.bodySm(Colors.white, w: FontWeight.w800),
                     ),
                   ),
                 ),
@@ -172,7 +170,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
               const SizedBox(width: 11),
               Expanded(
                   child: Text(a.fullName,
-                      style: jakarta(13.5, FontWeight.w700, ink))),
+                      style: SwanType.bodySm(ink, w: FontWeight.w700))),
             ],
           ),
           const SizedBox(height: 9),
@@ -211,8 +209,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                 : null,
           ),
           child: Text(label,
-              style: jakarta(11, FontWeight.w700,
-                  on ? Colors.white : SwanColors.textSecondary)),
+              style: SwanType.caption(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w700)),
         ),
       ),
     );

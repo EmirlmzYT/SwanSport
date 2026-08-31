@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../routing/athlete_detail_route_args.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Sporcu Profili — Supabase verisine bağlı, premium tasarım (v3).
 class AthleteDetailScreen extends ConsumerWidget {
@@ -79,7 +80,7 @@ class AthleteDetailScreen extends ConsumerWidget {
                                       Flexible(
                                         child: Text(
                                           a.fullName,
-                                          style: sora(20, FontWeight.w800, ink),
+                                          style: SwanType.h2(ink),
                                         ),
                                       ),
                                       const SizedBox(width: 8),
@@ -101,11 +102,7 @@ class AthleteDetailScreen extends ConsumerWidget {
                           const SizedBox(height: 6),
                           Text(
                             a.position ?? 'Sporcu',
-                            style: jakarta(
-                              12.5,
-                              FontWeight.w600,
-                              SwanColors.textSecondary,
-                            ),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
                           ),
                           const SizedBox(height: 16),
                           Row(
@@ -179,13 +176,13 @@ class AthleteDetailScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Veli bağı eksik', style: jakarta(13, FontWeight.w800, ink)),
+              Text('Veli bağı eksik', style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 2),
               Text(
                   '18 yaş altı sporcularda veli zorunludur. Aşağıdan davet '
                   'kodu üretip veliyle paylaş.',
                   style:
-                      jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -211,7 +208,7 @@ class AthleteDetailScreen extends ConsumerWidget {
             const SizedBox(width: 9),
             Text(
               'Veli Davet Kodu Üret',
-              style: jakarta(14, FontWeight.w800, kTeal),
+              style: SwanType.bodySm(kTeal, w: FontWeight.w800),
             ),
           ],
         ),
@@ -239,17 +236,13 @@ class AthleteDetailScreen extends ConsumerWidget {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(22),
           ),
-          title: Text('Veli Davet Kodu', style: sora(18, FontWeight.w800, ink)),
+          title: Text('Veli Davet Kodu', style: SwanType.h3(ink)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
                 'Bu kodu veliyle paylaş. Veli, uygulamada “Veli Bağla” ekranına girip bu kodla sporcuya bağlanır.',
-                style: jakarta(
-                  12.5,
-                  FontWeight.w500,
-                  SwanColors.textSecondary,
-                ),
+                style: SwanType.caption(SwanColors.textSecondary),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 18),
@@ -262,17 +255,13 @@ class AthleteDetailScreen extends ConsumerWidget {
                 ),
                 child: Text(
                   code,
-                  style: sora(28, FontWeight.w800, kTeal, ls: 5),
+                  style: SwanType.h1(kTeal),
                 ),
               ),
               const SizedBox(height: 12),
               Text(
                 '24 saat geçerli · tek kullanımlık',
-                style: jakarta(
-                  11,
-                  FontWeight.w600,
-                  SwanColors.textSecondary,
-                ),
+                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
               ),
             ],
           ),
@@ -281,7 +270,7 @@ class AthleteDetailScreen extends ConsumerWidget {
               onPressed: () => Navigator.pop(ctx),
               child: Text(
                 'Kapat',
-                style: jakarta(13, FontWeight.w700, SwanColors.textSecondary),
+                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700),
               ),
             ),
             TextButton(
@@ -293,7 +282,7 @@ class AthleteDetailScreen extends ConsumerWidget {
                 );
               },
               child:
-                  Text('Kopyala', style: jakarta(13, FontWeight.w800, kTeal)),
+                  Text('Kopyala', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
             ),
           ],
         ),
@@ -363,11 +352,11 @@ class AthleteDetailScreen extends ConsumerWidget {
         ),
         child: Column(
           children: [
-            Text(value, style: sora(18, FontWeight.w800, accent ? kTeal : ink)),
+            Text(value, style: SwanType.h3(accent ? kTeal : ink)),
             const SizedBox(height: 2),
             Text(
               label,
-              style: jakarta(10.5, FontWeight.w600, SwanColors.textSecondary),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
             ),
           ],
         ),
@@ -391,10 +380,10 @@ class AthleteDetailScreen extends ConsumerWidget {
         children: [
           Text(
             title,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700),
           ),
           const SizedBox(height: 4),
-          Text(value, style: jakarta(13.5, FontWeight.w700, ink)),
+          Text(value, style: SwanType.bodySm(ink, w: FontWeight.w700)),
         ],
       ),
     );

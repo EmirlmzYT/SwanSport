@@ -7,6 +7,7 @@ import 'package:swansport_models/swansport_models.dart';
 import '../../../../app/widgets/premium.dart';
 import '../routing/athlete_detail_route_args.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Sporcu Yönetimi (Kadro) — Supabase verisine bağlı, premium tasarım (v3).
 class AthleteWorkspaceScreen extends ConsumerStatefulWidget {
@@ -59,9 +60,7 @@ class _AthleteWorkspaceScreenState
                             Text(
                               clubAsync.valueOrNull?.name.toUpperCase() ??
                                   'KADRO',
-                              style: jakarta(
-                                  11, FontWeight.w700, SwanColors.textSecondary,
-                                  ls: 1.4),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700),
                             ),
                             const SizedBox(height: 3),
                             Text(
@@ -69,7 +68,7 @@ class _AthleteWorkspaceScreenState
                                 data: (a) => 'Kadro · ${a.length}',
                                 orElse: () => 'Kadro',
                               ),
-                              style: sora(22, FontWeight.w800, ink),
+                              style: SwanType.h2(ink),
                             ),
                           ],
                         ),
@@ -142,11 +141,11 @@ class _AthleteWorkspaceScreenState
           const Icon(Icons.cloud_off_rounded,
               size: 40, color: Color(0xFFF43F5E)),
           const SizedBox(height: 12),
-          Text('Veri yüklenemedi', style: jakarta(14, FontWeight.w700, ink)),
+          Text('Veri yüklenemedi', style: SwanType.bodySm(ink, w: FontWeight.w700)),
           const SizedBox(height: 6),
           Text(msg,
               textAlign: TextAlign.center,
-              style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
       ),
     );
@@ -169,10 +168,10 @@ class _AthleteWorkspaceScreenState
                 const Icon(Icons.add_business_rounded, color: kTeal, size: 30),
           ),
           const SizedBox(height: 16),
-          Text('Henüz bir kulübün yok', style: sora(18, FontWeight.w800, ink)),
+          Text('Henüz bir kulübün yok', style: SwanType.h3(ink)),
           const SizedBox(height: 6),
           Text('Başlamak için bir kulüp oluştur.',
-              style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 20),
           _primaryButton('Kulüp Oluştur', _showCreateClub),
         ],
@@ -196,10 +195,10 @@ class _AthleteWorkspaceScreenState
             child: const Icon(Icons.groups_rounded, color: kTeal, size: 30),
           ),
           const SizedBox(height: 16),
-          Text('Kadro boş', style: sora(18, FontWeight.w800, ink)),
+          Text('Kadro boş', style: SwanType.h3(ink)),
           const SizedBox(height: 6),
           Text('İlk sporcunu ekleyerek başla.',
-              style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 20),
           _primaryButton('Sporcu Ekle', () => _showAddAthlete(club)),
         ],
@@ -232,12 +231,11 @@ class _AthleteWorkspaceScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(a.fullName, style: jakarta(13.5, FontWeight.w700, ink)),
+                  Text(a.fullName, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                   const SizedBox(height: 2),
                   Text(
                     a.position ?? 'Sporcu',
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary),
+                    style: SwanType.caption(SwanColors.textSecondary),
                   ),
                 ],
               ),
@@ -344,18 +342,18 @@ class _AthleteWorkspaceScreenState
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text(title, style: sora(18, FontWeight.w800, ink)),
+        title: Text(title, style: SwanType.h3(ink)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             for (final f in fields) ...[
               TextField(
                 controller: f.controller,
-                style: jakarta(14, FontWeight.w600, ink),
+                style: SwanType.bodySm(ink, w: FontWeight.w600),
                 decoration: InputDecoration(
                   labelText: f.label,
                   labelStyle:
-                      jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),
+                      SwanType.caption(SwanColors.textSecondary),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: kTeal, width: 1.5),
                   ),
@@ -369,11 +367,11 @@ class _AthleteWorkspaceScreenState
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('İptal',
-                style: jakarta(13, FontWeight.w700, SwanColors.textSecondary)),
+                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(action, style: jakarta(13, FontWeight.w800, kTeal)),
+            child: Text(action, style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -399,7 +397,7 @@ class _AthleteWorkspaceScreenState
             ),
           ],
         ),
-        child: Text(label, style: jakarta(14, FontWeight.w800, Colors.white)),
+        child: Text(label, style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
       ),
     );
   }
@@ -415,11 +413,10 @@ class _AthleteWorkspaceScreenState
         border: Border.all(color: line),
       ),
       child: TextField(
-        style: jakarta(13.5, FontWeight.w600,
-            isDark ? Colors.white : SwanColors.textPrimary),
+        style: SwanType.bodySm(isDark ? Colors.white : SwanColors.textPrimary, w: FontWeight.w600),
         decoration: InputDecoration(
           hintText: 'Sporcu ara…',
-          hintStyle: jakarta(13.5, FontWeight.w500, SwanColors.textSecondary),
+          hintStyle: SwanType.bodySm(SwanColors.textSecondary),
           prefixIcon: const Icon(Icons.search_rounded,
               size: 19, color: SwanColors.textSecondary),
           border: InputBorder.none,
@@ -445,8 +442,7 @@ class _AthleteWorkspaceScreenState
           border: Border.all(color: active ? ink : line),
         ),
         child: Text(label,
-            style: jakarta(
-                12, FontWeight.w700, active ? bg : SwanColors.textSecondary)),
+            style: SwanType.caption(active ? bg : SwanColors.textSecondary, w: FontWeight.w700)),
       ),
     );
   }

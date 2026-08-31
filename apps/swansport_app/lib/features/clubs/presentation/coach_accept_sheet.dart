@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Antrenör kabul edilirken kademe ve süpervizör seçimi.
 ///
@@ -57,14 +58,12 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
               ),
             ),
             const SizedBox(height: 16),
-            Text('Antrenörü Kabul Et', style: sora(20, FontWeight.w800, ink)),
+            Text('Antrenörü Kabul Et', style: SwanType.h2(ink)),
             const SizedBox(height: 4),
-            Text(widget.personName, style: jakarta(13, FontWeight.w700, kTeal)),
+            Text(widget.personName, style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
             const SizedBox(height: 18),
 
-            Text('KADEME',
-                style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                    ls: 1.1)),
+            Text('Kademe', style: SwanType.h3(ink)),
             const SizedBox(height: 8),
             Container(
               padding: const EdgeInsets.all(4),
@@ -89,8 +88,7 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text('$n',
-                            style: jakarta(13, FontWeight.w800,
-                                on ? Colors.white : SwanColors.textSecondary)),
+                            style: SwanType.bodySm(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800)),
                       ),
                     ),
                   );
@@ -100,20 +98,16 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
             const SizedBox(height: 6),
             Text(_levelLabel(_level),
                 style:
-                    jakarta(12.5, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
 
             if (_needsSupervisor) ...[
               const SizedBox(height: 18),
-              Text('SÜPERVİZÖR',
-                  style: jakarta(
-                      10.5, FontWeight.w800, SwanColors.textSecondary,
-                      ls: 1.1)),
+              Text('Süpervizör', style: SwanType.h3(ink)),
               const SizedBox(height: 6),
               Text(
                   '1. kademe antrenör tek başına çalışamaz; kulüpteki bir '
                   '2. kademe ve üstü antrenöre bağlanmalı.',
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
               const SizedBox(height: 10),
               if (widget.supervisors.isEmpty)
                 Container(
@@ -127,8 +121,7 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                   child: Text(
                       'Kulüpte uygun süpervizör yok. Önce 2. kademe veya üstü '
                       'bir antrenör eklemelisin.',
-                      style: jakarta(
-                          12, FontWeight.w600, const Color(0xFFF43F5E))),
+                      style: SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w600)),
                 )
               else
                 ...widget.supervisors.map((s) {
@@ -155,10 +148,10 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                           child: Text(s.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: jakarta(13, FontWeight.w700, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w700)),
                         ),
                         Text('${s.level}. kademe',
-                            style: jakarta(11.5, FontWeight.w700, kTeal)),
+                            style: SwanType.caption(kTeal, w: FontWeight.w700)),
                       ]),
                     ),
                   );
@@ -182,7 +175,7 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: Text('Kulübe Ekle',
-                      style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                      style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -190,8 +183,7 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text('Vazgeç',
-                    style: jakarta(
-                        13, FontWeight.w700, SwanColors.textSecondary)),
+                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
               ),
             ),
           ],

@@ -8,6 +8,7 @@ import '../../../../app/media/image_pick.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Belge Kasası — kulüp ve sporcu evrakları, geçerlilik takibiyle.
 ///
@@ -49,13 +50,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('KULÜP',
-                            style: jakarta(
-                                11, FontWeight.w700, SwanColors.textSecondary,
-                                ls: 1.4)),
+                        Text('Kulüp', style: SwanType.h3(ink)),
                         const SizedBox(height: 3),
                         Text('Belge Kasası',
-                            style: sora(25, FontWeight.w800, ink)),
+                            style: SwanType.h2(ink)),
                       ],
                     ),
                   ),
@@ -150,8 +148,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                               : const Color(0xFFEAEEF3))),
                 ),
                 child: Text(it.$2,
-                    style: jakarta(12, FontWeight.w700,
-                        _filter == it.$1 ? Colors.white : ink)),
+                    style: SwanType.caption(_filter == it.$1 ? Colors.white : ink, w: FontWeight.w700)),
               ),
             ),
         ],
@@ -174,7 +171,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text('$n belgenin süresi dolmuş ya da dolmak üzere.',
-                style: jakarta(12, FontWeight.w700, const Color(0xFFD9860B))),
+                style: SwanType.caption(const Color(0xFFD9860B), w: FontWeight.w700)),
           ),
         ]),
       );
@@ -221,7 +218,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                     child: Text(d.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(13, FontWeight.w800, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   ),
                   if (d.verified) ...[
                     const SizedBox(width: 5),
@@ -230,8 +227,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 ]),
                 const SizedBox(height: 2),
                 Text('${d.typeLabel} · ${d.ownerLabel}',
-                    style: jakarta(
-                        10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
                 if (d.expiresOn != null) ...[
                   const SizedBox(height: 3),
                   Text(
@@ -239,7 +235,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                           ? 'Süresi doldu · ${d.expiresOn!.day}.${d.expiresOn!.month}.${d.expiresOn!.year}'
                           : 'Geçerli: ${d.expiresOn!.day}.${d.expiresOn!.month}.${d.expiresOn!.year}'
                               '${d.daysLeft != null && d.daysLeft! <= 30 ? " · ${d.daysLeft} gün" : ""}',
-                      style: jakarta(10.5, FontWeight.w700, color)),
+                      style: SwanType.caption(color, w: FontWeight.w700)),
                 ],
               ],
             ),
@@ -274,12 +270,12 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Belge türü', style: sora(17, FontWeight.w800, ink)),
+          Text('Belge türü', style: SwanType.h3(ink)),
           const SizedBox(height: 8),
           for (final e in kDocTypes.entries)
             ListTile(
               dense: true,
-              title: Text(e.value, style: jakarta(13, FontWeight.w600, ink)),
+              title: Text(e.value, style: SwanType.bodySm(ink, w: FontWeight.w600)),
               onTap: () => Navigator.pop(ctx, e.key),
             ),
         ]),
@@ -306,18 +302,18 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             ),
             padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
             child: Column(children: [
-              Text('Kimin belgesi?', style: sora(17, FontWeight.w800, ink)),
+              Text('Kimin belgesi?', style: SwanType.h3(ink)),
               Expanded(
                 child: ListView(children: [
                   ListTile(
                     title: Text('Kulübe ait',
-                        style: jakarta(13, FontWeight.w600, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w600)),
                     onTap: () => Navigator.pop(ctx, ''),
                   ),
                   for (final a in athletes)
                     ListTile(
                       title: Text(a.fullName,
-                          style: jakarta(13, FontWeight.w600, ink)),
+                          style: SwanType.bodySm(ink, w: FontWeight.w600)),
                       onTap: () => Navigator.pop(ctx, a.id),
                     ),
                 ]),
@@ -416,9 +412,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(d.name, style: sora(17, FontWeight.w800, ink)),
+          Text(d.name, style: SwanType.h3(ink)),
           Text('${d.typeLabel} · ${d.ownerLabel}',
-              style: jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const SizedBox(height: 14),
           if (d.storagePath != null)
             ListTile(
@@ -426,10 +422,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
               leading: const Icon(Icons.open_in_new_rounded,
                   size: 20, color: kTeal),
               title: Text('Bağlantıyı kopyala',
-                  style: jakarta(13, FontWeight.w600, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w600)),
               subtitle: Text('1 saat geçerli, tarayıcıda aç',
-                  style: jakarta(
-                      10.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
               onTap: () async {
                 Navigator.pop(ctx);
                 try {
@@ -460,7 +455,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 size: 20,
                 color: d.verified ? SwanColors.textSecondary : kTeal),
             title: Text(d.verified ? 'Doğrulamayı kaldır' : 'Doğrula',
-                style: jakarta(13, FontWeight.w600, ink)),
+                style: SwanType.bodySm(ink, w: FontWeight.w600)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
@@ -476,7 +471,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             leading: const Icon(Icons.delete_outline_rounded,
                 size: 20, color: Color(0xFFF43F5E)),
             title: Text('Belgeyi sil',
-                style: jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {

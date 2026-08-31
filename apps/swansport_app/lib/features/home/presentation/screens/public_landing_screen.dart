@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../auth/application/auth_controller.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Herkese açık karşılama ekranı — premium tasarım (v3).
 ///
@@ -57,22 +58,22 @@ class PublicLandingScreen extends ConsumerWidget {
                     ),
                     alignment: Alignment.center,
                     child: Text('S',
-                        style: sora(26, FontWeight.w800, Colors.white)),
+                        style: SwanType.h1(Colors.white)),
                   ),
                   const SizedBox(width: 12),
-                  Text('SwanSport', style: sora(20, FontWeight.w800, ink)),
+                  Text('SwanSport', style: SwanType.h2(ink)),
                 ]),
                 const SizedBox(height: 32),
 
                 Text('Spor kulübünüzün\ndijital merkezi.',
-                    style: sora(32, FontWeight.w800, ink)),
+                    style: SwanType.h1(ink)),
                 const SizedBox(height: 12),
                 Text(
                   'Kadro, antrenman, yoklama, aidat ve sağlık takibi tek '
                   'platformda. Roller belgeyle doğrulanır — kim ne yapabilir, '
                   'net.',
                   style:
-                      jakarta(14.5, FontWeight.w500, SwanColors.textSecondary),
+                      SwanType.bodySm(SwanColors.textSecondary),
                 ),
                 const SizedBox(height: 28),
 
@@ -140,7 +141,7 @@ class PublicLandingScreen extends ConsumerWidget {
                               size: 18, color: kTeal),
                           const SizedBox(width: 8),
                           Text('Hesap Oluştur',
-                              style: jakarta(14.5, FontWeight.w800, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
                         ],
                       ),
                     ),
@@ -151,8 +152,7 @@ class PublicLandingScreen extends ConsumerWidget {
                 Center(
                   child: Text('Kulüpler, antrenörler, sporcular ve veliler için',
                       textAlign: TextAlign.center,
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ),
               ],
             ),
@@ -186,7 +186,7 @@ class PublicLandingScreen extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(label, style: jakarta(15, FontWeight.w800, Colors.white)),
+            Text(label, style: SwanType.body(Colors.white, w: FontWeight.w800)),
             const SizedBox(width: 8),
             Icon(icon, size: 18, color: Colors.white),
           ],
@@ -216,11 +216,10 @@ class PublicLandingScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: jakarta(13.5, FontWeight.w800, ink)),
+                Text(title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(sub,
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../demo/demo_role.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kulüp onay bekliyor — belgeler platform yöneticisince incelenene kadar
 /// yöneticinin karşılaştığı kilitli ekran (premium v3).
@@ -74,7 +75,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                 const SizedBox(height: 24),
                 Text('Kulübün inceleniyor',
                     textAlign: TextAlign.center,
-                    style: sora(26, FontWeight.w800, ink)),
+                    style: SwanType.h1(ink)),
                 const SizedBox(height: 8),
                 Text(
                   club != null
@@ -84,7 +85,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                           'onaylayınca panelin açılır.',
                   textAlign: TextAlign.center,
                   style:
-                      jakarta(13.5, FontWeight.w500, SwanColors.textSecondary),
+                      SwanType.bodySm(SwanColors.textSecondary),
                 ),
                 const SizedBox(height: 26),
 
@@ -118,10 +119,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
 
                 // Kulüp belgeleri yükleme
                 if (club != null) ...[
-                  Text('KULÜP BELGELERİ',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2)),
+                  Text('Kulüp Belgeleri', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
                   _uploadTile(isDark, club.id, 'tescil', 'Kulüp tescil belgesi'),
                   _uploadTile(
@@ -130,8 +128,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                   Text(
                       'ⓘ PDF veya fotoğraf (JPG/PNG). Belgeler yalnızca sana ve '
                       'platform yöneticisine görünür.',
-                      style: jakarta(
-                          11, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   const SizedBox(height: 20),
                 ],
 
@@ -163,7 +160,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                             size: 19, color: Colors.white),
                         const SizedBox(width: 8),
                         Text('Durumu Yenile',
-                            style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                            style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                       ],
                     ),
                   ),
@@ -192,8 +189,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                               size: 18, color: Color(0xFFD9860B)),
                           const SizedBox(width: 8),
                           Text('Onay Paneli (Yönetici)',
-                              style: jakarta(14, FontWeight.w800,
-                                  const Color(0xFFD9860B))),
+                              style: SwanType.bodySm(const Color(0xFFD9860B), w: FontWeight.w800)),
                         ],
                       ),
                     ),
@@ -211,8 +207,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                       }
                     },
                     child: Text('Çıkış Yap',
-                        style: jakarta(
-                            13.5, FontWeight.w800, const Color(0xFFF43F5E))),
+                        style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -271,18 +266,17 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: jakarta(13, FontWeight.w700, ink)),
+                Text(label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 if (done)
                   Text(fileName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
           if (!done && !uploading)
-            Text('Yükle', style: jakarta(12, FontWeight.w800, kTeal)),
+            Text('Yükle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
         ]),
       ),
     );
@@ -344,11 +338,10 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: jakarta(13.5, FontWeight.w700, ink)),
+              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               const SizedBox(height: 2),
               Text(sub,
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),

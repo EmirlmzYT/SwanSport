@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Sporcu/veli tarafı — "borcum ne, nasıl öderim".
 ///
@@ -56,7 +57,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Text('Aidatlarım', style: sora(22, FontWeight.w800, ink)),
+                  Text('Aidatlarım', style: SwanType.h2(ink)),
                 ]),
               ),
               Expanded(
@@ -106,17 +107,13 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
         _totalCard(isDark, ink, total, open.length),
         const SizedBox(height: 18),
         if (open.isNotEmpty) ...[
-          Text('ÖDENMEMİŞ',
-              style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                  ls: 1.2)),
+          Text('Ödenmemiş', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           for (final f in open) _feeCard(isDark, ink, f),
           const SizedBox(height: 18),
         ],
         if (paid.isNotEmpty) ...[
-          Text('ÖDENENLER',
-              style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                  ls: 1.2)),
+          Text('Ödenenler', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           for (final f in paid) _feeCard(isDark, ink, f),
         ],
@@ -140,16 +137,13 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Toplam borç',
-                  style: jakarta(
-                      11, FontWeight.w600, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               const SizedBox(height: 4),
               Text(money(total),
-                  style: sora(26, FontWeight.w800,
-                      total > 0 ? ink : const Color(0xFF10B981))),
+                  style: SwanType.h1(total > 0 ? ink : const Color(0xFF10B981))),
               const SizedBox(height: 2),
               Text(count == 0 ? 'Borcun yok' : '$count ödenmemiş kalem',
-                  style: jakarta(
-                      11, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -193,7 +187,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(f.label, style: jakarta(13, FontWeight.w800, ink)),
+                  Text(f.label, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   const SizedBox(height: 2),
                   Text(
                       [
@@ -202,13 +196,12 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                         if (f.dueDate != null)
                           'Son ödeme: ${f.dueDate!.day}.${f.dueDate!.month}.${f.dueDate!.year}',
                       ].join(' · '),
-                      style: jakarta(
-                          10.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
             Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-              Text(money(f.amount), style: sora(17, FontWeight.w800, ink)),
+              Text(money(f.amount), style: SwanType.h3(ink)),
               const SizedBox(height: 3),
               PremiumStatusChip(
                 label: f.statusLabel,
@@ -235,8 +228,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                       border: Border.all(color: line),
                     ),
                     child: Text('IBAN',
-                        style: jakarta(
-                            12.5, FontWeight.w800, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                   ),
                 ),
               ),
@@ -254,7 +246,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                       borderRadius: BorderRadius.circular(13),
                     ),
                     child: Text('Ödedim, bildir',
-                        style: jakarta(12.5, FontWeight.w800, Colors.white)),
+                        style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
               ),
@@ -286,13 +278,12 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 20, 20, 24 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Havale bilgileri', style: sora(18, FontWeight.w800, ink)),
+          Text('Havale bilgileri', style: SwanType.h3(ink)),
           const SizedBox(height: 16),
           if ((info.iban ?? '').isEmpty)
             Text('Kulüp henüz IBAN tanımlamamış. Kulüple iletişime geç.',
                 textAlign: TextAlign.center,
-                style: jakarta(
-                    12.5, FontWeight.w500, SwanColors.textSecondary))
+                style: SwanType.caption(SwanColors.textSecondary))
           else ...[
             if ((info.holder ?? '').isNotEmpty)
               _infoLine(ink, 'Hesap sahibi', info.holder!),
@@ -317,11 +308,10 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                 child: Column(children: [
                   Text(info.iban!,
                       textAlign: TextAlign.center,
-                      style: jakarta(14, FontWeight.w800, kTeal)),
+                      style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
                   const SizedBox(height: 4),
                   Text('Kopyalamak için dokun',
-                      style: jakarta(
-                          10.5, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 ]),
               ),
             ),
@@ -329,8 +319,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
             Text('Havaleyi yaptıktan sonra "Ödedim, bildir" ile kulübe haber '
                 'ver. Kulüp onaylayınca borç kapanır.',
                 textAlign: TextAlign.center,
-                style: jakarta(
-                    11, FontWeight.w500, SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary)),
           ],
         ]),
       ),
@@ -342,9 +331,9 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
         child: Row(children: [
           Text(label,
               style:
-                  jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const Spacer(),
-          Text(value, style: jakarta(12.5, FontWeight.w700, ink)),
+          Text(value, style: SwanType.caption(ink, w: FontWeight.w700)),
         ]),
       );
 
@@ -375,20 +364,19 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
           padding: EdgeInsets.fromLTRB(
               20, 18, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Text('Ödeme bildirimi', style: sora(18, FontWeight.w800, ink)),
+            Text('Ödeme bildirimi', style: SwanType.h3(ink)),
             const SizedBox(height: 4),
             Text(f.label,
                 style:
-                    jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary)),
             const SizedBox(height: 18),
             TextField(
               controller: amountCtrl,
               keyboardType: TextInputType.number,
-              style: jakarta(14, FontWeight.w700, ink),
+              style: SwanType.bodySm(ink, w: FontWeight.w700),
               decoration: InputDecoration(
                 labelText: 'Ödediğin tutar (₺)',
-                labelStyle: jakarta(
-                    12, FontWeight.w600, SwanColors.textSecondary),
+                labelStyle: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
                 border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14)),
               ),
@@ -417,8 +405,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                               : m == 'nakit'
                                   ? 'Nakit'
                                   : 'Diğer',
-                          style: jakarta(12, FontWeight.w800,
-                              method == m ? Colors.white : ink)),
+                          style: SwanType.caption(method == m ? Colors.white : ink, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -469,8 +456,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                             : receiptPath == null
                                 ? 'Dekont ekle (isteğe bağlı)'
                                 : receiptName,
-                        style: jakarta(
-                            12, FontWeight.w700, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                   ],
                 ),
               ),
@@ -486,7 +472,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text('Bildirimi gönder',
-                    style: jakarta(14, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
           ]),

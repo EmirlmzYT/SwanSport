@@ -8,6 +8,7 @@ import '../../../app/widgets/premium.dart';
 import '../../demo/demo_role.dart';
 import 'admin_review_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Platform Yönetimi — sistem yöneticisinin paneli.
 ///
@@ -63,13 +64,10 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('SİSTEM YÖNETİCİSİ',
-                        style: jakarta(
-                            11, FontWeight.w700, SwanColors.textSecondary,
-                            ls: 1.2,),),
+                    Text('Sistem Yöneticisi', style: SwanType.h3(ink),),
                     const SizedBox(height: 3),
                     Text('Platform Yönetimi',
-                        style: sora(25, FontWeight.w800, ink)),
+                        style: SwanType.h2(ink)),
                     const SizedBox(height: 14),
                   ],
                 ),
@@ -141,8 +139,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
               ),
               child: Row(children: [
                 Text(labels[i],
-                    style: jakarta(12.5, FontWeight.w800,
-                        active ? Colors.white : ink,),),
+                    style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w800),),
                 // Bekleyen iş sayısı sekmenin üstünde dursun ki panele
                 // girmeden de görünsün.
                 if (i == 0 && pending > 0) ...[
@@ -157,7 +154,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('$pending',
-                        style: jakarta(10, FontWeight.w800, Colors.white)),
+                        style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ],
               ],),
@@ -237,12 +234,10 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('$value',
-                  style: sora(21, FontWeight.w800,
-                      alert && value > 0 ? const Color(0xFFF43F5E) : ink,),),
+                  style: SwanType.h2(alert && value > 0 ? const Color(0xFFF43F5E) : ink),),
               const SizedBox(height: 2),
               Text(label,
-                  style: jakarta(
-                      10.5, FontWeight.w600, SwanColors.textSecondary,),),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),),
             ],
           ),
         );
@@ -297,10 +292,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: jakarta(13, FontWeight.w800, ink)),
+                Text(title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 Text(sub,
-                    style: jakarta(
-                        11, FontWeight.w500, SwanColors.textSecondary,),),
+                    style: SwanType.caption(SwanColors.textSecondary),),
               ],
             ),
           ),
@@ -323,11 +317,11 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
         TextField(
           controller: _search,
           onChanged: (v) => setState(() => _query = v.trim()),
-          style: jakarta(13.5, FontWeight.w500, ink),
+          style: SwanType.bodySm(ink),
           decoration: InputDecoration(
             hintText: 'Ad veya kullanıcı adı ara…',
             hintStyle:
-                jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                SwanType.bodySm(SwanColors.textSecondary),
             prefixIcon: const Icon(Icons.search_rounded, size: 19),
             filled: true,
             fillColor: surf,
@@ -377,7 +371,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                   child: Text(p.name,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(13.5, FontWeight.w800, ink),),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800),),
                 ),
                 if (p.isAdmin) ...[
                   const SizedBox(width: 7),
@@ -389,7 +383,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('Yönetici',
-                        style: jakarta(9.5, FontWeight.w800, kTeal)),
+                        style: SwanType.caption(kTeal, w: FontWeight.w800)),
                   ),
                 ],
               ],),
@@ -397,8 +391,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
               Text(p.subtitle,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(
-                      11, FontWeight.w500, SwanColors.textSecondary,),),
+                  style: SwanType.caption(SwanColors.textSecondary),),
             ],
           ),
         ),
@@ -437,11 +430,11 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           GradientAvatar(initials: p.initials, size: 56, radius: 18),
           const SizedBox(height: 10),
-          Text(p.name, style: sora(18, FontWeight.w800, ink)),
+          Text(p.name, style: SwanType.h3(ink)),
           const SizedBox(height: 3),
           Text(p.subtitle,
               textAlign: TextAlign.center,
-              style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary),),
+              style: SwanType.caption(SwanColors.textSecondary),),
           const SizedBox(height: 18),
           _sheetAction(ink, Icons.person_rounded, 'Profili aç', () {
             Navigator.pop(ctx);
@@ -476,7 +469,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
           Icon(icon, size: 19, color: color),
           const SizedBox(width: 13),
           Expanded(
-            child: Text(label, style: jakarta(13.5, FontWeight.w700, color)),
+            child: Text(label, style: SwanType.bodySm(color, w: FontWeight.w700)),
           ),
           const Icon(Icons.chevron_right_rounded,
               size: 18, color: SwanColors.textSecondary,),
@@ -538,7 +531,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       children: [
         Text('Verilen kararlar geri alınamıyor; burada kimin ne zaman ne '
             'yaptığı görünür.',
-            style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary),),
+            style: SwanType.caption(SwanColors.textSecondary),),
         const SizedBox(height: 14),
         log.when(
           loading: premiumLoading,
@@ -584,21 +577,19 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                                   '${r.detail == null ? '' : ' · ${r.detail}'}',
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis,
-                                  style: jakarta(12.5, FontWeight.w700, ink),),
+                                  style: SwanType.caption(ink, w: FontWeight.w700),),
                               const SizedBox(height: 2),
                               Text([
                                 r.isClub ? 'Kulüp' : 'Belge',
                                 if (r.reviewer != null) r.reviewer!,
                                 _ago(r.reviewedAt),
                               ].join(' · '),
-                                  style: jakarta(10.5, FontWeight.w600,
-                                      SwanColors.textSecondary,),),
+                                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),),
                               if (r.note != null && r.note!.trim().isNotEmpty)
                                 Padding(
                                   padding: const EdgeInsets.only(top: 4),
                                   child: Text('Not: ${r.note}',
-                                      style: jakarta(11, FontWeight.w500,
-                                          SwanColors.textSecondary,),),
+                                      style: SwanType.caption(SwanColors.textSecondary),),
                                 ),
                             ],
                           ),
@@ -631,7 +622,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
         Text('Branş alanı sonradan eklendi. Aşağıdaki onaylı antrenörlerin '
             'branşı boş — federasyon kanallarına girebilmeleri için '
             'tamamlanması gerekiyor.',
-            style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary),),
+            style: SwanType.caption(SwanColors.textSecondary),),
         const SizedBox(height: 14),
         list.when(
           loading: premiumLoading,
@@ -660,10 +651,9 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(c.name,
-                                  style: jakarta(13, FontWeight.w800, ink)),
+                                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
                               Text('${c.coachLevel ?? '?'}. Kademe · branş yok',
-                                  style: jakarta(11, FontWeight.w500,
-                                      SwanColors.textSecondary,),),
+                                  style: SwanType.caption(SwanColors.textSecondary),),
                             ],
                           ),
                         ),
@@ -678,8 +668,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                               borderRadius: BorderRadius.circular(11),
                             ),
                             child: Text('Branş ata',
-                                style: jakarta(
-                                    11.5, FontWeight.w800, Colors.white,),),
+                                style: SwanType.caption(Colors.white, w: FontWeight.w800),),
                           ),
                         ),
                       ],),
@@ -737,14 +726,14 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
         child: Column(children: [
           Text(title,
               textAlign: TextAlign.center,
-              style: sora(17, FontWeight.w800, ink),),
+              style: SwanType.h3(ink),),
           const SizedBox(height: 12),
           Expanded(
             child: ListView.builder(
               itemCount: sports.length,
               itemBuilder: (_, i) => ListTile(
                 title: Text(sports[i].name,
-                    style: jakarta(13.5, FontWeight.w600, ink),),
+                    style: SwanType.bodySm(ink, w: FontWeight.w600),),
                 onTap: () => Navigator.pop(ctx, sports[i].code),
               ),
             ),
@@ -794,16 +783,13 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
               20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom,),
           child: Column(mainAxisSize: MainAxisSize.min, children: [
             Text('Onayla · ${c.personName ?? "Kişi"}',
-                style: sora(17, FontWeight.w800, ink),),
+                style: SwanType.h3(ink),),
             const SizedBox(height: 6),
             Text('Belgeyle eşleşmiyorsa buradan düzeltebilirsin.',
                 textAlign: TextAlign.center,
-                style: jakarta(
-                    11.5, FontWeight.w500, SwanColors.textSecondary,),),
+                style: SwanType.caption(SwanColors.textSecondary),),
             const SizedBox(height: 18),
-            Text('KADEME',
-                style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                    ls: 1.1,),),
+            Text('Kademe', style: SwanType.h3(ink),),
             const SizedBox(height: 8),
             Row(children: [
               for (var i = 1; i <= 5; i++)
@@ -823,16 +809,13 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text('$i',
-                          style: jakarta(13, FontWeight.w800,
-                              level == i ? Colors.white : ink,),),
+                          style: SwanType.bodySm(level == i ? Colors.white : ink, w: FontWeight.w800),),
                     ),
                   ),
                 ),
             ],),
             const SizedBox(height: 18),
-            Text('BRANŞ',
-                style: jakarta(10.5, FontWeight.w800, SwanColors.textSecondary,
-                    ls: 1.1,),),
+            Text('Branş', style: SwanType.h3(ink),),
             const SizedBox(height: 8),
             GestureDetector(
               onTap: () async {
@@ -859,7 +842,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                 child: Row(children: [
                   Expanded(
                     child: Text(sportLabel,
-                        style: jakarta(13, FontWeight.w600, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   ),
                   const Icon(Icons.expand_more_rounded,
                       size: 19, color: SwanColors.textSecondary,),
@@ -877,7 +860,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text('Onayla',
-                    style: jakarta(14, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
           ],),
@@ -934,16 +917,16 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text(title, style: sora(17, FontWeight.w800, ink)),
+        title: Text(title, style: SwanType.h3(ink)),
         content: TextField(
           controller: ctrl,
           minLines: 2,
           maxLines: 5,
           autofocus: true,
-          style: jakarta(13, FontWeight.w500, ink),
+          style: SwanType.bodySm(ink),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: jakarta(12, FontWeight.w500, SwanColors.textSecondary),
+            hintStyle: SwanType.caption(SwanColors.textSecondary),
           ),
         ),
         actions: [
@@ -951,13 +934,13 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
                 style:
-                    jakarta(13, FontWeight.w700, SwanColors.textSecondary,),),
+                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700),),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Reddet',
                 style:
-                    jakarta(13, FontWeight.w800, const Color(0xFFF43F5E)),),
+                    SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800),),
           ),
         ],
       ),
@@ -969,8 +952,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
   Widget _sectionTitle(String t) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2,),),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700),),
       );
 
   Widget _clubRow(
@@ -1033,10 +1015,10 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: jakarta(13.5, FontWeight.w800, ink)),
+              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
               Text(sub,
                   style:
-                      jakarta(11, FontWeight.w500, SwanColors.textSecondary),),
+                      SwanType.caption(SwanColors.textSecondary),),
             ],
           ),
         ),

@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/widgets/premium.dart';
 import 'post_card.dart';
 import 'social_widgets.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Akıştaki tek bir öğe — gönderi, duyuru veya haber.
 ///
@@ -85,10 +86,9 @@ class AnnouncementCard extends StatelessWidget {
                   Text(clubName ?? 'Kulüp duyurusu',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(13, FontWeight.w800, ink)),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   Text('Duyuru · ${shortAgo(item.createdAt)}',
-                      style: jakarta(
-                          10.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
@@ -96,11 +96,11 @@ class AnnouncementCard extends StatelessWidget {
               const Icon(Icons.push_pin_rounded, size: 15, color: kCoral),
           ]),
           const SizedBox(height: 12),
-          Text(item.title, style: sora(16, FontWeight.w800, ink)),
+          Text(item.title, style: SwanType.h3(ink)),
           if (item.body.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
             Text(item.body,
-                style: jakarta(13, FontWeight.w500, ink).copyWith(height: 1.45)),
+                style: SwanType.bodySm(ink).copyWith(height: 1.45)),
           ],
         ],
       ),
@@ -154,10 +154,9 @@ class NewsCard extends StatelessWidget {
                       Text(item.sourceName,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: jakarta(13, FontWeight.w800, ink)),
+                          style: SwanType.bodySm(ink, w: FontWeight.w800)),
                       Text('Haber · ${shortAgo(item.publishedAt)}',
-                          style: jakarta(
-                              10.5, FontWeight.w500, SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary)),
                     ],
                   ),
                 ),
@@ -169,7 +168,7 @@ class NewsCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Text('HABER',
-                      style: jakarta(9.5, FontWeight.w800, kCoral)),
+                      style: SwanType.caption(kCoral, w: FontWeight.w800)),
                 ),
               ]),
             ),
@@ -180,15 +179,14 @@ class NewsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(item.title,
-                      style: sora(16, FontWeight.w800, ink)),
+                      style: SwanType.h3(ink)),
                   if (item.summary != null &&
                       item.summary!.trim().isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(item.summary!,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(12.5, FontWeight.w500,
-                                SwanColors.textSecondary)
+                        style: SwanType.caption(SwanColors.textSecondary)
                             .copyWith(height: 1.4)),
                   ],
                 ],
@@ -204,7 +202,7 @@ class NewsCard extends StatelessWidget {
                 padding: const EdgeInsets.fromLTRB(15, 0, 15, 13),
                 child: Row(children: [
                   Text('Habere git',
-                      style: jakarta(12.5, FontWeight.w800, kTeal)),
+                      style: SwanType.caption(kTeal, w: FontWeight.w800)),
                   const SizedBox(width: 4),
                   const Icon(Icons.arrow_outward_rounded,
                       size: 15, color: kTeal),

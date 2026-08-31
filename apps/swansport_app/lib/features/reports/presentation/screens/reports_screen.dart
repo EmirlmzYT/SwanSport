@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Raporlar — kulübün gerçek verilerinden derlenen özet.
 ///
@@ -51,12 +52,10 @@ class ReportsScreen extends ConsumerWidget {
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                       children: [
                         Text(club.name.toUpperCase(),
-                            style: jakarta(
-                                11, FontWeight.w700, SwanColors.textSecondary,
-                                ls: 1.4)),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                         const SizedBox(height: 3),
                         Text('Raporlar',
-                            style: sora(25, FontWeight.w800, ink)),
+                            style: SwanType.h2(ink)),
                         const SizedBox(height: 18),
 
                         // ---------------------------------------- kadro
@@ -90,8 +89,7 @@ class ReportsScreen extends ConsumerWidget {
                               ? Text(
                                   'Henüz yoklama alınmamış. Yoklama aldıkça '
                                   'devam oranları burada birikir.',
-                                  style: jakarta(12, FontWeight.w500,
-                                      SwanColors.textSecondary))
+                                  style: SwanType.caption(SwanColors.textSecondary))
                               : _attendanceCard(isDark, ink, list),
                         ),
                       ],
@@ -107,8 +105,7 @@ class ReportsScreen extends ConsumerWidget {
   Widget _section(Color ink, String t) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _statCard(
@@ -129,12 +126,10 @@ class ReportsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(s.$2,
-                    style: sora(22, FontWeight.w800,
-                        s.$3 ? const Color(0xFFF43F5E) : ink)),
+                    style: SwanType.h2(s.$3 ? const Color(0xFFF43F5E) : ink)),
                 const SizedBox(height: 2),
                 Text(s.$1,
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
             ),
           ),
@@ -161,11 +156,10 @@ class ReportsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Tahsilat oranı',
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text('%${(rate * 100).round()}',
-                    style: sora(24, FontWeight.w800, ink)),
+                    style: SwanType.h2(ink)),
               ],
             ),
           ),
@@ -196,12 +190,11 @@ class ReportsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: jakarta(12.5, FontWeight.w800,
-                    alert ? const Color(0xFFF43F5E) : ink)),
+                style: SwanType.caption(alert ? const Color(0xFFF43F5E) : ink, w: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(label,
                 style:
-                    jakarta(10, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       );
@@ -229,16 +222,15 @@ class ReportsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Kulüp ortalaması',
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 const SizedBox(height: 3),
-                Text('%$avg', style: sora(24, FontWeight.w800, ink)),
+                Text('%$avg', style: SwanType.h2(ink)),
               ],
             ),
           ),
           Text('${list.length} sporcu',
               style:
-                  jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
         ]),
       ),
       const SizedBox(height: 12),
@@ -258,10 +250,9 @@ class ReportsScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(r.name.isEmpty ? 'Sporcu' : r.name,
-                      style: jakarta(12.5, FontWeight.w700, ink)),
+                      style: SwanType.caption(ink, w: FontWeight.w700)),
                   Text('${r.present} katıldı · ${r.absent} gelmedi',
-                      style: jakarta(
-                          10.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
@@ -280,8 +271,7 @@ class ReportsScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 10),
             Text('%${r.rate}',
-                style: jakarta(12, FontWeight.w800,
-                    r.rate < 60 ? const Color(0xFFF43F5E) : ink)),
+                style: SwanType.caption(r.rate < 60 ? const Color(0xFFF43F5E) : ink, w: FontWeight.w800)),
           ]),
         ),
     ]);

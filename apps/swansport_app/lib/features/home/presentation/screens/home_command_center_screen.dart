@@ -8,6 +8,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_actions.dart';
 import '../../../demo/demo_role.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Komuta Merkezi (Ekran 0) — Supabase verisine bağlı, premium (v3).
 class HomeCommandCenterScreen extends ConsumerWidget {
@@ -59,23 +60,19 @@ class HomeCommandCenterScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(club?.name ?? 'SwanSport',
-                              style: jakarta(14, FontWeight.w800, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
                           Text(demoLabel ?? _role(profile?.role),
-                              style: jakarta(11, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ],
                       ),
                     ),
                     const InboxActions(),
                   ]),
                   const SizedBox(height: 18),
-                  Text('KOMUTA MERKEZİ',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                  Text('Komuta Merkezi', style: SwanType.h3(ink)),
                   const SizedBox(height: 4),
                   Text('Merhaba, ${profile?.firstName ?? 'Antrenör'}',
-                      style: sora(25, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   const SizedBox(height: 16),
                   // KPI şeridi (gerçek sayılar)
                   Container(
@@ -174,10 +171,10 @@ class HomeCommandCenterScreen extends ConsumerWidget {
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 13),
           child: Column(children: [
-            Text(n, style: sora(18, FontWeight.w800, numColor)),
+            Text(n, style: SwanType.h3(numColor)),
             const SizedBox(height: 1),
             Text(l,
-                style: jakarta(9.5, FontWeight.w600, SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ]),
         ),
       );
@@ -187,14 +184,13 @@ class HomeCommandCenterScreen extends ConsumerWidget {
   Widget _label(String t, Color ink) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Text(text,
-            style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
@@ -218,17 +214,17 @@ class HomeCommandCenterScreen extends ConsumerWidget {
               color: kTeal.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(12)),
           alignment: Alignment.center,
-          child: Text(hm, style: sora(12, FontWeight.w800, kTeal)),
+          child: Text(hm, style: SwanType.h3(kTeal)),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: jakarta(13, FontWeight.w700, ink)),
+              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               Text(place,
                   style:
-                      jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -260,7 +256,7 @@ class HomeCommandCenterScreen extends ConsumerWidget {
         const SizedBox(width: 12),
         Expanded(
           child: Text('$count doğrulama seni bekliyor',
-              style: jakarta(13, FontWeight.w700, ink)),
+              style: SwanType.bodySm(ink, w: FontWeight.w700)),
         ),
         Icon(Icons.chevron_right_rounded,
             color: SwanColors.textSecondary, size: 20),
@@ -285,6 +281,6 @@ class _Crest extends StatelessWidget {
           borderRadius: BorderRadius.circular(13),
         ),
         alignment: Alignment.center,
-        child: Text('K', style: sora(17, FontWeight.w800, Colors.white)),
+        child: Text('K', style: SwanType.h3(Colors.white)),
       );
 }

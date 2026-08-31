@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Keşfet — kulüpleri il, ilçe, branş ve doğrulanmışlık filtreleriyle bul.
 ///
@@ -65,7 +66,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   ),
                   const SizedBox(width: 14),
                   Text('Kulüpleri Keşfet',
-                      style: sora(21, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                 ]),
               ),
 
@@ -76,11 +77,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                   controller: _search,
                   onChanged: (v) =>
                       setState(() => _filter = _filter.copyWith(query: v.trim())),
-                  style: jakarta(13.5, FontWeight.w500, ink),
+                  style: SwanType.bodySm(ink),
                   decoration: InputDecoration(
                     hintText: 'Kulüp adı ara…',
                     hintStyle:
-                        jakarta(13, FontWeight.w500, SwanColors.textSecondary),
+                        SwanType.bodySm(SwanColors.textSecondary),
                     prefixIcon: const Icon(Icons.search_rounded, size: 19),
                     filled: true,
                     fillColor: surf,
@@ -168,8 +169,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               const SizedBox(width: 5),
             ],
             Text(label,
-                style: jakarta(
-                    12, FontWeight.w700, active ? Colors.white : ink)),
+                style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w700)),
           ]),
         ),
       );
@@ -234,13 +234,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
         ),
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
         child: Column(children: [
-          Text(title, style: sora(17, FontWeight.w800, ink)),
+          Text(title, style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           Expanded(
             child: ListView(children: [
               ListTile(
                 title: Text('Hepsi',
-                    style: jakarta(13.5, FontWeight.w600, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 trailing: current.isEmpty
                     ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                     : null,
@@ -249,10 +249,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               for (final o in options)
                 ListTile(
                   title:
-                      Text(o.label, style: jakarta(13.5, FontWeight.w600, ink)),
+                      Text(o.label, style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   subtitle: Text('${o.count} kulüp',
-                      style: jakarta(
-                          11, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   trailing: o.code == current
                       ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                       : null,
@@ -298,7 +297,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     child: Text(c.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(13.5, FontWeight.w800, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   ),
                   if (c.isVerified) ...[
                     const SizedBox(width: 5),
@@ -313,12 +312,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text('${c.athleteCount} sporcu · ${c.coachCount} antrenör',
-                    style: jakarta(
-                        10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

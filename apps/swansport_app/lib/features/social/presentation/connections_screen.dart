@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Takipçiler / takip edilenler listesi.
 ///
@@ -73,7 +74,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                       child: Text(widget.title ?? 'Bağlantılar',
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: sora(20, FontWeight.w800, ink)),
+                          style: SwanType.h2(ink)),
                     ),
                   ]),
                 ),
@@ -155,13 +156,12 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                 Text(r.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(13.5, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 if (r.subtitle != null)
                   Text(r.subtitle!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

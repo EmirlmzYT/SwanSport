@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Davet kodu girişi.
 ///
@@ -69,27 +70,24 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
                   ),
                   alignment: Alignment.center,
                   child:
-                      Text('V', style: sora(24, FontWeight.w800, Colors.white)),
+                      Text('V', style: SwanType.h2(Colors.white)),
                 ),
                 const SizedBox(height: 20),
-                Text('Davet kodu', style: sora(28, FontWeight.w800, ink)),
+                Text('Davet kodu', style: SwanType.h1(ink)),
                 const SizedBox(height: 8),
                 Text(
                     'Sporcunun (veya kulübün) verdiği tek kullanımlık davet '
                     'kodunu gir.',
-                    style: jakarta(
-                        13.5, FontWeight.w500, SwanColors.textSecondary,),),
+                    style: SwanType.bodySm(SwanColors.textSecondary),),
                 const SizedBox(height: 22),
                 TextField(
                   controller: _ctrl,
                   textCapitalization: TextCapitalization.characters,
                   textAlign: TextAlign.center,
-                  style: sora(22, FontWeight.w800, ink, ls: 4),
+                  style: SwanType.h2(ink),
                   decoration: InputDecoration(
                     hintText: 'K O D',
-                    hintStyle: sora(
-                        20, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 4,),
+                    hintStyle: SwanType.h2(SwanColors.textSecondary),
                     filled: true,
                     fillColor: surf,
                     contentPadding: const EdgeInsets.symmetric(vertical: 18),
@@ -109,8 +107,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
                         size: 14, color: SwanColors.textSecondary,),
                     const SizedBox(width: 6),
                     Text('Kod tek kullanımlık ve süreli — veren kişiden yeni kod iste',
-                        style: jakarta(
-                            11.5, FontWeight.w600, SwanColors.textSecondary,),),
+                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),),
                   ],
                 ),
                 const SizedBox(height: 22),
@@ -131,7 +128,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
                       ],
                     ),
                     child: Text(_busy ? 'Bağlanıyor…' : 'Sporcuya Bağlan',
-                        style: jakarta(14.5, FontWeight.w800, Colors.white),),
+                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800),),
                   ),
                 ),
               ],

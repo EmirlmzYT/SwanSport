@@ -11,6 +11,7 @@ import '../../../home/presentation/screens/guardian_home_screen.dart';
 import '../../../home/presentation/screens/member_home_screen.dart';
 import '../../../verification/presentation/club_pending_screen.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Antrenör Paneli — Supabase verisine bağlı, premium tasarım (v3).
 class CoachDashboardScreen extends ConsumerWidget {
@@ -98,7 +99,7 @@ class CoachDashboardScreen extends ConsumerWidget {
                         alignment: Alignment.center,
                         child: Text(
                           clubName.isNotEmpty ? clubName[0].toUpperCase() : 'S',
-                          style: sora(17, FontWeight.w800, Colors.white),
+                          style: SwanType.h3(Colors.white),
                         ),
                       ),
                       const SizedBox(width: 11),
@@ -107,10 +108,9 @@ class CoachDashboardScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(clubName,
-                                style: jakarta(14, FontWeight.w800, ink)),
+                                style: SwanType.bodySm(ink, w: FontWeight.w800)),
                             Text(role,
-                                style: jakarta(11, FontWeight.w600,
-                                    SwanColors.textSecondary)),
+                                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -119,14 +119,12 @@ class CoachDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 18),
                   Text(_today(),
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                   const SizedBox(height: 5),
                   Text('İyi çalışmalar,',
-                      style: sora(25, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   Text(profile?.firstName ?? 'Antrenör',
-                      style: sora(25, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   const SizedBox(height: 18),
                   // Yaklaşan etkinlik hero
                   events.when(
@@ -209,13 +207,13 @@ class CoachDashboardScreen extends ConsumerWidget {
               const SizedBox(width: 7),
               Text(
                   'YAKLAŞAN · ${e.kindLabel.toUpperCase()} · ${_hm(e.startsAt)}',
-                  style: jakarta(
-                      9.5, FontWeight.w700, Colors.white.withValues(alpha: 0.9),
-                      ls: 1.0)),
+                  style: SwanType.caption(
+                      Colors.white.withValues(alpha: 0.9),
+                      w: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 10),
-          Text(e.title, style: sora(19, FontWeight.w800, Colors.white)),
+          Text(e.title, style: SwanType.h3(Colors.white)),
           const SizedBox(height: 5),
           Row(
             children: [
@@ -224,8 +222,7 @@ class CoachDashboardScreen extends ConsumerWidget {
               const SizedBox(width: 6),
               Flexible(
                 child: Text(e.place ?? '—',
-                    style: jakarta(12, FontWeight.w500,
-                        Colors.white.withValues(alpha: 0.92))),
+                    style: SwanType.caption(Colors.white.withValues(alpha: 0.92))),
               ),
             ],
           ),
@@ -250,7 +247,7 @@ class CoachDashboardScreen extends ConsumerWidget {
                             size: 15, color: kTealDeep),
                         const SizedBox(width: 7),
                         Text('Yoklama',
-                            style: jakarta(12.5, FontWeight.w800, kTealDeep)),
+                            style: SwanType.caption(kTealDeep, w: FontWeight.w800)),
                       ],
                     ),
                   ),
@@ -291,7 +288,7 @@ class CoachDashboardScreen extends ConsumerWidget {
                 ),
                 alignment: Alignment.center,
                 child: Text('+$extra',
-                    style: sora(8.5, FontWeight.w700, Colors.white, ls: 0)),
+                    style: SwanType.h3(Colors.white)),
               ),
             ),
         ],
@@ -308,7 +305,7 @@ class CoachDashboardScreen extends ConsumerWidget {
           border: Border.all(color: const Color(0xFF0A8F97), width: 2),
         ),
         alignment: Alignment.center,
-        child: Text(initials, style: sora(9, FontWeight.w700, Colors.white)),
+        child: Text(initials, style: SwanType.h3(Colors.white)),
       );
 
   Widget _noEvent(BuildContext context, bool isDark) {
@@ -340,10 +337,9 @@ class CoachDashboardScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Yaklaşan etkinlik yok',
-                    style: jakarta(13.5, FontWeight.w700, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 Text('Takvimden antrenman/maç ekle.',
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -386,11 +382,11 @@ class CoachDashboardScreen extends ConsumerWidget {
               child: Icon(icon, size: 16, color: iconFg),
             ),
             const SizedBox(height: 9),
-            Text(value, style: sora(22, FontWeight.w800, ink)),
+            Text(value, style: SwanType.h2(ink)),
             const SizedBox(height: 1),
             Text(label,
                 style:
-                    jakarta(10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       ),

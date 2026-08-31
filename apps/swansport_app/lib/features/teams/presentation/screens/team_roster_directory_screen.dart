@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Takımlar & Antrenman Grupları — Supabase verisine bağlı, premium (v3).
 class TeamRosterDirectoryScreen extends ConsumerWidget {
@@ -33,12 +34,10 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
               children: [
                 Text(club?.name.toUpperCase() ?? 'KULÜP',
-                    style: jakarta(
-                        11, FontWeight.w700, SwanColors.textSecondary,
-                        ls: 1.4)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                 const SizedBox(height: 3),
                 Row(children: [
-                  Expanded(child: Text('Takımlar', style: sora(25, FontWeight.w800, ink))),
+                  Expanded(child: Text('Takımlar', style: SwanType.h2(ink))),
                   if (canManage)
                     AddButton(onTap: () => _team(context, ref, club!.id)),
                 ]),
@@ -107,11 +106,10 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(t.name, style: jakarta(14.5, FontWeight.w800, ink)),
+                  Text(t.name, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   if (sub.isNotEmpty)
                     Text(sub,
-                        style: jakarta(
-                            11.5, FontWeight.w500, SwanColors.textSecondary)),
+                        style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),

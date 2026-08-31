@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import 'configuration_module_args.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kulüp Yapılandırma.
 ///
@@ -59,12 +60,10 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                       children: [
                         Text((identity?.name ?? club.name).toUpperCase(),
-                            style: jakarta(
-                                11, FontWeight.w700, SwanColors.textSecondary,
-                                ls: 1.4)),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
                         const SizedBox(height: 3),
                         Text('Yapılandırma',
-                            style: sora(25, FontWeight.w800, ink)),
+                            style: SwanType.h2(ink)),
                         const SizedBox(height: 18),
                         _identityCard(isDark, ink, identity),
                         const SizedBox(height: 22),
@@ -125,15 +124,14 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(c?.name ?? '—',
-                      style: jakarta(14.5, FontWeight.w800, ink)),
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   const SizedBox(height: 2),
                   Text(
                       [
                         if ((c?.shortName ?? '').isNotEmpty) c!.shortName!,
                         if ((c?.city ?? '').isNotEmpty) c!.city!,
                       ].join(' · '),
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                 ],
               ),
             ),
@@ -154,7 +152,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Text('Kulüp bilgilerini düzenle',
-                  style: jakarta(12.5, FontWeight.w800, kTeal)),
+                  style: SwanType.caption(kTeal, w: FontWeight.w800)),
             ),
           ),
         ],
@@ -203,8 +201,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
           data: (list) {
             if (list.isEmpty) {
               return Text('Kulüpte üye yok.',
-                  style: jakarta(
-                      12, FontWeight.w500, SwanColors.textSecondary));
+                  style: SwanType.caption(SwanColors.textSecondary));
             }
             final adminCount = list.where((m) => m.isAdmin).length;
             return Column(children: [
@@ -232,15 +229,14 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                             Text(m.name,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: jakarta(13, FontWeight.w700, ink)),
+                                style: SwanType.bodySm(ink, w: FontWeight.w700)),
                             Text(
                                 m.status == 'active'
                                     ? m.roleLabel
                                     : '${m.roleLabel} · ${m.status}',
-                                style: jakarta(10.5, FontWeight.w600,
-                                    m.isAdmin
+                                style: SwanType.caption(m.isAdmin
                                         ? kTeal
-                                        : SwanColors.textSecondary)),
+                                        : SwanColors.textSecondary, w: FontWeight.w600)),
                           ],
                         ),
                       ),
@@ -277,9 +273,9 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           GradientAvatar(initials: m.initials, size: 52, radius: 17),
           const SizedBox(height: 10),
-          Text(m.name, style: sora(17, FontWeight.w800, ink)),
+          Text(m.name, style: SwanType.h3(ink)),
           Text(m.roleLabel,
-              style: jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const SizedBox(height: 16),
           if (locked)
             Padding(
@@ -288,8 +284,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                   'Kulübün tek yöneticisi. Rolünü değiştirmek için önce başka '
                   'birini yönetici yap.',
                   textAlign: TextAlign.center,
-                  style: jakarta(
-                      11, FontWeight.w500, const Color(0xFFD9860B))),
+                  style: SwanType.caption(const Color(0xFFD9860B))),
             ),
           if (!locked) ...[
             for (final r in const [
@@ -307,7 +302,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                         : Icons.radio_button_off_rounded,
                     size: 19,
                     color: m.role == r.$1 ? kTeal : SwanColors.textSecondary),
-                title: Text(r.$2, style: jakarta(13, FontWeight.w600, ink)),
+                title: Text(r.$2, style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 onTap: () {
                   Navigator.pop(ctx);
                   if (m.role != r.$1) _changeRole(m, r.$1);
@@ -320,7 +315,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                   size: 19, color: Color(0xFFF43F5E)),
               title: Text('Kulüpten çıkar',
                   style:
-                      jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+                      SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
               onTap: () {
                 Navigator.pop(ctx);
                 _removeMember(m);
@@ -402,8 +397,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
           data: (list) => list.isEmpty
               ? Text('Sezon tanımlı değil. "2025-2026 Sezonu" gibi bir sezon '
                   'ekleyip aktif yapabilirsin.',
-                  style: jakarta(
-                      12, FontWeight.w500, SwanColors.textSecondary))
+                  style: SwanType.caption(SwanColors.textSecondary))
               : Column(children: [
                   for (final s in list)
                     GestureDetector(
@@ -435,19 +429,18 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                               children: [
                                 Text(s.label,
                                     style:
-                                        jakarta(13, FontWeight.w700, ink)),
+                                        SwanType.bodySm(ink, w: FontWeight.w700)),
                                 if (s.startsOn != null || s.endsOn != null)
                                   Text(
                                       '${_d(s.startsOn)} — ${_d(s.endsOn)}',
-                                      style: jakarta(10.5, FontWeight.w500,
-                                          SwanColors.textSecondary)),
+                                      style: SwanType.caption(SwanColors.textSecondary)),
                               ],
                             ),
                           ),
                           if (s.isActive)
                             Text('Aktif',
                                 style:
-                                    jakarta(11, FontWeight.w800, kTeal)),
+                                    SwanType.caption(kTeal, w: FontWeight.w800)),
                         ]),
                       ),
                     ),
@@ -493,7 +486,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(s.label, style: sora(17, FontWeight.w800, ink)),
+          Text(s.label, style: SwanType.h3(ink)),
           const SizedBox(height: 14),
           if (!s.isActive)
             ListTile(
@@ -501,7 +494,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
               leading: const Icon(Icons.play_circle_rounded,
                   size: 20, color: kTeal),
               title: Text('Aktif sezon yap',
-                  style: jakarta(13, FontWeight.w700, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w700)),
               onTap: () {
                 Navigator.pop(ctx);
                 _guard(() async {
@@ -519,7 +512,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
             leading: const Icon(Icons.delete_outline_rounded,
                 size: 20, color: Color(0xFFF43F5E)),
             title: Text('Sezonu sil',
-                style: jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
@@ -537,8 +530,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
   Widget _label(String t) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _link(bool isDark, Color ink, IconData icon, String title, String sub,
@@ -562,10 +554,9 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: jakarta(13, FontWeight.w700, ink)),
+                Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 Text(sub,
-                    style: jakarta(
-                        10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

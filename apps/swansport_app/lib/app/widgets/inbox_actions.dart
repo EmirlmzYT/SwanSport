@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import 'premium.dart';
+import '../../app/design/swan_type.dart';
 
 /// Üst barın sağındaki "gelen kutusu" ikonları: bildirimler + mesajlar.
 ///
@@ -102,7 +102,7 @@ class InboxIconButton extends StatelessWidget {
               ),
               child: Text(badgeLabel(badge),
                   textAlign: TextAlign.center,
-                  style: jakarta(9.5, FontWeight.w800, Colors.white)),
+                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
             ),
           ),
       ]),

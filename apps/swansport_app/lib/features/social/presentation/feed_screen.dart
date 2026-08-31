@@ -13,6 +13,7 @@ import 'widgets/post_card.dart';
 import 'widgets/today_strip.dart';
 import '../../../app/widgets/inbox_actions.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -62,7 +63,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('SwanSport',
-                              style: sora(22, FontWeight.w800, ink)),
+                              style: SwanType.h2(ink)),
                           const SizedBox(height: 2),
                           Text(
                             _greeting(
@@ -72,8 +73,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: jakarta(
-                                12, FontWeight.w600, SwanColors.textSecondary),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
                           ),
                         ],
                       ),
@@ -126,8 +126,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                           child: Text('Kulüp, antrenör veya sporcu ara…',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: jakarta(13, FontWeight.w500,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.bodySm(SwanColors.textSecondary)),
                         ),
                       ]),
                     ),

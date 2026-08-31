@@ -93,7 +93,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    Text('Mesajlar', style: sora(22, FontWeight.w800, ink)),
+                    Text('Mesajlar', style: SwanType.h2(ink)),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => Navigator.pushNamed(context, '/ara'),
@@ -368,7 +368,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Text('Şehrimi seç',
-                  style: jakarta(13, FontWeight.w800, Colors.white)),
+                  style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
             ),
           ),
         ),
@@ -550,7 +550,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         child: Text(widget.otherName,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: sora(18, FontWeight.w800, ink)),
+                            style: SwanType.h3(ink)),
                       ),
                     ),
                   ]),
@@ -564,8 +564,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       if (list.isEmpty) {
                         return Center(
                           child: Text('Sohbeti başlat',
-                              style: jakarta(13, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
                         );
                       }
                       return ListView.builder(
@@ -586,12 +585,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                         controller: _ctrl,
                         minLines: 1,
                         maxLines: 4,
-                        style: jakarta(13.5, FontWeight.w500, ink),
+                        style: SwanType.bodySm(ink),
                         onSubmitted: (_) => _send(),
                         decoration: InputDecoration(
                           hintText: 'Mesaj yaz…',
-                          hintStyle: jakarta(
-                              13, FontWeight.w500, SwanColors.textSecondary),
+                          hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                           filled: true,
                           fillColor: alt,
                           contentPadding: const EdgeInsets.symmetric(
@@ -664,13 +662,11 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(m.body,
-                style: jakarta(13.5, FontWeight.w500,
-                        m.isMine ? Colors.white : ink)
+                style: SwanType.bodySm(m.isMine ? Colors.white : ink)
                     .copyWith(height: 1.35)),
             const SizedBox(height: 3),
             Text(shortAgo(m.createdAt),
-                style: jakarta(9.5, FontWeight.w600,
-                    m.isMine ? Colors.white70 : SwanColors.textSecondary)),
+                style: SwanType.caption(m.isMine ? Colors.white70 : SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       ),

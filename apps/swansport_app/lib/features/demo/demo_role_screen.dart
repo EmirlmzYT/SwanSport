@@ -4,6 +4,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../app/widgets/premium.dart';
 import 'demo_role.dart';
+import '../../app/design/swan_type.dart';
 
 /// DEMO — rol değiştirici ekran (/demo-rol).
 /// Rolleri gruplu listeler; seçince demoRoleProvider'ı ayarlar ve o rolün
@@ -38,10 +39,9 @@ class DemoRoleScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text('Demo Modu',
-                            style: sora(22, FontWeight.w800, ink)),
+                            style: SwanType.h2(ink)),
                         Text('Rol seç — her rol farklı ekranları görür',
-                            style: jakarta(
-                                11.5, FontWeight.w500, SwanColors.textSecondary)),
+                            style: SwanType.caption(SwanColors.textSecondary)),
                       ],
                     ),
                   ),
@@ -76,8 +76,7 @@ class DemoRoleScreen extends ConsumerWidget {
                           active == null
                               ? 'Demo kapalı — gerçek rolündesin'
                               : 'Aktif demo rolü: ${active.shortLabel}',
-                          style: jakarta(12.5, FontWeight.w700,
-                              active == null ? SwanColors.textSecondary : ink)),
+                          style: SwanType.caption(active == null ? SwanColors.textSecondary : ink, w: FontWeight.w700)),
                     ),
                     if (active != null)
                       GestureDetector(
@@ -87,7 +86,7 @@ class DemoRoleScreen extends ConsumerWidget {
                               context, '/dashboard', (_) => false);
                         },
                         child: Text('Gerçeğe dön',
-                            style: jakarta(12, FontWeight.w800, kCoral)),
+                            style: SwanType.caption(kCoral, w: FontWeight.w800)),
                       ),
                   ]),
                 ),
@@ -124,8 +123,7 @@ class DemoRoleScreen extends ConsumerWidget {
       Padding(
         padding: const EdgeInsets.fromLTRB(2, 4, 2, 10),
         child: Text(title,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       ),
       for (final r in roles)
         _roleCard(context, ref, isDark, r, active == r, isCoach),
@@ -172,7 +170,7 @@ class DemoRoleScreen extends ConsumerWidget {
             ),
             child: kademe != null
                 ? Text('$kademe',
-                    style: sora(18, FontWeight.w800, Colors.white))
+                    style: SwanType.h3(Colors.white))
                 : Icon(_roleIcon(role), size: 20, color: Colors.white),
           ),
           const SizedBox(width: 13),
@@ -180,11 +178,10 @@ class DemoRoleScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(role.shortLabel, style: jakarta(13.5, FontWeight.w800, ink)),
+                Text(role.shortLabel, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(_roleHint(role, count),
-                    style: jakarta(
-                        11, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -254,7 +251,7 @@ class DemoRoleScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Demo modu neyi değiştirir?',
-                  style: jakarta(12, FontWeight.w800, ink)),
+                  style: SwanType.caption(ink, w: FontWeight.w800)),
               const SizedBox(height: 4),
               Text(
                   'Menüyü, alt barı ve hangi ekranlara girebildiğini değiştirir. '
@@ -262,7 +259,7 @@ class DemoRoleScreen extends ConsumerWidget {
                   'Yetki gerektiren bir ekranı demoyla açarsan (ör. onay paneli) '
                   'liste boş görünebilir; bu hata değil, veritabanı hâlâ gerçek '
                   'kimliğini görüyor.',
-                  style: jakarta(11, FontWeight.w500, SwanColors.textSecondary)
+                  style: SwanType.caption(SwanColors.textSecondary)
                       .copyWith(height: 1.45)),
             ],
           ),

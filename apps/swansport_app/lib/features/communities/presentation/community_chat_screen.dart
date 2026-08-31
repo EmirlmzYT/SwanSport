@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Topluluk sohbeti — birebir sohbetten farkı: gönderenin adı görünür ve
 /// mesajlar anlık (realtime) düşer.
@@ -153,11 +154,10 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                           Text(widget.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: sora(18, FontWeight.w800, ink)),
+                              style: SwanType.h3(ink)),
                           if (members.isNotEmpty)
                             Text('${members.length} üye',
-                                style: jakarta(10.5, FontWeight.w600,
-                                    SwanColors.textSecondary)),
+                                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -189,8 +189,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                       if (list.isEmpty) {
                         return Center(
                           child: Text('İlk mesajı sen yaz',
-                              style: jakarta(13, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
                         );
                       }
                       return ListView.builder(
@@ -218,12 +217,11 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                         controller: _ctrl,
                         minLines: 1,
                         maxLines: 4,
-                        style: jakarta(13.5, FontWeight.w500, ink),
+                        style: SwanType.bodySm(ink),
                         onSubmitted: (_) => _send(),
                         decoration: InputDecoration(
                           hintText: 'Mesaj yaz…',
-                          hintStyle: jakarta(
-                              13, FontWeight.w500, SwanColors.textSecondary),
+                          hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                           filled: true,
                           fillColor: alt,
                           contentPadding: const EdgeInsets.symmetric(
@@ -297,16 +295,14 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
             Padding(
               padding: const EdgeInsets.only(bottom: 3),
               child: Text(sender?.name ?? 'Üye',
-                  style: jakarta(11, FontWeight.w800, kTeal)),
+                  style: SwanType.caption(kTeal, w: FontWeight.w800)),
             ),
           Text(m.body,
-              style: jakarta(13.5, FontWeight.w500,
-                      m.isMine ? Colors.white : ink)
+              style: SwanType.bodySm(m.isMine ? Colors.white : ink)
                   .copyWith(height: 1.35)),
           const SizedBox(height: 3),
           Text(shortAgo(m.createdAt),
-              style: jakarta(9.5, FontWeight.w600,
-                  m.isMine ? Colors.white70 : SwanColors.textSecondary)),
+              style: SwanType.caption(m.isMine ? Colors.white70 : SwanColors.textSecondary, w: FontWeight.w600)),
         ],
       ),
     );

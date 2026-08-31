@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// SwanSport Kartı — paylaşılabilir QR kimlik.
 ///
@@ -67,7 +68,7 @@ class _SwanCard extends ConsumerWidget {
       padding: EdgeInsets.fromLTRB(
           22, 20, 22, 24 + MediaQuery.of(context).padding.bottom),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Text('SwanSport Kartı', style: sora(18, FontWeight.w800, ink)),
+        Text('SwanSport Kartı', style: SwanType.h3(ink)),
         const SizedBox(height: 16),
 
         // Kartın kendisi — koyu zemin, teal çerçeve; okutulduğunda tanınsın.
@@ -97,13 +98,12 @@ class _SwanCard extends ConsumerWidget {
                     Text(name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: sora(16, FontWeight.w800, Colors.white)),
+                        style: SwanType.h3(Colors.white)),
                     if ((subtitle ?? '').isNotEmpty)
                       Text(subtitle!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: jakarta(11, FontWeight.w600,
-                              Colors.white.withValues(alpha: .75))),
+                          style: SwanType.caption(Colors.white.withValues(alpha: .75), w: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -131,15 +131,16 @@ class _SwanCard extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
             Text('SwanSport',
-                style: jakarta(11, FontWeight.w800,
-                    Colors.white.withValues(alpha: .6), ls: 2)),
+                style: SwanType.caption(
+                    Colors.white.withValues(alpha: .6),
+                    w: FontWeight.w800)),
           ]),
         ),
 
         const SizedBox(height: 14),
         Text('Okutan kişi yalnızca herkese açık profilini görür.',
             textAlign: TextAlign.center,
-            style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
         const SizedBox(height: 16),
 
         GestureDetector(
@@ -157,7 +158,7 @@ class _SwanCard extends ConsumerWidget {
               borderRadius: BorderRadius.circular(15),
             ),
             child: Text('Bağlantıyı kopyala',
-                style: jakarta(13.5, FontWeight.w800, Colors.white)),
+                style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
           ),
         ),
       ]),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Ağdan yüklenen avatar; görsel yoksa baş harflerle degrade avatara düşer.
 class SocialAvatar extends StatelessWidget {
@@ -157,8 +158,7 @@ class _RatioImageState extends State<RatioImage> {
                           color: SwanColors.textSecondary, size: 26),
                       const SizedBox(height: 6),
                       Text('Görsel gösterilemiyor',
-                          style: jakarta(
-                              11.5, FontWeight.w600, SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                     ],
                   ),
                 )
@@ -230,10 +230,10 @@ class SocialStat extends StatelessWidget {
     final ink = isDark ? Colors.white : SwanColors.textPrimary;
     return Column(
       children: [
-        Text(compactCount(value), style: sora(17, FontWeight.w800, ink)),
+        Text(compactCount(value), style: SwanType.h3(ink)),
         const SizedBox(height: 2),
         Text(label,
-            style: jakarta(11, FontWeight.w600, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
       ],
     );
   }

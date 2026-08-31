@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import 'premium.dart';
+import '../../app/design/swan_type.dart';
 
 /// Sayfa içi sekme çubukları.
 ///
@@ -70,8 +71,7 @@ class SwanSegmentedTabs extends StatelessWidget {
                       : null,
                 ),
                 child: Text(labels[i],
-                    style: jakarta(12.5, FontWeight.w800,
-                        i == selected ? ink : SwanColors.textSecondary)),
+                    style: SwanType.caption(i == selected ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
               ),
             ),
           ),
@@ -127,8 +127,7 @@ class SwanPillTabs extends StatelessWidget {
               ),
               child: Row(mainAxisSize: MainAxisSize.min, children: [
                 Text(labels[i],
-                    style: jakarta(12.5, FontWeight.w800,
-                        active ? Colors.white : SwanColors.textSecondary)),
+                    style: SwanType.caption(active ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800)),
                 if (badge > 0) ...[
                   const SizedBox(width: 7),
                   Container(
@@ -142,7 +141,7 @@ class SwanPillTabs extends StatelessWidget {
                     ),
                     child: Text(badge > 9 ? '9+' : '$badge',
                         style:
-                            jakarta(9.5, FontWeight.w800, Colors.white)),
+                            SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ],
               ]),

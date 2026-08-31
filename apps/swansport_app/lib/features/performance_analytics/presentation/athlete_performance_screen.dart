@@ -72,14 +72,11 @@ class AthletePerformanceScreen extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('PERFORMANS',
-                              style: jakarta(10.5, FontWeight.w700,
-                                  SwanColors.textSecondary,
-                                  ls: 1.3)),
+                          Text('Performans', style: SwanType.h3(ink)),
                           Text(athleteName,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: sora(21, FontWeight.w800, ink)),
+                              style: SwanType.h2(ink)),
                         ],
                       ),
                     ),
@@ -89,10 +86,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
                   // ---------------- Testler ----------------
                   Row(children: [
                     Expanded(
-                      child: Text('TEST SONUÇLARI',
-                          style: jakarta(
-                              11, FontWeight.w700, SwanColors.textSecondary,
-                              ls: 1.2)),
+                      child: Text('Test Sonuçları', style: SwanType.h3(ink)),
                     ),
                     if (canManage)
                       GestureDetector(
@@ -101,7 +95,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
                           const Icon(Icons.add_rounded, size: 16, color: kTeal),
                           const SizedBox(width: 4),
                           Text('Test Ekle',
-                              style: jakarta(12, FontWeight.w800, kTeal)),
+                              style: SwanType.caption(kTeal, w: FontWeight.w800)),
                         ]),
                       ),
                   ]),
@@ -130,10 +124,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
                   const SizedBox(height: 24),
                   Row(children: [
                     Expanded(
-                      child: Text('GELİŞİM HEDEFLERİ',
-                          style: jakarta(
-                              11, FontWeight.w700, SwanColors.textSecondary,
-                              ls: 1.2)),
+                      child: Text('Gelişim Hedefleri', style: SwanType.h3(ink)),
                     ),
                     if (canManage)
                       GestureDetector(
@@ -142,7 +133,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
                           const Icon(Icons.add_rounded, size: 16, color: kTeal),
                           const SizedBox(width: 4),
                           Text('Hedef Ekle',
-                              style: jakarta(12, FontWeight.w800, kTeal)),
+                              style: SwanType.caption(kTeal, w: FontWeight.w800)),
                         ]),
                       ),
                   ]),
@@ -188,7 +179,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
         const SizedBox(height: 8),
         Text(text,
             textAlign: TextAlign.center,
-            style: jakarta(12, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       ]),
     );
   }
@@ -255,12 +246,9 @@ class AthletePerformanceScreen extends ConsumerWidget {
                             : const Color(0xFFF43F5E)),
                     const SizedBox(width: 3),
                     Text('${change.abs().toStringAsFixed(1)}%',
-                        style: jakarta(
-                            11,
-                            FontWeight.w700,
-                            improved
+                        style: SwanType.caption(improved
                                 ? const Color(0xFF10B981)
-                                : const Color(0xFFF43F5E))),
+                                : const Color(0xFFF43F5E), w: FontWeight.w700)),
                   ]),
               ],
             ),
@@ -276,12 +264,12 @@ class AthletePerformanceScreen extends ConsumerWidget {
                 '${_d(s.records.first.testDate)} → son '
                 '${_d(s.latest.testDate)}',
                 style:
-                    jakarta(10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary)),
           ] else ...[
             const SizedBox(height: 8),
             Text('Tek ölçüm · ${_d(s.latest.testDate)}',
                 style:
-                    jakarta(10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary)),
           ],
 
           if (canManage) ...[
@@ -294,7 +282,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
                 ref.invalidate(testSeriesProvider(athleteId));
               },
               child: Text('Son ölçümü sil',
-                  style: jakarta(11, FontWeight.w700, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
             ),
           ],
         ],
@@ -368,7 +356,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
           Row(children: [
             Expanded(
               child: Text(g.title,
-                  style: jakarta(13.5, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
             ),
             const SizedBox(width: 8),
             PremiumStatusChip(
@@ -380,7 +368,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
                 categoryLabel(g.category),
                 if (g.targetDate != null) 'Hedef: ${_d(g.targetDate!)}',
               ].join(' · '),
-              style: jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 12),
           Row(children: [
             Expanded(
@@ -395,7 +383,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 10),
-            Text('%${g.progress}', style: sora(14, FontWeight.w800, ink)),
+            Text('%${g.progress}', style: SwanType.h3(ink)),
           ]),
           if (canManage) ...[
             const SizedBox(height: 10),
@@ -435,7 +423,7 @@ class AthletePerformanceScreen extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
             color: alt, borderRadius: BorderRadius.circular(10)),
-        child: Text(label, style: jakarta(12.5, FontWeight.w800, ink)),
+        child: Text(label, style: SwanType.caption(ink, w: FontWeight.w800)),
       ),
     );
   }

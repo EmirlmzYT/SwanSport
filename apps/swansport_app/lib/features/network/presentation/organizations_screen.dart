@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Lig / turnuva / kupa organizasyonları.
 ///
@@ -57,7 +58,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                   ),
                   const SizedBox(width: 14),
                   Text('Organizasyonlar',
-                      style: sora(21, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   const Spacer(),
                   AddButton(onTap: _create, tooltip: 'Organizasyon aç'),
                 ]),
@@ -139,7 +140,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                 Text(o.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(13.5, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(
                     [
@@ -150,12 +151,10 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                     ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text('${o.participantCount} takım',
-                    style: jakarta(
-                        10.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -194,11 +193,11 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
           ),
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
           child: Column(children: [
-            Text(o.name, style: sora(18, FontWeight.w800, ink)),
+            Text(o.name, style: SwanType.h3(ink)),
             const SizedBox(height: 3),
             Text('${o.kindLabel} · ${o.participantCount} takım',
                 style:
-                    jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
             const SizedBox(height: 14),
             Row(children: [
               for (final t in const [(0, 'Puan durumu'), (1, 'Fikstür')])
@@ -216,8 +215,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                             color: tab == t.$1 ? kTeal : line),
                       ),
                       child: Text(t.$2,
-                          style: jakarta(12.5, FontWeight.w800,
-                              tab == t.$1 ? Colors.white : ink)),
+                          style: SwanType.caption(tab == t.$1 ? Colors.white : ink, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -245,8 +243,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                         border: Border.all(color: line),
                       ),
                       child: Text('Takım ekle',
-                          style: jakarta(
-                              12.5, FontWeight.w800, SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -267,7 +264,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                       ),
                       child: Text('Fikstür oluştur',
                           style:
-                              jakarta(12.5, FontWeight.w800, Colors.white)),
+                              SwanType.caption(Colors.white, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -288,22 +285,18 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
         data: (rows) => rows.isEmpty
             ? Center(
                 child: Text('Katılımcı yok',
-                    style: jakarta(
-                        12.5, FontWeight.w600, SwanColors.textSecondary)))
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)))
             : ListView(children: [
                 Row(children: [
                   const SizedBox(width: 26),
                   Expanded(
-                      child: Text('TAKIM',
-                          style: jakarta(9.5, FontWeight.w800,
-                              SwanColors.textSecondary, ls: 1))),
+                      child: Text('Takım', style: SwanType.h3(ink))),
                   for (final h in const ['O', 'G', 'B', 'M', 'AV', 'P'])
                     SizedBox(
                       width: h == 'P' ? 30 : 24,
                       child: Text(h,
                           textAlign: TextAlign.center,
-                          style: jakarta(9.5, FontWeight.w800,
-                              SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                     ),
                 ]),
                 Divider(color: line, height: 12),
@@ -314,14 +307,13 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                       SizedBox(
                         width: 26,
                         child: Text('${i + 1}',
-                            style: jakarta(12, FontWeight.w800,
-                                i == 0 ? kTeal : SwanColors.textSecondary)),
+                            style: SwanType.caption(i == 0 ? kTeal : SwanColors.textSecondary, w: FontWeight.w800)),
                       ),
                       Expanded(
                         child: Text(rows[i].name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: jakarta(12.5, FontWeight.w700, ink)),
+                            style: SwanType.caption(ink, w: FontWeight.w700)),
                       ),
                       for (final v in [
                         rows[i].played,
@@ -334,14 +326,13 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                           width: 24,
                           child: Text('$v',
                               textAlign: TextAlign.center,
-                              style: jakarta(11.5, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ),
                       SizedBox(
                         width: 30,
                         child: Text('${rows[i].points}',
                             textAlign: TextAlign.center,
-                            style: jakarta(12.5, FontWeight.w800, kTeal)),
+                            style: SwanType.caption(kTeal, w: FontWeight.w800)),
                       ),
                     ]),
                   ),
@@ -362,8 +353,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                     o.canManage
                         ? 'Fikstür henüz oluşturulmadı'
                         : 'Fikstür yayımlanmadı',
-                    style: jakarta(
-                        12.5, FontWeight.w600, SwanColors.textSecondary)))
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)))
             : ListView.builder(
                 itemCount: rows.length,
                 itemBuilder: (_, i) {
@@ -376,8 +366,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                         padding: const EdgeInsets.fromLTRB(0, 10, 0, 8),
                         child: Row(children: [
                           Text('${m.round}. HAFTA',
-                              style: jakarta(9.5, FontWeight.w800,
-                                  SwanColors.textSecondary, ls: 1.1)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                           const SizedBox(width: 8),
                           Expanded(child: Divider(color: line, height: 1)),
                         ]),
@@ -398,7 +387,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.right,
-                                style: jakarta(12.5, FontWeight.w700, ink)),
+                                style: SwanType.caption(ink, w: FontWeight.w700)),
                           ),
                           Container(
                             margin:
@@ -417,18 +406,15 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                                     : (m.startsAt == null
                                         ? 'vs'
                                         : '${m.startsAt!.day}.${m.startsAt!.month}'),
-                                style: jakarta(
-                                    12,
-                                    FontWeight.w800,
-                                    m.isPlayed
+                                style: SwanType.caption(m.isPlayed
                                         ? kTeal
-                                        : SwanColors.textSecondary)),
+                                        : SwanColors.textSecondary, w: FontWeight.w800)),
                           ),
                           Expanded(
                             child: Text(m.awayName ?? '—',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: jakarta(12.5, FontWeight.w700, ink)),
+                                style: SwanType.caption(ink, w: FontWeight.w700)),
                           ),
                         ]),
                       ),

@@ -9,6 +9,7 @@ import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import '../../demo/demo_role.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Gönderi oluşturma sayfasını açar. Paylaşım yapıldıysa true döner.
 Future<bool?> showPostComposer(BuildContext context) {
@@ -128,7 +129,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Yeni Gönderi', style: sora(20, FontWeight.w800, ink)),
+          Text('Yeni Gönderi', style: SwanType.h2(ink)),
           const SizedBox(height: 14),
 
           if (!canShare) ...[
@@ -148,8 +149,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                   child: Text(
                       'Paylaşım yapmak için kimliğini doğrulatmalısın '
                       '(antrenör kademesi veya sporcu lisansı).',
-                      style: jakarta(
-                          12, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 ),
               ]),
             ),
@@ -167,7 +167,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                   borderRadius: BorderRadius.circular(15),
                 ),
                 child: Text('Doğrulamaya Git',
-                    style: jakarta(14, FontWeight.w800, Colors.white)),
+                    style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
               ),
             ),
           ] else ...[
@@ -196,7 +196,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                   effectiveAsClub
                       ? '${club.name} adına paylaşılacak'
                       : 'Kendi adına paylaşılacak',
-                  style: jakarta(11.5, FontWeight.w700, kTeal)),
+                  style: SwanType.caption(kTeal, w: FontWeight.w700)),
             ]),
             const SizedBox(height: 12),
 
@@ -205,11 +205,11 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
               minLines: 3,
               maxLines: 8,
               autofocus: true,
-              style: jakarta(14, FontWeight.w500, ink).copyWith(height: 1.45),
+              style: SwanType.bodySm(ink).copyWith(height: 1.45),
               decoration: InputDecoration(
                 hintText: 'Neler oluyor?',
                 hintStyle:
-                    jakarta(14, FontWeight.w500, SwanColors.textSecondary),
+                    SwanType.bodySm(SwanColors.textSecondary),
                 filled: true,
                 fillColor: alt,
                 contentPadding: const EdgeInsets.all(16),
@@ -272,7 +272,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                     const Icon(Icons.image_rounded, size: 18, color: kTeal),
                     const SizedBox(width: 8),
                     Text(_imageBytes == null ? 'Görsel Ekle' : 'Değiştir',
-                        style: jakarta(12.5, FontWeight.w700, ink)),
+                        style: SwanType.caption(ink, w: FontWeight.w700)),
                   ]),
                 ),
               ),
@@ -297,7 +297,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                     ],
                   ),
                   child: Text(_busy ? 'Paylaşılıyor…' : 'Paylaş',
-                      style: jakarta(14, FontWeight.w800, Colors.white)),
+                      style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                 ),
               ),
             ]),
@@ -320,8 +320,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(label,
-              style: jakarta(
-                  12.5, FontWeight.w800, on ? ink : SwanColors.textSecondary)),
+              style: SwanType.caption(on ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
         ),
       ),
     );

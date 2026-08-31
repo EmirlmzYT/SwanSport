@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kulüp finansı — aidat tahakkuku, tahsilat onayı ve planlar.
 ///
@@ -56,13 +57,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('KULÜP FİNANSI',
-                            style: jakarta(
-                                11, FontWeight.w700, SwanColors.textSecondary,
-                                ls: 1.2)),
+                        Text('Kulüp Finansı', style: SwanType.h3(ink)),
                         const SizedBox(height: 3),
                         Text('Aidat & Bağış',
-                            style: sora(24, FontWeight.w800, ink)),
+                            style: SwanType.h2(ink)),
                       ],
                     ),
                   ),
@@ -140,8 +138,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               ),
               child: Row(children: [
                 Text(labels[i],
-                    style: jakarta(12.5, FontWeight.w800,
-                        active ? Colors.white : ink)),
+                    style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w800)),
                 if (i == 1 && pending > 0) ...[
                   const SizedBox(width: 7),
                   Container(
@@ -154,7 +151,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('$pending',
-                        style: jakarta(10, FontWeight.w800, Colors.white)),
+                        style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ],
               ]),
@@ -188,15 +185,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         ]),
         const SizedBox(height: 18),
         Row(children: [
-          Text('BORÇ LİSTESİ',
-              style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                  ls: 1.2)),
+          Text('Borç Listesi', style: SwanType.h3(ink)),
           const Spacer(),
           GestureDetector(
             onTap: () => setState(
                 () => _period = _period.isEmpty ? _thisPeriod : ''),
             child: Text(_period.isEmpty ? 'Tümü' : _period,
-                style: jakarta(11.5, FontWeight.w800, kTeal)),
+                style: SwanType.caption(kTeal, w: FontWeight.w800)),
           ),
         ]),
         const SizedBox(height: 10),
@@ -237,11 +232,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Tahsil edilen',
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text(money(s?.collected ?? 0),
-                    style: sora(22, FontWeight.w800, ink)),
+                    style: SwanType.h2(ink)),
               ],
             ),
           ),
@@ -252,7 +246,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             size: 54,
             stroke: 6,
             center: Text('%${((s?.rate ?? 0) * 100).round()}',
-                style: jakarta(11, FontWeight.w800, ink)),
+                style: SwanType.caption(ink, w: FontWeight.w800)),
           ),
         ]),
         const SizedBox(height: 14),
@@ -274,12 +268,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: jakarta(13.5, FontWeight.w800,
-                    alert ? const Color(0xFFF43F5E) : ink)),
+                style: SwanType.bodySm(alert ? const Color(0xFFF43F5E) : ink, w: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(label,
                 style:
-                    jakarta(10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       );
@@ -311,7 +304,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               Text(f.athleteName ?? 'Sporcu',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 2),
               Text(
                   [
@@ -321,17 +314,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   ].join(' · '),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(
-                      10.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
         const SizedBox(width: 8),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(money(f.amount), style: jakarta(13, FontWeight.w800, ink)),
+          Text(money(f.amount), style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 2),
           Text(f.statusLabel,
-              style: jakarta(10, FontWeight.w700, color)),
+              style: SwanType.caption(color, w: FontWeight.w700)),
         ]),
         if (!f.isPaid) ...[
           const SizedBox(width: 10),
@@ -345,7 +337,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 borderRadius: BorderRadius.circular(10),
               ),
               child:
-                  Text('Tahsil', style: jakarta(11, FontWeight.w800, kTeal)),
+                  Text('Tahsil', style: SwanType.caption(kTeal, w: FontWeight.w800)),
             ),
           ),
         ],
@@ -364,7 +356,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       children: [
         Text('Veli havale yapıp "ödedim" dediğinde bildirim buraya düşer. '
             'Dekontu kontrol edip onayladığında borç kapanır.',
-            style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
         const SizedBox(height: 14),
         pending.when(
           loading: premiumLoading,
@@ -396,28 +388,25 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                 children: [
                                   Text(p.athleteName ?? p.label,
                                       style:
-                                          jakarta(13, FontWeight.w800, ink)),
+                                          SwanType.bodySm(ink, w: FontWeight.w800)),
                                   const SizedBox(height: 2),
                                   Text(
                                       '${p.label} · ${p.method} · '
                                       '${p.paidAt.day}.${p.paidAt.month}.${p.paidAt.year}',
-                                      style: jakarta(10.5, FontWeight.w500,
-                                          SwanColors.textSecondary)),
+                                      style: SwanType.caption(SwanColors.textSecondary)),
                                   if (p.declaredName != null)
                                     Text('Bildiren: ${p.declaredName}',
-                                        style: jakarta(10.5, FontWeight.w500,
-                                            SwanColors.textSecondary)),
+                                        style: SwanType.caption(SwanColors.textSecondary)),
                                 ],
                               ),
                             ),
                             Text(money(p.amount),
-                                style: sora(17, FontWeight.w800, ink)),
+                                style: SwanType.h3(ink)),
                           ]),
                           if (p.note != null && p.note!.trim().isNotEmpty) ...[
                             const SizedBox(height: 8),
                             Text(p.note!,
-                                style: jakarta(11.5, FontWeight.w500,
-                                    SwanColors.textSecondary)),
+                                style: SwanType.caption(SwanColors.textSecondary)),
                           ],
                           if (p.receiptUrl != null) ...[
                             const SizedBox(height: 10),
@@ -444,8 +433,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                     border: Border.all(color: line),
                                   ),
                                   child: Text('Reddet',
-                                      style: jakarta(12.5, FontWeight.w800,
-                                          const Color(0xFFF43F5E))),
+                                      style: SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w800)),
                                 ),
                               ),
                             ),
@@ -461,8 +449,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text('Onayla',
-                                      style: jakarta(
-                                          12.5, FontWeight.w800, Colors.white)),
+                                      style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                                 ),
                               ),
                             ),
@@ -488,9 +475,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
       children: [
         Row(children: [
-          Text('AİDAT PLANLARI',
-              style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                  ls: 1.2)),
+          Text('Aidat Planları', style: SwanType.h3(ink)),
           const Spacer(),
           AddButton(tooltip: 'Plan ekle', onTap: _addPlan),
         ]),
@@ -501,8 +486,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           data: (list) => list.isEmpty
               ? Text('Henüz plan yok. "Altyapı — aylık 1.500 ₺" gibi bir plan '
                   'tanımlayıp sporculara ata.',
-                  style: jakarta(
-                      12, FontWeight.w500, SwanColors.textSecondary))
+                  style: SwanType.caption(SwanColors.textSecondary))
               : Column(children: [
                   for (final p in list)
                     Container(
@@ -519,31 +503,28 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(p.name,
-                                  style: jakarta(13, FontWeight.w800, ink)),
+                                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
                               Text('Her ayın ${p.dueDay}. günü son ödeme',
-                                  style: jakarta(10.5, FontWeight.w500,
-                                      SwanColors.textSecondary)),
+                                  style: SwanType.caption(SwanColors.textSecondary)),
                             ],
                           ),
                         ),
                         Text(money(p.amount),
-                            style: jakarta(13.5, FontWeight.w800, kTeal)),
+                            style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
                       ]),
                     ),
                 ]),
         ),
         const SizedBox(height: 22),
-        Text('SPORCU ATAMALARI',
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+        Text('Sporcu Atamaları', style: SwanType.h3(ink)),
         const SizedBox(height: 4),
         Text('Kişiye özel tutar girersen (burs, kardeş indirimi) plandaki '
             'tutar yerine o geçerli olur. 0 yazarsan borç oluşmaz.',
-            style: jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
         const SizedBox(height: 10),
         if (athletes.isEmpty)
           Text('Kadroda sporcu yok.',
-              style: jakarta(12, FontWeight.w500, SwanColors.textSecondary))
+              style: SwanType.caption(SwanColors.textSecondary))
         else
           Column(children: [
             for (final a in athletes)
@@ -571,7 +552,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('${a.firstName} ${a.lastName}',
-                                style: jakarta(12.5, FontWeight.w700, ink)),
+                                style: SwanType.caption(ink, w: FontWeight.w700)),
                             Text(
                                 asg == null
                                     ? 'Aidat atanmamış'
@@ -583,8 +564,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                             asg.note!.isNotEmpty)
                                           asg.note!,
                                       ].join(' · '),
-                                style: jakarta(10.5, FontWeight.w500,
-                                    asg == null
+                                style: SwanType.caption(asg == null
                                         ? SwanColors.textSecondary
                                         : kTeal)),
                           ],
@@ -626,8 +606,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             child: Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: jakarta(12, FontWeight.w800,
-                    subtle ? SwanColors.textSecondary : Colors.white)),
+                style: SwanType.caption(subtle ? SwanColors.textSecondary : Colors.white, w: FontWeight.w800)),
           ),
         ]),
       ),
@@ -721,20 +700,20 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text(athleteName, style: sora(17, FontWeight.w800, ink)),
+          Text(athleteName, style: SwanType.h3(ink)),
           const SizedBox(height: 14),
           for (final p in plans)
             ListTile(
-              title: Text(p.name, style: jakarta(13, FontWeight.w700, ink)),
+              title: Text(p.name, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               subtitle: Text(money(p.amount),
-                  style: jakarta(11.5, FontWeight.w600, kTeal)),
+                  style: SwanType.caption(kTeal, w: FontWeight.w600)),
               onTap: () => Navigator.pop(ctx, p.id),
             ),
           ListTile(
             leading: const Icon(Icons.delete_outline_rounded,
                 color: Color(0xFFF43F5E)),
             title: Text('Aidatı kaldır',
-                style: jakarta(13, FontWeight.w700, const Color(0xFFF43F5E))),
+                style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w700)),
             onTap: () => Navigator.pop(ctx, '__remove__'),
           ),
         ]),
@@ -798,14 +777,14 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         ),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
         child: Column(children: [
-          Text('Kime borç yazılacak?', style: sora(17, FontWeight.w800, ink)),
+          Text('Kime borç yazılacak?', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           Expanded(
             child: ListView.builder(
               itemCount: athletes.length,
               itemBuilder: (_, i) => ListTile(
                 title: Text('${athletes[i].firstName} ${athletes[i].lastName}',
-                    style: jakarta(13, FontWeight.w600, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 onTap: () => Navigator.pop(ctx, athletes[i].id),
               ),
             ),

@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import 'social_widgets.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Takip akışı boşken gösterilen "kimi takip etsem?" bölümü.
 class FollowSuggestions extends ConsumerWidget {
@@ -42,7 +43,7 @@ class FollowSuggestions extends ConsumerWidget {
         const SizedBox(height: 16),
         Center(
           child: Text('Akışını doldur',
-              style: sora(20, FontWeight.w800, ink)),
+              style: SwanType.h2(ink)),
         ),
         const SizedBox(height: 6),
         Center(
@@ -51,14 +52,12 @@ class FollowSuggestions extends ConsumerWidget {
             child: Text(
               'Kulüpleri ve antrenörleri takip et; paylaşımları burada görünsün.',
               textAlign: TextAlign.center,
-              style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),
+              style: SwanType.caption(SwanColors.textSecondary),
             ),
           ),
         ),
         const SizedBox(height: 22),
-        Text('ÖNERİLENLER',
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+        Text('Önerilenler', style: SwanType.h3(ink)),
         const SizedBox(height: 10),
         async.when(
           loading: () => const Padding(
@@ -67,7 +66,7 @@ class FollowSuggestions extends ConsumerWidget {
           ),
           error: (e, _) => Text('Öneriler yüklenemedi: $e',
               style:
-                  jakarta(12, FontWeight.w500, SwanColors.textSecondary)),
+                  SwanType.caption(SwanColors.textSecondary)),
           data: (list) {
             if (list.isEmpty) {
               return Column(
@@ -76,8 +75,7 @@ class FollowSuggestions extends ConsumerWidget {
                   Text(
                       'Şimdilik önerilecek kimse yok. Keşfet sekmesinden '
                       'paylaşımlara göz atabilirsin.',
-                      style: jakarta(
-                          12.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   const SizedBox(height: 14),
                   if (onExplore != null) _exploreButton(isDark, ink),
                 ],
@@ -117,7 +115,7 @@ class FollowSuggestions extends ConsumerWidget {
             const Icon(Icons.explore_rounded, size: 18, color: kTeal),
             const SizedBox(width: 8),
             Text('Keşfet’e göz at',
-                style: jakarta(13.5, FontWeight.w800, ink)),
+                style: SwanType.bodySm(ink, w: FontWeight.w800)),
           ],
         ),
       ),
@@ -197,7 +195,7 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
                     child: Text(s.name,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(13.5, FontWeight.w800, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   ),
                   const SizedBox(width: 4),
                   const VerifiedBadge(size: 13),
@@ -206,8 +204,7 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
                   Text(s.subtitle!,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -226,8 +223,7 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
                 border: _following ? Border.all(color: line) : null,
               ),
               child: Text(_following ? 'Takiptesin' : 'Takip Et',
-                  style: jakarta(12, FontWeight.w800,
-                      _following ? SwanColors.textSecondary : Colors.white)),
+                  style: SwanType.caption(_following ? SwanColors.textSecondary : Colors.white, w: FontWeight.w800)),
             ),
           ),
         ]),

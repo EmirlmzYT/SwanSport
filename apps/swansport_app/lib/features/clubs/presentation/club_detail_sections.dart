@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Kulüp profilinin künye bölümü — adres, iletişim, kuruluş, branş.
 ///
@@ -36,15 +37,13 @@ class ClubIdentitySection extends ConsumerWidget {
         children: [
           Row(children: [
             Expanded(
-              child: Text('KÜNYE',
-                  style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                      ls: 1.2)),
+              child: Text('Künye', style: SwanType.h3(ink)),
             ),
             if (d.canManage)
               GestureDetector(
                 onTap: () => _edit(context, ref, d),
                 child: Text('Düzenle',
-                    style: jakarta(11.5, FontWeight.w800, kTeal)),
+                    style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ),
           ]),
           const SizedBox(height: 10),
@@ -93,8 +92,7 @@ class ClubIdentitySection extends ConsumerWidget {
                 Text(
                     'Künye boş. Adres, telefon ve kuruluş yılını eklersen '
                     'kulübünü arayanlar sana ulaşabilir.',
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ]),
           ),
@@ -107,11 +105,11 @@ class ClubIdentitySection extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value, style: sora(19, FontWeight.w800, ink)),
+            Text(value, style: SwanType.h3(ink)),
             const SizedBox(height: 2),
             Text(label,
                 style:
-                    jakarta(10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       );
@@ -127,7 +125,7 @@ class ClubIdentitySection extends ConsumerWidget {
           Icon(icon, size: 15, color: SwanColors.textSecondary),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(value, style: jakarta(12.5, FontWeight.w600, ink)),
+            child: Text(value, style: SwanType.caption(ink, w: FontWeight.w600)),
           ),
           if (copyable)
             const Icon(Icons.copy_rounded,
@@ -206,9 +204,7 @@ class ClubCoachesSection extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('TEKNİK KADRO',
-              style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                  ls: 1.2)),
+          Text('Teknik Kadro', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           for (final c in list)
             GestureDetector(
@@ -237,10 +233,9 @@ class ClubCoachesSection extends ConsumerWidget {
                         Text(c.name,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: jakarta(13, FontWeight.w700, ink)),
+                            style: SwanType.bodySm(ink, w: FontWeight.w700)),
                         Text(c.title,
-                            style: jakarta(10.5, FontWeight.w600,
-                                c.isAdmin ? kTeal : SwanColors.textSecondary)),
+                            style: SwanType.caption(c.isAdmin ? kTeal : SwanColors.textSecondary, w: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -280,22 +275,20 @@ class ClubAchievementsSection extends ConsumerWidget {
         children: [
           Row(children: [
             Expanded(
-              child: Text('BAŞARILAR',
-                  style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                      ls: 1.2)),
+              child: Text('Başarılar', style: SwanType.h3(ink)),
             ),
             if (canManage)
               GestureDetector(
                 onTap: () => _add(context, ref),
                 child:
-                    Text('Ekle', style: jakarta(11.5, FontWeight.w800, kTeal)),
+                    Text('Ekle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ),
           ]),
           const SizedBox(height: 10),
           if (list.isEmpty)
             Text('Henüz başarı eklenmemiş.',
                 style:
-                    jakarta(11.5, FontWeight.w500, SwanColors.textSecondary))
+                    SwanType.caption(SwanColors.textSecondary))
           else
             for (final a in list)
               GestureDetector(
@@ -325,7 +318,7 @@ class ClubAchievementsSection extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(a.title,
-                              style: jakarta(12.5, FontWeight.w700, ink)),
+                              style: SwanType.caption(ink, w: FontWeight.w700)),
                           if ((a.rank ?? '').isNotEmpty ||
                               (a.note ?? '').isNotEmpty)
                             Text(
@@ -333,15 +326,13 @@ class ClubAchievementsSection extends ConsumerWidget {
                                   if ((a.rank ?? '').isNotEmpty) a.rank!,
                                   if ((a.note ?? '').isNotEmpty) a.note!,
                                 ].join(' · '),
-                                style: jakarta(10.5, FontWeight.w500,
-                                    SwanColors.textSecondary)),
+                                style: SwanType.caption(SwanColors.textSecondary)),
                         ],
                       ),
                     ),
                     if (a.year != null)
                       Text('${a.year}',
-                          style: jakarta(12, FontWeight.w800,
-                              SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                   ]),
                 ),
               ),

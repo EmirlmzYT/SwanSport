@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Veli Ana Ekranı — velinin kendi gözünden (premium v3).
 ///
@@ -58,26 +59,22 @@ class GuardianHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(profile?.fullName ?? 'Veli',
-                              style: jakarta(14, FontWeight.w800, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
                           Text(
                               club?.name != null
                                   ? 'Veli · ${club!.name}'
                                   : 'Veli',
-                              style: jakarta(11, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ],
                       ),
                     ),
                     const InboxActions(),
                   ]),
                   const SizedBox(height: 18),
-                  Text('VELİ PANELİ',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                  Text('Veli Paneli', style: SwanType.h3(ink)),
                   const SizedBox(height: 4),
                   Text('Merhaba, ${profile?.firstName ?? 'Veli'}',
-                      style: sora(25, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   const SizedBox(height: 16),
 
                   // Bağlı çocuk(lar)
@@ -101,10 +98,7 @@ class GuardianHomeScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
 
                   // Kısayollar
-                  Text('KISAYOLLAR',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2)),
+                  Text('Kısayollar', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
                   Row(children: [
                     _quick(context, isDark, Icons.calendar_month_rounded,
@@ -200,7 +194,7 @@ class GuardianHomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(c.name, style: sora(17, FontWeight.w800, ink)),
+                Text(c.name, style: SwanType.h3(ink)),
                 const SizedBox(height: 2),
                 Text(
                     [
@@ -209,8 +203,7 @@ class GuardianHomeScreen extends ConsumerWidget {
                     ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -240,13 +233,12 @@ class GuardianHomeScreen extends ConsumerWidget {
                         : '${c.nextEventAt!.day}.${c.nextEventAt!.month} '
                             '${c.nextEventAt!.hour.toString().padLeft(2, '0')}:'
                             '${c.nextEventAt!.minute.toString().padLeft(2, '0')}',
-                    style: jakarta(13, FontWeight.w800, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(c.nextEvent ?? 'Program yok',
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: jakarta(
-                        10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
               ],
             ),
           ),
@@ -263,7 +255,7 @@ class GuardianHomeScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text('${c.openFeeCount} ödenmemiş aidat · öde',
-                  style: jakarta(12.5, FontWeight.w800, kTeal)),
+                  style: SwanType.caption(kTeal, w: FontWeight.w800)),
             ),
           ),
         ],
@@ -277,12 +269,11 @@ class GuardianHomeScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: jakarta(13, FontWeight.w800,
-                    alert ? const Color(0xFFF43F5E) : ink)),
+                style: SwanType.bodySm(alert ? const Color(0xFFF43F5E) : ink, w: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(label,
                 style:
-                    jakarta(10.5, FontWeight.w600, SwanColors.textSecondary)),
+                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           ],
         ),
       );
@@ -324,10 +315,10 @@ class GuardianHomeScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: sora(16, FontWeight.w800, Colors.white)),
+                Text(title, style: SwanType.h3(Colors.white)),
                 const SizedBox(height: 3),
                 Text(subtitle,
-                    style: jakarta(11.5, FontWeight.w600, Colors.white70)),
+                    style: SwanType.caption(Colors.white70, w: FontWeight.w600)),
               ],
             ),
           ),
@@ -366,7 +357,7 @@ class GuardianHomeScreen extends ConsumerWidget {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(12.5, FontWeight.w700, ink)),
+                  style: SwanType.caption(ink, w: FontWeight.w700)),
             ),
           ]),
         ),
@@ -388,14 +379,13 @@ class GuardianHomeScreen extends ConsumerWidget {
   Widget _label(String t) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Text(text,
-            style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
@@ -419,17 +409,17 @@ class GuardianHomeScreen extends ConsumerWidget {
               color: kTeal.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(12)),
           alignment: Alignment.center,
-          child: Text(hm, style: sora(12, FontWeight.w800, kTeal)),
+          child: Text(hm, style: SwanType.h3(kTeal)),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: jakarta(13, FontWeight.w700, ink)),
+              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               Text(place,
                   style:
-                      jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -460,14 +450,14 @@ class GuardianHomeScreen extends ConsumerWidget {
               child: Text(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
             ),
           ]),
           const SizedBox(height: 4),
           Text(body,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
       ),
     );

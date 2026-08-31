@@ -10,6 +10,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../demo/demo_role.dart';
 import '../../../social/presentation/edit_profile_sheet.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Ayarlar.
 ///
@@ -55,7 +56,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
               children: [
-                Text('Ayarlar', style: sora(25, FontWeight.w800, ink)),
+                Text('Ayarlar', style: SwanType.h2(ink)),
                 const SizedBox(height: 16),
 
                 // ------------------------------- hesap
@@ -85,12 +86,11 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(profile?.fullName ?? 'Kullanıcı',
-                                  style: jakarta(15, FontWeight.w800, ink)),
+                                  style: SwanType.body(ink, w: FontWeight.w800)),
                               Text(
                                   '${_roleLabel(profile?.role)}'
                                   '${club == null ? '' : ' · ${club.name}'}',
-                                  style: jakarta(11.5, FontWeight.w500,
-                                      SwanColors.textSecondary)),
+                                  style: SwanType.caption(SwanColors.textSecondary)),
                             ],
                           ),
                         ),
@@ -134,8 +134,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                       child: Text(
                           'Bu tarayıcı bildirim desteklemiyor. iPhone '
                           'kullanıyorsan uygulamayı ana ekrana ekleyip oradan aç.',
-                          style: jakarta(10.5, FontWeight.w500,
-                              SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary)),
                     ),
                 ]),
 
@@ -193,8 +192,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                 const SizedBox(height: 24),
                 Center(
                   child: Text('SwanSport · sürüm 1.0.5',
-                      style: jakarta(
-                          10.5, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 ),
                 const SizedBox(height: 14),
                 Center(
@@ -210,8 +208,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                                 .withValues(alpha: .35)),
                       ),
                       child: Text('Çıkış Yap',
-                          style: jakarta(13.5, FontWeight.w800,
-                              const Color(0xFFF43F5E))),
+                          style: SwanType.bodySm(const Color(0xFFF43F5E), w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -260,8 +257,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
   Widget _label(String t, Color ink) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _group(bool isDark, List<Widget> children) {
@@ -293,13 +289,12 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: jakarta(13.5, FontWeight.w600, ink)),
+                Text(label, style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 if (sub != null)
                   Text(sub,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          10.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -336,13 +331,12 @@ class _PushToggleRow extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Telefon bildirimleri',
-                  style: jakarta(13.5, FontWeight.w600, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w600)),
               Text(
                   on
                       ? 'Uygulama kapalıyken de haber verilir'
                       : 'Mesaj ve duyurular telefonuna düşsün',
-                  style: jakarta(
-                      10.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),

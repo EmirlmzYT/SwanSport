@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Tesisler — salon ve sahaların haftalık kullanımı.
 ///
@@ -53,13 +54,10 @@ class _FacilityManagementScreenState
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('KULÜP',
-                              style: jakarta(
-                                  11, FontWeight.w700, SwanColors.textSecondary,
-                                  ls: 1.4)),
+                          Text('Kulüp', style: SwanType.h3(ink)),
                           const SizedBox(height: 3),
                           Text('Tesisler',
-                              style: sora(25, FontWeight.w800, ink)),
+                              style: SwanType.h2(ink)),
                         ],
                       ),
                     ),
@@ -67,8 +65,7 @@ class _FacilityManagementScreenState
                   ]),
                   const SizedBox(height: 6),
                   Text('Doluluk, önümüzdeki 7 günün takviminden hesaplanır.',
-                      style: jakarta(
-                          11.5, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   const SizedBox(height: 16),
                   async.when(
                     loading: premiumLoading,
@@ -140,11 +137,10 @@ class _FacilityManagementScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(f.name, style: jakarta(13.5, FontWeight.w800, ink)),
+                    Text(f.name, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                     if ((f.kind ?? '').isNotEmpty)
                       Text(f.kind!,
-                          style: jakarta(10.5, FontWeight.w500,
-                              SwanColors.textSecondary)),
+                          style: SwanType.caption(SwanColors.textSecondary)),
                   ],
                 ),
               ),
@@ -175,8 +171,7 @@ class _FacilityManagementScreenState
                   f.isIdle
                       ? 'Bu hafta program yok'
                       : '%${f.loadPercent} · ${f.eventCount} etkinlik · ${f.busyLabel}',
-                  style: jakarta(11.5, FontWeight.w700,
-                      f.isIdle ? SwanColors.textSecondary : color)),
+                  style: SwanType.caption(f.isIdle ? SwanColors.textSecondary : color, w: FontWeight.w700)),
             ]),
             if (f.nextStartsAt != null) ...[
               const SizedBox(height: 10),
@@ -192,8 +187,7 @@ class _FacilityManagementScreenState
                       '${_when(f.nextStartsAt!)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: jakarta(
-                          11, FontWeight.w600, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                 ),
                 const Icon(Icons.chevron_right_rounded,
                     size: 16, color: SwanColors.textSecondary),
@@ -237,10 +231,10 @@ class _FacilityManagementScreenState
         ),
         padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
         child: Column(children: [
-          Text(f.name, style: sora(18, FontWeight.w800, ink)),
+          Text(f.name, style: SwanType.h3(ink)),
           const SizedBox(height: 3),
           Text('Önümüzdeki 7 gün',
-              style: jakarta(11.5, FontWeight.w600, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
           const SizedBox(height: 14),
           Expanded(
             child: Consumer(builder: (_, r, __) {
@@ -253,8 +247,7 @@ class _FacilityManagementScreenState
                         child: Text(
                             'Bu salona bu hafta hiç etkinlik yazılmamış.',
                             textAlign: TextAlign.center,
-                            style: jakarta(12.5, FontWeight.w600,
-                                SwanColors.textSecondary)),
+                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                       )
                     : ListView.builder(
                         itemCount: list.length,
@@ -285,15 +278,13 @@ class _FacilityManagementScreenState
                                       CrossAxisAlignment.start,
                                   children: [
                                     Text(s.title,
-                                        style: jakarta(
-                                            12.5, FontWeight.w700, ink)),
+                                        style: SwanType.caption(ink, w: FontWeight.w700)),
                                     Text(
                                         [
                                           _when(s.startsAt),
                                           if (s.teamName != null) s.teamName!,
                                         ].join(' · '),
-                                        style: jakarta(10.5, FontWeight.w500,
-                                            SwanColors.textSecondary)),
+                                        style: SwanType.caption(SwanColors.textSecondary)),
                                   ],
                                 ),
                               ),
@@ -320,8 +311,7 @@ class _FacilityManagementScreenState
                     border: Border.all(color: line),
                   ),
                   child: Text('Durum',
-                      style: jakarta(
-                          12.5, FontWeight.w800, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -341,7 +331,7 @@ class _FacilityManagementScreenState
                     borderRadius: BorderRadius.circular(13),
                   ),
                   child: Text('Takvime git',
-                      style: jakarta(12.5, FontWeight.w800, Colors.white)),
+                      style: SwanType.caption(Colors.white, w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -354,7 +344,7 @@ class _FacilityManagementScreenState
             },
             child: Text('Tesisi sil',
                 style:
-                    jakarta(12, FontWeight.w700, const Color(0xFFF43F5E))),
+                    SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w700)),
           ),
         ]),
       ),
@@ -397,7 +387,7 @@ class _FacilityManagementScreenState
         padding: EdgeInsets.fromLTRB(
             20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('${f.name} · durum', style: sora(17, FontWeight.w800, ink)),
+          Text('${f.name} · durum', style: SwanType.h3(ink)),
           const SizedBox(height: 10),
           for (final s in _statuses)
             ListTile(
@@ -408,7 +398,7 @@ class _FacilityManagementScreenState
                       : Icons.radio_button_off_rounded,
                   size: 19,
                   color: s == f.status ? kTeal : SwanColors.textSecondary),
-              title: Text(s, style: jakarta(13, FontWeight.w600, ink)),
+              title: Text(s, style: SwanType.bodySm(ink, w: FontWeight.w600)),
               onTap: () => Navigator.pop(ctx, s),
             ),
         ]),

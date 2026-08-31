@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/design/swan_type.dart';
 
 /// Üye Ana Ekranı — en düşük yetkili rol (premium v3).
 ///
@@ -56,24 +57,20 @@ class MemberHomeScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(profile?.fullName ?? 'Üye',
-                              style: jakarta(14, FontWeight.w800, ink)),
+                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
                           Text(
                               club?.name != null ? 'Üye · ${club!.name}' : 'Üye',
-                              style: jakarta(11, FontWeight.w600,
-                                  SwanColors.textSecondary)),
+                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
                         ],
                       ),
                     ),
                     const InboxActions(),
                   ]),
                   const SizedBox(height: 18),
-                  Text('ÜYELİK',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.4)),
+                  Text('Üyelik', style: SwanType.h3(ink)),
                   const SizedBox(height: 4),
                   Text('Merhaba, ${profile?.firstName ?? 'Üye'}',
-                      style: sora(25, FontWeight.w800, ink)),
+                      style: SwanType.h2(ink)),
                   const SizedBox(height: 16),
 
                   // Doğrulama durumu / CTA
@@ -89,10 +86,7 @@ class MemberHomeScreen extends ConsumerWidget {
                   const SizedBox(height: 20),
 
                   // Ne yapabilirim
-                  Text('NE YAPABİLİRSİN',
-                      style: jakarta(
-                          11, FontWeight.w700, SwanColors.textSecondary,
-                          ls: 1.2)),
+                  Text('Ne Yapabilirsin', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
                   _infoRow(isDark, Icons.verified_user_rounded,
                       'Antrenör ya da sporcu isen', 'Belgeni yükle, onaylanınca yetkilerin açılır'),
@@ -205,11 +199,10 @@ class MemberHomeScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Ferdi sporcu kaydını oluştur',
-                    style: jakarta(13, FontWeight.w700, ink)),
+                    style: SwanType.bodySm(ink, w: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text('Kulübe bağlı olmadan kendi sporcu profilini aç.',
-                    style: jakarta(
-                        11, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -264,7 +257,7 @@ class MemberHomeScreen extends ConsumerWidget {
               const SizedBox(width: 14),
               Expanded(
                 child: Text('Rolünü doğrula',
-                    style: sora(19, FontWeight.w800, Colors.white)),
+                    style: SwanType.h3(Colors.white)),
               ),
               const Icon(Icons.chevron_right_rounded,
                   color: Colors.white, size: 22),
@@ -273,7 +266,7 @@ class MemberHomeScreen extends ConsumerWidget {
             Text(
                 'Kademe belgeni veya sporcu lisansını yükle. Platform '
                 'yöneticisi onayladığında ilgili tüm modüller açılır.',
-                style: jakarta(12.5, FontWeight.w600, Colors.white70)),
+                style: SwanType.caption(Colors.white70, w: FontWeight.w600)),
           ],
         ),
       ),
@@ -323,7 +316,7 @@ class MemberHomeScreen extends ConsumerWidget {
                     child: Text(c.label,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: jakarta(14, FontWeight.w800, ink)),
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   ),
                   const SizedBox(width: 8),
                   PremiumStatusChip(
@@ -331,8 +324,7 @@ class MemberHomeScreen extends ConsumerWidget {
                 ]),
                 const SizedBox(height: 4),
                 Text(sub,
-                    style: jakarta(
-                        11.5, FontWeight.w500, SwanColors.textSecondary)),
+                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -366,11 +358,11 @@ class MemberHomeScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: jakarta(13, FontWeight.w700, ink)),
+              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               const SizedBox(height: 2),
               Text(sub,
                   style:
-                      jakarta(11, FontWeight.w500, SwanColors.textSecondary)),
+                      SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -406,7 +398,7 @@ class MemberHomeScreen extends ConsumerWidget {
               child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(12.5, FontWeight.w700, ink)),
+                  style: SwanType.caption(ink, w: FontWeight.w700)),
             ),
           ]),
         ),
@@ -428,14 +420,13 @@ class MemberHomeScreen extends ConsumerWidget {
   Widget _label(String t) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: jakarta(11, FontWeight.w700, SwanColors.textSecondary,
-                ls: 1.2)),
+            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
         child: Text(text,
-            style: jakarta(12.5, FontWeight.w500, SwanColors.textSecondary)),
+            style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _annCard(bool isDark, String title, String body, bool pinned) {
@@ -461,14 +452,14 @@ class MemberHomeScreen extends ConsumerWidget {
               child: Text(title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: jakarta(13, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
             ),
           ]),
           const SizedBox(height: 4),
           Text(body,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: jakarta(11.5, FontWeight.w500, SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
       ),
     );

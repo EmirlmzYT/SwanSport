@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Fişle hızlı gider girişi.
 ///
@@ -59,13 +60,13 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                 Row(children: [
                   _back(context, surf, isDark, ink),
                   const SizedBox(width: 14),
-                  Text('Gider Ekle', style: sora(22, FontWeight.w800, ink)),
+                  Text('Gider Ekle', style: SwanType.h2(ink)),
                 ]),
                 const SizedBox(height: 6),
                 Text(
                   'Fişi çek, tutarı yaz. Gerisini masaüstünden tamamlarsın.',
                   style:
-                      jakarta(12.5, FontWeight.w500, SwanColors.textSecondary),
+                      SwanType.caption(SwanColors.textSecondary),
                 ),
                 const SizedBox(height: 20),
 
@@ -78,9 +79,7 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                 ),
                 const SizedBox(height: 18),
 
-                Text('TUTAR',
-                    style: jakarta(11, FontWeight.w700,
-                        SwanColors.textSecondary, ls: 1.2)),
+                Text('Tutar', style: SwanType.h3(ink)),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _amount,
@@ -90,7 +89,7 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                   inputFormatters: [
                     FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
                   ],
-                  style: sora(26, FontWeight.w800, ink),
+                  style: SwanType.h1(ink),
                   decoration: InputDecoration(
                     hintText: '0,00',
                     suffixText: '₺',
@@ -104,16 +103,13 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                 ),
                 const SizedBox(height: 18),
 
-                Text('KATEGORİ',
-                    style: jakarta(11, FontWeight.w700,
-                        SwanColors.textSecondary, ls: 1.2)),
+                Text('Kategori', style: SwanType.h3(ink)),
                 const SizedBox(height: 8),
                 categories.when(
                   loading: () =>
                       const LinearProgressIndicator(minHeight: 2, color: kTeal),
                   error: (e, _) => Text('Kategoriler alınamadı',
-                      style: jakarta(
-                          12, FontWeight.w500, SwanColors.textSecondary)),
+                      style: SwanType.caption(SwanColors.textSecondary)),
                   data: (list) => Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -138,12 +134,11 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                             ),
                             child: Text(
                               c.name,
-                              style: jakarta(
-                                12.5,
-                                _categoryId == c.id
+                              style: SwanType.caption(
+                                _categoryId == c.id ? kTeal : ink,
+                                w: _categoryId == c.id
                                     ? FontWeight.w700
                                     : FontWeight.w500,
-                                _categoryId == c.id ? kTeal : ink,
                               ),
                             ),
                           ),
@@ -170,8 +165,7 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                 if (_error != null) ...[
                   const SizedBox(height: 14),
                   Text(_error!,
-                      style: jakarta(
-                          12.5, FontWeight.w500, const Color(0xFFF43F5E))),
+                      style: SwanType.caption(const Color(0xFFF43F5E))),
                 ],
 
                 const SizedBox(height: 22),
@@ -193,7 +187,7 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                       ],
                     ),
                     child: Text(_busy ? 'Kaydediliyor…' : 'Kaydet',
-                        style: jakarta(14.5, FontWeight.w800, Colors.white)),
+                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -319,11 +313,10 @@ class _ReceiptBox extends StatelessWidget {
               const Icon(Icons.receipt_long_rounded, size: 30, color: kTeal),
               const SizedBox(height: 10),
               Text('Fiş fotoğrafı ekle',
-                  style: jakarta(13, FontWeight.w700, kTeal)),
+                  style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
               const SizedBox(height: 2),
               Text('isteğe bağlı ama sonradan çok işe yarar',
-                  style: jakarta(
-                      11.5, FontWeight.w500, SwanColors.textSecondary)),
+                  style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),

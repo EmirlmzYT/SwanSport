@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/design/swan_type.dart';
 
 /// Rol Seçimi — kayıt sonrası kullanıcı yolunu seçer (premium v3).
 class RoleSelectScreen extends StatelessWidget {
@@ -38,15 +39,14 @@ class RoleSelectScreen extends StatelessWidget {
                   ),
                   alignment: Alignment.center,
                   child:
-                      Text('S', style: sora(24, FontWeight.w800, Colors.white)),
+                      Text('S', style: SwanType.h2(Colors.white)),
                 ),
                 const SizedBox(height: 22),
                 Text('Nasıl devam\netmek istersin?',
-                    style: sora(28, FontWeight.w800, ink),),
+                    style: SwanType.h1(ink),),
                 const SizedBox(height: 8),
                 Text('Rolünü seç — doğrulama adımların buna göre belirlenir.',
-                    style: jakarta(
-                        13.5, FontWeight.w500, SwanColors.textSecondary,),),
+                    style: SwanType.bodySm(SwanColors.textSecondary),),
                 const SizedBox(height: 24),
                 _card(context, isDark,
                     icon: Icons.person_rounded,
@@ -127,10 +127,9 @@ class RoleSelectScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: jakarta(14, FontWeight.w800, ink)),
+                  Text(title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                   Text(sub,
-                      style: jakarta(
-                          11, FontWeight.w500, SwanColors.textSecondary,),),
+                      style: SwanType.caption(SwanColors.textSecondary),),
                 ],
               ),
             ),
