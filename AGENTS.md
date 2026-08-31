@@ -218,7 +218,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 84 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 90 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
@@ -347,6 +347,17 @@ dosya göndermek zorunda kalmazsın.
 ## Durum
 
 ### Çalışan
+
+- **Kort kullanım ölçümü** — konsol > Metrikler altında "Halka açık kortlar"
+  bölümü: kortta olan kişi, tekil kullanıcı, alınan/oynanan saat, gelmeme
+  oranı, konum doğrulama oranı, en yoğun saat, kort kırılımı. 7/30/90 gün
+  penceresi. Belediye görüşmesinin gövdesi bu.
+  **`0041` çalıştırılmadan hata gösterir** (bilerek — "0 kutu" göstermek
+  sistem kullanılmamış gibi okunurdu).
+
+  Gelmeme oranının paydasında **iptaller yok**: iptal cezasız ve teşvik
+  edilen davranış, onu gelmeme gibi saymak sistemi doğru kullanan kişiyi
+  kötü gösterirdi.
 
 Sosyal akış, mesajlaşma, şehir bazlı antrenör toplulukları, federasyon
 duyuru kanalları, sporcu/kadro, takvim ve tekrarlayan antrenman, etkinlik
@@ -515,6 +526,20 @@ Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri arama ve
 halı saha doluluk panosunu içeriyor.
 
 ### Yarım / doğrulanmamış
+
+> **ÖNCE BUNU OKU — canlıda çalıştırılmamış migration var.**
+>
+> `0040_dm_notify_and_turf_chat.sql` ve `0041_court_usage_stats.sql` Supabase
+> SQL Editor'de **çalıştırılmadı**. İkisi de idempotent (`create or replace`,
+> `drop trigger if exists`), tekrar çalıştırmak zararsız — emin değilsen
+> çalıştır.
+>
+> Bunlar çalıştırılmadan:
+> - doğrudan mesajlarda bildirim düşmüyor (`trg_notify_direct_message` yok),
+> - konsoldaki kort ölçüm bölümü hata gösteriyor (`court_usage_stats` yok).
+>
+> `0039` çalıştırılmış — `turf_slot_requests` tablosu canlıda var, REST ile
+> doğrulandı (2026-09-01). Bu not eskiden "0039 çalıştırılmadı" diyordu.
 
 - **Android push (FCM)** — izin, bildirim kanalı, ön plan uyarısı ve bildirim
   dokunuşunda rota açma akışı `f2e16a1` ile tamamlandı; debug APK derlendi.

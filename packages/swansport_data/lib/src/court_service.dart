@@ -567,3 +567,148 @@ final myOpenPartnerRequestProvider =
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
   return ref.watch(courtServiceProvider).myOpenPartnerRequest();
 });
+
+// ---------------------------------------------------------------------------
+// Kort kullanım ölçümü (0041)
+//
+// Belediye görüşmesinin gövdesi. Yalnızca platform yöneticisi çağırabiliyor;
+// RPC gövdesinde `is_platform_admin()` kontrolü var, burada tekrar
+// kontrol etmiyoruz — yetki hesabı tek yerde kalsın (SwanAccess kuralı) ve
+// istemci tarafı kontrolü zaten güvenlik sağlamıyor.
+// ---------------------------------------------------------------------------
+
+/// Kort kullanımının genel özeti.
+class CourtUsage {
+  const CourtUsage({
+    required this.slotsTotal,
+    required this.slotsDone,
+    required this.slotsExpired,
+    required this.slotsCancelled,
+    required this.uniquePlayers,
+    required this.totalPeople,
+    required this.noShowPct,
+    required this.checkinPct,
+    required this.peakHour,
+  });
+
+  static const empty = CourtUsage(
+    slotsTotal: 0,
+    slotsDone: 0,
+    slotsExpired: 0,
+    slotsCancelled: 0,
+    uniquePlayers: 0,
+    totalPeople: 0,
+    noShowPct: 0,
+    checkinPct: 0,
+    peakHour: 0,
+  );
+
+  factory CourtUsage.fromMap(Map<String, dynamic> m) => CourtUsage(
+        slotsTotal: (m['slots_total'] as num?)?.toInt() ?? 0,
+        slotsDone: (m['slots_done'] as num?)?.toInt() ?? 0,
+        slotsExpired: (m['slots_expired'] as num?)?.toInt() ?? 0,
+        slotsCancelled: (m['slots_cancelled'] as num?)?.toInt() ?? 0,
+        uniquePlayers: (m['unique_players'] as num?)?.toInt() ?? 0,
+        totalPeople: (m['total_people'] as num?)?.toInt() ?? 0,
+        noShowPct: (m['no_show_pct'] as num?)?.toDouble() ?? 0,
+        checkinPct: (m['checkin_pct'] as num?)?.toDouble() ?? 0,
+        peakHour: (m['peak_hour'] as num?)?.toInt() ?? 0,
+      );
+
+  final int slotsTotal;
+  final int slotsDone;
+  final int slotsExpired;
+  final int slotsCancelled;
+  final int uniquePlayers;
+
+  /// Sahipler + kabul edilen katılımcılar + misafirler.
+  ///
+  /// Belediyenin asıl sorusu bu, kutu sayısı değil: "kaç kişiye ulaştı".
+  final int totalPeople;
+
+  /// Sonucu belli olan kutular içinde gelinmeyenlerin oranı.
+  ///
+  /// Paydada iptal edilenler **yok** — iptal cezasız ve teşvik edilen
+  /// davranış; onu gelmeme gibi saymak sistemi doğru kullanan kişiyi kötü
+  /// gösterirdi.
+  final double noShowPct;
+
+  final double checkinPct;
+  final int peakHour;
+
+  /// Hiç veri yoksa ekranda "0" değil "henüz kullanılmadı" göstermek için.
+  bool get isEmpty => slotsTotal == 0;
+}
+
+/// Kort başına kırılım.
+class CourtUsageRow {
+  const CourtUsageRow({
+    required this.courtId,
+    required this.courtName,
+    required this.slotsTotal,
+    required this.slotsDone,
+    required this.noShowPct,
+    required this.fillPct,
+    this.venue,
+  });
+
+  factory CourtUsageRow.fromMap(Map<String, dynamic> m) => CourtUsageRow(
+        courtId: m['court_id'] as String,
+        courtName: (m['court_name'] as String?) ?? '',
+        venue: m['venue'] as String?,
+        slotsTotal: (m['slots_total'] as num?)?.toInt() ?? 0,
+        slotsDone: (m['slots_done'] as num?)?.toInt() ?? 0,
+        noShowPct: (m['no_show_pct'] as num?)?.toDouble() ?? 0,
+        fillPct: (m['fill_pct'] as num?)?.toDouble() ?? 0,
+      );
+
+  final String courtId;
+  final String courtName;
+  final String? venue;
+  final int slotsTotal;
+  final int slotsDone;
+  final double noShowPct;
+
+  /// Alınan kutu / açık olunan saat. Kort hiç kullanılmadıysa 0 —
+  /// bu da bir bilgi, listede kalıyor.
+  final double fillPct;
+}
+
+extension CourtUsageQueries on CourtService {
+  Future<CourtUsage> usage({int days = 30}) async {
+    final rows = await _c.rpc<dynamic>(
+      'court_usage_stats',
+      params: {'p_days': days},
+    );
+    final list = (rows as List?) ?? const [];
+    if (list.isEmpty) return CourtUsage.empty;
+    return CourtUsage.fromMap(Map<String, dynamic>.from(list.first as Map));
+  }
+
+  Future<List<CourtUsageRow>> usageByCourt({int days = 30}) async {
+    final rows = await _c.rpc<dynamic>(
+      'court_usage_by_court',
+      params: {'p_days': days},
+    );
+    return ((rows as List?) ?? const [])
+        .map((r) => CourtUsageRow.fromMap(Map<String, dynamic>.from(r as Map)))
+        .toList();
+  }
+}
+
+/// Ölçüm penceresi gün cinsinden — konsolda 7/30/90 arasında değişiyor.
+final courtUsageProvider =
+    FutureProvider.autoDispose.family<CourtUsage, int>((ref, days) {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return Future.value(CourtUsage.empty);
+  }
+  return ref.watch(courtServiceProvider).usage(days: days);
+});
+
+final courtUsageByCourtProvider =
+    FutureProvider.autoDispose.family<List<CourtUsageRow>, int>((ref, days) {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return Future.value(const <CourtUsageRow>[]);
+  }
+  return ref.watch(courtServiceProvider).usageByCourt(days: days);
+});

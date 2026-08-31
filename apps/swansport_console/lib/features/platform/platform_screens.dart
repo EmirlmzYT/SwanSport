@@ -285,11 +285,20 @@ class _ReportRowTile extends ConsumerWidget {
 // ================================================================== Metrikler
 
 /// Platform geneli sayılar.
-class MetricsScreen extends ConsumerWidget {
+class MetricsScreen extends ConsumerStatefulWidget {
   const MetricsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MetricsScreen> createState() => _MetricsScreenState();
+}
+
+class _MetricsScreenState extends ConsumerState<MetricsScreen> {
+  /// Ölçüm penceresi. Belediye görüşmesinde "son 30 gün" konuşulacak ama
+  /// 7 ve 90 da lazım: 7 "sistem şu an yaşıyor mu", 90 "kalıcı mı".
+  int _days = 30;
+
+  @override
+  Widget build(BuildContext context) {
     final t = Theme.of(context);
     final async = ref.watch(platformStatsProvider);
 
@@ -344,22 +353,109 @@ class MetricsScreen extends ConsumerWidget {
                 _Stat(label: 'Gönderi', value: s.posts),
               ],
             ),
+            const SizedBox(height: ConsoleDensity.xxl),
+            _courtUsage(t),
           ],
         ),
       ),
     );
   }
+
+  // --------------------------- kort kullanımı ------------------------------
+
+  /// Halka açık kort kullanımı — belediye görüşmesinin gövdesi.
+  ///
+  /// Diğer metriklerden ayrı duruyor çünkü farklı bir soruyu cevaplıyor:
+  /// yukarısı "platform ne durumda", burası "belediyeye ne anlatacağız".
+  Widget _courtUsage(ThemeData t) {
+    final usage = ref.watch(courtUsageProvider(_days));
+    final byCourt = ref.watch(courtUsageByCourtProvider(_days));
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Text('Halka açık kortlar', style: t.textTheme.titleMedium),
+          const SizedBox(width: ConsoleDensity.lg),
+          SegmentedButton<int>(
+            segments: const [
+              ButtonSegment(value: 7, label: Text('7 gün')),
+              ButtonSegment(value: 30, label: Text('30 gün')),
+              ButtonSegment(value: 90, label: Text('90 gün')),
+            ],
+            selected: {_days},
+            showSelectedIcon: false,
+            onSelectionChanged: (v) => setState(() => _days = v.first),
+          ),
+        ]),
+        const SizedBox(height: ConsoleDensity.md),
+        usage.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.all(ConsoleDensity.lg),
+            child: SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2)),
+          ),
+          // Hatayı yutmuyoruz: 0041 migration'ı çalıştırılmadıysa RPC yok ve
+          // "0 kutu" göstermek yanlış olurdu — sistem kullanılmamış gibi
+          // görünürdü. Mesajda sebebi yazıyor.
+          error: (e, _) => _Notice(
+            'Kort ölçümü okunamadı: $e\n'
+            '0041 migration çalıştırıldı mı? Ölçüm ona bağlı.',
+          ),
+          data: (u) {
+            if (u.isEmpty) {
+              return const _Notice(
+                  'Bu aralıkta hiç kort saati alınmamış. '
+                  'Sayı sıfır değil — henüz veri yok.');
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Wrap(
+                  spacing: ConsoleDensity.lg,
+                  runSpacing: ConsoleDensity.lg,
+                  children: [
+                    // Belediyenin asıl sorusu kutu sayısı değil "kaç kişiye
+                    // ulaştı" — o yüzden ilk sırada.
+                    _Stat(label: 'Kortta olan kişi', value: u.totalPeople),
+                    _Stat(label: 'Tekil kullanıcı', value: u.uniquePlayers),
+                    _Stat(label: 'Alınan saat', value: u.slotsTotal),
+                    _Stat(label: 'Oynanan saat', value: u.slotsDone),
+                    _Pct(
+                        label: 'Gelmeme oranı',
+                        value: u.noShowPct,
+                        urgent: u.noShowPct > 25),
+                    _Pct(label: 'Konum doğrulama', value: u.checkinPct),
+                    _Stat(label: 'En yoğun saat', value: u.peakHour,
+                        suffix: ':00'),
+                    _Stat(label: 'İptal', value: u.slotsCancelled),
+                  ],
+                ),
+                const SizedBox(height: ConsoleDensity.xl),
+                byCourt.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (rows) => rows.isEmpty
+                      ? const SizedBox.shrink()
+                      : _CourtTable(rows: rows),
+                ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+  }
 }
 
-class _Stat extends StatelessWidget {
-  const _Stat({
-    required this.label,
-    required this.value,
-    this.urgent = false,
-  });
+/// Sayı değil oran gösteren kutu — `_Stat`'in yüzdelik kardeşi.
+class _Pct extends StatelessWidget {
+  const _Pct({required this.label, required this.value, this.urgent = false});
 
   final String label;
-  final int value;
+  final double value;
   final bool urgent;
 
   @override
@@ -384,7 +480,122 @@ class _Stat extends StatelessWidget {
           Text(label.toUpperCase(), style: t.textTheme.labelSmall),
           const SizedBox(height: ConsoleDensity.sm),
           Text(
-            '$value',
+            '${value.toStringAsFixed(1)}%',
+            style: t.textTheme.titleLarge?.copyWith(
+              fontSize: 28,
+              color: urgent ? accent : null,
+              fontFeatures: const [FontFeature.tabularFigures()],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Kort kırılımı. Hiç kullanılmamış kort de listede — "sıfır" da bir bilgi.
+class _CourtTable extends StatelessWidget {
+  const _CourtTable({required this.rows});
+
+  final List<CourtUsageRow> rows;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border.all(color: t.colorScheme.outline),
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+      ),
+      // Dar pencerede tablo yatay kayar; sayfa yana kaymaz.
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: DataTable(
+          columns: const [
+            DataColumn(label: Text('Kort')),
+            DataColumn(label: Text('Alınan'), numeric: true),
+            DataColumn(label: Text('Oynanan'), numeric: true),
+            DataColumn(label: Text('Gelmeme'), numeric: true),
+            DataColumn(label: Text('Doluluk'), numeric: true),
+          ],
+          rows: [
+            for (final r in rows)
+              DataRow(cells: [
+                DataCell(Text(r.venue == null
+                    ? r.courtName
+                    : '${r.venue} · ${r.courtName}')),
+                DataCell(Text('${r.slotsTotal}')),
+                DataCell(Text('${r.slotsDone}')),
+                DataCell(Text('${r.noShowPct.toStringAsFixed(1)}%')),
+                DataCell(Text('${r.fillPct.toStringAsFixed(1)}%')),
+              ]),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Kısa açıklama kutusu — boş/hatalı durumu sessiz bırakmamak için.
+class _Notice extends StatelessWidget {
+  const _Notice(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(ConsoleDensity.lg),
+      decoration: BoxDecoration(
+        border: Border.all(color: t.colorScheme.outline),
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+      ),
+      child: SelectableText(text, style: t.textTheme.bodySmall),
+    );
+  }
+}
+
+class _Stat extends StatelessWidget {
+  const _Stat({
+    required this.label,
+    required this.value,
+    this.urgent = false,
+    this.suffix = '',
+  });
+
+  final String label;
+  final int value;
+  final bool urgent;
+
+  /// "En yoğun saat" için `:00` — sayının kendisi saat, birimsiz yazınca
+  /// 19 kutu alınmış gibi okunuyor.
+  final String suffix;
+
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    final accent = urgent ? t.colorScheme.error : t.colorScheme.primary;
+
+    return Container(
+      width: 190,
+      padding: const EdgeInsets.all(ConsoleDensity.lg),
+      decoration: BoxDecoration(
+        border: Border.all(
+            color: urgent
+                ? accent.withValues(alpha: .35)
+                : t.colorScheme.outline),
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+        color: urgent ? accent.withValues(alpha: .06) : null,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label.toUpperCase(), style: t.textTheme.labelSmall),
+          const SizedBox(height: ConsoleDensity.sm),
+          Text(
+            '$value$suffix',
             style: t.textTheme.titleLarge?.copyWith(
               fontSize: 28,
               color: urgent ? accent : null,
