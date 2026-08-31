@@ -4,6 +4,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../app/design/swan_shape.dart';
+import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_actions.dart';
 import '../../../app/widgets/quick_form.dart';
@@ -148,7 +151,7 @@ class ProfileScreen extends ConsumerWidget {
                           child: Text(p.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: sora(20, FontWeight.w800, ink)),
+                              style: SwanType.h1(context.swan.ink)),
                         ),
                         if (p.isVerified) ...[
                           const SizedBox(width: 6),
@@ -158,19 +161,17 @@ class ProfileScreen extends ConsumerWidget {
                       if (p.username != null) ...[
                         const SizedBox(height: 2),
                         Text('@${p.username}',
-                            style: jakarta(12.5, FontWeight.w600,
-                                SwanColors.textSecondary)),
+                            style: SwanType.bodySm(context.swan.inkMuted)),
                       ],
                       if (p.roleLabel != null) ...[
                         const SizedBox(height: 4),
                         Text(p.roleLabel!,
-                            style: jakarta(12.5, FontWeight.w600, kTeal)),
+                            style: SwanType.bodySm(context.swan.accent,
+                                w: FontWeight.w700)),
                       ],
                       if (p.bio != null && p.bio!.trim().isNotEmpty) ...[
                         const SizedBox(height: 8),
-                        Text(p.bio!,
-                            style: jakarta(13, FontWeight.w500, ink)
-                                .copyWith(height: 1.45)),
+                        Text(p.bio!, style: SwanType.body(context.swan.ink)),
                       ],
 
                       // Doğrulanmış kimlikler
@@ -232,10 +233,8 @@ class ProfileScreen extends ConsumerWidget {
                       if (p.isMe) const ManagementSection(),
 
                       const SizedBox(height: 22),
-                      Text('GÖNDERİLER',
-                          style: jakarta(
-                              11, FontWeight.w700, SwanColors.textSecondary,
-                              ls: 1.2)),
+                      Text('Gönderiler',
+                          style: SwanType.h3(context.swan.ink)),
                       const SizedBox(height: 12),
 
                       postsAsync.when(
@@ -343,7 +342,7 @@ class ProfileScreen extends ConsumerWidget {
                 border: Border.all(color: line),
               ),
               child: Text('Profili Düzenle',
-                  style: jakarta(13.5, FontWeight.w800, ink)),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
             ),
           ),
         ),
@@ -400,24 +399,38 @@ class ProfileScreen extends ConsumerWidget {
       );
     }
     // Kişi profilinde: takip + mesaj (+ yetkiliysen kulübe davet)
+    final c = context.swan;
     return Column(children: [
       Row(children: [
-      Expanded(child: _FollowButton(profile: p, isClub: false)),
-      const SizedBox(width: 10),
-      GestureDetector(
-        onTap: () => Navigator.pushNamed(context, '/sohbet',
-            arguments: {'id': p.id, 'name': p.name}),
-        child: Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
-            color: surf,
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: line),
+        Expanded(child: _FollowButton(profile: p, isClub: false)),
+        const SizedBox(width: 10),
+        // Brief §6 "Mesaj Gönder" diye etiketli bir eylem istiyor; burası
+        // etiketsiz 46x46 bir ikondu ve ne yaptığı tahmine kalıyordu.
+        Expanded(
+          child: GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => Navigator.pushNamed(context, '/sohbet',
+                arguments: {'id': p.id, 'name': p.name}),
+            child: Container(
+              height: 46,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: c.surfaceAlt,
+                borderRadius: BorderRadius.circular(SwanRadius.md),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.chat_bubble_outline_rounded,
+                      size: 18, color: c.ink),
+                  const SizedBox(width: 7),
+                  Text('Mesaj',
+                      style: SwanType.bodySm(c.ink, w: FontWeight.w800)),
+                ],
+              ),
+            ),
           ),
-          child: Icon(Icons.chat_bubble_outline_rounded, size: 19, color: ink),
         ),
-      ),
       ]),
       InviteToClubButton(profileId: p.id, personName: p.name),
     ]);
@@ -517,8 +530,8 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
                 size: 18, color: _following ? ink : Colors.white),
             const SizedBox(width: 7),
             Text(_following ? 'Takiptesin' : 'Takip Et',
-                style: jakarta(
-                    13.5, FontWeight.w800, _following ? ink : Colors.white)),
+                style: SwanType.bodySm(_following ? ink : Colors.white,
+                    w: FontWeight.w800)),
           ],
         ),
       ),
