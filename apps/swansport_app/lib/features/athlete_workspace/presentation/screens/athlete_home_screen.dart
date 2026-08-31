@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/summary_section.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
@@ -30,6 +31,16 @@ class AthleteHomeScreen extends ConsumerWidget {
     final club = ref.watch(activeClubProvider).valueOrNull;
     final events = ref.watch(eventsProvider);
     final anns = ref.watch(announcementsProvider);
+    final fees = ref.watch(myFeesProvider);
+    final docs = ref.watch(vaultDocsProvider);
+    final teams = ref.watch(teamsProvider);
+    final perf = ref.watch(performanceOverviewProvider);
+    final injuries = ref.watch(injuriesProvider);
+    // Kendi sporcu kaydım — sağlık ve performans satırlarını buna göre
+    // süzüyorum; ikisi de kulüp geneli döndürüyor.
+    final myAthlete = profile == null
+        ? null
+        : ref.watch(athleteByProfileProvider(profile.id)).valueOrNull;
 
     final name = profile?.firstName ?? 'Sporcu';
     final initials = profile?.initials ?? 'S';
@@ -97,63 +108,175 @@ class AthleteHomeScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // Kısayollar
-                  Text('Kısayollar', style: SwanType.h3(ink)),
-                  const SizedBox(height: 10),
-                  Row(children: [
-                    _quick(context, isDark, Icons.calendar_month_rounded,
-                        'Takvim', '/calendar'),
-                    const SizedBox(width: 10),
-                    _quick(context, isDark, Icons.bar_chart_rounded,
-                        'Performansım', '/performance-analytics'),
-                  ]),
-                  const SizedBox(height: 10),
-                  Row(children: [
-                    _quick(context, isDark, Icons.campaign_rounded, 'Duyurular',
-                        '/announcements'),
-                    const SizedBox(width: 10),
-                    _quick(context, isDark, Icons.folder_rounded, 'Belgelerim',
-                        '/documents'),
-                  ]),
+                  // Brief §10: her bölüm kısa özet + "Tümünü gör".
+                  // Eskiden burada dört düğmelik bir kısayol ızgarası vardı;
+                  // düğmeler hiçbir şey söylemiyordu — "Belgelerim" yazıyordu
+                  // ama belgen eksik mi tam mı, girmeden anlaşılmıyordu.
 
-                  // Yaklaşan program
-                  _label('YAKLAŞAN PROGRAM', ink),
-                  events.when(
-                    loading: () => _mini('Yükleniyor…'),
-                    error: (_, __) => _mini('Yüklenemedi'),
-                    data: (list) {
+                  // Başlık "Bugün" değil "Program": `eventsProvider` yaklaşan
+                  // etkinlikleri döndürüyor, hepsi bugün değil. Gelecek
+                  // haftaki maçın üstüne "Bugün" yazmak yanlış bilgi olurdu.
+                  SummarySection(
+                    title: 'Program',
+                    onSeeAll: () => Navigator.pushNamed(context, '/calendar'),
+                    child: _sum(events, (list) {
                       final now = DateTime.now();
                       final up = (list
-                          .where((e) => e.startsAt
-                              .isAfter(now.subtract(const Duration(hours: 3))))
-                          .toList()
-                        ..sort((a, b) => a.startsAt.compareTo(b.startsAt)))
+                              .where((e) => e.startsAt.isAfter(
+                                  now.subtract(const Duration(hours: 3))))
+                              .toList()
+                            ..sort((a, b) => a.startsAt.compareTo(b.startsAt)))
                           .skip(1)
                           .take(3)
                           .toList();
-                      if (up.isEmpty) return _mini('Başka etkinlik yok');
+                      if (up.isEmpty) {
+                        return SummaryLine.empty('Başka etkinlik yok');
+                      }
                       return Column(
                           children: up
                               .map((e) => _agenda(isDark, e.startsAt, e.title,
                                   e.place ?? _kindLabel(e.kind)))
                               .toList());
-                    },
+                    }),
                   ),
 
-                  // Duyurular
-                  _label('KULÜP DUYURULARI', ink),
-                  anns.when(
-                    loading: () => _mini('Yükleniyor…'),
-                    error: (_, __) => _mini('Yüklenemedi'),
-                    data: (list) {
-                      if (list.isEmpty) return _mini('Duyuru yok');
+                  SummarySection(
+                    title: 'Gelişim',
+                    onSeeAll: () => Navigator.pushNamed(
+                        context, '/performance-analytics'),
+                    child: _sum(perf, (list) {
+                      final mine = myAthlete == null
+                          ? null
+                          : list
+                              .where((r) => r.athleteId == myAthlete.id)
+                              .firstOrNull;
+                      if (mine == null) {
+                        return SummaryLine.empty('Performans kaydı yok');
+                      }
+                      return SummaryLine(
+                        icon: Icons.trending_up_rounded,
+                        text: '%${mine.progress} gelişim',
+                        sub: '${mine.tests} test · ${mine.goals} hedef',
+                        tone:
+                            mine.progress >= 50 ? context.swan.success : null,
+                      );
+                    }),
+                  ),
+
+                  SummarySection(
+                    title: 'Takımım',
+                    onSeeAll: () => Navigator.pushNamed(context, '/teams'),
+                    child: _sum(teams, (list) {
+                      if (list.isEmpty) return SummaryLine.empty('Takım yok');
+                      final t = list.first;
+                      return SummaryLine(
+                        icon: Icons.groups_rounded,
+                        text: t.name,
+                        sub: list.length > 1
+                            ? '${list.length} takımdasın'
+                            : club?.name,
+                      );
+                    }),
+                  ),
+
+                  SummarySection(
+                    title: 'Sağlık',
+                    onSeeAll: () =>
+                        Navigator.pushNamed(context, '/medical-center'),
+                    child: _sum(injuries, (list) {
+                      final mine = myAthlete == null
+                          ? null
+                          : list
+                              .where((r) => r.athleteId == myAthlete.id)
+                              .firstOrNull;
+                      // Kayıt yoksa "Sağlam" YAZMIYORUM. Sakatlık listesi
+                      // kulüp geneli; sporcuya RLS ile kapalıysa da boş
+                      // dönüyor ve ikisi buradan ayırt edilemiyor. Sağlıkla
+                      // ilgili bir şeyi veri olmadan iddia etmek yanlış.
+                      if (mine == null) {
+                        return SummaryLine.empty('Sağlık kaydı yok');
+                      }
+                      return SummaryLine(
+                        icon: Icons.favorite_rounded,
+                        text: mine.statusLabel,
+                        sub: mine.note,
+                        tone: switch (mine.status) {
+                          'injured' => context.swan.danger,
+                          'pending' => context.swan.warning,
+                          _ => context.swan.success,
+                        },
+                      );
+                    }),
+                  ),
+
+                  SummarySection(
+                    title: 'Belgeler',
+                    onSeeAll: () => Navigator.pushNamed(context, '/documents'),
+                    child: _sum(docs, (list) {
+                      final mine = list
+                          .where((d) =>
+                              d.ownerId == profile?.id ||
+                              (myAthlete != null && d.ownerId == myAthlete.id))
+                          .toList();
+                      if (mine.isEmpty) {
+                        return SummaryLine.empty('Belge yüklenmemiş');
+                      }
+                      final ok = mine.where((d) => d.verified).length;
+                      final missing = mine.length - ok;
+                      return SummaryLine(
+                        icon: Icons.folder_rounded,
+                        text: missing == 0
+                            ? '${mine.length} belge onaylı'
+                            : '$missing belge onay bekliyor',
+                        sub: '${mine.length} belge yüklü',
+                        tone: missing == 0
+                            ? context.swan.success
+                            : context.swan.warning,
+                      );
+                    }),
+                  ),
+
+                  SummarySection(
+                    title: 'Finans',
+                    onSeeAll: () => Navigator.pushNamed(context, '/aidatlarim'),
+                    child: _sum(fees, (list) {
+                      final open =
+                          list.where((f) => f.status != 'paid').toList();
+                      if (open.isEmpty) {
+                        return SummaryLine(
+                          icon: Icons.check_circle_rounded,
+                          text: 'Borcun yok',
+                          tone: context.swan.success,
+                        );
+                      }
+                      final total = open.fold<num>(0, (a, f) => a + f.amount);
+                      final overdue = open.where((f) => f.overdue).length;
+                      return SummaryLine(
+                        icon: Icons.receipt_long_rounded,
+                        text: money(total),
+                        sub: overdue > 0
+                            ? '${open.length} ödenmemiş · $overdue gecikmiş'
+                            : '${open.length} ödenmemiş',
+                        tone: overdue > 0
+                            ? context.swan.danger
+                            : context.swan.warning,
+                      );
+                    }),
+                  ),
+
+                  SummarySection(
+                    title: 'Duyurular',
+                    onSeeAll: () =>
+                        Navigator.pushNamed(context, '/announcements'),
+                    child: _sum(anns, (list) {
+                      if (list.isEmpty) return SummaryLine.empty('Duyuru yok');
                       return Column(
                           children: list
                               .take(3)
-                              .map((a) => _annCard(isDark, a.title, a.body,
-                                  a.pinned))
+                              .map((a) =>
+                                  _annCard(isDark, a.title, a.body, a.pinned))
                               .toList());
-                    },
+                    }),
                   ),
                 ],
               ),
@@ -164,6 +287,18 @@ class AthleteHomeScreen extends ConsumerWidget {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
+
+  /// Bölüm gövdesi — yükleniyor/hata hâlini altı yerde tekrar yazmamak için.
+  ///
+  /// Hata sessizce yutulmuyor: özet satırı "yüklenemedi" diyor. Boş görünen
+  /// bir bölüm ile yüklenememiş bir bölüm kullanıcı için aynı şey değil.
+  Widget _sum<T>(AsyncValue<T> v, Widget Function(T) build) => v.when(
+        loading: () => const SummaryLine(
+            icon: Icons.hourglass_empty_rounded, text: 'Yükleniyor…'),
+        error: (_, __) => const SummaryLine(
+            icon: Icons.cloud_off_rounded, text: 'Yüklenemedi'),
+        data: build,
+      );
 
   // ------------------------------------------------------------- parçalar
   Widget _hero(EventRow e) {

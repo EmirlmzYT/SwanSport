@@ -179,15 +179,24 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
-**Modül menüsü**
-- Menüye modül eklerken `kAllModules` **ve** `kModuleGroup`'a birlikte satır
-  ekle (`app/widgets/module_launcher.dart`). Yalnızca birincisine eklersen
-  modül sessizce "Diğer" öbeğine düşer ve kimse fark etmez — bu gerçekten
-  yaşandı, dört modül böyle yanlış yere düştü. `module_launcher_test.dart`
-  artık bunu yakalıyor, testi silme.
-- Aramada `foldTr` kullanılıyor: `'İlanlar'.toLowerCase()` Dart'ta birleşik
-  noktalı `i` üretiyor ve kullanıcının yazdığı `ilan` ile **eşleşmiyor**.
-  Türkçe metinle eşleştirme yapan her yerde bu tuzak var.
+**Gezinme ve giriş noktaları**
+- Modül menüsü (`module_launcher.dart`, `kAllModules`, `kModuleGroup`) tasarım
+  turunda **kaldırıldı**; rotalar duruyor, giriş noktaları Keşfet ve
+  Profil > Yönetim'e dağıldı. Yeni bir ekran eklerken menüye satır aramaya
+  çalışma — menü yok. Bunun yerine `navigation_test.dart` her rotanın en az bir
+  giriş noktası olduğunu zorunlu kılıyor; ekranı ekleyip bir yerden
+  bağlamazsan test düşer.
+
+**Türkçe arama**
+- `trFold` / `trContains` kullan (`app/util/tr_text.dart`). Sorun `İ` değil —
+  onu ölçtük, Dart `'İ'.toLowerCase()` için düz `i` veriyor. Asıl sorun
+  şapkalı harflerin ve noktasız `ı`'nın olduğu gibi kalması:
+  `'Işıklar'.toLowerCase().contains('isiklar')` **false**. Kullanıcı "isiklar"
+  yazınca "Işıklar Kort" bulunmuyor.
+- **Beş arama ekranı hâlâ düz `toLowerCase()` kullanıyor** ve bu hatayı
+  taşıyor: `announcements_screen`, `communication_center`,
+  `configuration_controller`, `document_vault`, `search_screen`.
+  `tr_text_test.dart` yardımcıyı sabitliyor ama çağrı yerlerini değil.
 
 **Flutter / dağıtım**
 - `flutter` alt çizgiyle başlayan dosyaları (`web/_redirects`) `build/web`'e
@@ -215,7 +224,7 @@ cd packages/swansport_data && flutter test     # 84 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 127 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 150 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
@@ -229,6 +238,24 @@ Sabit genişlikte uzun etiketlerin düğme taşması
 tamamlandı.
 
 Derleme çıkış kodunu ayrı satırda oku, `| tail` ile boru hattına sokma.
+
+**`flutter analyze` çıktısını süzerken deseni doğrula.** Bu sürümün biçimi
+`error - ...`; eski sürümlerdeki `error • ...` **değil**. Yanlış desenle
+süzmek her koşuda sıfır döndürür ve hiç hata yokmuş gibi görünür — bu
+oturumda tam olarak bu oldu, bir tur boyunca "0 hata" diye rapor edilen şey
+aslında hiçbir şey saymıyordu. Hatayı `flutter test` derleyicisi yakaladı
+(eksik `import`, `SwanRadius` tanımsız).
+
+```bash
+flutter analyze packages/swansport_data apps/swansport_console apps/swansport_app > /tmp/an.txt 2>&1; grep -cE "^\s+error - " /tmp/an.txt
+```
+
+Taban: **0 hata, 0 uyarı**, ~2340 `info` (lint önerisi). `info` sayısı
+gürültü; `error` ve `warning` sıfır kalmalı.
+
+**`analyze` temiz diye derleme temiz sayma.** İkisi ayrı ön uç kullanıyor ve
+test derleyicisi bazı çözümleme hatalarını `analyze`'dan önce/farklı
+yakalıyor. Bir işi bitirmeden önce ikisini de çalıştır.
 
 ### Dağıtım
 

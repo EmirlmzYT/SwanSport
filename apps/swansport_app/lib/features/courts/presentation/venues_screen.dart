@@ -9,8 +9,11 @@ import '../../../app/widgets/swan_tabs.dart';
 import '../../turf/presentation/turf_field_detail_screen.dart';
 import 'court_detail_screen.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/util/tr_text.dart';
+import '../../../app/widgets/swan_chip.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_shape.dart';
 
 /// Sahalar — halka açık kortlar ve halı sahalar tek sayfada.
 ///
@@ -38,6 +41,31 @@ class VenuesScreen extends ConsumerStatefulWidget {
 class _VenuesScreenState extends ConsumerState<VenuesScreen> {
   late int _tab = widget.initialTab;
   Place? _me;
+
+  // Brief §14 "Saha Bul" filtreleri. Hepsi istemci tarafında: liste zaten
+  // tamamı çekiliyor (şehirde iki kort, birkaç saha), her filtre için sunucuya
+  // gitmek gereksiz gecikme olurdu.
+  //
+  // **Tarih/saat filtresi bilerek yok.** "19:00'da boş olanlar" demek her saha
+  // için ayrı bir müsaitlik sorgusu demek (`court_timeline`,
+  // `turf_occupancy_grid` tek saha alıyor) — liste ekranında N ayrı istek.
+  // Bunun yerine "şu an açık" var; gerçek boş/dolu şeridi saha ayrıntısında
+  // zaten duruyor. Kapalı bir sahayı listede göstermemek de aynı işin
+  // yarısını dürüstçe yapıyor.
+  String _q = '';
+  String? _sport;
+  String? _district;
+  bool _openNow = false;
+
+  final _search = TextEditingController();
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
+  bool _matches(String haystack) => trContains(haystack, _q);
 
   @override
   void initState() {
@@ -114,6 +142,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                   onSelect: (i) => setState(() => _tab = i),
                 ),
               ),
+              _filterBar(ink, surf, line),
               Expanded(
                 child: _tab == 0 ? _courtsTab(isDark, ink) : _turfTab(isDark, ink),
               ),
@@ -124,6 +153,110 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
+
+  // ------------------------------- filtreler -------------------------------
+
+  Widget _filterBar(Color ink, Color surf, Color line) {
+    // Spor filtresi yalnızca Kortlar sekmesinde: `TurfField` modelinde spor
+    // alanı yok (tabloda var, modele okunmuyor) ve halı saha pratikte futbol.
+    // Boş bir filtre göstermektense hiç göstermemek doğru.
+    final sports = _tab == 0
+        ? (ref.watch(courtsProvider(null)).valueOrNull ?? const <Court>[])
+            .map((c) => c.sportName ?? c.sportCode)
+            .whereType<String>()
+            .toSet()
+            .toList()
+        : const <String>[];
+    final districts = (_tab == 0
+            ? (ref.watch(courtsProvider(null)).valueOrNull ?? const <Court>[])
+                .map((c) => c.district)
+            : (ref.watch(turfFieldsProvider(null)).valueOrNull ??
+                    const <TurfField>[])
+                .map((f) => f.district))
+        .whereType<String>()
+        .toSet()
+        .toList()
+      ..sort();
+
+    final anyFilter =
+        _q.isNotEmpty || _sport != null || _district != null || _openNow;
+
+    return Column(children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        child: Container(
+          height: 42,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+              color: surf,
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+              border: Border.all(color: line)),
+          child: Row(children: [
+            Icon(Icons.search_rounded, size: 17, color: context.swan.inkMuted),
+            const SizedBox(width: 8),
+            Expanded(
+              child: TextField(
+                controller: _search,
+                onChanged: (v) => setState(() => _q = v.trim()),
+                style: SwanType.bodySm(ink),
+                decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  hintText: _tab == 0 ? 'Kort veya tesis ara' : 'Saha ara',
+                  hintStyle: SwanType.bodySm(context.swan.inkMuted),
+                ),
+              ),
+            ),
+            if (anyFilter)
+              GestureDetector(
+                onTap: () {
+                  _search.clear();
+                  setState(() {
+                    _q = '';
+                    _sport = null;
+                    _district = null;
+                    _openNow = false;
+                  });
+                },
+                child: Icon(Icons.close_rounded,
+                    size: 17, color: context.swan.inkMuted),
+              ),
+          ]),
+        ),
+      ),
+      SwanChipBar(children: [
+        SwanChip(
+          label: 'Şu an açık',
+          icon: Icons.schedule_rounded,
+          selected: _openNow,
+          onTap: () => setState(() => _openNow = !_openNow),
+        ),
+        for (final s in sports)
+          SwanChip(
+            label: s,
+            selected: _sport == s,
+            onTap: () => setState(() => _sport = _sport == s ? null : s),
+          ),
+        for (final d in districts)
+          SwanChip(
+            label: d,
+            selected: _district == d,
+            onTap: () => setState(() => _district = _district == d ? null : d),
+          ),
+      ]),
+      const SizedBox(height: 12),
+    ]);
+  }
+
+  /// Filtre sonucu boşsa: "kayıt yok" değil "filtreye uyan yok" de. İkisi
+  /// aynı şey değil; birincisi kullanıcıya sistemde hiç saha yokmuş gibi
+  /// gösteriyor, oysa filtreyi kaldırsa liste dolu.
+  Widget _noMatch() => premiumEmpty(
+        context,
+        icon: Icons.filter_alt_off_rounded,
+        title: 'Filtreye uyan yok',
+        subtitle: 'Aramayı veya filtreleri değiştirip tekrar dene.',
+      );
 
   // ------------------------------- sekmeler --------------------------------
 
@@ -141,7 +274,18 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
             subtitle: 'Yakında bu şehirdeki halka açık kortlar burada olacak.',
           );
         }
-        final sorted = _sorted(courts, (c) => (c.lat, c.lng),
+        final now = DateTime.now();
+        final filtered = courts.where((c) {
+          if (!_matches('${c.name} ${c.venue ?? ''}')) return false;
+          if (_sport != null && (c.sportName ?? c.sportCode) != _sport) {
+            return false;
+          }
+          if (_district != null && c.district != _district) return false;
+          if (_openNow && !isOpenAt(c.opensAt, c.closesAt, now)) return false;
+          return true;
+        }).toList();
+        if (filtered.isEmpty) return _noMatch();
+        final sorted = _sorted(filtered, (c) => (c.lat, c.lng),
             (c, m) => c.withDistance(m), (c) => c.distanceMeters);
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(courtsProvider(null)),
@@ -170,7 +314,15 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                 'Yakında bu şehirdeki halı sahaların doluluğu burada olacak.',
           );
         }
-        final sorted = _sorted(fields, (f) => (f.lat, f.lng),
+        final now = DateTime.now();
+        final filtered = fields.where((f) {
+          if (!_matches('${f.name} ${f.venueName}')) return false;
+          if (_district != null && f.district != _district) return false;
+          if (_openNow && !isOpenAt(f.opensAt, f.closesAt, now)) return false;
+          return true;
+        }).toList();
+        if (filtered.isEmpty) return _noMatch();
+        final sorted = _sorted(filtered, (f) => (f.lat, f.lng),
             (f, m) => f.withDistance(m), (f) => f.distanceMeters);
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(turfFieldsProvider(null)),
