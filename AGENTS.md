@@ -179,6 +179,30 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Özellik bayrakları — kademeli yayın (0053)**
+- Büyük özellikler artık doğrudan herkese açılmıyor. Kademeler:
+  `off → admins → testers → everyone`. Kapalıya çekmek geri alma yerine
+  geçiyor.
+- **Pazaryeri `admins`'te başlıyor.** Bugün herkese açıldı ve hiç denenmedi;
+  planın sırasına oturtuldu.
+- **Bayrak güvenlik değildir.** Ekranı gizler, veriyi korumaz — koruma her
+  zaman RLS ve RPC'de. Kapalı bir bayrak, doğrudan API çağıran birini
+  durdurmuyor.
+- Sunucuya ulaşılamazsa **boş küme** dönüyor, yani bayraklı hiçbir özellik
+  açılmıyor. Tersi olsaydı bir ağ hatası denenmemiş bir özelliği herkese
+  açardı.
+- Anahtar sabitleri `FeatureFlags` içinde: `has('marketpalce')` sessizce
+  false döner, sabit kullanmak yazım hatasını derlemede yakalıyor.
+- Konsol > Özellik bayrakları'ndan yönetiliyor.
+
+**Ana Sayfa — roller birleşik (Dönem 1)**
+- **Aktif rol seçici YOK.** Aynı kişi hem antrenör hem veli olabiliyor;
+  çocuğunun aidatını görmek için rol değiştirmek zorunda kalmamalı.
+- Kartlar rol **etiketi** taşıyor ama hiçbiri gizlenmiyor. Etiket yalnızca
+  bilgi — yetkiyi ve erişimi `SwanAccess` ve RLS belirliyor.
+- **En fazla üç kart.** Ana Sayfa'nın işi "bugün ne yapmalıyım"a cevap
+  vermek; on kart o soruyu erteliyor.
+
 **Pazaryeri (0050-0052)**
 - `listings` tablosu **genişletildi**, ikinci ilan sistemi kurulmadı. Sporcu,
   antrenör ve organizasyon ilanlarında `market_status` null ve pazaryeri
@@ -406,7 +430,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 137 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 141 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 10 test, hepsi geçer

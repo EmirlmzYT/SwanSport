@@ -42,6 +42,10 @@ class ExploreScreen extends ConsumerWidget {
                 _SearchField(c: c),
                 const SizedBox(height: SwanSpace.xl),
 
+                // Üç bölüm, üç ayrı niyet: "bugün spor yapacağım",
+                // "bir yere ait olmak istiyorum", "bir şeye ihtiyacım var".
+                // Öncekinde iki bölüm vardı ve pazaryeri ile kort aynı
+                // başlığın altındaydı — ikisi farklı sorulara cevap veriyor.
                 _section(c, 'Spor yap'),
                 _Row(
                   c: c,
@@ -57,26 +61,16 @@ class ExploreScreen extends ConsumerWidget {
                   subtitle: 'Birlikte oynayacak birini ara',
                   route: '/partner-ara',
                 ),
-                // Pazaryeri Keşfet'ten açılıyor, alt gezinmeye eklenmiyor:
-                // beş sekme günlük kullanılan şeyler için, pazaryeri ayda
-                // bir açılan bir yer.
                 _Row(
                   c: c,
-                  icon: Icons.storefront_rounded,
-                  title: 'Spor Malzemeleri Pazaryeri',
-                  subtitle: 'Sıfır ve ikinci el ürünler',
-                  route: '/pazaryeri',
-                ),
-                _Row(
-                  c: c,
-                  icon: Icons.campaign_rounded,
-                  title: 'İlanlar',
-                  subtitle: 'Sporcu, antrenör ve seçme ilanları',
-                  route: '/ilanlar',
+                  icon: Icons.emoji_events_rounded,
+                  title: 'Organizasyonlar',
+                  subtitle: 'Turnuva, kamp ve etkinlikler',
+                  route: '/organizasyonlar',
                 ),
 
                 const SizedBox(height: SwanSpace.xl),
-                _section(c, 'İnsanlar ve kulüpler'),
+                _section(c, 'Topluluğa katıl'),
                 _Row(
                   c: c,
                   icon: Icons.travel_explore_rounded,
@@ -91,13 +85,6 @@ class ExploreScreen extends ConsumerWidget {
                   subtitle: 'İlinin antrenör grupları',
                   route: '/topluluklar',
                 ),
-                _Row(
-                  c: c,
-                  icon: Icons.emoji_events_rounded,
-                  title: 'Organizasyonlar',
-                  subtitle: 'Turnuva, kamp ve etkinlikler',
-                  route: '/organizasyonlar',
-                ),
                 if (access.isClubStaff)
                   _Row(
                     c: c,
@@ -106,6 +93,28 @@ class ExploreScreen extends ConsumerWidget {
                     subtitle: 'Kadrolar ve takım sayfaları',
                     route: '/teams',
                   ),
+
+                const SizedBox(height: SwanSpace.xl),
+                _section(c, 'İhtiyacını bul'),
+                // Pazaryeri **özellik bayrağının arkasında** (0053).
+                // "Yakında" kartı göstermiyoruz: kullanılamayan bir şeyi
+                // göstermek, olmayan bir şeyi göstermekten kötü — kullanıcı
+                // her seferinde tekrar deniyor.
+                if (ref.watch(featureEnabledProvider(FeatureFlags.marketplace)))
+                  _Row(
+                    c: c,
+                    icon: Icons.storefront_rounded,
+                    title: 'Spor Malzemeleri Pazaryeri',
+                    subtitle: 'Sıfır ve ikinci el ürünler',
+                    route: '/pazaryeri',
+                  ),
+                _Row(
+                  c: c,
+                  icon: Icons.campaign_rounded,
+                  title: 'İlanlar',
+                  subtitle: 'Sporcu, antrenör ve seçme ilanları',
+                  route: '/ilanlar',
+                ),
               ],
             ),
           ),

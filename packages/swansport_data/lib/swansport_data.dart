@@ -18,6 +18,7 @@ export 'src/club_ops_service.dart';
 export 'src/club_profile_service.dart';
 export 'src/community_service.dart';
 export 'src/court_service.dart';
+export 'src/feature_flags.dart';
 export 'src/marketplace_service.dart';
 export 'src/expense_service.dart';
 export 'src/finance_service.dart';

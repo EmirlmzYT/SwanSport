@@ -11,6 +11,7 @@ import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/today_strip.dart';
 import '../../../app/widgets/inbox_actions.dart';
+import '../../../app/widgets/today_tasks.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
@@ -96,6 +97,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     const SizedBox(width: 8),
                     const InboxActions(),
                   ]),
+                ),
+
+                // Rol etiketli öncelik kartları — "bugün ne yapmalıyım".
+                // TodayStrip'in ÜSTÜNDE: şerit yaklaşan programı gösteriyor,
+                // bu ise aksiyon bekleyen işi. Önce yapılacak iş, sonra
+                // program.
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: const TodayTasks(),
                 ),
 
                 const TodayStrip(),

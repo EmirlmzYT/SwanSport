@@ -7,6 +7,7 @@ import '../../features/finance/accounts_screen.dart';
 import '../../features/finance/ledger_screen.dart';
 import '../../features/finance/report_screen.dart';
 import '../../features/platform/approvals_screen.dart';
+import '../../features/platform/feature_flags_screen.dart';
 import '../../features/platform/marketplace_admin_screen.dart';
 import '../../features/platform/courts_screen.dart';
 import '../../features/platform/turf_fields_screen.dart';
@@ -137,6 +138,14 @@ const List<ConsoleModule> kConsoleModules = [
     builder: _marketplace,
   ),
   ConsoleModule(
+    id: 'flags',
+    label: 'Özellik bayrakları',
+    icon: Icons.toggle_on_rounded,
+    route: '/bayraklar',
+    audience: {ConsoleAudience.platformAdmin},
+    builder: _flags,
+  ),
+  ConsoleModule(
     id: 'metrics',
     label: 'Metrikler',
     icon: Icons.insights_rounded,
@@ -176,6 +185,7 @@ Widget _users(BuildContext _) => const UsersScreen();
 Widget _moderation(BuildContext _) => const ModerationScreen();
 
 Widget _marketplace(BuildContext _) => const MarketplaceAdminScreen();
+Widget _flags(BuildContext _) => const FeatureFlagsScreen();
 Widget _metrics(BuildContext _) => const MetricsScreen();
 Widget _courts(BuildContext _) => const ConsoleCourtsScreen();
 Widget _turfFields(BuildContext _) => const ConsoleTurfFieldsScreen();
