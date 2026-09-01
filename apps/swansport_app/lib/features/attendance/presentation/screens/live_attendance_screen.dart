@@ -21,6 +21,19 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
   final Map<String, String> _marks = {};
   bool _saving = false;
 
+  /// Yoklamanın ait olduğu antrenman.
+  ///
+  /// **0044 öncesi yoktu** ve her yoklama `event_id = null` yazılıyordu:
+  /// hiçbir antrenmana ait değildi, RSVP ile eşleştirilemiyordu ve
+  /// `unique (event_id, athlete_id)` kısıtı NULL'lar çakışmadığı için
+  /// işlemiyordu — aynı sporcu aynı gün defalarca yazılabiliyordu.
+  String? _eventId;
+
+  /// Kadro hangi etkinlik için doldurulmuştu. Etkinlik değişince işaretleri
+  /// sıfırlamak için tutuluyor; yoksa önceki antrenmanın işaretleri yeni
+  /// antrenmana taşınırdı.
+  String? _filledFor;
+
   static final _opts = [
     ('present', 'Var', SwanPalette.light.success),
     ('absent', 'Yok', SwanPalette.light.danger),
@@ -37,7 +50,16 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
-    final async = ref.watch(clubAthletesProvider);
+
+    // Bugünün antrenmanları — yoklama bir antrenmana ait olmalı.
+    final today = _todaysEvents(ref);
+    if (_eventId == null && today.isNotEmpty) _eventId = today.first.id;
+
+    // Etkinlik seçiliyse kadro RSVP ve varsa kayıtlı yoklamayla geliyor.
+    // Seçili değilse (bugün antrenman yoksa) eski yol: kulüp kadrosu.
+    final async = _eventId == null
+        ? ref.watch(clubAthletesProvider)
+        : ref.watch(eventRosterProvider(_eventId!));
 
     return Scaffold(
       backgroundColor: bg,
@@ -48,11 +70,10 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
             child: async.when(
               loading: () => premiumLoading(),
               error: (e, _) => premiumError(context, '$e'),
-              data: (athletes) {
-                // varsayılan: tümü Var
-                for (final a in athletes) {
-                  _marks.putIfAbsent(a.id, () => 'present');
-                }
+              data: (rows) {
+                final athletes = _names(rows);
+                _prefill(rows);
+
                 final present =
                     _marks.values.where((v) => v == 'present').length;
                 final total = athletes.length;
@@ -90,6 +111,10 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                         ],
                       ),
                     ),
+                    // Yoklama bir antrenmana ait olmalı: seçim burada yapılıyor
+                    // ve seçilen antrenmanın RSVP'si işaretleri ön-dolduruyor.
+                    _eventPicker(isDark, ink, surf, line),
+                    const SizedBox(height: 12),
                     if (athletes.isEmpty)
                       Expanded(
                         child: premiumEmpty(
@@ -104,8 +129,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                         child: ListView.builder(
                           padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
                           itemCount: athletes.length,
-                          itemBuilder: (_, i) =>
-                              _tile(isDark, athletes[i], i, line),
+                          itemBuilder: (_, i) => _tile(
+                              isDark, athletes[i].$1, athletes[i].$2, i, line),
                         ),
                       ),
                   ],
@@ -153,8 +178,14 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
     );
   }
 
-  Widget _tile(bool isDark, AthleteRow a, int i, Color line) {
+  /// Bir sporcu satırı.
+  ///
+  /// `AthleteRow` yerine `(id, ad)` alıyor: kadro iki kaynaktan gelebiliyor —
+  /// etkinlik seçiliyse `RosterEntry` (RSVP'li), değilse kulüp kadrosu.
+  Widget _tile(
+      bool isDark, String id, String name, int i, Color line) {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final initials = _initials(name);
     return Container(
       decoration:
           BoxDecoration(border: Border(bottom: BorderSide(color: line))),
@@ -164,13 +195,13 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
           Row(
             children: [
               GradientAvatar(
-                  initials: a.initials,
+                  initials: initials,
                   gradientIndex: i % 4,
                   size: 36,
                   radius: 12),
               const SizedBox(width: 11),
               Expanded(
-                  child: Text(a.fullName,
+                  child: Text(name,
                       style: SwanType.bodySm(ink, w: FontWeight.w700))),
             ],
           ),
@@ -179,7 +210,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
             children: [
               for (var j = 0; j < _opts.length; j++) ...[
                 if (j > 0) const SizedBox(width: 6),
-                _tap(a.id, _opts[j].$1, _opts[j].$2, _opts[j].$3, isDark),
+                _tap(id, _opts[j].$1, _opts[j].$2, _opts[j].$3, isDark),
               ],
             ],
           ),
@@ -216,12 +247,124 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
     );
   }
 
+
+  // ------------------------------- yardımcılar -------------------------------
+
+  /// Ad soyaddan baş harfler. `AthleteRow.initials` yerine burada hesaplanıyor,
+  /// çünkü kadro artık iki farklı tipten gelebiliyor.
+  String _initials(String name) {
+    final parts = name.trim().split(RegExp(r'\s+')).where((p) => p.isNotEmpty);
+    if (parts.isEmpty) return '?';
+    final a = parts.first[0];
+    final b = parts.length > 1 ? parts.last[0] : '';
+    return (a + b).toUpperCase();
+  }
+
+  /// Bugün başlayan etkinlikler, saatine göre.
+  List<EventRow> _todaysEvents(WidgetRef ref) {
+    final all = ref.watch(eventsProvider).valueOrNull ?? const <EventRow>[];
+    final now = DateTime.now();
+    final list = all
+        .where((e) =>
+            e.startsAt.year == now.year &&
+            e.startsAt.month == now.month &&
+            e.startsAt.day == now.day)
+        .toList()
+      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+    return list;
+  }
+
+  /// İki farklı kaynağı tek biçime indiriyor: (id, ad).
+  ///
+  /// Etkinlik seçiliyse [RosterEntry], değilse kulüp kadrosu geliyor. Ekranın
+  /// geri kalanı hangisinden geldiğini bilmek zorunda kalmasın.
+  List<(String, String)> _names(List<dynamic> rows) => rows
+      .map<(String, String)>((r) => r is RosterEntry
+          ? (r.athleteId, r.fullName)
+          : (r.id as String, '${r.firstName} ${r.lastName}'.trim()))
+      .toList();
+
+  /// İşaretleri ön-doldurur.
+  ///
+  /// Etkinlik seçiliyse RSVP'den: "katılıyorum" → Var, "gelemem" → Yok.
+  /// **Yanıt vermeyen boş bırakılıyor.** Eski ekran herkesi varsayılan `Var`
+  /// işaretliyordu; antrenör gelmeyenleri kaldırmayı unuttuğunda katılım
+  /// olduğundan yüksek görünüyordu. Bilinmeyeni bilinmeyen bırakmak, yanlış
+  /// tahmin etmekten iyi.
+  ///
+  /// Etkinlik yoksa eski davranış korunuyor — orada hiçbir bilgi yok ve
+  /// 18 kişiyi tek tek işaretletmek ekranı kullanılamaz hale getirirdi.
+  void _prefill(List<dynamic> rows) {
+    if (_filledFor == _eventId && _marks.isNotEmpty) return;
+    _filledFor = _eventId;
+    _marks.clear();
+
+    for (final r in rows) {
+      if (r is RosterEntry) {
+        final v = r.suggested;
+        if (v != null) _marks[r.athleteId] = v;
+      } else {
+        _marks[r.id as String] = 'present';
+      }
+    }
+  }
+
+  /// Antrenman seçici — yoklamanın hangi antrenmana ait olduğunu söyler.
+  Widget _eventPicker(bool isDark, Color ink, Color surf, Color line) {
+    final events = _todaysEvents(ref);
+    if (events.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        child: Text(
+          'Bugün planlı antrenman yok — yoklama antrenmana bağlanmadan '
+          'kaydedilecek.',
+          style: SwanType.caption(SwanColors.textSecondary),
+        ),
+      );
+    }
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        itemCount: events.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final e = events[i];
+          final on = e.id == _eventId;
+          final hh = e.startsAt.hour.toString().padLeft(2, '0');
+          final mm = e.startsAt.minute.toString().padLeft(2, '0');
+          return GestureDetector(
+            onTap: () => setState(() => _eventId = e.id),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 13),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: on ? kTeal : surf,
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(color: on ? kTeal : line),
+              ),
+              child: Text('$hh:$mm · ${e.title}',
+                  style: SwanType.caption(on ? Colors.white : ink,
+                      w: FontWeight.w700)),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _save(ClubRef club) async {
     setState(() => _saving = true);
     try {
-      await ref
-          .read(clubDataServiceProvider)
-          .saveAttendance(club.id, Map<String, String>.from(_marks));
+      await ref.read(clubDataServiceProvider).saveAttendance(
+            club.id,
+            Map<String, String>.from(_marks),
+            eventId: _eventId,
+          );
+      // Kaydedilen yoklama kadroya yansısın: aynı ekranda tekrar bakınca
+      // sunucudaki hâli görünmeli.
+      if (_eventId != null) ref.invalidate(eventRosterProvider(_eventId!));
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

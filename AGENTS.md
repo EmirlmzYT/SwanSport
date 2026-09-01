@@ -179,6 +179,21 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Gelişim döngüsü (0044)**
+- `attendance.event_id` **artık yazılıyor**. Öncesinde sütun vardı ama uygulama
+  hiç doldurmuyordu: yoklama hiçbir antrenmana ait değildi ve
+  `unique (event_id, athlete_id)` kısıtı işlemiyordu — Postgres'te NULL'lar
+  çakışmadığı için aynı sporcu aynı gün defalarca yazılabiliyordu.
+- Yoklama ekranı **RSVP'den ön-doluyor** (`event_roster` RPC). Yanıt vermeyen
+  boş bırakılıyor; eski ekran herkesi `present` işaretliyordu ve unutulan
+  gelmeyenler katılımı olduğundan yüksek gösteriyordu.
+- Hedefler **ölçüme bağlanabiliyor**: `development_goals.test_name` +
+  `baseline_value` + `target_value`. Yeni ölçüm girilince tetikleyici
+  ilerlemeyi hesaplıyor, elle girilmiyor. `test_name` boşsa eski davranış
+  sürüyor — ikisi bir arada yaşıyor.
+- İlerleme yönünü **testin kendisi** söylüyor (`lower_is_better`); hedefte
+  tekrar tutulmuyor, iki yerde ayrışmasın diye.
+
 **Realtime**
 - Bir tablonun canlı akması için **`supabase_realtime` publication'ına
   eklenmiş olması** şart. Eklenmeden `.stream()` yazmak sessizce çalışmıyor:
@@ -292,7 +307,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 102 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 115 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer

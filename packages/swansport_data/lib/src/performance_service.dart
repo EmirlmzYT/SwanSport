@@ -90,6 +90,11 @@ class DevelopmentGoal {
     required this.status,
     this.targetDate,
     this.note,
+    this.testName,
+    this.baselineValue,
+    this.targetValue,
+    this.lastValue,
+    this.measuredAt,
   });
 
   final String id;
@@ -100,6 +105,24 @@ class DevelopmentGoal {
   final String status; // active | done | at_risk
   final DateTime? targetDate;
   final String? note;
+
+  /// Bu hedefi ölçen testin adı (0044).
+  ///
+  /// Doluysa `progress` **elle girilmiyor**: yeni ölçüm eklendiğinde
+  /// veritabanı tetikleyicisi hesaplıyor. Boşsa eski davranış sürüyor —
+  /// mevcut hedefler bozulmasın diye ikisi bir arada yaşıyor.
+  final String? testName;
+
+  final double? baselineValue;
+  final double? targetValue;
+
+  /// Hedefe bağlı en son ölçüm ve ne zaman alındığı.
+  final double? lastValue;
+  final DateTime? measuredAt;
+
+  /// Ölçüme bağlı mı, elle mi takip ediliyor.
+  bool get isMeasured =>
+      testName != null && baselineValue != null && targetValue != null;
 
   String get statusLabel => switch (status) {
         'done' => 'Tamamlandı',
@@ -118,6 +141,13 @@ class DevelopmentGoal {
             ? null
             : DateTime.tryParse('${m['target_date']}'),
         note: m['note'] as String?,
+        testName: m['test_name'] as String?,
+        baselineValue: (m['baseline_value'] as num?)?.toDouble(),
+        targetValue: (m['target_value'] as num?)?.toDouble(),
+        lastValue: (m['last_value'] as num?)?.toDouble(),
+        measuredAt: m['measured_at'] == null
+            ? null
+            : DateTime.tryParse('${m['measured_at']}')?.toLocal(),
       );
 }
 
@@ -184,7 +214,8 @@ class PerformanceService {
     final rows = await _c
         .from('development_goals')
         .select('id, athlete_id, title, category, progress, status, '
-            'target_date, note')
+            'target_date, note, test_name, baseline_value, target_value, '
+            'last_value, measured_at')
         .eq('athlete_id', athleteId)
         .order('created_at', ascending: false);
     return (rows as List)
@@ -192,13 +223,34 @@ class PerformanceService {
         .toList();
   }
 
+  /// Hedef ekler.
+  ///
+  /// [testName], [baselineValue] ve [targetValue] birlikte verilirse hedef
+  /// **ölçülebilir** olur: ilerlemesi bir daha elle girilmez, o testten yeni
+  /// bir ölçüm geldiğinde veritabanı tetikleyicisi hesaplar (0044).
+  ///
+  /// Üçü birden ya verilir ya hiçbiri; yarısı dolu bir hedef ilerleme
+  /// hesaplayamaz ve sessizce yanlış görünürdü. Şema da bunu kısıtlıyor.
   Future<void> addGoal({
     required String athleteId,
     required String title,
     String category = 'surat',
     DateTime? targetDate,
     String? note,
+    String? testName,
+    double? baselineValue,
+    double? targetValue,
   }) async {
+    final measured = testName != null &&
+        testName.trim().isNotEmpty &&
+        baselineValue != null &&
+        targetValue != null;
+
+    if (measured && baselineValue == targetValue) {
+      throw ArgumentError(
+          'Başlangıç ve hedef aynı olamaz — ilerleme hesaplanamaz.');
+    }
+
     await _c.from('development_goals').insert({
       'athlete_id': athleteId,
       'title': title.trim(),
@@ -206,10 +258,18 @@ class PerformanceService {
       if (targetDate != null)
         'target_date': targetDate.toIso8601String().split('T').first,
       if (note != null && note.trim().isNotEmpty) 'note': note.trim(),
+      if (measured) 'test_name': testName.trim(),
+      if (measured) 'baseline_value': baselineValue,
+      if (measured) 'target_value': targetValue,
       'created_by': _c.auth.currentUser?.id,
     });
   }
 
+  /// İlerlemeyi elle ayarlar — **yalnızca ölçüme bağlı olmayan hedeflerde**.
+  ///
+  /// Ölçülebilir hedefte bunu çağırmak, bir sonraki ölçümde tetikleyicinin
+  /// üstüne yazacağı bir değer girmek olur; kullanıcıya kalıcı görünen ama
+  /// kalıcı olmayan bir değişiklik en kötü tür geri bildirimdir.
   Future<void> setGoalProgress(String id, int progress) async {
     final p = progress.clamp(0, 100);
     await _c.from('development_goals').update({

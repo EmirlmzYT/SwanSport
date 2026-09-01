@@ -616,19 +616,100 @@ class ClubDataService {
   }
 
   /// Yoklamayı kaydeder (event_id opsiyonel; her sporcu için durum).
+  /// Yoklamayı kaydeder.
+  ///
+  /// **[eventId] artık veriliyor** (0044). Eskiden verilmiyordu ve her satır
+  /// `event_id = null` olarak yazılıyordu. İki sonucu vardı:
+  ///
+  /// * Yoklama hiçbir antrenmana ait değildi — RSVP ile eşleştirilemiyor,
+  ///   etkinlik bazlı geçmiş çıkarılamıyordu.
+  /// * `unique (event_id, athlete_id)` kısıtı işlemiyordu: Postgres'te NULL'lar
+  ///   birbiriyle çakışmadığı için aynı sporcu aynı gün defalarca
+  ///   yazılabiliyordu. Yoklamayı iki kez kaydeden antrenör iki satır üretiyordu
+  ///   ve katılım oranı sessizce bozuluyordu.
+  ///
+  /// Etkinlik verildiğinde `upsert` kullanılıyor: aynı yoklamayı düzeltmek için
+  /// tekrar kaydetmek yeni satır değil güncelleme üretiyor.
   Future<void> saveAttendance(
-      String clubId, Map<String, String> athleteStatus) async {
+    String clubId,
+    Map<String, String> athleteStatus, {
+    String? eventId,
+  }) async {
     final rows = athleteStatus.entries
         .map((e) => {
               'club_id': clubId,
               'athlete_id': e.key,
               'status': e.value,
+              if (eventId != null) 'event_id': eventId,
               'taken_at': DateTime.now().toUtc().toIso8601String(),
             })
         .toList();
     if (rows.isEmpty) return;
-    await _c.from('attendance').insert(rows);
+
+    if (eventId == null) {
+      // Etkinliksiz yoklama — eski davranış. Tekilleştirilemiyor, çünkü
+      // çakışacak bir anahtar yok.
+      await _c.from('attendance').insert(rows);
+      return;
+    }
+    await _c
+        .from('attendance')
+        .upsert(rows, onConflict: 'event_id,athlete_id');
   }
+
+  /// Bir etkinliğin kadrosu: sporcu, RSVP'si ve varsa kaydedilmiş yoklaması.
+  ///
+  /// Yoklama ekranı bunu ön-doldurma için kullanıyor. Antrenör 18 kişilik
+  /// kadroyu tek tek işaretliyordu; oysa kimin geleceği RSVP'de zaten yazılı
+  /// ve iki tablo aynı `(event_id, athlete_id)` anahtarını paylaşıyor.
+  Future<List<RosterEntry>> eventRoster(String eventId) async {
+    final rows = await _c
+        .rpc<List<dynamic>>('event_roster', params: {'p_event': eventId});
+    return rows.map((r) {
+      final m = (r as Map).cast<String, dynamic>();
+      return RosterEntry(
+        athleteId: m['athlete_id'] as String,
+        fullName: ((m['full_name'] as String?) ?? '').trim(),
+        rsvp: m['rsvp'] as String?,
+        attendance: m['attendance'] as String?,
+      );
+    }).toList();
+  }
+}
+
+/// Yoklama ekranının bir satırı.
+class RosterEntry {
+  const RosterEntry({
+    required this.athleteId,
+    required this.fullName,
+    this.rsvp,
+    this.attendance,
+  });
+
+  final String athleteId;
+  final String fullName;
+
+  /// attending | uncertain | unavailable | null (yanıt vermemiş)
+  final String? rsvp;
+
+  /// Daha önce kaydedilmiş yoklama, varsa.
+  final String? attendance;
+
+  /// Ekranın açılışta seçeceği değer.
+  ///
+  /// Sıra önemli: **önce kaydedilmiş yoklama** — antrenör daha önce
+  /// düzelttiyse o karar RSVP tahminini ezmeli. Sonra RSVP.
+  ///
+  /// Yanıt vermeyeni `present` saymıyoruz. Eski ekran herkesi varsayılan
+  /// `present` işaretliyordu ve gelmeyenleri kaldırmak antrenörün işiydi;
+  /// bu, unutulduğunda katılımı olduğundan yüksek gösteriyor. Bilinmeyeni
+  /// bilinmeyen bırakmak, yanlış tahmin etmekten iyi.
+  String? get suggested => switch (attendance ?? rsvp) {
+        final String v when attendance != null => v,
+        'attending' => 'present',
+        'unavailable' => 'absent',
+        _ => null,
+      };
 }
 
 // =============================== Provider'lar ==============================
@@ -653,6 +734,15 @@ final myEventRsvpProvider =
     FutureProvider.autoDispose.family<EventRsvp?, String>((ref, eventId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return null;
   return ref.watch(clubDataServiceProvider).myEventRsvp(eventId);
+});
+
+/// Bir etkinliğin yoklama kadrosu — RSVP ve mevcut yoklamayla birlikte.
+final eventRosterProvider =
+    FutureProvider.autoDispose.family<List<RosterEntry>, String>((ref, id) {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return Future.value(const <RosterEntry>[]);
+  }
+  return ref.watch(clubDataServiceProvider).eventRoster(id);
 });
 
 final eventRsvpSummaryProvider = FutureProvider.autoDispose
