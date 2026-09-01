@@ -33,6 +33,17 @@ enum PushSubState {
   noSession,
 }
 
+/// Sessiz tazelemede son yaşanan hata.
+///
+/// **Neden tutuluyor:** `refreshPushSilently` hatayı yalnızca `debugPrint`
+/// ediyordu ve release APK'da o çıktı hiçbir yere gitmiyor. Sonuç: cihaz
+/// kaydedilemiyor, kullanıcı "kayıt yok" görüyor, sebebini kimse
+/// öğrenemiyor. Fonksiyonun kendi yorumu bunu zaten "en sinsi bildirim
+/// hatası" diye tarif ediyordu.
+///
+/// Tanılama paneli bunu gösteriyor.
+String? lastPushError;
+
 class PushService {
   PushService(this._c);
   final SupabaseClient _c;
@@ -250,6 +261,8 @@ final pushDiagnosticsProvider =
       permission: pushPermissionGranted,
       token: sub?.endpoint,
       state: state,
+      // Kayıt yoksa sebebi genelde sessiz tazelemede yaşanmış oluyor.
+      error: state == PushSubState.mine ? null : lastPushError,
     );
   } catch (e) {
     return PushDiagnostics(
@@ -266,7 +279,9 @@ final pushDiagnosticsProvider =
 Future<void> enablePush(WidgetRef ref) async {
   final sub = await pushSubscribe();
   await ref.read(pushServiceProvider).register(sub);
+  lastPushError = null;
   ref.invalidate(pushEnabledProvider);
+  ref.invalidate(pushDiagnosticsProvider);
 }
 
 /// Bildirimleri kapatır — hem tarayıcı aboneliği hem kayıt silinir.
@@ -295,6 +310,8 @@ Future<void> refreshPushSilently(WidgetRef ref) async {
   } catch (error) {
     // Sessiz tazeleme başarısız olursa kullanıcıyı rahatsız etme; ama izsiz
     // kalmasın — bildirimlerin neden gelmediği ancak buradan anlaşılır.
+    // `debugPrint` release'de görünmüyor, o yüzden ayrıca saklıyoruz.
+    lastPushError = '$error';
     debugPrint('SwanSport: push tazeleme başarısız — $error');
   }
 }

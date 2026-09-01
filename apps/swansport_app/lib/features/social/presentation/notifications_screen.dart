@@ -529,13 +529,51 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
                     : null),
             if (diag.error != null) ...[
               const SizedBox(height: 6),
+              // Seçilebilir: kullanıcı bunu kopyalayıp gönderebilsin.
               SelectableText(diag.error!,
                   style: SwanType.caption(c.danger)),
             ],
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: () => _retry(context, ref),
+              child: Container(
+                height: 38,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  // Üstünde beyaz metin var: `accent` değil `accentFill`.
+                  color: c.accentFill,
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                ),
+                child: Text('Kaydı tekrar dene',
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+              ),
+            ),
           ],
         ),
       ),
     );
+  }
+
+  /// Kaydı yeniden dener ve **gerçek hatayı gösterir**.
+  ///
+  /// Bunun olmadığı hâlde kullanıcı "kayıt yok" görüyor ama sebebini
+  /// öğrenemiyordu: kayıt açılışta sessizce deneniyor ve hata yalnızca
+  /// `debugPrint`'e gidiyor — release APK'da hiçbir yere.
+  Future<void> _retry(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await enablePush(ref);
+      ref.invalidate(pushDiagnosticsProvider);
+      messenger.showSnackBar(const SnackBar(
+          content: Text('Cihaz kaydedildi'), backgroundColor: kTeal));
+    } catch (e) {
+      ref.invalidate(pushDiagnosticsProvider);
+      messenger.showSnackBar(SnackBar(
+        content: Text('Kayıt başarısız: $e'),
+        backgroundColor: SwanPalette.light.danger,
+        duration: const Duration(seconds: 10),
+      ));
+    }
   }
 
   /// Durum yalnızca renkle anlatılmıyor: ikon ve "var/yok" metni birlikte.
