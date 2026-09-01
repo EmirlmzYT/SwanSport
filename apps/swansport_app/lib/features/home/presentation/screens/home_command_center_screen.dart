@@ -8,6 +8,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/pending_work.dart';
 import '../../../../app/widgets/quick_actions.dart';
 import '../../../demo/demo_role.dart';
+import '../widgets/role_context_switcher.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
@@ -33,7 +34,7 @@ class HomeCommandCenterScreen extends ConsumerWidget {
     final pending = ref.watch(pendingCredentialsProvider);
     final demoLabel = ref.watch(effectiveRoleLabelProvider);
 
-    int n(AsyncValue<List> v) =>
+    int n(AsyncValue<List<dynamic>> v) =>
         v.maybeWhen(data: (l) => l.length, orElse: () => 0);
 
     return Scaffold(
@@ -70,7 +71,9 @@ class HomeCommandCenterScreen extends ConsumerWidget {
                     ),
                     const InboxActions(),
                   ]),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
+                  const RoleContextSwitcher(),
+                  const SizedBox(height: 4),
                   Text('Komuta Merkezi', style: SwanType.h3(ink)),
                   const SizedBox(height: 4),
                   Text('Merhaba, ${profile?.firstName ?? 'Antrenör'}',
@@ -242,7 +245,6 @@ class HomeCommandCenterScreen extends ConsumerWidget {
 
   Widget _approvalCard(bool isDark, int count) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
       padding: const EdgeInsets.all(14),

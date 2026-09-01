@@ -1,3 +1,4 @@
+import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_models/swansport_models.dart';
 
 enum AdminRole {
@@ -78,11 +79,9 @@ class AdminFilter {
   final UserStatus? status;
   final String? branch;
   bool matches(AdminUser user) {
-    final q = query.trim().toLowerCase();
-    return (q.isEmpty ||
-            '${user.name} ${user.email} ${user.team} ${user.branch}'
-                .toLowerCase()
-                .contains(q)) &&
+    final q = query.trim();
+    final haystack = '${user.name} ${user.email} ${user.team} ${user.branch}';
+    return (q.isEmpty || trContains(haystack, q)) &&
         (role == null || role == user.role) &&
         (status == null || status == user.status) &&
         (branch == null || branch == user.branch);

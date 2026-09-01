@@ -9,7 +9,6 @@ import '../../demo/demo_role.dart';
 import 'post_composer_sheet.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
-import 'widgets/post_card.dart';
 import 'widgets/today_strip.dart';
 import '../../../app/widgets/inbox_actions.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';

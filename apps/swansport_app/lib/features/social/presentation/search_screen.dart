@@ -207,7 +207,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   Widget _chip(bool isDark, String label, int i) {
     final on = _filter == i;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return GestureDetector(

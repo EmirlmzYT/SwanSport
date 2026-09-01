@@ -143,7 +143,7 @@ class SupabaseAthleteService {
 
   /// Yeni kulüp oluştur ve kullanıcıyı yönetici yap (create_club RPC).
   Future<ClubRef> createClub(String name, {String? city}) async {
-    final res = await _client.rpc('create_club', params: {
+    final res = await _client.rpc<dynamic>('create_club', params: {
       'p_name': name,
       if (city != null && city.isNotEmpty) 'p_city': city,
     });

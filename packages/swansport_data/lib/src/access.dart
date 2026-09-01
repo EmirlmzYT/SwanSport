@@ -2,7 +2,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'club_data.dart';
 import 'expense_service.dart';
-import 'supabase_athletes.dart';
 import 'turf_service.dart';
 import 'verification_service.dart';
 

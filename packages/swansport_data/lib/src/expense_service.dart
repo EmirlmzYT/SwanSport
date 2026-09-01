@@ -695,7 +695,7 @@ class ExpenseService {
   /// Yalnızca kulüp **yöneticisi** çağırabilir; antrenör çağırırsa sunucu
   /// reddeder.
   Future<String> createAccountantInvite(String clubId, {String? email}) async {
-    final res = await _c.rpc('create_accountant_invite', params: {
+    final res = await _c.rpc<dynamic>('create_accountant_invite', params: {
       'p_club': clubId,
       if (email != null && email.trim().isNotEmpty) 'p_email': email.trim(),
     });

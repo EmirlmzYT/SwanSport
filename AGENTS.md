@@ -783,6 +783,7 @@ halı saha doluluk panosunu içeriyor.
 > | `0040` | **Doğrulanmadı** | Yalnızca fonksiyon + tetikleyici içeriyor, ikisi de anon'a görünmez |
 > | `0042` `0043` | Uygulandı | `mark_messages_read`, `register_push_subscription`, `push_subscription_state` anon'a 401 veriyor — yani var |
 > | `0044` | Uygulandı | `event_roster` ve `goal_progress` 401; yeni sütunlar REST'ten okunuyor (2026-09-01) |
+> | `0047`–`0052` | Uygulandı | Yedi yeni fonksiyon anon'a 401/200 veriyor; `tr_fold('Işıklar')` = `tr_fold('Isiklar')` = `isiklar` — davranış doğrulandı (2026-09-01) |
 > | `0045` `0046` | Uygulandı | `ensure_my_team_channels` ve `athlete_card` 401; `communities.team_id` ve `athlete_achievements.source` REST'ten okunuyor (2026-09-01) |
 >
 > **Sıkılaştırılan `community_read` politikası doğrulanmadı.** Anon zaten

@@ -204,12 +204,12 @@ class VerificationService {
   // ----- Veli davet kodu -----
   Future<String> createGuardianInvite(String athleteId) async {
     final res = await _c
-        .rpc('create_guardian_invite', params: {'p_athlete': athleteId});
+        .rpc<dynamic>('create_guardian_invite', params: {'p_athlete': athleteId});
     return res as String;
   }
 
   Future<void> redeemInvite(String code) async {
-    await _c.rpc('redeem_invite_code', params: {'p_code': code});
+    await _c.rpc<dynamic>('redeem_invite_code', params: {'p_code': code});
   }
 
   // ----- Platform onay paneli -----
@@ -271,7 +271,7 @@ class VerificationService {
     int? coachLevel,
     String? sportCode,
   }) async {
-    await _c.rpc('review_credential', params: {
+    await _c.rpc<dynamic>('review_credential', params: {
       'p_cred': id,
       'p_approve': approve,
       if (note != null) 'p_note': note,
@@ -281,11 +281,11 @@ class VerificationService {
   }
 
   Future<void> approveClub(String id) async {
-    await _c.rpc('approve_club', params: {'p_club': id});
+    await _c.rpc<dynamic>('approve_club', params: {'p_club': id});
   }
 
   Future<void> rejectClub(String id, {String? note}) async {
-    await _c.rpc('reject_club',
+    await _c.rpc<dynamic>('reject_club',
         params: {'p_club': id, if (note != null) 'p_note': note},);
   }
 }

@@ -433,54 +433,6 @@ class AthleteHomeScreen extends ConsumerWidget {
             child: CircularProgressIndicator(color: kTeal, strokeWidth: 2)),
       );
 
-  Widget _quick(BuildContext context, bool isDark, IconData icon, String label,
-      String route) {
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, route),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
-          decoration: BoxDecoration(
-              color: surf,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: line)),
-          child: Row(children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                  color: kTeal.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(11)),
-              child: Icon(icon, color: kTeal, size: 19),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(ink, w: FontWeight.w700)),
-            ),
-          ]),
-        ),
-      ),
-    );
-  }
-
-  Widget _label(String t, Color ink) => Padding(
-        padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
-        child: Text(t,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
-      );
-
-  Widget _mini(String text) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Text(text,
-            style: SwanType.caption(SwanColors.textSecondary)),
-      );
-
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;

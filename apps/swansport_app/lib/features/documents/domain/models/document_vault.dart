@@ -1,3 +1,4 @@
+import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_models/swansport_models.dart';
 
 enum DocumentCategory {
@@ -178,7 +179,7 @@ class DocumentFilter {
   final DateTime? from, to;
 
   bool matches(VaultDocument document) {
-    final q = query.trim().toLowerCase();
+    final q = query.trim();
     final searchable = [
       document.filename,
       document.athlete,
@@ -186,8 +187,8 @@ class DocumentFilter {
       document.season,
       document.uploader,
       ...document.tags,
-    ].join(' ').toLowerCase();
-    return (q.isEmpty || searchable.contains(q)) &&
+    ].join(' ');
+    return (q.isEmpty || trContains(searchable, q)) &&
         (category == null || document.category == category) &&
         (athlete == null || document.athlete == athlete) &&
         (team == null || document.team == team) &&

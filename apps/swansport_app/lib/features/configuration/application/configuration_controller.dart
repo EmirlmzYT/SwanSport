@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:swansport_core/swansport_core.dart';
 import '../domain/club_configuration.dart';
 
 class FixtureConfigurationRepository {
@@ -157,15 +158,13 @@ class ConfigurationState {
   final ConfigurationPermissions permissions;
   final ConfigurationProfile? previewProfile;
   List<ConfigurationSetting> get filtered {
-    final q = query.trim().toLowerCase();
+    final q = query.trim();
     return settings
         .where(
           (s) =>
               (category == null || s.category == category) &&
               (q.isEmpty ||
-                  '${s.module} ${s.label} ${s.category.name}'
-                      .toLowerCase()
-                      .contains(q)),
+                  trContains('${s.module} ${s.label} ${s.category.name}', q)),
         )
         .toList();
   }

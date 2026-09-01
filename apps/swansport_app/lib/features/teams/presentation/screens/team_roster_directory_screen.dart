@@ -40,7 +40,7 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
                 Row(children: [
                   Expanded(child: Text('Takımlar', style: SwanType.h2(ink))),
                   if (canManage)
-                    AddButton(onTap: () => _team(context, ref, club!.id)),
+                    AddButton(onTap: () => _team(context, ref, club.id)),
                 ]),
                 const SizedBox(height: 16),
                 async.when(
