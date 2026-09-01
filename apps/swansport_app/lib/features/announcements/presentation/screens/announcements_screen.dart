@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:swansport_core/swansport_core.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
@@ -114,8 +115,8 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                           ? items
                           : items
                               .where((item) =>
-                                  item.title.toLowerCase().contains(needle) ||
-                                  item.body.toLowerCase().contains(needle))
+                                  trContains(item.title, needle) ||
+                                  trContains(item.body, needle))
                               .toList();
                       if (filtered.isEmpty && needle.isNotEmpty) {
                         return premiumEmpty(

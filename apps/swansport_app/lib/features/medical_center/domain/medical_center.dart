@@ -1,4 +1,5 @@
 import 'package:swansport_models/swansport_models.dart';
+import 'package:swansport_core/swansport_core.dart';
 
 enum MedicalEligibilityStatus {
   eligible,
@@ -371,13 +372,13 @@ class MedicalFilter {
   bool matches(AthleteHealthProfile profile) {
     if (query.isNotEmpty) {
       final q = query.toLowerCase();
-      final matchName = profile.athleteName.toLowerCase().contains(q);
-      final matchBranch = profile.branch.toLowerCase().contains(q);
-      final matchTeam = profile.team.toLowerCase().contains(q);
+      final matchName = trContains(profile.athleteName, q);
+      final matchBranch = trContains(profile.branch, q);
+      final matchTeam = trContains(profile.team, q);
       final matchInjury = profile.injuries.any(
         (i) =>
-            i.type.toLowerCase().contains(q) ||
-            i.bodyRegion.toLowerCase().contains(q),
+            trContains(i.type, q) ||
+            trContains(i.bodyRegion, q),
       );
       if (!matchName && !matchBranch && !matchTeam && !matchInjury) {
         return false;

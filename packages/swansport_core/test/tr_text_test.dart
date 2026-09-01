@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:swansport_app/app/util/tr_text.dart';
+import 'package:swansport_core/swansport_core.dart';
 
 /// Türkçe arama ve açılış saati mantığı.
 ///

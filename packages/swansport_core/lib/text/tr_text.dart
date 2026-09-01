@@ -1,4 +1,9 @@
 /// Türkçe metin karşılaştırma yardımcıları.
+///
+/// **Neden `swansport_core`'da:** arama yalnızca mobil uygulamada değil,
+/// domain katmanlarında ve konsolda da yapılıyor. Uygulamaya özel bir
+/// `app/util` klasöründe durduğu sürece paylaşılamıyordu ve on iki dosya
+/// düz `toLowerCase()` kullanmaya devam ediyordu.
 library;
 
 /// Aramada karşılaştırmak için metni sadeleştirir.

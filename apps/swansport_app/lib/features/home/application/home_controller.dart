@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_models/swansport_models.dart';
 import '../domain/home_command_center.dart';
 
@@ -65,8 +66,8 @@ class HomeCommandCenterState {
     return ordered
         .where(
           (t) =>
-              t.title.toLowerCase().contains(q) ||
-              t.category.toLowerCase().contains(q),
+              trContains(t.title, q) ||
+              trContains(t.category, q),
         )
         .toList();
   }
@@ -87,8 +88,8 @@ class HomeCommandCenterState {
           currentRole != HomeRole.administrator) {
         return false;
       }
-      return result.title.toLowerCase().contains(q) ||
-          result.category.toLowerCase().contains(q);
+      return trContains(result.title, q) ||
+          trContains(result.category, q);
     }).toList();
   }
 
@@ -116,8 +117,8 @@ class HomeCommandCenterState {
     return scoped
         .where(
           (a) =>
-              a.title.toLowerCase().contains(q) ||
-              a.message.toLowerCase().contains(q),
+              trContains(a.title, q) ||
+              trContains(a.message, q),
         )
         .toList();
   }

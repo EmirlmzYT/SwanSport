@@ -1,4 +1,5 @@
 import 'package:swansport_models/swansport_models.dart';
+import 'package:swansport_core/swansport_core.dart';
 
 enum CommunicationType { announcement, bulletin, emergency }
 
@@ -142,7 +143,7 @@ class CommunicationFilterState {
     final normalizedQuery = query.trim().toLowerCase();
     if (normalizedQuery.isEmpty) return true;
     return [item.title, item.body, item.sender]
-        .any((value) => value.toLowerCase().contains(normalizedQuery));
+        .any((value) => trContains(value, normalizedQuery));
   }
 }
 

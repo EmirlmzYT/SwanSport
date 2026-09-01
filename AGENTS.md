@@ -179,6 +179,29 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**GÜVENLİK — `security definer` RPC'de yetki kontrolü (0049)**
+- `security definer` fonksiyonlar **RLS'i atlar.** Tablodaki politika ne kadar
+  doğru olursa olsun, gövdesinde kontrol yapmayan bir definer fonksiyonu onun
+  üstünden geçer.
+- Bu oturumda üç fonksiyon kontrolsüz açıldı ve 0049 ile kapatıldı:
+  `athlete_card` (herkes herhangi bir sporcunun katılım/hedef/başarı verisini
+  okuyabiliyordu), `event_roster` (herhangi bir etkinliğin tam kadrosu, ad ad),
+  `event_audience` (`authenticated`'a hiç açılmamalıydı).
+- **Yeni bir definer fonksiyon yazarken gövdeye kontrol koy.** "uuid'yi
+  bilmiyor" bir erişim kontrolü değil.
+- Muhasebeci `is_club_staff` kapsamında **değil** (`club_admin, coach,
+  official`), yani sportif veriye erişmiyor — 0049 sonrası doğrulandı.
+
+**Türkçe arama — tek kaynak**
+- `trFold`/`trContains` artık `swansport_core`'da (`text/tr_text.dart`),
+  uygulamaya özel `app/util`'de değil: domain katmanları ve konsol da
+  kullanabilsin diye taşındı.
+- Uygulamada düz `toLowerCase()` araması **kalmadı** (12 dosya geçirildi).
+  Yeni arama yazarken `trContains` kullan.
+- Veritabanı karşılığı `public.tr_fold` / `public.tr_contains` (0048) —
+  ikisinin davranışı aynı olmalı, ayrışırsa istemci ve sunucu farklı sonuç
+  verir. `listings.title` üzerinde `pg_trgm` indeksi var.
+
 **Core Loop — bildirim üretimi (0047)**
 - `notifications`'ta 16 tür tanımlıydı, `push_route` hepsini bir ekrana
   eşliyordu, push zinciri çalışıyordu — ama **`event` ve `announcement`
@@ -359,6 +382,9 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 cd packages/swansport_data && flutter test     # 119 test, hepsi geçer
 ```
 ```bash
+cd packages/swansport_core && flutter test     # 10 test, hepsi geçer
+```
+```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
@@ -507,6 +533,18 @@ kolay: 31 Ağustos – 1 Eylül'de web beş kez dağıtıldı, APK'daki kullanı
 30 Ağustos kodunda kaldı. Kimse hata görmedi çünkü ortada hata yoktu —
 sunacak yeni sürüm yoktu. **Mobil tarafta iş bitirdiysen sürümü artırıp
 release yayınlamayı ayrı bir adım olarak say.**
+
+**Release keystore hâlâ yok.** APK debug anahtarıyla imzalanıyor. Play
+Store'a çıkılacaksa kullanıcının kendi anahtarını üretip
+`apps/swansport_app/android/key.properties` dosyasına yazması gerekiyor
+(o yol yuvalanmış `.gitignore` ile korunuyor, test edildi):
+
+```bash
+keytool -genkey -v -keystore swansport-release.jks -keyalg RSA -keysize 2048 -validity 10000 -alias swansport
+```
+
+Anahtar **kullanıcının** olmalı ve yedeklenmeli: kaybedilirse o uygulamanın
+bir daha güncellenmesi mümkün değil.
 
 **İmza sürekliliği.** `android/key.properties` yok, yani release APK
 **debug anahtarıyla** (`~/.android/debug.keystore`) imzalanıyor. Android

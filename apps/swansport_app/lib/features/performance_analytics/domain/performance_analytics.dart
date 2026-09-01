@@ -1,4 +1,5 @@
 import 'package:swansport_models/swansport_models.dart';
+import 'package:swansport_core/swansport_core.dart';
 
 enum PerformanceRole {
   clubOwner,
@@ -916,9 +917,9 @@ class PerformanceFilter {
   bool matches(AthletePerformanceProfile profile) {
     if (query.isNotEmpty) {
       final q = query.toLowerCase();
-      final matchName = profile.athleteName.toLowerCase().contains(q);
-      final matchTeam = profile.team.toLowerCase().contains(q);
-      final matchPos = profile.position.toLowerCase().contains(q);
+      final matchName = trContains(profile.athleteName, q);
+      final matchTeam = trContains(profile.team, q);
+      final matchPos = trContains(profile.position, q);
       if (!matchName && !matchTeam && !matchPos) return false;
     }
     if (team != null && profile.team != team) return false;

@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_core/swansport_core.dart';
 import '../domain/reports_models.dart';
 
 class ReportsState {
@@ -33,8 +34,8 @@ class ReportsState {
       final matchesCategory =
           selectedCategory == null || t.category == selectedCategory;
       final matchesSearch = searchQuery.isEmpty ||
-          t.title.toLowerCase().contains(searchQuery.toLowerCase()) ||
-          t.description.toLowerCase().contains(searchQuery.toLowerCase());
+          trContains(t.title, searchQuery) ||
+          trContains(t.description, searchQuery);
       return matchesCategory && matchesSearch;
     }).toList();
   }

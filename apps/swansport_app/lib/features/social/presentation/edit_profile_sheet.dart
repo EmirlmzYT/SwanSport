@@ -1,4 +1,5 @@
 import 'dart:typed_data';
+import 'package:swansport_core/swansport_core.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -274,7 +275,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
         final q = search.text.trim().toLowerCase();
         final list = q.isEmpty
             ? items
-            : items.where((c) => c.name.toLowerCase().contains(q)).toList();
+            : items.where((c) => trContains(c.name, q)).toList();
         return Container(
           height: MediaQuery.of(ctx).size.height * 0.75,
           decoration: BoxDecoration(

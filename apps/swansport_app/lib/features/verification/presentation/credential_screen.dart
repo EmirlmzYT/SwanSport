@@ -1,4 +1,5 @@
 import 'package:file_picker/file_picker.dart';
+import 'package:swansport_core/swansport_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -235,7 +236,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
         final q = search.text.trim().toLowerCase();
         final list = q.isEmpty
             ? sports
-            : sports.where((c) => c.name.toLowerCase().contains(q)).toList();
+            : sports.where((c) => trContains(c.name, q)).toList();
         return Container(
           height: MediaQuery.of(ctx).size.height * 0.75,
           decoration: BoxDecoration(

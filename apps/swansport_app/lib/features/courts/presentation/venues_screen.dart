@@ -9,7 +9,7 @@ import '../../../app/widgets/swan_tabs.dart';
 import '../../turf/presentation/turf_field_detail_screen.dart';
 import 'court_detail_screen.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/util/tr_text.dart';
+import 'package:swansport_core/swansport_core.dart';
 import '../../../app/widgets/swan_chip.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
