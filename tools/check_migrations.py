@@ -11,6 +11,10 @@ olarak ortaya cikiyor - en kotu yer. Bu betik gercek PostgreSQL ayristiricisini
 SINIRI: soz dizimi disinda bir sey **dogrulamiyor**. Var olmayan bir tabloya
 referans, yanlis tip, eksik izin - hepsi buradan gecer. "Parse oldu" ile
 "calisir" ayni sey degil.
+
+Yasanmis ornek: `group by` eksik bir sorgu buradan temiz gecti, Postgres
+`42803 grouping_error` ile reddetti. Ayristirici gramere bakiyor, anlama
+bakmiyor. Kullaniciya SQL gondermeden once gramerin otesini kendin oku.
 """
 
 import io
