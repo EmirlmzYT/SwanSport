@@ -49,6 +49,7 @@ import '../features/courts/presentation/find_partner_screen.dart';
 import '../features/courts/presentation/venues_screen.dart';
 import '../features/social/presentation/feed_screen.dart';
 import '../features/marketplace/presentation/marketplace_screen.dart';
+import '../features/network/presentation/coach_discovery_screen.dart';
 import '../features/marketplace/presentation/listing_detail_screen.dart';
 import '../features/marketplace/presentation/create_listing_screen.dart';
 import '../features/marketplace/presentation/store_application_screen.dart';
@@ -115,6 +116,7 @@ class SwanSportApp extends ConsumerWidget {
         '/kesfet': (context) => const ExploreScreen(),
         '/kulupler': (context) => const DiscoverScreen(),
         '/pazaryeri': (context) => const MarketplaceScreen(),
+        '/antrenor-bul': (context) => const CoachDiscoveryScreen(),
         '/ilan-ver': (context) => const CreateListingScreen(),
         '/magaza-basvuru': (context) => const StoreApplicationScreen(),
         '/ilanlar': (context) => const ListingsScreen(),

@@ -842,3 +842,65 @@ final fixtureProvider =
   }
   return ref.watch(networkServiceProvider).fixture(id);
 });
+
+// ---------------------------------------------------------------------------
+// Antrenör keşfi (0054)
+//
+// Yeni tablo yok: `profile_credentials` doğrulanmış antrenörlüğü ve kademeyi,
+// `profiles.city_code` şehri zaten tutuyordu. Eksik olan tek şey bunları
+// birleştiren bir aramaydı.
+//
+// Değerlendirme/yorum yok — doğrulanabilir hizmet kaydı olmadan yıldız
+// sistemi manipülasyona açık.
+// ---------------------------------------------------------------------------
+
+class CoachResult {
+  const CoachResult({
+    required this.profileId,
+    required this.fullName,
+    this.cityCode,
+    this.bio,
+    this.level,
+    this.sports = const [],
+  });
+
+  factory CoachResult.fromMap(Map<String, dynamic> m) => CoachResult(
+        profileId: m['profile_id'] as String,
+        fullName: ((m['full_name'] as String?) ?? '').trim(),
+        cityCode: m['city_code'] as String?,
+        bio: m['bio'] as String?,
+        level: (m['level'] as num?)?.toInt(),
+        sports: ((m['sports'] as List?) ?? const [])
+            .map((e) => '$e')
+            .where((e) => e.isNotEmpty)
+            .toList(),
+      );
+
+  final String profileId;
+  final String fullName;
+  final String? cityCode;
+  final String? bio;
+
+  /// Antrenörlük kademesi (1-5). Birden fazla belgesi varsa en yükseği.
+  final int? level;
+  final List<String> sports;
+
+  String get levelLabel => level == null ? '' : '$level. kademe';
+}
+
+final coachSearchProvider = FutureProvider.autoDispose
+    .family<List<CoachResult>, ({String? query, String? sport, String? city})>(
+        (ref, f) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const <CoachResult>[];
+  final rows = await ref.watch(supabaseClientProvider).rpc<dynamic>(
+    'search_coaches',
+    params: {
+      'p_query': f.query,
+      'p_sport': f.sport,
+      'p_city': f.city,
+    },
+  );
+  return ((rows as List?) ?? const [])
+      .map((r) => CoachResult.fromMap(Map<String, dynamic>.from(r as Map)))
+      .toList();
+});

@@ -108,6 +108,14 @@ class ExploreScreen extends ConsumerWidget {
                     subtitle: 'Sıfır ve ikinci el ürünler',
                     route: '/pazaryeri',
                   ),
+                if (ref.watch(featureEnabledProvider('coach_discovery')))
+                  _Row(
+                    c: c,
+                    icon: Icons.sports_rounded,
+                    title: 'Antrenör bul',
+                    subtitle: 'Doğrulanmış antrenörler, branş ve şehre göre',
+                    route: '/antrenor-bul',
+                  ),
                 _Row(
                   c: c,
                   icon: Icons.campaign_rounded,

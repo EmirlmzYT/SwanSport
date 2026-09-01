@@ -179,6 +179,25 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Antrenör keşfi (0054)**
+- Yeni tablo yok: `profile_credentials` doğrulanmış antrenörlüğü, kademeyi ve
+  branşı (`sport_code`, 0017'de eklendi) zaten tutuyordu.
+- **İki ayrı şart:** doğrulanmış olmak ve `coach_discoverable` ile görünmeyi
+  kabul etmek. Varsayılan kapalı — kulübünde dolu çalışan bir antrenörü
+  istemediği taleplere açmak ona zarar verir.
+- **Puan/yorum yok.** Doğrulanabilir hizmet kaydı olmadan yıldız toplamak
+  manipülasyona açık. İletişim mevcut DM ile; ödeme, randevu, sözleşme yok.
+
+**Çevrimdışı yoklama — tasarım var, kod yok**
+- `docs/offline-attendance-design.md`. Plan bilerek uygulatmıyor: çevrimdışı
+  yazma yanlış yapıldığında veri kaybettiriyor.
+- Cevaplanan sorular: kuyruk deposu, `op_id` idempotency anahtarı,
+  `marked_at` çakışma çözümü, hata gösterimi, denetim izi.
+- **Uygulanmadan önce dört karar** gerekiyor; belgede işaretli.
+- Belgedeki tuzak: bugün ekran RSVP'den ön-doluyor ve antrenör hiçbir şeye
+  dokunmadan kaydederse tahminler gerçek yoklama olarak yazılıyor.
+  Çevrimdışında bu saatler sonra sessizce oluyor.
+
 **Özellik bayrakları — kademeli yayın (0053)**
 - Büyük özellikler artık doğrudan herkese açılmıyor. Kademeler:
   `off → admins → testers → everyone`. Kapalıya çekmek geri alma yerine

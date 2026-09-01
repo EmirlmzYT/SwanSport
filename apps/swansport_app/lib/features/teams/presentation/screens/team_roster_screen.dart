@@ -91,9 +91,13 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                   ]),
                   const SizedBox(height: 14),
                   SwanSegmentedTabs(
+                    // Sıra bilinçli: Özet önce, çünkü takım sayfasını açan
+                    // kişinin ilk sorusu "ne oluyor". Kadro ve program
+                    // ondan sonra, sohbet ve gelişim en sonda.
                     labels: channelId == null
-                        ? const ['Kadro', 'Program']
-                        : const ['Kadro', 'Program', 'Sohbet'],
+                        ? const ['Özet', 'Program', 'Kadro', 'Gelişim']
+                        : const ['Özet', 'Program', 'Kadro', 'Sohbet',
+                                 'Gelişim'],
                     selected: _tab,
                     onSelect: (i) => setState(() => _tab = i),
                   ),
@@ -113,13 +117,190 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
   /// Seçili sekmenin gövdesi.
   Widget _body(BuildContext context, bool isDark, Color ink, Color line,
       bool canManage, String? channelId, String teamId, String teamName) {
-    // Sohbet kendi kaydırmasını yönetiyor; liste içine gömülmüyor.
-    if (_tab == 2 && channelId != null) {
-      return CommunityChatScreen(communityId: channelId, title: teamName);
+    // Sekme sırası kanal varlığına göre kayıyor; indeks yerine ada
+    // bakmak, kanal yokken yanlış sekmeyi açmayı imkânsız kılıyor.
+    final labels = channelId == null
+        ? const ['Özet', 'Program', 'Kadro', 'Gelişim']
+        : const ['Özet', 'Program', 'Kadro', 'Sohbet', 'Gelişim'];
+    final name = labels[_tab.clamp(0, labels.length - 1)];
+
+    switch (name) {
+      case 'Program':
+        return _schedule(context, isDark, ink, line, teamId);
+      case 'Kadro':
+        return _rosterTab(context, isDark, ink, canManage, teamId);
+      case 'Sohbet':
+        // Sohbet kendi kaydırmasını yönetiyor; liste içine gömülmüyor.
+        return CommunityChatScreen(communityId: channelId!, title: teamName);
+      case 'Gelişim':
+        return _growth(context, isDark, ink, line, teamId);
+      default:
+        return _overview(context, isDark, ink, line, teamId, teamName);
     }
-    if (_tab == 1) return _schedule(context, isDark, ink, line, teamId);
-    return _rosterTab(context, isDark, ink, canManage, teamId);
   }
+
+  /// Özet — "bu takımda ne oluyor" sorusunun tek ekranlık cevabı.
+  ///
+  /// Yeni sorgu yok: yaklaşan etkinlik, kadro sayısı ve duyurular zaten
+  /// çekiliyordu, yalnızca bir arada gösterilmiyordu.
+  Widget _overview(BuildContext context, bool isDark, Color ink, Color line,
+      String teamId, String teamName) {
+    final c = isDark ? SwanPalette.dark : SwanPalette.light;
+    final events = ref.watch(eventsProvider).valueOrNull ?? const <EventRow>[];
+    final roster = ref.watch(teamRosterProvider(teamId)).valueOrNull ?? const [];
+    final anns = ref.watch(announcementsProvider).valueOrNull ?? const [];
+
+    final now = DateTime.now();
+    final upcoming = events
+        .where((e) => e.teamId == teamId && e.startsAt.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
+      children: [
+        if (upcoming.isEmpty && roster.isEmpty && anns.isEmpty)
+          premiumEmpty(
+            context,
+            icon: Icons.groups_rounded,
+            title: 'Takım yeni',
+            subtitle: 'Kadro eklenip antrenman oluşturulunca burada '
+                'özetini göreceksin.',
+          )
+        else ...[
+          if (upcoming.isNotEmpty) ...[
+            Text('Sıradaki', style: SwanType.h3(ink)),
+            const SizedBox(height: 8),
+            _eventTile(isDark, ink, line, upcoming.first),
+            const SizedBox(height: 18),
+          ],
+
+          Row(children: [
+            Expanded(
+              child: _statBox(c, '${roster.length}', 'sporcu'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _statBox(
+                  c, '${upcoming.length}', 'yaklaşan etkinlik'),
+            ),
+          ]),
+
+          if (anns.isNotEmpty) ...[
+            const SizedBox(height: 22),
+            Text('Duyurular', style: SwanType.h3(ink)),
+            const SizedBox(height: 8),
+            for (final a in anns.take(2))
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: c.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: line),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(a.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                    if (a.body.isNotEmpty)
+                      Text(a.body,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: SwanType.caption(c.inkMuted)),
+                  ],
+                ),
+              ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  /// Gelişim — takımın sporcularının ölçüm ve hedef durumu.
+  ///
+  /// Kulüp geneli `performanceOverviewProvider` takımın sporcularına
+  /// süzülüyor. Sporcuya özel `athlete_card` burada kullanılamazdı: her
+  /// sporcu için ayrı çağrı, kadro kadar gidiş-dönüş demekti.
+  Widget _growth(BuildContext context, bool isDark, Color ink, Color line,
+      String teamId) {
+    final c = isDark ? SwanPalette.dark : SwanPalette.light;
+    final roster = ref.watch(teamRosterProvider(teamId)).valueOrNull ?? const [];
+    final perf = ref.watch(performanceOverviewProvider);
+
+    return perf.when(
+      loading: premiumLoading,
+      error: (e, _) => premiumError(context, '$e'),
+      data: (all) {
+        final ids = roster.map((m) => m.athleteId).toSet();
+        final mine = all.where((r) => ids.contains(r.athleteId)).toList()
+          ..sort((a, b) => b.progress.compareTo(a.progress));
+
+        if (mine.isEmpty) {
+          return premiumEmpty(
+            context,
+            icon: Icons.trending_up_rounded,
+            title: 'Gelişim kaydı yok',
+            subtitle: 'Ölçüm girildikçe ve hedef konuldukça burada '
+                'takımın gelişimi görünecek.',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
+          itemCount: mine.length,
+          itemBuilder: (_, i) {
+            final r = mine[i];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 10),
+              padding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 12),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: line),
+              ),
+              child: Row(children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(r.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                      Text('${r.tests} ölçüm · ${r.goals} hedef',
+                          style: SwanType.caption(c.inkMuted)),
+                    ],
+                  ),
+                ),
+                Text('%${r.progress}',
+                    style: SwanType.bodySm(
+                        r.progress >= 50 ? c.success : c.inkMuted,
+                        w: FontWeight.w800)),
+              ]),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _statBox(SwanPalette c, String value, String label) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: c.line),
+        ),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(value, style: SwanType.h3(c.ink)),
+          Text(label, style: SwanType.caption(c.inkMuted)),
+        ]),
+      );
 
   Widget _rosterTab(BuildContext context, bool isDark, Color ink,
       bool canManage, String teamId) {
