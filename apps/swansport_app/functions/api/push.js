@@ -164,9 +164,9 @@ async function fcmAccessToken(env) {
   const sa = JSON.parse(env.FCM_SERVICE_ACCOUNT);
   const now = Math.floor(Date.now() / 1000);
 
-  const header = b64url(new TextEncoder().encode(
+  const header = bytesToB64url(new TextEncoder().encode(
     JSON.stringify({ alg: 'RS256', typ: 'JWT' })));
-  const claim = b64url(new TextEncoder().encode(JSON.stringify({
+  const claim = bytesToB64url(new TextEncoder().encode(JSON.stringify({
     iss: sa.client_email,
     scope: 'https://www.googleapis.com/auth/firebase.messaging',
     aud: sa.token_uri,
@@ -183,7 +183,7 @@ async function fcmAccessToken(env) {
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion: `${header}.${claim}.${b64url(sig)}`,
+      assertion: `${header}.${claim}.${bytesToB64url(sig)}`,
     }),
   });
   if (!res.ok) throw new Error(`token alınamadı: ${res.status}`);
