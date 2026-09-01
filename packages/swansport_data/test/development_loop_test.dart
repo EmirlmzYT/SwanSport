@@ -110,4 +110,41 @@ void main() {
       expect(progress(4.8, 4.4, 5.2, true), 0);
     });
   });
+
+  group('AthleteCard — sporcu kartı verisi', () {
+    test('RPC satırını okur', () {
+      final c = AthleteCard.fromMap(const {
+        'trainings': 42,
+        'attendance_pct': 91,
+        'goals_done': 3,
+        'goals_active': 2,
+        'achievements': 5,
+        'club_name': 'Konya SK',
+        'team_name': 'U19',
+      });
+      expect(c.trainings, 42);
+      expect(c.attendancePct, 91);
+      expect(c.teamName, 'U19');
+      expect(c.hasData, isTrue);
+    });
+
+    test('yeni sporcuda kart verisi YOK sayılır', () {
+      // Kart "0 antrenman · %0 katılım" göstermemeli: yeni kaydolan herkes
+      // böyle başlıyor ve boş sayılar dizmek kartı boş karttan kötü yapıyor.
+      expect(AthleteCard.empty.hasData, isFalse);
+      expect(AthleteCard.fromMap(const {}).hasData, isFalse);
+    });
+
+    test('tek bir veri bile varsa gösterilir', () {
+      expect(AthleteCard.fromMap(const {'trainings': 1}).hasData, isTrue);
+      expect(AthleteCard.fromMap(const {'achievements': 1}).hasData, isTrue);
+    });
+
+    test('eksik alan çökertmez', () {
+      final c = AthleteCard.fromMap(const {'trainings': 5});
+      expect(c.attendancePct, 0);
+      expect(c.clubName, isNull);
+      expect(c.lastTest, isNull);
+    });
+  });
 }

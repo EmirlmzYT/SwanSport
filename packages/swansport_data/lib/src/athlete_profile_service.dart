@@ -237,6 +237,82 @@ final athleteProfileServiceProvider = Provider<AthleteProfileService>((ref) {
 });
 
 /// Bir profile bağlı sporcu kaydı.
+
+/// Sporcu kartının içi — dijital sporcu CV'si (0046).
+///
+/// **Neden ayrı bir RPC:** kart dört tablodan besleniyor (katılım, hedefler,
+/// başarılar, ölçümler). Dördünü ayrı çekmek kartı açan her ekranda dört
+/// gidiş-dönüş demekti; kart bir sayfa değil, bir bakışta okunan şey.
+class AthleteCard {
+  const AthleteCard({
+    required this.trainings,
+    required this.attendancePct,
+    required this.goalsDone,
+    required this.goalsActive,
+    required this.achievements,
+    this.lastTest,
+    this.clubName,
+    this.teamName,
+  });
+
+  static const empty = AthleteCard(
+    trainings: 0,
+    attendancePct: 0,
+    goalsDone: 0,
+    goalsActive: 0,
+    achievements: 0,
+  );
+
+  factory AthleteCard.fromMap(Map<String, dynamic> m) => AthleteCard(
+        trainings: (m['trainings'] as num?)?.toInt() ?? 0,
+        attendancePct: (m['attendance_pct'] as num?)?.toInt() ?? 0,
+        goalsDone: (m['goals_done'] as num?)?.toInt() ?? 0,
+        goalsActive: (m['goals_active'] as num?)?.toInt() ?? 0,
+        achievements: (m['achievements'] as num?)?.toInt() ?? 0,
+        lastTest: m['last_test'] == null
+            ? null
+            : DateTime.tryParse('${m['last_test']}'),
+        clubName: m['club_name'] as String?,
+        teamName: m['team_name'] as String?,
+      );
+
+  final int trainings;
+  final int attendancePct;
+  final int goalsDone;
+  final int goalsActive;
+  final int achievements;
+  final DateTime? lastTest;
+  final String? clubName;
+  final String? teamName;
+
+  /// Gösterilecek bir şey var mı.
+  ///
+  /// Hepsi sıfırsa kartta boş sayılar dizmek yerine hiç göstermemek doğru:
+  /// "0 antrenman, %0 katılım" bir sporcu kartında iyi durmuyor ve yeni
+  /// kaydolan herkes böyle başlıyor.
+  bool get hasData =>
+      trainings > 0 || goalsDone > 0 || goalsActive > 0 || achievements > 0;
+}
+
+/// Sporcu kartının verisi.
+final athleteCardProvider =
+    FutureProvider.autoDispose.family<AthleteCard, String>((ref, athleteId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return AthleteCard.empty;
+  final client = ref.watch(supabaseClientProvider);
+  try {
+    final rows = await client
+        .rpc<dynamic>('athlete_card', params: {'p_athlete': athleteId});
+    final list = (rows as List?) ?? const [];
+    if (list.isEmpty) return AthleteCard.empty;
+    return AthleteCard.fromMap(
+        Map<String, dynamic>.from(list.first as Map));
+  } catch (_) {
+    // 0046 çalıştırılmadıysa fonksiyon yok. Kart eski hâliyle (yalnızca ad
+    // ve QR) çalışmaya devam etsin; hata göstermek kartı kullanılamaz yapardı.
+    return AthleteCard.empty;
+  }
+});
+
 final athleteByProfileProvider =
     FutureProvider.autoDispose.family<AthleteSportInfo?, String>((ref, id) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);

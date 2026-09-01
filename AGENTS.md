@@ -179,6 +179,22 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Kazanılan başarılar ve sporcu kartı (0046)**
+- `athlete_achievements` artık **kazanılıyor**: hedef tamamlanınca, 10 ve 50
+  antrenmanda, %90 katılımda tetikleyici satır yazıyor. Elle giriş duruyor
+  (`source` null olanlar).
+- Tekillik `(athlete_id, source, coalesce(source_id::text,''))` indeksiyle.
+  `coalesce` şart: katılım rozetlerinde `source_id` null ve NULL'lar
+  çakışmadığı için düz indeks her yoklamada yeni rozet düşürürdü.
+- Eşikler **bilerek düşük ve seyrek** (10/50/%90): denetimdeki "aşırı
+  oyunlaştırma yapma" kararı. Seri, puan, ara rozet yok.
+- Oran rozeti en az 20 kayıt istiyor — üç antrenmanın üçüne gelene "%100
+  katılım" demek henüz bir şey söylemiyor.
+- `athlete_card` RPC'si kartın verisini tek sorguda topluyor; kart dört
+  tablodan besleniyor ve ayrı ayrı çekmek dört gidiş-dönüş demekti.
+- Kart verisi yoksa şerit **hiç çizilmiyor**: yeni kaydolan herkes sıfırla
+  başlıyor, "0 antrenman · %0 katılım" boş karttan kötü görünüyor.
+
 **Takım merkezi (0045)**
 - Takım sohbeti **yeni bir mekanizma değil**: `communities` tablosunda
   `kind = 'team'` + `team_id` satırı. Mesajlar, okunmamış sayacı, canlı akış
@@ -320,7 +336,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 115 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 119 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer

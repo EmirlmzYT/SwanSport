@@ -1,7 +1,10 @@
+import 'dart:ui' show FontFeature;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
@@ -54,6 +57,60 @@ class _SwanCard extends ConsumerWidget {
   /// Kart, uygulamanın herkese açık adresine götürür.
   String get _link =>
       'https://swansport.pages.dev/#/${isClub ? "kulup-profil" : "profil"}/$id';
+
+
+  /// Kart üstündeki kariyer şeridi.
+  ///
+  /// Verisi yoksa **hiç çizilmiyor**: yeni kaydolan herkes sıfırla başlıyor
+  /// ve "0 antrenman · %0 katılım" yazan bir sporcu kartı, boş bir karttan
+  /// daha kötü görünüyor.
+  Widget _stats(WidgetRef ref) {
+    final card = ref.watch(athleteCardProvider(id)).valueOrNull;
+    if (card == null || !card.hasData) return const SizedBox.shrink();
+
+    final items = <(String, String)>[
+      if (card.trainings > 0) ('${card.trainings}', 'antrenman'),
+      if (card.attendancePct > 0) ('%${card.attendancePct}', 'katılım'),
+      if (card.goalsDone > 0) ('${card.goalsDone}', 'hedef'),
+      if (card.achievements > 0) ('${card.achievements}', 'başarı'),
+    ];
+    if (items.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Column(children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            for (final it in items)
+              Column(children: [
+                Text(it.$1,
+                    style: SwanType.h3(Colors.white)
+                        .copyWith(fontFeatures: const [
+                      FontFeature.tabularFigures()
+                    ])),
+                Text(it.$2,
+                    style: SwanType.caption(
+                        Colors.white.withValues(alpha: .65),
+                        w: FontWeight.w600)),
+              ]),
+          ],
+        ),
+        if (card.teamName != null || card.clubName != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            [card.clubName, card.teamName]
+                .whereType<String>()
+                .join(' · '),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.caption(Colors.white.withValues(alpha: .7),
+                w: FontWeight.w600),
+          ),
+        ],
+      ]),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -109,6 +166,13 @@ class _SwanCard extends ConsumerWidget {
                 ),
               ),
             ]),
+            // Kariyer verisi — kart artık yalnızca ad ve QR değil.
+            //
+            // Denetimde Swan Card'ın "dijital sporcu CV'si" olması gerektiği
+            // çıktı: kart bir kulübe gösterilecekse gösterecek bir şeyi
+            // olmalı. Sayılar zaten tablodaydı, kart onlara bakmıyordu.
+            if (!isClub) _stats(ref),
+
             const SizedBox(height: 18),
             Container(
               padding: const EdgeInsets.all(12),
