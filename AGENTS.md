@@ -375,8 +375,17 @@ cd apps/swansport_console && MSYS_NO_PATHCONV=1 flutter build web --release -t l
 cp -r apps/swansport_console/build/web apps/swansport_app/build/web/konsol && cp apps/swansport_app/web/_redirects apps/swansport_app/build/web/_redirects
 ```
 ```bash
-cd apps/swansport_app && npx wrangler pages deploy build/web --project-name=swansport --branch=main
+cd apps/swansport_app && npx wrangler pages deploy build/web --project-name=swanspor --branch=main
 ```
+
+**Cloudflare proje adı `swanspor`, alan adı `swansport.pages.dev`.** Bir `t`
+fark var ve wrangler 4.127 bu farkı affetmiyor: yanlış adla
+`Missing/unknown project` hatası veriyor. Aynı desen Firebase'de de var
+(`swanspor` projesi). Doğru adı `npx wrangler pages project list` söylüyor.
+
+**Dağıtım çıktısını `tail -1` ile kesme.** Başarısız dağıtım da çıkış kodu 0
+veriyor ve son satırı "Logs were written to…" oluyor; `tail -1` bunu başarı
+sanmaya götürüyor. `✨ Deployment complete` satırını gördüğünü doğrula.
 
 **`-t` ve `--dart-define-from-file` unutulursa build başarılı olur, uygulama
 ölür.** Düz `flutter build web --release` çıkış kodu 0 verir, analyzer temiz,
