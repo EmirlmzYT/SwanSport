@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/pending_work.dart';
 import '../../../../app/widgets/quick_actions.dart';
 import '../../../demo/demo_role.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
@@ -126,6 +127,12 @@ class HomeCommandCenterScreen extends ConsumerWidget {
                       },
                     ),
                   ],
+
+                  // Bekleyen işler kısayolların ÜSTÜNDE: "ne yapabilirim"den
+                  // önce "ne yapmam gerekiyor" gelmeli. Bekleyen bir şey
+                  // yoksa hiç çizilmiyor.
+                  const SizedBox(height: 18),
+                  const PendingWork(),
 
                   _label('HIZLI İŞLEMLER', ink),
                   const QuickActions(actions: [

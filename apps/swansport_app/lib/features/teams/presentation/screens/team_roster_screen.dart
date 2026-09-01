@@ -3,22 +3,38 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../communities/presentation/community_chat_screen.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_tabs.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
-/// Bir takımın kadrosu — sporcu ekle/çıkar.
+/// Takım merkezi — kadro, program ve sohbet tek yerde.
+///
+/// **Neden tek sayfa:** denetimde takımın "kadro listesi" olduğu, operasyonel
+/// bir merkez olmadığı çıktı. Antrenörün bir takım hakkında günlük işleri
+/// üç ayrı ekrandaydı: kadro burada, program takvimde, iletişim ise ya
+/// herkese açık duyuru ya tek tek DM.
 ///
 /// Rota argümanı: `{'id': takımId, 'name': takımAdı}`.
-class TeamRosterScreen extends ConsumerWidget {
+class TeamRosterScreen extends ConsumerStatefulWidget {
   const TeamRosterScreen({super.key, required this.teamId, required this.teamName});
 
   final String teamId;
   final String teamName;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<TeamRosterScreen> createState() => _TeamRosterScreenState();
+}
+
+class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
+  int _tab = 0;
+
+  @override
+  Widget build(BuildContext context) {
+    final teamId = widget.teamId;
+    final teamName = widget.teamName;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -28,7 +44,10 @@ class TeamRosterScreen extends ConsumerWidget {
     final club = ref.watch(activeClubProvider).valueOrNull;
     final canManage = club != null &&
         (club.role == 'club_admin' || club.role == 'coach');
-    final roster = ref.watch(teamRosterProvider(teamId));
+    // Kanal yoksa (0045 çalıştırılmadı ya da kullanıcı takımın üyesi değil)
+    // sohbet sekmesi hiç gösterilmiyor — boş sekme açıp "burada bir şey yok"
+    // demek daha kötü.
+    final channelId = ref.watch(teamChannelProvider(teamId)).valueOrNull;
 
     return Scaffold(
       extendBody: true,
@@ -38,14 +57,10 @@ class TeamRosterScreen extends ConsumerWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
-            child: RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(teamRosterProvider(teamId));
-                await ref.read(teamRosterProvider(teamId).future);
-              },
-              child: ListView(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
-                children: [
+            child: Column(children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
+                child: Column(children: [
                   Row(children: [
                     GestureDetector(
                       onTap: () => Navigator.maybePop(context),
@@ -74,8 +89,49 @@ class TeamRosterScreen extends ConsumerWidget {
                       ),
                     ),
                   ]),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: 14),
+                  SwanSegmentedTabs(
+                    labels: channelId == null
+                        ? const ['Kadro', 'Program']
+                        : const ['Kadro', 'Program', 'Sohbet'],
+                    selected: _tab,
+                    onSelect: (i) => setState(() => _tab = i),
+                  ),
+                  const SizedBox(height: 12),
+                ]),
+              ),
+              Expanded(child: _body(context, isDark, ink, line, canManage,
+                  channelId, teamId, teamName)),
+            ]),
+          ),
+        ),
+      ),
+      bottomNavigationBar: const SwanBottomNav(),
+    );
+  }
 
+  /// Seçili sekmenin gövdesi.
+  Widget _body(BuildContext context, bool isDark, Color ink, Color line,
+      bool canManage, String? channelId, String teamId, String teamName) {
+    // Sohbet kendi kaydırmasını yönetiyor; liste içine gömülmüyor.
+    if (_tab == 2 && channelId != null) {
+      return CommunityChatScreen(communityId: channelId, title: teamName);
+    }
+    if (_tab == 1) return _schedule(context, isDark, ink, line, teamId);
+    return _rosterTab(context, isDark, ink, canManage, teamId);
+  }
+
+  Widget _rosterTab(BuildContext context, bool isDark, Color ink,
+      bool canManage, String teamId) {
+    final roster = ref.watch(teamRosterProvider(teamId));
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(teamRosterProvider(teamId));
+        await ref.read(teamRosterProvider(teamId).future);
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
+        children: [
                   roster.when(
                     loading: premiumLoading,
                     error: (e, _) => premiumError(context, '$e'),
@@ -107,13 +163,73 @@ class TeamRosterScreen extends ConsumerWidget {
                     const SizedBox(height: 10),
                     _available(context, ref, isDark, roster.valueOrNull),
                   ],
-                ],
-              ),
-            ),
-          ),
-        ),
+        ],
       ),
-      bottomNavigationBar: const SwanBottomNav(),
+    );
+  }
+
+  /// Takımın programı — bu takıma bağlı etkinlikler.
+  ///
+  /// `EventRow.teamId` 0045'te modele eklendi; şemada zaten vardı ama
+  /// okunmuyordu, bu yüzden "bu takımın programı" gösterilemiyordu.
+  Widget _schedule(BuildContext context, bool isDark, Color ink, Color line,
+      String teamId) {
+    final events = ref.watch(eventsProvider);
+    return events.when(
+      loading: premiumLoading,
+      error: (e, _) => premiumError(context, '$e'),
+      data: (all) {
+        final mine = all.where((e) => e.teamId == teamId).toList()
+          ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+        if (mine.isEmpty) {
+          return premiumEmpty(
+            context,
+            icon: Icons.event_note_rounded,
+            title: 'Program boş',
+            subtitle: 'Bu takıma bağlı yaklaşan etkinlik yok.',
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
+          itemCount: mine.length,
+          itemBuilder: (_, i) => _eventTile(isDark, ink, line, mine[i]),
+        );
+      },
+    );
+  }
+
+  Widget _eventTile(bool isDark, Color ink, Color line, EventRow e) {
+    final c = isDark ? SwanPalette.dark : SwanPalette.light;
+    final hh = e.startsAt.hour.toString().padLeft(2, '0');
+    final mm = e.startsAt.minute.toString().padLeft(2, '0');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: line),
+      ),
+      child: Row(children: [
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('$hh:$mm', style: SwanType.bodySm(ink, w: FontWeight.w800)),
+          Text('${e.startsAt.day}.${e.startsAt.month}',
+              style: SwanType.caption(c.inkMuted)),
+        ]),
+        const SizedBox(width: 14),
+        Expanded(
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Text(e.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.bodySm(ink, w: FontWeight.w700)),
+            Text(e.place ?? e.kindLabel,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.caption(c.inkMuted)),
+          ]),
+        ),
+      ]),
     );
   }
 
@@ -162,7 +278,7 @@ class TeamRosterScreen extends ConsumerWidget {
           GestureDetector(
             onTap: () async {
               await ref.read(clubDataServiceProvider).removeFromTeam(m.id);
-              ref.invalidate(teamRosterProvider(teamId));
+              ref.invalidate(teamRosterProvider(widget.teamId));
             },
             child: Icon(Icons.remove_circle_outline_rounded,
                 size: 20, color: SwanColors.textSecondary),
@@ -198,8 +314,8 @@ class TeamRosterScreen extends ConsumerWidget {
             try {
               await ref
                   .read(clubDataServiceProvider)
-                  .addToTeam(teamId, a.id);
-              ref.invalidate(teamRosterProvider(teamId));
+                  .addToTeam(widget.teamId, a.id);
+              ref.invalidate(teamRosterProvider(widget.teamId));
             } catch (e) {
               if (context.mounted) {
                 ScaffoldMessenger.of(context).showSnackBar(SnackBar(

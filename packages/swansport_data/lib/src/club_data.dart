@@ -87,8 +87,14 @@ class EventRow {
       this.endsAt,
       this.opponent,
       this.homeScore,
-      this.awayScore});
+      this.awayScore,
+      this.teamId});
   final String id;
+
+  /// Etkinliğin bağlı olduğu takım — şemada 0007'den beri vardı ama modele
+  /// okunmuyordu, bu yüzden "bu takımın programı" diye bir şey gösterilemiyordu.
+  final String? teamId;
+
   final String? opponent;
   final int? homeScore;
   final int? awayScore;
@@ -106,6 +112,7 @@ class EventRow {
         opponent: m['opponent'] as String?,
         homeScore: m['home_score'] as int?,
         awayScore: m['away_score'] as int?,
+        teamId: m['team_id'] as String?,
         title: (m['title'] as String?) ?? '',
         place: m['place'] as String?,
         kind: (m['kind'] as String?) ?? 'training',
@@ -312,7 +319,7 @@ class ClubDataService {
     var q = _c
         .from('events')
         .select('id, title, place, kind, starts_at, ends_at, '
-            'opponent, home_score, away_score')
+            'opponent, home_score, away_score, team_id')
         .eq('club_id', clubId);
 
     if (from != null) q = q.gte('starts_at', from.toUtc().toIso8601String());

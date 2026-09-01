@@ -179,6 +179,19 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Takım merkezi (0045)**
+- Takım sohbeti **yeni bir mekanizma değil**: `communities` tablosunda
+  `kind = 'team'` + `team_id` satırı. Mesajlar, okunmamış sayacı, canlı akış
+  ve üyelik bazlı RLS zaten çalışıyordu.
+- Katılım `ensure_my_team_channels()` ile — `ensure_my_communities`'e
+  eklenmedi, çünkü o `is_verified_coach()` şartına bağlı ve şehir/federasyon
+  toplulukları için doğrusu bu. Takım kanalında sporcu da olmalı.
+- `community_read` artık `using (true)` **değil**: takım kanalları yalnızca
+  üyeye ve kulüp görevlisine listeleniyor, yoksa kulüplerin takım yapısı
+  dışarıya sızıyordu. Mesaj okuma zaten üyelik istiyordu.
+- `EventRow.teamId` modele eklendi — şemada vardı, okunmuyordu; bu yüzden
+  "bu takımın programı" gösterilemiyordu.
+
 **Gelişim döngüsü (0044)**
 - `attendance.event_id` **artık yazılıyor**. Öncesinde sütun vardı ama uygulama
   hiç doldurmuyordu: yoklama hiçbir antrenmana ait değildi ve

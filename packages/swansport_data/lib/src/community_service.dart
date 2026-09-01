@@ -199,6 +199,32 @@ class CommunityService {
   }
 
   /// Uygun olduğu gruplara sessizce ekler; kaç gruba eklendiğini döner.
+  /// Takım kanalını bulur; gerekiyorsa önce üyeliği kurar.
+  ///
+  /// Kanal `communities` tablosunda `kind = 'team'` satırı olarak yaşıyor
+  /// (0045). Yeni bir mesajlaşma mekanizması yazılmadı: topluluk sohbeti
+  /// zaten canlı akıyor, okunmamış sayacı tutuyor ve RLS'i üyelik bazlı.
+  ///
+  /// Önce `ensure_my_team_channels` çağrılıyor çünkü kanalı **görebilmek**
+  /// için üye olmak gerekiyor — 0045 sonrası takım kanalları herkese
+  /// listelenmiyor. Üye olmayan biri için sorgu boş döner ve `null` alır.
+  Future<String?> teamChannel(String teamId) async {
+    try {
+      await _c.rpc<int>('ensure_my_team_channels');
+    } catch (_) {
+      // 0045 çalıştırılmadıysa fonksiyon yok. Kanal da yoktur; aşağıdaki
+      // sorgu boş döner ve ekran sohbeti gizler. Kırılan bir şey olmuyor.
+    }
+    final rows = await _c
+        .from('communities')
+        .select('id')
+        .eq('team_id', teamId)
+        .limit(1);
+    final list = rows as List;
+    if (list.isEmpty) return null;
+    return ((list.first as Map).cast<String, dynamic>())['id'] as String?;
+  }
+
   Future<int> ensureMine() async {
     if (_uid == null) return 0;
     try {
@@ -365,6 +391,17 @@ class CommunityService {
 }
 
 // =============================== Provider'lar ==============================
+
+/// Bir takımın sohbet kanalı — yoksa null.
+///
+/// Null dönebilir: 0045 çalıştırılmadıysa ya da kullanıcı o takımın üyesi
+/// değilse. Ekran bu durumda sohbet sekmesini hiç göstermiyor; boş bir
+/// sekme açıp "burada bir şey yok" demek daha kötü.
+final teamChannelProvider =
+    FutureProvider.autoDispose.family<String?, String>((ref, teamId) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
+  return ref.watch(communityServiceProvider).teamChannel(teamId);
+});
 
 final communityServiceProvider = Provider<CommunityService>((ref) {
   return CommunityService(ref.watch(supabaseClientProvider));
