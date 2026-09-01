@@ -658,6 +658,31 @@ halı saha doluluk panosunu içeriyor.
   Cloudflare tarafında `FCM_SERVICE_ACCOUNT` sırrı **tanımlı** (2026-08-30
   `wrangler pages secret list` ile doğrulandı). **Gerçek cihazda bildirimin
   ulaştığı henüz doğrulanmadı** — bu makinede `adb` yok.
+- **Android bildirimi — TEK ADIM KALDI, teşhis bitti.**
+
+  Zincirin tamamı çalışıyor: cihaz kayıtlı (`push_subscription_state` →
+  `mine`), `pg_net` isteği atıyor, Cloudflare 200 dönüyor, FCM OAuth
+  çalışıyor. Yol boyunca iki hata bulundu ve **ikisi de düzeltildi**:
+  `b64url is not defined` (yanlış fonksiyon adı) ve `42501` (RLS/upsert).
+
+  Kalan tek şey **Firebase proje uyuşmazlığı**: uygulama `swanspor`
+  projesinden token alıyor, Cloudflare'deki `FCM_SERVICE_ACCOUNT` ise
+  `swansport` projesine ait. FCM her gönderime `404 gone` diyor — token ölü
+  değil, yanlış projeye götürülüyor.
+
+  **Yapılacak:** Firebase Console → **`swanspor`** projesi → Proje ayarları →
+  Hizmet hesapları → yeni özel anahtar → inen JSON'ın tamamını Cloudflare'de
+  `FCM_SERVICE_ACCOUNT` sırrına yapıştır → yeniden dağıt.
+
+  Alternatif (daha uzun): `swansport` projesinden `google-services.json`
+  alıp uygulamaya koymak — yeni APK ve herkesin güncellemesi gerekir.
+
+  Doğrulama: `tools/verify_push_chain.sql`, 4. sorgu. `"sent":1` görülmeli.
+
+- **Ölü token temizliği yok.** Cloudflare `gone: true` diyor ama kimse
+  dinlemiyor; aynı cihaz için üç ölü token birikmiş ve her bildirimde
+  boşuna deneniyor.
+
 - **Muhasebeci görünümü** — kodda ve RLS'te doğru, ama sadece muhasebeci olan
   ikinci bir hesapla hiç denenmedi
 - **Release keystore yok** — imza yapılandırması hazır ve `app-release.aab`
