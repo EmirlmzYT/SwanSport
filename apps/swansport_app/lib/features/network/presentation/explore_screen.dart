@@ -57,11 +57,21 @@ class ExploreScreen extends ConsumerWidget {
                   subtitle: 'Birlikte oynayacak birini ara',
                   route: '/partner-ara',
                 ),
+                // Pazaryeri Keşfet'ten açılıyor, alt gezinmeye eklenmiyor:
+                // beş sekme günlük kullanılan şeyler için, pazaryeri ayda
+                // bir açılan bir yer.
+                _Row(
+                  c: c,
+                  icon: Icons.storefront_rounded,
+                  title: 'Spor Malzemeleri Pazaryeri',
+                  subtitle: 'Sıfır ve ikinci el ürünler',
+                  route: '/pazaryeri',
+                ),
                 _Row(
                   c: c,
                   icon: Icons.campaign_rounded,
                   title: 'İlanlar',
-                  subtitle: 'Malzeme al, sat ya da ara',
+                  subtitle: 'Sporcu, antrenör ve seçme ilanları',
                   route: '/ilanlar',
                 ),
 

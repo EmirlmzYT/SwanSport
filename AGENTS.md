@@ -179,6 +179,33 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Pazaryeri (0050-0052)**
+- `listings` tablosu **genişletildi**, ikinci ilan sistemi kurulmadı. Sporcu,
+  antrenör ve organizasyon ilanlarında `market_status` null ve pazaryeri
+  sorguları onları hiç görmüyor.
+- `create_listing` (0034) korunuyor; pazaryeri için ayrı
+  `create_market_listing` var. Sebebi: o fonksiyon 19 parametreli, pazaryeri
+  12 alan daha getiriyor ve imza değiştirmek `HTTP 300` tuzağını geri
+  getirirdi.
+- Sıfır ürün yalnızca **onaylı mağazadan** — istemcide gösteriliyor, şemada
+  (`listings_new_needs_store`) ve RPC'de zorlanıyor.
+- Bireysel ilan limiti 24 saatte 5; mağazalara uygulanmıyor.
+- İlan başına en fazla 8 görsel. `sort_order` 0-7 kısıtı tek başına
+  yetmiyordu, sayıyı tetikleyici koruyor.
+- Görsellerde **Storage yolu** tutuluyor, URL değil: bucket ya da alan adı
+  değişince saklanmış URL'ler kırılırdı.
+- Pazaryeri **alt gezinmeye eklenmedi**; Keşfet'ten açılıyor.
+- Ödeme, escrow, komisyon, kargo ve değerlendirme **yok**. Değerlendirme
+  özellikle: doğrulanmış işlem verisi olmadan yorum sistemi kurmak
+  manipülasyona açık.
+
+**Engelleme artık gerçekten engelliyor (0052)**
+- `blocks` tablosu 0012'den beri vardı ama **hiçbir yerde uygulanmıyordu**:
+  `dm_send` politikası yalnızca `sender_id = auth.uid()` kontrol ediyordu.
+  Kullanıcı "engelledim" diyor, sistem engellemiyordu.
+- Artık iki yönlü: A B'yi engellediyse B de A'ya yazamıyor. Engellenen
+  kişinin ilanları aramada görünmüyor. Karşı taraf bildirim **almıyor**.
+
 **GÜVENLİK — `security definer` RPC'de yetki kontrolü (0049)**
 - `security definer` fonksiyonlar **RLS'i atlar.** Tablodaki politika ne kadar
   doğru olursa olsun, gövdesinde kontrol yapmayan bir definer fonksiyonu onun
@@ -379,7 +406,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 119 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 137 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 10 test, hepsi geçer

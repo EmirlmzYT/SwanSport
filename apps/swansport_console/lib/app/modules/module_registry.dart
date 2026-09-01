@@ -7,6 +7,7 @@ import '../../features/finance/accounts_screen.dart';
 import '../../features/finance/ledger_screen.dart';
 import '../../features/finance/report_screen.dart';
 import '../../features/platform/approvals_screen.dart';
+import '../../features/platform/marketplace_admin_screen.dart';
 import '../../features/platform/courts_screen.dart';
 import '../../features/platform/turf_fields_screen.dart';
 import '../../features/platform/platform_screens.dart';
@@ -128,6 +129,14 @@ const List<ConsoleModule> kConsoleModules = [
     builder: _turfFields,
   ),
   ConsoleModule(
+    id: 'marketplace',
+    label: 'Pazaryeri',
+    icon: Icons.storefront_rounded,
+    route: '/pazaryeri',
+    audience: {ConsoleAudience.platformAdmin},
+    builder: _marketplace,
+  ),
+  ConsoleModule(
     id: 'metrics',
     label: 'Metrikler',
     icon: Icons.insights_rounded,
@@ -166,6 +175,7 @@ Widget _users(BuildContext _) => const UsersScreen();
 
 Widget _moderation(BuildContext _) => const ModerationScreen();
 
+Widget _marketplace(BuildContext _) => const MarketplaceAdminScreen();
 Widget _metrics(BuildContext _) => const MetricsScreen();
 Widget _courts(BuildContext _) => const ConsoleCourtsScreen();
 Widget _turfFields(BuildContext _) => const ConsoleTurfFieldsScreen();

@@ -50,6 +50,10 @@ import '../features/communities/presentation/federation_channel_screen.dart';
 import '../features/courts/presentation/find_partner_screen.dart';
 import '../features/courts/presentation/venues_screen.dart';
 import '../features/social/presentation/feed_screen.dart';
+import '../features/marketplace/presentation/marketplace_screen.dart';
+import '../features/marketplace/presentation/listing_detail_screen.dart';
+import '../features/marketplace/presentation/create_listing_screen.dart';
+import '../features/marketplace/presentation/store_application_screen.dart';
 import '../features/social/presentation/profile_screen.dart';
 import '../features/social/presentation/messages_screen.dart';
 import '../features/social/presentation/notifications_screen.dart';
@@ -113,6 +117,9 @@ class SwanSportApp extends ConsumerWidget {
         '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
         '/kesfet': (context) => const ExploreScreen(),
         '/kulupler': (context) => const DiscoverScreen(),
+        '/pazaryeri': (context) => const MarketplaceScreen(),
+        '/ilan-ver': (context) => const CreateListingScreen(),
+        '/magaza-basvuru': (context) => const StoreApplicationScreen(),
         '/ilanlar': (context) => const ListingsScreen(),
         '/kortlar': (context) => const VenuesScreen(),
         '/oyuncu-aranan': (context) => const FindPartnerScreen(initialTab: 1),
@@ -200,6 +207,14 @@ class SwanSportApp extends ConsumerWidget {
               communityId: '${m['id'] ?? ''}',
               title: '${m['name'] ?? 'Topluluk'}',
             ),
+          );
+        }
+        if (settings.name == '/urun') {
+          final args = settings.arguments;
+          final m = args is Map ? args : const {};
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => ListingDetailScreen(listingId: '${m['id'] ?? ''}'),
           );
         }
         if (settings.name == '/sohbet') {
