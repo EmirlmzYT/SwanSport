@@ -179,6 +179,26 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Core Loop — bildirim üretimi (0047)**
+- `notifications`'ta 16 tür tanımlıydı, `push_route` hepsini bir ekrana
+  eşliyordu, push zinciri çalışıyordu — ama **`event` ve `announcement`
+  türlerini kimse üretmiyordu.** Tür var, rota var, üreten yok. Antrenman
+  oluşturuluyor ve kimsenin haberi olmuyordu; RSVP'yi kimse vermiyordu çünkü
+  antrenmanın varlığından haberi yoktu.
+- Üç tetikleyici eklendi: etkinlik, duyuru, kazanılan başarı. Hedef kitle
+  `event_audience()` ile tek yerden hesaplanıyor — **veliler dahil**.
+- Etkinlik bildirimi yalnızca INSERT'te ve yalnızca gelecek tarihli
+  etkinlikte. Her düzenlemede bildirim atmak, saatini iki kez düzelten
+  antrenörün takımı üç kez rahatsız etmesi demekti.
+
+**`push_route` eşleme kaybı — iki kez oldu**
+- Fonksiyon beş migration'da baştan yazıldı ve 0039, 0022'nin eklediği
+  `payment`, `donation`, `attendance_reminder`, `fee_reminder` eşlemelerini
+  **düşürdü**. Belirtisi yok: fonksiyon çalışıyor, `else` dalına düşüp
+  kullanıcıyı yanlış ekrana götürüyor. 0047 hepsini geri getirdi.
+- Kalıcı denetim: `python tools/check_push_routes.py` — tarihte görülmüş ama
+  en son tanımda olmayan eşlemeleri listeler. Migration eklerken çalıştır.
+
 **Kazanılan başarılar ve sporcu kartı (0046)**
 - `athlete_achievements` artık **kazanılıyor**: hedef tamamlanınca, 10 ve 50
   antrenmanda, %90 katılımda tetikleyici satır yazıyor. Elle giriş duruyor

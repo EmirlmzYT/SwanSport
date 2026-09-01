@@ -34,13 +34,17 @@ class AthleteHomeScreen extends ConsumerWidget {
     final fees = ref.watch(myFeesProvider);
     final docs = ref.watch(vaultDocsProvider);
     final teams = ref.watch(teamsProvider);
-    final perf = ref.watch(performanceOverviewProvider);
     final injuries = ref.watch(injuriesProvider);
     // Kendi sporcu kaydım — sağlık ve performans satırlarını buna göre
     // süzüyorum; ikisi de kulüp geneli döndürüyor.
     final myAthlete = profile == null
         ? null
         : ref.watch(athleteByProfileProvider(profile.id)).valueOrNull;
+
+    // Sporcunun kendi kartı — katılım, hedef ve başarı sayıları.
+    final card = myAthlete == null
+        ? const AsyncValue<AthleteCard>.data(AthleteCard.empty)
+        : ref.watch(athleteCardProvider(myAthlete.id));
 
     final name = profile?.firstName ?? 'Sporcu';
     final initials = profile?.initials ?? 'S';
@@ -140,25 +144,42 @@ class AthleteHomeScreen extends ConsumerWidget {
                     }),
                   ),
 
+                  // Gelişim artık **katılımı da** gösteriyor.
+                  //
+                  // Sporcunun her hafta ürettiği tek veri katılım ve bunu
+                  // hiçbir yerde göremiyordu: yoklama alınıyor, kulüp
+                  // raporlarına düşüyor, sporcuya geri dönmüyordu. Döngünün
+                  // kullanıcıya kapanan ucu eksikti.
+                  //
+                  // Yeni sorgu yazılmadı: `athlete_card` (0046) bu sayıları
+                  // zaten sporcu bazlı ve yetki denetimli döndürüyor.
+                  // Kulüp geneli `attendanceSummaryProvider` kullanılamazdı —
+                  // sporcuya bütün kadronun katılımını göstermek olurdu.
                   SummarySection(
                     title: 'Gelişim',
                     onSeeAll: () => Navigator.pushNamed(
                         context, '/performance-analytics'),
-                    child: _sum(perf, (list) {
-                      final mine = myAthlete == null
-                          ? null
-                          : list
-                              .where((r) => r.athleteId == myAthlete.id)
-                              .firstOrNull;
-                      if (mine == null) {
-                        return SummaryLine.empty('Performans kaydı yok');
+                    child: _sum(card, (c) {
+                      if (!c.hasData) {
+                        return SummaryLine.empty('Henüz kayıt yok');
                       }
+                      final parts = <String>[
+                        if (c.goalsActive > 0) '${c.goalsActive} açık hedef',
+                        if (c.goalsDone > 0) '${c.goalsDone} tamamlanan',
+                        if (c.achievements > 0) '${c.achievements} başarı',
+                      ];
                       return SummaryLine(
                         icon: Icons.trending_up_rounded,
-                        text: '%${mine.progress} gelişim',
-                        sub: '${mine.tests} test · ${mine.goals} hedef',
-                        tone:
-                            mine.progress >= 50 ? context.swan.success : null,
+                        text: c.trainings > 0
+                            ? '${c.trainings} antrenman · %${c.attendancePct} katılım'
+                            : 'Katılım kaydı yok',
+                        sub: parts.isEmpty ? null : parts.join(' · '),
+                        // %80 sportif bir eşik değil, "düzenli sayılır"
+                        // sınırı. Altını kırmızı yapmıyoruz: sporcuyu kendi
+                        // ana sayfasında suçlamak işe yaramıyor.
+                        tone: c.attendancePct >= 80
+                            ? context.swan.success
+                            : null,
                       );
                     }),
                   ),
