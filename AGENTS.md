@@ -200,6 +200,28 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   (`notification_service.dart`) deseni: geçmişi her hâlükârda yayınla, akış
   hatasını yut, yoklamaya düş. `dm_test.dart` bunu sabitliyor.
 
+**Push gönderimi — iki tuzak, ikisi de sessiz**
+- **Firebase proje adı `swanspor`, bir `t` eksik.** Cloudflare'deki
+  `FCM_SERVICE_ACCOUNT` bir süre `swansport` projesine aitti ve FCM her
+  gönderime **404** döndü: token `swanspor`'dan alınmış, kimlik
+  `swansport`'un. Token ölü değil, yanlış kapıya götürülüyordu. Servis
+  hesabını değiştirirken JSON'daki `project_id`'nin
+  `apps/swansport_app/android/app/google-services.json` ile **aynı** olduğunu
+  doğrula.
+- **Zincirde üç yerde hata yutuluyor** ve bu yüzden bildirimlerin neden
+  gelmediği aylarca görünmedi: (1) `push_on_notification` tetikleyicisi
+  `when others then return new` ile her şeyi yutuyor, (2) Cloudflare
+  fonksiyonu tek tek cihaz hatalarını toplayıp yine **200** dönüyor,
+  (3) uygulama tarafında `refreshPushSilently` yalnızca `debugPrint` ediyor.
+  Teşhis ancak `net._http_response.content` okununca mümkün oldu:
+
+```sql
+select status_code, left(content, 500) from net._http_response
+ order by created desc limit 3;
+```
+
+  `tools/verify_push_chain.sql` bunu hazır sorguyla veriyor.
+
 **Push kaydı**
 - Cihaz kaydı `register_push_subscription` RPC'siyle yapılıyor (0043),
   doğrudan `upsert` ile **değil**. Sebep: `push_subscriptions.endpoint`
