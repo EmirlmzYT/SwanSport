@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -17,6 +19,25 @@ import 'supabase_scope.dart';
 /// döndürmüyor. Aidat tarafında kimlik yerine `athlete_ref` kısaltması geliyor
 /// ve bu bir arayüz kararı değil — RPC'ler adı hiç seçmiyor.
 /// ---------------------------------------------------------------------------
+
+/// İstemcide üretilen idempotency anahtarı (RFC 4122 v4 biçiminde).
+///
+/// Yeni bir paket eklemek yerine burada üretiliyor: `uuid` paketi yalnızca
+/// dolaylı bir bağımlılık ve doğrudan kullanmak, başka bir paketin onu
+/// bırakması hâlinde sessizce kırılırdı.
+///
+/// **Kullanım kuralı:** anahtar işlem başına bir kez üretilir ve tekrar
+/// gönderimlerde AYNI değer kullanılır. Her denemede yeniden üretmek,
+/// idempotency'yi tamamen ortadan kaldırır — sunucu iki farklı işlem görür.
+String newOpId() {
+  final r = Random.secure();
+  final b = List<int>.generate(16, (_) => r.nextInt(256));
+  b[6] = (b[6] & 0x0f) | 0x40; // sürüm 4
+  b[8] = (b[8] & 0x3f) | 0x80; // varyant
+  String hex(int from, int to) =>
+      b.sublist(from, to).map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+  return '${hex(0, 4)}-${hex(4, 6)}-${hex(6, 8)}-${hex(8, 10)}-${hex(10, 16)}';
+}
 
 // ============================== Tekrarlayan gider ==========================
 

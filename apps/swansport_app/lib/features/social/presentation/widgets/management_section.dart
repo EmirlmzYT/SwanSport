@@ -43,6 +43,7 @@ class ManagementSection extends ConsumerWidget {
     final ops = <_Item>[
       if (access.isClubStaff || access.isAccountant) ...[
         const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
+        const _Item(Icons.playlist_add_check_rounded, 'Mali İşler', '/mali-isler'),
         const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
         const _Item(Icons.description_rounded, 'Raporlar', '/reports'),
       ],

@@ -225,6 +225,10 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
     return (v == null || v <= 0) ? null : v;
   }
 
+  /// İşlem kimliği. Ekran ömrü boyunca sabit: tekrar denemede aynı anahtar
+  /// gitmezse sunucu iki ayrı işlem görür ve fiş iki kez yazılır.
+  final String _opId = newOpId();
+
   Future<void> _save() async {
     final amount = _parseAmount(_amount.text);
     if (amount == null) {
@@ -254,13 +258,17 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
         );
       }
 
-      await svc.addDraftExpense(
-        clubId: club.id,
-        amount: amount,
-        categoryId: _categoryId,
-        receiptPath: receiptPath,
-        note: _note.text.trim(),
-      );
+      // Idempotency: anahtar bu ekran açıldığında bir kez üretiliyor ve
+      // tekrar denemede AYNI kalıyor. Ağ koptuğunda uygulama isteği
+      // yineliyordu ve aynı fiş iki gider satırı yazıyordu; sunucu artık
+      // ikinci çağrıda var olan kaydın kimliğini döndürüyor.
+      await ref.read(financeOpsServiceProvider).createDraftExpense(
+            clubId: club.id,
+            amount: amount,
+            opId: _opId,
+            receiptPath: receiptPath,
+            note: _note.text.trim().isEmpty ? null : _note.text.trim(),
+          );
 
       navigator.pop();
       messenger.showSnackBar(const SnackBar(
