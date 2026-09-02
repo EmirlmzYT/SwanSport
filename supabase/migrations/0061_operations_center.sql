@@ -196,11 +196,11 @@ begin
      where e.club_id = p_club
        and e.starts_at between now() and now() + interval '3 days'
        and e.team_id is not null
-       and (select count(*) from public.team_members tm
+       and (select count(*) from public.team_memberships tm
              where tm.team_id = e.team_id) > 0
        and (select count(*) from public.event_rsvps r
              where r.event_id = e.id)::numeric
-           < 0.5 * (select count(*) from public.team_members tm
+           < 0.5 * (select count(*) from public.team_memberships tm
                      where tm.team_id = e.team_id)::numeric),
   reports as (
     select count(*) c from public.content_reports r
