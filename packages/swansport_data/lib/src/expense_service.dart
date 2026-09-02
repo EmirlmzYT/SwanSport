@@ -117,6 +117,7 @@ class ExpenseRow {
     this.accountName,
     this.supplier,
     this.note,
+    this.vendorId,
     this.receiptPath,
   });
 
@@ -131,6 +132,7 @@ class ExpenseRow {
   final String? categoryName;
   final String? accountId;
   final String? accountName;
+  final String? vendorId;
   final String? supplier;
   final String? note;
   final String? receiptPath;
@@ -152,11 +154,139 @@ class ExpenseRow {
       categoryName: nested('expense_categories', 'name'),
       accountId: m['account_id'] as String?,
       accountName: nested('cash_accounts', 'name'),
+      vendorId: m['vendor_id'] as String?,
       supplier: m['supplier'] as String?,
       note: m['note'] as String?,
       receiptPath: m['receipt_path'] as String?,
     );
   }
+}
+
+/// Kulüp tedarikçi kaydı.
+///
+/// **Vergi numarası, vergi dairesi ve IBAN burada YOK.** Onlar ayrı bir
+/// tabloda (`vendor_private`) ve yalnızca kulüp yöneticisine açık. RLS satır
+/// düzeyinde çalışır, sütun gizleyemez; alanı modelden çıkarmak tek başına
+/// koruma olmazdı — koruma veritabanındaki ayrı tabloda ve politikasında.
+class Vendor {
+  const Vendor({
+    required this.id,
+    required this.clubId,
+    required this.name,
+    this.contactNote,
+    this.defaultCategoryId,
+    this.defaultCategoryName,
+    this.active = true,
+    this.lastSpentOn,
+    this.expenseCount = 0,
+    this.expenseTotal = 0,
+  });
+
+  final String id;
+  final String clubId;
+  final String name;
+  final String? contactNote;
+  final String? defaultCategoryId;
+  final String? defaultCategoryName;
+  final bool active;
+
+  /// Son işlem tarihi ve toplamlar yalnızca liste sorgusunda dolu gelir;
+  /// tek kayıt okunduğunda sıfır kalır.
+  final DateTime? lastSpentOn;
+  final int expenseCount;
+  final num expenseTotal;
+
+  factory Vendor.fromMap(Map<String, dynamic> m) {
+    final cat = m['expense_categories'];
+    return Vendor(
+      id: m['id'] as String,
+      clubId: (m['club_id'] as String?) ?? '',
+      name: (m['name'] as String?) ?? '',
+      contactNote: m['contact_note'] as String?,
+      defaultCategoryId: m['default_category_id'] as String?,
+      defaultCategoryName: cat is Map ? cat['name'] as String? : null,
+      active: (m['active'] as bool?) ?? true,
+      lastSpentOn: m['last_spent_on'] == null
+          ? null
+          : DateTime.tryParse('${m['last_spent_on']}'),
+      expenseCount: (m['expense_count'] as num?)?.toInt() ?? 0,
+      expenseTotal: (m['expense_total'] as num?) ?? 0,
+    );
+  }
+}
+
+/// Tedarikçinin yalnızca kulüp yöneticisine açık vergi ve banka bilgisi.
+class VendorPrivate {
+  const VendorPrivate({
+    required this.vendorId,
+    this.taxOffice,
+    this.taxId,
+    this.iban,
+    this.note,
+  });
+
+  final String vendorId;
+  final String? taxOffice;
+  final String? taxId;
+  final String? iban;
+  final String? note;
+
+  factory VendorPrivate.fromMap(Map<String, dynamic> m) => VendorPrivate(
+        vendorId: m['vendor_id'] as String,
+        taxOffice: m['tax_office'] as String?,
+        taxId: m['tax_id'] as String?,
+        iban: m['iban'] as String?,
+        note: m['note'] as String?,
+      );
+}
+
+/// Gider değişikliğinin denetim kaydı.
+///
+/// Tetikleyici yazıyor, kimse silemiyor. [changed] yalnızca gerçekten değişen
+/// alanları taşır; tam satırı döndürmek izi okunmaz yapardı ve ileride
+/// eklenen her sütunu otomatik sızdırırdı.
+class ExpenseAuditEntry {
+  const ExpenseAuditEntry({
+    required this.id,
+    required this.action,
+    required this.actor,
+    required this.changedAt,
+    this.reason,
+    this.changed = const {},
+  });
+
+  final String id;
+  final String action;
+
+  /// Kulüp personeline gerçek ad, muhasebeciye kimlik kısaltması.
+  final String actor;
+  final DateTime changedAt;
+  final String? reason;
+  final Map<String, dynamic> changed;
+
+  /// Kullanıcıya gösterilecek Türkçe eylem adı.
+  String get actionLabel => switch (action) {
+        'create' => 'Oluşturuldu',
+        'update' => 'Düzenlendi',
+        'complete' => 'Tamamlandı',
+        'approve' => 'Onaylandı',
+        'reject' => 'Reddedildi',
+        'cancel' => 'İptal edildi',
+        'correct' => 'Düzeltildi',
+        'delete' => 'Silindi',
+        _ => action,
+      };
+
+  factory ExpenseAuditEntry.fromMap(Map<String, dynamic> m) =>
+      ExpenseAuditEntry(
+        id: (m['log_id'] as String?) ?? '',
+        action: (m['action'] as String?) ?? '',
+        actor: (m['actor'] as String?) ?? 'Bilinmiyor',
+        changedAt:
+            DateTime.tryParse('${m['changed_at']}') ?? DateTime.now(),
+        reason: m['reason'] as String?,
+        changed: (m['changed'] as Map?)?.cast<String, dynamic>() ?? const {},
+      );
 }
 
 /// Defterdeki tek satır — gelir ya da gider.
@@ -245,6 +375,262 @@ class LedgerTotals {
         outgo: (m['outgo'] as num?) ?? 0,
         net: (m['net'] as num?) ?? 0,
       );
+}
+
+/// Mali iş kuyruğundaki tek bir iş kalemi.
+///
+/// `swansport_data` arayüze bağlanmıyor (değişmez 2): burada ikon ve renk
+/// yok. [risk] bir veri sınıflandırması; onu renge çeviren tüketen uygulama.
+class FinanceWorkItem {
+  const FinanceWorkItem({
+    required this.code,
+    required this.title,
+    required this.count,
+    required this.total,
+    required this.risk,
+    required this.why,
+    required this.route,
+  });
+
+  /// Kararlı anahtar. Başlık değişse de testler ve yönlendirme bozulmaz.
+  final String code;
+  final String title;
+  final int count;
+
+  /// Sıfırsa kalemin parasal karşılığı yok (ör. fişi eksik gider sayısı).
+  final num total;
+  final FinanceRisk risk;
+
+  /// Neden önemli — kullanıcı kartı görünce ne yapacağını bilmeli.
+  final String why;
+
+  /// Süzgeci hazır ilgili konsol ekranı.
+  final String route;
+
+  bool get hasTotal => total != 0;
+}
+
+/// İş kaleminin aciliyeti.
+enum FinanceRisk { info, attention, critical }
+
+/// Muhasebe iş kuyruğunun kişi kimliği içermeyen özeti.
+///
+/// Dış muhasebeci için özellikle ad, sporcu kimliği veya ödeme açıklaması
+/// taşımaz. Hangi kayıtların tamamlanması gerektiğini söyler; kimin kaydı
+/// olduğunu değil.
+///
+/// Alan adları `acc_operations_summary`'nin döndürdüğü sütunlarla **birebir**.
+/// İlk taslakta iki taraf ayrışmıştı ve `??` yedekleri bunu gizliyordu: SQL
+/// sekiz sütun döndürürken model on alan okuyordu, eşleşmeyenler sessizce
+/// sıfır kalıyordu. Yedek yok — ad tutmazsa sıfır döner ve test bunu yakalar.
+class FinanceOperationsSummary {
+  const FinanceOperationsSummary({
+    this.draftExpenseCount = 0,
+    this.draftExpenseTotal = 0,
+    this.pendingPaymentCount = 0,
+    this.pendingPaymentTotal = 0,
+    this.overdueInvoiceCount = 0,
+    this.overdueInvoiceTotal = 0,
+    this.unlinkedIncomeCount = 0,
+    this.unlinkedIncomeTotal = 0,
+    this.unlinkedExpenseCount = 0,
+    this.unlinkedExpenseTotal = 0,
+    this.negativeAccountCount = 0,
+    this.negativeAccountTotal = 0,
+    this.missingReceiptCount = 0,
+    this.commitmentDueCount = 0,
+    this.commitmentDueTotal = 0,
+    this.pendingApprovalCount = 0,
+    this.pendingApprovalTotal = 0,
+    this.bankUnmatchedCount = 0,
+    this.bankUnmatchedTotal = 0,
+    this.closeBlockerCount = 0,
+  });
+
+  /// Ana kurucunun tamamı varsayılanlı; yönlendirme tekrar yazmayı önlüyor.
+  const FinanceOperationsSummary.empty() : this();
+
+  final int draftExpenseCount;
+  final num draftExpenseTotal;
+  final int pendingPaymentCount;
+  final num pendingPaymentTotal;
+  final int overdueInvoiceCount;
+  final num overdueInvoiceTotal;
+  final int unlinkedIncomeCount;
+  final num unlinkedIncomeTotal;
+  final int unlinkedExpenseCount;
+  final num unlinkedExpenseTotal;
+  final int negativeAccountCount;
+  final num negativeAccountTotal;
+  final int missingReceiptCount;
+  final int commitmentDueCount;
+  final num commitmentDueTotal;
+  final int pendingApprovalCount;
+  final num pendingApprovalTotal;
+  final int bankUnmatchedCount;
+  final num bankUnmatchedTotal;
+  final int closeBlockerCount;
+
+  static int _i(Map<String, dynamic> m, String k) =>
+      (m[k] as num?)?.toInt() ?? 0;
+
+  static num _n(Map<String, dynamic> m, String k) => (m[k] as num?) ?? 0;
+
+  factory FinanceOperationsSummary.fromMap(Map<String, dynamic> m) =>
+      FinanceOperationsSummary(
+        draftExpenseCount: _i(m, 'draft_expense_count'),
+        draftExpenseTotal: _n(m, 'draft_expense_total'),
+        pendingPaymentCount: _i(m, 'pending_payment_count'),
+        pendingPaymentTotal: _n(m, 'pending_payment_total'),
+        overdueInvoiceCount: _i(m, 'overdue_invoice_count'),
+        overdueInvoiceTotal: _n(m, 'overdue_invoice_total'),
+        unlinkedIncomeCount: _i(m, 'unlinked_income_count'),
+        unlinkedIncomeTotal: _n(m, 'unlinked_income_total'),
+        unlinkedExpenseCount: _i(m, 'unlinked_expense_count'),
+        unlinkedExpenseTotal: _n(m, 'unlinked_expense_total'),
+        negativeAccountCount: _i(m, 'negative_account_count'),
+        negativeAccountTotal: _n(m, 'negative_account_total'),
+        missingReceiptCount: _i(m, 'missing_receipt_count'),
+        commitmentDueCount: _i(m, 'commitment_due_count'),
+        commitmentDueTotal: _n(m, 'commitment_due_total'),
+        pendingApprovalCount: _i(m, 'pending_approval_count'),
+        pendingApprovalTotal: _n(m, 'pending_approval_total'),
+        bankUnmatchedCount: _i(m, 'bank_unmatched_count'),
+        bankUnmatchedTotal: _n(m, 'bank_unmatched_total'),
+        closeBlockerCount: _i(m, 'close_blocker_count'),
+      );
+
+  /// Bekleyen bütün işler, önem sırasına göre.
+  ///
+  /// Adedi sıfır olan kalem hiç üretilmiyor: "0 taslak gider" göstermek,
+  /// yapılacak iş yokken kuyruğu doluymuş gibi gösteriyordu. Başarı kartı da
+  /// yok — yapılacak bir şey olmadığını söylemenin yolu boş durum.
+  List<FinanceWorkItem> get items {
+    final out = <FinanceWorkItem>[];
+
+    void add(String code, String title, int count, num total, FinanceRisk risk,
+        String why, String route) {
+      if (count > 0) {
+        out.add(FinanceWorkItem(
+            code: code,
+            title: title,
+            count: count,
+            total: total,
+            risk: risk,
+            why: why,
+            route: route));
+      }
+    }
+
+    add(
+        'close_blocker',
+        'Kapanışı engelleyen kayıt',
+        closeBlockerCount,
+        0,
+        FinanceRisk.critical,
+        'Süresi dolmuş dönem kapanamıyor. Listedeki maddeler giderilmeden '
+            'ay kapanmaz.',
+        '/donem-kapanis');
+    add(
+        'negative_account',
+        'Negatif bakiyeli hesap',
+        negativeAccountCount,
+        negativeAccountTotal,
+        FinanceRisk.critical,
+        'Hesaptan olduğundan fazla para çıkmış görünüyor: ya bir tahsilat '
+            'işlenmemiş ya da gider yanlış hesaba yazılmış.',
+        '/kasa');
+    add(
+        'pending_approval',
+        'Onay bekleyen gider',
+        pendingApprovalCount,
+        pendingApprovalTotal,
+        FinanceRisk.critical,
+        'Onay eşiğini aşan gider bekliyor. Onaylanmadan deftere ve bakiyeye '
+            'girmiyor.',
+        '/mali-isler');
+    add(
+        'overdue_invoice',
+        'Gecikmiş aidat',
+        overdueInvoiceCount,
+        overdueInvoiceTotal,
+        FinanceRisk.attention,
+        'Vadesi geçmiş ve ödenmemiş aidatlar. Tahsilat ekranından hatırlatma '
+            'gönderilebilir.',
+        '/tahsilat');
+    add(
+        'pending_payment',
+        'Onay bekleyen ödeme bildirimi',
+        pendingPaymentCount,
+        pendingPaymentTotal,
+        FinanceRisk.attention,
+        'Veli ödeme yaptığını bildirdi. Onaylanmadan tahsilat sayılmıyor.',
+        '/tahsilat');
+    add(
+        'draft_expense',
+        'Taslak gider',
+        draftExpenseCount,
+        draftExpenseTotal,
+        FinanceRisk.attention,
+        'Fiş mobilden kaydedildi; kategori, hesap veya tedarikçi eksik. '
+            'Taslak gider bakiyeye, bütçeye ve rapora girmiyor.',
+        '/defter');
+    add(
+        'commitment_due',
+        'Vadesi yaklaşan taahhüt',
+        commitmentDueCount,
+        commitmentDueTotal,
+        FinanceRisk.attention,
+        'Kira, lisans veya bakım ödemesinin vadesi bir hafta içinde.',
+        '/taahhutler');
+    add(
+        'bank_unmatched',
+        'Eşleşmemiş banka hareketi',
+        bankUnmatchedCount,
+        bankUnmatchedTotal,
+        FinanceRisk.attention,
+        'Ekstredeki hareketin defterde karşılığı bulunamadı. Kapanışı '
+            'engeller.',
+        '/mutabakat');
+    add(
+        'unlinked_income',
+        'Hesaba bağlanmamış gelir',
+        unlinkedIncomeCount,
+        unlinkedIncomeTotal,
+        FinanceRisk.info,
+        'Para girdi ama hangi kasaya girdiği yazılmamış; hesap bakiyesine '
+            'yansımıyor.',
+        '/defter');
+    add(
+        'unlinked_expense',
+        'Hesaba bağlanmamış gider',
+        unlinkedExpenseCount,
+        unlinkedExpenseTotal,
+        FinanceRisk.info,
+        'Para çıktı ama hangi hesaptan çıktığı yazılmamış.',
+        '/defter');
+    add(
+        'missing_receipt',
+        'Belgesi eksik gider',
+        missingReceiptCount,
+        0,
+        FinanceRisk.info,
+        'Tamamlanmış ama fiş/fatura görseli olmayan giderler; denetimde '
+            'sorun çıkarır.',
+        '/defter');
+
+    return out;
+  }
+
+  /// En fazla beş kritik iş öne çıkar; gerisi "Tüm işler"de.
+  List<FinanceWorkItem> get topItems => items.take(5).toList();
+
+  List<FinanceWorkItem> get otherItems => items.skip(5).toList();
+
+  bool get hasWork => items.isNotEmpty;
+
+  /// Kuyruktaki toplam kayıt sayısı — rozet için.
+  int get totalCount => items.fold<int>(0, (sum, item) => sum + item.count);
 }
 
 /// Bir ayın gelir/gider özeti.
@@ -394,12 +780,79 @@ class ExpenseService {
         .insert({'club_id': clubId, 'name': name, 'kind': kind});
   }
 
+  // --------------------------------------------------------- tedarikçiler
+  Future<List<Vendor>> vendors(String clubId) async {
+    final rows = await _c
+        .from('vendors')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('active', true)
+        .order('name');
+    return (rows as List)
+        .map((r) => Vendor.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> addVendor(
+    String clubId,
+    String name, {
+    String? taxId,
+    String? contactPhone,
+    String? contactEmail,
+    String? defaultCategoryId,
+    String? notes,
+  }) async {
+    await _c.from('vendors').insert({
+      'club_id': clubId,
+      'name': name,
+      if (taxId != null) 'tax_id': taxId,
+      if (contactPhone != null) 'contact_phone': contactPhone,
+      if (contactEmail != null) 'contact_email': contactEmail,
+      if (defaultCategoryId != null) 'default_category_id': defaultCategoryId,
+      if (notes != null) 'notes': notes,
+    });
+  }
+
+  Future<void> updateExpenseWithAudit({
+    required String expenseId,
+    required String clubId,
+    num? amount,
+    String? categoryId,
+    String? accountId,
+    String? vendorId,
+    String? supplier,
+    String? note,
+    String? status,
+    String? reason,
+  }) async {
+    await _c.rpc<dynamic>('update_expense_with_audit', params: {
+      'p_expense_id': expenseId,
+      'p_club_id': clubId,
+      if (amount != null) 'p_amount': amount,
+      if (categoryId != null) 'p_category_id': categoryId,
+      if (accountId != null) 'p_account_id': accountId,
+      if (vendorId != null) 'p_vendor_id': vendorId,
+      if (supplier != null) 'p_supplier': supplier,
+      if (note != null) 'p_note': note,
+      if (status != null) 'p_status': status,
+      if (reason != null) 'p_reason': reason,
+    });
+  }
+
   Future<List<AccountBalance>> balances(String clubId) async {
     final rows = await _c
         .rpc<List<dynamic>>('acc_account_balances', params: {'p_club': clubId});
     return rows
         .map((r) => AccountBalance.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
+  }
+
+  Future<FinanceOperationsSummary> operationsSummary(String clubId) async {
+    final rows = await _c.rpc<List<dynamic>>('acc_operations_summary',
+        params: {'p_club': clubId});
+    if (rows.isEmpty) return const FinanceOperationsSummary.empty();
+    return FinanceOperationsSummary.fromMap(
+        (rows.first as Map).cast<String, dynamic>());
   }
 
   // -------------------------------------------------------- kategoriler
@@ -796,6 +1249,18 @@ final accountBalancesProvider =
   final club = await ref.watch(activeClubProvider.future);
   if (club == null) return const [];
   return ref.watch(expenseServiceProvider).balances(club.id);
+});
+
+/// Günlük mali iş kuyruğu. Aynı anonim özet, kulüp yetkilisi ve muhasebeci
+/// tarafından okunabilir; ayrım veritabanı fonksiyonunda korunur.
+final financeOperationsSummaryProvider =
+    FutureProvider.autoDispose<FinanceOperationsSummary>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return const FinanceOperationsSummary.empty();
+  }
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const FinanceOperationsSummary.empty();
+  return ref.watch(expenseServiceProvider).operationsSummary(club.id);
 });
 
 final expenseCategoriesProvider =

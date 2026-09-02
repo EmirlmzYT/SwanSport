@@ -21,6 +21,7 @@ export 'src/court_service.dart';
 export 'src/feature_flags.dart';
 export 'src/marketplace_service.dart';
 export 'src/expense_service.dart';
+export 'src/finance_ops_service.dart';
 export 'src/finance_service.dart';
 export 'src/moderation_service.dart';
 export 'src/money.dart';
