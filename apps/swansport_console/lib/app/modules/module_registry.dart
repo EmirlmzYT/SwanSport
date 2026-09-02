@@ -14,6 +14,7 @@ import '../../features/finance/period_close_screen.dart';
 import '../../features/finance/reconciliation_screen.dart';
 import '../../features/finance/report_screen.dart';
 import '../../features/platform/approvals_screen.dart';
+import '../../features/platform/support_screen.dart';
 import '../../features/platform/feature_flags_screen.dart';
 import '../../features/platform/marketplace_admin_screen.dart';
 import '../../features/platform/courts_screen.dart';
@@ -208,6 +209,14 @@ const List<ConsoleModule> kConsoleModules = [
     builder: _marketplace,
   ),
   ConsoleModule(
+    id: 'support',
+    label: 'Destek',
+    icon: Icons.support_agent_rounded,
+    route: '/destek',
+    audience: {ConsoleAudience.platformAdmin},
+    builder: _support,
+  ),
+  ConsoleModule(
     id: 'flags',
     label: 'Özellik bayrakları',
     icon: Icons.toggle_on_rounded,
@@ -237,6 +246,8 @@ ConsoleModule? moduleForRoute(String route) {
 Widget _athletes(BuildContext _) => const AthletesScreen();
 
 Widget _eligibility(BuildContext _) => const EligibilityScreen();
+
+Widget _support(BuildContext _) => const ConsoleSupportScreen();
 
 Widget _schedule(BuildContext _) => const ScheduleScreen();
 

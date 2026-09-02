@@ -18,18 +18,14 @@ MIGRATIONS = "supabase/migrations"
 
 # Canlida OLMAYAN dosyalar, sirasiyla. 0052'ye kadar olanlar dogrulandi.
 FILES = [
-    # 0053-0066 CANLIDA (2026-09-02 dogrulandi). Yeniden calistirmak
-    # zararsiz ama gereksiz; listede yalnizca bekleyenler var.
-    "0067_mention_picker.sql",
-    "0068_identity_customization.sql",
+    # 0053-0068 CANLIDA (2026-09-02 dogrulandi). Listede yalnizca bekleyenler.
+    "0069_faq_and_support.sql",
 ]
 
 HEAD = """-- ===========================================================================
--- SwanSport — bekleyen migration'lar (0067-0068)
+-- SwanSport — bekleyen migration (0069): SSS ve destek
 --
--- 0053-0066 CANLIDA (2026-09-02 dogrulandi). Bu dosyada iki migration var:
---   0067  etiket secici (@kisi, #etiket)
---   0068  kimlik ozellestirme (kapak, marka rengi, avatar tonu, vitrin)
+-- 0053-0068 CANLIDA (2026-09-02 dogrulandi). Bu dosyada 0069 var.
 --
 -- ---------------------------------------------------------------------------
 -- KILIT CAKISMASI (40P01 deadlock) YASANDIYSA
@@ -60,25 +56,22 @@ HEAD = """-- ===================================================================
 -- ---------------------------------------------------------------------------
 -- NE GETIRIYOR
 --
---   0067:
---   can_mention()          etiketleme izni tek yerde: engelleme + politika
---   search_mentionable()   secicide YALNIZCA etiketlenmeyi kabul edenler
---   search_hashtags()      tr_fold ile arama ("#Isiklar" bulunabilsin)
---   set_post_tags()        TOLERANSLI; kac kisinin etiketlendigini donuyor
+--   faq_entries          SSS icerigi VERITABANINDA — yeni soru icin APK
+--                        yayinlamak gerekmiyor, konsoldan yazilir
+--   search_faq()         tr_contains ile arama; "aidat" ve "AIDAT" ayni
+--   reply_support_ticket()  0066 talep ACMAYI getirmisti ama YANIT YAZMANIN
+--                        yolu yoktu: support_messages'ta yalnizca okuma
+--                        politikasi vardi. Talep aciliyordu, kimse
+--                        cevaplayamiyordu.
+--   set_support_status() kullanici kendi talebini KAPATABILIYOR, ama
+--                        'cozuldu' isaretlemek yetkilinin isi
+--   support_queue()      platform yoneticisi kuyrugu; EN ESKI ONCE
 --
---   set_post_tags'in ARGUMAN imzasi ayni (uuid, uuid[], text[]) ama DONUS
---   TIPI void'den int'e geciyor. `create or replace` donus tipini
---   degistiremiyor (42P13); bu yuzden once `drop function` var.
+--   13 baslangic sorusu ekleniyor (aidat, bildirim, kort, gizlilik, veli,
+--   mali). Bos bir SSS ekrani, hic SSS olmamasindan kotu.
 --
---   0068:
---   profiles/clubs       cover_path, brand_color (+ avatar_tint, sections)
---   set_pinned_post()    yalnizca kendi ve yayindaki gonderi sabitlenebilir
---   set_club_media()     gorsel yolunun BU kulube ait oldugunu dogruluyor
---   storage politikasi   club/<id>/ klasoru icin, is_club_admin kontrollu
---
---   MARKA RENGI `accent`'IN YERINE GECMIYOR: yalnizca kimlik yuzeyleri
---   (kapak bandi, serit, rozet). Dugmeler ve aktif sekmeler teal kaliyor.
---   avatar_tint NULLABLE ve varsayilan null — mevcut avatarlar degismesin.
+--   push_route: 33 -> 35. 'eligibility' turu 0064'ten beri ROTASIZDI ve
+--   /bildirimler'e dusuyordu; artik /athletes'e gidiyor.
 --
 -- TEKRAR CALISTIRILABILIR: `create or replace`, `if not exists`,
 -- `on conflict do nothing`. Emin degilsen tekrar calistir.

@@ -62,6 +62,8 @@ import '../features/social/presentation/search_screen.dart';
 import '../features/verification/presentation/admin_review_screen.dart';
 import '../features/financial_management/presentation/finance_tasks_screen.dart';
 import '../features/social/presentation/saved_posts_screen.dart';
+import '../features/support/presentation/help_screen.dart';
+import '../features/support/presentation/support_screen.dart';
 import '../features/financial_management/presentation/quick_expense_screen.dart';
 import '../features/verification/presentation/credential_screen.dart';
 import '../features/verification/presentation/guardian_link_screen.dart';
@@ -114,6 +116,8 @@ class SwanSportApp extends ConsumerWidget {
         // push_route yedi mali bildirim türünü buraya yönlendiriyor.
         '/mali-isler': (context) => const FinanceTasksScreen(),
         '/kaydedilenler': (context) => const SavedPostsScreen(),
+        '/yardim': (context) => const HelpScreen(),
+        '/destek': (context) => const SupportScreen(),
         '/dogrulama': (context) => const CredentialScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
         '/onay-paneli': (context) => const AdminReviewScreen(),

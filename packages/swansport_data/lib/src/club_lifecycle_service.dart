@@ -301,6 +301,105 @@ class SupportTicket {
       );
 }
 
+/// Sıkça sorulan soru.
+///
+/// İçerik **veritabanında**, koda gömülü değil: yardım metni ürünün en sık
+/// değişen parçası ve her yeni soru için APK yayınlamak gerekmemeli.
+class FaqEntry {
+  const FaqEntry({
+    required this.id,
+    required this.question,
+    required this.answer,
+    required this.category,
+    this.route,
+  });
+
+  final String id;
+  final String question;
+  final String answer;
+  final String category;
+
+  /// İlgili ekrana götüren rota. Cevabın sonunda düğme olarak çiziliyor —
+  /// kullanıcıyı "ayarlardan bul" diye bırakmaktan iyi.
+  final String? route;
+
+  factory FaqEntry.fromMap(Map<String, dynamic> m) => FaqEntry(
+        id: (m['id'] as String?) ?? '',
+        question: (m['question'] as String?) ?? '',
+        answer: (m['answer'] as String?) ?? '',
+        category: (m['category'] as String?) ?? 'Genel',
+        route: m['route'] as String?,
+      );
+}
+
+/// Destek yazışmasındaki tek mesaj.
+class SupportMessage {
+  const SupportMessage({
+    required this.id,
+    required this.body,
+    required this.isStaff,
+    required this.createdAt,
+  });
+
+  final String id;
+  final String body;
+
+  /// **Sunucu belirliyor**, istemci göndermiyor. Aksi halde herkes kendi
+  /// mesajını "yetkili" gibi gösterebilirdi.
+  final bool isStaff;
+  final DateTime createdAt;
+
+  factory SupportMessage.fromMap(Map<String, dynamic> m) => SupportMessage(
+        id: (m['id'] as String?) ?? '',
+        body: (m['body'] as String?) ?? '',
+        isStaff: (m['is_staff'] as bool?) ?? false,
+        createdAt: DateTime.tryParse('${m['created_at']}') ?? DateTime.now(),
+      );
+}
+
+/// Destek kuyruğundaki bir talep — platform yöneticisi görünümü.
+class SupportQueueItem {
+  const SupportQueueItem({
+    required this.ticketId,
+    required this.subject,
+    required this.status,
+    required this.requester,
+    required this.messageCount,
+    required this.lastActivity,
+    required this.createdAt,
+    this.clubName,
+  });
+
+  final String ticketId;
+  final String subject;
+  final String status;
+  final String requester;
+  final String? clubName;
+  final int messageCount;
+  final DateTime lastActivity;
+  final DateTime createdAt;
+
+  bool get isOpen => status != 'resolved' && status != 'closed';
+
+  /// Hiç yanıtlanmamış talep — kuyruğun asıl işi bunlar.
+  bool get unanswered => messageCount == 0 && isOpen;
+
+  /// Kaç gündür bekliyor. Açık bir talebin yaşı, kuyruğun sağlık göstergesi.
+  int ageInDays(DateTime now) => now.difference(createdAt).inDays;
+
+  factory SupportQueueItem.fromMap(Map<String, dynamic> m) => SupportQueueItem(
+        ticketId: (m['ticket_id'] as String?) ?? '',
+        subject: (m['subject'] as String?) ?? '',
+        status: (m['status'] as String?) ?? 'new',
+        requester: (m['requester'] as String?) ?? 'Bilinmiyor',
+        clubName: m['club_name'] as String?,
+        messageCount: (m['message_count'] as num?)?.toInt() ?? 0,
+        lastActivity:
+            DateTime.tryParse('${m['last_activity']}') ?? DateTime.now(),
+        createdAt: DateTime.tryParse('${m['created_at']}') ?? DateTime.now(),
+      );
+}
+
 // ================================= Servis ==================================
 
 class ClubLifecycleService {
@@ -423,6 +522,53 @@ class ClubLifecycleService {
         'p_club': clubId,
       });
 
+  /// SSS. [audience] kullanıcının rollerinden türetiliyor; boş geçilirse
+  /// yalnızca herkese açık sorular dönüyor.
+  ///
+  /// Arama sunucuda `tr_contains` ile — "aidat" ve "AİDAT" aynı sonucu
+  /// veriyor. Düz `toLowerCase()` Türkçe'de bunu bulmuyor.
+  Future<List<FaqEntry>> faq({String query = '', List<String>? audience}) async {
+    final rows = await _c.rpc<List<dynamic>>('search_faq',
+        params: {'p_query': query, 'p_audience': audience});
+    return rows
+        .map((e) => FaqEntry.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<List<SupportMessage>> ticketMessages(String ticketId) async {
+    final rows = await _c
+        .from('support_messages')
+        .select('id, body, is_staff, created_at')
+        .eq('ticket_id', ticketId)
+        .order('created_at');
+    return rows
+        .map((e) => SupportMessage.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Yanıt yazar. Gövde **sunucuda** ayıklanıyor (token, IBAN, uzun rakam);
+  /// istemcinin temizlemesine güvenmek eski bir uygulama sürümünün ham veri
+  /// göndermesini engellemiyor.
+  Future<String> replyTicket(String ticketId, String body) =>
+      _c.rpc<String>('reply_support_ticket',
+          params: {'p_ticket': ticketId, 'p_body': body});
+
+  /// Durum değiştirir. Kullanıcı yalnızca **kapatabiliyor**; `resolved`
+  /// işaretlemek yetkilinin işi.
+  Future<void> setTicketStatus(String ticketId, String status) =>
+      _c.rpc<void>('set_support_status',
+          params: {'p_ticket': ticketId, 'p_status': status});
+
+  /// Destek kuyruğu — yalnızca platform yöneticisi.
+  Future<List<SupportQueueItem>> supportQueue({String? status}) async {
+    final rows = await _c
+        .rpc<List<dynamic>>('support_queue', params: {'p_status': status});
+    return rows
+        .map((e) =>
+            SupportQueueItem.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
   Future<List<SupportTicket>> myTickets() async {
     final rows = await _c
         .from('support_tickets')
@@ -477,4 +623,38 @@ final myTicketsProvider =
     FutureProvider.autoDispose<List<SupportTicket>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(clubLifecycleServiceProvider).myTickets();
+});
+
+/// SSS. Anahtar `"sorgu|kitle1,kitle2"`.
+///
+/// Giriş yapmamış kullanıcı da okuyabiliyor: uygulamayı ilk açan kişinin
+/// sorusu tam da o an oluşuyor, önce kaydolmasını beklemek yardım etmiyor.
+final faqProvider =
+    FutureProvider.autoDispose.family<List<FaqEntry>, String>((ref, key) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final i = key.indexOf('|');
+  final query = i < 0 ? key : key.substring(0, i);
+  final aud = i < 0 || i == key.length - 1
+      ? <String>[]
+      : key.substring(i + 1).split(',').where((e) => e.isNotEmpty).toList();
+  return ref
+      .watch(clubLifecycleServiceProvider)
+      .faq(query: query, audience: aud.isEmpty ? null : aud);
+});
+
+final ticketMessagesProvider = FutureProvider.autoDispose
+    .family<List<SupportMessage>, String>((ref, ticketId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(clubLifecycleServiceProvider).ticketMessages(ticketId);
+});
+
+/// Destek kuyruğu — platform yöneticisi. Yetkisiz çağrıda sunucu hata
+/// veriyor ve bu sağlayıcı onu yutmuyor: yetkisiz erişim "talep yok" gibi
+/// görünürse sorun fark edilmez.
+final supportQueueProvider = FutureProvider.autoDispose
+    .family<List<SupportQueueItem>, String>((ref, status) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref
+      .watch(clubLifecycleServiceProvider)
+      .supportQueue(status: status == 'all' ? null : status);
 });

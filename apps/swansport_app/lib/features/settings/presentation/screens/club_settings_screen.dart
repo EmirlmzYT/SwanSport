@@ -183,6 +183,24 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                   ]),
                 ],
 
+                // ------------------------------- yardım
+                //
+                // SSS önce, destek sonra: cevabı zaten yazılı sorular
+                // kuyruğu doldurmasın.
+                _label('YARDIM', ink),
+                _group(isDark, [
+                  _row(isDark, Icons.help_outline_rounded,
+                      'Sıkça sorulan sorular',
+                      sub: 'Aidat, bildirim, kort, gizlilik',
+                      onTap: () => Navigator.pushNamed(context, '/yardim')),
+                  _sep(isDark),
+                  _row(isDark, Icons.support_agent_rounded, 'Destek talebi',
+                      sub: 'Cevabını bulamadıysan bize yaz',
+                      onTap: () => Navigator.pushNamed(context, '/destek')),
+                ]),
+
+                const SizedBox(height: 24),
+
                 // ------------------------------- görünüm
                 //
                 // Uygulama bugüne kadar telefonun ayarını izliyordu

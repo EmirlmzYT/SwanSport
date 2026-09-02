@@ -319,6 +319,32 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - `RosterEntry` ikinci tip yazılarak değil, **mevcut tipe alan eklenerek**
   çözüldü: sürümsüz RPC'de `version` 0 kalıyor.
 
+**SSS ve destek (0069)**
+- **0066 talep açmayı getirmişti ama yanıt yazmanın yolu yoktu.**
+  `support_messages` tablosunda yalnızca okuma politikası vardı; insert
+  politikası da RPC de yoktu. Talep açılıyor, kimse cevaplayamıyordu ve bu
+  hiçbir yerde hata vermiyordu.
+- **SSS içeriği veritabanında** (`faq_entries`), koda gömülü değil. Yardım
+  metni ürünün en sık değişen parçası; her yeni soru için APK yayınlamak
+  gerekmemeli. Konsol > Destek'ten değil, platform yöneticisi doğrudan
+  tablodan yazıyor (konsol düzenleyicisi henüz yok — bilinen eksik).
+- **SSS anon'a açık.** Uygulamayı ilk açan kişinin sorusu tam da o an
+  oluşuyor; önce kaydolmasını beklemek yardım etmiyor.
+- **`is_staff` istemciden gelmiyor**, `reply_support_ticket` içinde
+  `is_platform_admin()` ile belirleniyor. İstemciden alsaydık herkes kendi
+  mesajını "SwanSport ekibi" gibi gösterebilirdi.
+- **Durum yazışmayla kendiliğinden ilerliyor**: ekip yanıtlarsa
+  `awaiting_user_response`, kullanıcı yanıtlarsa `under_review`. Elle durum
+  değiştirmeyi zorunlu kılmak, kimsenin yapmadığı bir adım olurdu.
+- Kullanıcı kendi talebini **kapatabiliyor** ama `resolved` işaretleyemiyor:
+  kendi talebini "çözüldü" yapmak istatistiği anlamsızlaştırırdı.
+- Destek kuyruğu **en eski önce** sıralı. Yeniden eskiye sıralamak, en uzun
+  bekleyen kişiyi kuyruğun dibinde unutturuyordu.
+- **`eligibility` bildirim türü 0064'ten beri ROTASIZDI** ve `else` dalına
+  düşüp `/bildirimler`'e gidiyordu. 0069'da `/athletes`'e bağlandı.
+  `check_push_routes.py` bunu yakalamıyor çünkü tür hiç eşlenmemişti —
+  betik yalnızca **kaybolan** eşlemeleri buluyor, hiç yazılmamış olanı değil.
+
 **Kimlik özelleştirme (0068)**
 - **Marka rengi `accent`'in yerine GEÇMİYOR.** Teal bu uygulamada "birincil
   aksiyon ve aktif durum" anlamına geliyor; kırmızı markalı bir kulüpte
@@ -662,7 +688,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 197 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 208 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 26 test, hepsi geçer
