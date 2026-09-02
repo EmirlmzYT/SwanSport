@@ -90,6 +90,36 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - Supabase'de `postgres` gerçek superuser değil — `alter database ... set`
   reddedilir. Sır saklamak için **Supabase Vault** kullan.
 
+**Uzun tek işlemli migration + pg_cron = deadlock (40P01)**
+- Bekleyen migration'lar tek bir `begin/commit` içinde paketleniyordu ve
+  bütün kilitler sonuna kadar tutuluyordu. `alter table`
+  **AccessExclusiveLock** istiyor; aynı anda çalışan bir şey o tabloyu
+  okuyorsa iki taraf birbirini bekliyor.
+- 2026-09-02'de tam olarak bu oldu. En olası karşı taraf **kendi cron
+  işlerimiz**: 0056/0057/0061/0064/0066 altı zamanlanmış iş kurdu ve hepsi
+  `profiles`, `clubs`, `notifications`, `reminder_log` okuyor. Sabah
+  saatlerinde migration çalıştırmak ikisini çakıştırıyor.
+- **Çözüm — paket artık dosya başına bir işlem** ve her birinde
+  `set local lock_timeout = '15s'`. Kilit gelmezse işlem `55P03` ile temiz
+  düşüyor; deadlock yerine anlaşılır bir hata veriyor ve yalnızca düşen
+  dosya tekrar çalıştırılıyor.
+- Çakışan tabloyu görmek: hata mesajındaki `relation NNNNN` sayısıyla
+  `select NNNNN::regclass;`
+- Israrla düşerse cron'u geçici durdur:
+  `select cron.unschedule(jobname) from cron.job where jobname like 'swansport_%';`
+  Migration'dan sonra ilgili dosyaları tekrar çalıştırınca işler geri kuruluyor.
+- `storage.objects` üzerindeki politikalar da riskli: o tablo her görsel
+  yüklemesinde yazılıyor. 0068'de en sona konuldu.
+
+**`create or replace function` DÖNÜŞ TİPİNİ değiştiremez**
+- Argüman imzası aynı olsa bile `42P13: cannot change return type of
+  existing function` veriyor. `set_post_tags` 0063'te `returns void`,
+  0067'de `returns int` oldu ve önce `drop function` gerekti.
+- Bu, AGENTS.md'deki **HTTP 300 tuzağından farklı** bir kural: o, parametre
+  *eklendiğinde* eski imzanın kalmasıyla ilgili. Bu ise aynı imzada dönüş
+  tipini değiştirmekle ilgili. İkisi de `drop function` istiyor ama
+  sebepleri ayrı.
+
 **Supabase SQL Editor**
 - Orada **oturum yoktur**: `auth.uid()` NULL döner. `auth.uid()` kullanan
   fonksiyonlar editörden test edilemez, boş döner. Bu bir hata değildir.
