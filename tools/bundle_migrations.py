@@ -20,12 +20,15 @@ MIGRATIONS = "supabase/migrations"
 FILES = [
     # 0053-0068 CANLIDA (2026-09-02 dogrulandi). Listede yalnizca bekleyenler.
     "0069_faq_and_support.sql",
+    "0070_faq_follows_features.sql",
 ]
 
 HEAD = """-- ===========================================================================
--- SwanSport — bekleyen migration (0069): SSS ve destek
+-- SwanSport — bekleyen migration'lar (0069-0070): SSS ve destek
 --
--- 0053-0068 CANLIDA (2026-09-02 dogrulandi). Bu dosyada 0069 var.
+-- 0053-0068 CANLIDA (2026-09-02 dogrulandi). Bu dosyada iki migration var:
+--   0069  SSS + destek yazismasi
+--   0070  SSS OZELLIGI TAKIP ETSIN — yardimsiz yayin yok
 --
 -- ---------------------------------------------------------------------------
 -- KILIT CAKISMASI (40P01 deadlock) YASANDIYSA
@@ -72,6 +75,17 @@ HEAD = """-- ===================================================================
 --
 --   push_route: 33 -> 35. 'eligibility' turu 0064'ten beri ROTASIZDI ve
 --   /bildirimler'e dusuyordu; artik /athletes'e gidiyor.
+--
+--   0070 — SSS ARTIK OZELLIGI TAKIP EDIYOR:
+--   faq_entries.feature  bir bayrak anahtarina baglaniyor
+--   trg_faq_before_release  bir bayragi testers/everyone yapmayi, o
+--                        anahtara bagli aktif SSS satiri yoksa REDDEDIYOR.
+--                        Geri cekmek (off/admins) kontrolsuz.
+--   faq_coverage()       hangi ozelligin yardimi eksik
+--   search_faq()         imza degisti (ucuncu parametre), eski surum
+--                        dusuruluyor — HTTP 300 tuzagi
+--   34 bayragin HEPSININ yardimi yaziliyor; kapi bugun konsaydi hicbir
+--   ozellik yayinlanamazdi.
 --
 -- TEKRAR CALISTIRILABILIR: `create or replace`, `if not exists`,
 -- `on conflict do nothing`. Emin degilsen tekrar calistir.

@@ -319,6 +319,24 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - `RosterEntry` ikinci tip yazılarak değil, **mevcut tipe alan eklenerek**
   çözüldü: sürümsüz RPC'de `version` 0 kalıyor.
 
+**SSS özelliği takip ediyor (0070) — ve bu bir KAPI**
+- `faq_entries.feature` bir bayrak anahtarına bağlanıyor. Dolu ise soru
+  yalnızca o özellik kullanıcıya açıkken görünüyor: kapalı bir özelliğin
+  yardımını göstermek, olmayan bir düğmeyi tarif etmek olurdu.
+- **Yardımsız yayın yok.** `trg_faq_before_release` bir bayrağı `testers`
+  ya da `everyone` yapmayı, o anahtara bağlı aktif bir SSS satırı yoksa
+  reddediyor. Geri çekmek (`off`, `admins`) kontrolsüz: bir sorunu geri
+  almak yardım yazmayı beklememeli.
+- Kapı **tam o anda** çünkü `admins` senin kendi denemen; `testers` ve
+  `everyone` başkalarının kullanması demek ve yardıma tam o an ihtiyaç
+  doğuyor.
+- `tools/check_faq.py` aynı kuralı geliştirme zamanında söylüyor. Kapsam
+  raporu konsolda da var (Yardım İçeriği ekranı, en üstte).
+- **`check_faq.py`'nin ilk sürümü bozuktu ve bunu 34 ≠ 4 farkı ele verdi.**
+  İfadeleri `[^;]*;` ile kesiyordu ve bir SSS *cevabının içindeki* noktalı
+  virgülde durdu ("...kendi kanalı; kadro dışındakiler..."). SQL dizeleri
+  noktalı virgül içerebilir — ifade sınırını `pglast`'a sormak şart.
+
 **SSS ve destek (0069)**
 - **0066 talep açmayı getirmişti ama yanıt yazmanın yolu yoktu.**
   `support_messages` tablosunda yalnızca okuma politikası vardı; insert
@@ -688,7 +706,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 208 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 213 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 26 test, hepsi geçer
@@ -732,6 +750,14 @@ bir migration olarak ortaya çıkıyor — en kötü yer.
 
 ```bash
 pip install pglast && python tools/check_migrations.py
+```
+
+**SSS kapsamını denetle.** Kullanıcıya açılan her özelliğin yardımı olmalı;
+kural veritabanında ama hatayı migration çalıştırırken değil yazarken görmek
+gerekiyor.
+
+```bash
+python tools/check_faq.py
 ```
 
 Gerçek PostgreSQL ayrıştırıcısını kullanıyor, çalıştırmıyor. **Sınırı var:**
@@ -1192,6 +1218,11 @@ hedefine koysun.
 
 ## Çalışma kuralları
 
+- **Kullanıcıya açılan her özelliğin SSS kaydı olmalı.** Bu bir niyet değil,
+  kapı: `trg_faq_before_release` (0070) bir bayrağı `testers` ya da
+  `everyone` yapmayı, o anahtara bağlı aktif bir `faq_entries` satırı yoksa
+  **reddediyor**. Geliştirme zamanında `python tools/check_faq.py` aynı şeyi
+  söylüyor. Yeni bayrak eklerken SSS satırını da aynı migration'a yaz.
 - **Önce sembolü bul, sonra dosya oku.** Tüm projeyi tarama.
 - **Önce mevcut implementasyonu ara.** Bu depoda çoğu şeyin karşılığı zaten
   var; ikinci bir kopya yazmak geçmişte üç kez sessiz çakışma üretti

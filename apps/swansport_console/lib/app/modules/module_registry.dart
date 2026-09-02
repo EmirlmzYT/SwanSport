@@ -14,6 +14,7 @@ import '../../features/finance/period_close_screen.dart';
 import '../../features/finance/reconciliation_screen.dart';
 import '../../features/finance/report_screen.dart';
 import '../../features/platform/approvals_screen.dart';
+import '../../features/platform/faq_screen.dart';
 import '../../features/platform/support_screen.dart';
 import '../../features/platform/feature_flags_screen.dart';
 import '../../features/platform/marketplace_admin_screen.dart';
@@ -217,6 +218,14 @@ const List<ConsoleModule> kConsoleModules = [
     builder: _support,
   ),
   ConsoleModule(
+    id: 'faq',
+    label: 'Yardım İçeriği',
+    icon: Icons.menu_book_rounded,
+    route: '/yardim-icerigi',
+    audience: {ConsoleAudience.platformAdmin},
+    builder: _faq,
+  ),
+  ConsoleModule(
     id: 'flags',
     label: 'Özellik bayrakları',
     icon: Icons.toggle_on_rounded,
@@ -248,6 +257,8 @@ Widget _athletes(BuildContext _) => const AthletesScreen();
 Widget _eligibility(BuildContext _) => const EligibilityScreen();
 
 Widget _support(BuildContext _) => const ConsoleSupportScreen();
+
+Widget _faq(BuildContext _) => const ConsoleFaqScreen();
 
 Widget _schedule(BuildContext _) => const ScheduleScreen();
 

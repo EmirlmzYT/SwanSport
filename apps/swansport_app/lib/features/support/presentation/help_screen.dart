@@ -48,7 +48,11 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final access = ref.watch(swanAccessProvider);
-    final key = '$_query|${_audience(access).join(',')}';
+    // Açık bayraklar: kapalı bir özelliğin yardımı listede çıkmıyor.
+    final flags =
+        ref.watch(featureFlagsProvider).valueOrNull ?? const FeatureFlags.none();
+    final key =
+        '$_query|${_audience(access).join(',')}|${flags.enabled.join(',')}';
     final faq = ref.watch(faqProvider(key));
 
     return Scaffold(

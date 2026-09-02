@@ -25,6 +25,12 @@ class FeatureFlags {
 
   bool has(String key) => _keys.contains(key);
 
+  /// Açık bayrakların listesi.
+  ///
+  /// SSS bunu kullanıyor: kapalı bir özelliğin yardımını göstermek, olmayan
+  /// bir düğmeyi tarif etmek olurdu.
+  List<String> get enabled => _keys.toList()..sort();
+
   /// Bilinen bayraklar. Sabit olarak burada duruyorlar ki yazım hatası
   /// derleme zamanında yakalansın; `has('marketpalce')` sessizce false döner.
   static const marketplace = 'marketplace';

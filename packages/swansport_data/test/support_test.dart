@@ -111,4 +111,52 @@ void main() {
       expect(q().clubName, isNull);
     });
   });
+
+  group('SSS kapsamı — yardımsız yayın yok', () {
+    FaqCoverage c({int entries = 0, String audience = 'admins'}) =>
+        FaqCoverage.fromMap({
+          'feature': 'marketplace',
+          'label': 'Pazaryeri',
+          'audience': audience,
+          'entry_count': entries,
+        });
+
+    test('yayında olma tanımı', () {
+      expect(c(audience: 'off').isPublished, isFalse);
+      expect(c(audience: 'admins').isPublished, isFalse);
+      expect(c(audience: 'testers').isPublished, isTrue);
+      expect(c(audience: 'everyone').isPublished, isTrue);
+    });
+
+    test('kayıt sayısı okunuyor', () {
+      expect(c().entryCount, 0);
+      expect(c(entries: 3).entryCount, 3);
+    });
+
+    test('eksik alanlar çökertmiyor', () {
+      final x = FaqCoverage.fromMap({'feature': 'x'});
+      expect(x.entryCount, 0);
+      expect(x.audience, 'off');
+      expect(x.isPublished, isFalse);
+    });
+  });
+
+  group('SSS özellik bağı', () {
+    test('feature null ise genel soru', () {
+      final f = FaqEntry.fromMap(
+          {'id': 'f', 'question': 'q', 'answer': 'a', 'category': 'Genel'});
+      expect(f.feature, isNull);
+    });
+
+    test('feature dolu ise özelliğe bağlı', () {
+      final f = FaqEntry.fromMap({
+        'id': 'f',
+        'question': 'q',
+        'answer': 'a',
+        'category': 'Pazaryeri',
+        'feature': 'marketplace',
+      });
+      expect(f.feature, 'marketplace');
+    });
+  });
 }

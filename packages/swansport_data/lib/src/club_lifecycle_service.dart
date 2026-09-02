@@ -312,6 +312,7 @@ class FaqEntry {
     required this.answer,
     required this.category,
     this.route,
+    this.feature,
   });
 
   final String id;
@@ -323,12 +324,45 @@ class FaqEntry {
   /// kullanıcıyı "ayarlardan bul" diye bırakmaktan iyi.
   final String? route;
 
+  /// Hangi özelliğe ait. null ise genel soru. Dolu ise soru yalnızca o
+  /// özellik kullanıcıya açıkken görünüyor — kapalı bir özelliğin yardımını
+  /// göstermek, olmayan bir düğmeyi tarif etmek olurdu.
+  final String? feature;
+
   factory FaqEntry.fromMap(Map<String, dynamic> m) => FaqEntry(
         id: (m['id'] as String?) ?? '',
         question: (m['question'] as String?) ?? '',
         answer: (m['answer'] as String?) ?? '',
         category: (m['category'] as String?) ?? 'Genel',
         route: m['route'] as String?,
+        feature: m['feature'] as String?,
+      );
+}
+
+/// Bir özelliğin SSS kapsamı.
+///
+/// `entryCount` sıfırsa o özellik `testers`/`everyone` yapılamıyor —
+/// veritabanı tetikleyicisi reddediyor (0070).
+class FaqCoverage {
+  const FaqCoverage({
+    required this.feature,
+    required this.label,
+    required this.audience,
+    required this.entryCount,
+  });
+
+  final String feature;
+  final String label;
+  final String audience;
+  final int entryCount;
+
+  bool get isPublished => audience == 'testers' || audience == 'everyone';
+
+  factory FaqCoverage.fromMap(Map<String, dynamic> m) => FaqCoverage(
+        feature: (m['feature'] as String?) ?? '',
+        label: (m['label'] as String?) ?? '',
+        audience: (m['audience'] as String?) ?? 'off',
+        entryCount: (m['entry_count'] as num?)?.toInt() ?? 0,
       );
 }
 
@@ -527,9 +561,39 @@ class ClubLifecycleService {
   ///
   /// Arama sunucuda `tr_contains` ile — "aidat" ve "AİDAT" aynı sonucu
   /// veriyor. Düz `toLowerCase()` Türkçe'de bunu bulmuyor.
-  Future<List<FaqEntry>> faq({String query = '', List<String>? audience}) async {
-    final rows = await _c.rpc<List<dynamic>>('search_faq',
-        params: {'p_query': query, 'p_audience': audience});
+  /// [features] kullanıcıya **açık** bayrakların listesi. Geçilmezse
+  /// özelliğe bağlı sorular hiç dönmüyor: kapalı bir özelliğin yardımını
+  /// göstermek, olmayan bir düğmeyi tarif etmek olurdu.
+  Future<List<FaqEntry>> faq({
+    String query = '',
+    List<String>? audience,
+    List<String>? features,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>('search_faq', params: {
+      'p_query': query,
+      'p_audience': audience,
+      'p_features': features,
+    });
+    return rows
+        .map((e) => FaqEntry.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Özellik başına SSS kapsamı — konsolun uyarı kutusu bunu okuyor.
+  Future<List<FaqCoverage>> faqCoverage() async {
+    final rows = await _c.rpc<List<dynamic>>('faq_coverage');
+    return rows
+        .map((e) => FaqCoverage.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Bütün SSS kayıtları — düzenleyici için, kitle/özellik süzgeci yok.
+  Future<List<FaqEntry>> allFaq() async {
+    final rows = await _c
+        .from('faq_entries')
+        .select('id, question, answer, category, route, feature')
+        .order('category')
+        .order('sort_order');
     return rows
         .map((e) => FaqEntry.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
@@ -625,21 +689,25 @@ final myTicketsProvider =
   return ref.watch(clubLifecycleServiceProvider).myTickets();
 });
 
-/// SSS. Anahtar `"sorgu|kitle1,kitle2"`.
+/// SSS. Anahtar `"sorgu|kitle1,kitle2|ozellik1,ozellik2"`.
 ///
 /// Giriş yapmamış kullanıcı da okuyabiliyor: uygulamayı ilk açan kişinin
 /// sorusu tam da o an oluşuyor, önce kaydolmasını beklemek yardım etmiyor.
 final faqProvider =
     FutureProvider.autoDispose.family<List<FaqEntry>, String>((ref, key) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
-  final i = key.indexOf('|');
-  final query = i < 0 ? key : key.substring(0, i);
-  final aud = i < 0 || i == key.length - 1
-      ? <String>[]
-      : key.substring(i + 1).split(',').where((e) => e.isNotEmpty).toList();
-  return ref
-      .watch(clubLifecycleServiceProvider)
-      .faq(query: query, audience: aud.isEmpty ? null : aud);
+  final parts = key.split('|');
+  List<String>? csv(int i) {
+    if (parts.length <= i || parts[i].isEmpty) return null;
+    final v = parts[i].split(',').where((e) => e.isNotEmpty).toList();
+    return v.isEmpty ? null : v;
+  }
+
+  return ref.watch(clubLifecycleServiceProvider).faq(
+        query: parts.isEmpty ? '' : parts.first,
+        audience: csv(1),
+        features: csv(2),
+      );
 });
 
 final ticketMessagesProvider = FutureProvider.autoDispose
@@ -657,4 +725,18 @@ final supportQueueProvider = FutureProvider.autoDispose
   return ref
       .watch(clubLifecycleServiceProvider)
       .supportQueue(status: status == 'all' ? null : status);
+});
+
+/// Özellik başına SSS kapsamı — yalnızca platform yöneticisi.
+final faqCoverageProvider =
+    FutureProvider.autoDispose<List<FaqCoverage>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(clubLifecycleServiceProvider).faqCoverage();
+});
+
+/// Düzenleyici listesi — süzgeçsiz.
+final faqAdminProvider =
+    FutureProvider.autoDispose<List<FaqEntry>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(clubLifecycleServiceProvider).allFaq();
 });
