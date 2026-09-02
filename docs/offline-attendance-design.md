@@ -1,7 +1,27 @@
 # Çevrimdışı Yoklama — Teknik Tasarım
 
-**Durum:** tasarım. Uygulanmadı, yayınlanmadı.
-**Tarih:** 1 Eylül 2026
+**Durum:** sunucu tarafı UYGULANDI (0065). Mobil kuyruk ve çakışma çözme
+ekranı hâlâ yazılmadı; `offline_attendance` bayrağı `off`.
+**Tarih:** 1 Eylül 2026 · **Güncelleme:** 2 Eylül 2026
+
+> ## ⚠️ 3. BÖLÜMDEKİ KARAR DEĞİŞTİ
+>
+> Aşağıda "`marked_at` kazanır" yazıyor — yani cihazda en son işaretlenen.
+> **Bu karar 0065 ile geri alındı.** Yerine iyimser sürüm kontrolü geldi:
+> istemci okuduğu sürümü geri gönderiyor, sürüm değişmişse yazma
+> reddediliyor ve çakışma antrenöre gösteriliyor.
+>
+> Sebebi belgenin kendi "bilinen sınır" notunda zaten yazılıydı: cihaz
+> saatleri güvenilmez ve saati yanlış kurulmuş bir telefon hep kazanır.
+> Buna ek olarak sessiz ezme, iki antrenörün farklı gördüğü bir gerçeği
+> kimseye sormadan karara bağlıyordu.
+>
+> `op_id` kararı **aynen geçerli** ve artık sunucuda: `attendance_op_logs`
+> tablosunda `(actor_id, op_id)` benzersiz. Cihaz verisi silinse bile aynı
+> işlem ikinci kez yazılmıyor.
+>
+> Belgenin geri kalanı (kuyruk deposu, hata gösterimi, RSVP ön-dolum tuzağı)
+> hâlâ geçerli ve hâlâ uygulanmadı.
 
 Plan bu özelliği bilerek doğrudan yayınlatmıyor: önce aşağıdaki soruların
 cevaplanmasını istiyor. Bu belge onları cevaplıyor ve **uygulanmadan önce ne
