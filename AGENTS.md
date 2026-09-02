@@ -602,6 +602,12 @@ js.includes('acc_operations_summary')
   çeviriyor; `grep "Mali İş Kuyruğu"` sıfır döndürüyor ve bu "kod yok" gibi
   okunuyor. Aynı gün buna da düşüldü. **RPC ve rota adları ASCII** — onlarla
   ara.
+- **`cache: 'reload'` Cloudflare kenar önbelleğini kırmıyor.** Tarayıcı
+  önbelleğini atlıyor ama CDN eski dosyayı vermeye devam edebiliyor:
+  2026-09-02'de dağıtımdan hemen sonra canlı dosya bir önceki boyutta
+  görünüp "yeni kod gitmemiş" sanıldı. Sorgu parametresi ekleyince
+  (`?cb=Date.now()`) gerçek dosya geldi. Dağıtıma özel adresi
+  (`<hash>.swansport.pages.dev`) kontrol etmek de aynı işi görüyor.
 - Bu makineden Cloudflare'e TLS ile ulaşılamıyor (curl ve Python urllib
   ikisi de düşüyor). Canlı doğrulamayı **tarayıcıyla** yap; Supabase'e
   erişim çalışıyor, sorun yalnızca Cloudflare tarafında.

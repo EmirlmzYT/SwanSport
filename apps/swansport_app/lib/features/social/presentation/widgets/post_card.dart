@@ -121,6 +121,14 @@ class _PostCardState extends ConsumerState<PostCard>
           ),
           const SizedBox(height: 14),
           if (isMine) ...[
+            // Sabitleme sunucuda doğrulanıyor: yalnızca kendi ve yayındaki
+            // gönderi. Taslak sabitlenirse profilde görünen ama kimsenin
+            // açamadığı bir kart olurdu.
+            _menuItem(ctx, Icons.push_pin_outlined, 'Profilime sabitle', ink,
+                () {
+              Navigator.pop(ctx);
+              _pinPost();
+            }),
             _menuItem(ctx, Icons.edit_outlined, 'Gönderiyi düzenle', ink, () {
               Navigator.pop(ctx);
               _editPost();
@@ -208,6 +216,22 @@ class _PostCardState extends ConsumerState<PostCard>
 
 
   /// Gönderi metnini düzenler (görsel değişmez).
+  Future<void> _pinPost() async {
+    try {
+      await ref.read(socialServiceProvider).setPinnedPost(widget.post.id);
+      ref.invalidate(socialProfileProvider(widget.post.authorId));
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Profiline sabitlendi')));
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    }
+  }
+
   Future<void> _editPost() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
