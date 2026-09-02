@@ -19,16 +19,17 @@ MIGRATIONS = "supabase/migrations"
 # Canlida OLMAYAN dosyalar, sirasiyla. 0052'ye kadar olanlar dogrulandi.
 FILES = [
     # 0053-0068 CANLIDA (2026-09-02 dogrulandi). Listede yalnizca bekleyenler.
-    "0069_faq_and_support.sql",
+    # 0069 CANLIDA (2026-09-02 dogrulandi: faq_entries, support_queue,
+    # reply_support_ticket yerinde). Bekleyen yalnizca 0070.
     "0070_faq_follows_features.sql",
 ]
 
 HEAD = """-- ===========================================================================
--- SwanSport — bekleyen migration'lar (0069-0070): SSS ve destek
+-- SwanSport — bekleyen migration (0070): SSS ozelligi takip etsin
 --
--- 0053-0068 CANLIDA (2026-09-02 dogrulandi). Bu dosyada iki migration var:
---   0069  SSS + destek yazismasi
---   0070  SSS OZELLIGI TAKIP ETSIN — yardimsiz yayin yok
+-- 0053-0069 CANLIDA. 0069 dogrulandi: faq_entries tablosu, support_queue ve
+-- reply_support_ticket yerinde. Bu dosyada YALNIZCA 0070 var — o
+-- calistirilmamis: faq_entries.feature sutunu ve faq_coverage() yok.
 --
 -- ---------------------------------------------------------------------------
 -- KILIT CAKISMASI (40P01 deadlock) YASANDIYSA

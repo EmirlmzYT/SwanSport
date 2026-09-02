@@ -1068,7 +1068,15 @@ istisna `send_club_message`'ti (bildirimi elle yazıyordu). 0040 bunu
 tetikleyici, `send_club_message`'in elle yazan satırı kaldırıldı (ikisi
 birden kalsaydı kulüp mesajlarında çift bildirim olurdu).
 
-> **2026-09-02: 0053-0066 CANLIDA, doğrulandı.**
+> **2026-09-02: 0053-0070 CANLIDA, doğrulandı.**
+>
+> 0067-0070 de sürüldü: etiket seçici, kimlik özelleştirme, SSS ve destek,
+> SSS-özellik kapısı. Uçtan uca ölçüldü — `search_faq` anon'a 10 genel soru
+> döndürüyor, "AİDAT" ve "aidat" aynı sonucu veriyor (`tr_fold`), özellik
+> süzgeci çalışıyor (pazaryeri kapalıyken 1, açıkken 2 sonuç).
+> Toplam 47 SSS kaydı, 34'ü özelliğe bağlı.
+>
+> **Eski not (0053-0066):**
 >
 > Kullanıcı `tools/pending_migrations.sql`'i çalıştırdı. Anon anahtarla
 > ölçüldü: **44 RPC ve 23 tablo** yerinde, çift imza (HTTP 300) yok,
