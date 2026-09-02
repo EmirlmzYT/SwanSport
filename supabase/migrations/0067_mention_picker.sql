@@ -102,8 +102,6 @@ grant execute on function public.search_mentionable(text, int)
 -- ---------------------------------------------------------------------------
 -- 3) ETİKET YAZMA — artık toleranslı
 --
--- Aynı imza, bu yüzden `create or replace` yeterli (HTTP 300 tuzağı yok).
---
 -- Değişen: izin vermeyen kişiler **atlanıyor**, hata verilmiyor. Eskiden
 -- tek bir uygunsuz etiket bütün etiketlemeyi düşürüyordu ve kullanıcı
 -- gönderisini paylaştıktan sonra "etiketler yazılamadı" hatası alıyordu.
@@ -111,6 +109,15 @@ grant execute on function public.search_mentionable(text, int)
 -- Sınır aşımı hâlâ hata: on kişiden fazlasını sessizce kırpmak, kullanıcının
 -- seçtiği birinin kaybolması demek.
 -- ---------------------------------------------------------------------------
+-- DÖNÜŞ TİPİ DEĞİŞİYOR: 0063'te `returns void` idi, burada `returns int`.
+-- `create or replace function` **dönüş tipini değiştiremez** — argüman imzası
+-- aynı olsa bile `42P13: cannot change return type of existing function`
+-- veriyor. Önce düşürmek şart.
+--
+-- Bu dosyanın ilk sürümünde başlığa "aynı imza, create or replace yeterli"
+-- yazmıştım; yanlıştı. Aynı olan argüman imzası, dönüş tipi değil.
+drop function if exists public.set_post_tags(uuid, uuid[], text[]);
+
 create or replace function public.set_post_tags(
   p_post     uuid,
   p_mentions uuid[] default '{}',

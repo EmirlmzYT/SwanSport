@@ -46,9 +46,10 @@ HEAD = """-- ===================================================================
 --   seciyor, sonra etiketleme reddediliyordu — ve tek kotu etiket BUTUN
 --   etiketlemeyi dusuruyordu.
 --
---   set_post_tags imzasi AYNI kaldi (uuid, uuid[], text[]), yalnizca donus
---   tipi void'den int'e gecti; ayni imza oldugu icin "create or
---   replace" yeterli ve HTTP 300 tuzagi acilmiyor.
+--   set_post_tags'in ARGUMAN imzasi ayni (uuid, uuid[], text[]) ama DONUS
+--   TIPI void'den int'e geciyor. `create or replace` donus tipini
+--   degistiremiyor (42P13); bu yuzden once `drop function` var.
+--   Ilk surumde "ayni imza, replace yeterli" yazilmisti — yanlisti.
 --
 -- CALISTIRILMAZSA: secici hic acilmiyor (hata gostermiyor, sessizce bos),
 -- hashtag yazan kullanici "etiketler eklenemedi" uyarisi aliyor. Gonderi
