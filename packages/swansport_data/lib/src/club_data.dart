@@ -691,6 +691,8 @@ class RosterEntry {
     required this.fullName,
     this.rsvp,
     this.attendance,
+    this.version = 0,
+    this.eligibility,
   });
 
   final String athleteId;
@@ -701,6 +703,33 @@ class RosterEntry {
 
   /// Daha önce kaydedilmiş yoklama, varsa.
   final String? attendance;
+
+  /// Yoklama kaydının sürümü — iyimser kilidin anahtarı (0065).
+  ///
+  /// İstemci okuduğu sürümü geri gönderiyor; sürüm değişmişse sunucu yazmayı
+  /// reddedip çakışmayı geri veriyor. Kayıt yoksa 0.
+  ///
+  /// Eski `event_roster` RPC'si bu alanı **döndürmüyor** ve 0 kalıyor.
+  /// İkinci bir tip yazmak yerine alanı buraya eklemek, iki tipin zamanla
+  /// ayrışmasını engelliyor — bu depoda `InjuryRow` ve `injuriesProvider`
+  /// tam olarak öyle çakışmıştı.
+  final int version;
+
+  /// eligible | restricted | awaiting_verification — yalnızca
+  /// `event_roster_versioned` dolduruyor.
+  final String? eligibility;
+
+  /// Sağlık kısıtı ya da süresi dolmuş lisans yüzünden sahaya çıkamaz.
+  bool get isBlocked => eligibility == 'restricted';
+
+  factory RosterEntry.fromVersionedMap(Map<String, dynamic> m) => RosterEntry(
+        athleteId: (m['athlete_id'] as String?) ?? '',
+        fullName: (m['full_name'] as String?) ?? '',
+        rsvp: m['rsvp_status'] as String?,
+        attendance: m['status'] as String?,
+        version: (m['version'] as num?)?.toInt() ?? 0,
+        eligibility: m['eligibility'] as String?,
+      );
 
   /// Ekranın açılışta seçeceği değer.
   ///

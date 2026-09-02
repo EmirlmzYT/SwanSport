@@ -32,6 +32,48 @@ class FeatureFlags {
   static const partnerSearch = 'partner_search';
   static const turfFields = 'turf_fields';
   static const teamHub = 'team_hub';
+
+  /// 0054. Sabiti eksikti; feature_flag_sync_test bunu yakaladı.
+  static const coachDiscovery = 'coach_discovery';
+
+  // 0061 — mali operasyon merkezi
+  static const financeOperationsCenter = 'finance_operations_center';
+  static const recurringExpenses = 'recurring_expenses';
+  static const bankReconciliation = 'bank_reconciliation';
+  static const clubBudgeting = 'club_budgeting';
+  static const periodClosing = 'period_closing';
+  static const clubOperationsCenter = 'club_operations_center';
+
+  // 0063 — sosyal katman
+  static const socialSavedPosts = 'social_saved_posts';
+  static const socialMultiPhoto = 'social_multi_photo';
+  static const socialContentShare = 'social_content_share';
+  static const socialReposts = 'social_reposts';
+  static const socialMentions = 'social_mentions';
+  static const socialSportsCards = 'social_sports_cards';
+  static const socialExternalShare = 'social_external_share';
+
+  /// V1 kapsamında **değil**. Anahtar baştan tanımlı ki açılacağı gün şema
+  /// değil yalnızca kademe değişsin.
+  static const socialVideo = 'social_video';
+
+  // 0064-0066 — kulüp yaşam döngüsü
+  static const eligibilityGate = 'eligibility_gate';
+  static const membershipLifecycle = 'membership_lifecycle';
+  static const parentHub = 'parent_hub';
+  static const coachWorkspace = 'coach_workspace';
+  static const facilityConflicts = 'facility_conflicts';
+  static const notificationPreferences = 'notification_preferences';
+  static const supportCenter = 'support_center';
+  static const operationsAnalytics = 'operations_analytics';
+  static const clubOperationalRisk = 'club_operational_risk';
+  static const tournamentHub = 'tournament_hub';
+  static const clubOnboarding = 'club_onboarding';
+  static const clubCsvImport = 'club_csv_import';
+
+  /// Çakışma çözme ekranı yazılmadan açılmamalı — yanlış çalıştığında veri
+  /// kaybettiriyor. Sunucuda da `off` kademesinde.
+  static const offlineAttendance = 'offline_attendance';
 }
 
 /// Bu kullanıcı için açık bayraklar.
