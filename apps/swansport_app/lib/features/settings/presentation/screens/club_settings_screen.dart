@@ -12,6 +12,8 @@ import '../../../social/presentation/edit_profile_sheet.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/theme/theme_mode_controller.dart';
+import '../../../clubs/presentation/club_edit_sheet.dart';
 
 /// Ayarlar.
 ///
@@ -143,7 +145,14 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                 if (isStaff && club != null) ...[
                   _label('KULÜP', ink),
                   _group(isDark, [
+                    // Görüntüleme değil DÜZENLEME. Kulübün bio, logo,
+                    // kapak, renk ve iletişim alanları şemada duruyordu ama
+                    // mobilde hiçbiri doldurulamıyordu.
                     _row(isDark, Icons.badge_rounded, 'Kulüp profili',
+                        sub: 'Logo, kapak, renk, iletişim',
+                        onTap: () => showClubEditSheet(context, club.id)),
+                    _sep(isDark),
+                    _row(isDark, Icons.visibility_rounded, 'Profili görüntüle',
                         sub: club.name,
                         onTap: () => Navigator.pushNamed(
                             context, '/kulup-profil',
@@ -173,6 +182,35 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                             context, '/haber-kaynaklari')),
                   ]),
                 ],
+
+                // ------------------------------- görünüm
+                //
+                // Uygulama bugüne kadar telefonun ayarını izliyordu
+                // (`themeMode` hiç verilmemişti). Tercih cihazda saklanıyor:
+                // aynı kişi tablette gündüz açık, telefonda gece koyu
+                // isteyebilir.
+                _label('GÖRÜNÜM', ink),
+                _group(isDark, [
+                  for (final m in ThemeMode.values) ...[
+                    if (m != ThemeMode.values.first) _sep(isDark),
+                    _row(
+                      isDark,
+                      switch (m) {
+                        ThemeMode.light => Icons.light_mode_rounded,
+                        ThemeMode.dark => Icons.dark_mode_rounded,
+                        ThemeMode.system => Icons.brightness_auto_rounded,
+                      },
+                      themeModeLabel(m),
+                      sub: ref.watch(themeModeProvider) == m
+                          ? 'Seçili'
+                          : null,
+                      onTap: () =>
+                          ref.read(themeModeProvider.notifier).set(m),
+                    ),
+                  ],
+                ]),
+
+                const SizedBox(height: 24),
 
                 // ------------------------------- gizlilik & hesap
                 _label('GİZLİLİK', ink),

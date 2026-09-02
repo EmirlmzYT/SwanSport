@@ -21,14 +21,17 @@ FILES = [
     # 0053-0066 CANLIDA (2026-09-02 dogrulandi). Yeniden calistirmak
     # zararsiz ama gereksiz; listede yalnizca bekleyenler var.
     "0067_mention_picker.sql",
+    "0068_identity_customization.sql",
 ]
 
 HEAD = """-- ===========================================================================
--- SwanSport — bekleyen migration (0067): etiket secici
+-- SwanSport — bekleyen migration'lar (0067-0068)
 --
 -- Supabase SQL Editor'e yapistir, tek seferde calistir.
 --
--- 0053-0066 CANLIDA (2026-09-02 dogrulandi); bu dosyada yalnizca 0067 var.
+-- 0053-0066 CANLIDA (2026-09-02 dogrulandi). Bu dosyada iki migration var:
+--   0067  etiket secici (@kisi, #etiket)
+--   0068  kimlik ozellestirme (kapak, marka rengi, avatar tonu, vitrin)
 --
 -- NE GETIRIYOR
 --   can_mention()          etiketleme izni tek yerde: engelleme + politika

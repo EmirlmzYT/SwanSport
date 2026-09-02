@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -12,32 +13,111 @@ import 'supabase_athletes.dart';
 /// kulüp görevlisine. Bu yüzden yeni bir veritabanı kurulumu gerekmiyor.
 /// ---------------------------------------------------------------------------
 
+/// Kulüp profilinde gösterilebilecek bölümler.
+///
+/// Anahtarlar `clubs_sections_check` kısıtıyla birebir; ayrışırsa kulübün
+/// kaydettiği sıra sunucuda reddedilir.
+class ClubSection {
+  const ClubSection._();
+
+  static const about = 'about';
+  static const teams = 'teams';
+  static const roster = 'roster';
+  static const achievements = 'achievements';
+  static const announcements = 'announcements';
+  static const contact = 'contact';
+
+  /// Kulüp dokunmadıysa kullanılan sıra.
+  static const defaults = [
+    about,
+    teams,
+    roster,
+    achievements,
+    announcements,
+    contact,
+  ];
+
+  static String label(String key) => switch (key) {
+        about => 'Hakkında',
+        teams => 'Takımlar',
+        roster => 'Kadro',
+        achievements => 'Başarılar',
+        announcements => 'Duyurular',
+        contact => 'İletişim',
+        _ => key,
+      };
+}
+
 class ClubIdentity {
   const ClubIdentity({
     required this.id,
     required this.name,
     this.shortName,
     this.city,
+    this.district,
     this.bio,
     this.status = 'active',
+    this.logoPath,
+    this.coverPath,
+    this.brandColor,
+    this.sections,
+    this.phone,
+    this.email,
+    this.website,
+    this.instagram,
+    this.address,
+    this.foundedYear,
   });
 
   final String id;
   final String name;
   final String? shortName;
   final String? city;
+  final String? district;
   final String? bio;
   final String status;
 
+  /// Storage **yolu**, URL değil. Bucket ya da alan adı değişince saklanmış
+  /// URL'ler kırılırdı (0050'deki aynı karar).
+  final String? logoPath;
+  final String? coverPath;
+
+  /// `#RRGGBB`. **`accent`'in yerine geçmiyor** — yalnızca kimlik yüzeyleri.
+  final String? brandColor;
+
+  /// null = varsayılan sıra. Boş liste ile null farklı: boş liste "hiçbir
+  /// bölüm gösterme" demek ve geçerli bir tercih.
+  final List<String>? sections;
+
+  final String? phone;
+  final String? email;
+  final String? website;
+  final String? instagram;
+  final String? address;
+  final int? foundedYear;
+
   bool get isPending => status == 'pending';
+
+  List<String> get effectiveSections => sections ?? ClubSection.defaults;
 
   factory ClubIdentity.fromMap(Map<String, dynamic> m) => ClubIdentity(
         id: m['id'] as String,
         name: (m['name'] as String?) ?? '',
         shortName: m['short_name'] as String?,
         city: m['city'] as String?,
+        district: m['district'] as String?,
         bio: m['bio'] as String?,
         status: (m['status'] as String?) ?? 'active',
+        logoPath: m['logo_path'] as String?,
+        coverPath: m['cover_path'] as String?,
+        brandColor: m['brand_color'] as String?,
+        sections: (m['sections'] as List?)?.map((e) => '$e').toList(),
+        phone: m['phone'] as String?,
+        email: m['email'] as String?,
+        website: m['website'] as String?,
+        instagram: m['instagram'] as String?,
+        address: m['address'] as String?,
+        foundedYear: (m['founded_year'] as num?)?.toInt(),
       );
 }
 
@@ -128,7 +208,7 @@ class ClubConfigService {
   Future<ClubIdentity?> identity(String clubId) async {
     final row = await _c
         .from('clubs')
-        .select('id, name, short_name, city, bio, status')
+        .select('id, name, short_name, city, district, bio, status, logo_path, cover_path, brand_color, sections, phone, email, website, instagram, address, founded_year')
         .eq('id', clubId)
         .maybeSingle();
     return row == null
@@ -136,18 +216,90 @@ class ClubConfigService {
         : ClubIdentity.fromMap(row.cast<String, dynamic>());
   }
 
+  /// Kulüp kimliğini günceller.
+  ///
+  /// Yeni servis yazılmadı, var olan genişletildi: kulüp bilgisi tek yerden
+  /// yazılmalı, yoksa iki yol zamanla ayrışır.
+  ///
+  /// Görseller burada **yok** — onlar [setMedia] üzerinden, çünkü yolun
+  /// kulübün klasörüne yazıldığını sunucu doğruluyor.
   Future<void> updateIdentity(
     String clubId, {
     String? name,
     String? shortName,
     String? city,
+    String? district,
+    String? bio,
+    String? brandColor,
+    List<String>? sections,
+    String? phone,
+    String? email,
+    String? website,
+    String? instagram,
+    String? address,
+    int? foundedYear,
   }) async {
+    String? clean(String? v) =>
+        v == null ? null : (v.trim().isEmpty ? null : v.trim());
+
+    final brand = brandColor?.trim();
+
     await _c.from('clubs').update({
       if (name != null && name.trim().isNotEmpty) 'name': name.trim(),
-      if (shortName != null)
-        'short_name': shortName.trim().isEmpty ? null : shortName.trim(),
-      if (city != null) 'city': city.trim().isEmpty ? null : city.trim(),
+      if (shortName != null) 'short_name': clean(shortName),
+      if (city != null) 'city': clean(city),
+      if (district != null) 'district': clean(district),
+      if (bio != null) 'bio': clean(bio),
+      if (phone != null) 'phone': clean(phone),
+      if (email != null) 'email': clean(email),
+      if (website != null) 'website': clean(website),
+      if (instagram != null) 'instagram': clean(instagram),
+      if (address != null) 'address': clean(address),
+      if (foundedYear != null)
+        'founded_year': foundedYear <= 0 ? null : foundedYear,
+      if (brand != null)
+        'brand_color': RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(brand)
+            ? brand.toUpperCase()
+            : null,
+      // Boş liste geçerli bir tercih ("hiçbir bölüm gösterme"), o yüzden
+      // null'a çevrilmiyor.
+      if (sections != null) 'sections': sections,
     }).eq('id', clubId);
+  }
+
+  /// Logo ve kapak yolunu yazar.
+  ///
+  /// Ayrı RPC: yükleme istemcide yapılıyor ama yolun **bu kulübün** klasörüne
+  /// (`club/<id>/...`) ait olduğunu sunucu doğruluyor. Doğrulamasaydık bir
+  /// kulüp yöneticisi başka kulübün görselini kendi kapağı yapabilirdi.
+  Future<void> setMedia(String clubId,
+          {String? logoPath, String? coverPath}) =>
+      _c.rpc<void>('set_club_media', params: {
+        'p_club': clubId,
+        'p_logo': logoPath,
+        'p_cover': coverPath,
+      });
+
+  /// Kulüp görselini `post-media` bucket'ına yükler ve yolunu döner.
+  ///
+  /// Klasör `club/<id>/` — storage politikası (0068) bu ön eki ve
+  /// `is_club_admin` kontrolünü birlikte uyguluyor.
+  Future<String> uploadMedia(
+    String clubId, {
+    required Uint8List bytes,
+    required String fileName,
+    required String kind,
+  }) async {
+    final dot = fileName.lastIndexOf('.');
+    final ext = dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : 'jpg';
+    final path =
+        'club/$clubId/${kind}_${DateTime.now().millisecondsSinceEpoch}.$ext';
+    await _c.storage.from('post-media').uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
+    return path;
   }
 
   // ------------------------------- üyeler ---------------------------------

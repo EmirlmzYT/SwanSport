@@ -1,3 +1,4 @@
+export 'color/contrast.dart';
 export 'config/app_env.dart';
 export 'config/supabase_config.dart';
 export 'errors/app_failure.dart';

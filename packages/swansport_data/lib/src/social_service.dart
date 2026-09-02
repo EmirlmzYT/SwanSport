@@ -128,6 +128,11 @@ class SocialProfile {
     this.isMe = false,
     this.credentials = const [],
     this.cityCode,
+    this.coverUrl,
+    this.brandColor,
+    this.avatarTint,
+    this.pinnedPostId,
+    this.sections,
   });
 
   final String id;
@@ -148,6 +153,28 @@ class SocialProfile {
 
   /// Onaylanmış kimlikler (ör. "2. Kademe Antrenör") — doğrulama rozetleri.
   final List<String> credentials;
+
+  /// Kapak görseli. `post-media` bucket'ı public; kimlik görselleri profili
+  /// görebilen herkese açık, imzalı URL burada koruma değil gecikme olurdu.
+  final String? coverUrl;
+
+  /// `#RRGGBB` ya da null. **`accent`'in yerine geçmiyor** — yalnızca kimlik
+  /// yüzeylerinde (kapak bandı, şerit, rozet). Düğmeler teal kalıyor, çünkü
+  /// teal bu uygulamada "birincil aksiyon" anlamına geliyor.
+  final String? brandColor;
+
+  /// Avatar arka plan tonu. **null ise addan türetiliyor** — bugünkü davranış.
+  /// Varsayılan 0 koysaydık mevcut herkesin avatarı renk değiştirirdi.
+  final int? avatarTint;
+
+  /// Profilin en üstüne sabitlenmiş gönderi.
+  final String? pinnedPostId;
+
+  /// Kulüp profilinde bölüm sırası. null = varsayılan sıra.
+  final List<String>? sections;
+
+  /// Avatar gradyan indeksi: seçim varsa o, yoksa eski türetme.
+  int get effectiveTint => avatarTint ?? name.length % 4;
 
   bool get isVerified => credentials.isNotEmpty;
 
@@ -639,7 +666,7 @@ class SocialService {
     final uid = _uid;
     final row = await _c
         .from('profiles')
-        .select('id, full_name, username, bio, avatar_path, city_code')
+        .select('id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id')
         .eq('id', profileId)
         .maybeSingle();
     if (row == null) return null;
@@ -723,6 +750,10 @@ class SocialService {
       username: row['username'] as String?,
       bio: row['bio'] as String?,
       avatarUrl: _publicUrl(row['avatar_path'] as String?),
+      coverUrl: _publicUrl(row['cover_path'] as String?),
+      brandColor: row['brand_color'] as String?,
+      avatarTint: (row['avatar_tint'] as num?)?.toInt(),
+      pinnedPostId: row['pinned_post_id'] as String?,
       roleLabel: roleLabel,
       cityCode: row['city_code'] as String?,
       postCount: (posts as List).length,
@@ -738,7 +769,7 @@ class SocialService {
     final uid = _uid;
     final row = await _c
         .from('clubs')
-        .select('id, name, city, bio, logo_path, status')
+        .select('id, name, city, bio, logo_path, status, cover_path, brand_color, sections')
         .eq('id', clubId)
         .maybeSingle();
     if (row == null) return null;
@@ -773,12 +804,23 @@ class SocialService {
       postCount: (posts as List).length,
       followerCount: (followers as List).length,
       isFollowedByMe: followed,
+      coverUrl: _publicUrl(row['cover_path'] as String?),
+      brandColor: row['brand_color'] as String?,
+      sections: (row['sections'] as List?)?.map((e) => '$e').toList(),
       credentials:
           (row['status'] as String?) == 'active' ? const ['Onaylı Kulüp'] : const [],
     );
   }
 
-  /// Profil bilgilerini güncelle (biyografi, kullanıcı adı, avatar, şehir).
+  /// Profil bilgilerini güncelle.
+  ///
+  /// [brandColor] `#RRGGBB` ya da boş metin (temizlemek için). Geçersiz biçim
+  /// **sunucuda** da kesiliyor (`profiles_brand_color_check`); buradaki
+  /// ayıklama yalnızca gereksiz gidiş-dönüşü önlüyor.
+  ///
+  /// [avatarTint] `null` bırakılırsa alan **hiç yazılmıyor** — mevcut değer
+  /// korunuyor. Temizlemek için `-1` geçiliyor: `null`'ın "dokunma" ile
+  /// "sıfırla" anlamlarını ayırmanın başka yolu yok.
   Future<void> updateProfile({
     String? fullName,
     String? username,
@@ -786,30 +828,57 @@ class SocialService {
     Uint8List? avatarBytes,
     String? avatarName,
     String? cityCode,
+    Uint8List? coverBytes,
+    String? coverName,
+    String? brandColor,
+    int? avatarTint,
   }) async {
     final uid = _uid;
     if (uid == null) return;
-    String? path;
-    if (avatarBytes != null && avatarName != null) {
-      final dot = avatarName.lastIndexOf('.');
-      final ext =
-          dot >= 0 ? avatarName.substring(dot + 1).toLowerCase() : 'jpg';
-      path = '$uid/avatar_${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    Future<String?> upload(Uint8List? bytes, String? name, String kind) async {
+      if (bytes == null || name == null) return null;
+      final dot = name.lastIndexOf('.');
+      final ext = dot >= 0 ? name.substring(dot + 1).toLowerCase() : 'jpg';
+      final path =
+          '$uid/${kind}_${DateTime.now().millisecondsSinceEpoch}.$ext';
       await _c.storage.from(kPostMediaBucket).uploadBinary(
             path,
-            avatarBytes,
+            bytes,
             fileOptions: const FileOptions(upsert: true),
           );
+      return path;
     }
+
+    final avatarPath = await upload(avatarBytes, avatarName, 'avatar');
+    final coverPath = await upload(coverBytes, coverName, 'cover');
+
+    final brand = brandColor?.trim();
+
     await _c.from('profiles').update({
       if (fullName != null && fullName.trim().isNotEmpty)
         'full_name': fullName.trim(),
       if (username != null) 'username': username.trim().isEmpty ? null : username.trim(),
       if (bio != null) 'bio': bio.trim().isEmpty ? null : bio.trim(),
-      if (path != null) 'avatar_path': path,
+      if (avatarPath != null) 'avatar_path': avatarPath,
+      if (coverPath != null) 'cover_path': coverPath,
       if (cityCode != null) 'city_code': cityCode.isEmpty ? null : cityCode,
+      if (brand != null)
+        'brand_color': RegExp(r'^#[0-9A-Fa-f]{6}$').hasMatch(brand)
+            ? brand.toUpperCase()
+            : null,
+      // -1 = temizle, diğer değerler yazılıyor, null = dokunma.
+      if (avatarTint != null) 'avatar_tint': avatarTint < 0 ? null : avatarTint,
     }).eq('id', uid);
   }
+
+  /// Profilin en üstüne bir gönderi sabitler. `null` sabitlemeyi kaldırıyor.
+  ///
+  /// RPC, çünkü doğrulama gerekiyor: yalnızca kendi ve yayında olan gönderi
+  /// sabitlenebilir. Taslak sabitlenirse profilde görünen ama kimsenin
+  /// açamadığı bir kart olurdu.
+  Future<void> setPinnedPost(String? postId) =>
+      _c.rpc<void>('set_pinned_post', params: {'p_post': postId});
 
   /// Bir profili takip edenler.
   Future<List<SuggestionRow>> followers(String profileId) async {

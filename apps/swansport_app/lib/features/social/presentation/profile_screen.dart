@@ -21,6 +21,7 @@ import 'widgets/profile_sections.dart';
 import 'widgets/management_section.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/identity_header.dart';
 
 /// Detaylı profil sayfası — kişi veya kulüp.
 ///
@@ -97,19 +98,24 @@ class ProfileScreen extends ConsumerWidget {
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(20, 8, 20, 132),
                     children: [
-                      _header(context, isDark, ink, surf, line, p),
+                      // Kapak + marka bandı + avatar tek bileşende. Kişi ve
+                      // kulüp aynısını kullanıyor; iki kopya yazmak birinde
+                      // kontrastı düzeltip diğerini unutmak demekti.
+                      IdentityHeader(
+                        name: p.name,
+                        initials: p.initials,
+                        coverUrl: p.coverUrl,
+                        avatarUrl: p.avatarUrl,
+                        brandColor: p.brandColor,
+                        // Seçim yoksa eski davranış: addan türetiliyor.
+                        avatarTint: p.effectiveTint,
+                        onBack: () => Navigator.maybePop(context),
+                        trailing: _cardButton(context, p),
+                      ),
                       const SizedBox(height: 14),
 
-                      // Avatar + sayaçlar
+                      // Sayaçlar
                       Row(children: [
-                        SocialAvatar(
-                          initials: p.initials,
-                          imageUrl: p.avatarUrl,
-                          size: 82,
-                          radius: 26,
-                          gradientIndex: p.name.length % 4,
-                        ),
-                        const SizedBox(width: 20),
                         Expanded(
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -281,48 +287,31 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  Widget _header(BuildContext context, bool isDark, Color ink, Color surf,
-      Color line, SocialProfile? p) {
-    return Row(children: [
-      GestureDetector(
-        onTap: () => Navigator.maybePop(context),
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-              color: surf,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: line)),
-          child:
-              Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: ink),
-        ),
+  /// SwanSport Kartı düğmesi — kapak görselinin üstünde duruyor.
+  ///
+  /// Kapak her renk olabilir; düğmenin zemini yarı saydam koyu, o yüzden
+  /// `IdentityHeader` içinde ayrı bir renk hesabı gerekmiyor.
+  Widget _cardButton(BuildContext context, SocialProfile? p) {
+    if (p == null) return const SizedBox.shrink();
+    return GestureDetector(
+      onTap: () => showSwanCard(
+        context,
+        id: p.id,
+        name: p.name,
+        isClub: isClub,
+        subtitle: p.roleLabel,
+        avatarUrl: p.avatarUrl,
       ),
-      const SizedBox(width: 14),
-      Text(isClub ? 'Kulüp Profili' : 'Profil',
-          style: SwanType.h3(ink)),
-      const Spacer(),
-      // SwanSport Kartı — paylaşılabilir QR kimlik.
-      if (p != null)
-        GestureDetector(
-          onTap: () => showSwanCard(
-            context,
-            id: p.id,
-            name: p.name,
-            isClub: isClub,
-            subtitle: p.roleLabel,
-            avatarUrl: p.avatarUrl,
-          ),
-          child: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-                color: surf,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: line)),
-            child: Icon(Icons.qr_code_rounded, size: 18, color: ink),
-          ),
+      child: Container(
+        width: 38,
+        height: 38,
+        decoration: BoxDecoration(
+          color: Colors.black.withValues(alpha: 0.45),
+          borderRadius: BorderRadius.circular(12),
         ),
-    ]);
+        child: const Icon(Icons.qr_code_rounded, size: 18, color: Colors.white),
+      ),
+    );
   }
 
   Widget _actions(BuildContext context, WidgetRef ref, SocialProfile p,

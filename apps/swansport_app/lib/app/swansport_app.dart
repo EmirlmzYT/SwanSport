@@ -72,6 +72,7 @@ import 'config/app_environment.dart';
 import 'app_navigator.dart';
 import 'update/update_gate.dart';
 import 'widgets/page_transitions.dart';
+import 'theme/theme_mode_controller.dart';
 
 class SwanSportApp extends ConsumerWidget {
   const SwanSportApp({super.key});
@@ -91,6 +92,10 @@ class SwanSportApp extends ConsumerWidget {
       darkTheme: SwanTheme.dark().copyWith(
         pageTransitionsTheme: kSwanPageTransitions,
       ),
+      // Kullanıcının tercihi. Varsayılan `system` — uygulama bugüne kadar da
+      // telefonun ayarını izliyordu; varsayılanı değiştirmek hiçbir tercih
+      // yapmamış herkesin temasını bir güncellemede değiştirirdi.
+      themeMode: ref.watch(themeModeProvider),
       builder: (context, child) => AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: '/',
       routes: {

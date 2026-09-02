@@ -289,6 +289,45 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - `RosterEntry` ikinci tip yazılarak değil, **mevcut tipe alan eklenerek**
   çözüldü: sürümsüz RPC'de `version` 0 kalıyor.
 
+**Kimlik özelleştirme (0068)**
+- **Marka rengi `accent`'in yerine GEÇMİYOR.** Teal bu uygulamada "birincil
+  aksiyon ve aktif durum" anlamına geliyor; kırmızı markalı bir kulüpte
+  "Kaydet" düğmesi kırmızı olsaydı `danger` ile aynı görünürdü. Marka rengi
+  yalnızca kimlik yüzeylerinde: kapak bandı, 3px şerit, rozet dolgusu.
+  `BrandTone` (`app/design/swan_brand.dart`) bu ayrımı taşıyor.
+- **Kontrast hesabı artık `swansport_core`'da** (`color/contrast.dart`), saf
+  Dart ve ARGB tamsayısıyla — core'da Flutter bağımlılığı yok. Uzun süre
+  yalnızca `swan_contrast_test.dart` içindeydi; marka rengi kullanıcı seçimi
+  olunca çalışma zamanında da gerekti.
+- **ÖLÇÜLMÜŞ BULGU:** hiçbir renk siyah ve beyazın ikisinde birden 4.5:1'i
+  kaçırmıyor. Beyazla eşik `L ≤ 0.1833`, siyahla `L ≥ 0.175` — aralıklar
+  örtüşüyor. Plana "dar bir orta-parlaklık bandı kalır, orada rengi
+  koyulaştırırız" diye yazılmıştı; RGB uzayı taranınca öyle bir renk
+  bulunamadı ve yazılan yedek kod ulaşılamaz olduğu için **kaldırıldı**.
+  `contrast_test.dart` bu güvenceyi tarayarak sabitliyor.
+- **`avatar_tint` nullable ve varsayılan null.** Null olduğunda istemci
+  bugünkü `name.length % 4` davranışını sürdürüyor. Varsayılan 0 koysaydık
+  mevcut herkesin avatarı bir güncellemede renk değiştirirdi ve bunu kimse
+  hata olarak bildirmezdi.
+- **Kapak yeni bucket açmadı:** `post-media` zaten public ve avatar/logo
+  oradan servis ediliyor. Kimlik görselleri profili görebilen herkese açık;
+  özel bucket + imzalı URL burada koruma değil, gecikme olurdu.
+- **`clubs.sections`: null ile boş dizi FARKLI.** null = varsayılan sıra
+  (kulüp dokunmadı), boş dizi = "hiçbir bölüm gösterme" ve bu geçerli bir
+  tercih. `ClubIdentity.effectiveSections` bu ayrımı koruyor.
+- **Tema tercihi cihazda, sunucuda değil** (`shared_preferences`). Aynı kişi
+  tablette gündüz açık, telefonda gece koyu isteyebilir. Varsayılan `system`:
+  uygulama bugüne kadar da telefonu izliyordu, değiştirmek hiçbir tercih
+  yapmamış herkesin temasını kaydırırdı.
+- **Kulüp profili düzenleme ekranı 0068'e kadar YOKTU.** `clubs`'ta
+  `logo_path`, `bio`, `phone`, `website`, `instagram`, `founded_year`
+  duruyordu ve mobilden hiçbiri doldurulamıyordu; `/kulup-profil` yalnızca
+  görüntüleme açıyordu. `ClubConfigService.updateIdentity` genişletildi,
+  ikinci servis yazılmadı.
+- Kulüp görselleri `set_club_media` RPC'sinden geçiyor: yol `club/<id>/`
+  önekiyle doğrulanıyor, yoksa bir kulüp yöneticisi başka kulübün görselini
+  kendi kapağı yapabilirdi.
+
 **Antrenör keşfi (0054)**
 - Yeni tablo yok: `profile_credentials` doğrulanmış antrenörlüğü, kademeyi ve
   branşı (`sport_code`, 0017'de eklendi) zaten tutuyordu.
@@ -587,16 +626,16 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 195 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 197 test, hepsi geçer
 ```
 ```bash
-cd packages/swansport_core && flutter test     # 10 test, hepsi geçer
+cd packages/swansport_core && flutter test     # 26 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 153 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 194 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`

@@ -71,6 +71,9 @@ class FeatureFlags {
   static const clubOnboarding = 'club_onboarding';
   static const clubCsvImport = 'club_csv_import';
 
+  /// 0068. Kapak, marka rengi, avatar tonu ve kulüp vitrini.
+  static const identityCustomization = 'identity_customization';
+
   /// Çakışma çözme ekranı yazılmadan açılmamalı — yanlış çalıştığında veri
   /// kaybettiriyor. Sunucuda da `off` kademesinde.
   static const offlineAttendance = 'offline_attendance';
