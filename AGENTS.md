@@ -248,6 +248,20 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - Operasyon riski **tek puan değil gerekçe listesi**. Muhasebeci yalnızca
   mali gerekçeleri görüyor.
 
+**PostgREST'te 404, "fonksiyon yok" demek DEĞİL**
+- Zorunlu parametresi olan bir RPC'ye **boş gövde** (`{}`) göndermek 404
+  döndürüyor: PostgREST sıfır argümanla eşleşen bir aşırı yükleme bulamıyor.
+  Hata gövdesi de "Could not find the function ... in the schema cache" diyor
+  ve bu tam olarak fonksiyon hiç yokmuş gibi okunuyor.
+- 2026-09-02'de tam olarak bu oldu: 28 RPC'nin 25'i "eksik" diye
+  işaretlendi, oysa 23 tablonun hepsi yerindeydi — yani migration çalışmıştı.
+  Ölçüm aracı bozuktu, şema değil.
+- **Doğrusu:** her RPC'yi **gerçek parametre adlarıyla** çağır. O zaman
+  `404` gerçekten yok, `401` var ama izin kapalı, `400` var ama gövde hata
+  verdi (`auth.uid()` NULL), `300` **çift imza** demek.
+- Tablo varlığı `/rest/v1/<tablo>?select=*&limit=0` ile ölçülüyor ve orada
+  bu tuzak yok. Şüphedeyken önce tablolara bak.
+
 **Bayrak anahtarları — SQL ve Dart ayrışmamalı**
 - `feature_flag_sync_test.dart` iki tarafı karşılaştırıyor. Ayrışma sessiz:
   sunucu `partner_search` derken istemci `partnerSearch` arar, `has()` false
@@ -899,16 +913,20 @@ istisna `send_club_message`'ti (bildirimi elle yazıyordu). 0040 bunu
 tetikleyici, `send_club_message`'in elle yazan satırı kaldırıldı (ikisi
 birden kalsaydı kulüp mesajlarında çift bildirim olurdu).
 
-> **2026-09-02: 0053-0066 hazır ama SÜRÜLMEDİ.**
+> **2026-09-02: 0053-0066 CANLIDA, doğrulandı.**
 >
-> `tools/pending_migrations.sql` on dört dosyayı tek işlemde topluyor
-> (`begin`/`commit` — biri patlarsa hiçbiri uygulanmıyor). Üç güvenlik açığı
-> kapatıyor: `posts_read` politikası herkese açıktı, gider değişiklikleri
-> hiçbir yerde izlenmiyordu, kapanmış mali dönem diye bir şey yoktu.
+> Kullanıcı `tools/pending_migrations.sql`'i çalıştırdı. Anon anahtarla
+> ölçüldü: **44 RPC ve 23 tablo** yerinde, çift imza (HTTP 300) yok,
+> `feature_flags` 33 satır — 27 `admins`, 4 `everyone` (courts,
+> partner_search, turf_fields, team_hub — eskiden beri açık olanlar),
+> 2 `off`.
 >
-> Yeni özelliklerin hepsi `admins` kademesinde başlıyor — hiçbiri gerçek
-> kullanımda denenmedi. `offline_attendance` bayrağı `off`: çakışma çözme
-> ekranı yazılmadan açılırsa veri kaybettirir.
+> Bu üç güvenlik açığı **kapandı**: `posts_read` politikası herkese açıktı,
+> gider değişiklikleri hiçbir yerde izlenmiyordu, kapanmış mali dönem diye
+> bir şey yoktu.
+>
+> `offline_attendance` ve `social_video` bilerek `off`. Diğer yeni
+> özelliklerin hepsi `admins`'te — **hiçbiri gerçek kullanımda denenmedi.**
 
 Migration'lar **0038'e kadar canlıda kurulu** (2026-08-30 doğrulandı): mali
 defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı, malzeme
@@ -919,8 +937,14 @@ arama ve halı saha doluluk panosu şemada var.
 yeniden yazıyor, 0040 `request_turf_slot`'u). Yeni migration yazarken
 numarayı 0041'den sürdür.
 
-Web dağıtımı 2026-08-30'da yapıldı; canlı derleme kort partneri arama ve
-halı saha doluluk panosunu içeriyor.
+Web dağıtımı **2026-09-02**'de yenilendi: mali operasyon merkezi, sosyal
+katman ve uygunluk kilidi canlıda. Mobil ve konsol taze sekmede
+doğrulandı — giriş ekranları çiziliyor, `Supabase initialized` logu
+düşüyor, konsol hatası yok.
+
+Konsolun ilk açılışı birkaç saniye beyaz ekran gösteriyor; bu Flutter'ın
+açılış süresi, hata değil. Ekran görüntüsünü hemen alıp "bozuk" diye
+okumamak lazım.
 
 ### Yarım / doğrulanmamış
 
