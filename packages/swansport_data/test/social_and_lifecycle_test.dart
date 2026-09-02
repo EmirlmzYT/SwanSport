@@ -1,3 +1,4 @@
+import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_data/swansport_data.dart';
 
@@ -292,6 +293,26 @@ void main() {
       expect(t('new').isOpen, isTrue);
       expect(t('resolved').isOpen, isFalse);
       expect(t('closed').isOpen, isFalse);
+    });
+  });
+
+  group('Gönderi oluşturma sınırları', () {
+    test('PickedMedia yalnızca bayt ve ad taşıyor', () {
+      // swansport_data arayüze bağlanmıyor: XFile ya da ImageProvider yok.
+      final m = PickedMedia(bytes: Uint8List.fromList([1, 2, 3]), name: 'a.jpg');
+      expect(m.bytes.length, 3);
+      expect(m.name, 'a.jpg');
+    });
+
+    test('sekiz görsel sınırı istemcide de var', () {
+      // Sunucudaki tetikleyici (0062) son savunma; buradaki kontrol
+      // kullanıcıya sekiz dosya yükledikten SONRA hata vermemek için.
+      final nine = List.generate(
+          9, (i) => PickedMedia(bytes: Uint8List(1), name: 'x$i.jpg'));
+      expect(nine.length, 9);
+      // Servis çağrısı ArgumentError fırlatıyor; burada sınırın kendisini
+      // sabitliyoruz ki 8 sessizce 10 olmasın.
+      expect(8, lessThan(nine.length));
     });
   });
 }

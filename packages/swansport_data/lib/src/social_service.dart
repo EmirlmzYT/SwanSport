@@ -11,6 +11,18 @@ import 'supabase_scope.dart';
 
 const String kPostMediaBucket = 'post-media';
 
+/// Seçilmiş bir görselin baytları ve dosya adı.
+///
+/// `swansport_data` arayüze bağlanmıyor (değişmez 2): burada `XFile` ya da
+/// `ImageProvider` yok, yalnızca bayt ve ad. Seçiciyi tüketen uygulama
+/// çalıştırıyor.
+class PickedMedia {
+  const PickedMedia({required this.bytes, required this.name});
+
+  final Uint8List bytes;
+  final String name;
+}
+
 class PostRow {
   const PostRow({
     required this.id,
@@ -470,34 +482,77 @@ class SocialService {
   }
 
   /// Gönderi oluştur. [clubId] verilirse kulüp adına paylaşılır.
-  Future<void> createPost({
+  /// Gönderi oluşturur ve kimliğini döner.
+  ///
+  /// [images] en fazla **8** görsel; ilki `posts.image_path`'e de yazılıyor
+  /// ki eski akış kartları (tek görsel bekleyen kod) çalışmaya devam etsin.
+  /// Gerisi `post_media`'ya sırasıyla giriyor.
+  ///
+  /// [visibility] verilmezse sunucu karar veriyor: reşit olmayan hesaplarda
+  /// tetikleyici `public` yerine `followers` yazıyor.
+  Future<String> createPost({
     required String body,
     String? clubId,
     Uint8List? imageBytes,
     String? imageName,
     String kind = 'post',
+    List<PickedMedia> images = const [],
+    String? visibility,
+    String? teamId,
   }) async {
     final uid = _uid;
     if (uid == null) throw StateError('Oturum bulunamadı');
-    String? path;
-    if (imageBytes != null && imageName != null) {
-      final dot = imageName.lastIndexOf('.');
-      final ext =
-          dot >= 0 ? imageName.substring(dot + 1).toLowerCase() : 'jpg';
-      path = '$uid/${DateTime.now().millisecondsSinceEpoch}.$ext';
+
+    // Tek görsellik eski çağrı biçimi hâlâ destekleniyor.
+    final all = <PickedMedia>[
+      if (imageBytes != null && imageName != null)
+        PickedMedia(bytes: imageBytes, name: imageName),
+      ...images,
+    ];
+    if (all.length > 8) {
+      throw ArgumentError('Bir gönderiye en fazla 8 fotoğraf eklenebilir');
+    }
+
+    final paths = <String>[];
+    for (var i = 0; i < all.length; i++) {
+      final m = all[i];
+      final dot = m.name.lastIndexOf('.');
+      final ext = dot >= 0 ? m.name.substring(dot + 1).toLowerCase() : 'jpg';
+      final path = '$uid/${DateTime.now().millisecondsSinceEpoch}_$i.$ext';
       await _c.storage.from(kPostMediaBucket).uploadBinary(
             path,
-            imageBytes,
+            m.bytes,
             fileOptions: const FileOptions(upsert: true),
           );
+      paths.add(path);
     }
-    await _c.from('posts').insert({
-      'author_profile_id': uid,
-      if (clubId != null) 'club_id': clubId,
-      'body': body,
-      if (path != null) 'image_path': path,
-      'kind': kind,
-    });
+
+    final row = await _c
+        .from('posts')
+        .insert({
+          'author_profile_id': uid,
+          if (clubId != null) 'club_id': clubId,
+          'body': body,
+          if (paths.isNotEmpty) 'image_path': paths.first,
+          'kind': kind,
+          if (visibility != null) 'visibility': visibility,
+          if (teamId != null) 'team_id': teamId,
+        })
+        .select('id')
+        .single();
+
+    final id = row['id'] as String;
+
+    // İkinci görselden itibaren galeri. Sekiz sınırı hem burada hem
+    // veritabanı tetikleyicisinde var (0062).
+    if (paths.length > 1) {
+      await _c.from('post_media').insert([
+        for (var i = 0; i < paths.length; i++)
+          {'post_id': id, 'media_path': paths[i], 'sort_order': i},
+      ]);
+    }
+
+    return id;
   }
 
   Future<void> deletePost(String postId) async {

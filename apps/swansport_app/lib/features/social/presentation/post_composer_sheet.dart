@@ -31,10 +31,19 @@ class _PostComposerSheet extends ConsumerStatefulWidget {
 
 class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   final _ctrl = TextEditingController();
-  Uint8List? _imageBytes;
-  String? _imageName;
+
+  /// Seçilen görseller, sırasıyla. En fazla 8 — sınır hem burada hem
+  /// veritabanı tetikleyicisinde (0062).
+  final List<PickedMedia> _media = [];
+
+  /// Gönderiyi kim görecek. Boş bırakılırsa sunucu karar veriyor: reşit
+  /// olmayan hesaplarda tetikleyici `public` yerine `followers` yazıyor.
+  PostVisibility _visibility = PostVisibility.public;
+
   bool _asClub = true;
   bool _busy = false;
+
+  static const _maxMedia = 8;
 
   @override
   void dispose() {
@@ -43,13 +52,16 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   }
 
   Future<void> _pickImage() async {
+    if (_media.length >= _maxMedia) {
+      _snack('En fazla $_maxMedia fotoğraf ekleyebilirsin',
+          SwanPalette.light.warning);
+      return;
+    }
     try {
       final picked = await pickImage();
       if (picked == null || !mounted) return;
-      setState(() {
-        _imageBytes = picked.bytes;
-        _imageName = picked.name;
-      });
+      setState(() => _media
+          .add(PickedMedia(bytes: picked.bytes, name: picked.name)));
     } catch (e) {
       _snack('Görsel seçilemedi: $e', SwanPalette.light.danger);
     }
@@ -57,7 +69,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
 
   Future<void> _share(String? clubId) async {
     final text = _ctrl.text.trim();
-    if (text.isEmpty && _imageBytes == null) {
+    if (text.isEmpty && _media.isEmpty) {
       _snack('Bir şeyler yaz ya da görsel ekle', SwanPalette.light.warning);
       return;
     }
@@ -66,8 +78,11 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
       await ref.read(socialServiceProvider).createPost(
             body: text,
             clubId: clubId,
-            imageBytes: _imageBytes,
-            imageName: _imageName,
+            images: _media,
+            // Kulüp adına paylaşımda görünürlük seçimi anlamsız: kulüp
+            // gönderisi zaten kulüp kitlesine yazılıyor.
+            visibility:
+                clubId != null ? null : visibilityKey(_visibility),
           );
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
@@ -224,13 +239,14 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             ),
             const SizedBox(height: 12),
 
-            if (_imageBytes != null) ...[
-              // Önizleme akıştaki görünümle birebir aynı orana sahip.
+            if (_media.isNotEmpty) ...[
+              // İlk görsel büyük — akıştaki görünümle aynı oran. Gerisi
+              // altında şerit; sıra, gönderideki sırayla aynı.
               Stack(children: [
                 ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 260),
                   child: RatioImage(
-                    image: MemoryImage(_imageBytes!),
+                    image: MemoryImage(_media.first.bytes),
                     borderRadius: 16,
                   ),
                 ),
@@ -238,10 +254,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                   top: 8,
                   right: 8,
                   child: GestureDetector(
-                    onTap: () => setState(() {
-                      _imageBytes = null;
-                      _imageName = null;
-                    }),
+                    onTap: () => setState(() => _media.removeAt(0)),
                     child: Container(
                       width: 30,
                       height: 30,
@@ -254,7 +267,104 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                     ),
                   ),
                 ),
+                if (_media.length > 1)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: .55),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text('${_media.length}/$_maxMedia',
+                          style: SwanType.caption(Colors.white,
+                              w: FontWeight.w700)),
+                    ),
+                  ),
               ]),
+              if (_media.length > 1) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 62,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _media.length - 1,
+                    separatorBuilder: (_, __) => const SizedBox(width: 8),
+                    itemBuilder: (_, i) {
+                      final idx = i + 1;
+                      return Stack(children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: Image.memory(_media[idx].bytes,
+                              width: 62, height: 62, fit: BoxFit.cover),
+                        ),
+                        Positioned(
+                          top: 2,
+                          right: 2,
+                          child: GestureDetector(
+                            onTap: () =>
+                                setState(() => _media.removeAt(idx)),
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                color: Colors.black.withValues(alpha: .6),
+                                borderRadius: BorderRadius.circular(7),
+                              ),
+                              child: const Icon(Icons.close_rounded,
+                                  color: Colors.white, size: 12),
+                            ),
+                          ),
+                        ),
+                      ]);
+                    },
+                  ),
+                ),
+              ],
+              const SizedBox(height: 12),
+            ],
+
+            // Görünürlük — yalnızca kişisel paylaşımda. Kulüp gönderisi
+            // zaten kulüp kitlesine yazılıyor.
+            if (!effectiveAsClub) ...[
+              SizedBox(
+                height: 34,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (final v in const [
+                      PostVisibility.public,
+                      PostVisibility.followers,
+                      PostVisibility.club,
+                    ])
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () => setState(() => _visibility = v),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 13, vertical: 7),
+                            decoration: BoxDecoration(
+                              color: _visibility == v ? kTeal : alt,
+                              borderRadius: BorderRadius.circular(999),
+                              border: Border.all(
+                                  color:
+                                      _visibility == v ? kTeal : line),
+                            ),
+                            child: Text(
+                              visibilityLabel(v),
+                              style: SwanType.caption(
+                                  _visibility == v ? Colors.white : ink,
+                                  w: FontWeight.w700),
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               const SizedBox(height: 12),
             ],
 
@@ -272,7 +382,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                   child: Row(children: [
                     const Icon(Icons.image_rounded, size: 18, color: kTeal),
                     const SizedBox(width: 8),
-                    Text(_imageBytes == null ? 'Görsel Ekle' : 'Değiştir',
+                    Text(_media.isEmpty ? 'Görsel Ekle' : 'Bir tane daha',
                         style: SwanType.caption(ink, w: FontWeight.w700)),
                   ]),
                 ),

@@ -11,6 +11,7 @@ import 'social_widgets.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/widgets/shared_content_card.dart';
+import '../saved_posts_screen.dart';
 
 /// Akıştaki tek gönderi kartı — Instagram benzeri.
 class PostCard extends ConsumerStatefulWidget {
@@ -440,8 +441,21 @@ class _PostCardState extends ConsumerState<PostCard>
                 onTap: _openComments,
               ),
               _action(
-                icon: Icons.send_outlined,
+                icon: Icons.repeat_rounded,
                 label: 'Paylaş',
+                onTap: () => showRepostSheet(
+                  context,
+                  ref,
+                  postId: widget.post.id,
+                  authorName: widget.post.displayName,
+                  preview: widget.post.body.isEmpty
+                      ? '(görsel gönderi)'
+                      : widget.post.body,
+                ),
+              ),
+              _action(
+                icon: Icons.send_outlined,
+                label: 'Gönder',
                 onTap: () => showShareSheet(context,
                     kind: ShareKind.post, id: widget.post.id),
               ),

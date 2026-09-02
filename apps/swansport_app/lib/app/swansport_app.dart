@@ -61,6 +61,7 @@ import '../features/social/presentation/rss_admin_screen.dart';
 import '../features/social/presentation/search_screen.dart';
 import '../features/verification/presentation/admin_review_screen.dart';
 import '../features/financial_management/presentation/finance_tasks_screen.dart';
+import '../features/social/presentation/saved_posts_screen.dart';
 import '../features/financial_management/presentation/quick_expense_screen.dart';
 import '../features/verification/presentation/credential_screen.dart';
 import '../features/verification/presentation/guardian_link_screen.dart';
@@ -107,6 +108,7 @@ class SwanSportApp extends ConsumerWidget {
         '/gider-ekle': (context) => const QuickExpenseScreen(),
         // push_route yedi mali bildirim türünü buraya yönlendiriyor.
         '/mali-isler': (context) => const FinanceTasksScreen(),
+        '/kaydedilenler': (context) => const SavedPostsScreen(),
         '/dogrulama': (context) => const CredentialScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
         '/onay-paneli': (context) => const AdminReviewScreen(),

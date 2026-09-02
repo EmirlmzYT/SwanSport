@@ -199,6 +199,12 @@ class ProfileScreen extends ConsumerWidget {
                       if (p.isMe) ...[
                         const SizedBox(height: 14),
                         const QuickActions(actions: [
+                          // Kaydedilenler yalnızca sende görünüyor; başka
+                          // kimse kimin ne kaydettiğini göremiyor.
+                          QuickAction(
+                              icon: Icons.bookmark_border_rounded,
+                              label: 'Kaydedilenler',
+                              route: '/kaydedilenler'),
                           QuickAction(
                               icon: Icons.receipt_long_rounded,
                               label: 'Aidatlarım',
