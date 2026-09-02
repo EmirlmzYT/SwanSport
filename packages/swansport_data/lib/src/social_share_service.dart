@@ -141,6 +141,60 @@ class ShareTarget {
   final bool isCommunity;
 }
 
+/// Etiket seçicide listelenen kişi.
+///
+/// Bu listeye **yalnızca etiketlenmeyi kabul edenler** giriyor: sunucudaki
+/// `search_mentionable` engelleme ve `mention_policy` süzgecini uyguluyor.
+/// Kapatmış olan kişi sonuçlarda hiç görünmüyor — "bu kişi etiketlenmeyi
+/// kapatmış" diye bir mesaj da yok, o ayarı sızdırırdı.
+class MentionCandidate {
+  const MentionCandidate({
+    required this.profileId,
+    required this.fullName,
+    this.username,
+    this.avatarPath,
+  });
+
+  final String profileId;
+  final String fullName;
+  final String? username;
+  final String? avatarPath;
+
+  /// Metne yazılacak görünen ad. Veritabanında **UUID** saklanıyor; bu
+  /// yalnızca görünüm. Kullanıcı adını saklasaydık ad değişince etiket
+  /// koperdi.
+  String get handle => (username?.isNotEmpty ?? false) ? username! : fullName;
+
+  String get initials {
+    final parts = fullName.trim().split(RegExp(r'\s+'));
+    final a = parts.first.isNotEmpty ? parts.first[0] : '';
+    final b = parts.length > 1 && parts[1].isNotEmpty ? parts[1][0] : '';
+    final r = '$a$b'.toUpperCase();
+    return r.isEmpty ? '?' : r;
+  }
+
+  factory MentionCandidate.fromMap(Map<String, dynamic> m) => MentionCandidate(
+        profileId: (m['profile_id'] as String?) ?? '',
+        fullName: (m['full_name'] as String?) ?? '',
+        username: m['username'] as String?,
+        avatarPath: m['avatar_path'] as String?,
+      );
+}
+
+/// Öneri listesindeki bir hashtag.
+class HashtagSuggestion {
+  const HashtagSuggestion({required this.tag, required this.postCount});
+
+  final String tag;
+  final int postCount;
+
+  factory HashtagSuggestion.fromMap(Map<String, dynamic> m) =>
+      HashtagSuggestion(
+        tag: (m['tag'] as String?) ?? '',
+        postCount: (m['post_count'] as num?)?.toInt() ?? 0,
+      );
+}
+
 /// Etiketlenme izni.
 enum MentionPolicy { everyone, following, nobody }
 
@@ -219,18 +273,47 @@ class SocialShareService {
         .toList();
   }
 
-  /// Etiket ve hashtag'leri yazar.
+  /// Etiket ve hashtag'leri yazar. Dönen sayı **gerçekten etiketlenen**
+  /// kişi adedi.
   ///
   /// Metin **istemcide** ayrıştırılıyor ve buraya kimlikler geliyor. Sunucuda
   /// metin ayrıştırmak, kullanıcı adı değişince ilişkiyi koparırdı.
-  Future<void> setTags(String postId,
+  ///
+  /// İzin vermeyen kişiler sunucuda **atlanıyor**, hata verilmiyor (0067):
+  /// eskiden tek uygunsuz etiket bütün etiketlemeyi düşürüyordu ve kullanıcı
+  /// gönderisini paylaştıktan sonra hata alıyordu. Gönderilen sayıyla dönen
+  /// sayı farklıysa istemci "N kişi etiketlenemedi" diyebiliyor.
+  Future<int> setTags(String postId,
           {List<String> mentions = const [],
           List<String> hashtags = const []}) =>
-      _c.rpc<void>('set_post_tags', params: {
+      _c.rpc<int>('set_post_tags', params: {
         'p_post': postId,
         'p_mentions': mentions,
         'p_hashtags': hashtags,
       });
+
+  /// Etiketlenebilecek kişiler. Engelleme ve izin süzgeci sunucuda.
+  Future<List<MentionCandidate>> searchMentionable(String query,
+      {int limit = 8}) async {
+    final rows = await _c.rpc<List<dynamic>>('search_mentionable',
+        params: {'p_query': query, 'p_limit': limit});
+    return rows
+        .map((e) =>
+            MentionCandidate.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  /// Var olan hashtag'ler. Arama da `tr_fold` ile yapılıyor; yoksa
+  /// "#Işıklar" yazan kişi kendi etiketini bulamıyor.
+  Future<List<HashtagSuggestion>> searchHashtags(String query,
+      {int limit = 8}) async {
+    final rows = await _c.rpc<List<dynamic>>('search_hashtags',
+        params: {'p_query': query, 'p_limit': limit});
+    return rows
+        .map((e) =>
+            HashtagSuggestion.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
 
   Future<void> setPrivacy({MentionPolicy? mention, bool? externalShare}) =>
       _c.rpc<void>('set_social_privacy', params: {
@@ -333,4 +416,17 @@ final postMediaProvider = FutureProvider.autoDispose
     .family<List<String>, String>((ref, postId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(socialShareServiceProvider).media(postId);
+});
+
+/// Etiket seçici önerileri. Sorgu boşsa takip ettiklerin öne geliyor.
+final mentionSearchProvider = FutureProvider.autoDispose
+    .family<List<MentionCandidate>, String>((ref, query) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(socialShareServiceProvider).searchMentionable(query);
+});
+
+final hashtagSearchProvider = FutureProvider.autoDispose
+    .family<List<HashtagSuggestion>, String>((ref, query) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(socialShareServiceProvider).searchHashtags(query);
 });

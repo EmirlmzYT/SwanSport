@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -63,6 +64,22 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                 const SizedBox(height: 10),
                 _tile(isDark, Icons.lock_reset_rounded, 'Şifreyi değiştir',
                     'Yeni bir şifre belirle', _changePassword),
+                const SizedBox(height: 22),
+
+                // --- Etiketlenme ---
+                //
+                // Kapatılan kişi etiket seçicisinde **hiç görünmüyor**;
+                // "bu kişi etiketlenmeyi kapatmış" diye bir mesaj da yok,
+                // o ayarı sızdırırdı.
+                Text('Etiketlenme', style: SwanType.h3(ink)),
+                const SizedBox(height: 6),
+                Text(
+                  'Seni kim gönderilerde etiketleyebilir. Engellediğin '
+                  'kişiler her durumda etiketleyemez.',
+                  style: SwanType.caption(SwanColors.textSecondary),
+                ),
+                const SizedBox(height: 10),
+                _MentionPolicyPicker(isDark: isDark),
                 const SizedBox(height: 22),
 
                 // --- Engellenenler ---
@@ -327,5 +344,111 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
             backgroundColor: SwanPalette.light.danger));
       }
     }
+  }
+}
+
+/// Etiketlenme izni seçici.
+///
+/// Mevcut değer profilden okunuyor; sunucu `set_social_privacy` ile
+/// güncelleniyor. İyimser değil: sunucu onaylamadan seçim değişmiyor, çünkü
+/// bu bir gizlilik ayarı ve "değişti sandım ama değişmemiş" en kötü durum.
+class _MentionPolicyPicker extends ConsumerStatefulWidget {
+  const _MentionPolicyPicker({required this.isDark});
+
+  final bool isDark;
+
+  @override
+  ConsumerState<_MentionPolicyPicker> createState() =>
+      _MentionPolicyPickerState();
+}
+
+class _MentionPolicyPickerState extends ConsumerState<_MentionPolicyPicker> {
+  MentionPolicy? _value;
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final uid = Supabase.instance.client.auth.currentUser?.id;
+      if (uid == null) return;
+      final row = await Supabase.instance.client
+          .from('profiles')
+          .select('mention_policy')
+          .eq('id', uid)
+          .maybeSingle();
+      if (!mounted) return;
+      setState(() =>
+          _value = mentionPolicyFrom(row?['mention_policy'] as String?));
+    } catch (_) {
+      // 0062 çalıştırılmadıysa sütun yok. Seçici çizilmiyor; hata
+      // göstermek kullanıcıya yapabileceği bir şey söylemiyor.
+      if (mounted) setState(() => _value = null);
+    }
+  }
+
+  Future<void> _set(MentionPolicy p) async {
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(socialShareServiceProvider)
+          .setPrivacy(mention: p);
+      if (mounted) setState(() => _value = p);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.isDark ? SwanPalette.dark : SwanPalette.light;
+    if (_value == null) return const SizedBox.shrink();
+
+    return Column(
+      children: [
+        for (final p in MentionPolicy.values)
+          GestureDetector(
+            onTap: _busy || _value == p ? null : () => _set(p),
+            child: Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(13),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                    color: _value == p ? c.accent : c.line,
+                    width: _value == p ? 1.5 : 1),
+              ),
+              child: Row(children: [
+                Icon(
+                    _value == p
+                        ? Icons.radio_button_checked_rounded
+                        : Icons.radio_button_unchecked_rounded,
+                    size: 19,
+                    color: _value == p ? c.accent : c.inkMuted),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(mentionPolicyLabel(p),
+                      style: SwanType.bodySm(c.ink)),
+                ),
+                if (_busy && _value != p)
+                  const SizedBox(
+                      width: 15,
+                      height: 15,
+                      child: CircularProgressIndicator(strokeWidth: 2)),
+              ]),
+            ),
+          ),
+      ],
+    );
   }
 }

@@ -11,6 +11,7 @@ import '../../demo/demo_role.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/widgets/tag_composer.dart';
 
 /// Gönderi oluşturma sayfasını açar. Paylaşım yapıldıysa true döner.
 Future<bool?> showPostComposer(BuildContext context) {
@@ -39,6 +40,10 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   /// Gönderiyi kim görecek. Boş bırakılırsa sunucu karar veriyor: reşit
   /// olmayan hesaplarda tetikleyici `public` yerine `followers` yazıyor.
   PostVisibility _visibility = PostVisibility.public;
+
+  /// Seçilen etiketler. Metin ile kimlik ayrı: kullanıcı adı yazılıyor,
+  /// veritabanına UUID gidiyor.
+  final _tags = TagState();
 
   bool _asClub = true;
   bool _busy = false;
@@ -75,7 +80,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
     }
     setState(() => _busy = true);
     try {
-      await ref.read(socialServiceProvider).createPost(
+      final postId = await ref.read(socialServiceProvider).createPost(
             body: text,
             clubId: clubId,
             images: _media,
@@ -84,6 +89,30 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             visibility:
                 clubId != null ? null : visibilityKey(_visibility),
           );
+
+      // Etiketler ayrı çağrı. Burada hata çıksa bile gönderi paylaşıldı;
+      // kullanıcıya gönderisini kaybettirmemek için yutup uyarıyoruz.
+      final wanted = _tags.mentionsIn(text);
+      final tagList = TagState.hashtagsIn(text);
+      if (wanted.isNotEmpty || tagList.isNotEmpty) {
+        try {
+          final done = await ref
+              .read(socialShareServiceProvider)
+              .setTags(postId, mentions: wanted, hashtags: tagList);
+          // Sunucu izin vermeyenleri atlıyor (0067). Fark varsa söylüyoruz —
+          // sessizce atlamak, kullanıcının etiketlediğini sanmasına yol açar.
+          if (done < wanted.length && mounted) {
+            _snack('${wanted.length - done} kişi etiketlenemedi',
+                SwanPalette.light.warning);
+          }
+        } catch (e) {
+          if (mounted) {
+            _snack('Gönderi paylaşıldı, etiketler eklenemedi: $e',
+                SwanPalette.light.warning);
+          }
+        }
+      }
+
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       _snack('Paylaşılamadı: $e', SwanPalette.light.danger);
@@ -218,6 +247,10 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
 
             TextField(
               controller: _ctrl,
+              // İmleç konumu önerileri belirliyor;
+              // her dokunuşta yeniden çiziliyor.
+              onChanged: (_) => setState(() {}),
+              onTap: () => setState(() {}),
               minLines: 3,
               maxLines: 8,
               autofocus: true,
@@ -237,6 +270,14 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                     borderSide: const BorderSide(color: kTeal, width: 1.5)),
               ),
             ),
+            // Etiket önerileri — yalnızca yarım kalmış bir @ ya da # varken.
+            TagSuggestions(
+              controller: _ctrl,
+              tags: _tags,
+              onChanged: () => setState(() {}),
+            ),
+            TagSummary(text: _ctrl.text, tags: _tags),
+
             const SizedBox(height: 12),
 
             if (_media.isNotEmpty) ...[
