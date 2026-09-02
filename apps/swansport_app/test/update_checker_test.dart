@@ -39,4 +39,21 @@ void main() {
       expect(isVersionNewer('', ''), isFalse);
     });
   });
+
+  group('yayınlanmış sürümler — gerçek geçişler', () {
+    // Her yayından sonra buraya bir satır: yanlış bir karşılaştırma,
+    // kullanıcının güncelleme bildirimini HİÇ almaması demek ve bunun
+    // belirtisi yok — kimse hata görmüyor, sadece eski sürümde kalıyor.
+    test('0.3.0+10 -> 0.4.0+11 yeni sayılıyor', () {
+      expect(isVersionNewer('0.4.0+11', '0.3.0+10'), isTrue);
+    });
+
+    test('aynı sürüm yeni sayılmıyor', () {
+      expect(isVersionNewer('0.4.0+11', '0.4.0+11'), isFalse);
+    });
+
+    test('geriye gidiş yeni sayılmıyor', () {
+      expect(isVersionNewer('0.3.0+10', '0.4.0+11'), isFalse);
+    });
+  });
 }

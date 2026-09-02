@@ -766,7 +766,7 @@ Yayınlamadan önce doğrula:
 "$ANDROID_SDK/build-tools/36.0.0/apksigner.bat" verify --print-certs <apk> | grep -i "SHA-256"
 ```
 
-v0.1.3+4 ve v0.2.0+5 için bu değer
+v0.1.3+4, v0.2.0+5 ve **v0.4.0+11** için bu değer
 `6da57755e82f50e0804010df82bed862e2813a4ba433be72741e4c8e821915bb`.
 Değişmişse yayınlama, önce sebebini bul.
 
