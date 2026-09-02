@@ -82,6 +82,9 @@ class MessageRow {
     required this.isMine,
     this.readAt,
     this.status = MessageStatus.sent,
+    this.contentType = 'text',
+    this.sharedKind,
+    this.sharedId,
   });
 
   final String id;
@@ -97,6 +100,20 @@ class MessageRow {
   /// ekranda görünen mesajın durumu.
   final MessageStatus status;
 
+  /// text | content_share | marketplace_share | event_share |
+  /// organization_share
+  final String contentType;
+
+  /// Paylaşılan içeriğin türü ve kimliği.
+  ///
+  /// **Kartın görüntüsü burada tutulmuyor** — yalnızca referans. Görüntüyü
+  /// mesaja gömseydik, kaynak silindikten sonra bile içeriği paylaşıldığı
+  /// her sohbette okunmaya devam ederdi.
+  final String? sharedKind;
+  final String? sharedId;
+
+  bool get isShare => contentType != 'text' && sharedId != null;
+
   bool get isRead => readAt != null;
 
   MessageRow copyWith({MessageStatus? status}) => MessageRow(
@@ -106,6 +123,9 @@ class MessageRow {
         isMine: isMine,
         readAt: readAt,
         status: status ?? this.status,
+        contentType: contentType,
+        sharedKind: sharedKind,
+        sharedId: sharedId,
       );
 }
 
@@ -336,7 +356,7 @@ class NotificationService {
     if (uid == null) return const [];
     final rows = await _c
         .from('direct_messages')
-        .select('id, sender_id, body, created_at, read_at')
+        .select('id, sender_id, body, created_at, read_at, content_type, shared_kind, shared_id')
         .or('and(sender_id.eq.$uid,recipient_id.eq.$otherId),'
             'and(sender_id.eq.$otherId,recipient_id.eq.$uid)')
         .order('created_at');
@@ -354,6 +374,9 @@ class NotificationService {
         readAt: m['read_at'] == null
             ? null
             : DateTime.tryParse('${m['read_at']}')?.toLocal(),
+        contentType: (m['content_type'] as String?) ?? 'text',
+        sharedKind: m['shared_kind'] as String?,
+        sharedId: m['shared_id'] as String?,
       );
 
   /// Belirli bir andan sonraki DM'ler — canlı.

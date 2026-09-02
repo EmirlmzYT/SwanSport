@@ -10,6 +10,7 @@ import 'report_sheet.dart';
 import 'social_widgets.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/widgets/shared_content_card.dart';
 
 /// Akıştaki tek gönderi kartı — Instagram benzeri.
 class PostCard extends ConsumerStatefulWidget {
@@ -438,11 +439,45 @@ class _PostCardState extends ConsumerState<PostCard>
                 label: _comments > 0 ? compactCount(_comments) : 'Yorum',
                 onTap: _openComments,
               ),
+              _action(
+                icon: Icons.send_outlined,
+                label: 'Paylaş',
+                onTap: () => showShareSheet(context,
+                    kind: ShareKind.post, id: widget.post.id),
+              ),
+              const Spacer(),
+              // Kaydetme kişisel bir yer imi: gönderi sahibine bildirim
+              // gitmiyor ve sayı gösterilmiyor. Sayı göstermek onu kamusal
+              // bir beğeniye çevirirdi.
+              _action(
+                icon: _saved
+                    ? Icons.bookmark_rounded
+                    : Icons.bookmark_border_rounded,
+                label: '',
+                onTap: _toggleSaved,
+              ),
             ]),
           ),
         ],
       ),
     );
+  }
+
+  /// Kaydedildi mi. İyimser: dokunuşta anında değişiyor, istek başarısız
+  /// olursa geri alınıyor.
+  bool _saved = false;
+
+  Future<void> _toggleSaved() async {
+    final before = _saved;
+    setState(() => _saved = !before);
+    try {
+      final now = await ref
+          .read(socialShareServiceProvider)
+          .toggleSaved(widget.post.id);
+      if (mounted && now != _saved) setState(() => _saved = now);
+    } catch (_) {
+      if (mounted) setState(() => _saved = before);
+    }
   }
 
   Widget _action({

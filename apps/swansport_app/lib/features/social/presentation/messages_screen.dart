@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/shared_content_card.dart';
 import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'edit_profile_sheet.dart';
@@ -791,9 +792,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(m.body,
-                style: SwanType.bodySm(m.isMine ? Colors.white : ink)
-                    .copyWith(height: 1.35)),
+            // Paylaşılan içerik kartı. İçeriği mesajda saklanmıyor; her
+            // çizimde kaynaktan tazeleniyor ve kaynak kaldırılmışsa
+            // "artık kullanılamıyor" durumuna düşüyor.
+            if (m.isShare)
+              SharedContentCard(
+                  kind: m.sharedKind ?? m.contentType,
+                  id: m.sharedId!,
+                  onDark: m.isMine),
+            if (m.body.isNotEmpty)
+              Text(m.body,
+                  style: SwanType.bodySm(m.isMine ? Colors.white : ink)
+                      .copyWith(height: 1.35)),
             const SizedBox(height: 3),
             Row(
               mainAxisSize: MainAxisSize.min,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../features/athletes/athletes_screen.dart';
+import '../../features/athletes/eligibility_screen.dart';
 import '../../features/schedule/attendance_screen.dart';
 import '../../features/schedule/facilities_screen.dart';
 import '../../features/finance/accounts_screen.dart';
@@ -37,6 +38,14 @@ const List<ConsoleModule> kConsoleModules = [
     route: '/sporcular',
     audience: {ConsoleAudience.clubStaff},
     builder: _athletes,
+  ),
+  ConsoleModule(
+    id: 'eligibility',
+    label: 'Uygunluk ve Risk',
+    icon: Icons.health_and_safety_rounded,
+    route: '/uygunluk',
+    audience: {ConsoleAudience.clubStaff},
+    builder: _eligibility,
   ),
   ConsoleModule(
     id: 'schedule',
@@ -226,6 +235,8 @@ ConsoleModule? moduleForRoute(String route) {
 // ------------------------------------------------------------------ ekranlar
 
 Widget _athletes(BuildContext _) => const AthletesScreen();
+
+Widget _eligibility(BuildContext _) => const EligibilityScreen();
 
 Widget _schedule(BuildContext _) => const ScheduleScreen();
 
