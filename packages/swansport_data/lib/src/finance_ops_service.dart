@@ -650,7 +650,7 @@ class ClubOperationsSummary {
         pendingStoreCount,
         FinanceRisk.info,
         'Pazaryeri mağaza başvurusu değerlendirilmeyi bekliyor.',
-        '/pazaryeri-yonetim');
+        '/pazaryeri');
 
     return out;
   }
@@ -893,6 +893,29 @@ class FinanceOpsService {
         'p_approve': approve,
         'p_reason': reason,
       });
+
+  /// Onay bekleyen giderler.
+  ///
+  /// Kendi girdiği kayıt listeden düşürülüyor: onaylayamayacağı bir şeyi
+  /// "onayını bekliyor" diye göstermek kullanıcıyı sistemle güreştirirdi.
+  /// Asıl kural sunucuda (`decide_expense_approval` reddediyor); buradaki
+  /// süzgeç yalnızca gereksiz satırı gizliyor.
+  Future<List<ExpenseRow>> pendingApprovals(String clubId) async {
+    final me = _c.auth.currentUser?.id;
+    final rows = await _c
+        .from('expenses')
+        .select('id, club_id, amount, spent_on, note, status, supplier, '
+            'receipt_path, entered_by, category_id, account_id, vendor_id, '
+            'expense_categories(name), cash_accounts(name)')
+        .eq('club_id', clubId)
+        .eq('approval_status', 'pending')
+        .order('spent_on', ascending: false);
+    return rows
+        .map((e) => (e as Map).cast<String, dynamic>())
+        .where((m) => me == null || m['entered_by'] != me)
+        .map(ExpenseRow.fromMap)
+        .toList();
+  }
 
   // ----------------------------------------------------------- mutabakat
   Future<List<BankImport>> bankImports(String clubId) async {
@@ -1152,4 +1175,13 @@ final clubOperationsSummaryProvider =
   final club = await ref.watch(activeClubProvider.future);
   if (club == null) return const ClubOperationsSummary.empty();
   return ref.watch(financeOpsServiceProvider).clubOperations(club.id);
+});
+
+/// Onayımı bekleyen giderler. Kendi kaydım listede yok.
+final pendingApprovalsProvider =
+    FutureProvider.autoDispose<List<ExpenseRow>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(financeOpsServiceProvider).pendingApprovals(club.id);
 });

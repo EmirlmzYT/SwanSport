@@ -5,6 +5,12 @@ import '../../features/schedule/attendance_screen.dart';
 import '../../features/schedule/facilities_screen.dart';
 import '../../features/finance/accounts_screen.dart';
 import '../../features/finance/ledger_screen.dart';
+import '../../features/finance/budget_screen.dart';
+import '../../features/finance/collections_screen.dart';
+import '../../features/finance/commitments_screen.dart';
+import '../../features/finance/operations_screen.dart';
+import '../../features/finance/period_close_screen.dart';
+import '../../features/finance/reconciliation_screen.dart';
 import '../../features/finance/report_screen.dart';
 import '../../features/platform/approvals_screen.dart';
 import '../../features/platform/feature_flags_screen.dart';
@@ -64,6 +70,14 @@ const List<ConsoleModule> kConsoleModules = [
   // fark, aidat satırlarında sporcu adının görünüp görünmemesi — o ayrım
   // veritabanındaki RPC'lerde yapılıyor, burada değil.
   ConsoleModule(
+    id: 'finance_operations',
+    label: 'Mali İş Kuyruğu',
+    icon: Icons.playlist_add_check_rounded,
+    route: '/mali-isler',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _financeOperations,
+  ),
+  ConsoleModule(
     id: 'ledger',
     label: 'Gelir–Gider',
     icon: Icons.receipt_long_rounded,
@@ -78,6 +92,53 @@ const List<ConsoleModule> kConsoleModules = [
     route: '/kasa',
     audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
     builder: _accounts,
+  ),
+  // Mali operasyon modülleri. Hepsi hem kulüp yetkilisine hem muhasebeciye
+  // açık: ikisi aynı defteri görüyor, fark sporcu adının görünüp
+  // görünmemesi ve o ayrım veritabanındaki RPC'lerde yapılıyor.
+  //
+  // `finance_operations_center` bayrağı kapalıyken bunların hiçbiri
+  // görünmüyor. Bayrak güvenlik değil — koruma RLS ve RPC'de; bayrak
+  // yalnızca kademeli yayını yönetiyor.
+  ConsoleModule(
+    id: 'collections',
+    label: 'Tahsilat',
+    icon: Icons.request_quote_rounded,
+    route: '/tahsilat',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _collections,
+  ),
+  ConsoleModule(
+    id: 'commitments',
+    label: 'Tedarikçi ve Taahhüt',
+    icon: Icons.event_repeat_rounded,
+    route: '/taahhutler',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _commitments,
+  ),
+  ConsoleModule(
+    id: 'reconciliation',
+    label: 'Banka Mutabakatı',
+    icon: Icons.compare_arrows_rounded,
+    route: '/mutabakat',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _reconciliation,
+  ),
+  ConsoleModule(
+    id: 'budget',
+    label: 'Bütçe ve Nakit',
+    icon: Icons.savings_rounded,
+    route: '/butce',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _budget,
+  ),
+  ConsoleModule(
+    id: 'period_close',
+    label: 'Dönem Kapanışı',
+    icon: Icons.lock_clock_rounded,
+    route: '/donem-kapanis',
+    audience: {ConsoleAudience.clubStaff, ConsoleAudience.accountant},
+    builder: _periodClose,
   ),
   ConsoleModule(
     id: 'report',
@@ -173,6 +234,18 @@ Widget _attendance(BuildContext _) => const AttendanceScreen();
 Widget _facilities(BuildContext _) => const FacilitiesScreen();
 
 Widget _ledger(BuildContext _) => const LedgerScreen();
+
+Widget _financeOperations(BuildContext _) => const OperationsScreen();
+
+Widget _collections(BuildContext _) => const CollectionsScreen();
+
+Widget _commitments(BuildContext _) => const CommitmentsScreen();
+
+Widget _reconciliation(BuildContext _) => const ReconciliationScreen();
+
+Widget _budget(BuildContext _) => const BudgetScreen();
+
+Widget _periodClose(BuildContext _) => const PeriodCloseScreen();
 
 Widget _accounts(BuildContext _) => const AccountsScreen();
 
