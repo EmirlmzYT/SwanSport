@@ -539,6 +539,34 @@ select status_code, left(content, 500) from net._http_response
   `configuration_controller`, `document_vault`, `search_screen`.
   `tr_text_test.dart` yardımcıyı sabitliyor ama çağrı yerlerini değil.
 
+**Konsolu kopyalarken `cp -r` hedef VARSA içine kopyalar**
+- `cp -r apps/swansport_console/build/web apps/swansport_app/build/web/konsol`
+  komutu, `konsol/` klasörü **zaten varken** yeni derlemeyi `konsol/web/`
+  altına koyuyor ve `konsol/` altında **eski derleme kalıyor.**
+  `flutter build web` o klasörü silmediği için **ikinci dağıtımdan itibaren
+  her seferinde** böyle oluyor.
+- 2026-09-02'de tam olarak bu oldu: konsolun bir gün önceki derlemesi
+  dağıtıldı ve "dağıtım tamam" diye raporlandı. Kullanıcı hiçbir değişiklik
+  görmedi ve haklıydı.
+- Doğrulama yetersizdi: yalnızca "konsol açılıyor mu" diye bakılmıştı.
+  **Eski konsol da gayet açılıyor.**
+- **Kopyalamadan önce sil:** `rm -rf apps/swansport_app/build/web/konsol`
+- **Dağıtımdan sonra içeriği doğrula**, açılıp açılmadığını değil. Yeni kodda
+  geçen bir RPC adını canlı dosyada ara (tarayıcı konsolunda):
+
+```js
+const js = await (await fetch('/konsol/main.dart.js', {cache:'reload'})).text();
+js.includes('acc_operations_summary')
+```
+
+- **Türkçe metinle arama yapma.** dart2js Türkçe karakterleri kaçış dizisine
+  çeviriyor; `grep "Mali İş Kuyruğu"` sıfır döndürüyor ve bu "kod yok" gibi
+  okunuyor. Aynı gün buna da düşüldü. **RPC ve rota adları ASCII** — onlarla
+  ara.
+- Bu makineden Cloudflare'e TLS ile ulaşılamıyor (curl ve Python urllib
+  ikisi de düşüyor). Canlı doğrulamayı **tarayıcıyla** yap; Supabase'e
+  erişim çalışıyor, sorun yalnızca Cloudflare tarafında.
+
 **Flutter / dağıtım**
 - `flutter` alt çizgiyle başlayan dosyaları (`web/_redirects`) `build/web`'e
   **kopyalamaz** — dağıtımda elle kopyalanır
