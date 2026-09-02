@@ -17,6 +17,7 @@ apps/swansport_app        mobil + web uygulaması (Android, Web)
 apps/swansport_console    masaüstü yönetim konsolu (yalnızca Web, ≥900px)
 packages/swansport_data   Supabase veri katmanı — İKİ UYGULAMANIN ORTAK KAYNAĞI
 packages/swansport_core   ortam ve yapılandırma tipleri
+packages/swansport_branch_engine  branşa özel antrenman motoru — saf Dart
 packages/swansport_design_system  renk, tipografi, mobil bileşenler
 supabase/migrations       şema — numaralı, idempotent, tek yetkili kaynak
 apps/swansport_app/functions  Cloudflare Pages Functions (rss, push, konsol)
@@ -75,6 +76,42 @@ kardeşlerine sporcu adı ekleyen bir değişiklik bu güvenceyi kırar.
 ---
 
 ## Bilinen tuzaklar
+
+- **Özellik bayrağı DÖRT değil BEŞ yerde yaşıyor.** SQL satırı, Dart sabiti,
+  `feature_flag_sync_test`, SSS kaydı — ve **ekranda gerçekten `featureEnabled`
+  kontrolü**. İlk dördü tamken beşincisi unutulursa hiçbir test şikâyet
+  etmiyor: sync testi anahtarların eşleştiğini doğruluyor, bayrağın
+  *kullanıldığını* değil. Sonuç, sunucuda `admins` yazan ama herkese açık
+  duran bir özellik.
+
+  Belirtisi: derlemede anahtar dizesi hiç geçmiyor (dart2js kullanılmayan
+  sabiti ağaçtan buduyor).
+
+  ```bash
+  grep -c "bayrak_anahtari" apps/swansport_app/build/web/main.dart.js
+  ```
+
+  0 dönüyorsa bayrak hiçbir yerde sorulmuyor. Bu tam olarak
+  `sport_training_sessions`'ta yaşandı ve dağıtımdan **önce** yakalandı.
+
+- **`create or replace function` dönüş tipini değiştiremez.** Değişirse
+  `42P13` alırsın; önce `drop function if exists` gerekiyor. Bu, HTTP 300
+  "çift imza" tuzağından **ayrı** bir kural: o parametre imzası değişince,
+  bu dönüş tipi değişince vuruyor.
+
+- **`check` kısıtı NULL'ı ihlal saymaz.** `check (fn(config))` yazıp `fn`
+  eksik anahtarda NULL döndürürse kısıt sessizce geçer. Doğrulama
+  fonksiyonlarını `coalesce(..., false)` ile kapat (`valid_training_config`,
+  0071).
+
+- **`and` işlenenlerinin sırası garanti değil.** `jsonb_typeof(x) = 'number'
+  and x::int between ...` yazarsan cast yine patlayabilir; sırayı garanti
+  eden `case` kullan.
+
+- **`on conflict do update ... where` koşulu tutmazsa `returning` hiçbir şey
+  döndürmez.** Bu bir hata değil, kullanışlı bir sinyal: `submit_set_score`
+  kilitli seti böyle yakalıyor (satır dönmediyse kilitli). Ama farkında
+  olmadan yazarsan "sessizce kaydetmedi" hatası üretir.
 
 Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 
@@ -706,13 +743,16 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 213 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 241 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 26 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
+```
+```bash
+cd packages/swansport_branch_engine && dart test  # 41 test, hepsi geçer
 ```
 ```bash
 cd apps/swansport_app && flutter test          # 194 test, hepsi geçer
@@ -741,8 +781,27 @@ aslında hiçbir şey saymıyordu. Hatayı `flutter test` derleyicisi yakaladı
 flutter analyze packages/swansport_data apps/swansport_console apps/swansport_app > /tmp/an.txt 2>&1; grep -cE "^\s+error - " /tmp/an.txt
 ```
 
-Taban: **0 hata, 0 uyarı**, ~2340 `info` (lint önerisi). `info` sayısı
-gürültü; `error` ve `warning` sıfır kalmalı.
+Taban (2026-09-02'de ölçüldü): **0 hata, 12 uyarı, ~5600 `info`**.
+
+Buradaki eski not "0 uyarı" diyordu ve **eskimişti**. Duran 12 uyarı:
+`swansport_app.dart` 7 (`inference_failure_on_collection_literal`),
+`post_composer_sheet` ve `role_context_switcher` kullanılmayan import,
+`marketplace_admin_screen` kullanılmayan eleman, `marketplace_service`
+`strict_raw_type`, bir de test dosyasında bir tane. Yeni iş eklerken kural şu: **`error` sıfır kalmalı ve kendi
+dosyalarında `warning` bırakma.** Toplam uyarı sayısı düşerse iyi, ama sıfır
+olduğunu varsayma.
+
+Kendi dosyanı süzmenin en hızlı yolu:
+
+```bash
+flutter analyze packages/swansport_data 2>&1 | grep -E "^ *(error|warning)" | grep <dosya_adi>
+```
+
+**`flutter analyze` temiz demek "derleniyor" demek değil.** Bu oturumda
+analiz `training_session_service.dart` için 0 hata bildirdi; aynı dosyada
+`activeClubProvider` tanımsızdı ve hatayı `flutter test` derleyicisi
+yakaladı (eksik `import`). Yeni dosya eklediysen analiz yetmez, testi de
+çalıştır.
 
 **Migration yazdıysan söz dizimini denetle.** Migration'lar Supabase SQL
 Editor'e elle yapıştırılıyor; söz dizimi hatası ancak orada, yarım uygulanmış
@@ -782,9 +841,15 @@ cd apps/swansport_app && flutter build web --release -t lib/main_production.dart
 cd apps/swansport_console && MSYS_NO_PATHCONV=1 flutter build web --release -t lib/main_production.dart --dart-define-from-file=env/prod.json --base-href=/konsol/
 ```
 ```bash
-cp -r apps/swansport_console/build/web apps/swansport_app/build/web/konsol && cp apps/swansport_app/web/_redirects apps/swansport_app/build/web/_redirects
+rm -rf apps/swansport_app/build/web/konsol && cp -r apps/swansport_console/build/web apps/swansport_app/build/web/konsol && cp apps/swansport_app/web/_redirects apps/swansport_app/build/web/_redirects
 ```
-```bash
+
+**Bastaki `rm -rf` sart.** `cp -r kaynak hedef` komutu hedef ZATEN VARSA
+kaynagi hedefin ICINE kopyaliyor: konsol `build/web/konsol/web/` altina
+dusuyor, `build/web/konsol/` ise bir onceki dagitimdan kalma ESKI derlemeyi
+tutmaya devam ediyor. Bir kez tam olarak bu oldu ve **eski konsol
+yayinlandi**; hata fark edilmedi cunku eski konsol da sorunsuz aciliyor.
+"Yukleniyor mu" diye bakmak bu hatayi gormuyor -- iceriye bak.```bash
 cd apps/swansport_app && npx wrangler pages deploy build/web --project-name=swanspor --branch=main
 ```
 
@@ -1111,6 +1176,20 @@ okumamak lazım.
 
 ### Yarım / doğrulanmamış
 
+- **Antrenman oturum motoru (0071–0073)** — branşa özel canlı antrenman:
+  set, süre, skor, antrenör onayı. İlk branş okçuluk, dört hazır şablon.
+  Bayrak `sport_training_sessions`, **`admins` kademesinde**.
+
+  Kod ve testler tamam (motor 41, veri 28 yeni test), **canlı veritabanında
+  hiç çalıştırılmadı**. RLS ve yetki kuralları yalnızca okunarak doğrulandı;
+  iki gerçek hesapla uçtan uca deneme yapılmadı. Yayına almadan önce en az
+  şunlar denenmeli: başka kulübün koduyla katılım reddediliyor mu, veli
+  bireysel antrenmanı göremiyor mu, kilitli sete sporcu yazamıyor mu.
+
+  Bilerek yapılmayanlar: kamera içi QR okuyucu (kod + telefon kamerası
+  yeterli, yeni bağımlılık getirmedik), çevrimdışı yazma, `performance_tests`
+  ile bağ, gelişim hedefi bağı, herkese açık sıralama.
+
 > **Migration durumu** (2026-09-01, kullanıcı 0040 ve 0041'i çalıştırdı)
 >
 > | Migration | Durum | Nasıl doğrulandı |
@@ -1199,7 +1278,13 @@ Online kart ödemesi (iyzico/PayTR üye iş yeri), KVKK aydınlatma metni
 
 ### Commit durumu
 
-Çalışma alanı temiz; her iş kendi commit'inde. Ne yapıldığını `git log --oneline`
+**Çalışma alanı ŞU AN TEMİZ DEĞİL.** Antrenman oturum motoru (0071–0073,
+`swansport_branch_engine`, `training_session_service.dart`, dört ekran, rota
+ve bayrak bağlantıları) yazıldı, migration'ları canlıda çalıştırıldı ve web'e
+dağıtıldı — ama **commit edilmedi**. Bir sonraki ajan bu değişiklikleri
+çalışma alanında bulacak; üzerine yazmadan önce sahibini doğrula.
+
+Bunun dışında her iş kendi commit'inde. Ne yapıldığını `git log --oneline`
 söyler, burada tekrarlanmaz — commit listesini elle sürdürmek onu eskitiyordu.
 
 Beklenmedik bir değişiklik görürsen sahibini ve kapsamını doğrulamadan üzerine

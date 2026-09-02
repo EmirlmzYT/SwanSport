@@ -40,7 +40,10 @@ void main() {
     '/onay-paneli', '/haber-kaynaklari', '/federasyon-yetkili',
     '/configuration', '/bagis', '/basvurular', '/veli-bagla', '/settings',
     // Profil kısayolları
-    '/aidatlarim', '/documents', '/dogrulama',
+    '/aidatlarim', '/documents', '/dogrulama', '/antrenmanlarim',
+    // Antrenman oturumu (0071-0073). '/antrenman-sonuc' burada YOK:
+    // oturum ekranindan acilan bir alt sayfa, girisi kendi baglaminda.
+    '/antrenman-oturumu', '/antrenman-sablonlari',
   ];
 
   group('rota bütünlüğü', () {

@@ -83,6 +83,10 @@ class FeatureFlags {
   /// Çakışma çözme ekranı yazılmadan açılmamalı — yanlış çalıştığında veri
   /// kaybettiriyor. Sunucuda da `off` kademesinde.
   static const offlineAttendance = 'offline_attendance';
+
+  /// 0071–0073. Branşa özel canlı antrenman oturumu: set, süre, skor ve
+  /// antrenör onayı. İlk çalışan branş okçuluk.
+  static const sportTrainingSessions = 'sport_training_sessions';
 }
 
 /// Bu kullanıcı için açık bayraklar.

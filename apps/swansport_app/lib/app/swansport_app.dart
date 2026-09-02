@@ -63,6 +63,10 @@ import '../features/verification/presentation/admin_review_screen.dart';
 import '../features/financial_management/presentation/finance_tasks_screen.dart';
 import '../features/social/presentation/saved_posts_screen.dart';
 import '../features/support/presentation/help_screen.dart';
+import '../features/training/presentation/my_training_screen.dart';
+import '../features/training/presentation/protocol_list_screen.dart';
+import '../features/training/presentation/session_result_screen.dart';
+import '../features/training/presentation/session_screen.dart';
 import '../features/support/presentation/support_screen.dart';
 import '../features/financial_management/presentation/quick_expense_screen.dart';
 import '../features/verification/presentation/credential_screen.dart';
@@ -118,6 +122,12 @@ class SwanSportApp extends ConsumerWidget {
         '/kaydedilenler': (context) => const SavedPostsScreen(),
         '/yardim': (context) => const HelpScreen(),
         '/destek': (context) => const SupportScreen(),
+        // 0071-0073. push_route 'training_session' ve 'training_result'
+        // bildirimlerini buraya yonlendiriyor.
+        '/antrenman-oturumu': (context) => const TrainingSessionScreen(),
+        '/antrenman-sonuc': (context) => const SessionResultScreen(),
+        '/antrenman-sablonlari': (context) => const ProtocolListScreen(),
+        '/antrenmanlarim': (context) => const MyTrainingScreen(),
         '/dogrulama': (context) => const CredentialScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
         '/onay-paneli': (context) => const AdminReviewScreen(),

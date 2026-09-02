@@ -204,22 +204,31 @@ class ProfileScreen extends ConsumerWidget {
                       // için modül menüsüne dönmek gerekiyordu.
                       if (p.isMe) ...[
                         const SizedBox(height: 14),
-                        const QuickActions(actions: [
+                        QuickActions(actions: [
                           // Kaydedilenler yalnızca sende görünüyor; başka
                           // kimse kimin ne kaydettiğini göremiyor.
-                          QuickAction(
+                          const QuickAction(
                               icon: Icons.bookmark_border_rounded,
                               label: 'Kaydedilenler',
                               route: '/kaydedilenler'),
-                          QuickAction(
+                          // Kademeli yayın: bayrak kapalıyken kısayol
+                          // çizilmiyor. Rota tanımlı kalıyor ki bildirim
+                          // derin bağlantısı kırılmasın.
+                          if (ref.watch(featureEnabledProvider(
+                              FeatureFlags.sportTrainingSessions)))
+                            const QuickAction(
+                                icon: Icons.sports_rounded,
+                                label: 'Antrenmanlarım',
+                                route: '/antrenmanlarim'),
+                          const QuickAction(
                               icon: Icons.receipt_long_rounded,
                               label: 'Aidatlarım',
                               route: '/aidatlarim'),
-                          QuickAction(
+                          const QuickAction(
                               icon: Icons.folder_rounded,
                               label: 'Belgelerim',
                               route: '/documents'),
-                          QuickAction(
+                          const QuickAction(
                               icon: Icons.verified_user_rounded,
                               label: 'Doğrulama',
                               route: '/dogrulama'),

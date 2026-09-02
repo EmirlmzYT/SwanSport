@@ -38,6 +38,16 @@ class ManagementSection extends ConsumerWidget {
             '/performance-analytics'),
         const _Item(Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command'),
       ],
+      // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
+      // görmüyor. Rotalar tanımlı kalıyor.
+      if (access.isClubStaff &&
+          ref.watch(
+              featureEnabledProvider(FeatureFlags.sportTrainingSessions))) ...[
+        const _Item(Icons.sports_rounded, 'Antrenman Oturumu',
+            '/antrenman-oturumu'),
+        const _Item(Icons.tune_rounded, 'Antrenman Şablonları',
+            '/antrenman-sablonlari'),
+      ],
     ];
 
     final ops = <_Item>[

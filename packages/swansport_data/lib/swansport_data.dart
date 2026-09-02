@@ -34,6 +34,12 @@ export 'src/social_service.dart';
 export 'src/social_share_service.dart';
 export 'src/supabase_athletes.dart';
 export 'src/supabase_scope.dart';
+// Antrenman oturumu modelleri `SessionPhase`, `SessionRhythm` ve
+// `TrainingProtocolConfig` tiplerini DONDURUYOR. Bunlari yeniden
+// disa vurmazsak yalnizca swansport_data'yi alan bir tuketici kendi
+// aldigi degeri adlandiramaz.
+export 'package:swansport_branch_engine/swansport_branch_engine.dart';
+export 'src/training_session_service.dart';
 export 'src/turf_service.dart';
 export 'src/vault_service.dart';
 export 'src/verification_service.dart';
