@@ -179,6 +179,102 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
   elle denenince fark edilirdi. `inbox_actions_test.dart` artık dokunmanın
   çalıştığını test ediyor; yerel bir `_bell` kopyası yazma.
 
+**Mali operasyon merkezi (0055-0061)**
+- `expenses` genişletildi, **ikinci defter kurulmadı**: `vendor_id`,
+  `team_id`, `facility_id`, `event_id`, `op_id`, `approval_status`,
+  `recurring_id`. Eski `supplier text` sütunu duruyor — geçmiş kayıtlar onu
+  kullanıyor ve silmek veri kaybı olurdu.
+- **Denetim izi RPC değil TETİKLEYİCİ.** `expense_rw` politikası kulüp
+  personeline ve muhasebeciye doğrudan `update` hakkı veriyor; yalnızca
+  RPC'ye güvenmek o yolu izsiz bırakırdı. `expense_audit_logs.expense_id`
+  bilerek foreign key **değil**: cascade koysaydık izi silmenin yolu gideri
+  silmek olurdu.
+- **Vergi numarası ve IBAN ayrı tabloda** (`vendor_private`). RLS satır
+  düzeyinde çalışır, sütun gizleyemez; muhasebeciden gizlenmesi gereken bir
+  alanı aynı tabloda tutup arayüzde saklamak koruma olmazdı.
+- **Kapanmış dönem tetikleyiciyle kilitli** (`block_closed_period`).
+  Düzeltme geçmişe dokunmuyor, bugüne ters kayıt yazıyor.
+- **Kendi girdiği gideri kimse onaylayamıyor.** Tek yöneticili kulüpte bu
+  kilitlenme üretebilir; çözüm eşiği yükseltmek. Sessiz kilitlenme yerine
+  açık hata mesajı verildi.
+- Nakit tahmini **tek sayı döndürmüyor**: onaylı / beklenen / belirsiz ayrı
+  sütunlarda, iki uçlu aralık. Belirsiz hiçbir projeksiyona girmiyor.
+- Bakiye matematiği **tekrarlanmıyor** — `acc_account_balances` çağrılıyor.
+  İlk taslak elle yeniden yazmıştı ve durum süzgeci olmadığı için taslak ve
+  reddedilen kayıtları da bakiyeye katıyordu.
+- `acc_operations_summary` **bir kez** 0061'de yazıldı, altı migration'a
+  yayılmadı: her seferinde imza değiştirmek HTTP 300 tuzağını altı kez
+  açardı.
+- **Bilinen eksik:** tesis çakışması hesaplanamıyor. Rezervasyon tablosu yok,
+  `events.place` serbest metin. Metin eşleştirip sahte çakışma üretmek yerine
+  eksik bırakıldı.
+
+**Sosyal katman (0062-0063)**
+- **`posts_read` `using (true)` idi** ve 0006'dan beri öyleydi: giriş yapmış
+  herkes bütün gönderileri okuyabiliyordu. `community_read` ile aynı hata
+  (0045), aynı düzeltme. Görünürlük artık beş seviyeli ve engelleme iki yönlü
+  uygulanıyor.
+- **Güvenli kart:** paylaşılan içeriğin görüntüsü mesaja **gömülmüyor**, her
+  okumada `shared_content_card` ile kaynaktan tazeleniyor. Kaynak silinmişse
+  başlık bile dönmüyor — "silinmiş gönderinin başlığı" da sızdırılmış
+  içeriktir. "Silinmiş" ile "erişimin yok" **ayrı mesaj değil**: fark, olmayan
+  bir içeriğin varlığını doğrulardı.
+- **Çocuk gizliliği:** reşit olmayan hesapta görünürlük varsayılanı `public`
+  değil `followers`, dış paylaşım kapalı. Reşit olmama iki kaynaktan:
+  `guardians` bağlantısı **veya** `athletes.birth_date`. Tek başına hiçbiri
+  yetmiyor.
+- Etiketler profil UUID'siyle saklanıyor, kullanıcı adıyla değil: ad
+  değişince ilişki kopmasın.
+- `follows` tablosu **polimorfik** — `followee_id` diye bir sütun yok,
+  `(target_type, target_id)` var. Kulüp takibi de aynı tabloda.
+
+**Kulüp yaşam döngüsü (0064-0066)**
+- **Sağlık kısıtını yönetici dâhil kimse düğmeyle kaldıramıyor.** Yalnızca
+  `is_authorized_health_officer` üç şartı birden sağlayan kişi. Üçüncü şart
+  kritik: kişi hâlâ kulübün **aktif üyesi** olmalı — kulüpten ayrılmak da
+  yetkiyi anında düşürüyor.
+- `health_restrictions`'ta **teşhis, rapor ve doktor notu yok**. Yalnızca
+  durum, tarihler ve bir belge referansı. Yönetici üç rozet görüyor.
+- `athlete_id` `profiles` değil **`athletes`** referansı: bu depoda
+  `athletes.profile_id` nullable ve girişi olmayan sporcular çoğunlukla küçük
+  yaştakiler. `profiles`'a bağlamak kilidi tam korunması gereken grupta devre
+  dışı bırakırdı.
+- **Yoklama çakışması `marked_at` ile ÇÖZÜLMÜYOR** — `docs/offline-attendance-design.md`
+  öyle diyordu, 0065 bunu geri aldı. Yerine iyimser sürüm kontrolü:
+  çakışma sessizce çözülmüyor, antrenöre gösteriliyor. `op_id` sunucuda
+  (`attendance_op_logs`, `(actor_id, op_id)` benzersiz).
+- `attendance.status` bir **enum** (`attendance_status`); text atamak çalışma
+  zamanında patlar, açık dönüşüm gerekiyor.
+- Operasyon riski **tek puan değil gerekçe listesi**. Muhasebeci yalnızca
+  mali gerekçeleri görüyor.
+
+**Bayrak anahtarları — SQL ve Dart ayrışmamalı**
+- `feature_flag_sync_test.dart` iki tarafı karşılaştırıyor. Ayrışma sessiz:
+  sunucu `partner_search` derken istemci `partnerSearch` arar, `has()` false
+  döner ve bayrak **hiç açılmaz**. Yazıldığı anda gerçek bir boşluk buldu
+  (`coach_discovery` sabiti eksikti).
+- Test kendini de koruyor: regex boşa çalışırsa iki taraf da boş küme
+  döndürüp geçerdi, o yüzden "en az 20 anahtar" kontrolü var. Bu depoda
+  `grep 'error •'` tam olarak öyle hiçbir şey saymamıştı.
+
+**Tablo ve sütun adları — parse geçmesi çalışacağı anlamına gelmiyor**
+- `check_migrations.py` yalnızca söz dizimine bakıyor. Bu turda üç gerçek
+  hata ondan geçti ve elle yakalandı:
+  `public.team_members` (doğrusu **`team_memberships`**),
+  `follows.followee_id` (doğrusu **`target_type`/`target_id`**),
+  `payments.due_date` (o sütun **`invoices`**'ta; `payments`'ta `unpaid`
+  durumu da yok — `pending|confirmed|rejected`).
+- Yeni SQL yazarken referans verdiğin her tabloyu ve sütunu **şemadan
+  doğrula**. Üçü de çağrıldığı anda patlardı.
+
+**İkinci kopya yazma — bu turda üç kez oldu**
+- `draftExpensesProvider` konsolda zaten vardı (`ledger_providers.dart`),
+  `RosterEntry` `club_data.dart`'ta, `ExpenseAuditLog` taslakta.
+  İkisi `ambiguous_import`/`ambiguous_export` ile derlemede yakalandı,
+  üçüncüsü sessizce yanlış sözleşme taşıyordu.
+- `RosterEntry` ikinci tip yazılarak değil, **mevcut tipe alan eklenerek**
+  çözüldü: sürümsüz RPC'de `version` 0 kalıyor.
+
 **Antrenör keşfi (0054)**
 - Yeni tablo yok: `profile_credentials` doğrulanmış antrenörlüğü, kademeyi ve
   branşı (`sport_code`, 0017'de eklendi) zaten tutuyordu.
@@ -449,7 +545,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 141 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 195 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 10 test, hepsi geçer
@@ -458,7 +554,7 @@ cd packages/swansport_core && flutter test     # 10 test, hepsi geçer
 cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 150 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 153 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
@@ -802,6 +898,17 @@ istisna `send_club_message`'ti (bildirimi elle yazıyordu). 0040 bunu
 `trg_notify_direct_message` tetikleyicisine taşıdı: artık **tek kaynak**
 tetikleyici, `send_club_message`'in elle yazan satırı kaldırıldı (ikisi
 birden kalsaydı kulüp mesajlarında çift bildirim olurdu).
+
+> **2026-09-02: 0053-0066 hazır ama SÜRÜLMEDİ.**
+>
+> `tools/pending_migrations.sql` on dört dosyayı tek işlemde topluyor
+> (`begin`/`commit` — biri patlarsa hiçbiri uygulanmıyor). Üç güvenlik açığı
+> kapatıyor: `posts_read` politikası herkese açıktı, gider değişiklikleri
+> hiçbir yerde izlenmiyordu, kapanmış mali dönem diye bir şey yoktu.
+>
+> Yeni özelliklerin hepsi `admins` kademesinde başlıyor — hiçbiri gerçek
+> kullanımda denenmedi. `offline_attendance` bayrağı `off`: çakışma çözme
+> ekranı yazılmadan açılırsa veri kaybettirir.
 
 Migration'lar **0038'e kadar canlıda kurulu** (2026-08-30 doğrulandı): mali
 defter sayfalaması, yoklama denetim izi, etkinlik katılım onayı, malzeme
