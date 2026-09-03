@@ -1176,7 +1176,7 @@ okumamak lazım.
 
 ### Yarım / doğrulanmamış
 
-- **Antrenman oturum motoru (0071–0073)** — branşa özel canlı antrenman:
+- **Antrenman oturum motoru (0071–0074)** — branşa özel canlı antrenman:
   set, süre, skor, antrenör onayı. İlk branş okçuluk, dört hazır şablon.
   Bayrak `sport_training_sessions`, **`admins` kademesinde**.
 
@@ -1189,6 +1189,19 @@ okumamak lazım.
   Bilerek yapılmayanlar: kamera içi QR okuyucu (kod + telefon kamerası
   yeterli, yeni bağımlılık getirmedik), çevrimdışı yazma, `performance_tests`
   ile bağ, gelişim hedefi bağı, herkese açık sıralama.
+
+  **0071–0074 canlıda ve doğrulandı.** 0071/0072 dört fonksiyonun iznini
+  kaldırmayı atlamıştı (`valid_training_config`, `training_next_phase`,
+  `training_phase_seconds`, `guard_training_protocol_immutable`) ve üçünü
+  anon çağırabiliyordu; 0074 bunu kapattı — üçü de artık anon anahtarıyla
+  401 dönüyor, diğer RPC'ler düşmedi.
+
+  `valid_training_config` bilerek `authenticated`'a geri verildi: bir check
+  kısıtının gövdesinde ve platform yöneticisi `training_protocol_admin`
+  politikasıyla doğrudan `insert` yapabiliyor. Postgres kısıt ifadelerinde
+  EXECUTE iznini INSERT anında yeniden denetlemiyor, yani kuramsal olarak
+  gereksiz — ama bu kanıya dayanıp protokol yazmayı kırma riski alınmadı.
+  **Bu yol hâlâ gerçek hesapla denenmedi.**
 
 > **Migration durumu** (2026-09-01, kullanıcı 0040 ve 0041'i çalıştırdı)
 >
