@@ -755,7 +755,7 @@ cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 cd packages/swansport_branch_engine && dart test  # 41 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 194 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 202 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
@@ -1176,7 +1176,7 @@ okumamak lazım.
 
 ### Yarım / doğrulanmamış
 
-- **Antrenman oturum motoru (0071–0074)** — branşa özel canlı antrenman:
+- **Antrenman oturum motoru (0071–0075)** — branşa özel canlı antrenman:
   set, süre, skor, antrenör onayı. İlk branş okçuluk, dört hazır şablon.
   Bayrak `sport_training_sessions`, **`admins` kademesinde**.
 
@@ -1202,6 +1202,26 @@ okumamak lazım.
   EXECUTE iznini INSERT anında yeniden denetlemiyor, yani kuramsal olarak
   gereksiz — ama bu kanıya dayanıp protokol yazmayı kırma riski alınmadı.
   **Bu yol hâlâ gerçek hesapla denenmedi.**
+
+  **0075 canlıda ve doğrulandı.** 0073 `push_route`'a `training_session` ve
+  `training_result` eşlemelerini eklemişti ama hiçbir yer bu bildirimleri
+  göndermiyordu — rota vardı, gönderen yoktu. 0075 iki tetikleyici ekledi:
+  `trg_notify_training_session` (oturum açılınca kapsamdaki sporculara) ve
+  `trg_notify_training_results` (sonuçlar onaylanınca katılanlara). İkisi de
+  `pg_trigger`'da etkin.
+
+  Tetikleyici seçildi çünkü `start_training_session` ve
+  `lock_session_results` yüz satırlık gövdeler; `create or replace` ile
+  yeniden yazmak bu depoda bir kez gerçekten eşleme kaybettirdi.
+
+  **Bildirimin gerçekten düştüğü görülmedi** — bunun için canlı bir oturum
+  açmak gerekiyor, o da bayrak `testers`'a çekildikten sonra.
+
+  TETİKLEYİCİ DOĞRULARKEN KONTROL SATIRI KOY. `pg_trigger` sorgusu boş
+  dönünce "uygulanmamış" sanıldı; sorguya kesin var olan iki tetikleyici
+  (`trg_push_on_notification`, `trg_training_protocol_immutable`) eklenince
+  dördü birden göründü. Kontrolsüz bir "0", "yok" ile "sorgu çalışmıyor"
+  arasında ayrım yapmıyor.
 
 > **Migration durumu** (2026-09-01, kullanıcı 0040 ve 0041'i çalıştırdı)
 >

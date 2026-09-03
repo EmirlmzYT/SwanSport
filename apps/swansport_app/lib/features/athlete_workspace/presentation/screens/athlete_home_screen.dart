@@ -9,6 +9,7 @@ import '../../../../app/widgets/summary_section.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../widgets/getting_started_card.dart';
 
 /// Sporcu Ana Ekranı — sporcunun kendi gözünden (premium v3).
 ///
@@ -116,6 +117,12 @@ class AthleteHomeScreen extends ConsumerWidget {
                   // Eskiden burada dört düğmelik bir kısayol ızgarası vardı;
                   // düğmeler hiçbir şey söylemiyordu — "Belgelerim" yazıyordu
                   // ama belgen eksik mi tam mı, girmeden anlaşılmıyordu.
+
+                  // Hiç verisi olmayan sporcu, altı bölümde art arda
+                  // olumsuz cümle görüyordu. Bölümler tek tek doğru
+                  // davranıyor; toplamı yanlıştı. Bu blok veri gelince
+                  // kendiliğinden kayboluyor.
+                  GettingStartedCard(card: card.valueOrNull),
 
                   // Başlık "Bugün" değil "Program": `eventsProvider` yaklaşan
                   // etkinlikleri döndürüyor, hepsi bugün değil. Gelecek
