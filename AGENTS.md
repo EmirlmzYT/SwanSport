@@ -713,6 +713,19 @@ js.includes('acc_operations_summary')
   çeviriyor; `grep "Mali İş Kuyruğu"` sıfır döndürüyor ve bu "kod yok" gibi
   okunuyor. Aynı gün buna da düşüldü. **RPC ve rota adları ASCII** — onlarla
   ara.
+
+  Metnin kendisi **silinmiyor, kaçırılıyor**: "Başlarken" derlemede
+  `Başlarken` olarak duruyor. Yani ASCII bir tutamağın yoksa kaçırılmış
+  biçimi aranabilir:
+
+  ```bash
+  grep -oE "Ba.{0,8}larken" apps/swansport_app/build/web/main.dart.js
+  ```
+
+  Kabukta ters bölü yazarken dikkat: `grep -c "Ba\u015f"` çift tırnak
+  içinde sıfır döndürüyor, `grep -cE "Ba.u015[fF]"` çalışıyor. Sıfır
+  gördüğünde önce desenini sına — 2026-09-03'te "kart derlemeye girmemiş"
+  sanıldı, girmişti.
 - **`cache: 'reload'` Cloudflare kenar önbelleğini kırmıyor.** Tarayıcı
   önbelleğini atlıyor ama CDN eski dosyayı vermeye devam edebiliyor:
   2026-09-02'de dağıtımdan hemen sonra canlı dosya bir önceki boyutta
