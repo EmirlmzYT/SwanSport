@@ -26,7 +26,7 @@ jobs:
           java-version: '17'
 
       - name: Setup Flutter
-        uses: actions/setup-flutter@v3
+        uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
