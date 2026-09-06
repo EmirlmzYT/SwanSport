@@ -77,6 +77,28 @@ kardeşlerine sporcu adı ekleyen bir değişiklik bu güvenceyi kırar.
 
 ## Bilinen tuzaklar
 
+- **`athletes.profile_id` bir sütun değil, bir SÖZLEŞMEYDİ — ve yazılmıyordu.**
+  Dört yerde okunuyordu (`athleteByProfileProvider`, `join_training_session`,
+  `my_training_history`, 0075 bildirimleri) ama kod tabanında hiçbir yer
+  yazmıyordu. `addAthlete` yalnızca ad-soyad atıyordu,
+  `review_club_application` yalnızca `club_memberships` satırı üretiyordu.
+
+  Sonucu: kulübün birbirini görmeyen iki listesi. Gerçek hesaplar
+  (`club_memberships`, `role='athlete'`) ve ad-soyaddan ibaret kadro
+  kayıtları. Eklenen sporcu giriş yapamıyor, kendi kartını göremiyor,
+  antrenman oturumuna katılamıyor, bildirim almıyor — **ve kadro listesinde
+  diğerlerinden ayırt edilemiyor.** Belirtisi yok; yalnızca "sporcu neden
+  hiçbir şey göremiyor" diye sorulunca ortaya çıkıyor.
+
+  0076 yazma yolunu açtı (`create_athlete_from_member`,
+  `link_athlete_to_member`). Bir sütunu okuyup hiç yazmayan kod ararken
+  `grep "'profile_id'"` ile yazma tarafını ayrıca kontrol et.
+
+- **Hesapsız sporcu kaldırılamaz.** Küçük yaştaki sporcuların giriş profili
+  olmayabiliyor; `profile_id` 0001'den beri bilerek nullable ve
+  `athlete_needs_guardian` buna dayanıyor. Bağlamayı zorunlu kılan bir
+  değişiklik onları kadro dışı bırakır.
+
 - **Özellik bayrağı DÖRT değil BEŞ yerde yaşıyor.** SQL satırı, Dart sabiti,
   `feature_flag_sync_test`, SSS kaydı — ve **ekranda gerçekten `featureEnabled`
   kontrolü**. İlk dördü tamken beşincisi unutulursa hiçbir test şikâyet
@@ -756,7 +778,7 @@ flutter analyze packages/swansport_data apps/swansport_console apps/swansport_ap
 ```
 
 ```bash
-cd packages/swansport_data && flutter test     # 241 test, hepsi geçer
+cd packages/swansport_data && flutter test     # 250 test, hepsi geçer
 ```
 ```bash
 cd packages/swansport_core && flutter test     # 26 test, hepsi geçer
@@ -768,7 +790,7 @@ cd apps/swansport_console && flutter test      # 40 test, hepsi geçer
 cd packages/swansport_branch_engine && dart test  # 41 test, hepsi geçer
 ```
 ```bash
-cd apps/swansport_app && flutter test          # 202 test, hepsi geçer
+cd apps/swansport_app && flutter test          # 208 test, hepsi geçer
 ```
 
 Konsol 50'den 40'a **düşmedi, taşındı**: `money_test` (10 test) `fmtMoney`
@@ -1229,6 +1251,11 @@ okumamak lazım.
 
   **Bildirimin gerçekten düştüğü görülmedi** — bunun için canlı bir oturum
   açmak gerekiyor, o da bayrak `testers`'a çekildikten sonra.
+
+  **`0076` HENÜZ ÇALIŞTIRILMADI.** Sporcu kaydını kulüp üyesine bağlıyor:
+  "Sporcu ekle" artık önce kulübe katılmış üyeleri listeliyor, kadro
+  listesinde "N sporcu hesaba bağlı değil" şeridi çıkıyor ve mevcut kopuk
+  kayıtlar geçmişleri korunarak eşleştirilebiliyor.
 
   TETİKLEYİCİ DOĞRULARKEN KONTROL SATIRI KOY. `pg_trigger` sorgusu boş
   dönünce "uygulanmamış" sanıldı; sorguya kesin var olan iki tetikleyici

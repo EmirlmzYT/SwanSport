@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -21,19 +22,96 @@ import 'create_sheet.dart';
 ///    istiyordu ve 31 ekranın 25'i bunları boş geçiyordu
 ///    (`selectedIndex: -1, onSelect: (_) {}, onAction: () {}`). Aktif sekme
 ///    zaten açık rotadan anlaşılıyor; o gürültü kalktı.
-class SwanBottomNav extends ConsumerWidget {
+/// **Kaydırarak seçim.** Çubuğa basılı tutup parmağını yana kaydırınca seçim
+/// parmağı takip ediyor, bırakınca o sekme açılıyor. Normal dokunuş eskisi
+/// gibi doğrudan gidiyor — iki jest çakışmıyor çünkü kaydırma yalnızca uzun
+/// basıştan sonra başlıyor.
+///
+/// Hangi sekmenin üstünde olduğun `GlobalKey` ile gerçek yerleşimden
+/// ölçülüyor, sabit genişlik hesabıyla değil: satır `spaceBetween` ve ekran
+/// genişliğine göre değişiyor, elle hesaplasak dar telefonda kayardı.
+///
+/// Ortadaki "+" kaydırmada atlanıyor. O bir hedef değil bir eylem; parmak
+/// üstünden geçerken sayfa açmak ya da bırakınca yanlışlıkla paylaşım
+/// sayfası çıkarmak sürpriz olurdu.
+class SwanBottomNav extends ConsumerStatefulWidget {
   const SwanBottomNav({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SwanBottomNav> createState() => _SwanBottomNavState();
+}
+
+class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
+  /// Dört gezinme sekmesinin yerleşimdeki karşılığı.
+  final _keys = List.generate(4, (_) => GlobalKey());
+
+  /// Kaydırma sırasında parmağın üstünde olduğu sekme. `null` = kaydırma yok.
+  int? _scrub;
+
+  /// Parmağın yatayda hangi sekmenin üstünde olduğu.
+  ///
+  /// Yalnızca `dx` bakılıyor: parmak kaydırırken dikeyde çubuğun dışına
+  /// çıkıyor ve dikey kontrol koysaydık seçim ortada kaybolurdu.
+  int? _indexAt(Offset globalPos) {
+    for (var i = 0; i < _keys.length; i++) {
+      final box = _keys[i].currentContext?.findRenderObject() as RenderBox?;
+      if (box == null) continue;
+      final left = box.localToGlobal(Offset.zero).dx;
+      if (globalPos.dx >= left && globalPos.dx <= left + box.size.width) {
+        return i;
+      }
+    }
+    return null;
+  }
+
+  void _preview(Offset pos) {
+    final i = _indexAt(pos);
+    // "+" üstündeyken (i == null) önceki seçim korunuyor; boşa düşürmek
+    // parmak ortadan geçerken seçimin yanıp sönmesi demekti.
+    if (i == null || i == _scrub) return;
+    HapticFeedback.selectionClick();
+    setState(() => _scrub = i);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final c = context.swan;
     final current = ModalRoute.of(context)?.settings.name;
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
     final myId = Supabase.instance.client.auth.currentUser?.id;
 
+    // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
+    final targets = <_NavTarget>[
+      _NavTarget(Icons.home_rounded, 'Ana Sayfa', '/akis'),
+      _NavTarget(Icons.explore_rounded, 'Keşfet', '/kesfet'),
+      _NavTarget(Icons.chat_bubble_rounded, 'Mesajlar', '/mesajlar'),
+      _NavTarget(Icons.person_rounded, 'Profil', '/profil'),
+    ];
+
     return SafeArea(
-      child: Padding(
+      child: GestureDetector(
+        behavior: HitTestBehavior.deferToChild,
+        onLongPressStart: (d) {
+          HapticFeedback.selectionClick();
+          setState(() => _scrub = _indexAt(d.globalPosition));
+        },
+        onLongPressMoveUpdate: (d) => _preview(d.globalPosition),
+        onLongPressEnd: (d) {
+          final i = _scrub;
+          setState(() => _scrub = null);
+          if (i == null) return;
+          final t = targets[i];
+          if (t.route == '/profil') {
+            if (myId != null) {
+              Navigator.pushNamed(context, '/profil', arguments: myId);
+            }
+          } else {
+            _go(context, t.route);
+          }
+        },
+        onLongPressCancel: () => setState(() => _scrub = null),
+        child: Padding(
         padding: const EdgeInsets.fromLTRB(
             SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.md),
         child: Container(
@@ -54,35 +132,33 @@ class SwanBottomNav extends ConsumerWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _Tab(
-                icon: Icons.home_rounded,
-                label: 'Ana Sayfa',
-                active: route == '/akis',
-                onTap: () => _go(context, '/akis'),
-              ),
-              _Tab(
-                icon: Icons.explore_rounded,
-                label: 'Keşfet',
-                active: route == '/kesfet',
-                onTap: () => _go(context, '/kesfet'),
-              ),
-              const _CreateButton(),
-              _Tab(
-                icon: Icons.chat_bubble_rounded,
-                label: 'Mesajlar',
-                active: route == '/mesajlar',
-                onTap: () => _go(context, '/mesajlar'),
-              ),
-              _Tab(
-                icon: Icons.person_rounded,
-                label: 'Profil',
-                active: route == '/profil',
-                onTap: () => myId == null
-                    ? null
-                    : Navigator.pushNamed(context, '/profil',
-                        arguments: myId),
-              ),
+              for (var i = 0; i < targets.length; i++) ...[
+                // "+" ikinci sekmeden sonra, ortada.
+                if (i == 2) const _CreateButton(),
+                _Tab(
+                  key: _keys[i],
+                  icon: targets[i].icon,
+                  label: targets[i].label,
+                  // Kaydırırken önizleme açık sekmenin yerini alıyor: parmak
+                  // neredeyse orası seçili görünüyor, bırakınca oraya gidiyor.
+                  active: _scrub == null
+                      ? route == targets[i].route
+                      : _scrub == i,
+                  scrubbing: _scrub == i,
+                  onTap: () {
+                    if (targets[i].route == '/profil') {
+                      if (myId != null) {
+                        Navigator.pushNamed(context, '/profil',
+                            arguments: myId);
+                      }
+                      return;
+                    }
+                    _go(context, targets[i].route);
+                  },
+                ),
+              ],
             ],
+          ),
           ),
         ),
       ),
@@ -95,18 +171,33 @@ class SwanBottomNav extends ConsumerWidget {
   }
 }
 
+/// Alt çubuktaki bir gezinme hedefi.
+class _NavTarget {
+  const _NavTarget(this.icon, this.label, this.route);
+
+  final IconData icon;
+  final String label;
+  final String route;
+}
+
 class _Tab extends StatelessWidget {
   const _Tab({
+    super.key,
     required this.icon,
     required this.label,
     required this.active,
     required this.onTap,
+    this.scrubbing = false,
   });
 
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback? onTap;
+
+  /// Parmak şu an bu sekmenin üstünde. Görsel olarak öne çıkıyor ki
+  /// kullanıcı bırakmadan önce nereye gideceğini görsün.
+  final bool scrubbing;
 
   @override
   Widget build(BuildContext context) {
@@ -118,19 +209,34 @@ class _Tab extends StatelessWidget {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: SizedBox(
-        width: 60,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 22, color: color),
-            const SizedBox(height: 3),
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.caption(color,
-                    w: active ? FontWeight.w800 : FontWeight.w600)),
-          ],
+      child: AnimatedScale(
+        // Kısa ve az: 1.08 fark edilir ama zıplamıyor.
+        scale: scrubbing ? 1.08 : 1,
+        duration: const Duration(milliseconds: 120),
+        curve: Curves.easeOut,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          width: 60,
+          decoration: BoxDecoration(
+            // Yalnızca kaydırma sırasında zemin: parmağın altındaki sekme
+            // bırakmadan önce belli olsun. Normal durumda çubuk sade kalıyor.
+            color: scrubbing ? c.accentSoft : Colors.transparent,
+            borderRadius: BorderRadius.circular(SwanRadius.md),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 6),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 22, color: color),
+              const SizedBox(height: 3),
+              Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.caption(color,
+                      w: active ? FontWeight.w800 : FontWeight.w600)),
+            ],
+          ),
         ),
       ),
     );

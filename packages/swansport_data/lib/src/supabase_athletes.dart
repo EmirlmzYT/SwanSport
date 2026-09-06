@@ -263,6 +263,123 @@ class SupabaseAthleteService {
       'status': 'active',
     });
   }
+
+  // ------------------------------------------------------- hesap bağlama
+  //
+  // `athletes.profile_id` bu dosyada dört yerde OKUNUYORDU ama hiçbir yerde
+  // yazılmıyordu; sonuç, giriş yapamayan, kendi kartını göremeyen, antrenman
+  // oturumuna katılamayan kadro kayıtlarıydı. 0076 yazma yolunu açtı.
+  //
+  // Hesapsız sporcu hâlâ mümkün: `addAthlete` duruyor ve küçük yaştaki
+  // sporcular için gereken yol o.
+
+  /// Kulübe katılmış ama kadro kaydı olmayan üyeler — "Sporcu ekle"
+  /// ekranının kaynağı.
+  ///
+  /// Platformdaki tüm profillerde arama YAPILMIYOR: kulüp yöneticisine
+  /// herhangi bir hesabı kendi kulübüne ekleme yetkisi vermek olurdu.
+  /// Buradaki kişiler kulübe kendileri başvurup onaylanmış.
+  Future<List<ClubMemberCandidate>> membersWithoutAthlete(String clubId) async {
+    final rows = await _client.rpc<dynamic>('club_members_without_athlete',
+        params: {'p_club': clubId}) as List;
+    return [
+      for (final r in rows)
+        ClubMemberCandidate.fromMap((r as Map).cast<String, dynamic>()),
+    ];
+  }
+
+  /// Üyeden kadro kaydı oluştur. Ad ve soyad boş bırakılırsa profilden
+  /// türetiliyor (son kelime soyad).
+  Future<String> createAthleteFromMember({
+    required String clubId,
+    required String profileId,
+    String? firstName,
+    String? lastName,
+    String? position,
+  }) async {
+    final res = await _client.rpc<String>('create_athlete_from_member', params: {
+      'p_club': clubId,
+      'p_profile': profileId,
+      'p_first_name': firstName,
+      'p_last_name': lastName,
+      'p_position': position,
+    });
+    return res;
+  }
+
+  /// Var olan kopuk kaydı hesaba bağla.
+  ///
+  /// Kayıt silinip yeniden oluşturulmuyor: yoklama, aidat ve performans
+  /// geçmişi `athlete_id`'ye bağlı, silmek onu kaybettirirdi.
+  Future<void> linkAthleteToMember(String athleteId, String profileId) =>
+      _client.rpc<void>('link_athlete_to_member',
+          params: {'p_athlete': athleteId, 'p_profile': profileId});
+
+  /// Hesaba bağlı olmayan kadro kayıtları.
+  Future<List<UnlinkedAthlete>> unlinkedAthletes(String clubId) async {
+    final rows = await _client.rpc<dynamic>('club_unlinked_athletes',
+        params: {'p_club': clubId}) as List;
+    return [
+      for (final r in rows)
+        UnlinkedAthlete.fromMap((r as Map).cast<String, dynamic>()),
+    ];
+  }
+}
+
+/// Kadro kaydı olmayan bir kulüp üyesi.
+class ClubMemberCandidate {
+  const ClubMemberCandidate({
+    required this.profileId,
+    required this.fullName,
+    this.avatarUrl,
+    this.role = 'athlete',
+    this.joinedAt,
+  });
+
+  factory ClubMemberCandidate.fromMap(Map<String, dynamic> m) =>
+      ClubMemberCandidate(
+        profileId: m['profile_id'] as String,
+        fullName: (m['full_name'] as String?) ?? '',
+        avatarUrl: m['avatar_url'] as String?,
+        role: (m['role'] as String?) ?? 'athlete',
+        joinedAt: DateTime.tryParse((m['joined_at'] as String?) ?? ''),
+      );
+
+  final String profileId;
+  final String fullName;
+  final String? avatarUrl;
+  final String role;
+  final DateTime? joinedAt;
+
+  /// Profilde ad yazmıyorsa antrenörün elle yazması gerekiyor; ekran bunu
+  /// ayırt edebilmeli.
+  bool get hasName => fullName.trim().isNotEmpty;
+
+  String get displayName => hasName ? fullName : 'Adı yazılmamış hesap';
+}
+
+/// Hesaba bağlı olmayan kadro kaydı.
+class UnlinkedAthlete {
+  const UnlinkedAthlete({
+    required this.athleteId,
+    required this.firstName,
+    required this.lastName,
+    this.status = 'active',
+  });
+
+  factory UnlinkedAthlete.fromMap(Map<String, dynamic> m) => UnlinkedAthlete(
+        athleteId: m['athlete_id'] as String,
+        firstName: (m['first_name'] as String?) ?? '',
+        lastName: (m['last_name'] as String?) ?? '',
+        status: (m['status'] as String?) ?? 'active',
+      );
+
+  final String athleteId;
+  final String firstName;
+  final String lastName;
+  final String status;
+
+  String get fullName => '$firstName $lastName'.trim();
 }
 
 /// ---------------------------------------------------------------------------
@@ -397,6 +514,23 @@ extension AthleteDetailQueries on SupabaseAthleteService {
     );
   }
 }
+
+/// Kadro kaydı olmayan kulüp üyeleri — "Sporcu ekle" ekranının listesi.
+final clubMemberCandidatesProvider =
+    FutureProvider.autoDispose.family<List<ClubMemberCandidate>, String>(
+        (ref, clubId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(athleteServiceProvider).membersWithoutAthlete(clubId);
+});
+
+/// Hesaba bağlı olmayan kadro kayıtları. Kadro listesindeki rozet ve
+/// "Hesapla eşleştir" akışı bunu okuyor.
+final unlinkedAthletesProvider =
+    FutureProvider.autoDispose.family<List<UnlinkedAthlete>, String>(
+        (ref, clubId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(athleteServiceProvider).unlinkedAthletes(clubId);
+});
 
 final athleteByIdProvider =
     FutureProvider.autoDispose.family<AthleteFull?, String>((ref, id) {

@@ -6,6 +6,9 @@ import 'package:swansport_models/swansport_models.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../routing/athlete_detail_route_args.dart';
+import '../widgets/add_athlete_sheet.dart';
+import '../widgets/link_athletes_sheet.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
@@ -83,6 +86,12 @@ class _AthleteWorkspaceScreenState
                     ],
                   ),
                   const SizedBox(height: 16),
+                  // Kopuk kayıt uyarısı. Antrenörün bu sorunu FARK ETMESİ
+                  // gerekiyor: hesaba bağlı olmayan sporcu giriş yapamaz,
+                  // antrenman oturumuna katılamaz, bildirim almaz — ve
+                  // kadro listesinde diğerlerinden ayırt edilemez.
+                  if (clubAsync.valueOrNull != null)
+                    _unlinkedBanner(isDark, clubAsync.value!),
                   _searchField(isDark),
                   const SizedBox(height: 12),
                   SizedBox(
@@ -286,12 +295,110 @@ class _AthleteWorkspaceScreenState
     }
   }
 
+  /// "N sporcu hesaba bağlı değil" şeridi.
+  ///
+  /// Sıfırsa hiç çizilmiyor: sorun yokken kalıcı bir uyarı bırakmak, gerçek
+  /// uyarıları okunmaz yapıyor.
+  Widget _unlinkedBanner(bool isDark, ClubRef club) {
+    final rows = ref.watch(unlinkedAthletesProvider(club.id)).valueOrNull;
+    if (rows == null || rows.isEmpty) return const SizedBox.shrink();
+    final c = context.swan;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GestureDetector(
+        onTap: () async {
+          await showLinkAthletesSheet(context, club.id);
+          if (mounted) ref.invalidate(clubAthletesProvider);
+        },
+        child: Container(
+          padding: const EdgeInsets.all(SwanSpace.md),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.md),
+            border: Border.all(color: c.warning),
+          ),
+          child: Row(children: [
+            Icon(Icons.link_off_rounded, size: 18, color: c.warning),
+            const SizedBox(width: SwanSpace.sm),
+            Expanded(
+              child: Text(
+                '${rows.length} sporcu hesaba bağlı değil — giriş yapamaz, '
+                'antrenmanlarını göremez',
+                style: SwanType.bodySm(c.ink),
+              ),
+            ),
+            Text('Eşleştir', style: SwanType.bodySm(c.accent)),
+          ]),
+        ),
+      ),
+    );
+  }
+
+  /// Sporcu ekleme — önce kulüp üyeleri, sonra elle giriş.
+  ///
+  /// Eskiden doğrudan ad-soyad formu açılıyordu ve `profile_id` hiç
+  /// yazılmadığı için ortaya bir insana bağlı OLMAYAN kayıt çıkıyordu: o
+  /// sporcu giriş yapamıyor, kendi kartını göremiyor, antrenman oturumuna
+  /// katılamıyordu. Artık varsayılan yol hesaba bağlamak; elle giriş
+  /// hesabı olmayan (küçük yaştaki) sporcular için ikinci sırada duruyor.
   Future<void> _showAddAthlete(ClubRef club) async {
+    final choice = await showAddAthleteSheet(context, club.id);
+    if (choice == null || !mounted) return;
+
+    switch (choice) {
+      case AddAthleteFromMember(:final profileId, :final fullName):
+        await _addFromMember(club, profileId, fullName);
+      case AddAthleteManually():
+        await _addManually(club);
+    }
+  }
+
+  /// Kulüp üyesinden kadro kaydı. Ad profilden geliyor; profilde ad yoksa
+  /// antrenörden isteniyor, çünkü `first_name`/`last_name` boş kalırsa
+  /// listede tanınmaz bir satır oluşur.
+  Future<void> _addFromMember(
+      ClubRef club, String profileId, String fullName) async {
+    String? first;
+    String? last;
+
+    if (fullName.trim().isEmpty) {
+      final firstCtrl = TextEditingController();
+      final lastCtrl = TextEditingController();
+      final ok = await _formDialog(
+        title: 'Sporcunun adı',
+        fields: [
+          _DialogField('Ad', firstCtrl),
+          _DialogField('Soyad', lastCtrl),
+        ],
+        action: 'Ekle',
+      );
+      if (ok != true) return;
+      if (firstCtrl.text.trim().isEmpty) return;
+      first = firstCtrl.text.trim();
+      last = lastCtrl.text.trim();
+    }
+
+    await _run(() async {
+      await ref.read(athleteServiceProvider).createAthleteFromMember(
+            clubId: club.id,
+            profileId: profileId,
+            firstName: first,
+            lastName: last,
+          );
+      ref.invalidate(clubAthletesProvider);
+      ref.invalidate(clubMemberCandidatesProvider(club.id));
+      ref.invalidate(unlinkedAthletesProvider(club.id));
+    }, success: 'Sporcu eklendi ve hesabına bağlandı');
+  }
+
+  /// Hesabı olmayan sporcu — eski akış olduğu gibi duruyor.
+  Future<void> _addManually(ClubRef club) async {
     final firstCtrl = TextEditingController();
     final lastCtrl = TextEditingController();
     final posCtrl = TextEditingController();
     final ok = await _formDialog(
-      title: 'Sporcu Ekle',
+      title: 'Hesabı olmayan sporcu',
       fields: [
         _DialogField('Ad', firstCtrl),
         _DialogField('Soyad', lastCtrl),
@@ -309,7 +416,8 @@ class _AthleteWorkspaceScreenState
             position: posCtrl.text.trim(),
           );
       ref.invalidate(clubAthletesProvider);
-    }, success: 'Sporcu eklendi');
+      ref.invalidate(unlinkedAthletesProvider(club.id));
+    }, success: 'Sporcu eklendi — henüz bir hesaba bağlı değil');
   }
 
   Future<void> _run(Future<void> Function() task,
