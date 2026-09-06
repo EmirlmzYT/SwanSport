@@ -33,12 +33,16 @@ class SocialAvatar extends StatelessWidget {
         gradientIndex: gradientIndex,
       );
     }
+    final pixelRatio = MediaQuery.devicePixelRatioOf(context);
+    final cacheDim = (size * pixelRatio).round();
     return ClipRRect(
       borderRadius: BorderRadius.circular(r),
       child: Image.network(
         imageUrl!,
         width: size,
         height: size,
+        cacheWidth: cacheDim,
+        cacheHeight: cacheDim,
         fit: BoxFit.cover,
         errorBuilder: (_, __, ___) => GradientAvatar(
           initials: initials,

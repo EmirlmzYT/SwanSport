@@ -22,12 +22,15 @@ class SwanPageTransitionsBuilder extends PageTransitionsBuilder {
   }
 }
 
-/// Tüm platformlar için ortak geçiş teması (web'de altta iOS/Android olabilir).
+/// Tüm platformlar için geçiş teması.
+/// iOS ve macOS'ta yerel Cupertino geçişi (sağdan akıcı kayma, 120Hz ProMotion ve
+/// sol kenardan parmakla geri kaydırma / Interactive Pop Gesture) kullanılır.
+/// Diğer platformlarda sakin crossfade korunur.
 const PageTransitionsTheme kSwanPageTransitions = PageTransitionsTheme(
   builders: <TargetPlatform, PageTransitionsBuilder>{
     TargetPlatform.android: SwanPageTransitionsBuilder(),
-    TargetPlatform.iOS: SwanPageTransitionsBuilder(),
-    TargetPlatform.macOS: SwanPageTransitionsBuilder(),
+    TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+    TargetPlatform.macOS: CupertinoPageTransitionsBuilder(),
     TargetPlatform.windows: SwanPageTransitionsBuilder(),
     TargetPlatform.linux: SwanPageTransitionsBuilder(),
     TargetPlatform.fuchsia: SwanPageTransitionsBuilder(),

@@ -122,6 +122,9 @@ class IdentityHeader extends StatelessWidget {
               Image.network(
                 coverUrl!,
                 fit: BoxFit.cover,
+                cacheHeight:
+                    (_coverHeight * MediaQuery.devicePixelRatioOf(context))
+                        .round(),
                 // Görsel yüklenemezse marka bandına düşüyor — kırık ikon
                 // göstermek profil sayfasını bozuk gösterirdi.
                 errorBuilder: (_, __, ___) => ColoredBox(color: tone.base),
