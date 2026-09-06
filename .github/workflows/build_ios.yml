@@ -32,7 +32,10 @@ jobs:
       - name: Build iOS (No Codesign)
         working-directory: apps/swansport_app
         run: |
-          flutter build ios --release --no-codesign
+          flutter build ios --release --no-codesign \
+            --dart-define=SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --dart-define=SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }} \
+            --dart-define=APP_ENV=production
 
       - name: Package IPA for Sideloadly
         working-directory: apps/swansport_app

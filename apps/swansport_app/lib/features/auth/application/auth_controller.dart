@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 enum AuthMode { signIn, signUp }
 
@@ -35,7 +36,7 @@ class AuthState {
 class AuthController extends StateNotifier<AuthState> {
   AuthController(this._auth) : super(const AuthState());
 
-  final GoTrueClient _auth;
+  final GoTrueClient? _auth;
 
   void toggleMode() {
     state = state.copyWith(
@@ -68,6 +69,15 @@ class AuthController extends StateNotifier<AuthState> {
     }
 
     state = state.copyWith(status: AuthStatus.submitting, errorMessage: null);
+
+    if (_auth == null) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage:
+            'Sunucu yapılandırması bulunamadı. Lütfen internet bağlantınızı kontrol edin.',
+      );
+      return false;
+    }
 
     try {
       if (state.mode == AuthMode.signUp) {
@@ -129,7 +139,7 @@ class AuthController extends StateNotifier<AuthState> {
     }
     state = state.copyWith(status: AuthStatus.submitting, errorMessage: null);
     try {
-      await _auth.resetPasswordForEmail(trimmed);
+      await _auth?.resetPasswordForEmail(trimmed);
       state = state.copyWith(
         status: AuthStatus.idle,
         errorMessage: 'Sıfırlama bağlantısı $trimmed adresine gönderildi.',
@@ -161,7 +171,7 @@ class AuthController extends StateNotifier<AuthState> {
     }
     state = state.copyWith(status: AuthStatus.submitting, errorMessage: null);
     try {
-      await _auth.updateUser(UserAttributes(password: newPassword));
+      await _auth?.updateUser(UserAttributes(password: newPassword));
       state = state.copyWith(status: AuthStatus.idle, errorMessage: null);
       return true;
     } on AuthException catch (e) {
@@ -173,7 +183,9 @@ class AuthController extends StateNotifier<AuthState> {
     }
   }
 
-  Future<void> signOut() => _auth.signOut();
+  Future<void> signOut() async {
+    await _auth?.signOut();
+  }
 
   String _friendlyMessage(String raw) {
     final lower = raw.toLowerCase();
@@ -213,5 +225,9 @@ class AuthController extends StateNotifier<AuthState> {
 
 final authControllerProvider =
     StateNotifierProvider<AuthController, AuthState>((ref) {
+  final isEnabled = ref.watch(isSupabaseEnabledProvider);
+  if (!isEnabled) {
+    return AuthController(null);
+  }
   return AuthController(Supabase.instance.client.auth);
 });
