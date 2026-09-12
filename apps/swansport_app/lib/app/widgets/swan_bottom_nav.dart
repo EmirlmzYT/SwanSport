@@ -220,7 +220,7 @@ class _Tab extends StatelessWidget {
           decoration: BoxDecoration(
             // Yalnızca kaydırma sırasında zemin: parmağın altındaki sekme
             // bırakmadan önce belli olsun. Normal durumda çubuk sade kalıyor.
-            color: scrubbing ? c.accentSoft : Colors.transparent,
+            color: active ? c.accentSoft : Colors.transparent,
             borderRadius: BorderRadius.circular(SwanRadius.md),
           ),
           padding: const EdgeInsets.symmetric(vertical: 6),
