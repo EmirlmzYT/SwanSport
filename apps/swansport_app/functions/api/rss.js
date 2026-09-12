@@ -45,7 +45,9 @@ export async function onRequest(context) {
       return json({ error: `kaynak yanıt vermedi (${res.status})` }, 502);
     }
     const xml = await res.text();
-    return json({ items: parseFeed(xml, res.url || parsed.toString()) }, 200, {
+    const items = parseFeed(xml, res.url || parsed.toString());
+    await enrichMissingImages(items, res.url || parsed.toString());
+    return json({ items }, 200, {
       // 15 dakika önbellek — her açılışta kaynağı yormayalım.
       'Cache-Control': 'public, max-age=900',
     });
@@ -116,7 +118,9 @@ export function parseFeed(xml, feedUrl) {
         if (image) break;
       }
     }
-    // Bazı RSS sağlayıcıları görseli kanal/öğe içindeki <image><url> olarak verir.
+    // AA gibi bazı sağlayıcılar doğrudan <image>URL</image>, bazılarıysa
+    // <image><url>URL</url></image> kullanır.
+    if (!image) image = webUrl(clean(tag(block, 'image')), link || feedUrl);
     if (!image) image = webUrl(clean(tag(block, 'url')), link || feedUrl);
 
     items.push({
@@ -153,6 +157,37 @@ function clean(value) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+/** RSS görsel vermiyorsa aynı sitedeki haber sayfasının sosyal kapak görselini alır. */
+async function enrichMissingImages(items, feedUrl) {
+  let feedOrigin;
+  try { feedOrigin = new URL(feedUrl).origin; } catch { return; }
+
+  const missing = items.filter((item) => !item.image && item.link).slice(0, 12);
+  await Promise.allSettled(missing.map(async (item) => {
+    const article = new URL(item.link);
+    if (article.origin !== feedOrigin) return;
+    const response = await fetch(article, {
+      headers: { 'User-Agent': 'SwanSport/1.0 (+https://swansport.pages.dev)' },
+      cf: { cacheTtl: 3600, cacheEverything: true },
+    });
+    if (!response.ok) return;
+    const type = response.headers.get('content-type') || '';
+    if (!type.includes('text/html')) return;
+    item.image = articleImage((await response.text()).slice(0, 400000), article.href);
+  }));
+}
+
+export function articleImage(html, pageUrl) {
+  for (const element of matchAll(html, /<(?:meta|link)\b[^>]*>/gi)) {
+    const attrs = attributes(element);
+    const key = (attrs.property || attrs.name || attrs.rel || '').toLowerCase();
+    if (!['og:image', 'og:image:url', 'twitter:image', 'twitter:image:src', 'image_src'].includes(key)) continue;
+    const image = webUrl(attrs.content || attrs.href, pageUrl);
+    if (image) return image;
+  }
+  return null;
 }
 
 function attributes(element) {

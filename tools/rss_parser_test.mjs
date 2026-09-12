@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 
 const source = await readFile(new URL('../apps/swansport_app/functions/api/rss.js', import.meta.url), 'utf8');
-const { parseFeed } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
+const { parseFeed, articleImage } = await import(`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`);
 const parse = (body) => parseFeed(`<rss><channel><item><title>Haber</title><link>https://news.example/sport/story</link>${body}</item></channel></rss>`, 'https://news.example/feed')[0];
 
 test('enclosure attributes may appear in any order and entities are decoded', () => {
@@ -32,4 +32,14 @@ test('Atom enclosure and alternate link are supported', () => {
   const [item] = parseFeed('<feed><entry><title>Atom</title><link href="/story"/><link rel="enclosure" type="image/png" href="/image.png"/><summary>Özet</summary></entry></feed>', 'https://news.example/feed');
   assert.equal(item.link, 'https://news.example/story');
   assert.equal(item.image, 'https://news.example/image.png');
+});
+
+test('AA-style direct image element is supported', () => {
+  assert.equal(parse('<image>https://cdn.example/news.jpg</image>').image,
+    'https://cdn.example/news.jpg');
+});
+
+test('article social image supports arbitrary attribute order', () => {
+  assert.equal(articleImage('<meta content="/uploads/news.webp" property="og:image">', 'https://news.example/story'),
+    'https://news.example/uploads/news.webp');
 });

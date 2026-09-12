@@ -144,6 +144,7 @@ class NewsCard extends StatelessWidget {
                           .map((word) => word.characters.first)
                           .join(),
                   size: 42,
+                  imageUrl: item.sourceIconUrl,
                   gradientIndex: item.sourceName.length % 4,
                 ),
                 const SizedBox(width: 11),
@@ -162,9 +163,10 @@ class NewsCard extends StatelessWidget {
                 ),
               ]),
             ),
+            if (item.imageUrl != null)
+              RatioImage(image: NetworkImage(item.imageUrl!)),
             Padding(
-              padding: EdgeInsets.fromLTRB(
-                  15, 0, 15, item.imageUrl == null ? 14 : 10),
+              padding: const EdgeInsets.fromLTRB(15, 12, 15, 6),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -180,11 +182,9 @@ class NewsCard extends StatelessWidget {
                 ],
               ),
             ),
-            if (item.imageUrl != null)
-              RatioImage(image: NetworkImage(item.imageUrl!)),
             if (item.link != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(15, 13, 15, 13),
+                padding: const EdgeInsets.fromLTRB(15, 5, 15, 8),
                 child: Row(children: [
                   Text('Haberin devamını oku',
                       style: SwanType.caption(kTeal, w: FontWeight.w800)),

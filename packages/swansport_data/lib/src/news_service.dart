@@ -15,7 +15,8 @@ import 'supabase_scope.dart';
 /// ---------------------------------------------------------------------------
 
 /// RSS köprüsünün adresi. Yayındaki site üzerinden servis edilir.
-const String kRssBridge = 'https://swanspor.pages.dev/api/rss';
+const String kRssBridge = 'https://swansport.pages.dev/api/rss';
+const String kRssIconBridge = 'https://swansport.pages.dev/api/rss-icon';
 
 class RssSource {
   const RssSource({
@@ -46,6 +47,7 @@ class NewsItem {
     this.summary,
     this.link,
     this.imageUrl,
+    this.sourceIconUrl,
   });
 
   final String title;
@@ -54,6 +56,7 @@ class NewsItem {
   final String? summary;
   final String? link;
   final String? imageUrl;
+  final String? sourceIconUrl;
 }
 
 class NewsService {
@@ -108,7 +111,9 @@ class NewsService {
 
   Future<List<NewsItem>> _fetch(RssSource source, int limit) async {
     try {
-      final uri = Uri.parse('$kRssBridge?url=${Uri.encodeComponent(source.url)}');
+      final uri = Uri.parse(
+        '$kRssBridge?v=3&url=${Uri.encodeComponent(source.url)}',
+      );
       final res = await http.get(uri).timeout(const Duration(seconds: 12));
       if (res.statusCode != 200) return const [];
 
@@ -120,12 +125,16 @@ class NewsService {
         if (raw is! Map) continue;
         final title = (raw['title'] as String?)?.trim();
         if (title == null || title.isEmpty) continue;
+        final link = raw['link'] as String?;
         out.add(NewsItem(
           title: title,
           sourceName: source.name,
           summary: (raw['summary'] as String?)?.trim(),
-          link: raw['link'] as String?,
+          link: link,
           imageUrl: _imageProxy(raw['image'] as String?),
+          // RSS adresi bazen ayrı bir dağıtım alan adı olur. Profil görseli
+          // okuyucunun gideceği haber sitesinin favicon'u olmalı.
+          sourceIconUrl: _sourceIcon(link ?? source.url),
           publishedAt: _parseDate(raw['published'] as String?),
         ));
       }
@@ -142,6 +151,14 @@ class NewsService {
     return '$kRssBridge-image?url=${Uri.encodeComponent(value.trim())}';
   }
 
+  static String? _sourceIcon(String sourceUrl) {
+    final uri = Uri.tryParse(sourceUrl);
+    if (uri == null || uri.host.isEmpty) return null;
+    // Köprü, sitenin ilan ettiği favicon/manifest/Apple icon yolunu keşfeder;
+    // düz `/favicon.ico` varsayımı farklı RSS sağlayıcılarında sık boşa düşer.
+    return '$kRssIconBridge?url=${Uri.encodeComponent(uri.toString())}';
+  }
+
   /// RSS tarih biçimleri çeşitlidir; çözülemezse "şimdi" sayılır.
   static DateTime _parseDate(String? raw) {
     if (raw == null || raw.trim().isEmpty) return DateTime.now();
@@ -156,8 +173,18 @@ class NewsService {
     ).firstMatch(s);
     if (m != null) {
       const months = {
-        'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6,
-        'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12,
+        'jan': 1,
+        'feb': 2,
+        'mar': 3,
+        'apr': 4,
+        'may': 5,
+        'jun': 6,
+        'jul': 7,
+        'aug': 8,
+        'sep': 9,
+        'oct': 10,
+        'nov': 11,
+        'dec': 12,
       };
       final mon = months[m.group(2)!.toLowerCase()];
       if (mon != null) {
