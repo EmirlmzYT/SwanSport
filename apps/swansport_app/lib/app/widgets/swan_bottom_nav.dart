@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -80,6 +82,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
     final myId = Supabase.instance.client.auth.currentUser?.id;
+    final isIos = Theme.of(context).platform == TargetPlatform.iOS;
 
     // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
     final targets = <_NavTarget>[
@@ -105,60 +108,104 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
           final t = targets[i];
           if (t.route == '/profil') {
             if (myId != null) {
-              Navigator.pushReplacementNamed(context, '/profil', arguments: myId);
+              Navigator.pushReplacementNamed(context, '/profil',
+                  arguments: myId);
             }
           } else {
             _go(context, t.route);
           }
         },
         onLongPressCancel: () => setState(() => _scrub = null),
+        onHorizontalDragStart: isIos
+            ? (d) {
+                HapticFeedback.selectionClick();
+                setState(() => _scrub = _indexAt(d.globalPosition));
+              }
+            : null,
+        onHorizontalDragUpdate:
+            isIos ? (d) => _preview(d.globalPosition) : null,
+        onHorizontalDragEnd: isIos
+            ? (_) {
+                final i = _scrub;
+                setState(() => _scrub = null);
+                if (i == null) return;
+                final target = targets[i];
+                if (target.route == '/profil') {
+                  if (myId != null) {
+                    Navigator.pushReplacementNamed(
+                      context,
+                      '/profil',
+                      arguments: myId,
+                    );
+                  }
+                } else {
+                  _go(context, target.route);
+                }
+              }
+            : null,
+        onHorizontalDragCancel:
+            isIos ? () => setState(() => _scrub = null) : null,
         child: Padding(
-        padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 0),
-        child: Container(
-          height: 62,
-          decoration: BoxDecoration(
-            color: c.surface,
+          padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 0),
+          child: ClipRRect(
             borderRadius: BorderRadius.circular(SwanRadius.lg),
-            // Brief "çok az shadow" diyor: tek yumuşak gölge, border yok.
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: c.isDark ? .45 : .10),
-                blurRadius: 24,
-                offset: const Offset(0, 8),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(
+                sigmaX: isIos ? 18 : 0,
+                sigmaY: isIos ? 18 : 0,
               ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              for (var i = 0; i < targets.length; i++) ...[
-                // "+" ikinci sekmeden sonra, ortada.
-                if (i == 2) const _CreateButton(),
-                _Tab(
-                  key: _keys[i],
-                  icon: targets[i].icon,
-                  label: targets[i].label,
-                  // Kaydırırken önizleme açık sekmenin yerini alıyor: parmak
-                  // neredeyse orası seçili görünüyor, bırakınca oraya gidiyor.
-                  active: _scrub == null
-                      ? route == targets[i].route
-                      : _scrub == i,
-                  scrubbing: _scrub == i,
-                  onTap: () {
-                    if (targets[i].route == '/profil') {
-                      if (myId != null) {
-                        Navigator.pushReplacementNamed(context, '/profil',
-                            arguments: myId);
-                      }
-                      return;
-                    }
-                    _go(context, targets[i].route);
-                  },
+              child: Container(
+                height: 62,
+                decoration: BoxDecoration(
+                  color: isIos
+                      ? c.surface.withValues(alpha: c.isDark ? .76 : .68)
+                      : c.surface,
+                  borderRadius: BorderRadius.circular(SwanRadius.lg),
+                  border: isIos
+                      ? Border.all(color: Colors.white.withValues(alpha: .22))
+                      : null,
+                  boxShadow: [
+                    BoxShadow(
+                      color:
+                          Colors.black.withValues(alpha: c.isDark ? .45 : .10),
+                      blurRadius: 24,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
-              ],
-            ],
-          ),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    for (var i = 0; i < targets.length; i++) ...[
+                      if (i == 2) const _CreateButton(),
+                      _Tab(
+                        key: _keys[i],
+                        icon: targets[i].icon,
+                        label: targets[i].label,
+                        active: _scrub == null
+                            ? route == targets[i].route
+                            : _scrub == i,
+                        scrubbing: _scrub == i,
+                        onTap: () {
+                          if (targets[i].route == '/profil') {
+                            if (myId != null) {
+                              Navigator.pushReplacementNamed(
+                                context,
+                                '/profil',
+                                arguments: myId,
+                              );
+                            }
+                            return;
+                          }
+                          _go(context, targets[i].route);
+                        },
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
         ),
       ),
