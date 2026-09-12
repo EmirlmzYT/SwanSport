@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// Mobil uygulama hissi veren, kayarak gelen geçiş.
+/// Alt sekmelerde Instagram tarzı anında geçiş.
 ///
 /// Varsayılan platform geçişi (sağdan-sola tek yönlü kayma) yerine yalnızca
 /// yumuşak bir belirme/kaybolma kullanır — ölçek/kayma yok, sakin ve nötr.
@@ -16,14 +16,7 @@ class SwanPageTransitionsBuilder extends PageTransitionsBuilder {
     Animation<double> secondaryAnimation,
     Widget child,
   ) {
-    final curve = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-    return SlideTransition(
-      position: Tween<Offset>(
-        begin: const Offset(.12, 0),
-        end: Offset.zero,
-      ).animate(curve),
-      child: child,
-    );
+    return child;
   }
 }
 
