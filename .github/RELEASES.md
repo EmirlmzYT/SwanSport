@@ -32,6 +32,7 @@ Etiket iki workflow çalıştırır:
 | `ANDROID_KEYSTORE_PASSWORD` | Keystore parolası |
 | `ANDROID_KEY_ALIAS` | Anahtar adı |
 | `ANDROID_KEY_PASSWORD` | Anahtar parolası |
+| `GOOGLE_SERVICES_JSON_BASE64` | Android `google-services.json` dosyasının Base64 içeriği |
 | `APPSTORE_CERTIFICATES_FILE_BASE64` | Apple Distribution `.p12` dosyasının Base64 içeriği |
 | `APPSTORE_CERTIFICATES_PASSWORD` | `.p12` parolası |
 | `APPSTORE_API_PRIVATE_KEY` | App Store Connect `.p8` dosyasının tam metni |
