@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-/// Hafif fade + yatay akış geçişi.
+/// Kısa ve kaymasız fade geçişi.
 ///
 /// Varsayılan platform geçişi (sağdan-sola tek yönlü kayma) yerine yalnızca
 /// yumuşak bir belirme/kaybolma kullanır — ölçek/kayma yok, sakin ve nötr.
@@ -17,14 +17,7 @@ class SwanPageTransitionsBuilder extends PageTransitionsBuilder {
     Widget child,
   ) {
     final curve = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
-    return FadeTransition(
-      opacity: curve,
-      child: SlideTransition(
-        position: Tween<Offset>(begin: const Offset(.035, 0), end: Offset.zero)
-            .animate(curve),
-        child: child,
-      ),
-    );
+    return FadeTransition(opacity: curve, child: child);
   }
 }
 
