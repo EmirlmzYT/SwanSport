@@ -45,7 +45,7 @@ export async function onRequest(context) {
       return json({ error: `kaynak yanıt vermedi (${res.status})` }, 502);
     }
     const xml = await res.text();
-    return json({ items: parseFeed(xml) }, 200, {
+    return json({ items: parseFeed(xml, res.url || parsed.toString()) }, 200, {
       // 15 dakika önbellek — her açılışta kaynağı yormayalım.
       'Cache-Control': 'public, max-age=900',
     });
@@ -62,7 +62,7 @@ function json(body, status = 200, extra = {}) {
 }
 
 /** RSS 2.0 ve Atom akışlarını ortak bir biçime indirger. */
-function parseFeed(xml) {
+export function parseFeed(xml, feedUrl) {
   const blocks = [
     ...matchAll(xml, /<item[\s>][\s\S]*?<\/item>/gi),
     ...matchAll(xml, /<entry[\s>][\s\S]*?<\/entry>/gi),
@@ -76,12 +76,19 @@ function parseFeed(xml) {
     // Atom'da bağlantı özniteliktedir.
     let link = clean(tag(block, 'link'));
     if (!link) {
-      const m = block.match(/<link[^>]*href=["']([^"']+)["']/i);
-      if (m) link = m[1];
+      for (const element of matchAll(block, /<link\b[^>]*>/gi)) {
+        const attrs = attributes(element);
+        if (attrs.href && (!attrs.rel || attrs.rel === 'alternate')) {
+          link = attrs.href;
+          break;
+        }
+      }
     }
+    link = webUrl(link, feedUrl);
 
     const summary = clean(
-      tag(block, 'description') || tag(block, 'summary') || tag(block, 'content')
+      tag(block, 'description') || tag(block, 'summary') ||
+      tag(block, 'content:encoded') || tag(block, 'content')
     );
 
     const published =
@@ -92,16 +99,25 @@ function parseFeed(xml) {
 
     // Görsel: enclosure, media:content/thumbnail ya da içerikteki ilk <img>
     let image = null;
-    const enc = block.match(
-      /<enclosure[^>]*url=["']([^"']+)["'][^>]*type=["']image/i
-    );
-    const media = block.match(
-      /<media:(?:content|thumbnail)[^>]*url=["']([^"']+)["']/i
-    );
-    const img = block.match(/<img[^>]*src=["']([^"']+)["']/i);
-    if (enc) image = enc[1];
-    else if (media) image = media[1];
-    else if (img) image = img[1];
+    for (const element of matchAll(block, /<(?:enclosure|media:content|media:thumbnail|link)\b[^>]*>/gi)) {
+      const attrs = attributes(element);
+      const url = attrs.url || attrs.href;
+      const isImage = element.toLowerCase().startsWith('<media:thumbnail') ||
+        (element.toLowerCase().startsWith('<media:content') && !attrs.type && !attrs.medium) ||
+        attrs.medium === 'image' || /^image\//i.test(attrs.type || '') ||
+        (!attrs.type && /\.(?:jpe?g|png|webp|gif|avif)(?:[?#]|$)/i.test(url || ''));
+      if (isImage && (image = webUrl(url, link || feedUrl))) break;
+    }
+    if (!image) {
+      const html = decodeEntities(block);
+      for (const element of matchAll(html, /<img\b[^>]*>/gi)) {
+        const attrs = attributes(element);
+        image = webUrl(attrs['data-src'] || attrs['data-original'] || attrs.src, link || feedUrl);
+        if (image) break;
+      }
+    }
+    // Bazı RSS sağlayıcıları görseli kanal/öğe içindeki <image><url> olarak verir.
+    if (!image) image = webUrl(clean(tag(block, 'url')), link || feedUrl);
 
     items.push({
       title,
@@ -125,7 +141,7 @@ function matchAll(text, re) {
 }
 
 function tag(block, name) {
-  const re = new RegExp(`<${name}[^>]*>([\\s\\S]*?)<\\/${name}>`, 'i');
+  const re = new RegExp(`<${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${name}>`, 'i');
   const m = block.match(re);
   return m ? m[1] : '';
 }
@@ -133,15 +149,35 @@ function tag(block, name) {
 /** CDATA, HTML etiketleri ve varlıkları temizler. */
 function clean(value) {
   if (!value) return '';
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+  return decodeEntities(value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1'))
     .replace(/<[^>]+>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function attributes(element) {
+  return Object.fromEntries([...element.matchAll(/([\w:-]+)\s*=\s*(["'])([\s\S]*?)\2/g)]
+    .map((m) => [m[1].toLowerCase(), m[3]]));
+}
+
+function webUrl(value, base) {
+  if (!value) return null;
+  try {
+    const url = new URL(decodeEntities(value).trim(), base);
+    return ['https:', 'http:'].includes(url.protocol) ? url.href : null;
+  } catch { return null; }
+}
+
+function decodeEntities(value) {
+  return value
     .replace(/&nbsp;/gi, ' ')
     .replace(/&amp;/gi, '&')
     .replace(/&lt;/gi, '<')
     .replace(/&gt;/gi, '>')
     .replace(/&quot;/gi, '"')
     .replace(/&#39;/gi, "'")
-    .replace(/\s+/g, ' ')
-    .trim();
+    .replace(/&#(x[0-9a-f]+|\d+);/gi, (match, code) => {
+      const n = code[0].toLowerCase() === 'x' ? parseInt(code.slice(1), 16) : Number(code);
+      return n > 0 && n <= 0x10ffff ? String.fromCodePoint(n) : match;
+    });
 }

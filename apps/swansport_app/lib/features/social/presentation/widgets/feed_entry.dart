@@ -100,8 +100,7 @@ class AnnouncementCard extends StatelessWidget {
           Text(item.title, style: SwanType.h3(ink)),
           if (item.body.trim().isNotEmpty) ...[
             const SizedBox(height: 6),
-            Text(item.body,
-                style: SwanType.bodySm(ink).copyWith(height: 1.45)),
+            Text(item.body, style: SwanType.bodySm(ink).copyWith(height: 1.45)),
           ],
         ],
       ),
@@ -118,18 +117,16 @@ class NewsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     return GestureDetector(
       onTap: () => _open(context),
       child: Container(
-        margin: const EdgeInsets.only(bottom: 14),
+        margin: const EdgeInsets.only(bottom: 20),
+        padding: const EdgeInsets.only(bottom: 20),
         decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: line),
+          border: Border(bottom: BorderSide(color: line)),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -137,15 +134,17 @@ class NewsCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(15, 14, 15, 10),
               child: Row(children: [
-                Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: kCoral.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.newspaper_rounded,
-                      size: 19, color: kCoral),
+                SocialAvatar(
+                  initials: item.sourceName.trim().isEmpty
+                      ? 'H'
+                      : item.sourceName
+                          .trim()
+                          .split(RegExp(r'\s+'))
+                          .take(2)
+                          .map((word) => word.characters.first)
+                          .join(),
+                  size: 42,
+                  gradientIndex: item.sourceName.length % 4,
                 ),
                 const SizedBox(width: 11),
                 Expanded(
@@ -161,16 +160,6 @@ class NewsCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: kCoral.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text('HABER',
-                      style: SwanType.caption(kCoral, w: FontWeight.w800)),
-                ),
               ]),
             ),
             Padding(
@@ -179,30 +168,25 @@ class NewsCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(item.title,
-                      style: SwanType.h3(ink)),
+                  Text(item.title, style: SwanType.h3(ink)),
                   if (item.summary != null &&
                       item.summary!.trim().isNotEmpty) ...[
                     const SizedBox(height: 6),
                     Text(item.summary!,
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: SwanType.caption(SwanColors.textSecondary)
-                            .copyWith(height: 1.4)),
+                        style: SwanType.bodySm(ink).copyWith(height: 1.4)),
                   ],
                 ],
               ),
             ),
             if (item.imageUrl != null)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(10, 0, 10, 12),
-                child: RatioImage(image: NetworkImage(item.imageUrl!)),
-              ),
+              RatioImage(image: NetworkImage(item.imageUrl!)),
             if (item.link != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(15, 0, 15, 13),
+                padding: const EdgeInsets.fromLTRB(15, 13, 15, 13),
                 child: Row(children: [
-                  Text('Habere git',
+                  Text('Haberin devamını oku',
                       style: SwanType.caption(kTeal, w: FontWeight.w800)),
                   const SizedBox(width: 4),
                   const Icon(Icons.arrow_outward_rounded,

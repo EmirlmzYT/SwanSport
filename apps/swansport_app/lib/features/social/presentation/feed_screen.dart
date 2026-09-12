@@ -1,20 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/swan_tabs.dart';
-import '../../demo/demo_role.dart';
-import 'post_composer_sheet.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/today_strip.dart';
-import '../../../app/widgets/inbox_actions.dart';
-import '../../../app/widgets/today_tasks.dart';
+import '../../../app/widgets/create_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_shape.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -25,8 +21,6 @@ class FeedScreen extends ConsumerStatefulWidget {
 }
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
-  int _tab = 0; // 0 = Takip, 1 = Keşfet
-
   @override
   void initState() {
     super.initState();
@@ -37,203 +31,86 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final c = context.swan;
 
-    final profile = ref.watch(currentProfileProvider).valueOrNull;
-    final async =
-        _tab == 0 ? ref.watch(feedProvider) : ref.watch(discoverProvider);
+    final async = ref.watch(feedProvider);
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
-            child: Column(
-              children: [
-                // Üst bar — ana sayfa herkes için aynı, yalnızca hitap değişir
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 8, 16, 10),
-                  child: Row(children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('SwanSport',
-                              style: SwanType.h2(ink)),
-                          const SizedBox(height: 2),
-                          Text(
-                            _greeting(
-                              ref.watch(demoRoleProvider),
-                              profile?.role,
-                              profile?.firstName,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    GestureDetector(
-                      onTap: () => _openComposer(context),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                              colors: [kTealBright, kTeal]),
-                          borderRadius: BorderRadius.circular(13),
-                        ),
-                        child: const Icon(Icons.add_rounded,
-                            color: Colors.white, size: 22),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    const InboxActions(),
-                  ]),
-                ),
-
-                // Rol etiketli öncelik kartları — "bugün ne yapmalıyım".
-                // TodayStrip'in ÜSTÜNDE: şerit yaklaşan programı gösteriyor,
-                // bu ise aksiyon bekleyen işi. Önce yapılacak iş, sonra
-                // program.
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: const TodayTasks(),
-                ),
-
-                const TodayStrip(),
-
-                // Arama çubuğu — dokununca arama ekranını açar
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/ara'),
-                    child: Container(
-                      height: 44,
-                      padding: const EdgeInsets.symmetric(horizontal: 14),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? SwanPalette.dark.surfaceAlt
-                            : SwanPalette.light.surfaceAlt,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                            color: isDark
-                                ? SwanPalette.dark.line
-                                : SwanPalette.light.line),
-                      ),
-                      child: Row(children: [
-                        Icon(Icons.search_rounded,
-                            size: 20, color: SwanColors.textSecondary),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text('Kulüp, antrenör veya sporcu ara…',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: SwanType.bodySm(SwanColors.textSecondary)),
-                        ),
-                      ]),
-                    ),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(feedProvider);
+                ref.invalidate(suggestionsProvider);
+                ref.invalidate(newsProvider);
+                ref.invalidate(announcementsProvider);
+                await ref.read(feedProvider.future);
+              },
+              child: CustomScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                slivers: [
+                  // Bu alanın tamamı akışla beraber yukarı kayar. Ana Sayfa
+                  // bir kontrol paneli gibi tepede sabit kalmaz.
+                  SliverToBoxAdapter(
+                    child: _FeedHeader(c: c),
                   ),
-                ),
-
-                // Sekmeler
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
-                  child: SwanSegmentedTabs(
-                    labels: const ['Takip', 'Keşfet'],
-                    selected: _tab,
-                    onSelect: (i) => setState(() => _tab = i),
+                  const SliverToBoxAdapter(child: TodayStrip()),
+                  ...async.when(
+                    loading: () => [
+                      SliverToBoxAdapter(child: premiumLoading()),
+                    ],
+                    error: (e, _) => [
+                      SliverToBoxAdapter(child: premiumError(context, '$e')),
+                    ],
+                    data: (posts) => _contentSlivers(context, ref, posts),
                   ),
-                ),
-
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      ref.invalidate(feedProvider);
-                      ref.invalidate(discoverProvider);
-                      ref.invalidate(suggestionsProvider);
-                      ref.invalidate(newsProvider);
-                      ref.invalidate(announcementsProvider);
-                      await ref.read(_tab == 0
-                          ? feedProvider.future
-                          : discoverProvider.future);
-                    },
-                    child: async.when(
-                      loading: () => ListView(children: [premiumLoading()]),
-                      error: (e, _) =>
-                          ListView(children: [premiumError(context, '$e')]),
-                      data: (posts) {
-                        if (posts.isEmpty) {
-                          // Gönderi yoksa bile duyuru/haber varsa akış dolu.
-                          final entries = _merge(ref, const []);
-                          if (entries.isNotEmpty) {
-                            return ListView.builder(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 132),
-                              itemCount: entries.length + 1,
-                              itemBuilder: (_, i) => i == 0
-                                  ? Padding(
-                                      padding:
-                                          const EdgeInsets.only(bottom: 14),
-                                      child: FollowSuggestions(
-                                        onExplore: () =>
-                                            setState(() => _tab = 1),
-                                      ),
-                                    )
-                                  : entries[i - 1].build(),
-                            );
-                          }
-                          // Takip sekmesi boşsa: her şeyi göstermek yerine
-                          // kimi takip edebileceğini öner.
-                          if (_tab == 0) {
-                            return ListView(
-                              padding:
-                                  const EdgeInsets.fromLTRB(16, 0, 16, 132),
-                              children: [
-                                FollowSuggestions(
-                                  onExplore: () => setState(() => _tab = 1),
-                                ),
-                              ],
-                            );
-                          }
-                          return ListView(
-                            padding: const EdgeInsets.only(top: 30),
-                            children: [
-                              premiumEmpty(
-                                context,
-                                icon: Icons.dynamic_feed_rounded,
-                                title: 'Henüz gönderi yok',
-                                subtitle: 'İlk gönderiyi sen paylaş.',
-                                actionLabel: 'Gönderi Paylaş',
-                                onAction: () => _openComposer(context),
-                              ),
-                            ],
-                          );
-                        }
-                        final entries = _merge(ref, posts);
-                        return ListView.builder(
-                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 132),
-                          itemCount: entries.length,
-                          itemBuilder: (_, i) => entries[i].build(),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ],
+                  const SliverToBoxAdapter(child: SizedBox(height: 132)),
+                ],
+              ),
             ),
           ),
         ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
     );
+  }
+
+  List<Widget> _contentSlivers(
+    BuildContext context,
+    WidgetRef ref,
+    List<PostRow> posts,
+  ) {
+    final entries = _merge(ref, posts);
+
+    if (entries.isNotEmpty) {
+      return [
+        SliverPadding(
+          padding: const EdgeInsets.fromLTRB(
+              SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 0),
+          sliver: SliverList.builder(
+            itemCount: entries.length,
+            itemBuilder: (_, index) => entries[index].build(),
+          ),
+        ),
+      ];
+    }
+
+    return [
+      SliverPadding(
+        padding: const EdgeInsets.fromLTRB(
+            SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 0),
+        sliver: SliverToBoxAdapter(
+          child: FollowSuggestions(
+            onExplore: () => Navigator.pushNamed(context, '/kesfet'),
+          ),
+        ),
+      ),
+    ];
   }
 
   /// Gönderileri kulüp duyuruları ve spor haberleriyle harmanlar.
@@ -262,48 +139,119 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     entries.sort((a, b) => b.sortDate.compareTo(a.sortDate));
     return entries;
   }
+}
 
-  /// Ana sayfa herkes için aynıdır; yalnızca bu hitap role göre değişir.
-  /// Demo rolü aktifse onu, değilse gerçek kulüp üyeliği rolünü esas alır.
-  String _greeting(DemoRole? demo, String? role, String? name) {
-    final n = (name == null || name.trim().isEmpty) ? null : name.trim();
-    final suffix = n == null ? '' : ', $n';
+/// Akışın üstü: merkezde açık akış adı, sağda tek hizada üç sade eylem.
+/// Düğmelerde kutu, arka plan ve çerçeve yok; ikonlar header'ın içinde bir
+/// araç çubuğu gibi durur. Rozet yalnız okunmamış olduğunda görünür.
+class _FeedHeader extends StatelessWidget {
+  const _FeedHeader({required this.c});
 
-    if (demo != null) {
-      return switch (demo) {
-        DemoRole.platformAdmin => 'Platform yönetimi$suffix',
-        DemoRole.clubAdmin => 'İyi çalışmalar$suffix',
-        DemoRole.coach5 ||
-        DemoRole.coach4 ||
-        DemoRole.coach3 ||
-        DemoRole.coach2 ||
-        DemoRole.coach1 =>
-          'İyi antrenmanlar$suffix',
-        DemoRole.athleteLicensed ||
-        DemoRole.athleteIndividual =>
-          'Bugün de formda kal$suffix',
-        DemoRole.guardian => 'Hoş geldin$suffix',
-        DemoRole.member => 'Hoş geldin$suffix',
-      };
-    }
+  final SwanPalette c;
 
-    return switch (role) {
-      'club_admin' => 'İyi çalışmalar$suffix',
-      'coach' => 'İyi antrenmanlar$suffix',
-      'athlete' => 'Bugün de formda kal$suffix',
-      'parent' => 'Hoş geldin$suffix',
-      _ => 'Hoş geldin$suffix',
-    };
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 54,
+      margin: const EdgeInsets.only(bottom: SwanSpace.sm),
+      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: c.line)),
+      ),
+      child: Row(children: [
+        // Marka solda kalınca sağdaki üç eylemle doğal bir denge kuruyor.
+        Text('SwanSport', style: SwanType.wordmark(c.ink)),
+        const Spacer(),
+        _HeaderIcon(
+          icon: Icons.add_box_outlined,
+          tooltip: 'Oluştur',
+          onTap: () => showCreateSheet(context),
+        ),
+        const _ActivitiesHeaderAction(),
+        const _MessagesHeaderAction(),
+      ]),
+    );
   }
+}
 
-  Future<void> _openComposer(BuildContext context) async {
-    final created = await showPostComposer(context);
-    if (created == true) {
-      ref.invalidate(feedProvider);
-      ref.invalidate(discoverProvider);
-    }
+class _ActivitiesHeaderAction extends ConsumerWidget {
+  const _ActivitiesHeaderAction();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _HeaderIcon(
+        icon: Icons.favorite_border_rounded,
+        badge: ref.watch(unreadNotificationsProvider).valueOrNull ?? 0,
+        tooltip: 'Hareketler',
+        onTap: () => Navigator.pushNamed(context, '/bildirimler'),
+      );
+}
+
+class _MessagesHeaderAction extends ConsumerWidget {
+  const _MessagesHeaderAction();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) => _HeaderIcon(
+        icon: Icons.send_outlined,
+        badge: ref.watch(unreadMessagesProvider).valueOrNull ?? 0,
+        tooltip: 'Mesajlar',
+        onTap: () => Navigator.pushNamed(context, '/mesajlar'),
+      );
+}
+
+class _HeaderIcon extends StatelessWidget {
+  const _HeaderIcon({
+    required this.icon,
+    required this.onTap,
+    required this.tooltip,
+    this.badge = 0,
+  });
+
+  final IconData icon;
+  final VoidCallback onTap;
+  final String tooltip;
+  final int badge;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Tooltip(
+      message: tooltip,
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: onTap,
+        child: SizedBox(
+          width: 40,
+          height: 44,
+          child: Stack(clipBehavior: Clip.none, children: [
+            Align(
+              alignment: Alignment.center,
+              child: Icon(icon, size: 24, color: c.ink),
+            ),
+            if (badge > 0)
+              Positioned(
+                top: 5,
+                right: 2,
+                child: Container(
+                  constraints: const BoxConstraints(minWidth: 15),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  decoration: BoxDecoration(
+                    color: c.danger,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: c.bg, width: 1.5),
+                  ),
+                  child: Text(
+                    badge > 9 ? '9+' : '$badge',
+                    textAlign: TextAlign.center,
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800),
+                  ),
+                ),
+              ),
+          ]),
+        ),
+      ),
+    );
   }
-
 }
 
 /// Ödenmemiş aidat şeridi.

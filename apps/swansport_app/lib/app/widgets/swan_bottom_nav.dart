@@ -90,6 +90,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     ];
 
     return SafeArea(
+      top: false,
       child: GestureDetector(
         behavior: HitTestBehavior.deferToChild,
         onLongPressStart: (d) {
@@ -104,7 +105,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
           final t = targets[i];
           if (t.route == '/profil') {
             if (myId != null) {
-              Navigator.pushNamed(context, '/profil', arguments: myId);
+              Navigator.pushReplacementNamed(context, '/profil', arguments: myId);
             }
           } else {
             _go(context, t.route);
@@ -112,8 +113,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
         },
         onLongPressCancel: () => setState(() => _scrub = null),
         child: Padding(
-        padding: const EdgeInsets.fromLTRB(
-            SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.md),
+        padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 0),
         child: Container(
           height: 62,
           decoration: BoxDecoration(
@@ -148,7 +148,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                   onTap: () {
                     if (targets[i].route == '/profil') {
                       if (myId != null) {
-                        Navigator.pushNamed(context, '/profil',
+                        Navigator.pushReplacementNamed(context, '/profil',
                             arguments: myId);
                       }
                       return;
@@ -167,7 +167,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
 
   void _go(BuildContext context, String route) {
     if (ModalRoute.of(context)?.settings.name == route) return;
-    Navigator.pushNamed(context, route);
+    Navigator.pushReplacementNamed(context, route);
   }
 }
 

@@ -35,8 +35,26 @@ class _CreateSheet extends ConsumerWidget {
       const _CreateItem(
         icon: Icons.edit_rounded,
         title: 'Gönderi',
-        subtitle: 'Akışta paylaş',
+        subtitle: 'Akışta yazı paylaş',
         kind: _CreateKind.post,
+      ),
+      const _CreateItem(
+        icon: Icons.image_outlined,
+        title: 'Fotoğraf',
+        subtitle: 'Fotoğrafla paylaşım oluştur',
+        kind: _CreateKind.photo,
+      ),
+      const _CreateItem(
+        icon: Icons.auto_stories_outlined,
+        title: 'Hikâye',
+        subtitle: 'Yakında',
+        kind: _CreateKind.comingSoon,
+      ),
+      const _CreateItem(
+        icon: Icons.videocam_outlined,
+        title: 'Canlı yayın',
+        subtitle: 'Yakında',
+        kind: _CreateKind.comingSoon,
       ),
       if (access.hasVerificationTier('location'))
         const _CreateItem(
@@ -102,6 +120,12 @@ class _CreateSheet extends ConsumerWidget {
         Navigator.pop(context);
         if (item.kind == _CreateKind.post) {
           await showPostComposer(context);
+        } else if (item.kind == _CreateKind.photo) {
+          await showPostComposer(context, startWithImage: true);
+        } else if (item.kind == _CreateKind.comingSoon) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Bu özellik yakında gelecek'),
+          ));
         } else if (item.route != null) {
           if (context.mounted) Navigator.pushNamed(context, item.route!);
         }
@@ -123,7 +147,8 @@ class _CreateSheet extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(item.title, style: SwanType.body(c.ink, w: FontWeight.w700)),
+                Text(item.title,
+                    style: SwanType.body(c.ink, w: FontWeight.w700)),
                 Text(item.subtitle, style: SwanType.caption(c.inkMuted)),
               ],
             ),
@@ -135,7 +160,7 @@ class _CreateSheet extends ConsumerWidget {
   }
 }
 
-enum _CreateKind { post, route }
+enum _CreateKind { post, photo, comingSoon, route }
 
 class _CreateItem {
   const _CreateItem({

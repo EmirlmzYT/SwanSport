@@ -25,14 +25,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   /// Boş = hepsi. Kategoriler veritabanındaki eşlemeden gelir.
   String _category = '';
 
+  // Instagram'taki etkinlik ekranı gibi: önce anlaşılır dört başlık.
+  // Ayrıntılı telefon bildirimi tercihleri ayarlar düğmesinde kalıyor.
   static const _categories = [
     ('', 'Tümü'),
-    ('kritik', 'Kritik'),
-    ('aidat', 'Aidat'),
-    ('antrenman', 'Antrenman'),
-    ('kulup', 'Kulüp'),
-    ('federasyon', 'Federasyon'),
     ('sosyal', 'Sosyal'),
+    ('kulup', 'Kulüp'),
+    ('antrenman', 'Antrenman'),
   ];
 
   @override
@@ -67,25 +66,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
                   child: Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.maybePop(context),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 15, color: ink),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Text('Bildirimler', style: SwanType.h2(ink)),
+                    Text('Hareketler', style: SwanType.h2(ink)),
                     const Spacer(),
                     GestureDetector(
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/mesajlar'),
+                      onTap: _openPrefs,
                       child: Container(
                         width: 38,
                         height: 38,
@@ -93,8 +77,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             color: surf,
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(color: line)),
-                        child: Icon(Icons.chat_bubble_outline_rounded,
-                            size: 18, color: ink),
+                        child: Icon(Icons.tune_rounded, size: 18, color: ink),
                       ),
                     ),
                   ]),
@@ -143,7 +126,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-
   /// Kategori şeridi — bildirim yığını büyüdükçe filtrelemeden okunmaz oluyor.
   Widget _categoryBar(bool isDark, Color ink) {
     return SizedBox(
@@ -172,24 +154,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                               : SwanPalette.light.line)),
                 ),
                 child: Text(c.$2,
-                    style: SwanType.caption(_category == c.$1 ? Colors.white : ink, w: FontWeight.w700)),
+                    style: SwanType.caption(
+                        _category == c.$1 ? Colors.white : ink,
+                        w: FontWeight.w700)),
               ),
             ),
-          GestureDetector(
-            onTap: _openPrefs,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(
-                    color: isDark
-                        ? SwanPalette.dark.line
-                        : SwanPalette.light.line),
-              ),
-              child: Icon(Icons.tune_rounded,
-                  size: 15, color: SwanColors.textSecondary),
-            ),
-          ),
         ],
       ),
     );
@@ -209,8 +178,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => Container(
-        constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.8),
         decoration: BoxDecoration(
           color: surf,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -220,7 +189,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text('Bildirim tercihleri', style: SwanType.h3(ink)),
           const SizedBox(height: 4),
-          Text('Kapattığın kategori telefonuna düşmez; uygulamada yine görünür.',
+          Text(
+              'Kapattığın kategori telefonuna düşmez; uygulamada yine görünür.',
               textAlign: TextAlign.center,
               style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 14),
@@ -259,7 +229,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 
   Widget _tile(bool isDark, NotificationRow n) {
-
     final (icon, color) = switch (n.kind) {
       'like' => (Icons.favorite_rounded, SwanPalette.light.danger),
       'comment' => (Icons.mode_comment_rounded, const Color(0xFF2563EB)),
@@ -267,8 +236,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       'application' => (Icons.group_add_rounded, SwanPalette.light.success),
       'offer' => (Icons.mail_rounded, SwanPalette.light.warning),
       'announcement' => (Icons.campaign_rounded, kTeal),
-      'fee_reminder' => (Icons.account_balance_wallet_rounded,
-          SwanPalette.light.warning),
+      'fee_reminder' => (
+          Icons.account_balance_wallet_rounded,
+          SwanPalette.light.warning
+        ),
       'attendance_reminder' => (Icons.checklist_rounded, Color(0xFF2563EB)),
       'payment' => (Icons.payments_rounded, SwanPalette.light.success),
       'donation' => (Icons.volunteer_activism_rounded, Color(0xFFFF7A59)),
@@ -287,8 +258,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             SwanSpace.md, SwanSpace.md, 0, SwanSpace.md),
         decoration: n.isUnread
             ? BoxDecoration(
-                border: Border(
-                    left: BorderSide(color: c.accent, width: 3)))
+                border: Border(left: BorderSide(color: c.accent, width: 3)))
             : null,
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Container(
@@ -353,8 +323,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     }
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(
-          SwanSpace.lg, 0, SwanSpace.lg, 132),
+      padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 132),
       children: [
         for (final e in buckets.entries)
           if (e.value.isNotEmpty) ...[
@@ -387,7 +356,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   }
 }
 
-
 /// Telefona düşen bildirimleri açma/kapama şeridi.
 ///
 /// Bildirimler ekranının tepesinde duruyor çünkü kullanıcı tam da bildirimlere
@@ -415,14 +383,21 @@ class _PushBanner extends ConsumerWidget {
           border: Border.all(color: line),
         ),
         child: Row(children: [
-          Icon(on ? Icons.notifications_active_rounded : Icons.notifications_off_rounded,
-              size: 19, color: on ? kTeal : SwanColors.textSecondary),
+          Icon(
+              on
+                  ? Icons.notifications_active_rounded
+                  : Icons.notifications_off_rounded,
+              size: 19,
+              color: on ? kTeal : SwanColors.textSecondary),
           const SizedBox(width: 11),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(on ? 'Telefon bildirimleri açık' : 'Telefon bildirimleri kapalı',
+                Text(
+                    on
+                        ? 'Telefon bildirimleri açık'
+                        : 'Telefon bildirimleri kapalı',
                     style: SwanType.caption(ink, w: FontWeight.w700)),
                 const SizedBox(height: 2),
                 Text(
@@ -530,8 +505,7 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
             if (diag.error != null) ...[
               const SizedBox(height: 6),
               // Seçilebilir: kullanıcı bunu kopyalayıp gönderebilsin.
-              SelectableText(diag.error!,
-                  style: SwanType.caption(c.danger)),
+              SelectableText(diag.error!, style: SwanType.caption(c.danger)),
             ],
             const SizedBox(height: 10),
             GestureDetector(

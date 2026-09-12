@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -14,17 +12,21 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/widgets/tag_composer.dart';
 
 /// Gönderi oluşturma sayfasını açar. Paylaşım yapıldıysa true döner.
-Future<bool?> showPostComposer(BuildContext context) {
+Future<bool?> showPostComposer(BuildContext context,
+    {bool startWithImage = false}) {
   return showModalBottomSheet<bool>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
-    builder: (_) => const _PostComposerSheet(),
+    builder: (_) => _PostComposerSheet(startWithImage: startWithImage),
   );
 }
 
 class _PostComposerSheet extends ConsumerStatefulWidget {
-  const _PostComposerSheet();
+  const _PostComposerSheet({this.startWithImage = false});
+
+  /// Ana akıştaki fotoğraf kısayolu, besteci açılır açılmaz seçiciyi başlatır.
+  final bool startWithImage;
 
   @override
   ConsumerState<_PostComposerSheet> createState() => _PostComposerSheetState();
@@ -51,6 +53,16 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   static const _maxMedia = 8;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.startWithImage) {
+      // Sheet önce çizilsin; aksi halde bazı platformlarda dosya seçicisi
+      // sheet bağlamı hazır olmadan açılabiliyor.
+      Future.microtask(_pickImage);
+    }
+  }
+
+  @override
   void dispose() {
     _ctrl.dispose();
     super.dispose();
@@ -65,8 +77,8 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
     try {
       final picked = await pickImage();
       if (picked == null || !mounted) return;
-      setState(() => _media
-          .add(PickedMedia(bytes: picked.bytes, name: picked.name)));
+      setState(() =>
+          _media.add(PickedMedia(bytes: picked.bytes, name: picked.name)));
     } catch (e) {
       _snack('Görsel seçilemedi: $e', SwanPalette.light.danger);
     }
@@ -86,8 +98,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             images: _media,
             // Kulüp adına paylaşımda görünürlük seçimi anlamsız: kulüp
             // gönderisi zaten kulüp kitlesine yazılıyor.
-            visibility:
-                clubId != null ? null : visibilityKey(_visibility),
+            visibility: clubId != null ? null : visibilityKey(_visibility),
           );
 
       // Etiketler ayrı çağrı. Burada hata çıksa bile gönderi paylaşıldı;
@@ -176,7 +187,6 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
           const SizedBox(height: 16),
           Text('Yeni Gönderi', style: SwanType.h2(ink)),
           const SizedBox(height: 14),
-
           if (!canShare) ...[
             Container(
               padding: const EdgeInsets.all(14),
@@ -194,7 +204,8 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                   child: Text(
                       'Paylaşım yapmak için kimliğini doğrulatmalısın '
                       '(antrenör kademesi veya sporcu lisansı).',
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
                 ),
               ]),
             ),
@@ -257,8 +268,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
               style: SwanType.bodySm(ink).copyWith(height: 1.45),
               decoration: InputDecoration(
                 hintText: 'Neler oluyor?',
-                hintStyle:
-                    SwanType.bodySm(SwanColors.textSecondary),
+                hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                 filled: true,
                 fillColor: alt,
                 contentPadding: const EdgeInsets.all(16),
@@ -345,8 +355,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                           top: 2,
                           right: 2,
                           child: GestureDetector(
-                            onTap: () =>
-                                setState(() => _media.removeAt(idx)),
+                            onTap: () => setState(() => _media.removeAt(idx)),
                             child: Container(
                               width: 20,
                               height: 20,
@@ -391,8 +400,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                               color: _visibility == v ? kTeal : alt,
                               borderRadius: BorderRadius.circular(999),
                               border: Border.all(
-                                  color:
-                                      _visibility == v ? kTeal : line),
+                                  color: _visibility == v ? kTeal : line),
                             ),
                             child: Text(
                               visibilityLabel(v),
@@ -413,8 +421,8 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
               GestureDetector(
                 onTap: _pickImage,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 11),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 11),
                   decoration: BoxDecoration(
                     color: alt,
                     borderRadius: BorderRadius.circular(13),
@@ -434,8 +442,8 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                     ? null
                     : () => _share(effectiveAsClub ? club.id : null),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 24, vertical: 13),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 24, vertical: 13),
                   decoration: BoxDecoration(
                     gradient:
                         const LinearGradient(colors: [kTealBright, kTeal]),
@@ -472,7 +480,8 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(label,
-              style: SwanType.caption(on ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(on ? ink : SwanColors.textSecondary,
+                  w: FontWeight.w800)),
         ),
       ),
     );

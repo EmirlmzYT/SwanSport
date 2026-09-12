@@ -1,7 +1,7 @@
 name: Build iOS IPA (Sideloadly)
 
 on:
-  workflow_dispatch: # GitHub arayüzünden tek tıkla manuel çalıştırma
+  workflow_dispatch:
   push:
     branches:
       - main
@@ -52,3 +52,15 @@ jobs:
           name: swansport-ios-ipa
           path: apps/swansport_app/build/ios/iphoneos/swansport.ipa
           retention-days: 14
+
+      - name: Publish GitHub Release
+        if: github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ios-v${{ github.run_number }}
+          name: SwanSport iOS v${{ github.run_number }}
+          body: |
+            İmzalanmamış iOS IPA. Sideloadly ile test cihazına yüklenebilir.
+            App Store/TestFlight dağıtımı için Apple signing sertifikaları gerekir.
+          files: apps/swansport_app/build/ios/iphoneos/swansport.ipa
+          fail_on_unmatched_files: true

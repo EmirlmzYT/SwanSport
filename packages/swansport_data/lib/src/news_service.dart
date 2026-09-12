@@ -15,7 +15,7 @@ import 'supabase_scope.dart';
 /// ---------------------------------------------------------------------------
 
 /// RSS köprüsünün adresi. Yayındaki site üzerinden servis edilir.
-const String kRssBridge = 'https://swansport.pages.dev/api/rss';
+const String kRssBridge = 'https://swanspor.pages.dev/api/rss';
 
 class RssSource {
   const RssSource({
@@ -125,7 +125,7 @@ class NewsService {
           sourceName: source.name,
           summary: (raw['summary'] as String?)?.trim(),
           link: raw['link'] as String?,
-          imageUrl: raw['image'] as String?,
+          imageUrl: _imageProxy(raw['image'] as String?),
           publishedAt: _parseDate(raw['published'] as String?),
         ));
       }
@@ -135,6 +135,11 @@ class NewsService {
       debugPrint('SwanSport: haber kaynağı okunamadı — $error');
       return const [];
     }
+  }
+
+  static String? _imageProxy(String? value) {
+    if (value == null || value.trim().isEmpty) return null;
+    return '$kRssBridge-image?url=${Uri.encodeComponent(value.trim())}';
   }
 
   /// RSS tarih biçimleri çeşitlidir; çözülemezse "şimdi" sayılır.

@@ -16,13 +16,19 @@ import '../design/swan_type.dart';
 /// ama hiçbiri gizlenmiyor. Etiket yalnızca bilgi — yetkiyi, gezinmeyi ya da
 /// erişimi değiştirmiyor. O `SwanAccess` ve RLS'in işi.
 ///
-/// **En fazla üç kart.** Ana Sayfa'nın işi "bugün ne yapmalıyım" sorusuna
-/// cevap vermek; on kart o soruyu cevaplamıyor, erteliyor. Fazlası ilgili
-/// bölüme yönlendiriliyor.
+/// **En fazla üç iş.** Ana Sayfa sosyal akış olarak kaldığı için bunlar dikey
+/// yönetim kartları değil, hızlıca taranabilen yatay eylem şerididir.
 class TodayTasks extends ConsumerWidget {
-  const TodayTasks({this.maxItems = 3, super.key});
+  const TodayTasks({
+    this.maxItems = 3,
+    this.title = 'Senin için',
+    this.compact = false,
+    super.key,
+  });
 
   final int maxItems;
+  final String title;
+  final bool compact;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -33,23 +39,30 @@ class TodayTasks extends ConsumerWidget {
     final shown = tasks.take(maxItems).toList();
     final more = tasks.length - shown.length;
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: SwanSpace.lg),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Expanded(child: Text('Bugün', style: SwanType.h3(c.ink))),
-            if (more > 0)
-              Text('+$more', style: SwanType.caption(c.inkMuted)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+          child: Row(children: [
+            Expanded(child: Text(title, style: SwanType.h3(c.ink))),
+            if (more > 0) Text('+$more', style: SwanType.caption(c.inkMuted)),
           ]),
-          const SizedBox(height: SwanSpace.sm),
-          for (final t in shown) ...[
-            _card(context, c, t),
-            const SizedBox(height: SwanSpace.sm),
-          ],
-        ],
-      ),
+        ),
+        const SizedBox(height: SwanSpace.sm),
+        SizedBox(
+          height: compact ? 70 : 82,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+            itemCount: shown.length,
+            separatorBuilder: (_, __) => const SizedBox(width: SwanSpace.sm),
+            itemBuilder: (_, index) =>
+                _card(context, c, shown[index], compact: compact),
+          ),
+        ),
+        const SizedBox(height: SwanSpace.lg),
+      ],
     );
   }
 
@@ -161,53 +174,54 @@ class TodayTasks extends ConsumerWidget {
     return out;
   }
 
-  Widget _card(BuildContext context, SwanPalette c, _Task t) =>
+  Widget _card(BuildContext context, SwanPalette c, _Task t,
+          {required bool compact}) =>
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.pushNamed(context, t.route),
         child: Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: SwanSpace.lg, vertical: SwanSpace.md),
+          width: compact ? 204 : 232,
+          padding: EdgeInsets.all(compact ? SwanSpace.sm : SwanSpace.md),
           decoration: BoxDecoration(
-            color: c.surface,
+            color: t.tone == c.accent ? c.surfaceAlt : c.surface,
             borderRadius: BorderRadius.circular(SwanRadius.md),
-            border: Border(left: BorderSide(color: t.tone, width: 3)),
           ),
-          child: Row(children: [
-            Container(
-              width: 34,
-              height: 34,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: t.tone.withValues(alpha: .12),
-                borderRadius: BorderRadius.circular(SwanRadius.sm),
-              ),
-              child: Icon(t.icon, size: 17, color: t.tone),
-            ),
-            const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Rol etiketi başlığın ÜSTÜNDE ve küçük: işin kendisi
-                  // önce okunmalı, hangi şapkadan geldiği sonra.
-                  Text(t.role,
-                      style: SwanType.caption(c.faintOr(t.tone),
-                          w: FontWeight.w700)),
-                  Text(t.title,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(children: [
+                Container(
+                  width: compact ? 24 : 28,
+                  height: compact ? 24 : 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: t.tone.withValues(alpha: .12),
+                    borderRadius: BorderRadius.circular(SwanRadius.sm),
+                  ),
+                  child: Icon(t.icon, size: compact ? 14 : 15, color: t.tone),
+                ),
+                const SizedBox(width: SwanSpace.sm),
+                Expanded(
+                  child: Text(t.role,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                  if (t.subtitle != null)
-                    Text(t.subtitle!,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: SwanType.caption(c.inkMuted)),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, size: 18, color: c.inkMuted),
-          ]),
+                      style: SwanType.caption(c.faintOr(t.tone),
+                          w: FontWeight.w700)),
+                ),
+                Icon(Icons.arrow_outward_rounded, size: 16, color: c.inkMuted),
+              ]),
+              Text(t.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.bodySm(c.ink, w: FontWeight.w800)),
+              if (!compact && t.subtitle != null)
+                Text(t.subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(c.inkMuted)),
+            ],
+          ),
         ),
       );
 }

@@ -6,7 +6,7 @@ import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 
-/// Ana Sayfa'nın "Bugün" şeridi.
+/// Ana Sayfa'nın "Bugünün planı" şeridi.
 ///
 /// Brief §4: ana sayfa *"kesinlikle klasik admin dashboard gibi
 /// görünmemeli"* — bilgileri üst üste büyük kartlara dizmek yerine
@@ -35,10 +35,10 @@ class TodayStrip extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.fromLTRB(
               SwanSpace.lg, SwanSpace.sm, SwanSpace.lg, SwanSpace.md),
-          child: Text('Bugün', style: SwanType.h3(c.ink)),
+          child: Text('Bugünün planı', style: SwanType.h3(c.ink)),
         ),
         SizedBox(
-          height: 96,
+          height: 88,
           child: ListView.separated(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
@@ -47,7 +47,7 @@ class TodayStrip extends ConsumerWidget {
             itemBuilder: (_, i) => _card(context, c, items[i]),
           ),
         ),
-        const SizedBox(height: SwanSpace.xl),
+        const SizedBox(height: SwanSpace.lg),
       ],
     );
   }
@@ -138,8 +138,7 @@ class TodayStrip extends ConsumerWidget {
     );
   }
 
-  static String _hhmm(DateTime d) =>
-      '${d.hour.toString().padLeft(2, '0')}:'
+  static String _hhmm(DateTime d) => '${d.hour.toString().padLeft(2, '0')}:'
       '${d.minute.toString().padLeft(2, '0')}';
 }
 

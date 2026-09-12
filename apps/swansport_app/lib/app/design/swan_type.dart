@@ -17,7 +17,8 @@ import 'package:google_fonts/google_fonts.dart';
 class SwanType {
   const SwanType._();
 
-  static TextStyle _sora(double size, FontWeight w, Color c) => GoogleFonts.sora(
+  static TextStyle _sora(double size, FontWeight w, Color c) =>
+      GoogleFonts.sora(
         fontSize: size,
         fontWeight: w,
         color: c,
@@ -32,6 +33,16 @@ class SwanType {
         fontWeight: w,
         color: c,
         height: height,
+      );
+
+  /// Ürün adı için imza hissinde logotype. Yalnız marka ismiyle kullanılır;
+  /// gövde ve başlıklarda kullanılmaz, çünkü okunabilirlik önceliklidir.
+  static TextStyle wordmark(Color c) => GoogleFonts.caveat(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: c,
+        letterSpacing: -0.8,
+        height: 1,
       );
 
   /// 32 — hero, performans skoru. Ekranda en fazla bir tane.
