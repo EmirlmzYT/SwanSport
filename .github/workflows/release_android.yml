@@ -1,0 +1,90 @@
+name: Release Android APK
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: android-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Bootstrap workspace
+        run: |
+          dart pub global activate melos
+          melos bootstrap
+      - name: Read and validate version
+        id: version
+        run: |
+          VERSION="$(sed -n 's/^version: //p' apps/swansport_app/pubspec.yaml)"
+          test -n "$VERSION"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "v${VERSION}" ]]; then
+            echo "Tag v${VERSION} bekleniyordu; gelen etiket: ${GITHUB_REF_NAME}" >&2
+            exit 1
+          fi
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Restore Android release signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          STORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          for name in KEYSTORE_BASE64 STORE_PASSWORD KEY_PASSWORD KEY_ALIAS; do
+            test -n "${!name}" || { echo "Eksik GitHub secret: $name" >&2; exit 1; }
+          done
+          KEYSTORE_PATH="$RUNNER_TEMP/swansport-upload.jks"
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$KEYSTORE_PATH"
+          cat > apps/swansport_app/android/key.properties <<EOF
+          storePassword=$STORE_PASSWORD
+          keyPassword=$KEY_PASSWORD
+          keyAlias=$KEY_ALIAS
+          storeFile=$KEYSTORE_PATH
+          EOF
+      - name: Build signed APK
+        working-directory: apps/swansport_app
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$SUPABASE_URL" || { echo 'SUPABASE_URL secret eksik' >&2; exit 1; }
+          test -n "$SUPABASE_ANON_KEY" || { echo 'SUPABASE_ANON_KEY secret eksik' >&2; exit 1; }
+          flutter build apk --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+          mkdir -p build/release
+          cp build/app/outputs/flutter-apk/app-release.apk "build/release/SwanSport-${{ steps.version.outputs.value }}.apk"
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Android-${{ steps.version.outputs.value }}
+          path: apps/swansport_app/build/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Publish GitHub Release
+        if: github.ref_type == 'tag'
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: apps/swansport_app/build/release/*.apk

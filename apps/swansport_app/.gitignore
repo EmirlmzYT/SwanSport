@@ -43,3 +43,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# GitHub Actions iOS signing ayarı — çalışma anında üretilir
+ios/Flutter/Signing.xcconfig

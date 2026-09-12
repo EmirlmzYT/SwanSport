@@ -1,6 +1,4 @@
 #include "Generated.xcconfig"
-
-DEVELOPMENT_TEAM = 0000000000
-CODE_SIGN_IDENTITY = 
-CODE_SIGNING_REQUIRED = NO
-CODE_SIGNING_ALLOWED = NO
+// Yerelde imzasız derleme yapılabilir. CI bu dosyayı çalışma anında üretir;
+// kişisel Apple takım bilgisi veya sertifika depoya yazılmaz.
+#include? "Signing.xcconfig"
