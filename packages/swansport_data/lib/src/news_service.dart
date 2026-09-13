@@ -112,7 +112,7 @@ class NewsService {
   Future<List<NewsItem>> _fetch(RssSource source, int limit) async {
     try {
       final uri = Uri.parse(
-        '$kRssBridge?v=3&url=${Uri.encodeComponent(source.url)}',
+        '$kRssBridge?v=4&url=${Uri.encodeComponent(source.url)}',
       );
       final res = await http.get(uri).timeout(const Duration(seconds: 12));
       if (res.statusCode != 200) return const [];
@@ -126,17 +126,19 @@ class NewsService {
         final title = (raw['title'] as String?)?.trim();
         if (title == null || title.isEmpty) continue;
         final link = raw['link'] as String?;
-        out.add(NewsItem(
-          title: title,
-          sourceName: source.name,
-          summary: (raw['summary'] as String?)?.trim(),
-          link: link,
-          imageUrl: _imageProxy(raw['image'] as String?),
-          // RSS adresi bazen ayrı bir dağıtım alan adı olur. Profil görseli
-          // okuyucunun gideceği haber sitesinin favicon'u olmalı.
-          sourceIconUrl: _sourceIcon(link ?? source.url),
-          publishedAt: _parseDate(raw['published'] as String?),
-        ));
+        out.add(
+          NewsItem(
+            title: title,
+            sourceName: source.name,
+            summary: (raw['summary'] as String?)?.trim(),
+            link: link,
+            imageUrl: _imageProxy(raw['image'] as String?),
+            // RSS adresi bazen ayrı bir dağıtım alan adı olur. Profil görseli
+            // okuyucunun gideceği haber sitesinin favicon'u olmalı.
+            sourceIconUrl: _sourceIcon(link ?? source.url),
+            publishedAt: _parseDate(raw['published'] as String?),
+          ),
+        );
       }
       return out;
     } catch (error) {

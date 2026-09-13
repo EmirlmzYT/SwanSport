@@ -40,13 +40,13 @@ export async function onRequest(context) {
     const res = await fetch(parsed.toString(), {
       headers: { 'User-Agent': 'SwanSport/1.0 (+https://swansport.pages.dev)' },
       cf: { cacheTtl: 900, cacheEverything: true },
+      signal: AbortSignal.timeout(8000),
     });
     if (!res.ok) {
       return json({ error: `kaynak yanıt vermedi (${res.status})` }, 502);
     }
     const xml = await res.text();
     const items = parseFeed(xml, res.url || parsed.toString());
-    await enrichMissingImages(items, res.url || parsed.toString());
     return json({ items }, 200, {
       // 15 dakika önbellek — her açılışta kaynağı yormayalım.
       'Cache-Control': 'public, max-age=900',
@@ -157,26 +157,6 @@ function clean(value) {
     .replace(/<[^>]+>/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-}
-
-/** RSS görsel vermiyorsa aynı sitedeki haber sayfasının sosyal kapak görselini alır. */
-async function enrichMissingImages(items, feedUrl) {
-  let feedOrigin;
-  try { feedOrigin = new URL(feedUrl).origin; } catch { return; }
-
-  const missing = items.filter((item) => !item.image && item.link).slice(0, 12);
-  await Promise.allSettled(missing.map(async (item) => {
-    const article = new URL(item.link);
-    if (article.origin !== feedOrigin) return;
-    const response = await fetch(article, {
-      headers: { 'User-Agent': 'SwanSport/1.0 (+https://swansport.pages.dev)' },
-      cf: { cacheTtl: 3600, cacheEverything: true },
-    });
-    if (!response.ok) return;
-    const type = response.headers.get('content-type') || '';
-    if (!type.includes('text/html')) return;
-    item.image = articleImage((await response.text()).slice(0, 400000), article.href);
-  }));
 }
 
 export function articleImage(html, pageUrl) {
