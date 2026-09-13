@@ -15,8 +15,10 @@ Etiket iki workflow çalıştırır:
 
 - **Release Android APK:** imzalı APK üretir, GitHub Release'e yükler.
   Android uygulamasının açılıştaki güncelleme mekanizması bu Release'i okur.
-- **Release iOS to TestFlight:** imzalı IPA üretir ve TestFlight'a yollar.
-  iOS güncellemeleri TestFlight/App Store üzerinden dağıtılır.
+- **Build iOS IPA and optionally release to TestFlight:** Sideloadly ile
+  kurulabilen unsigned IPA'yı her zaman üretir ve sürüm etiketinde GitHub
+  Release'e ekler. Apple signing bilgileri tanımlıysa ayrıca imzalı IPA
+  üretip TestFlight'a yollar.
 
 ## GitHub Actions ayarları
 
@@ -49,6 +51,9 @@ Apple Developer/App Store Connect tarafında önce `com.swansport.app` Bundle
 ID'sini ve uygulama kaydını oluştur. API anahtarına TestFlight yükleme yetkisi
 ver. Workflow, `IOS_APP_STORE` provisioning profile'ını API ile indirir.
 
-`workflow_dispatch` artifact üretir; GitHub Release ve TestFlight yüklemesi
-sadece sürüm etiketiyle olur. Aynı iOS build numarasını yanlışlıkla yeniden
-TestFlight'a yollamaz.
+Apple secret ve variable değerleri opsiyoneldir. Eksik olduklarında workflow
+hata vermez; TestFlight adımlarını atlar ve unsigned IPA üretmeye devam eder.
+
+`workflow_dispatch`, unsigned IPA'yı mevcut uygulama sürümünün GitHub
+Release'ine ekler. TestFlight yüklemesi yalnızca sürüm etiketiyle olur; aynı
+iOS build numarası yanlışlıkla yeniden TestFlight'a yollanmaz.

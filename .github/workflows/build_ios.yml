@@ -1,19 +1,25 @@
-name: Release iOS to TestFlight
+name: Build iOS IPA and optionally release to TestFlight
 
 on:
   push:
+    branches: [main]
     tags: ['v*']
+    paths:
+      - 'apps/swansport_app/**'
+      - 'packages/**'
+      - '.github/workflows/build_ios.yml'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
-  group: ios-testflight-${{ github.ref }}
-  cancel-in-progress: false
+  group: ios-release-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build-and-upload:
+  build-ios:
+    name: Build iOS IPA
     runs-on: macos-latest
     defaults:
       run:
@@ -30,20 +36,75 @@ jobs:
         run: |
           dart pub global activate melos
           melos bootstrap
-      - name: Validate tag version
-        if: github.ref_type == 'tag'
+      - name: Read and validate version
+        id: version
         run: |
           VERSION="$(sed -n 's/^version: //p' apps/swansport_app/pubspec.yaml)"
-          test "${GITHUB_REF_NAME}" = "v${VERSION}" || {
+          test -n "$VERSION"
+          if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "v${VERSION}" ]]; then
             echo "Tag v${VERSION} bekleniyordu; gelen etiket: ${GITHUB_REF_NAME}" >&2
             exit 1
-          }
+          fi
+          echo "value=${VERSION}" >> "$GITHUB_OUTPUT"
+      - name: Detect Apple signing configuration
+        id: signing
+        env:
+          CERTIFICATE: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
+          API_PRIVATE_KEY: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
+          ISSUER_ID: ${{ vars.APPSTORE_ISSUER_ID }}
+          API_KEY_ID: ${{ vars.APPSTORE_API_KEY_ID }}
+          TEAM_ID: ${{ vars.IOS_TEAM_ID }}
+        run: |
+          if [[ -n "$CERTIFICATE" && -n "$CERTIFICATE_PASSWORD" && -n "$API_PRIVATE_KEY" && -n "$ISSUER_ID" && -n "$API_KEY_ID" && -n "$TEAM_ID" ]]; then
+            echo 'available=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'available=false' >> "$GITHUB_OUTPUT"
+            echo 'Apple signing bilgileri eksik; Sideloadly için unsigned IPA üretilecek.'
+          fi
+      - name: Build iOS without codesigning
+        working-directory: apps/swansport_app
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          test -n "$SUPABASE_URL" || { echo 'SUPABASE_URL secret eksik' >&2; exit 1; }
+          test -n "$SUPABASE_ANON_KEY" || { echo 'SUPABASE_ANON_KEY secret eksik' >&2; exit 1; }
+          flutter build ios --release --no-codesign -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+      - name: Package unsigned IPA for Sideloadly
+        working-directory: apps/swansport_app
+        run: |
+          rm -rf build/ios/unsigned-payload
+          mkdir -p build/ios/unsigned-payload/Payload build/ios/release
+          cp -R build/ios/iphoneos/Runner.app build/ios/unsigned-payload/Payload/
+          cd build/ios/unsigned-payload
+          zip -qry "../release/SwanSport-${{ steps.version.outputs.value }}-unsigned.ipa" Payload
+      - name: Upload unsigned IPA artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-iOS-${{ steps.version.outputs.value }}-unsigned
+          path: apps/swansport_app/build/ios/release/*-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 30
+      - name: Attach unsigned IPA to GitHub Release
+        if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.value }}
+          generate_release_notes: false
+          files: apps/swansport_app/build/ios/release/*-unsigned.ipa
+          fail_on_unmatched_files: true
       - name: Import Apple Distribution certificate
+        if: steps.signing.outputs.available == 'true'
         uses: apple-actions/import-codesign-certs@v7
         with:
           p12-file-base64: ${{ secrets.APPSTORE_CERTIFICATES_FILE_BASE64 }}
           p12-password: ${{ secrets.APPSTORE_CERTIFICATES_PASSWORD }}
       - name: Download App Store provisioning profile
+        if: steps.signing.outputs.available == 'true'
         uses: apple-actions/download-provisioning-profiles@v4
         with:
           bundle-id: ${{ env.IOS_BUNDLE_ID }}
@@ -52,36 +113,36 @@ jobs:
           api-key-id: ${{ vars.APPSTORE_API_KEY_ID }}
           api-private-key: ${{ secrets.APPSTORE_API_PRIVATE_KEY }}
       - name: Configure release signing
+        if: steps.signing.outputs.available == 'true'
         env:
           IOS_TEAM_ID: ${{ vars.IOS_TEAM_ID }}
         run: |
-          test -n "$IOS_TEAM_ID" || { echo 'IOS_TEAM_ID repository variable eksik' >&2; exit 1; }
           cat > apps/swansport_app/ios/Flutter/Signing.xcconfig <<EOF
           DEVELOPMENT_TEAM = $IOS_TEAM_ID
           CODE_SIGN_STYLE = Automatic
           CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution
           EOF
       - name: Build signed IPA
+        if: steps.signing.outputs.available == 'true'
         working-directory: apps/swansport_app
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
         run: |
-          test -n "$SUPABASE_URL" || { echo 'SUPABASE_URL secret eksik' >&2; exit 1; }
-          test -n "$SUPABASE_ANON_KEY" || { echo 'SUPABASE_ANON_KEY secret eksik' >&2; exit 1; }
           flutter build ipa --release -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
             --dart-define=APP_ENV=production
-      - name: Upload IPA artifact
+      - name: Upload signed IPA artifact
+        if: steps.signing.outputs.available == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: SwanSport-iOS-${{ github.sha }}
+          name: SwanSport-iOS-${{ steps.version.outputs.value }}-signed
           path: apps/swansport_app/build/ios/ipa/*.ipa
           if-no-files-found: error
           retention-days: 30
-      - name: Upload to TestFlight
-        if: github.ref_type == 'tag'
+      - name: Upload signed IPA to TestFlight
+        if: steps.signing.outputs.available == 'true' && github.ref_type == 'tag'
         uses: apple-actions/upload-testflight-build@v4
         with:
           app-path: apps/swansport_app/build/ios/ipa/*.ipa
