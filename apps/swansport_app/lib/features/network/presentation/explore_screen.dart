@@ -41,7 +41,11 @@ class ExploreScreen extends ConsumerWidget {
                 const SizedBox(height: SwanSpace.lg),
                 _SearchField(c: c),
                 const SizedBox(height: SwanSpace.lg),
-                const _QuickExplore(),
+                _QuickExplore(
+                  marketplaceEnabled: ref.watch(
+                    featureEnabledProvider(FeatureFlags.marketplace),
+                  ),
+                ),
                 const SizedBox(height: SwanSpace.xl),
 
                 // Üç bölüm, üç ayrı niyet: "bugün spor yapacağım",
@@ -143,16 +147,18 @@ class ExploreScreen extends ConsumerWidget {
 /// En çok kullanılan keşif yolları. Liste görünümünü bozmadan, kullanıcıyı
 /// birkaç ekran derinliğine göndermeden doğrudan niyetine götürür.
 class _QuickExplore extends StatelessWidget {
-  const _QuickExplore();
+  const _QuickExplore({required this.marketplaceEnabled});
+  final bool marketplaceEnabled;
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    const items = [
+    final items = [
       (Icons.stadium_rounded, 'Saha', '/kortlar'),
       (Icons.handshake_rounded, 'Partner', '/partner-ara'),
       (Icons.groups_rounded, 'Kulüp', '/kulupler'),
-      (Icons.storefront_rounded, 'Pazaryeri', '/pazaryeri'),
+      if (marketplaceEnabled)
+        (Icons.storefront_rounded, 'Pazaryeri', '/pazaryeri'),
     ];
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Hızlı keşfet', style: SwanType.h3(c.ink)),
@@ -165,26 +171,31 @@ class _QuickExplore extends StatelessWidget {
           separatorBuilder: (_, __) => const SizedBox(width: SwanSpace.sm),
           itemBuilder: (context, index) {
             final item = items[index];
-            return GestureDetector(
-              onTap: () => Navigator.pushNamed(context, item.$3),
-              child: Container(
-                width: 112,
-                padding: const EdgeInsets.all(SwanSpace.md),
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  borderRadius: BorderRadius.circular(SwanRadius.md),
-                  border: Border.all(color: c.line),
-                ),
-                child: Row(children: [
-                  Icon(item.$1, color: c.accent, size: 19),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(item.$2,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: SwanType.caption(c.ink, w: FontWeight.w800)),
+            return Semantics(
+              button: true,
+              label: '${item.$2} bölümünü aç',
+              child: InkWell(
+                onTap: () => Navigator.pushNamed(context, item.$3),
+                borderRadius: BorderRadius.circular(SwanRadius.md),
+                child: Container(
+                  width: 112,
+                  padding: const EdgeInsets.all(SwanSpace.md),
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                    border: Border.all(color: c.line),
                   ),
-                ]),
+                  child: Row(children: [
+                    Icon(item.$1, color: c.accent, size: 19),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(item.$2,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: SwanType.caption(c.ink, w: FontWeight.w800)),
+                    ),
+                  ]),
+                ),
               ),
             );
           },
@@ -204,21 +215,24 @@ class _SearchField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.pushNamed(context, '/ara'),
-      child: Container(
-        height: 50,
-        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-        decoration: BoxDecoration(
-          color: c.surfaceAlt,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
+    return Semantics(
+      button: true,
+      label: 'Arama ekranını aç',
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/ara'),
+        child: Container(
+          height: 50,
+          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+          decoration: BoxDecoration(
+            color: c.surfaceAlt,
+            borderRadius: BorderRadius.circular(SwanRadius.md),
+          ),
+          child: Row(children: [
+            Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
+            const SizedBox(width: SwanSpace.md),
+            Text('Ne arıyorsun?', style: SwanType.body(c.inkMuted)),
+          ]),
         ),
-        child: Row(children: [
-          Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
-          const SizedBox(width: SwanSpace.md),
-          Text('Ne arıyorsun?', style: SwanType.body(c.inkMuted)),
-        ]),
       ),
     );
   }
@@ -245,37 +259,40 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.pushNamed(context, route),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
-        child: Row(children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: c.accentSoft,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
+    return Semantics(
+      button: true,
+      label: '$title bölümünü aç',
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, route),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
+          child: Row(children: [
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: c.accentSoft,
+                borderRadius: BorderRadius.circular(SwanRadius.md),
+              ),
+              child: Icon(icon, color: c.accent, size: 21),
             ),
-            child: Icon(icon, color: c.accent, size: 21),
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: SwanType.body(c.ink, w: FontWeight.w700)),
-                const SizedBox(height: 2),
-                Text(subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(c.inkMuted)),
-              ],
+            const SizedBox(width: SwanSpace.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: SwanType.body(c.ink, w: FontWeight.w700)),
+                  const SizedBox(height: 2),
+                  Text(subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.caption(c.inkMuted)),
+                ],
+              ),
             ),
-          ),
-          Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
-        ]),
+            Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
+          ]),
+        ),
       ),
     );
   }
