@@ -11,6 +11,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Bildirimler — beğeni, yorum, takip, başvuru ve onay hareketleri.
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -49,8 +50,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final async = ref.watch(categorizedNotificationsProvider(_category));
 
     return Scaffold(
@@ -64,23 +63,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                  child: Row(children: [
-                    Text('Hareketler', style: SwanType.h2(ink)),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: _openPrefs,
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.tune_rounded, size: 18, color: ink),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SwanPageHeader(
+                    title: 'Hareketler',
+                    subtitle: 'Sosyal, kulüp ve antrenman bildirimleri',
+                    actions: [
+                      SwanHeaderAction(
+                        icon: Icons.tune_rounded,
+                        tooltip: 'Bildirim tercihleri',
+                        onTap: _openPrefs,
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
                 const _PushBanner(),
                 const _PushDiagnosticsPanel(),

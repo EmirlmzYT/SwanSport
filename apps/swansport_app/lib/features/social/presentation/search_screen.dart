@@ -8,6 +8,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -83,7 +84,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final list = _visible;
@@ -98,26 +98,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                // Başlık + arama alanı
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                  child: Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.maybePop(context),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 15, color: ink),
+                  child: Column(
+                    children: [
+                      SwanPageHeader(
+                        title: 'Arama',
+                        subtitle: 'SwanSport ağında kişi ve kulüp bul',
+                        onBack: () => Navigator.maybePop(context),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextField(
+                      const SizedBox(height: 8),
+                      TextField(
                         controller: _ctrl,
                         autofocus: true,
                         onChanged: _onChanged,
@@ -154,8 +145,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                   const BorderSide(color: kTeal, width: 1.5)),
                         ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
 
                 // Süzgeçler
@@ -219,7 +210,9 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           border: Border.all(color: on ? kTeal : line),
         ),
         child: Text(label,
-            style: SwanType.caption(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w700)),
+            style: SwanType.caption(
+                on ? Colors.white : SwanColors.textSecondary,
+                w: FontWeight.w700)),
       ),
     );
   }

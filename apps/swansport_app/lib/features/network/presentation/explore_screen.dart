@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Keşfet — uygulamanın ikinci ana merkezi.
 ///
@@ -37,8 +38,11 @@ class ExploreScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 132),
               children: [
-                Text('Keşfet', style: SwanType.h1(c.ink)),
-                const SizedBox(height: SwanSpace.lg),
+                const SwanPageHeader(
+                  title: 'Keşfet',
+                  subtitle: 'Saha, topluluk ve spor ihtiyaçlarını bul',
+                ),
+                const SizedBox(height: SwanSpace.md),
                 _SearchField(c: c),
                 const SizedBox(height: SwanSpace.lg),
                 _QuickExplore(
