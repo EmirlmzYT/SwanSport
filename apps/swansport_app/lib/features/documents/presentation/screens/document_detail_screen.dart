@@ -37,16 +37,15 @@ class DocumentDetailScreen extends ConsumerWidget {
         DocumentDetailStatus.unavailable =>
           const Center(child: Text('Bu belge artık kullanılamıyor.')),
         DocumentDetailStatus.loaded =>
-          _Detail(document: state.document!, permissions: state.permissions),
+          _Detail(document: state.document!),
       },
     );
   }
 }
 
 class _Detail extends StatelessWidget {
-  const _Detail({required this.document, required this.permissions});
+  const _Detail({required this.document});
   final VaultDocument document;
-  final DocumentPermissionSet permissions;
 
   @override
   Widget build(BuildContext context) => Center(
@@ -97,30 +96,11 @@ class _Detail extends StatelessWidget {
                     .map((tag) => Chip(label: Text('#$tag')))
                     .toList(),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                'Hızlı İşlemler',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-              Wrap(
-                spacing: 8,
-                children: [
-                  if (permissions.canDownload)
-                    const OutlinedButton(onPressed: null, child: Text('İndir')),
-                  if (permissions.canUpdate)
-                    const OutlinedButton(
-                      onPressed: null,
-                      child: Text('Güncelle'),
-                    ),
-                  if (permissions.canArchive)
-                    const OutlinedButton(
-                      onPressed: null,
-                      child: Text('Arşivle'),
-                    ),
-                  if (permissions.canDelete)
-                    const OutlinedButton(onPressed: null, child: Text('Sil')),
-                ],
-              ),
+              // Bu detay görünümü şu anda fixture veri kaynağıyla çalışıyor.
+              // İndirme/güncelleme/arşivleme/silme için gerçek storage ve
+              // mutation sözleşmesi yok; izin varmış gibi görünen null
+              // düğmeler kullanıcıyı yanıltır. İşlemler veri katmanına
+              // bağlandığında bu bölüm gerçek callback'lerle geri eklenir.
               const SizedBox(height: 20),
               const Text(
                 'Sürüm Geçmişi',
