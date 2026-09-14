@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Sporcunun antrenman geçmişi ve bireysel antrenman başlatma.
 ///
@@ -39,24 +40,11 @@ class MyTrainingScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(
                     SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
                 children: [
-                  Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.maybePop(context),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line),
-                        ),
-                        child: Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 15, color: c.ink),
-                      ),
-                    ),
-                    const SizedBox(width: SwanSpace.md),
-                    Text('Antrenmanlarım', style: SwanType.h2(c.ink)),
-                  ]),
+                  SwanPageHeader(
+                    title: 'Antrenmanlarım',
+                    subtitle: 'Canlı oturumların ve antrenman geçmişin',
+                    onBack: () => Navigator.maybePop(context),
+                  ),
                   const SizedBox(height: SwanSpace.lg),
 
                   // Canlı oturum varsa en üstte — sahada aranacak ilk şey bu.

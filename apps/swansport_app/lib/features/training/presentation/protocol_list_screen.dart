@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Antrenman şablonları ve oturum başlatma.
 ///
@@ -33,31 +34,16 @@ class ProtocolListScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
               children: [
-                Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: c.surface,
-                        borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        border: Border.all(color: c.line),
-                      ),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Antrenman şablonları', style: SwanType.h2(c.ink)),
-                ]),
+                SwanPageHeader(
+                  title: 'Antrenman şablonları',
+                  subtitle: 'Branşa özel protokol ve set düzenleri',
+                  onBack: () => Navigator.maybePop(context),
+                ),
                 const SizedBox(height: SwanSpace.lg),
-
                 protocols.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (e, _) =>
-                      Text('$e', style: SwanType.bodySm(c.danger)),
+                  error: (e, _) => Text('$e', style: SwanType.bodySm(c.danger)),
                   data: (list) => list.isEmpty
                       ? Text(
                           'Henüz şablon yok. Platform şablonları kulübünün '
@@ -104,18 +90,15 @@ class ProtocolListScreen extends ConsumerWidget {
               ),
             ],
           ]),
-
           if (p.description != null) ...[
             const SizedBox(height: SwanSpace.xs),
             Text(p.description!, style: SwanType.bodySm(c.inkMuted)),
           ],
-
           const SizedBox(height: SwanSpace.md),
           Text(
             _summary(p),
             style: SwanType.caption(c.inkMuted),
           ),
-
           const SizedBox(height: SwanSpace.md),
           Row(children: [
             Expanded(
@@ -153,8 +136,8 @@ class ProtocolListScreen extends ConsumerWidget {
             for (final r in SessionRhythm.values)
               ListTile(
                 title: Text(r.label, style: SwanType.body(c.ink)),
-                subtitle: Text(_rhythmHint(r),
-                    style: SwanType.caption(c.inkMuted)),
+                subtitle:
+                    Text(_rhythmHint(r), style: SwanType.caption(c.inkMuted)),
                 onTap: () => Navigator.pop(ctx, r),
               ),
             const SizedBox(height: SwanSpace.md),
@@ -168,11 +151,12 @@ class ProtocolListScreen extends ConsumerWidget {
     if (club == null) return;
 
     try {
-      final res = await ref.read(trainingSessionServiceProvider).startClubSession(
-            clubId: club.id,
-            protocolId: p.id,
-            rhythm: rhythm,
-          );
+      final res =
+          await ref.read(trainingSessionServiceProvider).startClubSession(
+                clubId: club.id,
+                protocolId: p.id,
+                rhythm: rhythm,
+              );
       if (context.mounted) {
         Navigator.pushNamed(context, '/antrenman-oturumu',
             arguments: {'id': res.id});
