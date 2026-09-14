@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -53,36 +54,17 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 12),
-                child: Row(children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Kulüp Finansı', style: SwanType.h3(ink)),
-                        const SizedBox(height: 3),
-                        Text('Aidat & Bağış',
-                            style: SwanType.h2(ink)),
-                      ],
+                child: SwanPageHeader(
+                  title: 'Aidat & Bağış',
+                  subtitle: 'Kulüp finansı ve tahsilat takibi',
+                  actions: [
+                    SwanHeaderAction(
+                      icon: Icons.account_balance_rounded,
+                      tooltip: 'Banka bilgilerini düzenle',
+                      onTap: _editBank,
                     ),
-                  ),
-                  GestureDetector(
-                    onTap: _editBank,
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF131D2E) : Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                            color: isDark
-                                ? SwanPalette.dark.line
-                                : SwanPalette.light.line),
-                      ),
-                      child: Icon(Icons.account_balance_rounded,
-                          size: 17, color: ink),
-                    ),
-                  ),
-                ]),
+                  ],
+                ),
               ),
               _tabBar(isDark, ink),
               Expanded(
@@ -139,7 +121,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               ),
               child: Row(children: [
                 Text(labels[i],
-                    style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w800)),
+                    style: SwanType.caption(active ? Colors.white : ink,
+                        w: FontWeight.w800)),
                 if (i == 1 && pending > 0) ...[
                   const SizedBox(width: 7),
                   Container(
@@ -152,7 +135,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text('$pending',
-                        style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+                        style:
+                            SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ],
               ]),
@@ -189,8 +173,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           Text('Borç Listesi', style: SwanType.h3(ink)),
           const Spacer(),
           GestureDetector(
-            onTap: () => setState(
-                () => _period = _period.isEmpty ? _thisPeriod : ''),
+            onTap: () =>
+                setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
             child: Text(_period.isEmpty ? 'Tümü' : _period,
                 style: SwanType.caption(kTeal, w: FontWeight.w800)),
           ),
@@ -208,7 +192,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       'Önce bir aidat planı tanımlayıp sporculara ata, sonra '
                       '"Bu ayı tahakkuk ettir" de.',
                 )
-              : Column(children: [for (final f in list) _feeRow(isDark, ink, f)]),
+              : Column(
+                  children: [for (final f in list) _feeRow(isDark, ink, f)]),
         ),
       ],
     );
@@ -233,10 +218,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Tahsil edilen',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
                 const SizedBox(height: 3),
-                Text(money(s?.collected ?? 0),
-                    style: SwanType.h2(ink)),
+                Text(money(s?.collected ?? 0), style: SwanType.h2(ink)),
               ],
             ),
           ),
@@ -269,11 +254,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: SwanType.bodySm(alert ? SwanPalette.light.danger : ink, w: FontWeight.w800)),
+                style: SwanType.bodySm(alert ? SwanPalette.light.danger : ink,
+                    w: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(label,
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600)),
           ],
         ),
       );
@@ -321,7 +307,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         ),
         const SizedBox(width: 8),
         Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Text(money(f.amount), style: SwanType.bodySm(ink, w: FontWeight.w800)),
+          Text(money(f.amount),
+              style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 2),
           Text(f.statusLabel,
               style: SwanType.caption(color, w: FontWeight.w700)),
@@ -331,14 +318,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           GestureDetector(
             onTap: () => _collect(f),
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
+              padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 7),
               decoration: BoxDecoration(
                 color: kTeal.withValues(alpha: .12),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child:
-                  Text('Tahsil', style: SwanType.caption(kTeal, w: FontWeight.w800)),
+              child: Text('Tahsil',
+                  style: SwanType.caption(kTeal, w: FontWeight.w800)),
             ),
           ),
         ],
@@ -355,7 +341,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
       children: [
-        Text('Veli havale yapıp "ödedim" dediğinde bildirim buraya düşer. '
+        Text(
+            'Veli havale yapıp "ödedim" dediğinde bildirim buraya düşer. '
             'Dekontu kontrol edip onayladığında borç kapanır.',
             style: SwanType.caption(SwanColors.textSecondary)),
         const SizedBox(height: 14),
@@ -388,26 +375,28 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(p.athleteName ?? p.label,
-                                      style:
-                                          SwanType.bodySm(ink, w: FontWeight.w800)),
+                                      style: SwanType.bodySm(ink,
+                                          w: FontWeight.w800)),
                                   const SizedBox(height: 2),
                                   Text(
                                       '${p.label} · ${p.method} · '
                                       '${p.paidAt.day}.${p.paidAt.month}.${p.paidAt.year}',
-                                      style: SwanType.caption(SwanColors.textSecondary)),
+                                      style: SwanType.caption(
+                                          SwanColors.textSecondary)),
                                   if (p.declaredName != null)
                                     Text('Bildiren: ${p.declaredName}',
-                                        style: SwanType.caption(SwanColors.textSecondary)),
+                                        style: SwanType.caption(
+                                            SwanColors.textSecondary)),
                                 ],
                               ),
                             ),
-                            Text(money(p.amount),
-                                style: SwanType.h3(ink)),
+                            Text(money(p.amount), style: SwanType.h3(ink)),
                           ]),
                           if (p.note != null && p.note!.trim().isNotEmpty) ...[
                             const SizedBox(height: 8),
                             Text(p.note!,
-                                style: SwanType.caption(SwanColors.textSecondary)),
+                                style:
+                                    SwanType.caption(SwanColors.textSecondary)),
                           ],
                           if (p.receiptUrl != null) ...[
                             const SizedBox(height: 10),
@@ -417,8 +406,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                   height: 150,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => const SizedBox
-                                      .shrink()),
+                                  errorBuilder: (_, __, ___) =>
+                                      const SizedBox.shrink()),
                             ),
                           ],
                           const SizedBox(height: 12),
@@ -434,7 +423,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                     border: Border.all(color: line),
                                   ),
                                   child: Text('Reddet',
-                                      style: SwanType.caption(SwanPalette.light.danger, w: FontWeight.w800)),
+                                      style: SwanType.caption(
+                                          SwanPalette.light.danger,
+                                          w: FontWeight.w800)),
                                 ),
                               ),
                             ),
@@ -450,7 +441,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                     borderRadius: BorderRadius.circular(12),
                                   ),
                                   child: Text('Onayla',
-                                      style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+                                      style: SwanType.caption(Colors.white,
+                                          w: FontWeight.w800)),
                                 ),
                               ),
                             ),
@@ -485,7 +477,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           loading: premiumLoading,
           error: (e, _) => premiumError(context, '$e'),
           data: (list) => list.isEmpty
-              ? Text('Henüz plan yok. "Altyapı — aylık 1.500 ₺" gibi bir plan '
+              ? Text(
+                  'Henüz plan yok. "Altyapı — aylık 1.500 ₺" gibi bir plan '
                   'tanımlayıp sporculara ata.',
                   style: SwanType.caption(SwanColors.textSecondary))
               : Column(children: [
@@ -504,9 +497,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(p.name,
-                                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                                  style:
+                                      SwanType.bodySm(ink, w: FontWeight.w800)),
                               Text('Her ayın ${p.dueDay}. günü son ödeme',
-                                  style: SwanType.caption(SwanColors.textSecondary)),
+                                  style: SwanType.caption(
+                                      SwanColors.textSecondary)),
                             ],
                           ),
                         ),
@@ -519,7 +514,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         const SizedBox(height: 22),
         Text('Sporcu Atamaları', style: SwanType.h3(ink)),
         const SizedBox(height: 4),
-        Text('Kişiye özel tutar girersen (burs, kardeş indirimi) plandaki '
+        Text(
+            'Kişiye özel tutar girersen (burs, kardeş indirimi) plandaki '
             'tutar yerine o geçerli olur. 0 yazarsan borç oluşmaz.',
             style: SwanType.caption(SwanColors.textSecondary)),
         const SizedBox(height: 10),
@@ -553,7 +549,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('${a.firstName} ${a.lastName}',
-                                style: SwanType.caption(ink, w: FontWeight.w700)),
+                                style:
+                                    SwanType.caption(ink, w: FontWeight.w700)),
                             Text(
                                 asg == null
                                     ? 'Aidat atanmamış'
@@ -566,8 +563,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                           asg.note!,
                                       ].join(' · '),
                                 style: SwanType.caption(asg == null
-                                        ? SwanColors.textSecondary
-                                        : kTeal)),
+                                    ? SwanColors.textSecondary
+                                    : kTeal)),
                           ],
                         ),
                       ),
@@ -601,13 +598,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         ),
         child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
           Icon(icon,
-              size: 16, color: subtle ? SwanColors.textSecondary : Colors.white),
+              size: 16,
+              color: subtle ? SwanColors.textSecondary : Colors.white),
           const SizedBox(width: 7),
           Flexible(
             child: Text(label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: SwanType.caption(subtle ? SwanColors.textSecondary : Colors.white, w: FontWeight.w800)),
+                style: SwanType.caption(
+                    subtle ? SwanColors.textSecondary : Colors.white,
+                    w: FontWeight.w800)),
           ),
         ]),
       ),
@@ -636,8 +636,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final club = ref.read(activeClubProvider).valueOrNull;
     if (club == null) return;
     try {
-      final n =
-          await ref.read(financeServiceProvider).generateCharges(club.id);
+      final n = await ref.read(financeServiceProvider).generateCharges(club.id);
       _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -705,7 +704,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           const SizedBox(height: 14),
           for (final p in plans)
             ListTile(
-              title: Text(p.name, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+              title:
+                  Text(p.name, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               subtitle: Text(money(p.amount),
                   style: SwanType.caption(kTeal, w: FontWeight.w600)),
               onTap: () => Navigator.pop(ctx, p.id),
@@ -714,7 +714,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             leading: Icon(Icons.delete_outline_rounded,
                 color: SwanPalette.light.danger),
             title: Text('Aidatı kaldır',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w700)),
             onTap: () => Navigator.pop(ctx, '__remove__'),
           ),
         ]),
@@ -723,8 +724,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
     if (planId == null) return;
     if (planId == '__remove__') {
-      await _guard(
-          () => ref.read(financeServiceProvider).removeFee(athleteId),
+      await _guard(() => ref.read(financeServiceProvider).removeFee(athleteId),
           'Aidat kaldırıldı');
       ref.invalidate(feeAssignmentsProvider);
       return;
@@ -732,8 +732,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
     final custom = FormField_('Kişiye özel tutar (₺)',
         hint: 'Boş bırak = plandaki tutar', required: false);
-    final note = FormField_('Not', hint: 'burslu / kardeş indirimi',
-        required: false);
+    final note =
+        FormField_('Not', hint: 'burslu / kardeş indirimi', required: false);
 
     await showQuickForm(
       context,
@@ -836,17 +836,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   }
 
   Future<void> _confirm(String paymentId, bool approve) => _guard(
-        () => ref
-            .read(financeServiceProvider)
-            .confirmPayment(paymentId, approve),
+        () =>
+            ref.read(financeServiceProvider).confirmPayment(paymentId, approve),
         approve ? 'Ödeme onaylandı' : 'Ödeme reddedildi',
       );
 
   Future<void> _editBank() async {
     final info = ref.read(clubBankInfoProvider).valueOrNull;
-    final holder = FormField_('Hesap sahibi',
-        hint: 'Kulüp Derneği', required: false)
-      ..controller.text = info?.holder ?? '';
+    final holder =
+        FormField_('Hesap sahibi', hint: 'Kulüp Derneği', required: false)
+          ..controller.text = info?.holder ?? '';
     final bank = FormField_('Banka', hint: 'Ziraat', required: false)
       ..controller.text = info?.bank ?? '';
     final iban = FormField_('IBAN', hint: 'TR..', required: false)

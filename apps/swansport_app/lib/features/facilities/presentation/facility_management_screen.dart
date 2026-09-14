@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -50,20 +51,13 @@ class _FacilityManagementScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Row(children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Kulüp', style: SwanType.h3(ink)),
-                          const SizedBox(height: 3),
-                          Text('Tesisler',
-                              style: SwanType.h2(ink)),
-                        ],
-                      ),
-                    ),
-                    AddButton(onTap: _add, tooltip: 'Tesis ekle'),
-                  ]),
+                  SwanPageHeader(
+                    title: 'Tesisler',
+                    subtitle: 'Kulüp sahaları ve haftalık kullanım',
+                    actions: [
+                      AddButton(onTap: _add, tooltip: 'Tesis ekle'),
+                    ],
+                  ),
                   const SizedBox(height: 6),
                   Text('Doluluk, önümüzdeki 7 günün takviminden hesaplanır.',
                       style: SwanType.caption(SwanColors.textSecondary)),
@@ -138,7 +132,8 @@ class _FacilityManagementScreenState
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(f.name, style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                    Text(f.name,
+                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
                     if ((f.kind ?? '').isNotEmpty)
                       Text(f.kind!,
                           style: SwanType.caption(SwanColors.textSecondary)),
@@ -172,7 +167,9 @@ class _FacilityManagementScreenState
                   f.isIdle
                       ? 'Bu hafta program yok'
                       : '%${f.loadPercent} · ${f.eventCount} etkinlik · ${f.busyLabel}',
-                  style: SwanType.caption(f.isIdle ? SwanColors.textSecondary : color, w: FontWeight.w700)),
+                  style: SwanType.caption(
+                      f.isIdle ? SwanColors.textSecondary : color,
+                      w: FontWeight.w700)),
             ]),
             if (f.nextStartsAt != null) ...[
               const SizedBox(height: 10),
@@ -188,7 +185,8 @@ class _FacilityManagementScreenState
                       '${_when(f.nextStartsAt!)}',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
                 ),
                 const Icon(Icons.chevron_right_rounded,
                     size: 16, color: SwanColors.textSecondary),
@@ -235,7 +233,8 @@ class _FacilityManagementScreenState
           Text(f.name, style: SwanType.h3(ink)),
           const SizedBox(height: 3),
           Text('Önümüzdeki 7 gün',
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
           const SizedBox(height: 14),
           Expanded(
             child: Consumer(builder: (_, r, __) {
@@ -248,7 +247,8 @@ class _FacilityManagementScreenState
                         child: Text(
                             'Bu salona bu hafta hiç etkinlik yazılmamış.',
                             textAlign: TextAlign.center,
-                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                            style: SwanType.caption(SwanColors.textSecondary,
+                                w: FontWeight.w600)),
                       )
                     : ListView.builder(
                         itemCount: list.length,
@@ -275,17 +275,18 @@ class _FacilityManagementScreenState
                               const SizedBox(width: 11),
                               Expanded(
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(s.title,
-                                        style: SwanType.caption(ink, w: FontWeight.w700)),
+                                        style: SwanType.caption(ink,
+                                            w: FontWeight.w700)),
                                     Text(
                                         [
                                           _when(s.startsAt),
                                           if (s.teamName != null) s.teamName!,
                                         ].join(' · '),
-                                        style: SwanType.caption(SwanColors.textSecondary)),
+                                        style: SwanType.caption(
+                                            SwanColors.textSecondary)),
                                   ],
                                 ),
                               ),
@@ -312,7 +313,8 @@ class _FacilityManagementScreenState
                     border: Border.all(color: line),
                   ),
                   child: Text('Durum',
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -332,7 +334,8 @@ class _FacilityManagementScreenState
                     borderRadius: BorderRadius.circular(13),
                   ),
                   child: Text('Takvime git',
-                      style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+                      style:
+                          SwanType.caption(Colors.white, w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -344,8 +347,8 @@ class _FacilityManagementScreenState
               _remove(f);
             },
             child: Text('Tesisi sil',
-                style:
-                    SwanType.caption(SwanPalette.light.danger, w: FontWeight.w700)),
+                style: SwanType.caption(SwanPalette.light.danger,
+                    w: FontWeight.w700)),
           ),
         ]),
       ),

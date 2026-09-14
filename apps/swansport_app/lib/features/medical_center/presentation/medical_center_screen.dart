@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -25,7 +26,11 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
   /// Durum → (etiket, renk, ikon). Renk tek başına anlam taşımasın diye her
   /// durum ikon ve yazıyla birlikte gösteriliyor.
   static final _states = {
-    'injured': ('Sakat', SwanPalette.light.danger, Icons.personal_injury_rounded),
+    'injured': (
+      'Sakat',
+      SwanPalette.light.danger,
+      Icons.personal_injury_rounded
+    ),
     'pending': ('Takipte', SwanPalette.light.warning, Icons.help_rounded),
     'fit': ('Sağlam', SwanPalette.light.success, Icons.check_circle_rounded),
   };
@@ -54,20 +59,13 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Row(children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text('Kulüp', style: SwanType.h3(ink)),
-                          const SizedBox(height: 3),
-                          Text('Sağlık Merkezi',
-                              style: SwanType.h2(ink)),
-                        ],
-                      ),
-                    ),
-                    AddButton(onTap: _addRecord, tooltip: 'Kayıt ekle'),
-                  ]),
+                  SwanPageHeader(
+                    title: 'Sağlık Merkezi',
+                    subtitle: 'Sporcu uygunluk durumları',
+                    actions: [
+                      AddButton(onTap: _addRecord, tooltip: 'Kayıt ekle'),
+                    ],
+                  ),
                   const SizedBox(height: 18),
                   async.when(
                     loading: premiumLoading,
@@ -123,12 +121,12 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                 Row(children: [
                   Icon(e.value.$3, size: 14, color: e.value.$2),
                   const SizedBox(width: 5),
-                  Text('${count(e.key)}',
-                      style: SwanType.h2(ink)),
+                  Text('${count(e.key)}', style: SwanType.h2(ink)),
                 ]),
                 const SizedBox(height: 2),
                 Text(e.value.$1,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
               ],
             ),
           ),
@@ -231,8 +229,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
     final status = await _pickStatus();
     if (status == null) return;
 
-    final note = FormField_('Not', hint: 'Ayak bileği burkulması',
-        required: false);
+    final note =
+        FormField_('Not', hint: 'Ayak bileği burkulması', required: false);
     await showQuickForm(
       context,
       title: 'Sağlık kaydı',
@@ -319,7 +317,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
             leading: Icon(Icons.delete_outline_rounded,
                 size: 20, color: SwanPalette.light.danger),
             title: Text('Kaydı sil',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
