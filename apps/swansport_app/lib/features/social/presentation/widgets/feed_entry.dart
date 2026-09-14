@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../app/widgets/premium.dart';
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
+import '../../../../app/design/swan_type.dart';
 import 'post_card.dart';
 import 'social_widgets.dart';
-import '../../../../app/design/swan_type.dart';
-import '../../../../app/design/swan_palette.dart';
 
 /// Akıştaki tek bir öğe — gönderi, duyuru veya haber.
 ///
@@ -45,7 +44,7 @@ class FeedEntry {
   }
 }
 
-/// Kulüp duyurusu kartı — akışta gönderiden ayırt edilebilir dursun.
+/// Kulüp duyurusu — sosyal gönderilerle aynı ritimde, daha sakin bir yüzey.
 class AnnouncementCard extends StatelessWidget {
   const AnnouncementCard({super.key, required this.item, this.clubName});
 
@@ -54,53 +53,67 @@ class AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final c = context.swan;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(15),
+      margin: const EdgeInsets.only(bottom: SwanSpace.lg),
+      padding: const EdgeInsets.fromLTRB(
+        0,
+        SwanSpace.md,
+        0,
+        SwanSpace.lg,
+      ),
       decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: kTeal.withValues(alpha: .35)),
+        border: Border(bottom: BorderSide(color: c.line)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: kTeal.withValues(alpha: .12),
-                borderRadius: BorderRadius.circular(12),
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: .12),
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                ),
+                child: Icon(
+                  Icons.campaign_rounded,
+                  size: 20,
+                  color: c.accent,
+                ),
               ),
-              child: const Icon(Icons.campaign_rounded, size: 19, color: kTeal),
-            ),
-            const SizedBox(width: 11),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(clubName ?? 'Kulüp duyurusu',
+              const SizedBox(width: SwanSpace.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      clubName ?? 'Kulüp duyurusu',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                  Text('Duyuru · ${shortAgo(item.createdAt)}',
-                      style: SwanType.caption(SwanColors.textSecondary)),
-                ],
+                      style: SwanType.bodySm(c.ink, w: FontWeight.w800),
+                    ),
+                    Text(
+                      'Duyuru · ${shortAgo(item.createdAt)}',
+                      style: SwanType.caption(c.inkMuted),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            if (item.pinned)
-              const Icon(Icons.push_pin_rounded, size: 15, color: kCoral),
-          ]),
-          const SizedBox(height: 12),
-          Text(item.title, style: SwanType.h3(ink)),
+              if (item.pinned)
+                Icon(Icons.push_pin_rounded, size: 16, color: c.warning),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.md),
+          Text(item.title, style: SwanType.h3(c.ink)),
           if (item.body.trim().isNotEmpty) ...[
-            const SizedBox(height: 6),
-            Text(item.body, style: SwanType.bodySm(ink).copyWith(height: 1.45)),
+            const SizedBox(height: SwanSpace.xs),
+            Text(
+              item.body,
+              style: SwanType.bodySm(c.ink).copyWith(height: 1.45),
+            ),
           ],
         ],
       ),
@@ -116,84 +129,116 @@ class NewsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final c = context.swan;
 
-    return GestureDetector(
-      onTap: () => _open(context),
-      child: Container(
-        margin: const EdgeInsets.only(bottom: 20),
-        padding: const EdgeInsets.only(bottom: 20),
-        decoration: BoxDecoration(
-          border: Border(bottom: BorderSide(color: line)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(15, 14, 15, 10),
-              child: Row(children: [
-                SocialAvatar(
-                  initials: item.sourceName.trim().isEmpty
-                      ? 'H'
-                      : item.sourceName
-                          .trim()
-                          .split(RegExp(r'\s+'))
-                          .take(2)
-                          .map((word) => word.characters.first)
-                          .join(),
-                  size: 42,
-                  imageUrl: item.sourceIconUrl,
-                  gradientIndex: item.sourceName.length % 4,
+    return Semantics(
+      button: item.link != null,
+      label: '${item.sourceName}: ${item.title}',
+      child: InkWell(
+        onTap: () => _open(context),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        child: Container(
+          margin: const EdgeInsets.only(bottom: SwanSpace.lg),
+          padding: const EdgeInsets.only(bottom: SwanSpace.lg),
+          decoration: BoxDecoration(
+            border: Border(bottom: BorderSide(color: c.line)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.only(
+                  top: SwanSpace.md,
+                  bottom: SwanSpace.sm,
                 ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(item.sourceName,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                      Text('Haber · ${shortAgo(item.publishedAt)}',
-                          style: SwanType.caption(SwanColors.textSecondary)),
-                    ],
+                child: Row(
+                  children: [
+                    SocialAvatar(
+                      initials: item.sourceName.trim().isEmpty
+                          ? 'H'
+                          : item.sourceName
+                              .trim()
+                              .split(RegExp(r'\s+'))
+                              .take(2)
+                              .map((word) => word.characters.first)
+                              .join(),
+                      size: 40,
+                      imageUrl: item.sourceIconUrl,
+                      gradientIndex: item.sourceName.length % 4,
+                    ),
+                    const SizedBox(width: SwanSpace.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.sourceName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.bodySm(c.ink, w: FontWeight.w800),
+                          ),
+                          Text(
+                            'Spor haberi · ${shortAgo(item.publishedAt)}',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Icon(
+                      Icons.arrow_outward_rounded,
+                      size: 18,
+                      color: c.inkMuted,
+                    ),
+                  ],
+                ),
+              ),
+              if (item.imageUrl != null)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                  child: AspectRatio(
+                    aspectRatio: 16 / 9,
+                    child: Image(
+                      image: NetworkImage(item.imageUrl!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => _NewsImageFallback(c: c),
+                    ),
                   ),
                 ),
-              ]),
-            ),
-            if (item.imageUrl != null)
-              RatioImage(image: NetworkImage(item.imageUrl!)),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(15, 12, 15, 6),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(item.title, style: SwanType.h3(ink)),
-                  if (item.summary != null &&
-                      item.summary!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 6),
-                    Text(item.summary!,
-                        maxLines: 3,
-                        overflow: TextOverflow.ellipsis,
-                        style: SwanType.bodySm(ink).copyWith(height: 1.4)),
-                  ],
-                ],
-              ),
-            ),
-            if (item.link != null)
               Padding(
-                padding: const EdgeInsets.fromLTRB(15, 5, 15, 8),
-                child: Row(children: [
-                  Text('Haberin devamını oku',
-                      style: SwanType.caption(kTeal, w: FontWeight.w800)),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.arrow_outward_rounded,
-                      size: 15, color: kTeal),
-                ]),
+                padding: const EdgeInsets.only(top: SwanSpace.md),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      item.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.h3(c.ink),
+                    ),
+                    if (item.summary != null &&
+                        item.summary!.trim().isNotEmpty) ...[
+                      const SizedBox(height: SwanSpace.xs),
+                      Text(
+                        item.summary!,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style:
+                            SwanType.bodySm(c.inkMuted).copyWith(height: 1.4),
+                      ),
+                    ],
+                  ],
+                ),
               ),
-          ],
+              if (item.link != null)
+                Padding(
+                  padding: const EdgeInsets.only(top: SwanSpace.sm),
+                  child: Text(
+                    'Haberi oku',
+                    style: SwanType.caption(c.accent, w: FontWeight.w800),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -206,9 +251,26 @@ class NewsCard extends StatelessWidget {
     if (uri == null) return;
     final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
     if (!ok && context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('Bağlantı açılamadı'),
-          backgroundColor: SwanPalette.light.danger));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Bağlantı açılamadı'),
+          backgroundColor: context.swan.danger,
+        ),
+      );
     }
   }
+}
+
+class _NewsImageFallback extends StatelessWidget {
+  const _NewsImageFallback({required this.c});
+
+  final SwanPalette c;
+
+  @override
+  Widget build(BuildContext context) => ColoredBox(
+        color: c.surfaceAlt,
+        child: Center(
+          child: Icon(Icons.sports_rounded, size: 38, color: c.inkMuted),
+        ),
+      );
 }

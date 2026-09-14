@@ -44,10 +44,12 @@ class TodayTasks extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-          child: Row(children: [
-            Expanded(child: Text(title, style: SwanType.h3(c.ink))),
-            if (more > 0) Text('+$more', style: SwanType.caption(c.inkMuted)),
-          ]),
+          child: Row(
+            children: [
+              Expanded(child: Text(title, style: SwanType.h3(c.ink))),
+              if (more > 0) Text('+$more', style: SwanType.caption(c.inkMuted)),
+            ],
+          ),
         ),
         const SizedBox(height: SwanSpace.sm),
         SizedBox(
@@ -79,28 +81,32 @@ class TodayTasks extends ConsumerWidget {
     final fees = ref.watch(myFeesProvider).valueOrNull ?? const [];
     final overdue = fees.where((f) => f.overdue).toList();
     if (overdue.isNotEmpty) {
-      out.add(_Task(
-        priority: 0,
-        role: access.isParent ? 'Veli olarak' : 'Sporcu olarak',
-        icon: Icons.receipt_long_rounded,
-        title: overdue.length == 1
-            ? 'Gecikmiş aidat var'
-            : '${overdue.length} gecikmiş aidat var',
-        subtitle: money(overdue.fold<num>(0, (a, f) => a + f.amount)),
-        route: '/aidatlarim',
-        tone: c.danger,
-      ));
+      out.add(
+        _Task(
+          priority: 0,
+          role: access.isParent ? 'Veli olarak' : 'Sporcu olarak',
+          icon: Icons.receipt_long_rounded,
+          title: overdue.length == 1
+              ? 'Gecikmiş aidat var'
+              : '${overdue.length} gecikmiş aidat var',
+          subtitle: money(overdue.fold<num>(0, (a, f) => a + f.amount)),
+          route: '/aidatlarim',
+          tone: c.danger,
+        ),
+      );
     }
 
     // ---- Bugünün etkinlikleri ---------------------------------------------
     final events = ref.watch(eventsProvider).valueOrNull ?? const [];
     final now = DateTime.now();
     final today = events
-        .where((e) =>
-            e.startsAt.year == now.year &&
-            e.startsAt.month == now.month &&
-            e.startsAt.day == now.day &&
-            e.startsAt.isAfter(now.subtract(const Duration(hours: 2))))
+        .where(
+          (e) =>
+              e.startsAt.year == now.year &&
+              e.startsAt.month == now.month &&
+              e.startsAt.day == now.day &&
+              e.startsAt.isAfter(now.subtract(const Duration(hours: 2))),
+        )
         .toList()
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
 
@@ -112,25 +118,29 @@ class TodayTasks extends ConsumerWidget {
       // Antrenör için aynı etkinlik "yoklama al" işi; sporcu için "bugün
       // antrenman var" bilgisi. Aynı veri, farklı iş.
       if (access.isClubStaff) {
-        out.add(_Task(
-          priority: 0,
-          role: 'Antrenör olarak',
-          icon: Icons.checklist_rounded,
-          title: 'Yoklama: ${e.title}',
-          subtitle: '$hh:$mm${e.place == null ? '' : ' · ${e.place}'}',
-          route: '/attendance',
-          tone: c.accent,
-        ));
+        out.add(
+          _Task(
+            priority: 0,
+            role: 'Antrenör olarak',
+            icon: Icons.checklist_rounded,
+            title: 'Yoklama: ${e.title}',
+            subtitle: '$hh:$mm${e.place == null ? '' : ' · ${e.place}'}',
+            route: '/attendance',
+            tone: c.accent,
+          ),
+        );
       } else {
-        out.add(_Task(
-          priority: 1,
-          role: 'Sporcu olarak',
-          icon: Icons.event_available_rounded,
-          title: e.title,
-          subtitle: '$hh:$mm${e.place == null ? '' : ' · ${e.place}'}',
-          route: '/calendar',
-          tone: c.accent,
-        ));
+        out.add(
+          _Task(
+            priority: 1,
+            role: 'Sporcu olarak',
+            icon: Icons.event_available_rounded,
+            title: e.title,
+            subtitle: '$hh:$mm${e.place == null ? '' : ' · ${e.place}'}',
+            route: '/calendar',
+            tone: c.accent,
+          ),
+        );
       }
     }
 
@@ -139,16 +149,18 @@ class TodayTasks extends ConsumerWidget {
       final apps =
           ref.watch(clubPendingApplicationsProvider).valueOrNull ?? const [];
       if (apps.isNotEmpty) {
-        out.add(_Task(
-          priority: 0,
-          role: 'Yönetici olarak',
-          icon: Icons.person_add_alt_1_rounded,
-          title: apps.length == 1
-              ? '1 başvuru onay bekliyor'
-              : '${apps.length} başvuru onay bekliyor',
-          route: '/onay-paneli',
-          tone: c.warning,
-        ));
+        out.add(
+          _Task(
+            priority: 0,
+            role: 'Yönetici olarak',
+            icon: Icons.person_add_alt_1_rounded,
+            title: apps.length == 1
+                ? '1 başvuru onay bekliyor'
+                : '${apps.length} başvuru onay bekliyor',
+            route: '/onay-paneli',
+            tone: c.warning,
+          ),
+        );
       }
     }
 
@@ -159,14 +171,16 @@ class TodayTasks extends ConsumerWidget {
       final stores = ref.watch(myStoresProvider).valueOrNull ?? const [];
       final pending = stores.where((s) => s.status == 'pending').length;
       if (pending > 0) {
-        out.add(_Task(
-          priority: 2,
-          role: 'Mağaza olarak',
-          icon: Icons.storefront_rounded,
-          title: 'Mağaza başvurun inceleniyor',
-          route: '/magaza-basvuru',
-          tone: c.inkMuted,
-        ));
+        out.add(
+          _Task(
+            priority: 2,
+            role: 'Mağaza olarak',
+            icon: Icons.storefront_rounded,
+            title: 'Mağaza başvurun inceleniyor',
+            route: '/magaza-basvuru',
+            tone: c.inkMuted,
+          ),
+        );
       }
     }
 
@@ -174,8 +188,12 @@ class TodayTasks extends ConsumerWidget {
     return out;
   }
 
-  Widget _card(BuildContext context, SwanPalette c, _Task t,
-          {required bool compact}) =>
+  Widget _card(
+    BuildContext context,
+    SwanPalette c,
+    _Task t, {
+    required bool compact,
+  }) =>
       GestureDetector(
         behavior: HitTestBehavior.opaque,
         onTap: () => Navigator.pushNamed(context, t.route),
@@ -190,36 +208,47 @@ class TodayTasks extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(children: [
-                Container(
-                  width: compact ? 24 : 28,
-                  height: compact ? 24 : 28,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: t.tone.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
+              Row(
+                children: [
+                  Container(
+                    width: compact ? 24 : 28,
+                    height: compact ? 24 : 28,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: t.tone.withValues(alpha: .12),
+                      borderRadius: BorderRadius.circular(SwanRadius.sm),
+                    ),
+                    child: Icon(t.icon, size: compact ? 14 : 15, color: t.tone),
                   ),
-                  child: Icon(t.icon, size: compact ? 14 : 15, color: t.tone),
-                ),
-                const SizedBox(width: SwanSpace.sm),
-                Expanded(
-                  child: Text(t.role,
+                  const SizedBox(width: SwanSpace.sm),
+                  Expanded(
+                    child: Text(
+                      t.role,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(c.faintOr(t.tone),
-                          w: FontWeight.w700)),
-                ),
-                Icon(Icons.arrow_outward_rounded, size: 16, color: c.inkMuted),
-              ]),
-              Text(t.title,
+                      style: SwanType.caption(
+                        c.faintOr(t.tone),
+                        w: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                  Icon(Icons.arrow_outward_rounded,
+                      size: 16, color: c.inkMuted),
+                ],
+              ),
+              Text(
+                t.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.bodySm(c.ink, w: FontWeight.w800),
+              ),
+              if (!compact && t.subtitle != null)
+                Text(
+                  t.subtitle!,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(c.ink, w: FontWeight.w800)),
-              if (!compact && t.subtitle != null)
-                Text(t.subtitle!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(c.inkMuted)),
+                  style: SwanType.caption(c.inkMuted),
+                ),
             ],
           ),
         ),
