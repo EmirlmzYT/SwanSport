@@ -10,8 +10,15 @@ import '../../../../app/design/swan_palette.dart';
 
 /// Takip akışı boşken gösterilen "kimi takip etsem?" bölümü.
 class FollowSuggestions extends ConsumerWidget {
-  const FollowSuggestions({super.key, this.onExplore, this.compact = false});
+  const FollowSuggestions({
+    super.key,
+    this.onExplore,
+    this.compact = false,
+    this.showCompactTitle = true,
+  });
+
   final bool compact;
+  final bool showCompactTitle;
 
   /// "Keşfet'e bak" bağlantısına dokunulduğunda çağrılır.
   final VoidCallback? onExplore;
@@ -24,8 +31,10 @@ class FollowSuggestions extends ConsumerWidget {
 
     if (compact) {
       return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text('Sporcular ve kulüpler', style: SwanType.h3(ink)),
-        const SizedBox(height: 12),
+        if (showCompactTitle) ...[
+          Text('Sporcular ve kulüpler', style: SwanType.h3(ink)),
+          const SizedBox(height: 12),
+        ],
         async.when(
           loading: () => const LinearProgressIndicator(),
           error: (_, __) => TextButton(
