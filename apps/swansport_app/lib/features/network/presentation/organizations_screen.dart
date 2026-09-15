@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
@@ -23,13 +24,22 @@ class OrganizationsScreen extends ConsumerStatefulWidget {
 }
 
 class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
+  final _search = TextEditingController();
+  String _query = '';
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
-    final async = ref.watch(organizationsProvider(''));
+    final async = ref.watch(organizationsProvider(_query));
 
     return Scaffold(
       extendBody: true,
@@ -51,11 +61,26 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                   ],
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                child: StitchInlineSearchField(
+                  controller: _search,
+                  hint: 'Lig, turnuva, kamp veya şehir ara...',
+                  onChanged: (v) {
+                    if (v.isEmpty && _query.isNotEmpty) {
+                      setState(() => _query = '');
+                    } else {
+                      setState(() {});
+                    }
+                  },
+                  onSubmitted: (v) => setState(() => _query = v.trim()),
+                ),
+              ),
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
-                    ref.invalidate(organizationsProvider(''));
-                    await ref.read(organizationsProvider('').future);
+                    ref.invalidate(organizationsProvider(_query));
+                    await ref.read(organizationsProvider(_query).future);
                   },
                   child: async.when(
                     loading: () => ListView(children: [premiumLoading()]),
@@ -68,12 +93,16 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                               premiumEmpty(
                                 context,
                                 icon: Icons.emoji_events_rounded,
-                                title: 'Organizasyon yok',
-                                subtitle:
-                                    'Lig, turnuva ve kupalar burada görünür. '
-                                    'Kulübünle bir organizasyon açabilirsin.',
-                                actionLabel: 'Organizasyon aç',
-                                onAction: _create,
+                                title: _query.isEmpty
+                                    ? 'Organizasyon yok'
+                                    : 'Sonuç bulunamadı',
+                                subtitle: _query.isEmpty
+                                    ? 'Lig, turnuva ve kupalar burada görünür. '
+                                        'Kulübünle bir organizasyon açabilirsin.'
+                                    : 'Arama metnini değiştirip tekrar dene.',
+                                actionLabel:
+                                    _query.isEmpty ? 'Organizasyon aç' : null,
+                                onAction: _query.isEmpty ? _create : null,
                               ),
                             ],
                           )
@@ -442,7 +471,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
             drawPoints: int.tryParse(draw.value) ?? 1,
           ),
     );
-    if (ok == true) ref.invalidate(organizationsProvider(''));
+    if (ok == true) ref.invalidate(organizationsProvider(_query));
   }
 
   Future<void> _addParticipant(Organization o) async {
@@ -462,7 +491,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
     );
     if (ok == true) {
       ref.invalidate(standingsProvider(o.id));
-      ref.invalidate(organizationsProvider(''));
+      ref.invalidate(organizationsProvider(_query));
     }
   }
 
