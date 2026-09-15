@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_shape.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../application/performance_controller.dart';
 import '../domain/performance_analytics.dart';
 import 'performance_route_args.dart';
@@ -311,26 +315,58 @@ class _Workspace extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(title)),
-        body: ListView(
-          key: Key(keyName),
-          padding: const EdgeInsets.all(20),
-          children: [
-            Text(title, style: Theme.of(context).textTheme.headlineMedium),
-            const SizedBox(height: 12),
-            for (final section in sections.entries)
-              Card(
-                child: ListTile(
-                  title: Text(section.key),
-                  subtitle: Text(section.value),
-                ),
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Scaffold(
+      backgroundColor: c.bg,
+      body: SafeArea(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: ListView(
+              key: Key(keyName),
+              padding: const EdgeInsets.fromLTRB(
+                SwanSpace.lg,
+                SwanSpace.sm,
+                SwanSpace.lg,
+                SwanSpace.xl,
               ),
-            if (actions.isNotEmpty)
-              Wrap(spacing: 8, runSpacing: 8, children: actions),
-          ],
+              children: [
+                SwanPageHeader(
+                  title: title,
+                  subtitle: 'Performans ve gelişim ayrıntıları',
+                  onBack: () => Navigator.maybePop(context),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                for (final section in sections.entries)
+                  Container(
+                    margin: const EdgeInsets.only(bottom: SwanSpace.md),
+                    padding: const EdgeInsets.all(SwanSpace.lg),
+                    decoration: BoxDecoration(
+                      color: c.surface,
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                      border: Border.all(color: c.line),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(section.key, style: SwanType.h3(c.ink)),
+                        const SizedBox(height: SwanSpace.xs),
+                        Text(section.value, style: SwanType.bodySm(c.inkMuted)),
+                      ],
+                    ),
+                  ),
+                if (actions.isNotEmpty) ...[
+                  const SizedBox(height: SwanSpace.sm),
+                  Wrap(spacing: 8, runSpacing: 8, children: actions),
+                ],
+              ],
+            ),
+          ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _SafeState extends StatelessWidget {
@@ -338,8 +374,24 @@ class _SafeState extends StatelessWidget {
   const _SafeState(this.message);
 
   @override
-  Widget build(BuildContext context) =>
-      Scaffold(body: Center(child: Text(message)));
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Scaffold(
+      backgroundColor: c.bg,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(SwanSpace.xl),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: SwanType.body(c.inkMuted),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 Widget _action(String label, VoidCallback callback) => OutlinedButton(
