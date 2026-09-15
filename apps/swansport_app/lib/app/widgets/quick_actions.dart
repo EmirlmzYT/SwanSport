@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import 'premium.dart';
 import '../../app/design/swan_type.dart';
+import 'premium.dart';
 
 /// Bir ekrandan ilgili ekranlara geçiş kısayolları.
 ///
@@ -45,22 +45,26 @@ class QuickActions extends StatelessWidget {
     if (actions.isEmpty) return const SizedBox.shrink();
 
     if (actions.length <= 3) {
-      return Row(children: [
-        for (var i = 0; i < actions.length; i++) ...[
-          if (i > 0) const SizedBox(width: 10),
-          Expanded(child: _QuickCard(action: actions[i])),
+      return Row(
+        children: [
+          for (var i = 0; i < actions.length; i++) ...[
+            if (i > 0) const SizedBox(width: 10),
+            Expanded(child: _QuickCard(action: actions[i])),
+          ],
         ],
-      ]);
+      );
     }
 
     return SizedBox(
-      height: 96,
+      height: 92,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
         itemCount: actions.length,
         separatorBuilder: (_, __) => const SizedBox(width: 10),
-        itemBuilder: (_, i) =>
-            SizedBox(width: 104, child: _QuickCard(action: actions[i])),
+        itemBuilder: (_, i) => SizedBox(
+          width: 112,
+          child: _QuickCard(action: actions[i]),
+        ),
       ),
     );
   }
@@ -79,31 +83,47 @@ class _QuickCard extends StatelessWidget {
 
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.pushNamed(context, action.route,
-          arguments: action.arguments),
+      onTap: () => Navigator.pushNamed(
+        context,
+        action.route,
+        arguments: action.arguments,
+      ),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
         decoration: BoxDecoration(
           color: surf,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(14),
           border: Border.all(color: line),
-        ),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: kTeal.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? .12 : .035),
+              blurRadius: 12,
+              offset: const Offset(0, 5),
             ),
-            child: Icon(action.icon, color: kTeal, size: 20),
-          ),
-          const SizedBox(height: 8),
-          Text(action.label,
-              maxLines: 1,
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: kTeal.withValues(alpha: .10),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(action.icon, color: kTeal, size: 20),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              action.label,
+              maxLines: 2,
+              textAlign: TextAlign.center,
               overflow: TextOverflow.ellipsis,
-              style: SwanType.caption(ink, w: FontWeight.w700)),
-        ]),
+              style: SwanType.caption(ink, w: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
     );
   }

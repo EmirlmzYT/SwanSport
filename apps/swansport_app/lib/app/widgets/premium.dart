@@ -9,7 +9,6 @@ import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
 import 'swan_skeleton.dart';
 
-
 // Modül kataloğu ayrı dosyada. `import` alt bardaki menü düğmesinin onu
 // çağırabilmesi için; `export` ise mevcut `import 'premium.dart'` satırlarının
 // hiçbirinin değişmek zorunda kalmaması için.
@@ -125,7 +124,6 @@ class PremiumStatusChip extends StatelessWidget {
   }
 }
 
-
 /// Katılım/oran halkası (donut).
 class SwanRing extends StatelessWidget {
   const SwanRing({
@@ -218,18 +216,12 @@ Widget premiumLoading() => const SwanListSkeleton();
 Widget premiumError(BuildContext context, String msg) {
   final c = context.swan;
   return Padding(
-    padding: const EdgeInsets.only(top: 50),
-    child: Column(
-      children: [
-        Icon(Icons.cloud_off_rounded, size: 40, color: c.danger),
-        const SizedBox(height: SwanSpace.md),
-        Text('Veri yüklenemedi',
-            style: SwanType.body(c.ink, w: FontWeight.w700)),
-        const SizedBox(height: SwanSpace.xs),
-        Text(msg,
-            textAlign: TextAlign.center,
-            style: SwanType.bodySm(c.inkMuted)),
-      ],
+    padding: const EdgeInsets.only(top: 28),
+    child: SwanInfoPanel(
+      icon: Icons.cloud_off_rounded,
+      title: 'Veri yüklenemedi',
+      subtitle: msg,
+      tone: c.danger,
     ),
   );
 }
@@ -244,49 +236,201 @@ Widget premiumEmpty(
 }) {
   final c = context.swan;
   return Padding(
-    padding: const EdgeInsets.only(top: 50),
-    child: Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          decoration: BoxDecoration(
-            color: c.accentSoft,
-            borderRadius: BorderRadius.circular(SwanRadius.lg),
-          ),
-          child: Icon(icon, color: c.accent, size: 30),
-        ),
-        const SizedBox(height: SwanSpace.lg),
-        Text(title, style: SwanType.h3(c.ink)),
-        const SizedBox(height: SwanSpace.xs),
-        Text(subtitle,
-            textAlign: TextAlign.center,
-            style: SwanType.bodySm(c.inkMuted)),
-        if (actionLabel != null && onAction != null) ...[
-          const SizedBox(height: 20),
-          GestureDetector(
-            onTap: onAction,
-            child: Container(
-              height: 48,
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: kTeal.withValues(alpha: 0.34),
-                    blurRadius: 18,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Text(actionLabel,
-                  style: jakarta(14, FontWeight.w800, Colors.white)),
-            ),
-          ),
-        ],
-      ],
+    padding: const EdgeInsets.only(top: 28),
+    child: SwanInfoPanel(
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      tone: c.accent,
+      actionLabel: actionLabel,
+      onAction: onAction,
     ),
   );
+}
+
+class SwanSectionHeader extends StatelessWidget {
+  const SwanSectionHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final String title;
+  final String? subtitle;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: SwanType.h3(c.ink)),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.caption(c.inkMuted),
+                ),
+              ],
+            ],
+          ),
+        ),
+        if (actionLabel != null && onAction != null)
+          TextButton(
+            onPressed: onAction,
+            child: Text(actionLabel!),
+          ),
+      ],
+    );
+  }
+}
+
+class SwanMetricStrip extends StatelessWidget {
+  const SwanMetricStrip({super.key, required this.items});
+
+  final List<SwanMetricItem> items;
+
+  @override
+  Widget build(BuildContext context) {
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Row(
+      children: [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const SizedBox(width: SwanSpace.sm),
+          Expanded(child: SwanMetricCard(item: items[i])),
+        ],
+      ],
+    );
+  }
+}
+
+class SwanMetricItem {
+  const SwanMetricItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    this.tone,
+  });
+
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color? tone;
+}
+
+class SwanMetricCard extends StatelessWidget {
+  const SwanMetricCard({super.key, required this.item});
+
+  final SwanMetricItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    final tone = item.tone ?? c.accent;
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 32,
+            height: 32,
+            decoration: BoxDecoration(
+              color: tone.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(SwanRadius.sm),
+            ),
+            child: Icon(item.icon, color: tone, size: 17),
+          ),
+          const SizedBox(height: SwanSpace.sm),
+          Text(
+            item.value,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.h3(c.ink),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            item.label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.caption(c.inkMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class SwanInfoPanel extends StatelessWidget {
+  const SwanInfoPanel({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    this.tone,
+    this.actionLabel,
+    this.onAction,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color? tone;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    final color = tone ?? c.accent;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(SwanSpace.xl),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        children: [
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: Icon(icon, color: color, size: 28),
+          ),
+          const SizedBox(height: SwanSpace.md),
+          Text(title, textAlign: TextAlign.center, style: SwanType.h3(c.ink)),
+          const SizedBox(height: SwanSpace.xs),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: SwanType.bodySm(c.inkMuted),
+          ),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: SwanSpace.lg),
+            FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+          ],
+        ],
+      ),
+    );
+  }
 }

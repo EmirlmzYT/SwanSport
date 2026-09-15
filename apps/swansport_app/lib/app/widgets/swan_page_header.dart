@@ -26,8 +26,26 @@ class SwanPageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: SwanSpace.sm),
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: SwanSpace.sm),
+      padding: const EdgeInsets.fromLTRB(
+        SwanSpace.md,
+        SwanSpace.sm,
+        SwanSpace.sm,
+        SwanSpace.sm,
+      ),
+      decoration: BoxDecoration(
+        color: c.surface.withValues(alpha: c.isDark ? .92 : .96),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: c.isDark ? .16 : .045),
+            blurRadius: 18,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
       child: Row(
         children: [
           if (onBack != null) ...[
@@ -42,7 +60,12 @@ class SwanPageHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, maxLines: 1, style: SwanType.h1(c.ink)),
+                Text(
+                  title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.h2(c.ink),
+                ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
                   Text(
@@ -111,7 +134,7 @@ class _HeaderAction extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: c.surface,
+              color: c.surfaceAlt,
               borderRadius: BorderRadius.circular(SwanRadius.sm),
               border: Border.all(color: c.line),
             ),
