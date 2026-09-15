@@ -9,6 +9,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
@@ -65,9 +66,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: SwanPageHeader(
-                    title: 'Hareketler',
+                    title: 'Bildirimler',
                     subtitle: 'Sosyal, kulüp ve antrenman bildirimleri',
                     actions: [
+                      SwanHeaderAction(
+                        icon: Icons.done_all_rounded,
+                        tooltip: 'Tümünü oku',
+                        onTap: () async {
+                          await ref
+                              .read(notificationServiceProvider)
+                              .markAllRead();
+                          ref.invalidate(unreadNotificationsProvider);
+                          ref.invalidate(
+                              categorizedNotificationsProvider(_category));
+                        },
+                      ),
                       SwanHeaderAction(
                         icon: Icons.tune_rounded,
                         tooltip: 'Bildirim tercihleri',
@@ -123,10 +136,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   /// Kategori şeridi — bildirim yığını büyüdükçe filtrelemeden okunmaz oluyor.
   Widget _categoryBar(bool isDark, Color ink) {
     return SizedBox(
-      height: 36,
+      height: 42,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+        padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
         children: [
           for (final c in _categories)
             GestureDetector(
@@ -134,12 +147,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               child: Container(
                 margin: const EdgeInsets.only(right: 7),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 13, vertical: 7),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                 decoration: BoxDecoration(
                   color: _category == c.$1
                       ? kTeal
                       : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(999),
                   border: Border.all(
                       color: _category == c.$1
                           ? kTeal
@@ -295,7 +308,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   /// Gruplama sunucuda değil burada: `createdAt` zaten geliyor, ekstra sorgu
   /// gerekmiyor.
   Widget _groupedList(bool isDark, List<NotificationRow> list) {
-    final c = context.swan;
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
     final weekStart = today.subtract(const Duration(days: 7));
@@ -321,11 +333,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       children: [
         for (final e in buckets.entries)
           if (e.value.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: SwanSpace.lg, bottom: SwanSpace.xs),
-              child: Text(e.key, style: SwanType.h3(c.ink)),
-            ),
+            StitchSectionTitle(title: e.key),
             for (final n in e.value) _tile(isDark, n),
           ],
       ],

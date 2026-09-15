@@ -202,6 +202,89 @@ class StitchSearchBar extends StatelessWidget {
   }
 }
 
+class StitchInlineSearchField extends StatelessWidget {
+  const StitchInlineSearchField({
+    super.key,
+    required this.controller,
+    required this.hint,
+    required this.onChanged,
+    this.onFilter,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final ValueChanged<String> onChanged;
+  final VoidCallback? onFilter;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Row(
+      children: [
+        Expanded(
+          child: Container(
+            height: 50,
+            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+            decoration: BoxDecoration(
+              color: c.surfaceAlt,
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
+                const SizedBox(width: SwanSpace.md),
+                Expanded(
+                  child: TextField(
+                    controller: controller,
+                    onChanged: onChanged,
+                    textInputAction: TextInputAction.search,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      isDense: true,
+                      hintText: hint,
+                      hintStyle: SwanType.body(c.inkMuted),
+                    ),
+                    style: SwanType.body(c.ink, w: FontWeight.w600),
+                  ),
+                ),
+                if (controller.text.isNotEmpty)
+                  InkWell(
+                    onTap: () {
+                      controller.clear();
+                      onChanged('');
+                    },
+                    borderRadius: BorderRadius.circular(999),
+                    child: Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: Icon(Icons.close_rounded,
+                          size: 18, color: c.inkMuted),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+        if (onFilter != null) ...[
+          const SizedBox(width: SwanSpace.sm),
+          InkWell(
+            onTap: onFilter,
+            borderRadius: BorderRadius.circular(SwanRadius.md),
+            child: Container(
+              width: 50,
+              height: 50,
+              decoration: BoxDecoration(
+                color: c.surfaceAlt,
+                borderRadius: BorderRadius.circular(SwanRadius.md),
+              ),
+              child: Icon(Icons.tune_rounded, size: 20, color: c.ink),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
 class StitchHeroCard extends StatelessWidget {
   const StitchHeroCard({
     super.key,

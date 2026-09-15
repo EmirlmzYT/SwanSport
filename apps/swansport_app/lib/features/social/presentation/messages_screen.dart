@@ -8,6 +8,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/shared_content_card.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'edit_profile_sheet.dart';
@@ -47,6 +48,8 @@ class _Entry {
 
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   late int _tab = widget.initialTab;
+  final _searchCtrl = TextEditingController();
+  String _query = '';
 
   @override
   void initState() {
@@ -56,6 +59,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       await ref.read(communityServiceProvider).ensureMine();
       if (mounted) ref.invalidate(communityListProvider);
     });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   @override
@@ -102,6 +111,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         onTap: () => Navigator.pushNamed(context, '/ara'),
                       ),
                     ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+                  child: StitchInlineSearchField(
+                    controller: _searchCtrl,
+                    hint: 'Sohbetlerde ve topluluklarda ara...',
+                    onChanged: (value) => setState(() => _query = value),
                   ),
                 ),
                 Padding(
@@ -155,32 +172,113 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         return y.compareTo(x);
       });
 
-    if (entries.isEmpty) {
+    final query = _query.trim().toLowerCase();
+    final visible = query.isEmpty
+        ? entries
+        : entries.where((e) => _matchesEntry(e, query)).toList();
+
+    if (visible.isEmpty) {
       return ListView(
         padding: const EdgeInsets.only(top: 40),
         children: [
           premiumEmpty(
             context,
             icon: Icons.chat_bubble_outline_rounded,
-            title: 'Sohbet yok',
-            subtitle: 'Bir profile gidip mesaj göndererek ya da ilinin '
-                'antrenör topluluğuna katılarak başlayabilirsin.',
-            actionLabel: 'Kişi Ara',
-            onAction: () => Navigator.pushNamed(context, '/ara'),
+            title: query.isEmpty ? 'Sohbet yok' : 'Sonuç bulunamadı',
+            subtitle: query.isEmpty
+                ? 'Bir profile gidip mesaj göndererek ya da ilinin '
+                    'antrenör topluluğuna katılarak başlayabilirsin.'
+                : 'Bu aramayla eşleşen sohbet veya topluluk yok.',
+            actionLabel: query.isEmpty ? 'Kişi Ara' : null,
+            onAction: query.isEmpty
+                ? () => Navigator.pushNamed(context, '/ara')
+                : null,
           ),
         ],
       );
     }
 
-    return ListView.builder(
+    return ListView(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
-      itemCount: entries.length,
-      itemBuilder: (_, i) {
-        final e = entries[i];
-        return e.group != null
-            ? _groupTile(isDark, e.group!)
-            : _tile(context, isDark, e.dm!);
-      },
+      children: [
+        if (query.isEmpty) _quickRail(visible.take(6).toList()),
+        StitchSectionTitle(
+          title: query.isEmpty ? 'Son Sohbetler' : 'Arama Sonuçları',
+          actionLabel: query.isEmpty ? 'Kişi ara' : null,
+          onAction:
+              query.isEmpty ? () => Navigator.pushNamed(context, '/ara') : null,
+        ),
+        for (final e in visible)
+          e.group != null
+              ? _groupTile(isDark, e.group!)
+              : _tile(context, isDark, e.dm!),
+      ],
+    );
+  }
+
+  bool _matchesEntry(_Entry e, String query) {
+    final text = [
+      e.group?.name,
+      e.group?.cityName,
+      e.group?.lastBody,
+      e.dm?.otherName,
+      e.dm?.lastBody,
+    ].whereType<String>().join(' ').toLowerCase();
+    return text.contains(query);
+  }
+
+  Widget _quickRail(List<_Entry> entries) {
+    return StitchRail(
+      height: 104,
+      children: [
+        for (final e in entries)
+          SizedBox(
+            width: 72,
+            child: InkWell(
+              onTap: () => e.group != null
+                  ? Navigator.pushNamed(
+                      context,
+                      e.group!.isFederation ? '/federasyon' : '/topluluk',
+                      arguments: {'id': e.group!.id, 'name': e.group!.name},
+                    )
+                  : Navigator.pushNamed(context, '/sohbet', arguments: {
+                      'id': e.dm!.otherId,
+                      'name': e.dm!.otherName,
+                    }),
+              borderRadius: BorderRadius.circular(SwanRadius.lg),
+              child: Column(
+                children: [
+                  e.group != null
+                      ? Container(
+                          width: 54,
+                          height: 54,
+                          decoration: BoxDecoration(
+                            color: context.swan.accentSoft,
+                            borderRadius: BorderRadius.circular(SwanRadius.lg),
+                          ),
+                          child: Icon(Icons.forum_rounded,
+                              color: context.swan.accent, size: 22),
+                        )
+                      : SocialAvatar(
+                          initials: e.dm!.initials,
+                          imageUrl: e.dm!.otherAvatarUrl,
+                          size: 54,
+                          gradientIndex: e.dm!.otherName.length % 4,
+                        ),
+                  const SizedBox(height: 8),
+                  Text(
+                    e.group?.name ?? e.dm!.otherName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    textAlign: TextAlign.center,
+                    style:
+                        SwanType.caption(context.swan.ink, w: FontWeight.w700),
+                  ),
+                ],
+              ),
+            ),
+          ),
+      ],
     );
   }
 

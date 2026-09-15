@@ -7,6 +7,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/create_sheet.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/today_tasks.dart';
 import 'widgets/feed_entry.dart';
@@ -273,27 +274,17 @@ class _FeedHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 54,
-      margin: const EdgeInsets.only(bottom: SwanSpace.sm),
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-      decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: c.line)),
-      ),
-      child: Row(
-        children: [
-          // Marka solda kalınca sağdaki üç eylemle doğal bir denge kuruyor.
-          Text('SwanSport', style: SwanType.wordmark(c.ink)),
-          const Spacer(),
-          _HeaderIcon(
-            icon: Icons.add_box_outlined,
-            tooltip: 'Oluştur',
-            onTap: () => showCreateSheet(context),
-          ),
-          const _ActivitiesHeaderAction(),
-          const _MessagesHeaderAction(),
-        ],
-      ),
+    return StitchTopBar(
+      subtitle: 'SİZİN İÇİN',
+      actions: [
+        _HeaderIcon(
+          icon: Icons.add_box_outlined,
+          tooltip: 'Oluştur',
+          onTap: () => showCreateSheet(context),
+        ),
+        const _ActivitiesHeaderAction(),
+        const _MessagesHeaderAction(),
+      ],
     );
   }
 }
