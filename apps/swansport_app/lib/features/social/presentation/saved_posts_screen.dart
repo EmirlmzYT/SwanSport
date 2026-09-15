@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
 
@@ -58,11 +59,22 @@ class SavedPostsScreen extends ConsumerWidget {
                               'simgesine dokunarak buraya ekleyebilirsin. '
                               'Kaydettiklerini yalnızca sen görürsün.',
                         )
-                      : ListView.builder(
+                      : ListView(
                           padding: const EdgeInsets.fromLTRB(
                               SwanSpace.lg, 0, SwanSpace.lg, 132),
-                          itemCount: list.length,
-                          itemBuilder: (_, i) => _SavedTile(post: list[i]),
+                          children: [
+                            const StitchHeroCard(
+                              title: 'Kişisel arşivin',
+                              subtitle:
+                                  'Kaydettiğin gönderiler yalnızca sende durur; kimseye bildirim gitmez.',
+                              icon: Icons.bookmark_rounded,
+                              badge: 'GİZLİ',
+                            ),
+                            const SizedBox(height: SwanSpace.md),
+                            const StitchSectionTitle(
+                                title: 'Kaydedilen Gönderiler'),
+                            for (final post in list) _SavedTile(post: post),
+                          ],
                         ),
                 ),
               ),

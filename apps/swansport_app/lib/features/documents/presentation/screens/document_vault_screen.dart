@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/media/image_pick.dart';
 import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/stitch_components.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/widgets/swan_page_header.dart';
@@ -94,6 +95,11 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                         padding: const EdgeInsets.fromLTRB(20, 4, 20, 132),
                         children: [
                           if (expiring > 0) _warning(isDark, expiring),
+                          StitchSectionTitle(
+                            title: _filter.isEmpty
+                                ? 'Belgeler'
+                                : 'Filtrelenen Belgeler',
+                          ),
                           for (final d in list) _card(isDark, ink, d),
                         ],
                       );
@@ -152,25 +158,11 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     );
   }
 
-  Widget _warning(bool isDark, int n) => Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        padding: const EdgeInsets.all(13),
-        decoration: BoxDecoration(
-          color: SwanPalette.light.warning.withValues(alpha: .10),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(
-              color: SwanPalette.light.warning.withValues(alpha: .35)),
-        ),
-        child: Row(children: [
-          Icon(Icons.warning_amber_rounded,
-              size: 18, color: SwanPalette.light.warning),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text('$n belgenin süresi dolmuş ya da dolmak üzere.',
-                style: SwanType.caption(SwanPalette.light.warning,
-                    w: FontWeight.w700)),
-          ),
-        ]),
+  Widget _warning(bool isDark, int n) => StitchHeroCard(
+        title: 'Belge takibi',
+        subtitle: '$n belgenin süresi dolmuş ya da dolmak üzere.',
+        icon: Icons.warning_amber_rounded,
+        tone: SwanPalette.light.warning,
       );
 
   Widget _card(bool isDark, Color ink, VaultDoc d) {

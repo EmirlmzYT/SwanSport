@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -88,10 +89,14 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                               : 'Aramadan kulüp ve sporcu bulabilirsin.',
                         );
                       }
-                      return ListView.builder(
+                      return ListView(
                         padding: const EdgeInsets.fromLTRB(20, 0, 20, 132),
-                        itemCount: list.length,
-                        itemBuilder: (_, i) => _tile(isDark, list[i]),
+                        children: [
+                          StitchSectionTitle(
+                            title: _tab == 0 ? 'Takipçiler' : 'Takip Edilenler',
+                          ),
+                          for (final item in list) _tile(isDark, item),
+                        ],
                       );
                     },
                   ),

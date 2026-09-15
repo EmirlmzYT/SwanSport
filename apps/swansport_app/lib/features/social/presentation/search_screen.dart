@@ -6,6 +6,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
@@ -83,9 +84,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final list = _visible;
 
     return Scaffold(
@@ -108,42 +106,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         onBack: () => Navigator.maybePop(context),
                       ),
                       const SizedBox(height: 8),
-                      TextField(
+                      StitchInlineSearchField(
                         controller: _ctrl,
-                        autofocus: true,
+                        hint: 'Kulüp, antrenör veya sporcu ara…',
                         onChanged: _onChanged,
                         onSubmitted: _run,
-                        textInputAction: TextInputAction.search,
-                        style: SwanType.bodySm(ink, w: FontWeight.w600),
-                        decoration: InputDecoration(
-                          hintText: 'Kulüp, antrenör veya sporcu ara…',
-                          hintStyle: SwanType.bodySm(SwanColors.textSecondary),
-                          prefixIcon: Icon(Icons.search_rounded,
-                              size: 20, color: SwanColors.textSecondary),
-                          suffixIcon: _ctrl.text.isEmpty
-                              ? null
-                              : IconButton(
-                                  icon: Icon(Icons.close_rounded,
-                                      size: 18,
-                                      color: SwanColors.textSecondary),
-                                  onPressed: () {
-                                    _ctrl.clear();
-                                    _run('');
-                                  },
-                                ),
-                          filled: true,
-                          fillColor: alt,
-                          isDense: true,
-                          contentPadding:
-                              const EdgeInsets.symmetric(vertical: 13),
-                          enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide: BorderSide(color: line)),
-                          focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(14),
-                              borderSide:
-                                  const BorderSide(color: kTeal, width: 1.5)),
-                        ),
                       ),
                     ],
                   ),

@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
 
@@ -76,40 +77,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                child: Container(
-                  height: 44,
-                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-                  decoration: BoxDecoration(
-                      color: c.surface,
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
-                      border: Border.all(color: c.line)),
-                  child: Row(children: [
-                    Icon(Icons.search_rounded, size: 18, color: c.inkMuted),
-                    const SizedBox(width: SwanSpace.sm),
-                    Expanded(
-                      child: TextField(
-                        controller: _search,
-                        style: SwanType.bodySm(c.ink),
-                        textInputAction: TextInputAction.search,
-                        onChanged: (v) => setState(() => _query = v.trim()),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          hintText: 'Sorununu yaz — aidat, bildirim, kort…',
-                          hintStyle: SwanType.bodySm(c.inkMuted),
-                        ),
-                      ),
-                    ),
-                    if (_query.isNotEmpty)
-                      GestureDetector(
-                        onTap: () {
-                          _search.clear();
-                          setState(() => _query = '');
-                        },
-                        child: Icon(Icons.close_rounded,
-                            size: 17, color: c.inkMuted),
-                      ),
-                  ]),
+                child: StitchInlineSearchField(
+                  controller: _search,
+                  hint: 'Sorununu yaz — aidat, bildirim, kort…',
+                  onChanged: (v) => setState(() => _query = v.trim()),
                 ),
               ),
               const SizedBox(height: SwanSpace.md),
@@ -155,12 +126,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           for (final f in list) _FaqTile(entry: f)
         else
           for (final entry in grouped.entries) ...[
-            Padding(
-              padding: const EdgeInsets.only(
-                  top: SwanSpace.md, bottom: SwanSpace.sm),
-              child: Text(entry.key,
-                  style: SwanType.caption(c.inkMuted, w: FontWeight.w800)),
-            ),
+            StitchSectionTitle(title: entry.key),
             for (final f in entry.value) _FaqTile(entry: f),
           ],
 

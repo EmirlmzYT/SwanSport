@@ -7,6 +7,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
 
@@ -69,11 +70,23 @@ class SupportScreen extends ConsumerWidget {
                               'Önce SSS\'ye bakmanı öneririz — çoğu sorunun '
                               'cevabı orada.',
                         )
-                      : ListView.builder(
+                      : ListView(
                           padding: const EdgeInsets.fromLTRB(
                               SwanSpace.lg, 0, SwanSpace.lg, 132),
-                          itemCount: list.length,
-                          itemBuilder: (_, i) => _TicketTile(t: list[i]),
+                          children: [
+                            StitchHeroCard(
+                              title: 'Destek merkezi',
+                              subtitle:
+                                  'Açık taleplerini tek yerden takip et; cevap gelince bildirim merkezine düşer.',
+                              icon: Icons.support_agent_rounded,
+                              actionLabel: 'SSS’ye bak',
+                              onAction: () =>
+                                  Navigator.pushNamed(context, '/yardim'),
+                            ),
+                            const SizedBox(height: SwanSpace.md),
+                            const StitchSectionTitle(title: 'Taleplerim'),
+                            for (final ticket in list) _TicketTile(t: ticket),
+                          ],
                         ),
                 ),
               ),
