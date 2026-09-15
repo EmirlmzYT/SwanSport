@@ -14,6 +14,7 @@ import 'edit_profile_sheet.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Sohbet listesi — gruplar ve birebir sohbetler tek akışta (WhatsApp gibi).
 ///
@@ -61,9 +62,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     // Yeni bir DM geldiğinde listeyi tazele.
     //
@@ -92,37 +90,19 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                  child: Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.maybePop(context),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 15, color: ink),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SwanPageHeader(
+                    title: 'Mesajlar',
+                    subtitle: 'Sohbetlerin ve spor toplulukların',
+                    onBack: () => Navigator.maybePop(context),
+                    actions: [
+                      SwanHeaderAction(
+                        icon: Icons.edit_rounded,
+                        tooltip: 'Yeni sohbet başlat',
+                        onTap: () => Navigator.pushNamed(context, '/ara'),
                       ),
-                    ),
-                    const SizedBox(width: 14),
-                    Text('Mesajlar', style: SwanType.h2(ink)),
-                    const Spacer(),
-                    GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/ara'),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.edit_rounded, size: 17, color: ink),
-                      ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
@@ -293,9 +273,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     child: Text(subtitle,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: SwanType.bodySm(
-                            unreadStyle ? c.ink : c.inkMuted,
-                            w: unreadStyle ? FontWeight.w700 : FontWeight.w500)),
+                        style: SwanType.bodySm(unreadStyle ? c.ink : c.inkMuted,
+                            w: unreadStyle
+                                ? FontWeight.w700
+                                : FontWeight.w500)),
                   ),
                   if (unreadStyle) ...[
                     const SizedBox(width: SwanSpace.sm),
@@ -348,9 +329,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   Widget _emptyState(bool isDark) {
     final uid = Supabase.instance.client.auth.currentUser?.id;
-    final me = uid == null
-        ? null
-        : ref.watch(socialProfileProvider(uid)).valueOrNull;
+    final me =
+        uid == null ? null : ref.watch(socialProfileProvider(uid)).valueOrNull;
     final hasCity = (me?.cityCode ?? '').isNotEmpty;
 
     if (!hasCity) {
@@ -376,8 +356,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               }
             },
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
+              padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 13),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(colors: [kTealBright, kTeal]),
                 borderRadius: BorderRadius.circular(14),
@@ -394,8 +373,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       context,
       icon: Icons.forum_outlined,
       title: 'Topluluk yok',
-      subtitle:
-          'Topluluklar şimdilik doğrulanmış antrenörlere açık. Antrenör '
+      subtitle: 'Topluluklar şimdilik doğrulanmış antrenörlere açık. Antrenör '
           'kademeni doğrulattığında ilinin grubu burada görünür.',
     );
   }
@@ -457,8 +435,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       ref.invalidate(communityListProvider);
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${c.name} grubuna katıldın'),
-          backgroundColor: kTeal));
+          content: Text('${c.name} grubuna katıldın'), backgroundColor: kTeal));
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -467,7 +444,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     }
   }
 }
-
 
 /// Birebir sohbet ekranı.
 class ChatScreen extends ConsumerStatefulWidget {
@@ -677,7 +653,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       if (all.isEmpty) {
                         return Center(
                           child: Text('Sohbeti başlat',
-                              style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
+                              style: SwanType.bodySm(SwanColors.textSecondary,
+                                  w: FontWeight.w600)),
                         );
                       }
                       // `reverse: true` — WhatsApp/Telegram deseni.
@@ -700,13 +677,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     },
                   ),
                 ),
-                  // `viewInsets.bottom` EKLENMİYOR.
-                  //
-                  // Scaffold `resizeToAvoidBottomInset` ile gövdeyi klavye
-                  // kadar zaten küçültüyor. Üstüne bir de klavye yüksekliğini
-                  // dolgu olarak eklemek aynı boşluğu iki kez sayıyordu: yazı
-                  // alanı klavyenin bir boy yukarısına fırlıyor, arada kocaman
-                  // bir boşluk kalıyordu.
+                // `viewInsets.bottom` EKLENMİYOR.
+                //
+                // Scaffold `resizeToAvoidBottomInset` ile gövdeyi klavye
+                // kadar zaten küçültüyor. Üstüne bir de klavye yüksekliğini
+                // dolgu olarak eklemek aynı boşluğu iki kez sayıyordu: yazı
+                // alanı klavyenin bir boy yukarısına fırlıyor, arada kocaman
+                // bir boşluk kalıyordu.
                 Padding(
                   padding: const EdgeInsets.fromLTRB(14, 6, 14, 12),
                   child: Row(children: [
@@ -773,57 +750,57 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ? () => _deliver(m.body, retryId: m.id)
             : null,
         child: Container(
-        constraints: const BoxConstraints(maxWidth: 300),
-        margin: const EdgeInsets.only(bottom: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-        decoration: BoxDecoration(
-          gradient: m.isMine
-              ? const LinearGradient(colors: [kTealBright, kTeal])
-              : null,
-          color: m.isMine ? null : surf,
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(16),
-            topRight: const Radius.circular(16),
-            bottomLeft: Radius.circular(m.isMine ? 16 : 4),
-            bottomRight: Radius.circular(m.isMine ? 4 : 16),
-          ),
-          border: m.isMine ? null : Border.all(color: line),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Paylaşılan içerik kartı. İçeriği mesajda saklanmıyor; her
-            // çizimde kaynaktan tazeleniyor ve kaynak kaldırılmışsa
-            // "artık kullanılamıyor" durumuna düşüyor.
-            if (m.isShare)
-              SharedContentCard(
-                  kind: m.sharedKind ?? m.contentType,
-                  id: m.sharedId!,
-                  onDark: m.isMine),
-            if (m.body.isNotEmpty)
-              Text(m.body,
-                  style: SwanType.bodySm(m.isMine ? Colors.white : ink)
-                      .copyWith(height: 1.35)),
-            const SizedBox(height: 3),
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                    m.status == MessageStatus.failed
-                        ? 'Gönderilemedi · dokun, tekrar dene'
-                        : shortAgo(m.createdAt),
-                    style: SwanType.caption(
-                        m.isMine ? Colors.white70 : SwanColors.textSecondary,
-                        w: FontWeight.w600)),
-                if (m.isMine) ...[
-                  const SizedBox(width: 5),
-                  _tick(m),
-                ],
-              ],
+          constraints: const BoxConstraints(maxWidth: 300),
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          decoration: BoxDecoration(
+            gradient: m.isMine
+                ? const LinearGradient(colors: [kTealBright, kTeal])
+                : null,
+            color: m.isMine ? null : surf,
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(16),
+              topRight: const Radius.circular(16),
+              bottomLeft: Radius.circular(m.isMine ? 16 : 4),
+              bottomRight: Radius.circular(m.isMine ? 4 : 16),
             ),
-          ],
+            border: m.isMine ? null : Border.all(color: line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Paylaşılan içerik kartı. İçeriği mesajda saklanmıyor; her
+              // çizimde kaynaktan tazeleniyor ve kaynak kaldırılmışsa
+              // "artık kullanılamıyor" durumuna düşüyor.
+              if (m.isShare)
+                SharedContentCard(
+                    kind: m.sharedKind ?? m.contentType,
+                    id: m.sharedId!,
+                    onDark: m.isMine),
+              if (m.body.isNotEmpty)
+                Text(m.body,
+                    style: SwanType.bodySm(m.isMine ? Colors.white : ink)
+                        .copyWith(height: 1.35)),
+              const SizedBox(height: 3),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                      m.status == MessageStatus.failed
+                          ? 'Gönderilemedi · dokun, tekrar dene'
+                          : shortAgo(m.createdAt),
+                      style: SwanType.caption(
+                          m.isMine ? Colors.white70 : SwanColors.textSecondary,
+                          w: FontWeight.w600)),
+                  if (m.isMine) ...[
+                    const SizedBox(width: 5),
+                    _tick(m),
+                  ],
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -840,8 +817,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             child: CircularProgressIndicator(
                 strokeWidth: 1.4, color: Colors.white70),
           ),
-        MessageStatus.failed => const Icon(Icons.refresh_rounded,
-            size: 13, color: Colors.white),
+        MessageStatus.failed =>
+          const Icon(Icons.refresh_rounded, size: 13, color: Colors.white),
         MessageStatus.sent => Icon(
             m.isRead ? Icons.done_all_rounded : Icons.done_rounded,
             size: 13,
@@ -850,5 +827,4 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             color: m.isRead ? Colors.white : Colors.white60,
           ),
       };
-
 }
