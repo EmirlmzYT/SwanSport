@@ -7,6 +7,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/inbox_actions.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../social/presentation/widgets/feed_entry.dart';
 import '../../social/presentation/widgets/follow_suggestions.dart';
@@ -45,14 +46,17 @@ class ExploreScreen extends ConsumerWidget {
                 const SizedBox(height: SwanSpace.md),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                  child: _SearchField(c: c),
+                  child: StitchSearchBar(
+                    hint: 'Sporcu, kulüp, etkinlik veya branş ara...',
+                    onTap: () => Navigator.pushNamed(context, '/ara'),
+                    onFilter: () => Navigator.pushNamed(context, '/ara'),
+                  ),
                 ),
                 const SizedBox(height: SwanSpace.md),
                 const _DisciplinePills(),
                 const SizedBox(height: SwanSpace.lg),
-                _section(
-                  c,
-                  'Öne Çıkan Duyurular',
+                StitchSectionTitle(
+                  title: 'Öne Çıkan Duyurular',
                   actionLabel: 'Tümü',
                   onAction: () => Navigator.pushNamed(context, '/duyurular'),
                 ),
@@ -79,18 +83,31 @@ class ExploreScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   for (final item in items.take(6))
-                                    _FeaturedAnnouncementCard(
-                                      c: c,
-                                      item: item,
+                                    SizedBox(
+                                      width: 290,
+                                      child: StitchHeroCard(
+                                        title: item.title,
+                                        subtitle: item.body,
+                                        icon: Icons.campaign_rounded,
+                                        badge: item.pinned
+                                            ? 'Sabit duyuru'
+                                            : 'Kulüp duyurusu',
+                                        meta: shortAgo(item.createdAt),
+                                        actionLabel: 'Detayları Gör',
+                                        onAction: () => Navigator.pushNamed(
+                                          context,
+                                          '/duyurular',
+                                        ),
+                                        tone: item.pinned ? c.warning : null,
+                                      ),
                                     ),
                                 ],
                               ),
                             ),
                     ),
                 const SizedBox(height: SwanSpace.xl),
-                _section(
-                  c,
-                  'Popüler Sporcular & Antrenörler',
+                StitchSectionTitle(
+                  title: 'Popüler Sporcular & Antrenörler',
                   actionLabel: 'Tümü',
                   onAction: () => Navigator.pushNamed(context, '/ara'),
                 ),
@@ -102,9 +119,8 @@ class ExploreScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: SwanSpace.xl),
-                _section(
-                  c,
-                  'Kulüp Gönderileri & Trendler',
+                StitchSectionTitle(
+                  title: 'Kulüp Gönderileri & Trendler',
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -163,75 +179,67 @@ class ExploreScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: SwanSpace.xl),
 
-                _section(c, 'Spor yap'),
-                _Row(
-                  c: c,
+                const StitchSectionTitle(title: 'Spor yap'),
+                StitchActionTile(
                   icon: Icons.handshake_rounded,
                   title: 'Partner bul',
                   subtitle: 'Birlikte oynayacak birini ara',
-                  route: '/partner-ara',
+                  onTap: () => Navigator.pushNamed(context, '/partner-ara'),
                 ),
-                _Row(
-                  c: c,
+                StitchActionTile(
                   icon: Icons.emoji_events_rounded,
                   title: 'Organizasyonlar',
                   subtitle: 'Turnuva, kamp ve etkinlikler',
-                  route: '/organizasyonlar',
+                  onTap: () => Navigator.pushNamed(context, '/organizasyonlar'),
                 ),
 
                 const SizedBox(height: SwanSpace.xl),
-                _section(c, 'Topluluğa katıl'),
-                _Row(
-                  c: c,
+                const StitchSectionTitle(title: 'Topluluğa katıl'),
+                StitchActionTile(
                   icon: Icons.travel_explore_rounded,
                   title: 'Kulüpler',
                   subtitle: 'İl, ilçe ve branşa göre bul',
-                  route: '/kulupler',
+                  onTap: () => Navigator.pushNamed(context, '/kulupler'),
                 ),
-                _Row(
-                  c: c,
+                StitchActionTile(
                   icon: Icons.forum_rounded,
                   title: 'Topluluklar',
                   subtitle: 'İlinin antrenör grupları',
-                  route: '/topluluklar',
+                  onTap: () => Navigator.pushNamed(context, '/topluluklar'),
                 ),
                 if (access.isClubStaff)
-                  _Row(
-                    c: c,
+                  StitchActionTile(
                     icon: Icons.shield_rounded,
                     title: 'Takımlar',
                     subtitle: 'Kadrolar ve takım sayfaları',
-                    route: '/teams',
+                    onTap: () => Navigator.pushNamed(context, '/teams'),
                   ),
 
                 const SizedBox(height: SwanSpace.xl),
-                _section(c, 'İhtiyacını bul'),
+                const StitchSectionTitle(title: 'İhtiyacını bul'),
                 // Pazaryeri **özellik bayrağının arkasında** (0053).
                 // "Yakında" kartı göstermiyoruz: kullanılamayan bir şeyi
                 // göstermek, olmayan bir şeyi göstermekten kötü — kullanıcı
                 // her seferinde tekrar deniyor.
                 if (ref.watch(featureEnabledProvider(FeatureFlags.marketplace)))
-                  _Row(
-                    c: c,
+                  StitchActionTile(
                     icon: Icons.storefront_rounded,
                     title: 'Spor Malzemeleri Pazaryeri',
                     subtitle: 'Sıfır ve ikinci el ürünler',
-                    route: '/pazaryeri',
+                    onTap: () => Navigator.pushNamed(context, '/pazaryeri'),
                   ),
                 if (ref.watch(featureEnabledProvider('coach_discovery')))
-                  _Row(
-                    c: c,
+                  StitchActionTile(
                     icon: Icons.sports_rounded,
                     title: 'Antrenör bul',
                     subtitle: 'Doğrulanmış antrenörler, branş ve şehre göre',
-                    route: '/antrenor-bul',
+                    onTap: () => Navigator.pushNamed(context, '/antrenor-bul'),
                   ),
-                _Row(
-                  c: c,
+                StitchActionTile(
                   icon: Icons.campaign_rounded,
                   title: 'İlanlar',
                   subtitle: 'Sporcu, antrenör ve seçme ilanları',
-                  route: '/ilanlar',
+                  onTap: () => Navigator.pushNamed(context, '/ilanlar'),
                 ),
               ],
             ),
@@ -241,48 +249,6 @@ class ExploreScreen extends ConsumerWidget {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
-
-  Widget _section(
-    SwanPalette c,
-    String title, {
-    String? actionLabel,
-    VoidCallback? onAction,
-    Widget? trailing,
-  }) =>
-      Padding(
-        padding: const EdgeInsets.fromLTRB(
-          SwanSpace.lg,
-          0,
-          SwanSpace.lg,
-          SwanSpace.sm,
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 6,
-              height: 18,
-              decoration: BoxDecoration(
-                color: c.accent,
-                borderRadius: BorderRadius.circular(999),
-              ),
-            ),
-            const SizedBox(width: 7),
-            Expanded(child: Text(title, style: SwanType.h3(c.ink))),
-            if (trailing != null) trailing,
-            if (actionLabel != null && onAction != null)
-              TextButton(
-                onPressed: onAction,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(actionLabel),
-                    const Icon(Icons.chevron_right_rounded, size: 16),
-                  ],
-                ),
-              ),
-          ],
-        ),
-      );
 }
 
 class _StitchExploreHeader extends ConsumerWidget {
@@ -435,176 +401,6 @@ class _DisciplinePills extends StatelessWidget {
   }
 }
 
-class _FeaturedAnnouncementCard extends StatelessWidget {
-  const _FeaturedAnnouncementCard({required this.c, required this.item});
-
-  final SwanPalette c;
-  final AnnouncementRow item;
-
-  @override
-  Widget build(BuildContext context) {
-    final tone = item.pinned ? c.warning : c.accent;
-    return Container(
-      width: 290,
-      margin: const EdgeInsets.only(right: SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: c.isDark ? .16 : .04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      clipBehavior: Clip.antiAlias,
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/duyurular'),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              height: 128,
-              width: double.infinity,
-              padding: const EdgeInsets.all(SwanSpace.md),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    tone.withValues(alpha: .88),
-                    c.accentFill.withValues(alpha: .72),
-                    const Color(0xFF111827),
-                  ],
-                ),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: -8,
-                    bottom: -10,
-                    child: Icon(
-                      Icons.campaign_rounded,
-                      size: 82,
-                      color: Colors.white.withValues(alpha: .15),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.topLeft,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: .90),
-                        borderRadius: BorderRadius.circular(SwanRadius.sm),
-                      ),
-                      child: Text(
-                        item.pinned ? 'Sabit duyuru' : 'Kulüp duyurusu',
-                        style: SwanType.caption(tone, w: FontWeight.w800),
-                      ),
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomLeft,
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.calendar_today_rounded,
-                          color: Colors.white,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 5),
-                        Text(
-                          shortAgo(item.createdAt),
-                          style: SwanType.caption(
-                            Colors.white,
-                            w: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(14),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 18,
-                        height: 18,
-                        decoration: BoxDecoration(
-                          color: c.accentSoft,
-                          borderRadius: BorderRadius.circular(999),
-                        ),
-                        child: Icon(
-                          Icons.verified_rounded,
-                          size: 12,
-                          color: c.accent,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Expanded(
-                        child: Text(
-                          'SwanSport kulüp ağı',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              SwanType.caption(c.inkMuted, w: FontWeight.w700),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: SwanSpace.xs),
-                  Text(
-                    item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.body(c.ink, w: FontWeight.w800),
-                  ),
-                  if (item.body.trim().isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      item.body,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(c.inkMuted),
-                    ),
-                  ],
-                  const SizedBox(height: SwanSpace.sm),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          item.pinned ? 'Öne sabitlendi' : 'Yeni duyuru',
-                          style: SwanType.caption(c.accent, w: FontWeight.w800),
-                        ),
-                      ),
-                      TextButton(
-                        onPressed: () =>
-                            Navigator.pushNamed(context, '/duyurular'),
-                        child: const Text('Detayları Gör'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
 /// En çok kullanılan keşif yolları. Liste görünümünü bozmadan, kullanıcıyı
 /// birkaç ekran derinliğine göndermeden doğrudan niyetine götürür.
 class _QuickExplore extends StatelessWidget {
@@ -669,108 +465,6 @@ class _QuickExplore extends StatelessWidget {
           ),
         ),
       ],
-    );
-  }
-}
-
-/// "Ne arıyorsun?" — dokununca arama ekranını açar.
-///
-/// Gerçek `TextField` değil: arama ayrı bir ekran ve orada odaklanmış bir
-/// alan var. Burada iki tane arama kutusu olması kafa karıştırırdı.
-class _SearchField extends StatelessWidget {
-  const _SearchField({required this.c});
-  final SwanPalette c;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: 'Arama ekranını aç',
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/ara'),
-        child: Container(
-          height: 50,
-          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-          decoration: BoxDecoration(
-            color: c.surfaceAlt,
-            borderRadius: BorderRadius.circular(SwanRadius.md),
-          ),
-          child: Row(
-            children: [
-              Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
-              const SizedBox(width: SwanSpace.md),
-              Text('Ne arıyorsun?', style: SwanType.body(c.inkMuted)),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Keşif satırı.
-///
-/// Kart değil: zemin farkı ve boşlukla ayrılıyor. Brief §19 —
-/// *"Card yerine mümkün olduğunca section / list kullan."*
-class _Row extends StatelessWidget {
-  const _Row({
-    required this.c,
-    required this.icon,
-    required this.title,
-    required this.subtitle,
-    required this.route,
-  });
-
-  final SwanPalette c;
-  final IconData icon;
-  final String title;
-  final String subtitle;
-  final String route;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      button: true,
-      label: '$title bölümünü aç',
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, route),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
-          child: Row(
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: c.accentSoft,
-                  borderRadius: BorderRadius.circular(SwanRadius.md),
-                ),
-                child: Icon(icon, color: c.accent, size: 21),
-              ),
-              const SizedBox(width: SwanSpace.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      title,
-                      style: SwanType.body(c.ink, w: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(c.inkMuted),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }
