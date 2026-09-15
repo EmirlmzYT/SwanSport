@@ -10,6 +10,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../demo/demo_role.dart';
 import '../../../social/presentation/edit_profile_sheet.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/theme/theme_mode_controller.dart';
@@ -38,9 +39,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
     final club = ref.watch(activeClubProvider).valueOrNull;
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
     final uid = Supabase.instance.client.auth.currentUser?.id;
-    final me = uid == null
-        ? null
-        : ref.watch(socialProfileProvider(uid)).valueOrNull;
+    final me =
+        uid == null ? null : ref.watch(socialProfileProvider(uid)).valueOrNull;
 
     // Kulüp bölümü yalnızca kulüpte görev alanlara gösterilir; sporcu ve veli
     // için anlamsız satırlar olurdu.
@@ -59,7 +59,10 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
               children: [
-                Text('Ayarlar', style: SwanType.h2(ink)),
+                const SwanPageHeader(
+                  title: 'Ayarlar',
+                  subtitle: 'Hesap, kulüp, görünüm ve bildirim tercihleri',
+                ),
                 const SizedBox(height: 16),
 
                 // ------------------------------- hesap
@@ -89,11 +92,13 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(profile?.fullName ?? 'Kullanıcı',
-                                  style: SwanType.body(ink, w: FontWeight.w800)),
+                                  style:
+                                      SwanType.body(ink, w: FontWeight.w800)),
                               Text(
                                   '${_roleLabel(profile?.role)}'
                                   '${club == null ? '' : ' · ${club.name}'}',
-                                  style: SwanType.caption(SwanColors.textSecondary)),
+                                  style: SwanType.caption(
+                                      SwanColors.textSecondary)),
                             ],
                           ),
                         ),
@@ -114,17 +119,14 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                   _sep(isDark),
                   _row(isDark, Icons.verified_user_rounded, 'Doğrulama',
                       sub: 'Antrenör/sporcu kimliğini onaylat',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/dogrulama')),
+                      onTap: () => Navigator.pushNamed(context, '/dogrulama')),
                   _sep(isDark),
                   _row(isDark, Icons.receipt_long_rounded, 'Aidatlarım',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/aidatlarim')),
+                      onTap: () => Navigator.pushNamed(context, '/aidatlarim')),
                   _sep(isDark),
                   _row(isDark, Icons.family_restroom_rounded, 'Veli bağlantısı',
                       sub: 'Davet koduyla sporcuna bağlan',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/veli-bagla')),
+                      onTap: () => Navigator.pushNamed(context, '/veli-bagla')),
                 ]),
 
                 // ------------------------------- bildirimler
@@ -178,8 +180,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                             Navigator.pushNamed(context, '/onay-paneli')),
                     _sep(isDark),
                     _row(isDark, Icons.rss_feed_rounded, 'Haber kaynakları',
-                        onTap: () => Navigator.pushNamed(
-                            context, '/haber-kaynaklari')),
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/haber-kaynaklari')),
                   ]),
                 ],
 
@@ -219,11 +221,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                         ThemeMode.system => Icons.brightness_auto_rounded,
                       },
                       themeModeLabel(m),
-                      sub: ref.watch(themeModeProvider) == m
-                          ? 'Seçili'
-                          : null,
-                      onTap: () =>
-                          ref.read(themeModeProvider.notifier).set(m),
+                      sub: ref.watch(themeModeProvider) == m ? 'Seçili' : null,
+                      onTap: () => ref.read(themeModeProvider.notifier).set(m),
                     ),
                   ],
                 ]),
@@ -241,15 +240,15 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                     _sep(isDark),
                     _row(isDark, Icons.theater_comedy_outlined, 'Demo rolleri',
                         sub: 'Yalnızca geliştirme derlemesi',
-                        onTap: () =>
-                            Navigator.pushNamed(context, '/demo-rol')),
+                        onTap: () => Navigator.pushNamed(context, '/demo-rol')),
                   ],
                 ]),
 
                 const SizedBox(height: 24),
                 Center(
                   child: Text('SwanSport · sürüm 1.0.5',
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
                 ),
                 const SizedBox(height: 14),
                 Center(
@@ -265,7 +264,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                                 .withValues(alpha: .35)),
                       ),
                       child: Text('Çıkış Yap',
-                          style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                          style: SwanType.bodySm(SwanPalette.light.danger,
+                              w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -314,7 +314,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
   Widget _label(String t, Color ink) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _group(bool isDark, List<Widget> children) {
@@ -380,8 +381,12 @@ class _PushToggleRow extends ConsumerWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 5),
       child: Row(children: [
-        Icon(on ? Icons.notifications_active_rounded : Icons.notifications_rounded,
-            size: 20, color: kTeal),
+        Icon(
+            on
+                ? Icons.notifications_active_rounded
+                : Icons.notifications_rounded,
+            size: 20,
+            color: kTeal),
         const SizedBox(width: 13),
         Expanded(
           child: Column(
