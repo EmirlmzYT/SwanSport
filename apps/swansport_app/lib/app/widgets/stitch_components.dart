@@ -208,12 +208,14 @@ class StitchInlineSearchField extends StatelessWidget {
     required this.controller,
     required this.hint,
     required this.onChanged,
+    this.onSubmitted,
     this.onFilter,
   });
 
   final TextEditingController controller;
   final String hint;
   final ValueChanged<String> onChanged;
+  final ValueChanged<String>? onSubmitted;
   final VoidCallback? onFilter;
 
   @override
@@ -237,6 +239,7 @@ class StitchInlineSearchField extends StatelessWidget {
                   child: TextField(
                     controller: controller,
                     onChanged: onChanged,
+                    onSubmitted: onSubmitted,
                     textInputAction: TextInputAction.search,
                     decoration: InputDecoration(
                       border: InputBorder.none,

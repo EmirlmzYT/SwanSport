@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
@@ -24,10 +25,17 @@ class ListingsScreen extends ConsumerStatefulWidget {
 }
 
 class _ListingsScreenState extends ConsumerState<ListingsScreen> {
+  final _search = TextEditingController();
   var _filter = const DiscoverFilter();
 
   ListingKind? get _kind =>
       _filter.kind.isEmpty ? null : ListingKindX.fromCode(_filter.kind);
+
+  @override
+  void dispose() {
+    _search.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -53,6 +61,23 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                   subtitle: 'Sporcu, antrenör ve seçme ilanları',
                   onBack: () => Navigator.maybePop(context),
                   actions: [AddButton(onTap: _create, tooltip: 'İlan ver')],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+                child: StitchInlineSearchField(
+                  controller: _search,
+                  hint: 'Sporcu, antrenör, seçme veya malzeme ara...',
+                  onChanged: (v) {
+                    if (v.isEmpty && _filter.query.isNotEmpty) {
+                      setState(() => _filter = _filter.copyWith(query: ''));
+                    } else {
+                      setState(() {});
+                    }
+                  },
+                  onSubmitted: (v) => setState(
+                    () => _filter = _filter.copyWith(query: v.trim()),
+                  ),
                 ),
               ),
               _kindBar(isDark, ink),

@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_chip.dart';
 import '../../../app/widgets/swan_page_header.dart';
@@ -68,32 +69,19 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                child: Container(
-                  height: 44,
-                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-                  decoration: BoxDecoration(
-                      color: c.surface,
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
-                      border: Border.all(color: c.line)),
-                  child: Row(children: [
-                    Icon(Icons.search_rounded, size: 18, color: c.inkMuted),
-                    const SizedBox(width: SwanSpace.sm),
-                    Expanded(
-                      child: TextField(
-                        controller: _search,
-                        style: SwanType.bodySm(c.ink),
-                        textInputAction: TextInputAction.search,
-                        onSubmitted: (v) => setState(
-                            () => _query = v.trim().isEmpty ? null : v.trim()),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          border: InputBorder.none,
-                          hintText: 'İsim ara',
-                          hintStyle: SwanType.bodySm(c.inkMuted),
-                        ),
-                      ),
-                    ),
-                  ]),
+                child: StitchInlineSearchField(
+                  controller: _search,
+                  hint: 'İsim, branş veya şehir ara',
+                  onChanged: (v) {
+                    if (v.isEmpty && _query != null) {
+                      setState(() => _query = null);
+                    } else {
+                      setState(() {});
+                    }
+                  },
+                  onSubmitted: (v) => setState(
+                    () => _query = v.trim().isEmpty ? null : v.trim(),
+                  ),
                 ),
               ),
               const SizedBox(height: SwanSpace.sm),

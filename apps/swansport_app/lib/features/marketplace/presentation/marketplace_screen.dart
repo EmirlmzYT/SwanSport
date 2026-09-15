@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_chip.dart';
 import '../../../app/widgets/swan_page_header.dart';
@@ -114,42 +115,19 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
   Widget _searchBar(SwanPalette c) => Padding(
         padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-        child: Container(
-          height: 44,
-          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-          decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-              border: Border.all(color: c.line)),
-          child: Row(children: [
-            Icon(Icons.search_rounded, size: 18, color: c.inkMuted),
-            const SizedBox(width: SwanSpace.sm),
-            Expanded(
-              child: TextField(
-                controller: _search,
-                style: SwanType.bodySm(c.ink),
-                textInputAction: TextInputAction.search,
-                // Aramayı her harfte değil onaylayınca çalıştırıyoruz:
-                // her tuşta sunucuya gitmek hem yavaş hem gereksiz.
-                onSubmitted: (v) =>
-                    setState(() => _filter = _filter.copyWith(query: v.trim())),
-                decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  hintText: 'Krampon, raket, forma…',
-                  hintStyle: SwanType.bodySm(c.inkMuted),
-                ),
-              ),
-            ),
-            if (!_filter.isEmpty)
-              GestureDetector(
-                onTap: () {
-                  _search.clear();
-                  setState(() => _filter = const MarketFilter());
-                },
-                child: Icon(Icons.close_rounded, size: 18, color: c.inkMuted),
-              ),
-          ]),
+        child: StitchInlineSearchField(
+          controller: _search,
+          hint: 'Krampon, raket, forma…',
+          onChanged: (v) {
+            if (v.isEmpty && (_filter.query ?? '').isNotEmpty) {
+              setState(() => _filter = _filter.copyWith(query: null));
+            } else {
+              setState(() {});
+            }
+          },
+          onSubmitted: (v) => setState(
+            () => _filter = _filter.copyWith(query: v.trim()),
+          ),
         ),
       );
 
