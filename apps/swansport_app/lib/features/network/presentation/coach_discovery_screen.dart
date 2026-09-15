@@ -8,6 +8,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_chip.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Antrenör keşfi.
 ///
@@ -44,8 +45,8 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final sports = ref.watch(sportsProvider).valueOrNull ?? const [];
-    final results = ref.watch(
-        coachSearchProvider((query: _query, sport: _sport, city: null)));
+    final results = ref
+        .watch(coachSearchProvider((query: _query, sport: _sport, city: null)));
 
     return Scaffold(
       extendBody: true,
@@ -59,32 +60,17 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                     SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Antrenör bul', style: SwanType.h2(c.ink)),
-                ]),
+                child: SwanPageHeader(
+                  title: 'Antrenör bul',
+                  subtitle: 'Doğrulanmış ve iletişime açık antrenörler',
+                  onBack: () => Navigator.maybePop(context),
+                ),
               ),
-
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 child: Container(
                   height: 44,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
                   decoration: BoxDecoration(
                       color: c.surface,
                       borderRadius: BorderRadius.circular(SwanRadius.md),
@@ -97,8 +83,8 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                         controller: _search,
                         style: SwanType.bodySm(c.ink),
                         textInputAction: TextInputAction.search,
-                        onSubmitted: (v) =>
-                            setState(() => _query = v.trim().isEmpty ? null : v.trim()),
+                        onSubmitted: (v) => setState(
+                            () => _query = v.trim().isEmpty ? null : v.trim()),
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
@@ -110,7 +96,6 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                   ]),
                 ),
               ),
-
               const SizedBox(height: SwanSpace.sm),
               if (sports.isNotEmpty)
                 SwanChipBar(children: [
@@ -123,7 +108,6 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                     ),
                 ]),
               const SizedBox(height: SwanSpace.md),
-
               Expanded(
                 child: results.when(
                   loading: premiumLoading,
@@ -190,16 +174,14 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                   arguments: {'id': k.profileId, 'name': k.fullName}),
               child: Container(
                 height: 36,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: c.accentFill,
                   borderRadius: BorderRadius.circular(SwanRadius.sm),
                 ),
                 child: Text('Yaz',
-                    style:
-                        SwanType.caption(Colors.white, w: FontWeight.w800)),
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
               ),
             ),
           ]),
@@ -218,8 +200,8 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
               children: [
                 for (final s in k.sports)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 8, vertical: 3),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                     decoration: BoxDecoration(
                       color: c.surfaceAlt,
                       borderRadius: BorderRadius.circular(999),

@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -27,8 +28,6 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final async = ref.watch(organizationsProvider(''));
 
@@ -43,26 +42,14 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: surf,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: ink),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text('Organizasyonlar',
-                      style: SwanType.h2(ink)),
-                  const Spacer(),
-                  AddButton(onTap: _create, tooltip: 'Organizasyon aç'),
-                ]),
+                child: SwanPageHeader(
+                  title: 'Organizasyonlar',
+                  subtitle: 'Lig, turnuva, kamp ve kupalar',
+                  onBack: () => Navigator.maybePop(context),
+                  actions: [
+                    AddButton(onTap: _create, tooltip: 'Organizasyon aç'),
+                  ],
+                ),
               ),
               Expanded(
                 child: RefreshIndicator(
@@ -91,11 +78,9 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                             ],
                           )
                         : ListView.builder(
-                            padding:
-                                const EdgeInsets.fromLTRB(20, 4, 20, 132),
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 132),
                             itemCount: list.length,
-                            itemBuilder: (_, i) =>
-                                _card(isDark, ink, list[i]),
+                            itemBuilder: (_, i) => _card(isDark, ink, list[i]),
                           ),
                   ),
                 ),
@@ -152,7 +137,8 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                     ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text('${o.participantCount} takım',
                     style: SwanType.caption(SwanColors.textSecondary)),
@@ -189,16 +175,15 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
           height: MediaQuery.of(ctx).size.height * 0.85,
           decoration: BoxDecoration(
             color: surf,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: const EdgeInsets.fromLTRB(20, 18, 20, 10),
           child: Column(children: [
             Text(o.name, style: SwanType.h3(ink)),
             const SizedBox(height: 3),
             Text('${o.kindLabel} · ${o.participantCount} takım',
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600)),
             const SizedBox(height: 14),
             Row(children: [
               for (final t in const [(0, 'Puan durumu'), (1, 'Fikstür')])
@@ -212,20 +197,20 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                       decoration: BoxDecoration(
                         color: tab == t.$1 ? kTeal : Colors.transparent,
                         borderRadius: BorderRadius.circular(11),
-                        border: Border.all(
-                            color: tab == t.$1 ? kTeal : line),
+                        border: Border.all(color: tab == t.$1 ? kTeal : line),
                       ),
                       child: Text(t.$2,
-                          style: SwanType.caption(tab == t.$1 ? Colors.white : ink, w: FontWeight.w800)),
+                          style: SwanType.caption(
+                              tab == t.$1 ? Colors.white : ink,
+                              w: FontWeight.w800)),
                     ),
                   ),
                 ),
             ]),
             const SizedBox(height: 12),
             Expanded(
-              child: tab == 0
-                  ? _standings(o, ink, line)
-                  : _fixture(o, ink, line),
+              child:
+                  tab == 0 ? _standings(o, ink, line) : _fixture(o, ink, line),
             ),
             if (o.canManage) ...[
               Divider(color: line, height: 16),
@@ -244,7 +229,8 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                         border: Border.all(color: line),
                       ),
                       child: Text('Takım ekle',
-                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                          style: SwanType.caption(SwanColors.textSecondary,
+                              w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -259,13 +245,13 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                       height: 42,
                       alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [kTealBright, kTeal]),
+                        gradient:
+                            const LinearGradient(colors: [kTealBright, kTeal]),
                         borderRadius: BorderRadius.circular(13),
                       ),
                       child: Text('Fikstür oluştur',
-                          style:
-                              SwanType.caption(Colors.white, w: FontWeight.w800)),
+                          style: SwanType.caption(Colors.white,
+                              w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -286,18 +272,19 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
         data: (rows) => rows.isEmpty
             ? Center(
                 child: Text('Katılımcı yok',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)))
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)))
             : ListView(children: [
                 Row(children: [
                   const SizedBox(width: 26),
-                  Expanded(
-                      child: Text('Takım', style: SwanType.h3(ink))),
+                  Expanded(child: Text('Takım', style: SwanType.h3(ink))),
                   for (final h in const ['O', 'G', 'B', 'M', 'AV', 'P'])
                     SizedBox(
                       width: h == 'P' ? 30 : 24,
                       child: Text(h,
                           textAlign: TextAlign.center,
-                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                          style: SwanType.caption(SwanColors.textSecondary,
+                              w: FontWeight.w800)),
                     ),
                 ]),
                 Divider(color: line, height: 12),
@@ -308,7 +295,9 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                       SizedBox(
                         width: 26,
                         child: Text('${i + 1}',
-                            style: SwanType.caption(i == 0 ? kTeal : SwanColors.textSecondary, w: FontWeight.w800)),
+                            style: SwanType.caption(
+                                i == 0 ? kTeal : SwanColors.textSecondary,
+                                w: FontWeight.w800)),
                       ),
                       Expanded(
                         child: Text(rows[i].name,
@@ -327,7 +316,8 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                           width: 24,
                           child: Text('$v',
                               textAlign: TextAlign.center,
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                              style: SwanType.caption(SwanColors.textSecondary,
+                                  w: FontWeight.w600)),
                         ),
                       SizedBox(
                         width: 30,
@@ -354,20 +344,21 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                     o.canManage
                         ? 'Fikstür henüz oluşturulmadı'
                         : 'Fikstür yayımlanmadı',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)))
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)))
             : ListView.builder(
                 itemCount: rows.length,
                 itemBuilder: (_, i) {
                   final m = rows[i];
-                  final showRound =
-                      i == 0 || rows[i - 1].round != m.round;
+                  final showRound = i == 0 || rows[i - 1].round != m.round;
                   return Column(children: [
                     if (showRound)
                       Padding(
                         padding: const EdgeInsets.fromLTRB(0, 10, 0, 8),
                         child: Row(children: [
                           Text('${m.round}. HAFTA',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                              style: SwanType.caption(SwanColors.textSecondary,
+                                  w: FontWeight.w800)),
                           const SizedBox(width: 8),
                           Expanded(child: Divider(color: line, height: 1)),
                         ]),
@@ -388,11 +379,11 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                                 textAlign: TextAlign.right,
-                                style: SwanType.caption(ink, w: FontWeight.w700)),
+                                style:
+                                    SwanType.caption(ink, w: FontWeight.w700)),
                           ),
                           Container(
-                            margin:
-                                const EdgeInsets.symmetric(horizontal: 10),
+                            margin: const EdgeInsets.symmetric(horizontal: 10),
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
@@ -407,15 +398,18 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
                                     : (m.startsAt == null
                                         ? 'vs'
                                         : '${m.startsAt!.day}.${m.startsAt!.month}'),
-                                style: SwanType.caption(m.isPlayed
+                                style: SwanType.caption(
+                                    m.isPlayed
                                         ? kTeal
-                                        : SwanColors.textSecondary, w: FontWeight.w800)),
+                                        : SwanColors.textSecondary,
+                                    w: FontWeight.w800)),
                           ),
                           Expanded(
                             child: Text(m.awayName ?? '—',
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                style: SwanType.caption(ink, w: FontWeight.w700)),
+                                style:
+                                    SwanType.caption(ink, w: FontWeight.w700)),
                           ),
                         ]),
                       ),

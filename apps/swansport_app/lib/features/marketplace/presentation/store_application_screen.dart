@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Mağaza başvurusu ve durumu.
 ///
@@ -41,7 +42,8 @@ class _StoreApplicationScreenState
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final stores = ref.watch(myStoresProvider).valueOrNull ?? const <StoreRow>[];
+    final stores =
+        ref.watch(myStoresProvider).valueOrNull ?? const <StoreRow>[];
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -52,23 +54,11 @@ class _StoreApplicationScreenState
             child: ListView(
               padding: const EdgeInsets.all(SwanSpace.lg),
               children: [
-                Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Mağaza', style: SwanType.h2(c.ink)),
-                ]),
+                SwanPageHeader(
+                  title: 'Mağaza',
+                  subtitle: 'Sıfır ürün satışı için mağaza başvurusu',
+                  onBack: () => Navigator.maybePop(context),
+                ),
                 const SizedBox(height: SwanSpace.xl),
 
                 // Mevcut başvurular önce: kullanıcı ikinci kez başvurmadan
@@ -94,8 +84,9 @@ class _StoreApplicationScreenState
 
                 _field(c, _name, 'Mağaza adı', 'Konya Spor Market'),
                 _field(c, _desc, 'Açıklama', 'Ne satıyorsunuz?', lines: 3),
-                _field(c, _note, 'Başvuru notu',
-                    'Yöneticinin bilmesi gerekenler', lines: 2),
+                _field(
+                    c, _note, 'Başvuru notu', 'Yöneticinin bilmesi gerekenler',
+                    lines: 2),
 
                 const SizedBox(height: SwanSpace.lg),
                 GestureDetector(
@@ -136,8 +127,8 @@ class _StoreApplicationScreenState
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Row(children: [
           Expanded(
-            child: Text(s.name,
-                style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+            child:
+                Text(s.name, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
           ),
           Text(s.statusLabel,
               style: SwanType.caption(tone, w: FontWeight.w800)),
@@ -152,8 +143,8 @@ class _StoreApplicationScreenState
     );
   }
 
-  Widget _field(SwanPalette c, TextEditingController ctrl, String label,
-          String hint,
+  Widget _field(
+          SwanPalette c, TextEditingController ctrl, String label, String hint,
           {int lines = 1}) =>
       Padding(
         padding: const EdgeInsets.only(bottom: SwanSpace.md),

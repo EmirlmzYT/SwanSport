@@ -8,6 +8,7 @@ import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -33,8 +34,6 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final async = ref.watch(listingsProvider(_filter));
 
@@ -49,25 +48,12 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: surf,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: ink),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text('İlanlar', style: SwanType.h2(ink)),
-                  const Spacer(),
-                  AddButton(onTap: _create, tooltip: 'İlan ver'),
-                ]),
+                child: SwanPageHeader(
+                  title: 'İlanlar',
+                  subtitle: 'Sporcu, antrenör ve seçme ilanları',
+                  onBack: () => Navigator.maybePop(context),
+                  actions: [AddButton(onTap: _create, tooltip: 'İlan ver')],
+                ),
               ),
               _kindBar(isDark, ink),
               Expanded(
@@ -88,8 +74,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                                 context,
                                 icon: Icons.campaign_outlined,
                                 title: 'İlan yok',
-                                subtitle:
-                                    'Sporcu, antrenör arayanlar ve seçme '
+                                subtitle: 'Sporcu, antrenör arayanlar ve seçme '
                                     'duyuruları burada görünür. İlk ilanı sen ver.',
                                 actionLabel: 'İlan ver',
                                 onAction: _create,
@@ -97,11 +82,9 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                             ],
                           )
                         : ListView.builder(
-                            padding:
-                                const EdgeInsets.fromLTRB(20, 4, 20, 132),
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 132),
                             itemCount: list.length,
-                            itemBuilder: (_, i) =>
-                                _card(isDark, ink, list[i]),
+                            itemBuilder: (_, i) => _card(isDark, ink, list[i]),
                           ),
                   ),
                 ),
@@ -115,7 +98,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   }
 
   Widget _kindBar(bool isDark, Color ink) {
-    Widget chip(String label, bool active, VoidCallback onTap) => GestureDetector(
+    Widget chip(String label, bool active, VoidCallback onTap) =>
+        GestureDetector(
           onTap: onTap,
           child: Container(
             margin: const EdgeInsets.only(right: 8),
@@ -133,7 +117,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                           : SwanPalette.light.line)),
             ),
             child: Text(label,
-                style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w700)),
+                style: SwanType.caption(active ? Colors.white : ink,
+                    w: FontWeight.w700)),
           ),
         );
 
@@ -148,8 +133,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
           chip(
               'Tümü',
               _kind == null,
-              () => setState(() => _filter =
-                  _filter.copyWith(kind: '', clearPriceMax: true))),
+              () => setState(() =>
+                  _filter = _filter.copyWith(kind: '', clearPriceMax: true))),
           for (final k in ListingKind.values)
             chip(
                 k.shortLabel,
@@ -202,13 +187,14 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
           Expanded(
             child: ListView(children: [
               ListTile(
-                title: Text('Hepsi', style: SwanType.bodySm(ink, w: FontWeight.w600)),
+                title: Text('Hepsi',
+                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
                 onTap: () => Navigator.pop(ctx, ''),
               ),
               for (final s in sports)
                 ListTile(
-                  title:
-                      Text(s.name, style: SwanType.bodySm(ink, w: FontWeight.w600)),
+                  title: Text(s.name,
+                      style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   onTap: () => Navigator.pop(ctx, s.code),
                 ),
             ]),
@@ -271,7 +257,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: SwanType.caption(ink, w: FontWeight.w700)),
                     Text(shortAgo(l.createdAt),
-                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                        style: SwanType.caption(SwanColors.textSecondary,
+                            w: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -301,7 +288,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
             if (l.criteria.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(l.criteria,
-                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                  style: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w600)),
             ],
             if (l.isTryout && l.startsAt != null) ...[
               const SizedBox(height: 8),
@@ -314,7 +302,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     ' · ${l.startsAt!.hour.toString().padLeft(2, '0')}:'
                     '${l.startsAt!.minute.toString().padLeft(2, '0')}'
                     '${(l.location ?? '').isEmpty ? '' : ' · ${l.location}'}',
-                    style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
+                    style: SwanType.caption(SwanPalette.light.warning,
+                        w: FontWeight.w700)),
               ]),
             ],
             const SizedBox(height: 12),
@@ -357,8 +346,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       }
       return button('Satıcıya yaz', Colors.white,
           onTap: () => _messageOwner(l),
-          gradient: LinearGradient(
-              colors: [accent.withValues(alpha: .85), accent]));
+          gradient:
+              LinearGradient(colors: [accent.withValues(alpha: .85), accent]));
     }
 
     if (l.canManage) {
@@ -370,9 +359,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       l.applied ? 'Başvuruldu' : 'Başvur',
       l.applied ? SwanColors.textSecondary : Colors.white,
       onTap: l.applied ? null : () => _apply(l),
-      gradient: l.applied
-          ? null
-          : const LinearGradient(colors: [kTealBright, kTeal]),
+      gradient:
+          l.applied ? null : const LinearGradient(colors: [kTealBright, kTeal]),
     );
   }
 
@@ -393,8 +381,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => Container(
-        constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(ctx).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.8),
         decoration: BoxDecoration(
           color: surf,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
@@ -413,13 +401,13 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
               if (l.criteria.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text(l.criteria,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
               ],
               if ((l.body ?? '').isNotEmpty) ...[
                 const SizedBox(height: 14),
                 Text(l.body!,
-                    style: SwanType.bodySm(ink)
-                        .copyWith(height: 1.5)),
+                    style: SwanType.bodySm(ink).copyWith(height: 1.5)),
               ],
               if (l.isTryout) ...[
                 const SizedBox(height: 14),
@@ -434,7 +422,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                 const SizedBox(height: 8),
                 Text(
                     'Son başvuru: ${l.deadline!.day}.${l.deadline!.month}.${l.deadline!.year}',
-                    style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
+                    style: SwanType.caption(SwanPalette.light.warning,
+                        w: FontWeight.w700)),
               ],
               const SizedBox(height: 20),
               if (l.canManage)
@@ -449,10 +438,12 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: SwanPalette.light.danger.withValues(alpha: .4)),
+                          color:
+                              SwanPalette.light.danger.withValues(alpha: .4)),
                     ),
                     child: Text('İlanı kapat',
-                        style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                        style: SwanType.bodySm(SwanPalette.light.danger,
+                            w: FontWeight.w800)),
                   ),
                 )
               else if (!l.applied)
@@ -470,7 +461,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                     child: Text('Başvur',
-                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+                        style:
+                            SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
             ],
@@ -481,8 +473,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
   }
 
   Future<void> _apply(Listing l) async {
-    final note = FormField_('Mesajın', hint: 'Kendini kısaca tanıt',
-        required: false);
+    final note =
+        FormField_('Mesajın', hint: 'Kendini kısaca tanıt', required: false);
     final ok = await showQuickForm(
       context,
       title: l.title,
@@ -533,7 +525,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         child: Column(children: [
           Text('Başvurular', style: SwanType.h3(ink)),
           Text(l.title,
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
           const SizedBox(height: 14),
           Expanded(
             child: Consumer(builder: (_, r, __) {
@@ -544,7 +537,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                 data: (rows) => rows.isEmpty
                     ? Center(
                         child: Text('Henüz başvuru yok',
-                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)))
+                            style: SwanType.caption(SwanColors.textSecondary,
+                                w: FontWeight.w600)))
                     : ListView.builder(
                         itemCount: rows.length,
                         itemBuilder: (_, i) => _applicantRow(ink, l, rows[i]),
@@ -562,8 +556,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(children: [
         GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/profil',
-              arguments: a.profileId),
+          onTap: () =>
+              Navigator.pushNamed(context, '/profil', arguments: a.profileId),
           child: SocialAvatar(
               initials: a.name[0].toUpperCase(),
               imageUrl: a.avatarUrl,
@@ -587,9 +581,11 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                     style: SwanType.caption(ink)),
               if (!a.isPending)
                 Text(a.status == 'accepted' ? 'Kabul edildi' : 'Reddedildi',
-                    style: SwanType.caption(a.status == 'accepted'
+                    style: SwanType.caption(
+                        a.status == 'accepted'
                             ? SwanPalette.light.success
-                            : SwanColors.textSecondary, w: FontWeight.w800)),
+                            : SwanColors.textSecondary,
+                        w: FontWeight.w800)),
             ],
           ),
         ),
@@ -678,7 +674,8 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
                           ? Icons.inventory_2_rounded
                           : Icons.person_search_rounded),
                   color: kTeal),
-              title: Text(k.label, style: SwanType.bodySm(ink, w: FontWeight.w600)),
+              title: Text(k.label,
+                  style: SwanType.bodySm(ink, w: FontWeight.w600)),
               subtitle: blockReason(k) == null
                   ? null
                   : Text(blockReason(k)!,
@@ -696,8 +693,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
         context: context,
         isScrollControlled: true,
         backgroundColor: Colors.transparent,
-        builder: (_) =>
-            EquipmentListingSheet(kind: kind, clubId: club?.id),
+        builder: (_) => EquipmentListingSheet(kind: kind, clubId: club?.id),
       );
       if (created == true) {
         ref.invalidate(listingsProvider(_filter));

@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -51,24 +52,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: surf,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: ink),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text('Kulüpleri Keşfet',
-                      style: SwanType.h2(ink)),
-                ]),
+                child: SwanPageHeader(
+                  title: 'Kulüpleri Keşfet',
+                  subtitle: 'Şehir, branş ve doğrulamaya göre ara',
+                  onBack: () => Navigator.maybePop(context),
+                ),
               ),
 
               // Arama
@@ -76,13 +64,12 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                 child: TextField(
                   controller: _search,
-                  onChanged: (v) =>
-                      setState(() => _filter = _filter.copyWith(query: v.trim())),
+                  onChanged: (v) => setState(
+                      () => _filter = _filter.copyWith(query: v.trim())),
                   style: SwanType.bodySm(ink),
                   decoration: InputDecoration(
                     hintText: 'Kulüp adı ara…',
-                    hintStyle:
-                        SwanType.bodySm(SwanColors.textSecondary),
+                    hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                     prefixIcon: const Icon(Icons.search_rounded, size: 19),
                     filled: true,
                     fillColor: surf,
@@ -121,11 +108,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                             ],
                           )
                         : ListView.builder(
-                            padding:
-                                const EdgeInsets.fromLTRB(20, 4, 20, 132),
+                            padding: const EdgeInsets.fromLTRB(20, 4, 20, 132),
                             itemCount: list.length,
-                            itemBuilder: (_, i) =>
-                                _card(isDark, ink, list[i]),
+                            itemBuilder: (_, i) => _card(isDark, ink, list[i]),
                           ),
                   ),
                 ),
@@ -170,7 +155,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               const SizedBox(width: 5),
             ],
             Text(label,
-                style: SwanType.caption(active ? Colors.white : ink, w: FontWeight.w700)),
+                style: SwanType.caption(active ? Colors.white : ink,
+                    w: FontWeight.w700)),
           ]),
         ),
       );
@@ -202,9 +188,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 (v) => setState(() => _filter = _filter.copyWith(sport: v))),
             icon: Icons.sports_volleyball_rounded,
           ),
-          chip('Doğrulanmış', _filter.verifiedOnly,
-              () => setState(() =>
-                  _filter = _filter.copyWith(verifiedOnly: !_filter.verifiedOnly)),
+          chip(
+              'Doğrulanmış',
+              _filter.verifiedOnly,
+              () => setState(() => _filter =
+                  _filter.copyWith(verifiedOnly: !_filter.verifiedOnly)),
               icon: Icons.verified_rounded),
           if (!_filter.isEmpty)
             chip('Temizle', false, () {
@@ -249,8 +237,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               ),
               for (final o in options)
                 ListTile(
-                  title:
-                      Text(o.label, style: SwanType.bodySm(ink, w: FontWeight.w600)),
+                  title: Text(o.label,
+                      style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   subtitle: Text('${o.count} kulüp',
                       style: SwanType.caption(SwanColors.textSecondary)),
                   trailing: o.code == current
@@ -313,7 +301,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     ].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text('${c.athleteCount} sporcu · ${c.coachCount} antrenör',
                     style: SwanType.caption(SwanColors.textSecondary)),
