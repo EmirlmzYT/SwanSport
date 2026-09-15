@@ -7,6 +7,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Mali işler — mobil.
 ///
@@ -36,25 +37,13 @@ class FinanceTasksScreen extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md,
-                    SwanSpace.lg, SwanSpace.md),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Mali işler', style: SwanType.h2(c.ink)),
-                ]),
+                padding: const EdgeInsets.fromLTRB(
+                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
+                child: SwanPageHeader(
+                  title: 'Mali işler',
+                  subtitle: 'Bekleyen görevler ve gider onayları',
+                  onBack: () => Navigator.maybePop(context),
+                ),
               ),
               Expanded(
                 child: ListView(
@@ -211,7 +200,8 @@ class _ApprovalTileState extends ConsumerState<_ApprovalTile> {
       ),
       child: Row(children: [
         Expanded(
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
             Text(
               [e.categoryName, e.supplier]
                   .where((x) => (x ?? '').isNotEmpty)

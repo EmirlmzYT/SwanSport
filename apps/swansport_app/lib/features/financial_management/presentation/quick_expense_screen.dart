@@ -8,6 +8,7 @@ import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Fişle hızlı gider girişi.
 ///
@@ -58,19 +59,12 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               children: [
-                Row(children: [
-                  _back(context, surf, isDark, ink),
-                  const SizedBox(width: 14),
-                  Text('Gider Ekle', style: SwanType.h2(ink)),
-                ]),
-                const SizedBox(height: 6),
-                Text(
-                  'Fişi çek, tutarı yaz. Gerisini masaüstünden tamamlarsın.',
-                  style:
-                      SwanType.caption(SwanColors.textSecondary),
+                SwanPageHeader(
+                  title: 'Gider Ekle',
+                  subtitle: 'Fişi çek, tutarı yaz; ayrıntıları sonra tamamla',
+                  onBack: () => Navigator.maybePop(context),
                 ),
                 const SizedBox(height: 20),
-
                 _ReceiptBox(
                   image: _receipt,
                   surface: surf,
@@ -79,7 +73,6 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                   onClear: () => setState(() => _receipt = null),
                 ),
                 const SizedBox(height: 18),
-
                 Text('Tutar', style: SwanType.h3(ink)),
                 const SizedBox(height: 8),
                 TextField(
@@ -103,7 +96,6 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-
                 Text('Kategori', style: SwanType.h3(ink)),
                 const SizedBox(height: 8),
                 categories.when(
@@ -117,8 +109,8 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                     children: [
                       for (final c in list)
                         GestureDetector(
-                          onTap: () => setState(() => _categoryId =
-                              _categoryId == c.id ? null : c.id),
+                          onTap: () => setState(() =>
+                              _categoryId = _categoryId == c.id ? null : c.id),
                           child: Container(
                             padding: const EdgeInsets.symmetric(
                                 horizontal: 14, vertical: 9),
@@ -148,7 +140,6 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                   ),
                 ),
                 const SizedBox(height: 18),
-
                 TextField(
                   controller: _note,
                   maxLines: 2,
@@ -162,13 +153,11 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                     ),
                   ),
                 ),
-
                 if (_error != null) ...[
                   const SizedBox(height: 14),
                   Text(_error!,
                       style: SwanType.caption(SwanPalette.light.danger)),
                 ],
-
                 const SizedBox(height: 22),
                 GestureDetector(
                   onTap: _busy ? null : _save,
@@ -188,7 +177,8 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                       ],
                     ),
                     child: Text(_busy ? 'Kaydediliyor…' : 'Kaydet',
-                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+                        style:
+                            SwanType.bodySm(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -198,18 +188,6 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
       ),
     );
   }
-
-  Widget _back(BuildContext context, Color surf, bool isDark, Color ink) =>
-      GestureDetector(
-        onTap: () => Navigator.of(context).maybePop(),
-        child: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-              color: surf, borderRadius: BorderRadius.circular(12)),
-          child: Icon(Icons.arrow_back_rounded, size: 20, color: ink),
-        ),
-      );
 
   Future<void> _pick() async {
     final picked = await pickImage();

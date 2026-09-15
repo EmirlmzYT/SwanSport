@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -52,11 +53,10 @@ class ReportsScreen extends ConsumerWidget {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                       children: [
-                        Text(club.name.toUpperCase(),
-                            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
-                        const SizedBox(height: 3),
-                        Text('Raporlar',
-                            style: SwanType.h2(ink)),
+                        SwanPageHeader(
+                          title: 'Raporlar',
+                          subtitle: '${club.name} · Kulüp görünümü',
+                        ),
                         const SizedBox(height: 18),
 
                         // ---------------------------------------- kadro
@@ -90,7 +90,8 @@ class ReportsScreen extends ConsumerWidget {
                               ? Text(
                                   'Henüz yoklama alınmamış. Yoklama aldıkça '
                                   'devam oranları burada birikir.',
-                                  style: SwanType.caption(SwanColors.textSecondary))
+                                  style: SwanType.caption(
+                                      SwanColors.textSecondary))
                               : _attendanceCard(isDark, ink, list),
                         ),
                       ],
@@ -106,11 +107,11 @@ class ReportsScreen extends ConsumerWidget {
   Widget _section(Color ink, String t) => Padding(
         padding: const EdgeInsets.only(bottom: 10),
         child: Text(t,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
-  Widget _statCard(
-      bool isDark, Color ink, List<(String, String, bool)> stats) {
+  Widget _statCard(bool isDark, Color ink, List<(String, String, bool)> stats) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     return Container(
@@ -130,7 +131,8 @@ class ReportsScreen extends ConsumerWidget {
                     style: SwanType.h2(s.$3 ? SwanPalette.light.danger : ink)),
                 const SizedBox(height: 2),
                 Text(s.$1,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
               ],
             ),
           ),
@@ -157,10 +159,10 @@ class ReportsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Tahsilat oranı',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
                 const SizedBox(height: 3),
-                Text('%${(rate * 100).round()}',
-                    style: SwanType.h2(ink)),
+                Text('%${(rate * 100).round()}', style: SwanType.h2(ink)),
               ],
             ),
           ),
@@ -191,17 +193,17 @@ class ReportsScreen extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: SwanType.caption(alert ? SwanPalette.light.danger : ink, w: FontWeight.w800)),
+                style: SwanType.caption(alert ? SwanPalette.light.danger : ink,
+                    w: FontWeight.w800)),
             const SizedBox(height: 2),
             Text(label,
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600)),
           ],
         ),
       );
 
-  Widget _attendanceCard(
-      bool isDark, Color ink, List<AttendanceStat> list) {
+  Widget _attendanceCard(bool isDark, Color ink, List<AttendanceStat> list) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final sorted = [...list]..sort((a, b) => a.rate.compareTo(b.rate));
@@ -223,15 +225,16 @@ class ReportsScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Kulüp ortalaması',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
                 const SizedBox(height: 3),
                 Text('%$avg', style: SwanType.h2(ink)),
               ],
             ),
           ),
           Text('${list.length} sporcu',
-              style:
-                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
         ]),
       ),
       const SizedBox(height: 12),
@@ -272,7 +275,9 @@ class ReportsScreen extends ConsumerWidget {
             ),
             const SizedBox(width: 10),
             Text('%${r.rate}',
-                style: SwanType.caption(r.rate < 60 ? SwanPalette.light.danger : ink, w: FontWeight.w800)),
+                style: SwanType.caption(
+                    r.rate < 60 ? SwanPalette.light.danger : ink,
+                    w: FontWeight.w800)),
           ]),
         ),
     ]);
