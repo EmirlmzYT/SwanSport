@@ -10,6 +10,7 @@ import '../widgets/add_athlete_sheet.dart';
 import '../widgets/link_athletes_sheet.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -31,7 +32,6 @@ class _AthleteWorkspaceScreenState
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final clubAsync = ref.watch(activeClubProvider);
     final athletesAsync = ref.watch(clubAthletesProvider);
@@ -53,35 +53,19 @@ class _AthleteWorkspaceScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  // Başlık
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              clubAsync.valueOrNull?.name.toUpperCase() ??
-                                  'KADRO',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(
-                              athletesAsync.maybeWhen(
-                                data: (a) => 'Kadro · ${a.length}',
-                                orElse: () => 'Kadro',
-                              ),
-                              style: SwanType.h2(ink),
-                            ),
-                          ],
-                        ),
-                      ),
+                  SwanPageHeader(
+                    title: athletesAsync.maybeWhen(
+                      data: (a) => 'Kadro · ${a.length}',
+                      orElse: () => 'Kadro',
+                    ),
+                    subtitle: clubAsync.valueOrNull?.name ??
+                        'Kulüp sporcuları ve bağlantı durumları',
+                    actions: [
                       if (clubAsync.valueOrNull != null)
-                        GestureDetector(
+                        SwanHeaderAction(
+                          icon: Icons.person_add_alt_1_rounded,
+                          tooltip: 'Sporcu ekle',
                           onTap: () => _showAddAthlete(clubAsync.value!),
-                          child:
-                              _iconBtn(isDark, Icons.person_add_alt_1_rounded),
                         ),
                     ],
                   ),
@@ -151,7 +135,8 @@ class _AthleteWorkspaceScreenState
           Icon(Icons.cloud_off_rounded,
               size: 40, color: SwanPalette.light.danger),
           const SizedBox(height: 12),
-          Text('Veri yüklenemedi', style: SwanType.bodySm(ink, w: FontWeight.w700)),
+          Text('Veri yüklenemedi',
+              style: SwanType.bodySm(ink, w: FontWeight.w700)),
           const SizedBox(height: 6),
           Text(msg,
               textAlign: TextAlign.center,
@@ -241,7 +226,8 @@ class _AthleteWorkspaceScreenState
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(a.fullName, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                  Text(a.fullName,
+                      style: SwanType.bodySm(ink, w: FontWeight.w700)),
                   const SizedBox(height: 2),
                   Text(
                     a.position ?? 'Sporcu',
@@ -461,8 +447,7 @@ class _AthleteWorkspaceScreenState
                 style: SwanType.bodySm(ink, w: FontWeight.w600),
                 decoration: InputDecoration(
                   labelText: f.label,
-                  labelStyle:
-                      SwanType.caption(SwanColors.textSecondary),
+                  labelStyle: SwanType.caption(SwanColors.textSecondary),
                   focusedBorder: const UnderlineInputBorder(
                     borderSide: BorderSide(color: kTeal, width: 1.5),
                   ),
@@ -476,11 +461,13 @@ class _AthleteWorkspaceScreenState
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('İptal',
-                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(action, style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
+            child:
+                Text(action, style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -506,7 +493,8 @@ class _AthleteWorkspaceScreenState
             ),
           ],
         ),
-        child: Text(label, style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+        child: Text(label,
+            style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
       ),
     );
   }
@@ -522,7 +510,8 @@ class _AthleteWorkspaceScreenState
         border: Border.all(color: line),
       ),
       child: TextField(
-        style: SwanType.bodySm(isDark ? Colors.white : SwanColors.textPrimary, w: FontWeight.w600),
+        style: SwanType.bodySm(isDark ? Colors.white : SwanColors.textPrimary,
+            w: FontWeight.w600),
         decoration: InputDecoration(
           hintText: 'Sporcu ara…',
           hintStyle: SwanType.bodySm(SwanColors.textSecondary),
@@ -551,23 +540,9 @@ class _AthleteWorkspaceScreenState
           border: Border.all(color: active ? ink : line),
         ),
         child: Text(label,
-            style: SwanType.caption(active ? bg : SwanColors.textSecondary, w: FontWeight.w700)),
+            style: SwanType.caption(active ? bg : SwanColors.textSecondary,
+                w: FontWeight.w700)),
       ),
-    );
-  }
-
-  Widget _iconBtn(bool isDark, IconData icon) {
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    return Container(
-      width: 40,
-      height: 40,
-      decoration: BoxDecoration(
-        color: surf,
-        borderRadius: BorderRadius.circular(13),
-        border: Border.all(color: line),
-      ),
-      child: Icon(icon, size: 19, color: kTeal),
     );
   }
 }
