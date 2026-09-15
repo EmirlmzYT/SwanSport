@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
@@ -169,17 +170,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           ),
         ]),
         const SizedBox(height: 18),
-        Row(children: [
-          Text('Borç Listesi', style: SwanType.h3(ink)),
-          const Spacer(),
-          GestureDetector(
-            onTap: () =>
-                setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
-            child: Text(_period.isEmpty ? 'Tümü' : _period,
-                style: SwanType.caption(kTeal, w: FontWeight.w800)),
-          ),
-        ]),
-        const SizedBox(height: 10),
+        StitchSectionTitle(
+          title: 'Borç Listesi',
+          actionLabel: _period.isEmpty ? 'Tümü' : _period,
+          onAction: () =>
+              setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
+        ),
         ledger.when(
           loading: premiumLoading,
           error: (e, _) => premiumError(context, '$e'),

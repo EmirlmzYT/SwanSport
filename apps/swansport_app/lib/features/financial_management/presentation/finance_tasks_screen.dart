@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
 
@@ -50,6 +51,7 @@ class FinanceTasksScreen extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(
                       SwanSpace.lg, 0, SwanSpace.lg, 132),
                   children: [
+                    const StitchSectionTitle(title: 'Operasyon Özeti'),
                     summary.when(
                       loading: premiumLoading,
                       error: (e, _) => premiumError(context, '$e'),
@@ -76,9 +78,9 @@ class FinanceTasksScreen extends ConsumerWidget {
                           : Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text('Onayını bekleyenler',
-                                    style: SwanType.h3(c.ink)),
-                                const SizedBox(height: SwanSpace.xs),
+                                const StitchSectionTitle(
+                                  title: 'Onayını Bekleyenler',
+                                ),
                                 Text(
                                   'Kendi girdiğin gider burada çıkmaz — '
                                   'kimse kendi kaydını onaylayamıyor.',

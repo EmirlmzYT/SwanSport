@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
@@ -95,14 +96,12 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
         _totalCard(isDark, ink, total, open.length),
         const SizedBox(height: 18),
         if (open.isNotEmpty) ...[
-          Text('Ödenmemiş', style: SwanType.h3(ink)),
-          const SizedBox(height: 10),
+          const StitchSectionTitle(title: 'Ödenmemiş'),
           for (final f in open) _feeCard(isDark, ink, f),
           const SizedBox(height: 18),
         ],
         if (paid.isNotEmpty) ...[
-          Text('Ödenenler', style: SwanType.h3(ink)),
-          const SizedBox(height: 10),
+          const StitchSectionTitle(title: 'Ödenenler'),
           for (final f in paid) _feeCard(isDark, ink, f),
         ],
       ],
