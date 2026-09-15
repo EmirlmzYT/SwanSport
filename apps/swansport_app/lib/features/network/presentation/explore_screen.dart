@@ -7,6 +7,9 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/inbox_actions.dart';
+import '../../social/presentation/widgets/feed_entry.dart';
+import '../../social/presentation/widgets/follow_suggestions.dart';
 
 /// Keşfet — uygulamanın ikinci ana merkezi.
 ///
@@ -41,6 +44,7 @@ class ExploreScreen extends ConsumerWidget {
                 const SwanPageHeader(
                   title: 'Keşfet',
                   subtitle: 'Saha, topluluk ve spor ihtiyaçlarını bul',
+                  actions: [InboxActions()],
                 ),
                 const SizedBox(height: SwanSpace.md),
                 _SearchField(c: c),
@@ -50,6 +54,73 @@ class ExploreScreen extends ConsumerWidget {
                     featureEnabledProvider(FeatureFlags.marketplace),
                   ),
                 ),
+                const SizedBox(height: SwanSpace.xl),
+
+                _section(c, 'Öne çıkan duyurular'),
+                ref.watch(announcementsProvider).when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, __) => TextButton(
+                        onPressed: () => ref.invalidate(announcementsProvider),
+                        child: const Text('Duyuruları yeniden yükle'),
+                      ),
+                      data: (items) => items.isEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.all(SwanSpace.lg),
+                              child: Text('Henüz bir kulüp duyurusu yok.',
+                                  style: SwanType.bodySm(c.inkMuted)),
+                            )
+                          : SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    for (final item in items.take(6))
+                                      Container(
+                                        width: 280,
+                                        margin: const EdgeInsets.only(
+                                            right: SwanSpace.md),
+                                        padding:
+                                            const EdgeInsets.all(SwanSpace.lg),
+                                        decoration: BoxDecoration(
+                                          color: c.surface,
+                                          borderRadius: BorderRadius.circular(
+                                              SwanRadius.md),
+                                        ),
+                                        child: AnnouncementCard(item: item),
+                                      ),
+                                  ]),
+                            ),
+                    ),
+                const SizedBox(height: SwanSpace.xl),
+                const FollowSuggestions(compact: true),
+                const SizedBox(height: SwanSpace.xl),
+                _section(c, 'Kulüp gönderileri ve keşif'),
+                ref.watch(discoverProvider).when(
+                      loading: () => const LinearProgressIndicator(),
+                      error: (_, __) => TextButton(
+                        onPressed: () => ref.invalidate(discoverProvider),
+                        child: const Text('Gönderileri yeniden yükle'),
+                      ),
+                      data: (posts) {
+                        final hidden =
+                            ref.watch(hiddenProfilesProvider).valueOrNull ??
+                                const <String>{};
+                        final visible = posts
+                            .where((p) => !hidden.contains(p.authorId))
+                            .take(8);
+                        return Column(children: [
+                          if (visible.isEmpty)
+                            Padding(
+                              padding: const EdgeInsets.all(SwanSpace.lg),
+                              child: Text(
+                                  'Henüz gösterilecek bir paylaşım yok.',
+                                  style: SwanType.bodySm(c.inkMuted)),
+                            ),
+                          for (final post in visible)
+                            FeedEntry.post(post).build(),
+                        ]);
+                      },
+                    ),
                 const SizedBox(height: SwanSpace.xl),
 
                 // Üç bölüm, üç ayrı niyet: "bugün spor yapacağım",

@@ -10,7 +10,8 @@ import '../../../../app/design/swan_palette.dart';
 
 /// Takip akışı boşken gösterilen "kimi takip etsem?" bölümü.
 class FollowSuggestions extends ConsumerWidget {
-  const FollowSuggestions({super.key, this.onExplore});
+  const FollowSuggestions({super.key, this.onExplore, this.compact = false});
+  final bool compact;
 
   /// "Keşfet'e bak" bağlantısına dokunulduğunda çağrılır.
   final VoidCallback? onExplore;
@@ -20,6 +21,36 @@ class FollowSuggestions extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final async = ref.watch(suggestionsProvider);
+
+    if (compact) {
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text('Sporcular ve kulüpler', style: SwanType.h3(ink)),
+        const SizedBox(height: 12),
+        async.when(
+          loading: () => const LinearProgressIndicator(),
+          error: (_, __) => TextButton(
+            onPressed: () => ref.invalidate(suggestionsProvider),
+            child: const Text('Önerileri yeniden yükle'),
+          ),
+          data: (items) => items.isEmpty
+              ? Text('Yeni öneriler burada görünecek.',
+                  style: SwanType.bodySm(context.swan.inkMuted))
+              : SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(children: [
+                    for (final item in items.take(8))
+                      SizedBox(
+                          width: 172,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 12),
+                            child: _SuggestionTile(
+                                suggestion: item, compact: true),
+                          )),
+                  ]),
+                ),
+        ),
+      ]);
+    }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,8 +74,7 @@ class FollowSuggestions extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         Center(
-          child: Text('Akışını doldur',
-              style: SwanType.h2(ink)),
+          child: Text('Akışını doldur', style: SwanType.h2(ink)),
         ),
         const SizedBox(height: 6),
         Center(
@@ -66,8 +96,7 @@ class FollowSuggestions extends ConsumerWidget {
             child: Center(child: CircularProgressIndicator(color: kTeal)),
           ),
           error: (e, _) => Text('Öneriler yüklenemedi: $e',
-              style:
-                  SwanType.caption(SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
           data: (list) {
             if (list.isEmpty) {
               return Column(
@@ -125,8 +154,9 @@ class FollowSuggestions extends ConsumerWidget {
 }
 
 class _SuggestionTile extends ConsumerStatefulWidget {
-  const _SuggestionTile({required this.suggestion});
+  const _SuggestionTile({required this.suggestion, this.compact = false});
   final SuggestionRow suggestion;
+  final bool compact;
 
   @override
   ConsumerState<_SuggestionTile> createState() => _SuggestionTileState();
@@ -164,6 +194,48 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final s = widget.suggestion;
+
+    if (widget.compact) {
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: surf,
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(children: [
+          InkWell(
+            onTap: () => Navigator.pushNamed(
+                context, s.isClub ? '/kulup-profil' : '/profil',
+                arguments: s.id),
+            child: Column(children: [
+              SocialAvatar(
+                  initials: s.initials,
+                  imageUrl: s.avatarUrl,
+                  size: 52,
+                  gradientIndex: s.name.length % 4),
+              const SizedBox(height: 8),
+              Text(s.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.bodySm(ink, w: FontWeight.w700)),
+              Text(s.subtitle ?? 'SwanSport',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.caption(context.swan.inkMuted)),
+            ]),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                onPressed: _busy ? null : _toggle,
+                style: TextButton.styleFrom(
+                    backgroundColor: context.swan.surfaceAlt),
+                child: Text(_following ? 'Takiptesin' : 'Takip et'),
+              )),
+        ]),
+      );
+    }
 
     return GestureDetector(
       onTap: () => Navigator.pushNamed(
@@ -213,8 +285,7 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
           GestureDetector(
             onTap: _toggle,
             child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 9),
               decoration: BoxDecoration(
                 gradient: _following
                     ? null
@@ -224,7 +295,9 @@ class _SuggestionTileState extends ConsumerState<_SuggestionTile> {
                 border: _following ? Border.all(color: line) : null,
               ),
               child: Text(_following ? 'Takiptesin' : 'Takip Et',
-                  style: SwanType.caption(_following ? SwanColors.textSecondary : Colors.white, w: FontWeight.w800)),
+                  style: SwanType.caption(
+                      _following ? SwanColors.textSecondary : Colors.white,
+                      w: FontWeight.w800)),
             ),
           ),
         ]),

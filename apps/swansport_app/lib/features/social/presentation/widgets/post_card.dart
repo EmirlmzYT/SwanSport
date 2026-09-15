@@ -10,6 +10,7 @@ import 'report_sheet.dart';
 import 'social_widgets.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/shared_content_card.dart';
 import '../saved_posts_screen.dart';
 
@@ -92,7 +93,6 @@ class _PostCardState extends ConsumerState<PostCard>
     }
   }
 
-
   /// Gönderi menüsü — sahibine silme, diğerlerine şikayet ve engelleme.
   Future<void> _openMenu() async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -138,8 +138,7 @@ class _PostCardState extends ConsumerState<PostCard>
               Navigator.pop(ctx);
               _confirmDelete();
             }),
-          ]
-          else ...[
+          ] else ...[
             _menuItem(ctx, Icons.flag_outlined, 'Şikayet et',
                 SwanPalette.light.danger, () {
               Navigator.pop(ctx);
@@ -175,8 +174,7 @@ class _PostCardState extends ConsumerState<PostCard>
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Kullanıcıyı engelle',
-            style: SwanType.h3(ink)),
+        title: Text('Kullanıcıyı engelle', style: SwanType.h3(ink)),
         content: Text(
             '${widget.post.displayName} artık gönderilerini göremeyecek ve '
             'sana mesaj gönderemeyecek. Karşılıklı takip kaldırılır.',
@@ -185,12 +183,14 @@ class _PostCardState extends ConsumerState<PostCard>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Engelle',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w800)),
           ),
         ],
       ),
@@ -213,7 +213,6 @@ class _PostCardState extends ConsumerState<PostCard>
       }
     }
   }
-
 
   /// Gönderi metnini düzenler (görsel değişmez).
   Future<void> _pinPost() async {
@@ -243,8 +242,7 @@ class _PostCardState extends ConsumerState<PostCard>
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-        title: Text('Gönderiyi düzenle',
-            style: SwanType.h3(ink)),
+        title: Text('Gönderiyi düzenle', style: SwanType.h3(ink)),
         content: TextField(
           controller: ctrl,
           minLines: 3,
@@ -256,11 +254,13 @@ class _PostCardState extends ConsumerState<PostCard>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Kaydet', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
+            child: Text('Kaydet',
+                style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -304,13 +304,14 @@ class _PostCardState extends ConsumerState<PostCard>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style:
-                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w800)),
           ),
         ],
       ),
@@ -351,15 +352,16 @@ class _PostCardState extends ConsumerState<PostCard>
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final p = widget.post;
 
-    // Brief §5: "Her postu ayrı büyük beyaz kutuya koyma." Kart kabuğu
-    // (yüzey + border + 20 radius) kalktı; gönderiler zeminin üstünde ince
-    // bir ayırıcıyla akıyor, medya tam genişlikte oturuyor.
+    // Stitch referansındaki bağımsız yüzey: medya kart kenarında kırpılır.
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: SwanSpace.lg),
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: line)),
+        color: context.swan.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: line),
       ),
-      padding: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.only(bottom: SwanSpace.sm),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -415,8 +417,8 @@ class _PostCardState extends ConsumerState<PostCard>
                     color: kCoral.withValues(alpha: .12),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child:
-                      Text('HABER', style: SwanType.caption(kCoral, w: FontWeight.w800)),
+                  child: Text('HABER',
+                      style: SwanType.caption(kCoral, w: FontWeight.w800)),
                 ),
               // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
               GestureDetector(
@@ -434,17 +436,16 @@ class _PostCardState extends ConsumerState<PostCard>
           // Metin
           if (p.body.trim().isNotEmpty)
             Padding(
-              padding: EdgeInsets.fromLTRB(14, 0, 14, p.imageUrl == null ? 12 : 10),
+              padding:
+                  EdgeInsets.fromLTRB(14, 0, 14, p.imageUrl == null ? 12 : 10),
               child: Text(p.body,
-                  style: SwanType.bodySm(ink)
-                      .copyWith(height: 1.45)),
+                  style: SwanType.bodySm(ink).copyWith(height: 1.45)),
             ),
 
           // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış.
           // Kart kabuğu kalktığı için artık tam genişlik: brief §5
           // "içeriklerin ekranı doldurması".
-          if (p.imageUrl != null)
-            RatioImage(image: NetworkImage(p.imageUrl!)),
+          if (p.imageUrl != null) RatioImage(image: NetworkImage(p.imageUrl!)),
 
           // Eylemler
           Padding(
@@ -455,18 +456,21 @@ class _PostCardState extends ConsumerState<PostCard>
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 color: _liked ? SwanPalette.light.danger : null,
-                label: _likes > 0 ? compactCount(_likes) : 'Beğen',
+                label: _likes > 0 ? compactCount(_likes) : '',
+                tooltip: 'Beğen',
                 onTap: _toggleLike,
                 scale: _likeScale,
               ),
               _action(
                 icon: Icons.mode_comment_outlined,
-                label: _comments > 0 ? compactCount(_comments) : 'Yorum',
+                label: _comments > 0 ? compactCount(_comments) : '',
+                tooltip: 'Yorumlar',
                 onTap: _openComments,
               ),
               _action(
                 icon: Icons.repeat_rounded,
-                label: 'Paylaş',
+                label: '',
+                tooltip: 'Yeniden paylaş',
                 onTap: () => showRepostSheet(
                   context,
                   ref,
@@ -479,7 +483,8 @@ class _PostCardState extends ConsumerState<PostCard>
               ),
               _action(
                 icon: Icons.send_outlined,
-                label: 'Gönder',
+                label: '',
+                tooltip: 'Mesajla gönder',
                 onTap: () => showShareSheet(context,
                     kind: ShareKind.post, id: widget.post.id),
               ),
@@ -492,6 +497,7 @@ class _PostCardState extends ConsumerState<PostCard>
                     ? Icons.bookmark_rounded
                     : Icons.bookmark_border_rounded,
                 label: '',
+                tooltip: 'Kaydet',
                 onTap: _toggleSaved,
               ),
             ]),
@@ -522,26 +528,35 @@ class _PostCardState extends ConsumerState<PostCard>
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    String? tooltip,
     Color? color,
     Animation<double>? scale,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final c = color ??
-        (isDark ? const Color(0xFF8FA0B8) : SwanColors.textSecondary);
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        child: Row(children: [
-          scale == null
-              ? Icon(icon, size: 21, color: c)
-              : ScaleTransition(
-                  scale: scale, child: Icon(icon, size: 21, color: c)),
-          const SizedBox(width: 6),
-          Text(label, style: SwanType.caption(c, w: FontWeight.w700)),
-        ]),
-      ),
-    );
+    final c =
+        color ?? (isDark ? const Color(0xFF8FA0B8) : SwanColors.textSecondary);
+    return Tooltip(
+        message: tooltip ?? label,
+        child: Semantics(
+            button: true,
+            label: tooltip ?? label,
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: onTap,
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                child: Row(children: [
+                  scale == null
+                      ? Icon(icon, size: 21, color: c)
+                      : ScaleTransition(
+                          scale: scale, child: Icon(icon, size: 21, color: c)),
+                  if (label.isNotEmpty) ...[
+                    const SizedBox(width: 6),
+                    Text(label, style: SwanType.caption(c, w: FontWeight.w700)),
+                  ],
+                ]),
+              ),
+            )));
   }
 }
