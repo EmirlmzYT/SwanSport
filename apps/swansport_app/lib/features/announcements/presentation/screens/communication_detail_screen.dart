@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 import '../../application/communication_center_state.dart';
 import '../../application/communication_detail_controller.dart';
@@ -62,9 +65,25 @@ class _CommunicationDetailScreenState
     final controller = ref.read(
       communicationDetailControllerProvider(_request!).notifier,
     );
+    final c = context.swan;
     return Scaffold(
-      appBar: AppBar(title: const Text('İleti Ayrıntısı')),
-      body: _body(state, controller),
+      backgroundColor: c.bg,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 0),
+              child: SwanPageHeader(
+                title: 'İleti ayrıntısı',
+                subtitle: 'Duyuru, yanıtlar ve teslim durumu',
+                onBack: () => Navigator.maybePop(context),
+              ),
+            ),
+            Expanded(child: _body(state, controller)),
+          ],
+        ),
+      ),
     );
   }
 

@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -21,7 +22,7 @@ class CredentialScreen extends ConsumerStatefulWidget {
 class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   int _mode = 0; // 0 antrenör, 1 sporcu
   int _kademe = 2;
-  String? _sportCode;   // antrenörlük belgesinin branşı
+  String? _sportCode; // antrenörlük belgesinin branşı
   bool _busy = false;
 
   /// Seçilip Storage'a yüklenmiş belgeler: docType -> (dosya adı, storage yolu).
@@ -36,7 +37,6 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final async = ref.watch(myCredentialsProvider);
 
     return Scaffold(
@@ -48,11 +48,11 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 24),
               children: [
-                Row(children: [
-                  _back(context, surf, isDark, ink),
-                  const SizedBox(width: 14),
-                  Text('Doğrulama', style: SwanType.h2(ink)),
-                ],),
+                SwanPageHeader(
+                  title: 'Doğrulama',
+                  subtitle: 'Belge ve branş bilgilerini yönet',
+                  onBack: () => Navigator.maybePop(context),
+                ),
                 const SizedBox(height: 16),
 
                 // Mod: Antrenör / Sporcu
@@ -64,41 +64,60 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 const SizedBox(height: 18),
 
                 if (_mode == 0) ...[
-                  Text('Kademe', style: SwanType.h3(ink),),
+                  Text(
+                    'Kademe',
+                    style: SwanType.h3(ink),
+                  ),
                   const SizedBox(height: 8),
                   Container(
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
-                        color: alt, borderRadius: BorderRadius.circular(13),),
+                      color: alt,
+                      borderRadius: BorderRadius.circular(13),
+                    ),
                     child: Row(
-                        children: List.generate(5, (i) => _kademeItem(i + 1)),),
+                      children: List.generate(5, (i) => _kademeItem(i + 1)),
+                    ),
                   ),
                   const SizedBox(height: 6),
-                  Text(_kademeLabel(_kademe),
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),),
-
+                  Text(
+                    _kademeLabel(_kademe),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600),
+                  ),
                   const SizedBox(height: 18),
-                  Text('Branş', style: SwanType.h3(ink),),
+                  Text(
+                    'Branş',
+                    style: SwanType.h3(ink),
+                  ),
                   const SizedBox(height: 8),
                   _sportPicker(isDark, alt, ink),
                   const SizedBox(height: 6),
                   Text(
-                      'Belgen hangi branşa aitse onu seç. Platform bu branşta '
-                      'onaylar ve ilgili federasyonun duyuru kanalına '
-                      'eklenirsin.',
-                      style: SwanType.caption(SwanColors.textSecondary),),
+                    'Belgen hangi branşa aitse onu seç. Platform bu branşta '
+                    'onaylar ve ilgili federasyonun duyuru kanalına '
+                    'eklenirsin.',
+                    style: SwanType.caption(SwanColors.textSecondary),
+                  ),
                 ] else ...[
-                  Text('Branş', style: SwanType.h3(ink),),
+                  Text(
+                    'Branş',
+                    style: SwanType.h3(ink),
+                  ),
                   const SizedBox(height: 8),
                   _sportPicker(isDark, alt, ink),
                   const SizedBox(height: 6),
                   Text(
-                      'Lisansın hangi branşa aitse onu seç. Ferdi sporcu da bir '
-                      'branşta yarışır; ferdi olmak kulübü olmamak demektir.',
-                      style: SwanType.caption(SwanColors.textSecondary),),
+                    'Lisansın hangi branşa aitse onu seç. Ferdi sporcu da bir '
+                    'branşta yarışır; ferdi olmak kulübü olmamak demektir.',
+                    style: SwanType.caption(SwanColors.textSecondary),
+                  ),
 
                   const SizedBox(height: 18),
-                  Text('Sporcu Doğrulaması', style: SwanType.h3(ink),),
+                  Text(
+                    'Sporcu Doğrulaması',
+                    style: SwanType.h3(ink),
+                  ),
                   const SizedBox(height: 8),
                   // Lisanslı/ferdi ayrımı seçilmez: bir kulübe bağlıysan
                   // lisanslı, değilsen ferdi sporcu sayılırsın.
@@ -109,23 +128,29 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       borderRadius: BorderRadius.circular(14),
                       border: Border.all(color: kTeal.withValues(alpha: .3)),
                     ),
-                    child: Row(children: [
-                      const Icon(Icons.info_outline_rounded,
-                          size: 18, color: kTeal),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline_rounded,
+                            size: 18, color: kTeal),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
                             'Bir kulübe bağlıysan lisanslı sporcu, değilsen '
                             'ferdi sporcu olarak görünürsün. Kulübe katılınca '
                             'otomatik güncellenir.',
-                            style: SwanType.caption(SwanColors.textSecondary),),
-                      ),
-                    ],),
+                            style: SwanType.caption(SwanColors.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
 
                 const SizedBox(height: 18),
-                Text('Belgeler', style: SwanType.h3(ink),),
+                Text(
+                  'Belgeler',
+                  style: SwanType.h3(ink),
+                ),
                 const SizedBox(height: 8),
                 if (_mode == 0) ...[
                   _uploadTile(isDark, 'kademe_belgesi', 'Kademe belgesi'),
@@ -134,10 +159,10 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                   _uploadTile(isDark, 'federasyon', 'Federasyon lisansı'),
                 const SizedBox(height: 2),
                 Text(
-                    'ⓘ PDF veya fotoğraf (JPG/PNG) yükleyebilirsin. '
-                    'Belgeler yalnızca sana ve platform yöneticisine görünür.',
-                    style:
-                        SwanType.caption(SwanColors.textSecondary),),
+                  'ⓘ PDF veya fotoğraf (JPG/PNG) yükleyebilirsin. '
+                  'Belgeler yalnızca sana ve platform yöneticisine görünür.',
+                  style: SwanType.caption(SwanColors.textSecondary),
+                ),
                 const SizedBox(height: 16),
 
                 GestureDetector(
@@ -151,35 +176,47 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       borderRadius: BorderRadius.circular(15),
                       boxShadow: [
                         BoxShadow(
-                            color: kTeal.withValues(alpha: .34),
-                            blurRadius: 18,
-                            offset: const Offset(0, 8),),
+                          color: kTeal.withValues(alpha: .34),
+                          blurRadius: 18,
+                          offset: const Offset(0, 8),
+                        ),
                       ],
                     ),
-                    child: Text(_busy ? 'Gönderiliyor…' : 'Doğrulamaya Gönder',
-                        style: SwanType.bodySm(Colors.white, w: FontWeight.w800),),
+                    child: Text(
+                      _busy ? 'Gönderiliyor…' : 'Doğrulamaya Gönder',
+                      style: SwanType.bodySm(Colors.white, w: FontWeight.w800),
+                    ),
                   ),
                 ),
 
                 // Mevcut başvurular
                 const SizedBox(height: 24),
-                Text('Başvurularım', style: SwanType.h3(ink),),
+                Text(
+                  'Başvurularım',
+                  style: SwanType.h3(ink),
+                ),
                 const SizedBox(height: 10),
                 async.when(
                   loading: () => const Padding(
-                      padding: EdgeInsets.only(top: 12),
-                      child: Center(
-                          child: CircularProgressIndicator(color: kTeal),),),
-                  error: (e, _) => Text('Yüklenemedi: $e',
-                      style: SwanType.caption(SwanColors.textSecondary),),
+                    padding: EdgeInsets.only(top: 12),
+                    child: Center(
+                      child: CircularProgressIndicator(color: kTeal),
+                    ),
+                  ),
+                  error: (e, _) => Text(
+                    'Yüklenemedi: $e',
+                    style: SwanType.caption(SwanColors.textSecondary),
+                  ),
                   data: (creds) {
                     if (creds.isEmpty) {
-                      return Text('Henüz başvuru yok.',
-                          style: SwanType.caption(SwanColors.textSecondary),);
+                      return Text(
+                        'Henüz başvuru yok.',
+                        style: SwanType.caption(SwanColors.textSecondary),
+                      );
                     }
                     return Column(
-                        children:
-                            creds.map((c) => _credRow(isDark, c)).toList(),);
+                      children: creds.map((c) => _credRow(isDark, c)).toList(),
+                    );
                   },
                 ),
               ],
@@ -189,7 +226,6 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       ),
     );
   }
-
 
   /// Branş seçici — liste veritabanından gelir (federasyon kanallarıyla aynı
   /// kaynak, böylece seçilen branş her zaman bir kanala karşılık gelir).
@@ -208,16 +244,23 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
           borderRadius: BorderRadius.circular(13),
           border: Border.all(color: line),
         ),
-        child: Row(children: [
-          Expanded(
-            child: Text(
-              selected?.name ?? 'Branş seç',
-              style: SwanType.bodySm(selected == null ? SwanColors.textSecondary : ink, w: FontWeight.w600),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                selected?.name ?? 'Branş seç',
+                style: SwanType.bodySm(
+                    selected == null ? SwanColors.textSecondary : ink,
+                    w: FontWeight.w600),
+              ),
             ),
-          ),
-          const Icon(Icons.expand_more_rounded,
-              size: 20, color: SwanColors.textSecondary,),
-        ],),
+            const Icon(
+              Icons.expand_more_rounded,
+              size: 20,
+              color: SwanColors.textSecondary,
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -232,54 +275,65 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
-      builder: (ctx) => StatefulBuilder(builder: (ctx, setSheet) {
-        final q = search.text.trim().toLowerCase();
-        final list = q.isEmpty
-            ? sports
-            : sports.where((c) => trContains(c.name, q)).toList();
-        return Container(
-          height: MediaQuery.of(ctx).size.height * 0.75,
-          decoration: BoxDecoration(
-            color: surf,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(28)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-              20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom,),
-          child: Column(children: [
-            Text('Branş seç', style: SwanType.h3(ink)),
-            const SizedBox(height: 12),
-            TextField(
-              controller: search,
-              autofocus: true,
-              onChanged: (_) => setSheet(() {}),
-              style: SwanType.bodySm(ink),
-              decoration: InputDecoration(
-                hintText: 'Ara…',
-                hintStyle:
-                    SwanType.bodySm(SwanColors.textSecondary),
-                prefixIcon: const Icon(Icons.search_rounded, size: 19),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14),),
-              ),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheet) {
+          final q = search.text.trim().toLowerCase();
+          final list = q.isEmpty
+              ? sports
+              : sports.where((c) => trContains(c.name, q)).toList();
+          return Container(
+            height: MediaQuery.of(ctx).size.height * 0.75,
+            decoration: BoxDecoration(
+              color: surf,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: ListView.builder(
-                itemCount: list.length,
-                itemBuilder: (_, i) => ListTile(
-                  title: Text(list[i].name,
-                      style: SwanType.bodySm(ink, w: FontWeight.w600),),
-                  trailing: list[i].code == _sportCode
-                      ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
-                      : null,
-                  onTap: () => Navigator.pop(ctx, list[i].code),
+            padding: EdgeInsets.fromLTRB(
+              20,
+              16,
+              20,
+              MediaQuery.of(ctx).viewInsets.bottom,
+            ),
+            child: Column(
+              children: [
+                Text('Branş seç', style: SwanType.h3(ink)),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: search,
+                  autofocus: true,
+                  onChanged: (_) => setSheet(() {}),
+                  style: SwanType.bodySm(ink),
+                  decoration: InputDecoration(
+                    hintText: 'Ara…',
+                    hintStyle: SwanType.bodySm(SwanColors.textSecondary),
+                    prefixIcon: const Icon(Icons.search_rounded, size: 19),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
                 ),
-              ),
+                const SizedBox(height: 8),
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: list.length,
+                    itemBuilder: (_, i) => ListTile(
+                      title: Text(
+                        list[i].name,
+                        style: SwanType.bodySm(ink, w: FontWeight.w600),
+                      ),
+                      trailing: list[i].code == _sportCode
+                          ? const Icon(Icons.check_rounded,
+                              color: kTeal, size: 19)
+                          : null,
+                      onTap: () => Navigator.pop(ctx, list[i].code),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],),
-        );
-      },),
+          );
+        },
+      ),
     );
 
     if (picked != null && mounted) setState(() => _sportCode = picked);
@@ -289,9 +343,12 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     // Branşsız başvuru kabul edilmez — antrenörde de sporcuda da. Federasyon
     // kanalı, rozet etiketi ve keşif filtreleri bu alana dayanıyor.
     if (_sportCode == null || _sportCode!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
           content: Text('Önce branşını seç'),
-          backgroundColor: SwanPalette.light.danger,),);
+          backgroundColor: SwanPalette.light.danger,
+        ),
+      );
       return;
     }
     setState(() => _busy = true);
@@ -316,15 +373,21 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       ref.invalidate(myCredentialsProvider);
       if (mounted) {
         setState(_docs.clear);
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
             content: Text('Başvurun alındı — platform inceleyecek'),
-            backgroundColor: kTeal,),);
+            backgroundColor: kTeal,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text('Hata: $e'),
-            backgroundColor: SwanPalette.light.danger,),);
+            backgroundColor: SwanPalette.light.danger,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -348,14 +411,17 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: line),
       ),
-      child: Row(children: [
-        Expanded(
-            child: Text(c.label, style: SwanType.bodySm(ink, w: FontWeight.w700)),),
-        PremiumStatusChip(label: c.statusLabel, color: color, icon: icon),
-      ],),
+      child: Row(
+        children: [
+          Expanded(
+            child:
+                Text(c.label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+          ),
+          PremiumStatusChip(label: c.statusLabel, color: color, icon: icon),
+        ],
+      ),
     );
   }
-
 
   Widget _kademeItem(int n) {
     final on = _kademe == n;
@@ -370,8 +436,11 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             color: on ? kTeal : Colors.transparent,
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text('$n',
-              style: SwanType.bodySm(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800),),
+          child: Text(
+            '$n',
+            style: SwanType.bodySm(on ? Colors.white : SwanColors.textSecondary,
+                w: FontWeight.w800),
+          ),
         ),
       ),
     );
@@ -397,52 +466,67 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
           border: Border.all(color: borderColor, width: 1.5),
           borderRadius: BorderRadius.circular(16),
         ),
-        child: Row(children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: done ? SwanPalette.light.success.withValues(alpha: .12) : alt,
-              borderRadius: BorderRadius.circular(12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: done
+                    ? SwanPalette.light.success.withValues(alpha: .12)
+                    : alt,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: uploading
+                  ? const Padding(
+                      padding: EdgeInsets.all(11),
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: kTeal,
+                      ),
+                    )
+                  : Icon(
+                      done
+                          ? Icons.check_circle_rounded
+                          : Icons.upload_file_rounded,
+                      size: 20,
+                      color: done
+                          ? SwanPalette.light.success
+                          : SwanColors.textSecondary,
+                    ),
             ),
-            child: uploading
-                ? const Padding(
-                    padding: EdgeInsets.all(11),
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: kTeal,),)
-                : Icon(
-                    done
-                        ? Icons.check_circle_rounded
-                        : Icons.upload_file_rounded,
-                    size: 20,
-                    color: done
-                        ? SwanPalette.light.success
-                        : SwanColors.textSecondary,),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-                if (done)
-                  Text(picked.fileName,
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                  if (done)
+                    Text(
+                      picked.fileName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(SwanColors.textSecondary),),
-              ],
+                      style: SwanType.caption(SwanColors.textSecondary),
+                    ),
+                ],
+              ),
             ),
-          ),
-          if (done)
-            GestureDetector(
-              onTap: () => setState(() => _docs.remove(docType)),
-              child: const Icon(Icons.close_rounded,
-                  size: 18, color: SwanColors.textSecondary,),
-            )
-          else if (!uploading)
-            Text('Yükle',
-                style: SwanType.caption(kTeal, w: FontWeight.w800),),
-        ],),
+            if (done)
+              GestureDetector(
+                onTap: () => setState(() => _docs.remove(docType)),
+                child: const Icon(
+                  Icons.close_rounded,
+                  size: 18,
+                  color: SwanColors.textSecondary,
+                ),
+              )
+            else if (!uploading)
+              Text(
+                'Yükle',
+                style: SwanType.caption(kTeal, w: FontWeight.w800),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -469,29 +553,16 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
             content: Text('Yükleme hatası: $e'),
-            backgroundColor: SwanPalette.light.danger,),);
+            backgroundColor: SwanPalette.light.danger,
+          ),
+        );
       }
     } finally {
       if (mounted) setState(() => _uploading.remove(docType));
     }
-  }
-
-  Widget _back(BuildContext context, Color surf, bool isDark, Color ink) {
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    return GestureDetector(
-      onTap: () => Navigator.maybePop(context),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-            color: surf,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: line),),
-        child: Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: ink),
-      ),
-    );
   }
 
   String _kademeLabel(int n) => switch (n) {

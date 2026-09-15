@@ -7,6 +7,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Yardım — SSS ve destek talebi.
 ///
@@ -49,8 +50,8 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     final c = context.swan;
     final access = ref.watch(swanAccessProvider);
     // Açık bayraklar: kapalı bir özelliğin yardımı listede çıkmıyor.
-    final flags =
-        ref.watch(featureFlagsProvider).valueOrNull ?? const FeatureFlags.none();
+    final flags = ref.watch(featureFlagsProvider).valueOrNull ??
+        const FeatureFlags.none();
     final key =
         '$_query|${_audience(access).join(',')}|${flags.enabled.join(',')}';
     final faq = ref.watch(faqProvider(key));
@@ -65,34 +66,19 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md,
-                    SwanSpace.lg, SwanSpace.md),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Yardım', style: SwanType.h2(c.ink)),
-                ]),
+                padding: const EdgeInsets.fromLTRB(
+                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
+                child: SwanPageHeader(
+                  title: 'Yardım',
+                  subtitle: 'Sorular, yanıtlar ve destek',
+                  onBack: () => Navigator.maybePop(context),
+                ),
               ),
-
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 child: Container(
                   height: 44,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
                   decoration: BoxDecoration(
                       color: c.surface,
                       borderRadius: BorderRadius.circular(SwanRadius.md),
@@ -105,8 +91,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                         controller: _search,
                         style: SwanType.bodySm(c.ink),
                         textInputAction: TextInputAction.search,
-                        onChanged: (v) =>
-                            setState(() => _query = v.trim()),
+                        onChanged: (v) => setState(() => _query = v.trim()),
                         decoration: InputDecoration(
                           isDense: true,
                           border: InputBorder.none,
@@ -128,7 +113,6 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                 ),
               ),
               const SizedBox(height: SwanSpace.md),
-
               Expanded(
                 child: faq.when(
                   loading: premiumLoading,
@@ -154,8 +138,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     }
 
     return ListView(
-      padding:
-          const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 132),
+      padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 132),
       children: [
         if (list.isEmpty)
           premiumEmpty(

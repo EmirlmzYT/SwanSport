@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../application/administration_controller.dart';
 import '../../domain/administration.dart';
 import '../routing/admin_user_detail_args.dart';
@@ -23,11 +27,20 @@ class AdminUserDetailScreen extends ConsumerWidget {
       return const Scaffold(body: Center(child: Text('Kullanıcı bulunamadı.')));
     }
     final user = users.single;
+    final c = context.swan;
     return Scaffold(
-      appBar: AppBar(title: const Text('Kullanıcı Ayrıntısı')),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
+      backgroundColor: c.bg,
+      body: SafeArea(
+          child: ListView(
+        padding: const EdgeInsets.fromLTRB(
+            SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xl),
         children: [
+          SwanPageHeader(
+            title: 'Kullanıcı ayrıntısı',
+            subtitle: user.role.name,
+            onBack: () => Navigator.maybePop(context),
+          ),
+          const SizedBox(height: SwanSpace.lg),
           Text(
             user.name,
             key: const Key('admin-user-detail-name'),
@@ -67,7 +80,7 @@ class AdminUserDetailScreen extends ConsumerWidget {
               ],
             ),
         ],
-      ),
+      )),
     );
   }
 }

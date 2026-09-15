@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Antrenör sonuç ekranı.
 ///
@@ -51,45 +52,27 @@ class SessionResultScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
               children: [
-                Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        color: c.surface,
-                        borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        border: Border.all(color: c.line),
-                      ),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Oturum sonucu', style: SwanType.h2(c.ink)),
-                ]),
+                SwanPageHeader(
+                  title: 'Oturum sonucu',
+                  subtitle: 'Katılım, skorlar ve antrenör incelemesi',
+                  onBack: () => Navigator.maybePop(context),
+                ),
                 const SizedBox(height: SwanSpace.lg),
-
                 overview.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (e, _) =>
-                      Text('$e', style: SwanType.bodySm(c.danger)),
+                  error: (e, _) => Text('$e', style: SwanType.bodySm(c.danger)),
                   data: (o) => o == null
                       ? const SizedBox.shrink()
                       : _overviewCard(context, ref, c, id, o),
                 ),
-
                 const SizedBox(height: SwanSpace.xl),
                 Text('Sporcular', style: SwanType.h3(c.ink)),
                 const SizedBox(height: SwanSpace.sm),
-
                 rows.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),
-                  error: (e, _) =>
-                      Text('$e', style: SwanType.bodySm(c.danger)),
+                  error: (e, _) => Text('$e', style: SwanType.bodySm(c.danger)),
                   data: (list) => list.isEmpty
                       ? Text('Bu oturuma kimse katılmadı.',
                           style: SwanType.bodySm(c.inkMuted))
@@ -121,7 +104,6 @@ class SessionResultScreen extends ConsumerWidget {
             Text('Şablon sürümü v${o.protocolVersion}',
                 style: SwanType.caption(c.inkMuted)),
           const SizedBox(height: SwanSpace.md),
-
           Wrap(spacing: SwanSpace.xl, runSpacing: SwanSpace.md, children: [
             _stat(c, 'Katılan', '${o.joinedCount}'),
             _stat(c, 'Tamamlayan', '${o.completedCount}'),
@@ -136,7 +118,6 @@ class SessionResultScreen extends ConsumerWidget {
             // Hedeflenen ve kaydedilen atış — spec'in istediği karşılaştırma.
             _stat(c, 'Atış', '${o.unitsRecorded}/${o.unitsExpected}'),
           ]),
-
           if (o.status == 'review') ...[
             const SizedBox(height: SwanSpace.lg),
             SizedBox(
@@ -169,9 +150,9 @@ class SessionResultScreen extends ConsumerWidget {
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Sonuçları onayla'),
-          content: const Text(
-              'Skorlar kilitlenecek ve sporcular değiştiremeyecek. '
-              'Eksik sonuçlar eksik olarak kalır.'),
+          content:
+              const Text('Skorlar kilitlenecek ve sporcular değiştiremeyecek. '
+                  'Eksik sonuçlar eksik olarak kalır.'),
           actions: [
             TextButton(
                 onPressed: () => Navigator.pop(ctx, false),
@@ -209,7 +190,6 @@ class SessionResultScreen extends ConsumerWidget {
             ],
           ]),
           const SizedBox(height: SwanSpace.sm),
-
           Wrap(spacing: SwanSpace.lg, runSpacing: SwanSpace.xs, children: [
             _mini(c, 'Toplam', _num(r.totalScore)),
             _mini(c, 'Set ort.', _num(r.avgSet)),
@@ -218,18 +198,14 @@ class SessionResultScreen extends ConsumerWidget {
             _mini(c, 'Atış', '${r.unitsRecorded}/${r.unitsExpected}'),
             if (r.rpe != null) _mini(c, 'Zorluk', '${r.rpe}/10'),
           ]),
-
           if (r.progression.isNotEmpty) ...[
             const SizedBox(height: SwanSpace.sm),
             Text(
               // Girilmemiş set "—" görünüyor; 0 çizmek düşüş gibi okunurdu.
-              r.progression
-                  .map((v) => v == null ? '—' : _num(v))
-                  .join('  →  '),
+              r.progression.map((v) => v == null ? '—' : _num(v)).join('  →  '),
               style: SwanType.bodySm(c.ink),
             ),
           ],
-
           if (r.scoreBuckets.isNotEmpty) ...[
             const SizedBox(height: SwanSpace.xs),
             Text(
@@ -237,7 +213,6 @@ class SessionResultScreen extends ConsumerWidget {
               style: SwanType.caption(c.inkMuted),
             ),
           ],
-
           if (r.needsReview) ...[
             const SizedBox(height: SwanSpace.sm),
             Wrap(spacing: SwanSpace.xs, runSpacing: SwanSpace.xs, children: [
@@ -249,8 +224,8 @@ class SessionResultScreen extends ConsumerWidget {
                     color: c.surfaceAlt,
                     borderRadius: BorderRadius.circular(SwanRadius.sm),
                   ),
-                  child: Text(r.flagLabel(f),
-                      style: SwanType.caption(c.warning)),
+                  child:
+                      Text(r.flagLabel(f), style: SwanType.caption(c.warning)),
                 ),
             ]),
           ],
@@ -266,8 +241,7 @@ class SessionResultScreen extends ConsumerWidget {
   /// `10 × 4 · 9 × 7` — yüksek puandan aşağı.
   static String _buckets(Map<String, int> b) {
     final keys = b.keys.toList()
-      ..sort((a, z) =>
-          (num.tryParse(z) ?? 0).compareTo(num.tryParse(a) ?? 0));
+      ..sort((a, z) => (num.tryParse(z) ?? 0).compareTo(num.tryParse(a) ?? 0));
     return keys.map((k) => '$k × ${b[k]}').join('  ·  ');
   }
 

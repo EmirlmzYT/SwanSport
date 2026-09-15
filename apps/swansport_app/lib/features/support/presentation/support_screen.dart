@@ -8,6 +8,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Destek taleplerim.
 ///
@@ -40,31 +41,20 @@ class SupportScreen extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md,
-                    SwanSpace.lg, SwanSpace.md),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
+                padding: const EdgeInsets.fromLTRB(
+                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
+                child: SwanPageHeader(
+                  title: 'Destek',
+                  subtitle: 'Taleplerin ve SwanSport ekibi',
+                  onBack: () => Navigator.maybePop(context),
+                  actions: [
+                    SwanHeaderAction(
+                      icon: Icons.help_outline_rounded,
+                      tooltip: 'Sık sorulan sorular',
+                      onTap: () => Navigator.pushNamed(context, '/yardim'),
                     ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Destek', style: SwanType.h2(c.ink)),
-                  const Spacer(),
-                  GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/yardim'),
-                    child: Text('SSS',
-                        style: SwanType.bodySm(c.accent, w: FontWeight.w800)),
-                  ),
-                ]),
+                  ],
+                ),
               ),
               Expanded(
                 child: tickets.when(
@@ -151,8 +141,7 @@ class TicketThreadScreen extends ConsumerStatefulWidget {
   final SupportTicket ticket;
 
   @override
-  ConsumerState<TicketThreadScreen> createState() =>
-      _TicketThreadScreenState();
+  ConsumerState<TicketThreadScreen> createState() => _TicketThreadScreenState();
 }
 
 class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
@@ -236,8 +225,8 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                     GestureDetector(
                       onTap: _close,
                       child: Text('Kapat',
-                          style: SwanType.caption(c.inkMuted,
-                              w: FontWeight.w700)),
+                          style:
+                              SwanType.caption(c.inkMuted, w: FontWeight.w700)),
                     ),
                 ]),
               ),
@@ -268,8 +257,8 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                 )
               else
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0,
-                      SwanSpace.lg, SwanSpace.lg),
+                  padding: const EdgeInsets.fromLTRB(
+                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg),
                   child: Row(children: [
                     Expanded(
                       child: TextField(
@@ -282,8 +271,7 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                           hintText: 'Yanıt yaz…',
                           hintStyle: SwanType.bodySm(c.inkMuted),
                           border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(SwanRadius.sm),
+                            borderRadius: BorderRadius.circular(SwanRadius.sm),
                             borderSide: BorderSide(color: c.line),
                           ),
                         ),
@@ -357,8 +345,8 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                       .copyWith(height: 1.4)),
               const SizedBox(height: 2),
               Text(fmtDate(at),
-                  style: SwanType.caption(
-                      isStaff ? c.inkMuted : Colors.white70)),
+                  style:
+                      SwanType.caption(isStaff ? c.inkMuted : Colors.white70)),
             ],
           ),
         ),
@@ -399,16 +387,16 @@ Future<void> _newTicket(BuildContext context, WidgetRef ref) async {
                   onTap: () => Navigator.pop(ctx, true),
                   child: Container(
                     height: 34,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: SwanSpace.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: c.accentFill,
                       borderRadius: BorderRadius.circular(SwanRadius.sm),
                     ),
                     child: Text('Gönder',
-                        style: SwanType.caption(Colors.white,
-                            w: FontWeight.w800)),
+                        style:
+                            SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
               ]),
@@ -462,23 +450,22 @@ Future<void> _newTicket(BuildContext context, WidgetRef ref) async {
   final club = await ref.read(activeClubProvider.future);
   try {
     await ref.read(clubLifecycleServiceProvider).openTicket(
-          subject: subject.text.trim(),
-          body: body.text.trim(),
-          clubId: club?.id,
-          context: {
-            'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-            'screen': '/destek',
-          },
-        );
+      subject: subject.text.trim(),
+      body: body.text.trim(),
+      clubId: club?.id,
+      context: {
+        'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
+        'screen': '/destek',
+      },
+    );
     ref.invalidate(myTicketsProvider);
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Talebin alındı')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Talebin alındı')));
     }
   } catch (e) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text('$e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
     }
   }
 }
