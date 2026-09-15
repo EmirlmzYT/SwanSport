@@ -8,6 +8,7 @@ import '../../../../app/media/image_pick.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -46,20 +47,13 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 10),
-                child: Row(children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Kulüp', style: SwanType.h3(ink)),
-                        const SizedBox(height: 3),
-                        Text('Belge Kasası',
-                            style: SwanType.h2(ink)),
-                      ],
-                    ),
-                  ),
-                  AddButton(onTap: _add, tooltip: 'Belge ekle'),
-                ]),
+                child: SwanPageHeader(
+                  title: 'Belge Kasası',
+                  subtitle: 'Belgeler ve geçerlilik takibi',
+                  actions: [
+                    AddButton(onTap: _add, tooltip: 'Belge ekle'),
+                  ],
+                ),
               ),
               _tabs(isDark, ink),
               Expanded(
@@ -94,9 +88,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                           ],
                         );
                       }
-                      final expiring = list
-                          .where((d) => d.isExpired || d.isExpiring)
-                          .length;
+                      final expiring =
+                          list.where((d) => d.isExpired || d.isExpiring).length;
                       return ListView(
                         padding: const EdgeInsets.fromLTRB(20, 4, 20, 132),
                         children: [
@@ -149,7 +142,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                               : SwanPalette.light.line)),
                 ),
                 child: Text(it.$2,
-                    style: SwanType.caption(_filter == it.$1 ? Colors.white : ink, w: FontWeight.w700)),
+                    style: SwanType.caption(
+                        _filter == it.$1 ? Colors.white : ink,
+                        w: FontWeight.w700)),
               ),
             ),
         ],
@@ -163,8 +158,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         decoration: BoxDecoration(
           color: SwanPalette.light.warning.withValues(alpha: .10),
           borderRadius: BorderRadius.circular(14),
-          border:
-              Border.all(color: SwanPalette.light.warning.withValues(alpha: .35)),
+          border: Border.all(
+              color: SwanPalette.light.warning.withValues(alpha: .35)),
         ),
         child: Row(children: [
           Icon(Icons.warning_amber_rounded,
@@ -172,7 +167,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           const SizedBox(width: 10),
           Expanded(
             child: Text('$n belgenin süresi dolmuş ya da dolmak üzere.',
-                style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w700)),
+                style: SwanType.caption(SwanPalette.light.warning,
+                    w: FontWeight.w700)),
           ),
         ]),
       );
@@ -276,7 +272,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           for (final e in kDocTypes.entries)
             ListTile(
               dense: true,
-              title: Text(e.value, style: SwanType.bodySm(ink, w: FontWeight.w600)),
+              title: Text(e.value,
+                  style: SwanType.bodySm(ink, w: FontWeight.w600)),
               onTap: () => Navigator.pop(ctx, e.key),
             ),
         ]),
@@ -336,7 +333,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     final picked = await pickImage();
     if (picked != null) {
       try {
-        path = await ref.read(vaultServiceProvider).upload(picked.bytes, picked.name);
+        path = await ref
+            .read(vaultServiceProvider)
+            .upload(picked.bytes, picked.name);
         fileLabel = picked.name;
       } catch (e) {
         if (mounted) {
@@ -348,8 +347,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     }
 
     // 4) Künye
-    final name = FormField_('Belge adı',
-        hint: kDocTypes[type] ?? 'Belge')
+    final name = FormField_('Belge adı', hint: kDocTypes[type] ?? 'Belge')
       ..controller.text = kDocTypes[type] ?? '';
     final expires = FormField_('Geçerlilik bitişi (GG.AA.YYYY)',
         hint: '31.12.2026', required: false);
@@ -392,7 +390,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   DateTime? _parseDate(String s) {
     final p = s.trim().split(RegExp(r'[./-]'));
     if (p.length != 3) return null;
-    final d = int.tryParse(p[0]), m = int.tryParse(p[1]), y = int.tryParse(p[2]);
+    final d = int.tryParse(p[0]),
+        m = int.tryParse(p[1]),
+        y = int.tryParse(p[2]);
     if (d == null || m == null || y == null) return null;
     return DateTime(y, m, d);
   }
@@ -415,13 +415,14 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Text(d.name, style: SwanType.h3(ink)),
           Text('${d.typeLabel} · ${d.ownerLabel}',
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
           const SizedBox(height: 14),
           if (d.storagePath != null)
             ListTile(
               dense: true,
-              leading: const Icon(Icons.open_in_new_rounded,
-                  size: 20, color: kTeal),
+              leading:
+                  const Icon(Icons.open_in_new_rounded, size: 20, color: kTeal),
               title: Text('Bağlantıyı kopyala',
                   style: SwanType.bodySm(ink, w: FontWeight.w600)),
               subtitle: Text('1 saat geçerli, tarayıcıda aç',
@@ -460,9 +461,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {
-                await ref
-                    .read(vaultServiceProvider)
-                    .verify(d.id, !d.verified);
+                await ref.read(vaultServiceProvider).verify(d.id, !d.verified);
                 ref.invalidate(vaultDocsProvider);
               }, d.verified ? 'Doğrulama kaldırıldı' : 'Belge doğrulandı');
             },
@@ -472,7 +471,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             leading: Icon(Icons.delete_outline_rounded,
                 size: 20, color: SwanPalette.light.danger),
             title: Text('Belgeyi sil',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w700)),
             onTap: () {
               Navigator.pop(ctx);
               _guard(() async {

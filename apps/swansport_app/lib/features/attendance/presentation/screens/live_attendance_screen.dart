@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 
 /// Canlı Yoklama — Supabase sporcuları + sunucuya kayıt, premium (v3).
 class LiveAttendanceScreen extends ConsumerStatefulWidget {
@@ -83,20 +84,11 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.fromLTRB(16, 6, 20, 12),
-                      child: Row(
-                        children: [
-                          _back(context, surf, line, ink),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Canlı Yoklama', style: SwanType.h3(ink)),
-                                Text(club?.name ?? 'Kadro',
-                                    style: SwanType.h3(ink)),
-                              ],
-                            ),
-                          ),
+                      child: SwanPageHeader(
+                        title: 'Canlı Yoklama',
+                        subtitle: club?.name ?? 'Kadro',
+                        onBack: () => Navigator.maybePop(context),
+                        actions: [
                           SwanRing(
                             value: pct,
                             size: 52,
@@ -182,8 +174,7 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
   ///
   /// `AthleteRow` yerine `(id, ad)` alıyor: kadro iki kaynaktan gelebiliyor —
   /// etkinlik seçiliyse `RosterEntry` (RSVP'li), değilse kulüp kadrosu.
-  Widget _tile(
-      bool isDark, String id, String name, int i, Color line) {
+  Widget _tile(bool isDark, String id, String name, int i, Color line) {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final initials = _initials(name);
     return Container(
@@ -241,12 +232,13 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                 : null,
           ),
           child: Text(label,
-              style: SwanType.caption(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w700)),
+              style: SwanType.caption(
+                  on ? Colors.white : SwanColors.textSecondary,
+                  w: FontWeight.w700)),
         ),
       ),
     );
   }
-
 
   // ------------------------------- yardımcılar -------------------------------
 
@@ -383,21 +375,5 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
-  }
-
-  Widget _back(BuildContext context, Color surf, Color line, Color ink) {
-    return GestureDetector(
-      onTap: () => Navigator.maybePop(context),
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: line),
-        ),
-        child: Icon(Icons.arrow_back_ios_new_rounded, size: 15, color: ink),
-      ),
-    );
   }
 }

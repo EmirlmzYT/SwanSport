@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -54,25 +55,15 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(club?.name.toUpperCase() ?? 'KULÜP',
-                                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
-                            const SizedBox(height: 3),
-                            Text('Duyurular',
-                                style: SwanType.h2(ink)),
-                          ],
-                        ),
-                      ),
+                  SwanPageHeader(
+                    title: 'Duyurular',
+                    subtitle: club?.name ?? 'Kulüp iletişim merkezi',
+                    actions: [
                       if (club != null)
-                        GestureDetector(
+                        SwanHeaderAction(
+                          icon: Icons.add_rounded,
+                          tooltip: 'Duyuru oluştur',
                           onTap: () => _compose(context, ref, club),
-                          child: _newBtn(),
                         ),
                     ],
                   ),
@@ -179,14 +170,13 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                 const SizedBox(width: 6),
               ],
               Expanded(
-                child:
-                    Text(a.title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                child: Text(a.title,
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          Text(a.body,
-              style: SwanType.caption(SwanColors.textSecondary)),
+          Text(a.body, style: SwanType.caption(SwanColors.textSecondary)),
           const SizedBox(height: 10),
           Text(_ago(a.createdAt),
               style: SwanType.caption(SwanColors.textSecondary)),
@@ -234,7 +224,8 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                     activeColor: kTeal,
                     onChanged: (v) => setLocal(() => pinned = v ?? false),
                   ),
-                  Text('Sabitle', style: SwanType.caption(ink, w: FontWeight.w600)),
+                  Text('Sabitle',
+                      style: SwanType.caption(ink, w: FontWeight.w600)),
                 ],
               ),
             ],
@@ -243,12 +234,13 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
               child: Text('İptal',
-                  style:
-                      SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                  style: SwanType.bodySm(SwanColors.textSecondary,
+                      w: FontWeight.w700)),
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text('Paylaş', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
+              child: Text('Paylaş',
+                  style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
             ),
           ],
         ),
@@ -283,20 +275,4 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     if (diff.inDays < 7) return '${diff.inDays} gün önce';
     return '${d.day}.${d.month}.${d.year}';
   }
-
-  Widget _newBtn() => Container(
-        height: 40,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.add_rounded, size: 18, color: Colors.white),
-            const SizedBox(width: 4),
-            Text('Yeni', style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
-          ],
-        ),
-      );
 }
