@@ -7,6 +7,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../auth/application/auth_controller.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -39,24 +40,11 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
               children: [
-                Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: surf,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: ink),
-                    ),
-                  ),
-                  const SizedBox(width: 14),
-                  Text('Gizlilik ve Hesap',
-                      style: SwanType.h2(ink)),
-                ]),
+                SwanPageHeader(
+                  title: 'Gizlilik ve Hesap',
+                  subtitle: 'Güvenlik, etiketlenme ve engellenenler',
+                  onBack: () => Navigator.maybePop(context),
+                ),
                 const SizedBox(height: 22),
 
                 // --- Şifre ---
@@ -114,7 +102,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                               child: Text(b.name,
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
-                                  style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                                  style:
+                                      SwanType.bodySm(ink, w: FontWeight.w700)),
                             ),
                             GestureDetector(
                               onTap: () async {
@@ -125,8 +114,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                                 ref.invalidate(hiddenProfilesProvider);
                               },
                               child: Text('Kaldır',
-                                  style:
-                                      SwanType.caption(kTeal, w: FontWeight.w800)),
+                                  style: SwanType.caption(kTeal,
+                                      w: FontWeight.w800)),
                             ),
                           ]),
                         );
@@ -151,7 +140,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Hesabını sil',
-                          style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                          style: SwanType.bodySm(SwanPalette.light.danger,
+                              w: FontWeight.w800)),
                       const SizedBox(height: 5),
                       Text(
                           'Hesabın ve tüm içeriğin (gönderiler, yorumlar, '
@@ -169,8 +159,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                             borderRadius: BorderRadius.circular(13),
                           ),
                           child: Text('Hesabımı Sil',
-                              style:
-                                  SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+                              style: SwanType.bodySm(Colors.white,
+                                  w: FontWeight.w800)),
                         ),
                       ),
                     ],
@@ -214,8 +204,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-                Text(sub,
-                    style: SwanType.caption(SwanColors.textSecondary)),
+                Text(sub, style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -245,20 +234,20 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           style: SwanType.bodySm(ink, w: FontWeight.w600),
           decoration: InputDecoration(
             hintText: 'En az 6 karakter',
-            hintStyle:
-                SwanType.bodySm(SwanColors.textSecondary),
+            hintStyle: SwanType.bodySm(SwanColors.textSecondary),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style:
-                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('Kaydet', style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
+            child: Text('Kaydet',
+                style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -292,10 +281,10 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Bu işlem geri alınamaz. Onaylamak için aşağıya '
+            Text(
+                'Bu işlem geri alınamaz. Onaylamak için aşağıya '
                 '“SİL” yaz.',
-                style:
-                    SwanType.bodySm(SwanColors.textSecondary)),
+                style: SwanType.bodySm(SwanColors.textSecondary)),
             const SizedBox(height: 12),
             TextField(
               controller: confirm,
@@ -310,13 +299,14 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style:
-                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Hesabımı sil',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w800)),
           ),
         ],
       ),
@@ -382,8 +372,8 @@ class _MentionPolicyPickerState extends ConsumerState<_MentionPolicyPicker> {
           .eq('id', uid)
           .maybeSingle();
       if (!mounted) return;
-      setState(() =>
-          _value = mentionPolicyFrom(row?['mention_policy'] as String?));
+      setState(
+          () => _value = mentionPolicyFrom(row?['mention_policy'] as String?));
     } catch (_) {
       // 0062 çalıştırılmadıysa sütun yok. Seçici çizilmiyor; hata
       // göstermek kullanıcıya yapabileceği bir şey söylemiyor.
@@ -394,9 +384,7 @@ class _MentionPolicyPickerState extends ConsumerState<_MentionPolicyPicker> {
   Future<void> _set(MentionPolicy p) async {
     setState(() => _busy = true);
     try {
-      await ref
-          .read(socialShareServiceProvider)
-          .setPrivacy(mention: p);
+      await ref.read(socialShareServiceProvider).setPrivacy(mention: p);
       if (mounted) setState(() => _value = p);
     } catch (e) {
       if (mounted) {

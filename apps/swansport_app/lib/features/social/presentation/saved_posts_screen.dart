@@ -7,6 +7,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Kaydedilen gönderiler.
 ///
@@ -36,25 +37,13 @@ class SavedPostsScreen extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
               Padding(
-                padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md,
-                    SwanSpace.lg, SwanSpace.md),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Text('Kaydedilenler', style: SwanType.h2(c.ink)),
-                ]),
+                padding: const EdgeInsets.fromLTRB(
+                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
+                child: SwanPageHeader(
+                  title: 'Kaydedilenler',
+                  subtitle: 'Yalnızca senin görebildiğin gönderiler',
+                  onBack: () => Navigator.maybePop(context),
+                ),
               ),
               Expanded(
                 child: saved.when(
@@ -73,8 +62,7 @@ class SavedPostsScreen extends ConsumerWidget {
                           padding: const EdgeInsets.fromLTRB(
                               SwanSpace.lg, 0, SwanSpace.lg, 132),
                           itemCount: list.length,
-                          itemBuilder: (_, i) =>
-                              _SavedTile(post: list[i]),
+                          itemBuilder: (_, i) => _SavedTile(post: list[i]),
                         ),
                 ),
               ),
@@ -222,16 +210,18 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(quote.isEmpty
-              ? 'Yeniden paylaşıldı'
-              : 'Alıntı paylaşıldı')));
+          content: Text(
+              quote.isEmpty ? 'Yeniden paylaşıldı' : 'Alıntı paylaşıldı')));
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
         // Sunucunun mesajı anlamlı: "zaten yeniden paylaştın" ya da
         // "yalnızca herkese açık gönderiler". Ham hatayı gizlemiyoruz.
-        ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('$e'.replaceFirst('PostgrestException(message: ', '').split(',').first)));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('$e'
+                .replaceFirst('PostgrestException(message: ', '')
+                .split(',')
+                .first)));
       }
     }
   }
@@ -268,16 +258,16 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
                   onTap: _send,
                   child: Container(
                     height: 34,
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: SwanSpace.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: c.accentFill,
                       borderRadius: BorderRadius.circular(SwanRadius.sm),
                     ),
                     child: Text('Paylaş',
-                        style: SwanType.caption(Colors.white,
-                            w: FontWeight.w800)),
+                        style:
+                            SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
             ]),
@@ -312,8 +302,7 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.authorName,
-                      style:
-                          SwanType.caption(c.inkMuted, w: FontWeight.w700)),
+                      style: SwanType.caption(c.inkMuted, w: FontWeight.w700)),
                   const SizedBox(height: 2),
                   Text(widget.preview,
                       maxLines: 3,

@@ -7,6 +7,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -36,9 +37,6 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     final async = _tab == 0
         ? ref.watch(followersProvider(widget.profileId))
@@ -55,29 +53,12 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                  child: Row(children: [
-                    GestureDetector(
-                      onTap: () => Navigator.maybePop(context),
-                      child: Container(
-                        width: 38,
-                        height: 38,
-                        decoration: BoxDecoration(
-                            color: surf,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: line)),
-                        child: Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 15, color: ink),
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Text(widget.title ?? 'Bağlantılar',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: SwanType.h2(ink)),
-                    ),
-                  ]),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: SwanPageHeader(
+                    title: widget.title ?? 'Bağlantılar',
+                    subtitle: 'Takipçileri ve takip edilenleri görüntüle',
+                    onBack: () => Navigator.maybePop(context),
+                  ),
                 ),
 
                 // Sekmeler
@@ -123,7 +104,6 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
-
 
   Widget _tile(bool isDark, SuggestionRow r) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
