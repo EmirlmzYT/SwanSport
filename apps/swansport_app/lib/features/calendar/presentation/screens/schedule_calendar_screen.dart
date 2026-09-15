@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -24,7 +25,6 @@ class ScheduleCalendarScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final club = ref.watch(activeClubProvider).valueOrNull;
     // Maç sonucunu yalnızca kulüp yetkilisi girebilir.
     final canManage =
@@ -47,24 +47,15 @@ class ScheduleCalendarScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Takvim', style: SwanType.h3(ink)),
-                            const SizedBox(height: 3),
-                            Text('Yaklaşan Etkinlikler',
-                                style: SwanType.h2(ink)),
-                          ],
-                        ),
-                      ),
+                  SwanPageHeader(
+                    title: 'Takvim',
+                    subtitle: 'Yaklaşan antrenman, maç ve etkinlikler',
+                    actions: [
                       if (club != null)
-                        GestureDetector(
+                        SwanHeaderAction(
+                          icon: Icons.add_rounded,
+                          tooltip: 'Etkinlik ekle',
                           onTap: () => _addEvent(context, ref, club),
-                          child: _addBtn(),
                         ),
                     ],
                   ),
@@ -163,8 +154,7 @@ class ScheduleCalendarScreen extends ConsumerWidget {
               children: [
                 Column(
                   children: [
-                    Text(_hm(e.startsAt),
-                        style: SwanType.h3(ink)),
+                    Text(_hm(e.startsAt), style: SwanType.h3(ink)),
                     Text('${e.startsAt.day}.${e.startsAt.month}',
                         style: SwanType.caption(SwanColors.textSecondary)),
                   ],
@@ -176,7 +166,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(e.title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                      Text(e.title,
+                          style: SwanType.bodySm(ink, w: FontWeight.w700)),
                       const SizedBox(height: 2),
                       Row(
                         children: [
@@ -185,7 +176,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(e.place ?? '—',
-                                style: SwanType.caption(SwanColors.textSecondary)),
+                                style:
+                                    SwanType.caption(SwanColors.textSecondary)),
                           ),
                         ],
                       ),
@@ -339,9 +331,11 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(label,
-                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+                          style: SwanType.caption(SwanColors.textSecondary,
+                              w: FontWeight.w700)),
                       const SizedBox(height: 2),
-                      Text(value, style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                      Text(value,
+                          style: SwanType.bodySm(ink, w: FontWeight.w800)),
                     ],
                   ),
                 ),
@@ -365,8 +359,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                 style: SwanType.bodySm(ink, w: FontWeight.w700),
                 decoration: InputDecoration(
                   labelText: 'Başlık',
-                  labelStyle:
-                      SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
+                  labelStyle: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w600),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -443,7 +437,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       const SizedBox(width: 6),
                       Expanded(
                         child: Text('Bu tesis "${facility!.status}" durumda.',
-                            style: SwanType.caption(SwanPalette.light.warning, w: FontWeight.w600)),
+                            style: SwanType.caption(SwanPalette.light.warning,
+                                w: FontWeight.w600)),
                       ),
                     ]),
                   ),
@@ -457,8 +452,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                       ? 'Yer (opsiyonel)'
                       : 'Farklı yer (opsiyonel)',
                   hintText: 'Deplasman, rakip saha…',
-                  labelStyle:
-                      SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
+                  labelStyle: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w600),
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14)),
                 ),
@@ -521,9 +516,11 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                               border: Border.all(color: line),
                             ),
                             child: Text(d.$2,
-                                style: SwanType.caption(weekdays.contains(d.$1)
+                                style: SwanType.caption(
+                                    weekdays.contains(d.$1)
                                         ? Colors.white
-                                        : SwanColors.textSecondary, w: FontWeight.w800)),
+                                        : SwanColors.textSecondary,
+                                    w: FontWeight.w800)),
                           ),
                         ),
                     ]),
@@ -563,7 +560,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         border: Border.all(color: line),
                       ),
                       child: Text('Vazgeç',
-                          style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                          style: SwanType.bodySm(SwanColors.textSecondary,
+                              w: FontWeight.w700)),
                     ),
                   ),
                 ),
@@ -581,7 +579,8 @@ class ScheduleCalendarScreen extends ConsumerWidget {
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Text('Ekle',
-                          style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+                          style: SwanType.bodySm(Colors.white,
+                              w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -724,14 +723,4 @@ class ScheduleCalendarScreen extends ConsumerWidget {
 
   String _hm(DateTime d) =>
       '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-
-  Widget _addBtn() => Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        child: const Icon(Icons.add_rounded, size: 20, color: Colors.white),
-      );
 }

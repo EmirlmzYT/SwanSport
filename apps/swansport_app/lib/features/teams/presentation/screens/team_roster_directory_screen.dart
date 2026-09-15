@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -17,10 +18,9 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final club = ref.watch(activeClubProvider).valueOrNull;
-    final canManage = club != null &&
-        (club.role == 'club_admin' || club.role == 'coach');
+    final canManage =
+        club != null && (club.role == 'club_admin' || club.role == 'coach');
     final async = ref.watch(teamsProvider);
 
     return Scaffold(
@@ -34,14 +34,14 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
               children: [
-                Text(club?.name.toUpperCase() ?? 'KULÜP',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
-                const SizedBox(height: 3),
-                Row(children: [
-                  Expanded(child: Text('Takımlar', style: SwanType.h2(ink))),
-                  if (canManage)
-                    AddButton(onTap: () => _team(context, ref, club.id)),
-                ]),
+                SwanPageHeader(
+                  title: 'Takımlar',
+                  subtitle: club?.name ?? 'Kulüp kadroları ve programları',
+                  actions: [
+                    if (canManage)
+                      AddButton(onTap: () => _team(context, ref, club.id)),
+                  ],
+                ),
                 const SizedBox(height: 16),
                 async.when(
                   loading: premiumLoading,
@@ -126,18 +126,17 @@ class TeamRosterDirectoryScreen extends ConsumerWidget {
   Future<void> _team(BuildContext context, WidgetRef ref, String clubId) async {
     final name = FormField_('Takım adı', hint: 'U16 Erkek');
     final age = FormField_('Yaş grubu', hint: 'U16', required: false);
-    final gender = FormField_('Cinsiyet', hint: 'Erkek / Kadın / Karma',
-        required: false);
+    final gender =
+        FormField_('Cinsiyet', hint: 'Erkek / Kadın / Karma', required: false);
     final ok = await showQuickForm(
       context,
       title: 'Takım Kur',
       fields: [name, age, gender],
       onSubmit: () => ref.read(clubDataServiceProvider).addTeam(
-            clubId, name.value,
-            ageGroup: age.value.isEmpty ? null : age.value,
-            gender: gender.value.isEmpty ? null : gender.value),
+          clubId, name.value,
+          ageGroup: age.value.isEmpty ? null : age.value,
+          gender: gender.value.isEmpty ? null : gender.value),
     );
     if (ok == true) ref.invalidate(teamsProvider);
   }
-
 }

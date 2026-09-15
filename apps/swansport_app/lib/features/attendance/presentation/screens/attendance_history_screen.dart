@@ -5,6 +5,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -16,7 +17,6 @@ class AttendanceHistoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(attendanceSummaryProvider);
@@ -37,15 +37,19 @@ class AttendanceHistoryScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Text((club?.name ?? 'SWANSPORT').toUpperCase(),
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
-                  const SizedBox(height: 3),
-                  Text('Devam Durumu', style: SwanType.h2(ink)),
-                  const SizedBox(height: 4),
-                  Text('Son 90 gün',
-                      style: SwanType.caption(SwanColors.textSecondary)),
+                  SwanPageHeader(
+                    title: 'Devam Durumu',
+                    subtitle: '${club?.name ?? 'SwanSport'} · Son 90 gün',
+                    actions: [
+                      SwanHeaderAction(
+                        icon: Icons.fact_check_outlined,
+                        tooltip: 'Yoklama al',
+                        onTap: () =>
+                            Navigator.pushNamed(context, '/attendance'),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 18),
-
                   async.when(
                     loading: premiumLoading,
                     error: (e, _) => premiumError(context, '$e'),
@@ -62,8 +66,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
                               Navigator.pushNamed(context, '/attendance'),
                         );
                       }
-                      final withData =
-                          list.where((r) => r.total > 0).toList();
+                      final withData = list.where((r) => r.total > 0).toList();
                       return Column(children: [
                         if (withData.isNotEmpty) _overview(isDark, withData),
                         const SizedBox(height: 16),
@@ -113,10 +116,12 @@ class AttendanceHistoryScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Kulüp ortalaması',
-                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                  style: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w600)),
               const SizedBox(height: 2),
               Text('%$rate katılım',
-                  style: SwanType.h2(isDark ? Colors.white : SwanColors.textPrimary)),
+                  style: SwanType.h2(
+                      isDark ? Colors.white : SwanColors.textPrimary)),
               const SizedBox(height: 4),
               Text('$present / $total yoklama',
                   style: SwanType.caption(SwanColors.textSecondary)),
@@ -183,8 +188,7 @@ class AttendanceHistoryScreen extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 12),
-        Text(r.total == 0 ? '—' : '%${r.rate}',
-            style: SwanType.h3(color)),
+        Text(r.total == 0 ? '—' : '%${r.rate}', style: SwanType.h3(color)),
       ]),
     );
   }
