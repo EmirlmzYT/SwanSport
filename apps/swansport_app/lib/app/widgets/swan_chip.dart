@@ -39,10 +39,22 @@ class SwanChip extends StatelessWidget {
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(
-            horizontal: SwanSpace.md, vertical: SwanSpace.sm),
+          horizontal: SwanSpace.md,
+          vertical: SwanSpace.sm,
+        ),
         decoration: BoxDecoration(
-          color: selected ? c.accentFill : c.surfaceAlt,
+          color: selected ? c.accentFill : c.surface,
           borderRadius: BorderRadius.circular(SwanRadius.sm),
+          border: Border.all(color: selected ? c.accentFill : c.line),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: c.accent.withValues(alpha: .16),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -51,8 +63,7 @@ class SwanChip extends StatelessWidget {
               Icon(icon, size: 14, color: fg),
               const SizedBox(width: 5),
             ],
-            Text(label,
-                style: SwanType.caption(fg, w: FontWeight.w700)),
+            Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
           ],
         ),
       ),

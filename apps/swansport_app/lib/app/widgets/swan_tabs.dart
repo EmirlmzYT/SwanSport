@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import 'premium.dart';
 import '../../app/design/swan_type.dart';
+import 'premium.dart';
 
 /// Sayfa içi sekme çubukları.
 ///
@@ -45,37 +45,47 @@ class SwanSegmentedTabs extends StatelessWidget {
       decoration: BoxDecoration(
         color: track,
         borderRadius: BorderRadius.circular(13),
+        border: Border.all(
+          color: isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3),
+        ),
       ),
-      child: Row(children: [
-        for (var i = 0; i < labels.length; i++)
-          Expanded(
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
-              onTap: () => onSelect(i),
-              child: Container(
-                alignment: Alignment.center,
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                decoration: BoxDecoration(
-                  color: i == selected ? surf : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  // Seçili segmenti zeminden ayıran ince gölge —
-                  // `feed_screen`'den geldi, en olgun kopyası oydu.
-                  boxShadow: i == selected
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: .06),
-                            blurRadius: 8,
-                            offset: const Offset(0, 2),
-                          )
-                        ]
-                      : null,
+      child: Row(
+        children: [
+          for (var i = 0; i < labels.length; i++)
+            Expanded(
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: () => onSelect(i),
+                child: Container(
+                  alignment: Alignment.center,
+                  padding: const EdgeInsets.symmetric(vertical: 9),
+                  decoration: BoxDecoration(
+                    color: i == selected ? surf : Colors.transparent,
+                    borderRadius: BorderRadius.circular(10),
+                    // Seçili segmenti zeminden ayıran ince gölge —
+                    // `feed_screen`'den geldi, en olgun kopyası oydu.
+                    boxShadow: i == selected
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: .06),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Text(
+                    labels[i],
+                    style: SwanType.caption(
+                      i == selected ? ink : SwanColors.textSecondary,
+                      w: FontWeight.w800,
+                    ),
+                  ),
                 ),
-                child: Text(labels[i],
-                    style: SwanType.caption(i == selected ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
               ),
             ),
-          ),
-      ]),
+        ],
+      ),
     );
   }
 }
@@ -125,26 +135,40 @@ class SwanPillTabs extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: active ? kTeal : line),
               ),
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Text(labels[i],
-                    style: SwanType.caption(active ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800)),
-                if (badge > 0) ...[
-                  const SizedBox(width: 7),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: active
-                          ? Colors.white.withValues(alpha: .25)
-                          : const Color(0xFFF43F5E),
-                      borderRadius: BorderRadius.circular(999),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    labels[i],
+                    style: SwanType.caption(
+                      active ? Colors.white : SwanColors.textSecondary,
+                      w: FontWeight.w800,
                     ),
-                    child: Text(badge > 9 ? '9+' : '$badge',
-                        style:
-                            SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
+                  if (badge > 0) ...[
+                    const SizedBox(width: 7),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1,
+                      ),
+                      decoration: BoxDecoration(
+                        color: active
+                            ? Colors.white.withValues(alpha: .25)
+                            : const Color(0xFFF43F5E),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        badge > 9 ? '9+' : '$badge',
+                        style: SwanType.caption(
+                          Colors.white,
+                          w: FontWeight.w800,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ]),
+              ),
             ),
           );
         },
