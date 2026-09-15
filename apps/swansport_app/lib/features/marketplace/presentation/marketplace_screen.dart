@@ -8,6 +8,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_chip.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Spor Malzemeleri Pazaryeri.
 ///
@@ -50,7 +51,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
             child: Column(children: [
-              _header(context, c),
+              _header(context),
               _searchBar(c),
               const SizedBox(height: SwanSpace.sm),
               _filters(c),
@@ -78,8 +79,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                               childAspectRatio: .72,
                             ),
                             itemCount: items.length,
-                            itemBuilder: (_, i) => _card(
-                                context, c, items[i],
+                            itemBuilder: (_, i) => _card(context, c, items[i],
                                 favorites.contains(items[i].id)),
                           ),
                         ),
@@ -95,42 +95,21 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
   // ------------------------------------------------------------- parçalar
 
-  Widget _header(BuildContext context, SwanPalette c) => Padding(
+  Widget _header(BuildContext context) => Padding(
         padding: const EdgeInsets.fromLTRB(
             SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
-        child: Row(children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                  color: c.surface,
-                  borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  border: Border.all(color: c.line)),
-              child: Icon(Icons.arrow_back_ios_new_rounded,
-                  size: 15, color: c.ink),
+        child: SwanPageHeader(
+          title: 'Pazaryeri',
+          subtitle: 'Sıfır ve ikinci el spor malzemeleri',
+          onBack: () => Navigator.maybePop(context),
+          actions: [
+            SwanHeaderAction(
+              icon: Icons.add_rounded,
+              tooltip: 'İlan ver',
+              onTap: () => Navigator.pushNamed(context, '/ilan-ver'),
             ),
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(child: Text('Pazaryeri', style: SwanType.h2(c.ink))),
-          GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/ilan-ver'),
-            child: Container(
-              height: 38,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                // Üstünde beyaz metin var: `accent` değil `accentFill`.
-                color: c.accentFill,
-                borderRadius: BorderRadius.circular(SwanRadius.sm),
-              ),
-              child: Text('İlan ver',
-                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
-            ),
-          ),
-        ]),
+          ],
+        ),
       );
 
   Widget _searchBar(SwanPalette c) => Padding(
@@ -152,8 +131,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 textInputAction: TextInputAction.search,
                 // Aramayı her harfte değil onaylayınca çalıştırıyoruz:
                 // her tuşta sunucuya gitmek hem yavaş hem gereksiz.
-                onSubmitted: (v) => setState(
-                    () => _filter = _filter.copyWith(query: v.trim())),
+                onSubmitted: (v) =>
+                    setState(() => _filter = _filter.copyWith(query: v.trim())),
                 decoration: InputDecoration(
                   isDense: true,
                   border: InputBorder.none,
@@ -233,8 +212,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             : 'Aramayı veya filtreleri değiştirip tekrar dene.',
       );
 
-  Widget _card(
-      BuildContext context, SwanPalette c, MarketItem it, bool isFav) {
+  Widget _card(BuildContext context, SwanPalette c, MarketItem it, bool isFav) {
     final svc = ref.read(marketplaceServiceProvider);
     return GestureDetector(
       onTap: () =>
@@ -268,8 +246,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                     padding: const EdgeInsets.symmetric(vertical: 4),
                     alignment: Alignment.center,
                     child: Text(it.status.label,
-                        style: SwanType.caption(Colors.white,
-                            w: FontWeight.w800)),
+                        style:
+                            SwanType.caption(Colors.white, w: FontWeight.w800)),
                   ),
                 ),
 

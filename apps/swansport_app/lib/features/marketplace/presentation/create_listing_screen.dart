@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_chip.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
 /// Pazaryeri ilanı oluşturma.
 ///
@@ -43,8 +44,17 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
   @override
   void dispose() {
-    for (final c in [_title, _body, _brand, _model, _size, _color, _price,
-                     _defect, _category]) {
+    for (final c in [
+      _title,
+      _body,
+      _brand,
+      _model,
+      _size,
+      _color,
+      _price,
+      _defect,
+      _category
+    ]) {
       c.dispose();
     }
     super.dispose();
@@ -53,7 +63,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final stores = ref.watch(myStoresProvider).valueOrNull ?? const <StoreRow>[];
+    final stores =
+        ref.watch(myStoresProvider).valueOrNull ?? const <StoreRow>[];
     final approved = stores.where((s) => s.isApproved).toList();
 
     return Scaffold(
@@ -63,7 +74,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              _header(c),
+              _header(),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
@@ -108,7 +119,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
                     _section(c, 'Açıklama'),
                     _field(c, _body, 'Açıklama',
-                        'Ürün hakkında bilmek istenecekler', lines: 4),
+                        'Ürün hakkında bilmek istenecekler',
+                        lines: 4),
 
                     const SizedBox(height: SwanSpace.lg),
                     // Görsel yükleme ayrı bir adım: ilan oluşturulmadan
@@ -139,26 +151,14 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
   // ------------------------------------------------------------- parçalar
 
-  Widget _header(SwanPalette c) => Padding(
+  Widget _header() => Padding(
         padding: const EdgeInsets.fromLTRB(
             SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
-        child: Row(children: [
-          GestureDetector(
-            onTap: () => Navigator.maybePop(context),
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                  color: c.surface,
-                  borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  border: Border.all(color: c.line)),
-              child: Icon(Icons.arrow_back_ios_new_rounded,
-                  size: 15, color: c.ink),
-            ),
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Text('İlan ver', style: SwanType.h2(c.ink)),
-        ]),
+        child: SwanPageHeader(
+          title: 'İlan ver',
+          subtitle: 'Ürün bilgilerini eksiksiz ve doğru gir',
+          onBack: () => Navigator.maybePop(context),
+        ),
       );
 
   Widget _sellerSection(SwanPalette c, List<StoreRow> approved) {
@@ -249,8 +249,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         child: Text(title, style: SwanType.h3(c.ink)),
       );
 
-  Widget _field(SwanPalette c, TextEditingController ctrl, String label,
-          String hint,
+  Widget _field(
+          SwanPalette c, TextEditingController ctrl, String label, String hint,
           {int lines = 1, TextInputType? keyboard}) =>
       Padding(
         padding: const EdgeInsets.only(bottom: SwanSpace.md),
@@ -315,7 +315,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
             title: _title.text,
             body: _body.text,
             storeId: _store?.id,
-            category: _category.text.trim().isEmpty ? null : _category.text.trim(),
+            category:
+                _category.text.trim().isEmpty ? null : _category.text.trim(),
             brand: _brand.text.trim().isEmpty ? null : _brand.text.trim(),
             model: _model.text.trim().isEmpty ? null : _model.text.trim(),
             size: _size.text.trim().isEmpty ? null : _size.text.trim(),
