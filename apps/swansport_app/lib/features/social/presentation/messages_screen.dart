@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
@@ -157,27 +159,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               ),
             ],
           ),
-          Row(
-            children: [
-              IconButton(
-                onPressed: () {},
-                icon: Icon(Icons.tune_rounded, size: 20, color: c.inkMuted),
-                style: IconButton.styleFrom(backgroundColor: c.surfaceAlt),
-                tooltip: 'Filtreler',
-              ),
-              const SizedBox(width: 6),
-              FilledButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/ara'),
-                icon: const Icon(Icons.edit_square, size: 16, color: Colors.black),
-                label: const Text('Yeni Sohbet'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: c.accent,
-                  foregroundColor: Colors.black,
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
-                ),
-              ),
-            ],
+          FilledButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/ara'),
+            icon: const Icon(Icons.edit_square, size: 16, color: Colors.black),
+            label: const Text('Yeni Sohbet'),
+            style: FilledButton.styleFrom(
+              backgroundColor: c.accent,
+              foregroundColor: Colors.black,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+            ),
           ),
         ],
       ),
@@ -680,7 +671,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final List<MessageRow> _pending = [];
   final Set<String> _marked = {};
   bool _perMessageMarkUnavailable = false;
-  bool _isPlayingAudio = false;
+  bool _isRecordingVoice = false;
+  int _recordSeconds = 0;
+  Timer? _recordTimer;
+  String? _playingVoiceId;
+  int _playbackSeconds = 0;
+  Timer? _playbackTimer;
 
   @override
   void initState() {
@@ -694,6 +690,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   void dispose() {
+    _recordTimer?.cancel();
+    _playbackTimer?.cancel();
     OpenChat.close(widget.otherId);
     _ctrl.dispose();
     _scroll.dispose();
@@ -776,6 +774,217 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     });
   }
 
+  void _startVoiceRecording() {
+    _recordTimer?.cancel();
+    setState(() {
+      _isRecordingVoice = true;
+      _recordSeconds = 0;
+    });
+    _recordTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _recordSeconds++);
+    });
+  }
+
+  void _cancelVoiceRecording() {
+    _recordTimer?.cancel();
+    setState(() {
+      _isRecordingVoice = false;
+      _recordSeconds = 0;
+    });
+  }
+
+  Future<void> _sendVoiceRecording() async {
+    final duration = _recordSeconds == 0 ? 1 : _recordSeconds;
+    _recordTimer?.cancel();
+    setState(() {
+      _isRecordingVoice = false;
+      _recordSeconds = 0;
+    });
+    final minStr = (duration ~/ 60).toString();
+    final secStr = (duration % 60).toString().padLeft(2, '0');
+    await _deliver('🎙️ Sesli Mesaj ($minStr:$secStr)');
+  }
+
+  void _toggleVoicePlayback(String messageId, int totalDurationSec) {
+    if (_playingVoiceId == messageId) {
+      _playbackTimer?.cancel();
+      setState(() {
+        _playingVoiceId = null;
+        _playbackSeconds = 0;
+      });
+      return;
+    }
+
+    _playbackTimer?.cancel();
+    setState(() {
+      _playingVoiceId = messageId;
+      _playbackSeconds = 0;
+    });
+
+    _playbackTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_playbackSeconds >= totalDurationSec) {
+        timer.cancel();
+        setState(() {
+          _playingVoiceId = null;
+          _playbackSeconds = 0;
+        });
+      } else {
+        setState(() => _playbackSeconds++);
+      }
+    });
+  }
+
+  Future<void> _showAttachmentSheet(BuildContext context, SwanPalette c) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.line,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Ekle veya Paylaş',
+                style: GoogleFonts.sora(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: c.ink,
+                ),
+              ),
+              const SizedBox(height: 14),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: c.accent.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(Icons.photo_library_rounded, color: c.accent),
+                ),
+                title: Text('Fotoğraf / Belge', style: SwanType.body(c.ink, w: FontWeight.w600)),
+                subtitle: Text('Görsel veya antrenman dokümanı seç', style: SwanType.caption(c.inkMuted)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  try {
+                    final f = await FilePicker.pickFile(type: FileType.any);
+                    if (f != null) {
+                      await _deliver('📎 [Ek: ${f.name}]');
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Dosya seçilemedi: $e')),
+                      );
+                    }
+                  }
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF6366F1).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.fitness_center_rounded, color: Color(0xFF6366F1)),
+                ),
+                title: Text('Antrenman Protokolü Paylaş', style: SwanType.body(c.ink, w: FontWeight.w600)),
+                subtitle: Text('Aktif set, tekrar ve hedef şablonu gönder', style: SwanType.caption(c.inkMuted)),
+                onTap: () {
+                  Navigator.pop(ctx);
+                  _showWorkoutProtocolPicker(context, c);
+                },
+              ),
+              ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.bolt_rounded, color: Color(0xFF10B981)),
+                ),
+                title: Text('Hazırbulunuşluk & RPE Paylaş', style: SwanType.body(c.ink, w: FontWeight.w600)),
+                subtitle: Text('Günlük toparlanma ve antrenman yükü özeti', style: SwanType.caption(c.inkMuted)),
+                onTap: () async {
+                  Navigator.pop(ctx);
+                  await _deliver('⚡ Günlük Hazırbulunuşluk: %92 • Hedef RPE: 8.0 • Toparlanma: Optimum');
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showWorkoutProtocolPicker(BuildContext context, SwanPalette c) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Protokol Seçin',
+                style: GoogleFonts.sora(fontSize: 16, fontWeight: FontWeight.w700, color: c.ink),
+              ),
+              const SizedBox(height: 12),
+              _protocolTile('A1 Kuvvet & Hipertrofi', '4 Set x 6-8 Tekrar • RPE 8.5 • 180s Dinlenme', ctx),
+              _protocolTile('Mobilite & Dinamik Esneme', '15 Dk Kalça & Omuz Aktivasyonu • RPE 5.0', ctx),
+              _protocolTile('Kondisyon & Laktat Eşiği', '6x400m Koşu • 90s Dinlenme • Zone 4', ctx),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _protocolTile(String title, String desc, BuildContext ctx) {
+    final c = ctx.swan;
+    return ListTile(
+      contentPadding: EdgeInsets.zero,
+      title: Text(title, style: SwanType.body(c.ink, w: FontWeight.w700)),
+      subtitle: Text(desc, style: SwanType.caption(c.inkMuted)),
+      trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: c.inkMuted),
+      onTap: () {
+        Navigator.pop(ctx);
+        _deliver('🏋️ Antrenman Protokolü: $title\n$desc');
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
@@ -798,18 +1007,49 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       _markVisible(list);
                       final all = [...list, ..._pending];
 
-                      return ListView(
+                      if (all.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(32),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 60,
+                                  height: 60,
+                                  decoration: BoxDecoration(
+                                    color: c.surfaceAlt,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.chat_bubble_outline_rounded, size: 28, color: c.accent),
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  'Henüz Mesaj Yok',
+                                  style: GoogleFonts.sora(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: c.ink,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  '${widget.otherName} ile antrenman veya program detaylarını konuşmaya başlayın.',
+                                  textAlign: TextAlign.center,
+                                  style: SwanType.bodySm(c.inkMuted),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.builder(
                         controller: _scroll,
                         reverse: true,
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                        children: [
-                          // Pending / dynamic messages
-                          for (int i = 0; i < all.length; i++)
-                            _bubble(c, all[all.length - 1 - i]),
-
-                          // Stitch Curated Message Stream Items for Coach Mert
-                          _buildStitchCoachConversation(c),
-                        ],
+                        itemCount: all.length,
+                        itemBuilder: (_, i) => _bubble(c, all[all.length - 1 - i]),
                       );
                     },
                   ),
@@ -850,10 +1090,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundImage: const NetworkImage(
-                      'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
+                    backgroundColor: c.accent.withValues(alpha: 0.15),
+                    child: Text(
+                      widget.otherName.isNotEmpty ? widget.otherName[0].toUpperCase() : '?',
+                      style: GoogleFonts.sora(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                        color: c.accent,
+                      ),
                     ),
-                    backgroundColor: c.surfaceAlt,
                   ),
                   Positioned(
                     bottom: 0,
@@ -897,7 +1142,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'Kuvvet Koçu • Çevrim İçi',
+                        'Sporcu Sohbeti • Çevrim İçi',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
@@ -942,283 +1187,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildStitchCoachConversation(SwanPalette c) {
-    return Column(
-      children: [
-        // Date divider
-        Center(
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 12),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-            decoration: BoxDecoration(
-              color: c.surfaceAlt,
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              'BUGÜN',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                color: c.inkMuted,
-                letterSpacing: 0.8,
-              ),
-            ),
-          ),
-        ),
 
-        // Message 1 from Coach
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 320),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomRight: Radius.circular(16),
-                bottomLeft: Radius.circular(4),
-              ),
-              border: Border.all(color: c.line),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Selam Emir! Dünkü 180kg deadlift form videonu inceledim. Bar hızın harikaydı, bel kilitlemen çok temizdi 🔥',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, height: 1.4, color: c.ink),
-                ),
-                const SizedBox(height: 4),
-                Align(
-                  alignment: Alignment.bottomRight,
-                  child: Text('10:42', style: SwanType.caption(c.inkMuted)),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // Workout Recommendation Card
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 340),
-            padding: const EdgeInsets.all(SwanSpace.md),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(SwanRadius.lg),
-              border: Border.all(color: c.accent.withValues(alpha: 0.4)),
-              boxShadow: [
-                BoxShadow(
-                  color: c.accent.withValues(alpha: 0.08),
-                  blurRadius: 12,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.fitness_center_rounded, size: 16, color: c.accent),
-                        const SizedBox(width: 6),
-                        Text(
-                          'ÖZEL ANTRENMAN PLANI',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w800,
-                            color: c.accent,
-                            letterSpacing: 0.8,
-                          ),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: c.surfaceAlt,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text('Yarın', style: SwanType.caption(c.inkMuted)),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'A2 Kuvvet & Mobilite',
-                  style: GoogleFonts.sora(fontSize: 15, fontWeight: FontWeight.w700, color: c.ink),
-                ),
-                Text(
-                  'Squat 5×5 @ 140kg • Bench 4×8 @ 100kg',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: c.inkMuted),
-                ),
-                const SizedBox(height: 10),
-
-                // Target summary grid
-                Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: c.surfaceAlt,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(Icons.timer_outlined, size: 16, color: c.accent),
-                            const SizedBox(width: 4),
-                            Text('65 Dakika', style: SwanType.caption(c.ink, w: FontWeight.w700)),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: c.surfaceAlt,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.local_fire_department_rounded, size: 16, color: Color(0xFFFFB6A4)),
-                            const SizedBox(width: 4),
-                            Text('RPE 8.5 Hedef', style: SwanType.caption(c.ink, w: FontWeight.w700)),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                FilledButton.icon(
-                  onPressed: () => Navigator.pushNamed(context, '/antrenman-oturumu'),
-                  icon: const Icon(Icons.arrow_forward_rounded, size: 16, color: Colors.black),
-                  label: Text(
-                    'Antrenmanı İncele',
-                    style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w800, color: Colors.black),
-                  ),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: c.accent,
-                    minimumSize: const Size(double.infinity, 38),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // User outgoing message
-        Align(
-          alignment: Alignment.centerRight,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 300),
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
-                bottomLeft: Radius.circular(16),
-                bottomRight: Radius.circular(4),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Teşekkürler hocam! Yarın squat seansında kemersiz denemeyi düşünüyorum, ne dersin?',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, height: 1.4, color: Colors.white, fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: const [
-                    Text('10:45', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                    SizedBox(width: 4),
-                    Icon(Icons.done_all_rounded, size: 14, color: Colors.white),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-
-        // Audio Message from Coach
-        Align(
-          alignment: Alignment.centerLeft,
-          child: Container(
-            constraints: const BoxConstraints(maxWidth: 300),
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-              border: Border.all(color: c.line),
-            ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  backgroundColor: c.accent,
-                  child: IconButton(
-                    onPressed: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
-                    icon: Icon(
-                      _isPlayingAudio ? Icons.pause_rounded : Icons.play_arrow_rounded,
-                      color: Colors.black,
-                      size: 20,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          for (int b = 0; b < 16; b++)
-                            Container(
-                              width: 3,
-                              height: 6.0 + ((b * 7) % 18),
-                              decoration: BoxDecoration(
-                                color: b < 7 ? c.accent : c.inkMuted.withValues(alpha: 0.4),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(_isPlayingAudio ? '0:14' : '0:00', style: SwanType.caption(c.inkMuted)),
-                          Text('0:24', style: SwanType.caption(c.inkMuted)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
-    );
-  }
 
   Widget _buildQuickActionChips(SwanPalette c) {
     return SingleChildScrollView(
@@ -1273,6 +1242,79 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _buildInputBar(SwanPalette c) {
+    if (_isRecordingVoice) {
+      final minStr = (_recordSeconds ~/ 60).toString();
+      final secStr = (_recordSeconds % 60).toString().padLeft(2, '0');
+      return Container(
+        padding: const EdgeInsets.fromLTRB(SwanSpace.md, 10, SwanSpace.md, 14),
+        decoration: BoxDecoration(
+          color: c.surface,
+          border: Border(top: BorderSide(color: c.line)),
+        ),
+        child: Row(
+          children: [
+            IconButton(
+              onPressed: _cancelVoiceRecording,
+              icon: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 22),
+              tooltip: 'İptal Et',
+            ),
+            const SizedBox(width: 6),
+            Container(
+              width: 10,
+              height: 10,
+              decoration: const BoxDecoration(
+                color: Colors.redAccent,
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '$minStr:$secStr',
+              style: GoogleFonts.sora(
+                fontSize: 14,
+                fontWeight: FontWeight.w700,
+                color: c.ink,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: SizedBox(
+                height: 24,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: List.generate(16, (i) {
+                    final h = 6.0 + ((i * 7 + _recordSeconds * 5) % 18);
+                    return Container(
+                      width: 3,
+                      height: h,
+                      decoration: BoxDecoration(
+                        color: c.accent.withValues(alpha: 0.8),
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            InkWell(
+              onTap: _sendVoiceRecording,
+              borderRadius: BorderRadius.circular(14),
+              child: Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [kTealBright, kTeal]),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(Icons.send_rounded, color: Colors.white, size: 18),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.fromLTRB(SwanSpace.md, 6, SwanSpace.md, 12),
       decoration: BoxDecoration(
@@ -1282,14 +1324,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: Row(
         children: [
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.add_photo_alternate_rounded, size: 20, color: c.inkMuted),
-            tooltip: 'Görsel ekle',
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.attachment_rounded, size: 20, color: c.inkMuted),
-            tooltip: 'Antrenman bağla',
+            onPressed: () => _showAttachmentSheet(context, c),
+            icon: Icon(Icons.add_circle_outline_rounded, size: 22, color: c.inkMuted),
+            tooltip: 'Medya veya antrenman ekle',
           ),
           Expanded(
             child: TextField(
@@ -1313,9 +1350,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           ),
           const SizedBox(width: 6),
           IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.mic_rounded, size: 20, color: c.inkMuted),
-            tooltip: 'Ses kaydet',
+            onPressed: _startVoiceRecording,
+            icon: Icon(Icons.mic_rounded, size: 22, color: c.accent),
+            tooltip: 'Sesli mesaj kaydet',
           ),
           InkWell(
             onTap: _send,
@@ -1336,6 +1373,26 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Widget _bubble(SwanPalette c, MessageRow m) {
+    final isVoice = m.body.startsWith('🎙️ Sesli Mesaj');
+
+    int durationSec = 8;
+    if (isVoice) {
+      final match = RegExp(r'\((\d+):(\d+)\)').firstMatch(m.body);
+      if (match != null) {
+        final min = int.tryParse(match.group(1) ?? '0') ?? 0;
+        final sec = int.tryParse(match.group(2) ?? '8') ?? 8;
+        durationSec = min * 60 + sec;
+        if (durationSec == 0) durationSec = 8;
+      }
+    }
+
+    final isPlaying = _playingVoiceId == m.id;
+    final currentSec = isPlaying ? _playbackSeconds : 0;
+    final curMinStr = (currentSec ~/ 60).toString();
+    final curSecStr = (currentSec % 60).toString().padLeft(2, '0');
+    final totMinStr = (durationSec ~/ 60).toString();
+    final totSecStr = (durationSec % 60).toString().padLeft(2, '0');
+
     return Align(
       alignment: m.isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
@@ -1364,11 +1421,67 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   id: m.sharedId!,
                   onDark: m.isMine,
                 ),
-              if (m.body.isNotEmpty)
+              if (isVoice) ...[
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    InkWell(
+                      onTap: () => _toggleVoicePlayback(m.id, durationSec),
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: m.isMine ? Colors.white.withValues(alpha: 0.2) : c.accent.withValues(alpha: 0.15),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                          color: m.isMine ? Colors.white : c.accent,
+                          size: 22,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          width: 130,
+                          height: 20,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: List.generate(14, (idx) {
+                              final active = isPlaying && ((idx / 14) <= (currentSec / durationSec));
+                              final h = 5.0 + ((idx * 6 + 3) % 15);
+                              return Container(
+                                width: 3,
+                                height: h,
+                                decoration: BoxDecoration(
+                                  color: m.isMine
+                                      ? (active ? Colors.white : Colors.white54)
+                                      : (active ? c.accent : c.inkMuted.withValues(alpha: 0.4)),
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                              );
+                            }),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          isPlaying ? '$curMinStr:$curSecStr / $totMinStr:$totSecStr' : '$totMinStr:$totSecStr • Sesli Mesaj',
+                          style: SwanType.caption(m.isMine ? Colors.white70 : c.inkMuted, w: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ] else if (m.body.isNotEmpty) ...[
                 Text(
                   m.body,
                   style: SwanType.bodySm(m.isMine ? Colors.white : c.ink).copyWith(height: 1.35),
                 ),
+              ],
               const SizedBox(height: 3),
               Row(
                 mainAxisSize: MainAxisSize.min,

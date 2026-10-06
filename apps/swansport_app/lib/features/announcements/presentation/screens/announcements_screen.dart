@@ -48,6 +48,42 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     super.dispose();
   }
 
+  void _openFilterDialog(BuildContext context, SwanPalette c) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Duyuru Filtresi',
+                style: GoogleFonts.sora(fontSize: 16, fontWeight: FontWeight.w700, color: c.ink),
+              ),
+              const SizedBox(height: 12),
+              for (final cat in _categories)
+                ListTile(
+                  leading: Icon(cat.icon, color: cat.iconColor ?? c.accent),
+                  title: Text(cat.label, style: SwanType.body(c.ink, w: FontWeight.w600)),
+                  trailing: _selectedCategory == cat.label ? Icon(Icons.check_circle_rounded, color: c.accent) : null,
+                  onTap: () {
+                    setState(() => _selectedCategory = cat.label);
+                    Navigator.pop(ctx);
+                  },
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
@@ -228,7 +264,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
             Row(
               children: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () => _openFilterDialog(context, c),
                   icon: Icon(Icons.filter_list_rounded, size: 20, color: c.inkMuted),
                   style: IconButton.styleFrom(
                     backgroundColor: c.surfaceAlt.withValues(alpha: 0.6),
@@ -239,7 +275,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                 Stack(
                   children: [
                     IconButton(
-                      onPressed: () {},
+                      onPressed: () => Navigator.pushNamed(context, '/bildirimler'),
                       icon: Icon(Icons.notifications_none_rounded, size: 20, color: c.inkMuted),
                       style: IconButton.styleFrom(
                         backgroundColor: c.surfaceAlt.withValues(alpha: 0.6),
@@ -1080,8 +1116,9 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                 ],
               ),
               IconButton(
-                onPressed: () {},
+                onPressed: () => Navigator.pushNamed(context, '/kulup-ayarlari'),
                 icon: Icon(Icons.tune_rounded, size: 18, color: c.inkMuted),
+                tooltip: 'Kanal Ayarları',
                 style: IconButton.styleFrom(backgroundColor: c.surfaceAlt),
               ),
             ],

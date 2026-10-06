@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -32,6 +33,76 @@ class _AthleteWorkspaceScreenState
 
   // Görev takip yerel durumu
   final Set<int> _completedTasks = {0};
+  String _tacticalNote =
+      '1. Bölge alan parselasyonu ve ön direk eşleşmeleri optimize edildi. Rakibin ters ayaklı kanat oyuncularının kornerlerinde kaleci 6 pas hakimiyet çizgisinde konumlanacak.';
+
+  void _editTacticalNote(BuildContext context, SwanPalette c) {
+    final ctrl = TextEditingController(text: _tacticalNote);
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: c.surface,
+        title: Text('Taktik Not Düzenle',
+            style: GoogleFonts.sora(
+                fontSize: 16, fontWeight: FontWeight.w700, color: c.ink)),
+        content: TextField(
+          controller: ctrl,
+          maxLines: 4,
+          style: SwanType.bodySm(c.ink),
+          decoration: InputDecoration(
+            hintText: 'Taktik veya antrenman notunuzu yazın...',
+            hintStyle: SwanType.bodySm(c.inkMuted),
+            border:
+                OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('Vazgeç', style: SwanType.caption(c.inkMuted)),
+          ),
+          FilledButton(
+            onPressed: () {
+              setState(() => _tacticalNote = ctrl.text.trim());
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Taktik notu kaydedildi.')),
+              );
+            },
+            style: FilledButton.styleFrom(
+                backgroundColor: c.accent, foregroundColor: Colors.black),
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _openStopwatch(BuildContext context, SwanPalette c) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => _StopwatchSheet(c: c),
+    );
+  }
+
+  void _triggerWhistle(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.sports, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Text('📣 Antrenman düdüğü çalındı — Tempo uyarısı verildi!'),
+          ],
+        ),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -208,8 +279,9 @@ class _AthleteWorkspaceScreenState
           ),
         ),
         IconButton(
-          onPressed: () {},
+          onPressed: () => Navigator.pushNamed(context, '/kulup-ayarlari'),
           icon: Icon(Icons.tune, color: c.inkMuted, size: 20),
+          tooltip: 'Kulüp Ayarları',
           style: IconButton.styleFrom(
             backgroundColor: c.surface,
             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
@@ -876,7 +948,7 @@ class _AthleteWorkspaceScreenState
                 ],
               ),
               TextButton.icon(
-                onPressed: () {},
+                onPressed: () => _editTacticalNote(context, c),
                 icon: Icon(Icons.edit, size: 14, color: c.inkMuted),
                 label: Text('Düzenle', style: SwanType.caption(c.inkMuted)),
               ),
@@ -918,7 +990,7 @@ class _AthleteWorkspaceScreenState
                 ),
                 const SizedBox(height: 6),
                 Text(
-                  '1. Bölge alan parselasyonu ve ön direk eşleşmeleri optimize edildi. Rakibin ters ayaklı kanat oyuncularının kornerlerinde kaleci 6 pas hakimiyet çizgisinde konumlanacak.',
+                  _tacticalNote,
                   style: SwanType.caption(c.inkMuted),
                 ),
                 const SizedBox(height: 8),
@@ -975,7 +1047,7 @@ class _AthleteWorkspaceScreenState
                 iconColor: c.accent,
                 title: 'Kronometre',
                 subtitle: 'Tur sayacı',
-                onTap: () {},
+                onTap: () => _openStopwatch(context, c),
               ),
             ),
             const SizedBox(width: 8),
@@ -986,7 +1058,7 @@ class _AthleteWorkspaceScreenState
                 iconColor: const Color(0xFFFFB6A4),
                 title: 'Düdük & Sinyal',
                 subtitle: 'Tempo uyarısı',
-                onTap: () {},
+                onTap: () => _triggerWhistle(context),
               ),
             ),
           ],
@@ -1001,7 +1073,7 @@ class _AthleteWorkspaceScreenState
                 iconColor: c.accent,
                 title: 'Taktik Tahtası',
                 subtitle: '2D çizim',
-                onTap: () {},
+                onTap: () => Navigator.pushNamed(context, '/antrenman-oturumu'),
               ),
             ),
             const SizedBox(width: 8),
@@ -1012,7 +1084,7 @@ class _AthleteWorkspaceScreenState
                 iconColor: c.inkMuted,
                 title: 'Hızlı Not Al',
                 subtitle: 'Sesli / metin',
-                onTap: () {},
+                onTap: () => _editTacticalNote(context, c),
               ),
             ),
           ],
@@ -1491,4 +1563,130 @@ class _DialogField {
   const _DialogField(this.label, this.controller);
   final String label;
   final TextEditingController controller;
+}
+
+class _StopwatchSheet extends StatefulWidget {
+  const _StopwatchSheet({required this.c});
+
+  final SwanPalette c;
+
+  @override
+  State<_StopwatchSheet> createState() => _StopwatchSheetState();
+}
+
+class _StopwatchSheetState extends State<_StopwatchSheet> {
+  Timer? _timer;
+  int _milliseconds = 0;
+  bool _isRunning = false;
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _toggle() {
+    if (_isRunning) {
+      _timer?.cancel();
+      setState(() => _isRunning = false);
+    } else {
+      setState(() => _isRunning = true);
+      _timer = Timer.periodic(const Duration(milliseconds: 100), (_) {
+        if (!mounted) return;
+        setState(() => _milliseconds += 100);
+      });
+    }
+  }
+
+  void _reset() {
+    _timer?.cancel();
+    setState(() {
+      _isRunning = false;
+      _milliseconds = 0;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final c = widget.c;
+    final totalSec = _milliseconds ~/ 1000;
+    final min = (totalSec ~/ 60).toString().padLeft(2, '0');
+    final sec = (totalSec % 60).toString().padLeft(2, '0');
+    final ms = ((_milliseconds % 1000) ~/ 100).toString();
+
+    return SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: c.line,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Saha Kronometresi',
+              style: GoogleFonts.sora(
+                  fontSize: 18, fontWeight: FontWeight.w700, color: c.ink),
+            ),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              decoration: BoxDecoration(
+                color: c.surfaceAlt,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: c.line),
+              ),
+              child: Text(
+                '$min:$sec.$ms',
+                style: GoogleFonts.sora(
+                  fontSize: 44,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 2,
+                  color: c.accent,
+                ),
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: _reset,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Sıfırla'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: c.ink,
+                    side: BorderSide(color: c.line),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 20, vertical: 12),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                FilledButton.icon(
+                  onPressed: _toggle,
+                  icon: Icon(
+                      _isRunning ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                      size: 20),
+                  label: Text(_isRunning ? 'Durdur' : 'Başlat'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: c.accent,
+                    foregroundColor: Colors.black,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 28, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
 }

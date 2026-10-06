@@ -378,6 +378,168 @@ class StitchStoriesBar extends ConsumerWidget {
 
 
 
+void _showStitchPostOptions(BuildContext context, SwanPalette c, {required String author}) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: c.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: c.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            ListTile(
+              leading: Icon(Icons.share_rounded, color: c.ink),
+              title: Text('Gönderiyi Paylaş', style: SwanType.body(c.ink, w: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Paylaşım bağlantısı panoya kopyalandı!')),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.bookmark_add_outlined, color: c.ink),
+              title: Text('Kaydet & Favorilere Ekle', style: SwanType.body(c.ink, w: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Gönderi koleksiyonunuza kaydedildi.')),
+                );
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.person_add_alt_1_rounded, color: c.accent),
+              title: Text('$author Profili', style: SwanType.body(c.ink, w: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                Navigator.pushNamed(context, '/kesfet');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.flag_outlined, color: Colors.redAccent),
+              title: const Text('Bildir', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
+              onTap: () {
+                Navigator.pop(ctx);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Bildiriminiz incelenmek üzere alındı.')),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+void _showStitchCommentsSheet(BuildContext context, SwanPalette c) {
+  showModalBottomSheet<void>(
+    context: context,
+    backgroundColor: c.surface,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (ctx) => SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: SizedBox(
+          height: 380,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.line,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Yorumlar',
+                style: GoogleFonts.sora(fontSize: 16, fontWeight: FontWeight.w700, color: c.ink),
+              ),
+              const SizedBox(height: 12),
+              Expanded(
+                child: ListView(
+                  children: [
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: c.accent.withValues(alpha: 0.2),
+                        child: Text('M', style: TextStyle(color: c.accent, fontWeight: FontWeight.bold)),
+                      ),
+                      title: Text('Mert Koç', style: SwanType.caption(c.ink, w: FontWeight.w700)),
+                      subtitle: Text('Harika tempo, form çok temiz! 🔥', style: SwanType.bodySm(c.inkMuted)),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                        child: const Text('E', style: TextStyle(color: Color(0xFF6366F1), fontWeight: FontWeight.bold)),
+                      ),
+                      title: Text('Emre Sporcu', style: SwanType.caption(c.ink, w: FontWeight.w700)),
+                      subtitle: Text('Haftalık PR gelmiş, tebrikler!', style: SwanType.bodySm(c.inkMuted)),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Yorum yaz...',
+                    hintStyle: SwanType.bodySm(c.inkMuted),
+                    filled: true,
+                    fillColor: c.surfaceAlt,
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.send_rounded, color: c.accent),
+                      onPressed: () {
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Yorumunuz gönderildi!')),
+                        );
+                      },
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    ),
+  );
+}
+
 /// Google Stitch: Post 1 - Athletic Workout Session Post
 class StitchWorkoutPostCard extends StatefulWidget {
   const StitchWorkoutPostCard({super.key});
@@ -460,7 +622,7 @@ class _StitchWorkoutPostCardState extends State<StitchWorkoutPostCard> {
                 ),
                 IconButton(
                   icon: Icon(Icons.more_horiz_rounded, color: c.inkMuted),
-                  onPressed: () {},
+                  onPressed: () => _showStitchPostOptions(context, c, author: '@caner.fit'),
                 ),
               ],
             ),
@@ -568,11 +730,15 @@ class _StitchWorkoutPostCardState extends State<StitchWorkoutPostCard> {
                 IconButton(
                   icon: Icon(Icons.chat_bubble_outline_rounded,
                       color: c.ink, size: 24),
-                  onPressed: () {},
+                  onPressed: () => _showStitchCommentsSheet(context, c),
                 ),
                 IconButton(
                   icon: Icon(Icons.send_rounded, color: c.ink, size: 23),
-                  onPressed: () {},
+                  onPressed: () {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Paylaşım bağlantısı panoya kopyalandı!')),
+                    );
+                  },
                 ),
                 const Spacer(),
                 IconButton(
@@ -948,7 +1114,10 @@ class StitchTransformationPostCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                IconButton(icon: Icon(Icons.more_horiz_rounded, color: c.inkMuted), onPressed: () {}),
+                IconButton(
+                  icon: Icon(Icons.more_horiz_rounded, color: c.inkMuted),
+                  onPressed: () => _showStitchPostOptions(context, c, author: 'Selin Kaya'),
+                ),
               ],
             ),
           ),
