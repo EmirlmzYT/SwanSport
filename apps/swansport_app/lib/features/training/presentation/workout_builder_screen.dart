@@ -37,7 +37,7 @@ class _WorkoutProtocolBuilderScreenState
     _exercises = [
       _ExerciseItem(
         id: '1',
-        title: 'Barbell Incline Bench Press',
+        title: 'Eğimli Halter Pres (Incline Bench)',
         restSeconds: 90,
         targetRpe: 'RPE 8.0',
         sets: [
@@ -55,10 +55,10 @@ class _WorkoutProtocolBuilderScreenState
       ),
       _ExerciseItem(
         id: '2',
-        title: 'Dumbbell Lateral Raise',
+        title: 'Dambıl Yana Açış (Lateral Raise)',
         restSeconds: 60,
         targetRpe: 'RPE 8.5',
-        supersetName: 'Face Pull (Kablo)',
+        supersetName: 'Kablo Yüze Çekiş (Face Pull)',
         sets: [
           _SetItem(setNum: 1, loadKg: 14, reps: '15', isCompleted: true),
           _SetItem(setNum: 2, loadKg: 14, reps: '15', isCompleted: true),
@@ -67,7 +67,7 @@ class _WorkoutProtocolBuilderScreenState
       ),
       _ExerciseItem(
         id: '3',
-        title: 'Kablo Triceps Pushdown',
+        title: 'Kablo Arka Kol İtiş (Triceps Pushdown)',
         restSeconds: 60,
         targetRpe: 'RPE 8.0',
         sets: [

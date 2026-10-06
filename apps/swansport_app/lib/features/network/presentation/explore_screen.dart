@@ -457,7 +457,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               borderRadius: BorderRadius.circular(10),
                             ),
                             child: Text(
-                              'BENTO GRID',
+                              'KEŞİF IZGARASI',
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w800,
@@ -584,7 +584,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         size: 13, color: kTeal),
                     const SizedBox(width: 3),
                     Text(
-                      'TREND',
+                      'GÜNCEL',
                       style: GoogleFonts.plusJakartaSans(
                         color: kTeal,
                         fontSize: 10,
@@ -620,7 +620,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           ),
           const SizedBox(height: 12),
           Text(
-            '30 Günlük Swan Push-Up',
+            '30 Günlük Swan Şınav Meydan Okuması',
             style: GoogleFonts.sora(
               color: textPrimary,
               fontSize: 18,
@@ -855,7 +855,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               ),
                             ),
                             Text(
-                              'Bench Press',
+                              'Göğüs Pres (Bench Press)',
                               style: GoogleFonts.plusJakartaSans(
                                   color: textMuted, fontSize: 10),
                             ),
@@ -980,14 +980,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Muscle-Up',
+                          'Barfiks & Çekiş (Muscle-Up)',
                           style: GoogleFonts.sora(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: textPrimary),
                         ),
                         Text(
-                          'Calisthenics',
+                          'Vücut Ağırlığı (Kalistenik)',
                           style: GoogleFonts.plusJakartaSans(
                               fontSize: 10, color: textMuted),
                         ),
@@ -1017,14 +1017,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '20/10 HIIT',
+                          '20/10 HIIT Kardiyo',
                           style: GoogleFonts.sora(
                               fontSize: 12,
                               fontWeight: FontWeight.w700,
                               color: textPrimary),
                         ),
                         Text(
-                          'Tabata KB',
+                          'Tabata Girya (KB)',
                           style: GoogleFonts.plusJakartaSans(
                               fontSize: 10, color: textMuted),
                         ),
@@ -1094,7 +1094,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  'Tek Bacak Pistol Squat',
+                  'Tek Bacak Çömelme (Pistol Squat)',
                   style: GoogleFonts.sora(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,

@@ -92,8 +92,11 @@ import '../features/teams/presentation/screens/team_roster_screen.dart';
 import 'config/app_environment.dart';
 import 'app_navigator.dart';
 import 'update/update_gate.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'widgets/page_transitions.dart';
 import 'theme/theme_mode_controller.dart';
+import 'l10n/app_locale.dart';
+import 'l10n/swan_localizations.dart';
 
 class SwanSportApp extends ConsumerWidget {
   const SwanSportApp({super.key});
@@ -122,6 +125,14 @@ class SwanSportApp extends ConsumerWidget {
       // telefonun ayarını izliyordu; varsayılanı değiştirmek hiçbir tercih
       // yapmamış herkesin temasını bir güncellemede değiştirirdi.
       themeMode: ref.watch(themeModeProvider),
+      locale: ref.watch(appLocaleProvider).locale,
+      supportedLocales: AppLanguage.supportedLocales,
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        SwanLocalizations.delegate,
+      ],
       builder: (context, child) =>
           AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: '/',

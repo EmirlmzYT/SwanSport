@@ -8,6 +8,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/push/push.dart';
 import '../../../../app/push/push_service.dart';
+import '../../../../app/l10n/app_locale.dart';
 import '../../../../app/theme/theme_mode_controller.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
@@ -793,6 +794,102 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                                             color:
                                                 ref.watch(themeModeProvider) ==
                                                         m
+                                                    ? kTeal
+                                                    : textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildDivider(borderCol),
+                    // Uygulama Dili / Language
+                    Padding(
+                      padding: const EdgeInsets.all(14),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: surfHigh,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Icon(Icons.language_rounded,
+                                    color: kTeal, size: 20),
+                              ),
+                              const SizedBox(width: 14),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Uygulama Dili / Language',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: textPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Türkçe ve uluslararası çoklu dil altyapısı',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 12,
+                                        color: textMuted,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              for (final lang in AppLanguage.values)
+                                Expanded(
+                                  child: GestureDetector(
+                                    onTap: () => ref
+                                        .read(appLocaleProvider.notifier)
+                                        .setLanguage(lang),
+                                    child: Container(
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 3),
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 8),
+                                      decoration: BoxDecoration(
+                                        color: ref.watch(appLocaleProvider) ==
+                                                lang
+                                            ? kTeal.withValues(alpha: 0.15)
+                                            : (isDark
+                                                ? const Color(0xFF0F1C2D)
+                                                : SwanPalette.light.bg),
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color:
+                                              ref.watch(appLocaleProvider) ==
+                                                      lang
+                                                  ? kTeal
+                                                  : Colors.transparent,
+                                        ),
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '${lang.flag} ${lang.title}',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w700,
+                                            color:
+                                                ref.watch(appLocaleProvider) ==
+                                                        lang
                                                     ? kTeal
                                                     : textMuted,
                                           ),
