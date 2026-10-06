@@ -1,547 +1,644 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_page_header.dart';
 
-/// Kapanan Dönem Kilidi ve Düzeltici Ters İşlem Ekranı.
+/// Kapanmış dönem ters işlem ve mali düzeltme yönetim ekranı.
 ///
-/// AGENTS.md Sözleşmesi:
-/// "Kapanmış dönem tetikleyiciyle kilitli (`block_closed_period`). Düzeltme
-/// geçmişe dokunmuyor, bugüne ters kayıt yazıyor."
-///
-/// Stitch "kapanan_d_nem_ve_ters_i_lem" tasarımını tam uygular:
-/// - Mali Mühür Aktif (Dönem #2025-03, Kapanış & Sayman İmzası)
-/// - Bekleyen Ters İşlem Kartı (Mükerrer Aidat Çekimi, ₺1.200,00, Kart Sonu •••• 4021)
-/// - İnteraktif Reddet / İadeyi Onayla aksiyonları ve onay durum bildirimi
-/// - Son Mutabakat & İade Kayıtları listesi
-/// - Denetim & Güvenlik prosedür uyarısı
+/// Kapanmış mali dönemlerdeki kayıtlar silinemez veya geriye dönük
+/// değiştirilemez. Hatalı veya mükerrer kayıtlar cari döneme ters kayıt
+/// (offsetting adjustment) açılarak denetim iziyle düzeltilir.
 class ClosedPeriodReversalScreen extends ConsumerStatefulWidget {
   const ClosedPeriodReversalScreen({super.key});
 
   @override
-  ConsumerState<ClosedPeriodReversalScreen> createState() => _ClosedPeriodReversalScreenState();
+  ConsumerState<ClosedPeriodReversalScreen> createState() =>
+      _ClosedPeriodReversalScreenState();
 }
 
-class _ClosedPeriodReversalScreenState extends ConsumerState<ClosedPeriodReversalScreen> {
-  String? _statusFeedback;
-  bool _isApproved = false;
-  bool _isProcessing = false;
+class _ClosedPeriodReversalScreenState
+    extends ConsumerState<ClosedPeriodReversalScreen> {
+  String _statusFilter = 'all';
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    final adjustmentsAsync = ref.watch(financeAdjustmentsProvider);
+
+    return Scaffold(
+      extendBody: true,
+      backgroundColor: c.bg,
+      bottomNavigationBar: const SwanBottomNav(),
+      floatingActionButton: Padding(
+        padding: const EdgeInsets.only(bottom: 70),
+        child: FloatingActionButton.extended(
+          backgroundColor: c.accent,
+          foregroundColor: const Color(0xFF0D141F),
+          icon: const Icon(Icons.add_rounded),
+          label: Text(
+            'Yeni Ters İşlem',
+            style: SwanType.caption(const Color(0xFF0D141F)),
+          ),
+          onPressed: () => _showNewAdjustmentSheet(context),
+        ),
+      ),
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(financeAdjustmentsProvider);
+          },
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(
+              SwanSpace.lg,
+              SwanSpace.md,
+              SwanSpace.lg,
+              120,
+            ),
+            children: [
+              SwanPageHeader(
+                title: 'Ters İşlem ve Düzeltme',
+                subtitle: 'Kapanmış dönem denetim düzeltmeleri',
+                onBack: () => Navigator.maybePop(context),
+              ),
+              const SizedBox(height: SwanSpace.md),
+              _buildExplanationCard(c),
+              const SizedBox(height: SwanSpace.md),
+              _buildFilterTabs(c),
+              const SizedBox(height: SwanSpace.md),
+              adjustmentsAsync.when(
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(40),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (err, _) => Container(
+                  padding: const EdgeInsets.all(SwanSpace.md),
+                  decoration: BoxDecoration(
+                    color: c.surface,
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                    border: Border.all(color: c.danger.withValues(alpha: 0.3)),
+                  ),
+                  child: Text(
+                    'Kayıtlar yüklenirken hata oluştu: $err',
+                    style: SwanType.caption(c.danger),
+                  ),
+                ),
+                data: (list) {
+                  final filtered = list.where((a) {
+                    if (_statusFilter == 'all') return true;
+                    return a.status == _statusFilter;
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return _buildEmptyState(c);
+                  }
+
+                  return ListView.separated(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: filtered.length,
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(height: SwanSpace.sm),
+                    itemBuilder: (context, i) =>
+                        _buildAdjustmentCard(filtered[i], c),
+                  );
+                },
+              ),
+              const SizedBox(height: SwanSpace.xl),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildExplanationCard(SwanPalette c) {
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.shield_outlined, color: c.accent, size: 22),
+          const SizedBox(width: SwanSpace.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Mali Kilit ve Denetim Güvencesi',
+                  style: SwanType.h3(c.ink),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Kapanmış mali dönem kayıtları doğrudan silinemez veya geriye dönük değiştirilemez. Hatalı işlemler cari döneme ters kayıt açılarak yönetici onayıyla uygulanır.',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFilterTabs(SwanPalette c) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          _filterChip('all', 'Tümü', c),
+          const SizedBox(width: SwanSpace.xs),
+          _filterChip('pending', 'Beklemede', c),
+          const SizedBox(width: SwanSpace.xs),
+          _filterChip('approved', 'Onaylandı', c),
+          const SizedBox(width: SwanSpace.xs),
+          _filterChip('rejected', 'Reddedildi', c),
+        ],
+      ),
+    );
+  }
+
+  Widget _filterChip(String key, String label, SwanPalette c) {
+    final active = _statusFilter == key;
+    return ChoiceChip(
+      label: Text(label),
+      selected: active,
+      onSelected: (_) => setState(() => _statusFilter = key),
+      selectedColor: c.accent.withValues(alpha: 0.2),
+      backgroundColor: c.surface,
+      labelStyle: TextStyle(
+        color: active ? c.accent : c.inkMuted,
+        fontWeight: active ? FontWeight.bold : FontWeight.normal,
+      ),
+      side: BorderSide(
+        color: active ? c.accent : c.line,
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(SwanPalette c) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40),
+        child: Column(
+          children: [
+            Icon(
+              Icons.receipt_long_outlined,
+              size: 48,
+              color: c.inkMuted,
+            ),
+            const SizedBox(height: SwanSpace.sm),
+            Text(
+              'Düzeltme kaydı bulunamadı',
+              style: SwanType.h3(c.ink),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Gerektiğinde yeni bir ters işlem başlatabilirsiniz.',
+              style: SwanType.caption(c.inkMuted),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdjustmentCard(FinanceAdjustment adj, SwanPalette c) {
+    final (statusColor, statusBg) = switch (adj.status) {
+      'approved' => (
+          c.success,
+          c.success.withValues(alpha: 0.1),
+        ),
+      'rejected' => (
+          c.danger,
+          c.danger.withValues(alpha: 0.1),
+        ),
+      _ => (
+          c.accent,
+          c.accent.withValues(alpha: 0.1),
+        ),
+    };
+
+    final isNegative = adj.amount < 0;
+    final amountSign = isNegative ? '-' : '+';
+    final absAmount = adj.amount.abs();
+
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: c.bg,
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                ),
+                child: Text(
+                  adj.targetKindLabel,
+                  style: SwanType.caption(c.ink),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: statusBg,
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                ),
+                child: Text(
+                  adj.statusLabel,
+                  style: TextStyle(
+                    color: statusColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.sm),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  adj.reason,
+                  style: SwanType.body(c.ink),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.sm),
+              Text(
+                '$amountSign₺${absAmount.toStringAsFixed(2)}',
+                style: TextStyle(
+                  color: isNegative ? c.danger : c.success,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.xs),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Tarih: ${adj.createdAt.day.toString().padLeft(2, '0')}.${adj.createdAt.month.toString().padLeft(2, '0')}.${adj.createdAt.year}',
+                style: SwanType.caption(c.inkMuted),
+              ),
+              if (adj.approvedAt != null)
+                Text(
+                  'Onay: ${adj.approvedAt!.day.toString().padLeft(2, '0')}.${adj.approvedAt!.month.toString().padLeft(2, '0')}.${adj.approvedAt!.year}',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+            ],
+          ),
+          if (adj.status == 'pending') ...[
+            Divider(height: 20, color: c.line),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  icon: const Icon(Icons.close, size: 16),
+                  label: const Text('Reddet'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: c.danger,
+                    side: BorderSide(color: c.danger),
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: () => _handleApproval(adj.id, false),
+                ),
+                const SizedBox(width: SwanSpace.xs),
+                FilledButton.icon(
+                  icon: const Icon(Icons.check, size: 16),
+                  label: const Text('Onayla'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: c.success,
+                    foregroundColor: Colors.white,
+                    visualDensity: VisualDensity.compact,
+                  ),
+                  onPressed: () => _handleApproval(adj.id, true),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleApproval(String adjustmentId, bool approve) async {
+    final action = approve ? 'onaylamak' : 'reddetmek';
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(approve ? 'Düzeltmeyi Onayla' : 'Düzeltmeyi Reddet'),
+        content: Text(
+          'Bu ters kayıt işlemini $action istediğinizden emin misiniz?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(approve ? 'Onayla' : 'Reddet'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      await ref.read(financeOpsServiceProvider).approveAdjustment(
+            adjustmentId: adjustmentId,
+            approve: approve,
+          );
+      ref.invalidate(financeAdjustmentsProvider);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              approve ? 'Düzeltme onaylandı.' : 'Düzeltme reddedildi.',
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('İşlem başarısız: $e')),
+        );
+      }
+    }
+  }
+
+  void _showNewAdjustmentSheet(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _NewAdjustmentModal(
+        onSaved: () {
+          ref.invalidate(financeAdjustmentsProvider);
+        },
+      ),
+    );
+  }
+}
+
+class _NewAdjustmentModal extends ConsumerStatefulWidget {
+  const _NewAdjustmentModal({required this.onSaved});
+  final VoidCallback onSaved;
+
+  @override
+  ConsumerState<_NewAdjustmentModal> createState() =>
+      _NewAdjustmentModalState();
+}
+
+class _NewAdjustmentModalState extends ConsumerState<_NewAdjustmentModal> {
+  final _formKey = GlobalKey<FormState>();
+  final _amountCtrl = TextEditingController();
+  final _reasonCtrl = TextEditingController();
+  String _targetKind = 'expense';
+  bool _isReversal = true;
+  bool _submitting = false;
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
 
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: c.bg,
-      body: SafeArea(
-        bottom: false,
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                SwanSpace.md,
-                SwanSpace.sm,
-                SwanSpace.md,
-                110,
-              ),
-              children: [
-                _buildHeader(c),
-                const SizedBox(height: SwanSpace.md),
-
-                // 1. Closed Period Seal Banner
-                _buildSealBanner(c),
-                const SizedBox(height: SwanSpace.md),
-
-                // 2. Pending Reversal Transaction Header
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            color: c.danger,
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        const SizedBox(width: SwanSpace.xs),
-                        Text(
-                          'Bekleyen Ters İşlem',
-                          style: SwanType.h3(c.ink),
-                        ),
-                      ],
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                      decoration: BoxDecoration(
-                        color: c.danger.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        _statusFeedback != null ? '0 Bekleyen' : '1 Onay Bekliyor',
-                        style: SwanType.caption(c.danger, w: FontWeight.w700),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.sm),
-
-                // 3. Reversal Detail Card
-                _buildReversalCard(c),
-                const SizedBox(height: SwanSpace.md),
-
-                // 4. Recent Settlement & Reversal Audit Log
-                _buildSettlementLogSection(c),
-                const SizedBox(height: SwanSpace.md),
-
-                // 5. Security & Audit Policy Box
-                _buildPolicyNotice(c),
-              ],
-            ),
-          ),
-        ),
+    return Padding(
+      padding: EdgeInsets.only(
+        bottom: MediaQuery.of(context).viewInsets.bottom,
       ),
-      bottomNavigationBar: const SwanBottomNav(),
-    );
-  }
-
-  Widget _buildHeader(SwanPalette c) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.maybePop(context),
-          icon: Icon(Icons.arrow_back_ios_new_rounded, size: 20, color: c.ink),
-          tooltip: 'Geri',
+      child: Container(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        const SizedBox(width: SwanSpace.xs),
-        Expanded(
+        child: Form(
+          key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'SWANSPORT • FİNANS',
-                style: SwanType.caption(c.accent, w: FontWeight.w700),
-              ),
-              Text(
-                'Dönem Kilidi & Ters İşlem',
-                style: SwanType.h2(c.ink),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          tooltip: 'Bildirimler',
-          icon: Icon(Icons.notifications_none_rounded, color: c.ink),
-          onPressed: () => Navigator.pushNamed(context, '/bildirimler'),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSealBanner(SwanPalette c) {
-    return Container(
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surfaceAlt,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.accent.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    width: 32,
-                    height: 32,
-                    decoration: BoxDecoration(
-                      color: c.accent.withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(Icons.lock_rounded, size: 18, color: c.accent),
+                  Text(
+                    'Yeni Ters Kayıt / Düzeltme',
+                    style: SwanType.h3(c.ink),
                   ),
-                  const SizedBox(width: SwanSpace.sm),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: c.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            'MALİ MÜHÜR AKTİF',
-                            style: SwanType.caption(c.accent, w: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                      Text('Mart 2025 Kapatıldı', style: SwanType.h3(c.ink)),
-                    ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: c.surface,
-                  borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  border: Border.all(color: c.line),
-                ),
-                child: Text('Dönem #2025-03', style: SwanType.caption(c.inkMuted, w: FontWeight.w600)),
-              ),
-            ],
-          ),
-          const SizedBox(height: SwanSpace.md),
-          Container(
-            padding: const EdgeInsets.all(SwanSpace.sm),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Kapanış & Mühür Tarihi', style: SwanType.caption(c.inkMuted)),
-                      const SizedBox(height: 2),
-                      Text('31 Mart 2025 • 23:59', style: SwanType.bodySm(c.ink, w: FontWeight.w600)),
-                    ],
+              const SizedBox(height: SwanSpace.sm),
+              DropdownButtonFormField<String>(
+                initialValue: _targetKind,
+                decoration: InputDecoration(
+                  labelText: 'İşlem Türü',
+                  filled: true,
+                  fillColor: c.bg,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Mali Sayman İmzası', style: SwanType.caption(c.inkMuted)),
-                      const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Icon(Icons.draw_rounded, size: 15, color: c.accent),
-                          const SizedBox(width: 4),
-                          Text('Zeynep B.', style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                        ],
-                      ),
-                    ],
+                dropdownColor: c.surface,
+                items: const [
+                  DropdownMenuItem(
+                    value: 'expense',
+                    child: Text('Gider Ters Kaydı (İade / İptal)'),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: SwanSpace.sm),
-          Row(
-            children: [
-              Icon(Icons.verified_user_outlined, size: 15, color: c.accent),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  'Defteri kebir & mutabakat kayıtları bloklandı. Geçmişe dönük satır silinemez.',
-                  style: SwanType.caption(c.inkMuted),
-                ),
+                  DropdownMenuItem(
+                    value: 'payment',
+                    child: Text('Ödeme / Aidat Düzeltmesi'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'invoice',
+                    child: Text('Fatura Düzeltmesi'),
+                  ),
+                  DropdownMenuItem(
+                    value: 'donation',
+                    child: Text('Bağış Kaydı Düzeltmesi'),
+                  ),
+                ],
+                onChanged: (val) {
+                  if (val != null) setState(() => _targetKind = val);
+                },
               ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildReversalCard(SwanPalette c) {
-    return Container(
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
+              const SizedBox(height: SwanSpace.sm),
               Row(
                 children: [
-                  Container(
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      color: c.surfaceAlt,
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
-                    ),
-                    child: Icon(Icons.swap_horizontal_circle_outlined, size: 20, color: c.ink),
-                  ),
-                  const SizedBox(width: SwanSpace.sm),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.error_outline_rounded, size: 13, color: c.danger),
-                          const SizedBox(width: 3),
-                          Text('Mükerrer Tahsilat Tespiti', style: SwanType.caption(c.danger, w: FontWeight.w600)),
-                        ],
+                  Expanded(
+                    child: ChoiceChip(
+                      label: const Center(child: Text('Ters Kayıt (Eksi)')),
+                      selected: _isReversal,
+                      onSelected: (val) => setState(() => _isReversal = true),
+                      selectedColor: c.accent.withValues(alpha: 0.2),
+                      side: BorderSide(
+                        color: _isReversal ? c.accent : c.line,
                       ),
-                      Text('Mükerrer Aidat Çekimi', style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('₺1.200,00', style: SwanType.h2(c.ink)),
-                  Text('02 Nisan 2025', style: SwanType.caption(c.inkMuted)),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: SwanSpace.md),
-          Container(
-            padding: const EdgeInsets.all(SwanSpace.sm),
-            decoration: BoxDecoration(
-              color: c.surfaceAlt,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Ödeme Metodu', style: SwanType.caption(c.inkMuted)),
-                    Row(
-                      children: [
-                        Icon(Icons.credit_card_rounded, size: 14, color: c.ink),
-                        const SizedBox(width: 4),
-                        Text('Kart Sonu •••• 4021', style: SwanType.caption(c.ink, w: FontWeight.w600)),
-                      ],
                     ),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.xs),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Banka İade Ref.', style: SwanType.caption(c.inkMuted)),
-                    Text('#REV-9024', style: SwanType.caption(c.accent, w: FontWeight.w700)),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.xs),
-                Divider(color: c.line, height: 1),
-                const SizedBox(height: SwanSpace.xs),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Talep Açıklaması:\n"Veli otomatik talimat verirken aynı zamanda EFT ile manuel ödeme gerçekleştirdi. Sistem ikinci kaydı mükerrer olarak işaretledi."',
-                    style: SwanType.caption(c.ink),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: SwanSpace.md),
-          if (_statusFeedback != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(SwanSpace.md),
-              decoration: BoxDecoration(
-                color: _isApproved ? c.accent.withValues(alpha: 0.12) : c.danger.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(SwanRadius.md),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    _isApproved ? Icons.check_circle_rounded : Icons.cancel_rounded,
-                    size: 18,
-                    color: _isApproved ? c.accent : c.danger,
                   ),
                   const SizedBox(width: SwanSpace.xs),
-                  Text(
-                    _statusFeedback!,
-                    style: SwanType.bodySm(_isApproved ? c.accent : c.danger, w: FontWeight.w600),
-                  ),
-                ],
-              ),
-            )
-          else
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _isProcessing
-                        ? null
-                        : () {
-                            setState(() {
-                              _statusFeedback = 'Talep reddedildi. Saymanlık kaydı korundu.';
-                              _isApproved = false;
-                            });
-                          },
-                    icon: Icon(Icons.close_rounded, size: 18, color: c.ink),
-                    label: Text('Reddet', style: SwanType.bodySm(c.ink, w: FontWeight.w600)),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: c.line),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
+                  Expanded(
+                    child: ChoiceChip(
+                      label: const Center(child: Text('Artı Düzeltme')),
+                      selected: !_isReversal,
+                      onSelected: (val) => setState(() => _isReversal = false),
+                      selectedColor: c.accent.withValues(alpha: 0.2),
+                      side: BorderSide(
+                        color: !_isReversal ? c.accent : c.line,
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: SwanSpace.sm),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: _isProcessing
-                        ? null
-                        : () async {
-                            setState(() => _isProcessing = true);
-                            await Future<void>.delayed(const Duration(milliseconds: 600));
-                            if (mounted) {
-                              setState(() {
-                                _isProcessing = false;
-                                _isApproved = true;
-                                _statusFeedback = 'İade bankaya iletildi & Bugüne ters kayıt yazıldı.';
-                              });
-                            }
-                          },
-                    icon: const Icon(Icons.currency_exchange_rounded, size: 18),
-                    label: Text(_isProcessing ? 'İşleniyor...' : 'İadeyi Onayla'),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: c.accent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                    ),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.sm),
+              TextFormField(
+                controller: _amountCtrl,
+                keyboardType:
+                    const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: 'Tutar (₺)',
+                  hintText: '0.00',
+                  filled: true,
+                  fillColor: c.bg,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                    borderSide: BorderSide.none,
                   ),
                 ),
-              ],
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSettlementLogSection(SwanPalette c) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text('Son Mutabakat & İade Kayıtları', style: SwanType.h3(c.ink)),
-            Text('Tüm Günlük', style: SwanType.caption(c.accent, w: FontWeight.w600)),
-          ],
-        ),
-        const SizedBox(height: SwanSpace.sm),
-        _buildLogTile(
-          c: c,
-          icon: Icons.account_balance_outlined,
-          title: 'Mart Dönemi Bilanço Kapanışı',
-          subtitle: '₺164.200 Kasa Devri Kilitlendi',
-          badge: 'Mühürlü',
-          badgeColor: c.inkMuted,
-        ),
-        const SizedBox(height: SwanSpace.xs),
-        _buildLogTile(
-          c: c,
-          icon: Icons.undo_rounded,
-          title: 'Tesis Rezervasyon İadesi',
-          subtitle: '₺450,00 • 28 Mart 2025',
-          badge: 'Tamamlandı',
-          badgeColor: c.accent,
-        ),
-      ],
-    );
-  }
-
-  Widget _buildLogTile({
-    required SwanPalette c,
-    required IconData icon,
-    required String title,
-    required String subtitle,
-    required String badge,
-    required Color badgeColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(SwanSpace.sm),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.md),
-        border: Border.all(color: c.line),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  color: c.surfaceAlt,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(icon, size: 16, color: c.ink),
+                validator: (val) {
+                  if (val == null || val.trim().isEmpty) {
+                    return 'Lütfen tutar giriniz';
+                  }
+                  final n = num.tryParse(val.replaceAll(',', '.'));
+                  if (n == null || n <= 0) {
+                    return 'Geçerli ve sıfırdan büyük bir tutar giriniz';
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(width: SwanSpace.sm),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: SwanType.bodySm(c.ink, w: FontWeight.w600)),
-                  Text(subtitle, style: SwanType.caption(c.inkMuted)),
-                ],
+              const SizedBox(height: SwanSpace.sm),
+              TextFormField(
+                controller: _reasonCtrl,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  labelText: 'Düzeltme Gerekçesi',
+                  hintText:
+                      'Örn: 2026/08 dönemindeki mükerrer fatura iadesi cari hesaba mahsup edilmiştir.',
+                  filled: true,
+                  fillColor: c.bg,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().length < 5) {
+                    return 'Lütfen en az 5 karakterlik açıklama giriniz';
+                  }
+                  return null;
+                },
+              ),
+              const SizedBox(height: SwanSpace.md),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: c.accent,
+                  foregroundColor: const Color(0xFF0D141F),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                  ),
+                ),
+                onPressed: _submitting ? null : _submit,
+                child: _submitting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Düzeltme Kaydı Oluştur',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
               ),
             ],
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: badgeColor.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(badge, style: SwanType.caption(badgeColor, w: FontWeight.w700)),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildPolicyNotice(SwanPalette c) {
-    return Container(
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surfaceAlt,
-        borderRadius: BorderRadius.circular(SwanRadius.md),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(Icons.shield_outlined, size: 18, color: c.accent),
-          const SizedBox(width: SwanSpace.xs),
-          Expanded(
-            child: Text(
-              'Güvenlik Prosedürü: Dönem kilidi yalnızca Genel Kurul ve Denetim Kurulu ortak yetkilendirmesiyle geçici olarak esnetilebilir. Tüm düzeltmeler geçmişi silmeden bugüne ters fiş kaydı ekleyerek gerçekleştirilir.',
-              style: SwanType.caption(c.inkMuted),
-            ),
-          ),
-        ],
-      ),
-    );
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _submitting = true);
+
+    try {
+      final club = await ref.read(activeClubProvider.future);
+      if (club == null) {
+        throw Exception('Aktif kulüp bulunamadı');
+      }
+
+      var parsed = num.parse(_amountCtrl.text.trim().replaceAll(',', '.'));
+      if (_isReversal) {
+        parsed = -parsed.abs();
+      } else {
+        parsed = parsed.abs();
+      }
+
+      await ref.read(financeOpsServiceProvider).createAdjustment(
+            clubId: club.id,
+            targetKind: _targetKind,
+            amount: parsed,
+            reason: _reasonCtrl.text.trim(),
+          );
+
+      widget.onSaved();
+      if (mounted) {
+        Navigator.of(context).pop();
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Ters kayıt başarıyla oluşturuldu.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 }
+

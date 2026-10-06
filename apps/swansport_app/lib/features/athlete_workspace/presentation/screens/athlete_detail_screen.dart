@@ -25,8 +25,6 @@ class AthleteDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
-  int _selectedTab = 0;
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -66,16 +64,9 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                     // Stitch Top Bar
                     SwanTopBar(
                       title: 'Sporcu Detayı',
-                      subtitle: a.position ?? 'Okçuluk Branşı',
+                      subtitle: a.position ?? 'Sporcu',
                       showBack: true,
                       onBack: () => Navigator.maybePop(context),
-                      actions: [
-                        IconButton(
-                          icon: Icon(Icons.share_outlined,
-                              size: 20, color: c.ink),
-                          onPressed: () {},
-                        ),
-                      ],
                     ),
 
                     Expanded(
@@ -98,62 +89,37 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                             _buildLinkedGuardianSuccess(c, a.id),
                           const SizedBox(height: 14),
 
-                          // 3 Clean Quick Metric Badges
-                          Row(
-                            children: [
-                              _buildMetricTile(
-                                c,
-                                'Katılım',
-                                '%96',
-                                'Son 30 Gün',
-                                Icons.check_circle_outline,
-                                c.accent,
+                          ref.watch(athleteCardProvider(a.id)).when(
+                                loading: () => const SizedBox.shrink(),
+                                error: (e, _) => Text('Özet yüklenemedi.',
+                                    style: SwanType.bodySm(c.inkMuted)),
+                                data: (card) => !card.hasData
+                                    ? const SizedBox.shrink()
+                                    : Wrap(
+                                        spacing: SwanSpace.sm,
+                                        runSpacing: SwanSpace.sm,
+                                        children: [
+                                          Chip(
+                                              label: Text(
+                                                  '${card.trainings} antrenman')),
+                                          if (card.trainings > 0)
+                                            Chip(
+                                                label: Text(
+                                                    '%${card.attendancePct} katılım')),
+                                          Chip(
+                                              label: Text(
+                                                  '${card.goalsDone} tamamlanan hedef')),
+                                        ],
+                                      ),
                               ),
-                              const SizedBox(width: 8),
-                              _buildMetricTile(
-                                c,
-                                'Antrenman',
-                                '24',
-                                'Tamamlanan',
-                                Icons.fitness_center_outlined,
-                                c.inkMuted,
-                              ),
-                              const SizedBox(width: 8),
-                              _buildMetricTile(
-                                c,
-                                'Aidat',
-                                'Güncel',
-                                'Borçsuz',
-                                Icons.verified_outlined,
-                                c.accent,
-                              ),
-                            ],
+                          const SizedBox(height: SwanSpace.md),
+                          ListTile(
+                            title: const Text('Testler ve gelişim hedefleri'),
+                            trailing: const Icon(Icons.chevron_right_rounded),
+                            onTap: () => Navigator.pushNamed(
+                                context, '/sporcu-performans',
+                                arguments: {'id': a.id, 'name': a.fullName}),
                           ),
-                          const SizedBox(height: 14),
-
-                          // Performance & Archery Score Highlight
-                          _buildPerformanceHighlight(c),
-                          const SizedBox(height: 16),
-
-                          // Segmented Tabs
-                          Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: BoxDecoration(
-                              color: c.surfaceAlt,
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Row(
-                              children: [
-                                _buildTabButton(0, 'Gelişim & Devam', c),
-                                _buildTabButton(1, 'Ekipman Ayarları', c),
-                                _buildTabButton(2, 'Belgeler & İzinler', c),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 14),
-
-                          // Tab Content
-                          _buildTabContent(c, a),
                         ],
                       ),
                     ),
@@ -222,7 +188,7 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
-                            a.position ?? 'Klasik Yay U18',
+                            a.position ?? 'Sporcu',
                             style: SwanType.caption(
                               c.accent,
                               w: FontWeight.w700,
@@ -240,44 +206,22 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                               SwanType.caption(c.inkMuted, w: FontWeight.w600),
                         ),
                         Text(
-                          ': ${a.license ?? 'Lisanssız'} • Yaş: ${a.age ?? '—'}',
+                          a.license ?? 'Lisanssız',
                           style: SwanType.caption(c.inkMuted),
                         ),
                       ],
                     ),
                     const SizedBox(height: 8),
-                    // Strictly Privacy-Safe Health Badge
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: c.accent.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: c.accent,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Sağlık Durumu: Müsabakaya Uygun',
-                            style: SwanType.caption(
-                              c.accent,
-                              w: FontWeight.w700,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    ref.watch(eligibilityProvider(a.id)).when(
+                          loading: () => Text('Uygunluk kontrol ediliyor…',
+                              style: SwanType.caption(c.inkMuted)),
+                          error: (e, _) => Text('Uygunluk bilgisi alınamadı.',
+                              style: SwanType.caption(c.inkMuted)),
+                          data: (status) => Text(
+                              'Uygunluk: ${status.badgeLabel}',
+                              style: SwanType.caption(
+                                  status.blocked ? c.danger : c.inkMuted)),
+                        ),
                   ],
                 ),
               ),
@@ -394,7 +338,7 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                     Row(
                       children: [
                         Text(
-                          'Bağlı Veli Hesabı',
+                          'Veli bağlantısı',
                           style:
                               SwanType.caption(c.inkMuted, w: FontWeight.w600),
                         ),
@@ -407,7 +351,7 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            'Onaylı',
+                            'Kontrol',
                             style: SwanType.caption(
                               c.accent,
                               w: FontWeight.w700,
@@ -417,7 +361,7 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                       ],
                     ),
                     Text(
-                      'Veli Hesabı Aktif (SMS + Push Bildirimleri Açık)',
+                      'Veli bağlantısı gerekmiyor veya tamamlanmış.',
                       style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                     ),
                   ],
@@ -443,273 +387,6 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                 'Veli Davet Kodu Üret',
                 style: SwanType.caption(c.accent, w: FontWeight.w700),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMetricTile(
-    SwanPalette c,
-    String title,
-    String value,
-    String subtitle,
-    IconData icon,
-    Color color,
-  ) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          border: Border.all(color: c.line.withValues(alpha: .5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(title, style: SwanType.caption(c.inkMuted)),
-                Icon(icon, size: 16, color: color),
-              ],
-            ),
-            const SizedBox(height: 6),
-            Text(value, style: SwanType.h2(c.ink)),
-            const SizedBox(height: 2),
-            Text(subtitle, style: SwanType.caption(c.inkMuted)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPerformanceHighlight(SwanPalette c) {
-    return Container(
-      padding: const EdgeInsets.all(SwanSpace.lg),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.md),
-        border: Border.all(color: c.line.withValues(alpha: .5)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Atış & Skor Ortalaması',
-                style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  '70 Metre Açık Saha',
-                  style: SwanType.caption(
-                    c.accent,
-                    w: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Row(
-            children: [
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: c.accent, width: 3),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  '9.4',
-                  style: SwanType.h2(c.accent),
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Ortalama Ok Skoru (10.0 skala)',
-                      style: SwanType.caption(c.ink, w: FontWeight.w600),
-                    ),
-                    const SizedBox(height: 2),
-                    Row(
-                      children: [
-                        Icon(Icons.arrow_upward, size: 13, color: c.accent),
-                        const SizedBox(width: 2),
-                        Text(
-                          '+%4.2 artış (son ay)',
-                          style: SwanType.caption(
-                            c.accent,
-                            w: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text('Son Seri', style: SwanType.caption(c.inkMuted)),
-                  Text(
-                    '672 Puan',
-                    style: SwanType.bodySm(
-                      c.accent,
-                      w: FontWeight.w800,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTabButton(int index, String label, SwanPalette c) {
-    final isSelected = _selectedTab == index;
-    return Expanded(
-      child: InkWell(
-        onTap: () => setState(() => _selectedTab = index),
-        borderRadius: BorderRadius.circular(10),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            color: isSelected ? c.surface : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Text(
-            label,
-            style: SwanType.caption(
-              isSelected ? c.accent : c.inkMuted,
-              w: isSelected ? FontWeight.w700 : FontWeight.w500,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTabContent(SwanPalette c, AthleteFull a) {
-    if (_selectedTab == 0) {
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          border: Border.all(color: c.line.withValues(alpha: .5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Son Devam & Antrenman Kayıtları',
-                style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-            const SizedBox(height: 8),
-            _buildHistoryItem(
-                c, '14 Nisan 2025', 'Sabah Seansı (70m)', 'Katıldı', c.accent),
-            _buildHistoryItem(
-                c, '12 Nisan 2025', 'Kondisyon & Güç', 'Katıldı', c.accent),
-            _buildHistoryItem(
-                c, '10 Nisan 2025', 'Ok Simülasyonu', 'İzinli', c.warning),
-          ],
-        ),
-      );
-    } else if (_selectedTab == 1) {
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          border: Border.all(color: c.line.withValues(alpha: .5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Tuning & Ekipman Notları',
-                style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-            const SizedBox(height: 8),
-            Text('Yay: Hoyt Formula Xi (25" Gövde, 42# Kanat)',
-                style: SwanType.caption(c.ink)),
-            const SizedBox(height: 4),
-            Text('Ok: Easton X10 500 Spine (120gr Tungsten Uç)',
-                style: SwanType.caption(c.ink)),
-            const SizedBox(height: 4),
-            Text('Nişangah: Shibuya Ultima CPX II Carbon',
-                style: SwanType.caption(c.inkMuted)),
-          ],
-        ),
-      );
-    } else {
-      return Container(
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          border: Border.all(color: c.line.withValues(alpha: .5)),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Kayıtlı Belgeler & Veli İzinleri',
-                style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-            const SizedBox(height: 8),
-            _buildHistoryItem(
-                c, '2025 Sezonu', 'Sağlık Raporu Belgesi', 'Onaylı', c.accent),
-            _buildHistoryItem(c, 'Turnuva İzni',
-                'Bahar Şampiyonası Veli Muvafakatı', 'İmzalandı', c.accent),
-          ],
-        ),
-      );
-    }
-  }
-
-  Widget _buildHistoryItem(
-      SwanPalette c, String date, String title, String status, Color color) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: SwanType.caption(c.ink, w: FontWeight.w600)),
-              Text(date, style: SwanType.caption(c.inkMuted)),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Text(
-              status,
-              style: SwanType.caption(color, w: FontWeight.w700),
             ),
           ),
         ],

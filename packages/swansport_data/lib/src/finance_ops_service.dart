@@ -573,6 +573,64 @@ class CloseCheckItem {
       );
 }
 
+/// Kapanmış dönem ters işlem ve düzeltme kaydı.
+class FinanceAdjustment {
+  const FinanceAdjustment({
+    required this.id,
+    required this.clubId,
+    this.periodId,
+    required this.targetKind,
+    this.targetId,
+    required this.amount,
+    required this.reason,
+    required this.status,
+    required this.createdAt,
+    this.approvedAt,
+  });
+
+  final String id;
+  final String clubId;
+  final String? periodId;
+  final String targetKind;
+  final String? targetId;
+  final num amount;
+  final String reason;
+  final String status;
+  final DateTime createdAt;
+  final DateTime? approvedAt;
+
+  String get targetKindLabel => switch (targetKind) {
+        'expense' => 'Gider Ters Kaydı',
+        'payment' => 'Ödeme Düzeltmesi',
+        'donation' => 'Bağış Düzeltmesi',
+        'invoice' => 'Fatura Düzeltmesi',
+        _ => 'Mali Düzeltme',
+      };
+
+  String get statusLabel => switch (status) {
+        'approved' => 'Onaylandı',
+        'rejected' => 'Reddedildi',
+        _ => 'Beklemede',
+      };
+
+  factory FinanceAdjustment.fromMap(Map<String, dynamic> m) =>
+      FinanceAdjustment(
+        id: m['id'] as String,
+        clubId: (m['club_id'] as String?) ?? '',
+        periodId: m['period_id'] as String?,
+        targetKind: (m['target_kind'] as String?) ?? 'expense',
+        targetId: m['target_id'] as String?,
+        amount: (m['amount'] as num?) ?? 0,
+        reason: (m['reason'] as String?) ?? '',
+        status: (m['status'] as String?) ?? 'pending',
+        createdAt:
+            DateTime.tryParse('${m['created_at']}') ?? DateTime.now(),
+        approvedAt: m['approved_at'] != null
+            ? DateTime.tryParse('${m['approved_at']}')
+            : null,
+      );
+}
+
 /// Kulübün sportif/operasyonel bekleyen işleri.
 ///
 /// **Muhasebeci bu özeti alamaz** — üyelik, belge ve yoklama sayıları
@@ -1087,6 +1145,30 @@ class FinanceOpsService {
         'p_reason': reason,
       });
 
+  Future<List<FinanceAdjustment>> adjustments(String clubId) async {
+    final rows = await _c
+        .from('finance_adjustments')
+        .select()
+        .eq('club_id', clubId)
+        .order('created_at', ascending: false)
+        .limit(50);
+    return rows
+        .map((e) =>
+            FinanceAdjustment.fromMap((e as Map).cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<void> approveAdjustment({
+    required String adjustmentId,
+    required bool approve,
+    String? note,
+  }) =>
+      _c.rpc<void>('approve_finance_adjustment', params: {
+        'p_id': adjustmentId,
+        'p_approve': approve,
+        'p_note': note,
+      });
+
   // ------------------------------------------------------- operasyon özeti
   Future<ClubOperationsSummary> clubOperations(String clubId) async {
     final rows = await _c.rpc<List<dynamic>>('club_operations_summary',
@@ -1206,3 +1288,12 @@ final pendingApprovalsProvider =
   if (club == null) return const [];
   return ref.watch(financeOpsServiceProvider).pendingApprovals(club.id);
 });
+
+final financeAdjustmentsProvider =
+    FutureProvider.autoDispose<List<FinanceAdjustment>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  return ref.watch(financeOpsServiceProvider).adjustments(club.id);
+});
+

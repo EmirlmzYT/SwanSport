@@ -7,6 +7,24 @@ import 'package:swansport_data/swansport_data.dart';
 /// hem mobilde hem konsolda yanlış ekran açar. Sağlayıcıyı değil saf hesabı
 /// test ediyoruz: Supabase'e ihtiyaç duymadan kuralların kendisi sınanabilir.
 void main() {
+  test('club publishing requires membership role, not only a credential', () {
+    for (final role in [
+      'club_admin',
+      'coach',
+      'official',
+      'accountant',
+      'member'
+    ]) {
+      final access = SwanAccess(
+          isPlatformAdmin: false,
+          clubRole: role,
+          coachLevel: 5,
+          athleteKind: null);
+      expect(
+          access.canPublishClubPosts, role == 'club_admin' || role == 'coach');
+    }
+  });
+
   group('SwanAccess.isClubStaff', () {
     test('kulüpteki görev tek başına yeter', () {
       const a = SwanAccess(

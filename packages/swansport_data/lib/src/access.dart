@@ -124,6 +124,10 @@ class SwanAccess {
         _ => false,
       };
 
+  /// Matches can_post_for_club: a credential alone does not grant club publishing.
+  bool get canPublishClubPosts =>
+      clubRole == 'club_admin' || clubRole == 'coach';
+
   bool get isClubAdmin => clubRole == 'club_admin';
   bool get isParent => clubRole == 'parent';
 

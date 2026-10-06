@@ -13,7 +13,7 @@ import '../../../app/widgets/swan_bottom_nav.dart';
 /// Kulüp finansı — aidat tahakkuku, tahsilat onayı ve planlar.
 ///
 /// Stitch "Calm Athletic Modernism" tasarımına uyumlu:
-/// - Finansal Canlı Projeksiyon Kartı (3 Katmanlı Nakit Akış Göstergesi)
+/// - Aidat ve tahsilat özeti Kartı (3 Katmanlı Nakit Akış Göstergesi)
 /// - Temel Finansal Metrikler Izgarası (Tahsilat, Sabit Gider, Ekipman Fonu)
 /// - Hızlı Mali İşlem Kısayolları (Toplu Hatırlat, Masraf Ekle, Tahakkuk)
 /// - Kritik Eylem Bekleyen İşlem Kuyruğu
@@ -48,7 +48,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final bg = palette.bg;
     final club = ref.watch(activeClubProvider).valueOrNull;
 
-    final summary = ref.watch(financeSummaryProvider).valueOrNull;
+    final summaryAsync = ref.watch(financeSummaryProvider);
+    final summary = summaryAsync.valueOrNull;
     final pendingCount = summary?.pendingPayments ?? 0;
 
     return Scaffold(
@@ -75,12 +76,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                         _buildProjectionStrip(palette),
                         const SizedBox(height: 12),
 
-                        // Master Cashflow Projection Card
-                        _buildCashflowCard(summary, palette, isDark),
-                        const SizedBox(height: 12),
-
-                        // Key Financial Metrics Grid
-                        _buildMetricsGrid(summary, palette),
+                        summaryAsync.when(
+                          loading: premiumLoading,
+                          error: (e, _) =>
+                              premiumError(context, 'Mali özet alınamadı: $e'),
+                          data: (value) => Column(children: [
+                            _buildCashflowCard(value, palette, isDark),
+                            const SizedBox(height: 12),
+                            _buildMetricsGrid(value, palette),
+                          ]),
+                        ),
                         const SizedBox(height: 14),
 
                         // Quick Financial Actions
@@ -243,7 +248,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             ),
             const SizedBox(width: 6),
             Text(
-              'Finansal Canlı Projeksiyon',
+              'Aidat ve tahsilat özeti',
               style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
             ),
           ],
@@ -342,7 +347,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _period.isEmpty ? 'Ekim 2024 Aidatları' : '$_period Aidatları',
+                      'Tüm dönemlerin aidatları',
                       style: GoogleFonts.sora(
                         fontSize: 17,
                         fontWeight: FontWeight.w700,
@@ -351,7 +356,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'U18 & Gelişim Akademisi Tahsilat Takibi',
+                      'Kulüp aidat tahsilat takibi',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: const Color(0xFFBBC9C7),
@@ -361,7 +366,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 ),
               ),
               SwanRing(
-                value: rate > 0 ? rate : 0.82,
+                value: rate,
                 track: const Color(0xFF1E2B3C),
                 progress: kTeal,
                 size: 64,
@@ -370,7 +375,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      '%${(rate > 0 ? rate * 100 : 82).round()}',
+                      '%${(rate * 100).round()}',
                       style: GoogleFonts.sora(
                         fontSize: 16,
                         fontWeight: FontWeight.w800,
@@ -405,32 +410,32 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 title: 'Toplam Tahsilat',
                 icon: Icons.account_balance_wallet_rounded,
                 iconColor: kTeal,
-                amount: money(collected > 0 ? collected : 142500),
-                subtext: '45/64 Sporcu Ödedi',
+                amount: money(collected),
+                subtext: 'Onaylı tahsilatlar',
                 subColor: kTeal,
               ),
               _snapshotTile(
-                title: 'Kasa & Bakiye',
+                title: 'Toplam Tahakkuk',
                 icon: Icons.payments_rounded,
                 iconColor: const Color(0xFF54DAD1),
-                amount: money(billed > 0 ? billed : 284200),
-                subtext: 'Rezerv Fonu Dahil',
+                amount: money(billed),
+                subtext: 'Tanımlanmış aidatlar',
                 subColor: const Color(0xFFBBC9C7),
               ),
               _snapshotTile(
                 title: 'Bekleyen Aidat',
                 icon: Icons.schedule_rounded,
                 iconColor: const Color(0xFFFF8C6F),
-                amount: money(summary?.outstanding != null && summary!.outstanding > 0 ? summary.outstanding : 31000),
-                subtext: '14 Bekleyen Sporcu',
+                amount: money(summary?.outstanding ?? 0),
+                subtext: 'Ödenmemiş aidatlar',
                 subColor: const Color(0xFFFF8C6F),
               ),
               _snapshotTile(
                 title: 'Geciken Ödeme',
                 icon: Icons.warning_rounded,
                 iconColor: const Color(0xFFFF5252),
-                amount: money(overdue > 0 ? overdue : 12500),
-                subtext: '5 Kritik Gecikme',
+                amount: money(overdue),
+                subtext: 'Vadesi geçmiş aidatlar',
                 subColor: const Color(0xFFFF5252),
               ),
             ],
@@ -631,7 +636,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 icon: Icons.receipt_long_rounded,
                 label: 'Masraf Ekle',
                 isPrimary: false,
-                onTap: () => Navigator.pushNamed(context, '/hizli-gider'),
+                onTap: () => Navigator.pushNamed(context, '/gider-ekle'),
                 palette: palette,
               ),
               const SizedBox(width: 8),

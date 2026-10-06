@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'widgets/unavailable_feature_screen.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../features/announcements/presentation/routing/communication_detail_route_args.dart';
@@ -165,7 +167,10 @@ class SwanSportApp extends ConsumerWidget {
         '/dogrulama': (context) => const CredentialScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
         '/onay-paneli': (context) => const AdminReviewScreen(),
-        '/demo-rol': (context) => const DemoRoleScreen(),
+        '/demo-rol': (context) =>
+            ref.watch(appEnvironmentProvider).enableDebugTools
+                ? const DemoRoleScreen()
+                : const AuthScreen(),
         '/akis': (context) => const FeedScreen(),
         '/ara': (context) => const SearchScreen(),
         '/bildirimler': (context) => const NotificationsScreen(),
@@ -191,11 +196,27 @@ class SwanSportApp extends ConsumerWidget {
         '/gizlilik': (context) => const PrivacyScreen(),
         '/devam-durumu': (context) => const AttendanceHistoryScreen(),
         '/basvurular': (context) => const ClubApplicationsScreen(),
-        '/configuration': (context) => const ConfigurationScreen(),
+        '/configuration': (context) => environment.isProduction ||
+                ref.read(isSupabaseEnabledProvider)
+            ? const UnavailableFeatureScreen(
+                title: 'Kulüp yapılandırması',
+                message:
+                    'Bu gelişmiş yapılandırma ekranı henüz kullanıma açık değil. Kulüp profilini Ayarlar üzerinden düzenleyebilirsin.',
+                route: '/settings',
+                actionLabel: 'Ayarları aç')
+            : const ConfigurationScreen(),
         '/facilities': (context) => const FacilityManagementScreen(),
         '/rezervasyon': (context) => const FacilityReservationScreen(),
         '/medical-center': (context) => const MedicalCenterScreen(),
-        '/reports': (context) => const ReportsScreen(),
+        '/reports': (context) => environment.isProduction ||
+                ref.read(isSupabaseEnabledProvider)
+            ? const UnavailableFeatureScreen(
+                title: 'Raporlar',
+                message:
+                    'Bu rapor arşivi henüz kullanıma açık değil. Mevcut mali kayıtlarını finans ekranından takip edebilirsin.',
+                route: '/finans',
+                actionLabel: 'Finansı aç')
+            : const ReportsScreen(),
         '/performance-analytics': (context) =>
             const PerformanceAnalyticsScreen(),
         '/hazirbulunusluk': (context) => const ReadinessRpeScreen(),
@@ -213,6 +234,26 @@ class SwanSportApp extends ConsumerWidget {
         '/kulup-detay': (context) => const ClubProfileDetailScreen(),
       },
       onGenerateRoute: (settings) {
+        // These secondary design previews still use fixture repositories.
+        // Preserve their URLs, but never expose fabricated records on a live backend.
+        final previewRoute = settings.name;
+        if ((environment.isProduction || ref.read(isSupabaseEnabledProvider)) &&
+            (previewRoute == '/communication-detail' ||
+                previewRoute == '/admin-user-detail' ||
+                previewRoute == '/configuration-module' ||
+                previewRoute == '/report-detail' ||
+                (previewRoute?.startsWith('/performance-') ?? false))) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => const UnavailableFeatureScreen(
+              title: 'Ayrıntı görünümü kullanılamıyor',
+              message:
+                  'Bu ayrıntı görünümü henüz kullanıma açık değil. Kulübünün mevcut kayıtlarına yönetim ekranlarından ulaşabilirsin.',
+              route: '/profil',
+              actionLabel: 'Profil ve yönetime git',
+            ),
+          );
+        }
         // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
         if (settings.name == '/profil' || settings.name == '/kulup-profil') {
           final args = settings.arguments;

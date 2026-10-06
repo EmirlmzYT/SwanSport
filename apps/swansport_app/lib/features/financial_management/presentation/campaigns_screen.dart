@@ -39,7 +39,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
+                  padding: const EdgeInsets.fromLTRB(
+                      SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
                   child: SwanPageHeader(
                     title: 'Dayanışma & Fon',
                     subtitle: 'Kulüp bağış ve gelişim havuzları',
@@ -50,7 +51,6 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                     ],
                   ),
                 ),
-
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -59,10 +59,13 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                     },
                     child: listAsync.when(
                       loading: () => ListView(children: [premiumLoading()]),
-                      error: (e, _) => ListView(children: [premiumError(context, '$e')]),
+                      error: (e, _) =>
+                          ListView(children: [premiumError(context, '$e')]),
                       data: (rows) {
-                        final activeRows = rows.where((r) => r.isActive).toList();
-                        final completedRows = rows.where((r) => !r.isActive).toList();
+                        final activeRows =
+                            rows.where((r) => r.isActive).toList();
+                        final completedRows =
+                            rows.where((r) => !r.isActive).toList();
 
                         final displayRows = switch (_selectedTab) {
                           1 => activeRows,
@@ -71,7 +74,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                         };
 
                         final featured = rows.isNotEmpty ? rows.first : null;
-                        final subPools = rows.length > 1 ? rows.sublist(1) : <Campaign>[];
+                        final subPools =
+                            rows.length > 1 ? rows.sublist(1) : <Campaign>[];
 
                         num totalCollected = 0;
                         int totalSupporters = 0;
@@ -81,14 +85,18 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                         }
 
                         return ListView(
-                          padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
+                          padding: const EdgeInsets.fromLTRB(
+                              SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
                           children: [
                             // Club Identity Strip with Live Pulse
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: SwanSpace.sm),
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: SwanSpace.md,
+                                  vertical: SwanSpace.sm),
                               decoration: BoxDecoration(
                                 color: c.surfaceAlt,
-                                borderRadius: BorderRadius.circular(SwanRadius.md),
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
                               ),
                               child: Row(
                                 children: [
@@ -99,18 +107,21 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                       color: c.accent.withValues(alpha: .15),
                                       shape: BoxShape.circle,
                                     ),
-                                    child: Icon(Icons.sports_kabaddi_rounded, color: c.accent, size: 18),
+                                    child: Icon(Icons.sports_kabaddi_rounded,
+                                        color: c.accent, size: 18),
                                   ),
                                   const SizedBox(width: SwanSpace.sm),
                                   Expanded(
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          club?.name ?? 'Marmara Okçuluk SK',
+                                          club?.name ?? 'Kulüp seçilmedi',
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
-                                          style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                                          style: SwanType.bodySm(c.ink,
+                                              w: FontWeight.w700),
                                         ),
                                         Text(
                                           'Dayanışma ve Fon Yönetimi',
@@ -120,7 +131,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                     ),
                                   ),
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 10, vertical: 4),
                                     decoration: BoxDecoration(
                                       color: c.surface,
                                       borderRadius: BorderRadius.circular(999),
@@ -140,7 +152,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                         const SizedBox(width: 5),
                                         Text(
                                           'Aktif Sezon',
-                                          style: SwanType.caption(c.accent, w: FontWeight.w700),
+                                          style: SwanType.caption(c.accent,
+                                              w: FontWeight.w700),
                                         ),
                                       ],
                                     ),
@@ -164,34 +177,44 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                     padding: const EdgeInsets.all(SwanSpace.md),
                                     decoration: BoxDecoration(
                                       color: c.surface,
-                                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                                      borderRadius:
+                                          BorderRadius.circular(SwanRadius.md),
                                       border: Border.all(color: c.line),
                                     ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Container(
                                           width: 32,
                                           height: 32,
                                           decoration: BoxDecoration(
                                             color: c.surfaceAlt,
-                                            borderRadius: BorderRadius.circular(SwanRadius.sm),
+                                            borderRadius: BorderRadius.circular(
+                                                SwanRadius.sm),
                                           ),
-                                          child: Icon(Icons.auto_graph_rounded, color: c.accent, size: 18),
+                                          child: Icon(Icons.auto_graph_rounded,
+                                              color: c.accent, size: 18),
                                         ),
                                         const SizedBox(height: SwanSpace.sm),
-                                        Text('Toplam Katma Değer', style: SwanType.caption(c.inkMuted)),
+                                        Text('Toplam Katma Değer',
+                                            style:
+                                                SwanType.caption(c.inkMuted)),
                                         const SizedBox(height: 2),
                                         Text(
-                                          money(totalCollected > 0 ? totalCollected : 90900),
+                                          money(totalCollected),
                                           style: SwanType.h3(c.ink),
                                         ),
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            Icon(Icons.trending_up_rounded, size: 14, color: c.accent),
+                                            Icon(Icons.trending_up_rounded,
+                                                size: 14, color: c.accent),
                                             const SizedBox(width: 3),
-                                            Text('Tamamlanan + Aktif', style: SwanType.caption(c.accent, w: FontWeight.w600)),
+                                            Text('Tamamlanan + Aktif',
+                                                style: SwanType.caption(
+                                                    c.accent,
+                                                    w: FontWeight.w600)),
                                           ],
                                         ),
                                       ],
@@ -204,34 +227,46 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                     padding: const EdgeInsets.all(SwanSpace.md),
                                     decoration: BoxDecoration(
                                       color: c.surface,
-                                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                                      borderRadius:
+                                          BorderRadius.circular(SwanRadius.md),
                                       border: Border.all(color: c.line),
                                     ),
                                     child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Container(
                                           width: 32,
                                           height: 32,
                                           decoration: BoxDecoration(
                                             color: c.surfaceAlt,
-                                            borderRadius: BorderRadius.circular(SwanRadius.sm),
+                                            borderRadius: BorderRadius.circular(
+                                                SwanRadius.sm),
                                           ),
-                                          child: Icon(Icons.sports_score_rounded, color: c.accent, size: 18),
+                                          child: Icon(
+                                              Icons.sports_score_rounded,
+                                              color: c.accent,
+                                              size: 18),
                                         ),
                                         const SizedBox(height: SwanSpace.sm),
-                                        Text('Desteklenen Sporcu', style: SwanType.caption(c.inkMuted)),
+                                        Text('Katkı Sayısı',
+                                            style:
+                                                SwanType.caption(c.inkMuted)),
                                         const SizedBox(height: 2),
                                         Text(
-                                          totalSupporters > 0 ? '$totalSupporters Katkı' : '14 Genç',
+                                          '$totalSupporters Katkı',
                                           style: SwanType.h3(c.ink),
                                         ),
                                         const SizedBox(height: 4),
                                         Row(
                                           children: [
-                                            Icon(Icons.verified_rounded, size: 14, color: c.inkMuted),
+                                            Icon(Icons.verified_rounded,
+                                                size: 14, color: c.inkMuted),
                                             const SizedBox(width: 3),
-                                            Text('Bireysel ve Takım', style: SwanType.caption(c.inkMuted, w: FontWeight.w600)),
+                                            Text('Bireysel ve Takım',
+                                                style: SwanType.caption(
+                                                    c.inkMuted,
+                                                    w: FontWeight.w600)),
                                           ],
                                         ),
                                       ],
@@ -246,18 +281,23 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text('Kampanya Havuzları', style: SwanType.h3(c.ink)),
-                                Text('${rows.length} Kayıt', style: SwanType.caption(c.inkMuted)),
+                                Text('Kampanya Havuzları',
+                                    style: SwanType.h3(c.ink)),
+                                Text('${rows.length} Kayıt',
+                                    style: SwanType.caption(c.inkMuted)),
                               ],
                             ),
                             const SizedBox(height: SwanSpace.sm),
                             Row(
                               children: [
-                                _buildFilterChip(c, 'Tüm Fonlar (${rows.length})', 0),
+                                _buildFilterChip(
+                                    c, 'Tüm Fonlar (${rows.length})', 0),
                                 const SizedBox(width: SwanSpace.xs),
-                                _buildFilterChip(c, 'Aktif (${activeRows.length})', 1),
+                                _buildFilterChip(
+                                    c, 'Aktif (${activeRows.length})', 1),
                                 const SizedBox(width: SwanSpace.xs),
-                                _buildFilterChip(c, 'Tamamlanan (${completedRows.length})', 2),
+                                _buildFilterChip(c,
+                                    'Tamamlanan (${completedRows.length})', 2),
                               ],
                             ),
                             const SizedBox(height: SwanSpace.md),
@@ -265,19 +305,21 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                             // Sub-Campaigns List
                             if (displayRows.isEmpty)
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: SwanSpace.lg),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: SwanSpace.lg),
                                 child: Center(
-                                  child: Text('Bu kategoride kampanya yok.', style: SwanType.caption(c.inkMuted)),
+                                  child: Text('Bu kategoride kampanya yok.',
+                                      style: SwanType.caption(c.inkMuted)),
                                 ),
                               )
                             else
-                              for (final pool in (_selectedTab == 0 ? subPools : displayRows))
+                              for (final pool in (_selectedTab == 0
+                                  ? subPools
+                                  : displayRows))
                                 _buildSubPoolCard(c, pool),
 
                             const SizedBox(height: SwanSpace.lg),
 
-                            // Recent Donors & Transparency Section (Canlı Akış)
-                            _buildTransparencySection(c),
                             const SizedBox(height: SwanSpace.lg),
 
                             // Create Campaign CTA Button
@@ -294,11 +336,13 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
                                   children: [
-                                    Icon(Icons.add_circle_outline_rounded, color: c.accent, size: 20),
+                                    Icon(Icons.add_circle_outline_rounded,
+                                        color: c.accent, size: 20),
                                     const SizedBox(width: SwanSpace.xs),
                                     Text(
                                       'Yeni Dayanışma Kampanyası Başlat',
-                                      style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                                      style: SwanType.bodySm(c.ink,
+                                          w: FontWeight.w700),
                                     ),
                                   ],
                                 ),
@@ -403,7 +447,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
 
           // Title & Description
           Text(camp.title, style: SwanType.h2(c.ink)),
-          if (camp.description != null && camp.description!.trim().isNotEmpty) ...[
+          if (camp.description != null &&
+              camp.description!.trim().isNotEmpty) ...[
             const SizedBox(height: SwanSpace.xs),
             Text(
               camp.description!,
@@ -430,18 +475,23 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                       crossAxisAlignment: CrossAxisAlignment.baseline,
                       textBaseline: TextBaseline.alphabetic,
                       children: [
-                        Text(money(camp.collected), style: SwanType.h2(c.accent)),
+                        Text(money(camp.collected),
+                            style: SwanType.h2(c.accent)),
                         const SizedBox(width: 4),
-                        Text('/ ${money(camp.target)} hedef', style: SwanType.caption(c.inkMuted)),
+                        Text('/ ${money(camp.target)} hedef',
+                            style: SwanType.caption(c.inkMuted)),
                       ],
                     ),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: c.accent.withValues(alpha: .15),
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: Text('%${camp.percent}', style: SwanType.caption(c.accent, w: FontWeight.w800)),
+                      child: Text('%${camp.percent}',
+                          style:
+                              SwanType.caption(c.accent, w: FontWeight.w800)),
                     ),
                   ],
                 ),
@@ -463,14 +513,18 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                       children: [
                         Icon(Icons.group_rounded, size: 14, color: c.accent),
                         const SizedBox(width: 4),
-                        Text('${camp.supporters} bağışçı katkıda bulundu', style: SwanType.caption(c.ink)),
+                        Text('${camp.supporters} bağışçı katkıda bulundu',
+                            style: SwanType.caption(c.ink)),
                       ],
                     ),
                     Row(
                       children: [
-                        Icon(Icons.schedule_rounded, size: 14, color: c.inkMuted),
+                        Icon(Icons.schedule_rounded,
+                            size: 14, color: c.inkMuted),
                         const SizedBox(width: 4),
-                        Text('Aktif', style: SwanType.caption(c.inkMuted, w: FontWeight.w600)),
+                        Text('Aktif',
+                            style: SwanType.caption(c.inkMuted,
+                                w: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -496,11 +550,13 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.volunteer_activism_rounded, color: Colors.white, size: 18),
+                        const Icon(Icons.volunteer_activism_rounded,
+                            color: Colors.white, size: 18),
                         const SizedBox(width: 6),
                         Text(
                           'Bağışta Bulun',
-                          style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
+                          style:
+                              SwanType.bodySm(Colors.white, w: FontWeight.w700),
                         ),
                       ],
                     ),
@@ -521,9 +577,11 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                   ),
                   child: Row(
                     children: [
-                      Icon(Icons.format_list_bulleted_rounded, color: c.ink, size: 18),
+                      Icon(Icons.format_list_bulleted_rounded,
+                          color: c.ink, size: 18),
                       const SizedBox(width: 4),
-                      Text('Destekçiler', style: SwanType.caption(c.ink, w: FontWeight.w700)),
+                      Text('Destekçiler',
+                          style: SwanType.caption(c.ink, w: FontWeight.w700)),
                     ],
                   ),
                 ),
@@ -554,7 +612,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 children: [
                   Icon(Icons.school_rounded, color: c.accent, size: 16),
                   const SizedBox(width: 4),
-                  Text('Burs ve Ekipman', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                  Text('Burs ve Ekipman',
+                      style: SwanType.caption(c.accent, w: FontWeight.w700)),
                 ],
               ),
               Container(
@@ -574,7 +633,10 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           Text(pool.title, style: SwanType.body(c.ink, w: FontWeight.w700)),
           if (pool.description != null && pool.description!.isNotEmpty) ...[
             const SizedBox(height: 2),
-            Text(pool.description!, maxLines: 2, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.inkMuted)),
+            Text(pool.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.caption(c.inkMuted)),
           ],
           const SizedBox(height: SwanSpace.sm),
           ClipRRect(
@@ -598,7 +660,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                 onTap: () => _donate(pool),
                 borderRadius: BorderRadius.circular(999),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
                     color: c.surfaceAlt,
                     borderRadius: BorderRadius.circular(999),
@@ -606,9 +669,12 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                   ),
                   child: Row(
                     children: [
-                      Text('Destek Ol', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                      Text('Destek Ol',
+                          style:
+                              SwanType.caption(c.accent, w: FontWeight.w700)),
                       const SizedBox(width: 2),
-                      Icon(Icons.chevron_right_rounded, size: 16, color: c.accent),
+                      Icon(Icons.chevron_right_rounded,
+                          size: 16, color: c.accent),
                     ],
                   ),
                 ),
@@ -620,80 +686,12 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     );
   }
 
-  Widget _buildTransparencySection(SwanPalette c) {
-    return Container(
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.md),
-        border: Border.all(color: c.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.verified_user_rounded, color: c.accent, size: 18),
-                  const SizedBox(width: 4),
-                  Text('Son Destekçiler & Şeffaflık', style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                ],
-              ),
-              Text('Canlı Akış', style: SwanType.caption(c.inkMuted)),
-            ],
-          ),
-          const SizedBox(height: SwanSpace.md),
-          _donorRow(c, 'Özgür A.', 'Kulüp Üyesi', '+₺1.500', Icons.person_rounded),
-          const SizedBox(height: SwanSpace.xs),
-          _donorRow(c, 'Marmara Veli İnisiyatifi', 'Kurumsal İmece', '+₺5.000', Icons.diversity_3_rounded),
-          const SizedBox(height: SwanSpace.xs),
-          _donorRow(c, 'Anonim Destekçi', 'Bireysel Bağış', '+₺750', Icons.volunteer_activism_rounded),
-        ],
-      ),
-    );
-  }
-
-  Widget _donorRow(SwanPalette c, String name, String role, String amount, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: SwanSpace.sm),
-      decoration: BoxDecoration(
-        color: c.surfaceAlt,
-        borderRadius: BorderRadius.circular(SwanRadius.sm),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: c.surface,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: c.accent, size: 16),
-          ),
-          const SizedBox(width: SwanSpace.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(name, style: SwanType.bodySm(c.ink, w: FontWeight.w600)),
-                Text(role, style: SwanType.caption(c.inkMuted)),
-              ],
-            ),
-          ),
-          Text(amount, style: SwanType.bodySm(c.accent, w: FontWeight.w800)),
-        ],
-      ),
-    );
-  }
-
   // ------------------------------- Eylemler --------------------------------
   Future<void> _create() async {
     final title = FormField_('Kampanya adı', hint: 'Deplasman otobüsü');
     final target = FormField_('Hedef tutar (₺)', hint: '50000');
-    final desc = FormField_('Açıklama', hint: 'Ne için topluyoruz?', required: false);
+    final desc =
+        FormField_('Açıklama', hint: 'Ne için topluyoruz?', required: false);
 
     await showQuickForm(
       context,
@@ -712,13 +710,16 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           ref.invalidate(campaignsProvider(''));
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Kampanya açıldı'), backgroundColor: kTeal),
+              const SnackBar(
+                  content: Text('Kampanya açıldı'), backgroundColor: kTeal),
             );
           }
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Açılamadı: $e'), backgroundColor: SwanPalette.light.danger),
+              SnackBar(
+                  content: Text('Açılamadı: $e'),
+                  backgroundColor: SwanPalette.light.danger),
             );
           }
         }
@@ -746,7 +747,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Bağış bildirimin alındı — kulüp onaylayınca listeye eklenir'),
+                content: Text(
+                    'Bağış bildirimin alındı — kulüp onaylayınca listeye eklenir'),
                 backgroundColor: kTeal,
               ),
             );
@@ -754,7 +756,9 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
         } catch (e) {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Gönderilemedi: $e'), backgroundColor: SwanPalette.light.danger),
+              SnackBar(
+                  content: Text('Gönderilemedi: $e'),
+                  backgroundColor: SwanPalette.light.danger),
             );
           }
         }
@@ -797,7 +801,8 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                         ? Center(
                             child: Text(
                               'Henüz destekçi yok',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
+                              style: SwanType.caption(SwanColors.textSecondary,
+                                  w: FontWeight.w600),
                             ),
                           )
                         : ListView.builder(
@@ -810,24 +815,31 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
                                   children: [
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Text(d.name, style: SwanType.caption(ink, w: FontWeight.w700)),
-                                          if (d.message != null && d.message!.isNotEmpty)
+                                          Text(d.name,
+                                              style: SwanType.caption(ink,
+                                                  w: FontWeight.w700)),
+                                          if (d.message != null &&
+                                              d.message!.isNotEmpty)
                                             Text(
                                               d.message!,
-                                              style: SwanType.caption(SwanColors.textSecondary),
+                                              style: SwanType.caption(
+                                                  SwanColors.textSecondary),
                                             ),
                                           Text(
                                             fmtDate(d.createdAt),
-                                            style: SwanType.caption(SwanColors.textSecondary),
+                                            style: SwanType.caption(
+                                                SwanColors.textSecondary),
                                           ),
                                         ],
                                       ),
                                     ),
                                     Text(
                                       money(d.amount),
-                                      style: SwanType.caption(kTeal, w: FontWeight.w800),
+                                      style: SwanType.caption(kTeal,
+                                          w: FontWeight.w800),
                                     ),
                                   ],
                                 ),

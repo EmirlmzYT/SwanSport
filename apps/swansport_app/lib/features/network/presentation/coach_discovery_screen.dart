@@ -88,7 +88,8 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                   children: [
                     Row(
                       children: [
-                        const Icon(Icons.sports_rounded, size: 20, color: kTeal),
+                        const Icon(Icons.sports_rounded,
+                            size: 20, color: kTeal),
                         const SizedBox(width: 8),
                         Text('Uzman Kadro', style: SwanType.h3(ink)),
                       ],
@@ -185,10 +186,6 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
         Row(
           children: [
             IconButton(
-              icon: Icon(Icons.shopping_bag_outlined, color: ink),
-              onPressed: () => Navigator.pushNamed(context, '/sepet'),
-            ),
-            IconButton(
               icon: Icon(Icons.notifications_none_rounded, color: ink),
               onPressed: () => Navigator.pushNamed(context, '/bildirimler'),
             ),
@@ -282,16 +279,17 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                     Icon(
                       Icons.person_rounded,
                       size: 16,
-                      color: _formatIndex == 0
-                          ? kTeal
-                          : SwanColors.textSecondary,
+                      color:
+                          _formatIndex == 0 ? kTeal : SwanColors.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       '1-e-1 Özel Bireysel',
                       style: SwanType.bodySm(
                         _formatIndex == 0 ? kTeal : SwanColors.textSecondary,
-                        w: _formatIndex == 0 ? FontWeight.w700 : FontWeight.w500,
+                        w: _formatIndex == 0
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                       ),
                     ),
                   ],
@@ -324,16 +322,17 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
                     Icon(
                       Icons.groups_rounded,
                       size: 16,
-                      color: _formatIndex == 1
-                          ? kTeal
-                          : SwanColors.textSecondary,
+                      color:
+                          _formatIndex == 1 ? kTeal : SwanColors.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
                       'İleri Klinik (Maks 3)',
                       style: SwanType.bodySm(
                         _formatIndex == 1 ? kTeal : SwanColors.textSecondary,
-                        w: _formatIndex == 1 ? FontWeight.w700 : FontWeight.w500,
+                        w: _formatIndex == 1
+                            ? FontWeight.w700
+                            : FontWeight.w500,
                       ),
                     ),
                   ],

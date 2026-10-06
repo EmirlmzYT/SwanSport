@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../application/auth_controller.dart';
+import '../../../demo/demo_role.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -69,7 +70,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
@@ -87,7 +89,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             const SizedBox(height: 6),
                             Text(
                               'Spor Kulüpleri ve Sosyal Spor Ağı',
-                              style: SwanType.bodySm(c.inkMuted, w: FontWeight.w500),
+                              style: SwanType.bodySm(c.inkMuted,
+                                  w: FontWeight.w500),
                             ),
                           ],
                         ),
@@ -101,12 +104,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                           color: c.surface,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: c.line.withValues(alpha: c.isDark ? 0.4 : 0.7),
+                            color:
+                                c.line.withValues(alpha: c.isDark ? 0.4 : 0.7),
                             width: 0.8,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: c.isDark ? 0.25 : 0.05),
+                              color: Colors.black
+                                  .withValues(alpha: c.isDark ? 0.25 : 0.05),
                               blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
@@ -136,7 +141,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       c: c,
                                       onTap: () {
                                         if (isSignUp) {
-                                          ref.read(authControllerProvider.notifier).toggleMode();
+                                          ref
+                                              .read(authControllerProvider
+                                                  .notifier)
+                                              .toggleMode();
                                         }
                                       },
                                     ),
@@ -148,7 +156,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       c: c,
                                       onTap: () {
                                         if (!isSignUp) {
-                                          ref.read(authControllerProvider.notifier).toggleMode();
+                                          ref
+                                              .read(authControllerProvider
+                                                  .notifier)
+                                              .toggleMode();
                                         }
                                       },
                                     ),
@@ -228,15 +239,21 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                         height: 22,
                                         child: CircularProgressIndicator(
                                           strokeWidth: 2.2,
-                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                  Colors.white),
                                         ),
                                       )
                                     : Row(
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
                                         children: [
                                           Text(
-                                            isSignUp ? 'Hesap Oluştur' : 'Giriş Yap',
-                                            style: SwanType.body(Colors.white, w: FontWeight.w700),
+                                            isSignUp
+                                                ? 'Hesap Oluştur'
+                                                : 'Giriş Yap',
+                                            style: SwanType.body(Colors.white,
+                                                w: FontWeight.w700),
                                           ),
                                           const SizedBox(width: 8),
                                           const Icon(
@@ -258,10 +275,12 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       ? null
                                       : () => ref
                                           .read(authControllerProvider.notifier)
-                                          .sendPasswordReset(_emailController.text),
+                                          .sendPasswordReset(
+                                              _emailController.text),
                                   child: Text(
                                     'Şifremi unuttum',
-                                    style: SwanType.caption(c.accent, w: FontWeight.w700),
+                                    style: SwanType.caption(c.accent,
+                                        w: FontWeight.w700),
                                   ),
                                 ),
                               ),
@@ -274,7 +293,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                               children: [
                                 Expanded(child: Divider(color: c.line)),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
                                   child: Text(
                                     'veya',
                                     style: SwanType.caption(c.inkMuted),
@@ -289,32 +309,39 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             OutlinedButton.icon(
                               onPressed: () {
                                 // ignore: unawaited_futures
-      Navigator.pushReplacementNamed(context, '/akis');
+                                Navigator.pushReplacementNamed(
+                                    context, '/akis');
                               },
-                              icon: Icon(Icons.explore_rounded, size: 18, color: c.ink),
+                              icon: Icon(Icons.explore_rounded,
+                                  size: 18, color: c.ink),
                               label: Text(
                                 'Giriş Yapmadan Keşfet',
-                                style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                                style:
+                                    SwanType.bodySm(c.ink, w: FontWeight.w600),
                               ),
                               style: OutlinedButton.styleFrom(
-                                side: BorderSide(color: c.line.withValues(alpha: 0.8)),
+                                side: BorderSide(
+                                    color: c.line.withValues(alpha: 0.8)),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                padding: const EdgeInsets.symmetric(vertical: 13),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 13),
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            TextButton.icon(
-                              onPressed: () {
-                                Navigator.pushNamed(context, '/demo-rol');
-                              },
-                              icon: Icon(Icons.theater_comedy_rounded, size: 17, color: c.accent),
-                              label: Text(
-                                'Demo Rolü ile Dene',
-                                style: SwanType.caption(c.accent, w: FontWeight.w700),
+                            if (ref.watch(debugToolsEnabledProvider))
+                              TextButton.icon(
+                                onPressed: () {
+                                  Navigator.pushNamed(context, '/demo-rol');
+                                },
+                                icon: Icon(Icons.theater_comedy_rounded,
+                                    size: 17, color: c.accent),
+                                label: Text(
+                                  'Demo Rolü ile Dene',
+                                  style: SwanType.caption(c.accent,
+                                      w: FontWeight.w700),
+                                ),
                               ),
-                            ),
                           ],
                         ),
                       ),
@@ -347,7 +374,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
           boxShadow: active
               ? [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: c.isDark ? 0.2 : 0.05),
+                    color:
+                        Colors.black.withValues(alpha: c.isDark ? 0.2 : 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 1),
                   ),
@@ -421,11 +449,14 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       decoration: InputDecoration(
         hintText: hintText,
         hintStyle: SwanType.bodySm(c.inkMuted.withValues(alpha: 0.7)),
-        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 18, color: c.inkMuted) : null,
+        prefixIcon: prefixIcon != null
+            ? Icon(prefixIcon, size: 18, color: c.inkMuted)
+            : null,
         suffixIcon: suffixIcon,
         filled: true,
         fillColor: c.surfaceAlt,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: c.line.withValues(alpha: 0.6)),

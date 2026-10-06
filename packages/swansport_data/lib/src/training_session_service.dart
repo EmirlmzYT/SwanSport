@@ -374,6 +374,35 @@ class TrainingHistoryEntry {
   bool get isComplete => setCount > 0 && setsDone >= setCount;
 }
 
+class SelfAssessment {
+  const SelfAssessment({
+    required this.sessionId,
+    required this.athleteId,
+    this.rpe,
+    this.tags = const [],
+    this.note,
+    this.createdAt,
+  });
+
+  final String sessionId;
+  final String athleteId;
+  final int? rpe;
+  final List<String> tags;
+  final String? note;
+  final DateTime? createdAt;
+
+  factory SelfAssessment.fromMap(Map<String, dynamic> m) => SelfAssessment(
+        sessionId: m['session_id'] as String,
+        athleteId: m['athlete_id'] as String,
+        rpe: (m['rpe'] as num?)?.toInt(),
+        tags: [
+          for (final t in (m['tags'] as List? ?? const [])) t as String,
+        ],
+        note: m['note'] as String?,
+        createdAt: _time(m['created_at']),
+      );
+}
+
 /// Oturumdaki bir katılımcı.
 class SessionParticipant {
   const SessionParticipant({
@@ -601,6 +630,21 @@ class TrainingSessionService {
         'note': note,
       });
 
+  Future<SelfAssessment?> getAssessment({
+    required String sessionId,
+    required String athleteId,
+  }) async {
+    final rows = await _db
+        .from('training_self_assessments')
+        .select('session_id, athlete_id, rpe, tags, note, created_at')
+        .eq('session_id', sessionId)
+        .eq('athlete_id', athleteId)
+        .limit(1);
+    final list = rows as List;
+    if (list.isEmpty) return null;
+    return SelfAssessment.fromMap((list.first as Map).cast<String, dynamic>());
+  }
+
   // --- Antrenör tarafı ---
 
   Future<List<SessionParticipant>> participants(String sessionId) async {
@@ -783,3 +827,17 @@ final attendanceHintProvider = FutureProvider.autoDispose
   if (!ref.watch(isSupabaseEnabledProvider)) return const {};
   return ref.watch(trainingSessionServiceProvider).attendanceHint(eventId);
 });
+
+/// Sporcunun oturumdaki öz değerlendirmesi (RPE, etiketler, not).
+final sessionAssessmentProvider = FutureProvider.autoDispose
+    .family<SelfAssessment?, String>((ref, sessionId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return null;
+  final profile = ref.watch(currentProfileProvider).valueOrNull;
+  if (profile == null) return null;
+  final athlete = await ref.watch(athleteByProfileProvider(profile.id).future);
+  if (athlete == null) return null;
+  return ref
+      .watch(trainingSessionServiceProvider)
+      .getAssessment(sessionId: sessionId, athleteId: athlete.id);
+});
+

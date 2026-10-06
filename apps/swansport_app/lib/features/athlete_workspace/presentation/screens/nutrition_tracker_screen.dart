@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
 
-/// SwanSport - Beslenme & Makro Takip Günlüğü (Stitch Screen 16)
+/// Sporcunun günlük beslenme, kalori ve hidrasyon takibi.
 ///
-/// Metabolik yakıt dengesi, kalori hedef göstergesi, makro ayrışımı (Protein, Karb, Yağ),
-/// etkileşimli hidrasyon takibi, SwanAI akıllı beslenme önerisi ve öğün günlüğü.
+/// Veriler doğrudan Supabase `athlete_nutrition_logs` tablosuna yazılır ve okunur.
 class NutritionTrackerScreen extends ConsumerStatefulWidget {
   const NutritionTrackerScreen({super.key});
 
@@ -17,119 +19,214 @@ class NutritionTrackerScreen extends ConsumerStatefulWidget {
       _NutritionTrackerScreenState();
 }
 
-class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen> {
-  DateTime _currentDate = DateTime.now();
-  double _waterLiters = 2.8;
-  final double _targetWater = 3.5;
+class _NutritionTrackerScreenState
+    extends ConsumerState<NutritionTrackerScreen> {
+  DateTime _selectedDate = DateTime.now();
 
-  final List<Map<String, dynamic>> _meals = [
+  static const List<Map<String, dynamic>> _quickSuggestions = [
     {
-      'title': 'Kahvaltı',
-      'desc': 'Yulaf, Yumurta Beyazı, Muz, Fıstık Ezmesi',
-      'kcal': 680,
-      'protein': '42g',
-      'carb': '85g',
-      'fat': '18g',
-      'completed': true,
-      'icon': Icons.breakfast_dining_rounded,
+      'title': 'Yulaf Lapası, Muz & Fıstık Ezmesi',
+      'type': 'breakfast',
+      'kcal': 420,
+      'p': 16.0,
+      'c': 62.0,
+      'f': 12.0,
     },
     {
-      'title': 'Antrenman Öncesi Yakıt',
-      'desc': 'Maltodekstrin & BCAA Shaker',
-      'kcal': 210,
-      'protein': '8g',
-      'carb': '44g',
-      'fat': '0g',
-      'completed': true,
-      'icon': Icons.bolt_rounded,
+      'title': 'Haşlanmış Yumurta (3 adet) & Ekmek',
+      'type': 'breakfast',
+      'kcal': 340,
+      'p': 24.0,
+      'c': 26.0,
+      'f': 15.0,
     },
     {
-      'title': 'Öğle Yemeği',
-      'desc': 'Izgara Tavuk Göğsü, Kinoa, Avokado',
-      'kcal': 840,
-      'protein': '78g',
-      'carb': '92g',
-      'fat': '26g',
-      'completed': true,
-      'icon': Icons.lunch_dining_rounded,
+      'title': 'Izgara Tavuk Göğsü, Pirinç & Brokoli',
+      'type': 'lunch',
+      'kcal': 580,
+      'p': 52.0,
+      'c': 65.0,
+      'f': 8.0,
     },
     {
-      'title': 'Akşam Yemeği',
-      'desc': 'Hedef: ~920 kcal planlanıyor',
-      'kcal': 0,
-      'protein': '0g',
-      'carb': '0g',
-      'fat': '0g',
-      'completed': false,
-      'icon': Icons.dinner_dining_rounded,
+      'title': 'Fırın Somon, Tatlı Patates & Salata',
+      'type': 'dinner',
+      'kcal': 640,
+      'p': 46.0,
+      'c': 48.0,
+      'f': 22.0,
+    },
+    {
+      'title': 'Lor Peynirli Sandviç',
+      'type': 'snack',
+      'kcal': 290,
+      'p': 28.0,
+      'c': 32.0,
+      'f': 5.0,
+    },
+    {
+      'title': 'Whey Protein Shake & Muz',
+      'type': 'snack',
+      'kcal': 220,
+      'p': 25.0,
+      'c': 24.0,
+      'f': 2.0,
     },
   ];
 
+  String _formatDate(DateTime d) {
+    const months = [
+      'Ocak',
+      'Şubat',
+      'Mart',
+      'Nisan',
+      'Mayıs',
+      'Haziran',
+      'Temmuz',
+      'Ağustos',
+      'Eylül',
+      'Ekim',
+      'Kasım',
+      'Aralık',
+    ];
+    final now = DateTime.now();
+    final isToday =
+        d.year == now.year && d.month == now.month && d.day == now.day;
+    if (isToday) return 'Bugün (${d.day} ${months[d.month - 1]})';
+    return '${d.day} ${months[d.month - 1]} ${d.year}';
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final palette = isDark ? SwanPalette.dark : SwanPalette.light;
-    final bg = palette.bg;
-
-    final completedMealsCount = _meals.where((m) => m['completed'] == true).length;
+    final c = context.swan;
+    final profile = ref.watch(currentProfileProvider).valueOrNull;
+    final summaryAsync =
+        ref.watch(dailyNutritionSummaryProvider(_selectedDate));
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 480),
-            child: Column(
-              children: [
-                _buildHeader(context, palette),
-                Expanded(
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-                    children: [
-                      // Date Switcher Bar
-                      _buildDateBar(palette),
-                      const SizedBox(height: 14),
-
-                      // Hero Caloric Fueling Gauge Card
-                      _buildCaloricFuelingCard(palette, isDark),
-                      const SizedBox(height: 16),
-
-                      // Macro Split Progress Metrics
-                      _buildMacroSplitGrid(palette, isDark),
-                      const SizedBox(height: 16),
-
-                      // Interactive Hydration Tracker
-                      _buildHydrationTracker(palette, isDark),
-                      const SizedBox(height: 16),
-
-                      // SwanAI Recommendation Banner
-                      _buildAiRecommendationBanner(palette, isDark),
-                      const SizedBox(height: 18),
-
-                      // Meal Log Header & List
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            'Öğün Günlüğü',
-                            style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                          ),
-                          Text(
-                            '$completedMealsCount/${_meals.length} Tamamlandı',
-                            style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 10),
-
-                      for (int i = 0; i < _meals.length; i++)
-                        _buildMealCard(_meals[i], i, palette, isDark),
-                    ],
-                  ),
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(
+                  dailyNutritionSummaryProvider(_selectedDate),
+                );
+              },
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(
+                  SwanSpace.lg,
+                  SwanSpace.md,
+                  SwanSpace.lg,
+                  120,
                 ),
-              ],
+                children: [
+                  SwanPageHeader(
+                    title: 'Beslenme ve Hidrasyon',
+                    subtitle: 'Günlük kalori, makro ve su takibi',
+                    onBack: () => Navigator.maybePop(context),
+                  ),
+                  const SizedBox(height: SwanSpace.md),
+                  _buildDateSelector(c),
+                  const SizedBox(height: SwanSpace.lg),
+                  summaryAsync.when(
+                    loading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(40),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    error: (err, _) => Container(
+                      padding: const EdgeInsets.all(SwanSpace.md),
+                      decoration: BoxDecoration(
+                        color: c.surface,
+                        borderRadius: BorderRadius.circular(SwanRadius.md),
+                        border: Border.all(color: c.line),
+                      ),
+                      child: Text(
+                        'Beslenme kayıtları yüklenemedi: $err',
+                        style: SwanType.caption(c.danger),
+                      ),
+                    ),
+                    data: (summary) => Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildHydrationCard(c, summary, profile?.id),
+                        const SizedBox(height: SwanSpace.lg),
+                        _buildCalorieCard(c, summary),
+                        const SizedBox(height: SwanSpace.lg),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text('Öğün Günlüğü', style: SwanType.h3(c.ink)),
+                            TextButton.icon(
+                              onPressed: () => _openAddMealModal(
+                                context: context,
+                                c: c,
+                                profileId: profile?.id,
+                                initialType: 'snack',
+                              ),
+                              icon: const Icon(Icons.add_rounded, size: 16),
+                              label: const Text('Besin Ekle'),
+                              style: TextButton.styleFrom(
+                                foregroundColor: c.accent,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: SwanSpace.xs),
+                        _buildMealSection(
+                          c: c,
+                          title: 'Kahvaltı',
+                          mealType: 'breakfast',
+                          icon: Icons.wb_sunny_outlined,
+                          logs: summary.logs
+                              .where((l) => l.mealType == 'breakfast')
+                              .toList(),
+                          profileId: profile?.id,
+                        ),
+                        const SizedBox(height: SwanSpace.sm),
+                        _buildMealSection(
+                          c: c,
+                          title: 'Öğle Yemeği',
+                          mealType: 'lunch',
+                          icon: Icons.lunch_dining_rounded,
+                          logs: summary.logs
+                              .where((l) => l.mealType == 'lunch')
+                              .toList(),
+                          profileId: profile?.id,
+                        ),
+                        const SizedBox(height: SwanSpace.sm),
+                        _buildMealSection(
+                          c: c,
+                          title: 'Akşam Yemeği',
+                          mealType: 'dinner',
+                          icon: Icons.dinner_dining_rounded,
+                          logs: summary.logs
+                              .where((l) => l.mealType == 'dinner')
+                              .toList(),
+                          profileId: profile?.id,
+                        ),
+                        const SizedBox(height: SwanSpace.sm),
+                        _buildMealSection(
+                          c: c,
+                          title: 'Ara Öğün & Takviye',
+                          mealType: 'snack',
+                          icon: Icons.local_cafe_outlined,
+                          logs: summary.logs
+                              .where((l) => l.mealType == 'snack')
+                              .toList(),
+                          profileId: profile?.id,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -138,193 +235,200 @@ class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen>
     );
   }
 
-  Widget _buildHeader(BuildContext context, SwanPalette palette) {
+  Widget _buildDateSelector(SwanPalette c) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      padding: const EdgeInsets.symmetric(
+        horizontal: SwanSpace.md,
+        vertical: 8,
+      ),
       decoration: BoxDecoration(
-        color: palette.surface.withValues(alpha: 0.95),
-        border: Border(
-          bottom: BorderSide(
-            color: palette.line.withValues(alpha: 0.6),
-            width: 1,
-          ),
-        ),
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          GestureDetector(
-            onTap: () {
-              if (Navigator.canPop(context)) {
-                Navigator.pop(context);
-              }
-            },
-            child: Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
-                color: palette.surfaceAlt,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: palette.line),
-              ),
-              child: Icon(
-                Icons.arrow_back_ios_new_rounded,
-                size: 16,
-                color: palette.ink,
-              ),
-            ),
-          ),
-          Column(
-            children: [
-              Text(
-                'Beslenme & Makro Günlüğü',
-                style: SwanType.h3(palette.ink),
-              ),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: palette.accent,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Text(
-                    'SwanFit Beslenme',
-                    style: SwanType.caption(palette.accent, w: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: palette.surfaceAlt,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: palette.line),
-            ),
-            child: Icon(
-              Icons.restaurant_menu_rounded,
-              size: 18,
-              color: palette.ink,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDateBar(SwanPalette palette) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: palette.line),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
+          IconButton(
+            icon: Icon(Icons.chevron_left_rounded, color: c.ink),
+            onPressed: () {
               setState(() {
-                _currentDate = _currentDate.subtract(const Duration(days: 1));
+                _selectedDate =
+                    _selectedDate.subtract(const Duration(days: 1));
               });
             },
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: palette.surfaceAlt,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.chevron_left_rounded,
-                size: 22,
-                color: palette.ink,
-              ),
-            ),
+            tooltip: 'Önceki gün',
           ),
           Row(
             children: [
-              Icon(Icons.calendar_today_rounded, size: 16, color: palette.accent),
-              const SizedBox(width: 8),
-              Builder(
-                builder: (_) {
-                  const months = [
-                    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
-                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
-                  ];
-                  final isToday = _currentDate.year == DateTime.now().year &&
-                      _currentDate.month == DateTime.now().month &&
-                      _currentDate.day == DateTime.now().day;
-                  return Column(
-                    children: [
-                      Text(
-                        isToday ? 'Bugün' : '${_currentDate.day} ${months[_currentDate.month - 1]}',
-                        style: SwanType.bodySm(palette.ink, w: FontWeight.w800),
-                      ),
-                      Text(
-                        '${_currentDate.day} ${months[_currentDate.month - 1]} ${_currentDate.year}',
-                        style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 11),
-                      ),
-                    ],
-                  );
-                },
+              Icon(Icons.calendar_month_rounded, size: 18, color: c.accent),
+              const SizedBox(width: SwanSpace.xs),
+              Text(
+                _formatDate(_selectedDate),
+                style: SwanType.bodySm(c.ink, w: FontWeight.w700),
               ),
             ],
           ),
-          GestureDetector(
-            onTap: () {
+          IconButton(
+            icon: Icon(Icons.chevron_right_rounded, color: c.ink),
+            onPressed: () {
               setState(() {
-                _currentDate = _currentDate.add(const Duration(days: 1));
+                _selectedDate = _selectedDate.add(const Duration(days: 1));
               });
             },
-            child: Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: palette.surfaceAlt,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(
-                Icons.chevron_right_rounded,
-                size: 22,
-                color: palette.ink,
-              ),
-            ),
+            tooltip: 'Sonraki gün',
           ),
         ],
       ),
     );
   }
 
-  Widget _buildCaloricFuelingCard(SwanPalette palette, bool isDark) {
+  Widget _buildHydrationCard(
+    SwanPalette c,
+    DailyNutritionSummary summary,
+    String? profileId,
+  ) {
+    final progress =
+        (summary.totalWaterMl / summary.targetWaterMl).clamp(0.0, 1.0);
+    const waterBlue = Color(0xFF0284C7);
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(SwanSpace.lg),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            palette.surface,
-            palette.surfaceAlt,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: waterBlue.withValues(alpha: 0.12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.water_drop_rounded,
+                      color: waterBlue,
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: SwanSpace.sm),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Günlük Hidrasyon',
+                        style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                      ),
+                      Text(
+                        'Hedef: ${summary.targetWaterMl} ml',
+                        style: SwanType.caption(c.inkMuted),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              Text(
+                '${summary.totalWaterMl} ml',
+                style: SwanType.h2(waterBlue),
+              ),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.md),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: progress,
+              minHeight: 8,
+              backgroundColor: c.surfaceAlt,
+              valueColor: const AlwaysStoppedAnimation<Color>(waterBlue),
+            ),
+          ),
+          const SizedBox(height: SwanSpace.md),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _updateWater(profileId, 250),
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('+250 ml (1 Bardak)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: waterBlue,
+                    side: BorderSide(
+                      color: waterBlue.withValues(alpha: 0.4),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _updateWater(profileId, 500),
+                  icon: const Icon(Icons.add_rounded, size: 16),
+                  label: const Text('+500 ml (Şişe)'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: waterBlue,
+                    side: BorderSide(
+                      color: waterBlue.withValues(alpha: 0.4),
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              IconButton(
+                onPressed: summary.totalWaterMl > 0
+                    ? () => _updateWater(profileId, -250)
+                    : null,
+                icon: const Icon(Icons.remove_rounded, size: 18),
+                tooltip: '-250 ml azalt',
+                color: c.inkMuted,
+              ),
+            ],
           ),
         ],
+      ),
+    );
+  }
+
+  Future<void> _updateWater(String? profileId, int deltaMl) async {
+    if (profileId == null) return;
+    final athlete =
+        await ref.read(athleteByProfileProvider(profileId).future);
+    if (athlete == null) return;
+
+    await ref.read(nutritionServiceProvider).logWater(
+          athleteId: athlete.id,
+          date: _selectedDate,
+          deltaMl: deltaMl,
+        );
+
+    ref.invalidate(dailyNutritionSummaryProvider(_selectedDate));
+  }
+
+  Widget _buildCalorieCard(SwanPalette c, DailyNutritionSummary summary) {
+    final calorieProgress =
+        (summary.totalCalories / summary.targetCalories).clamp(0.0, 1.0);
+
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.lg),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -336,8 +440,8 @@ class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'METABOLİK YAKIT DENGESİ',
-                    style: SwanType.caption(palette.accent, w: FontWeight.w800).copyWith(fontSize: 10),
+                    'Kalori & Makro Dengesi',
+                    style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
                   ),
                   const SizedBox(height: 2),
                   Row(
@@ -345,524 +449,91 @@ class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen>
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        '2.850',
-                        style: SwanType.h2(palette.ink),
+                        '${summary.totalCalories}',
+                        style: SwanType.h1(c.accent),
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        'kcal hedef',
-                        style: SwanType.caption(palette.inkMuted),
+                        '/ ${summary.targetCalories} kcal',
+                        style: SwanType.caption(c.inkMuted),
                       ),
                     ],
                   ),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: Colors.deepOrangeAccent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.local_fire_department_rounded, size: 14, color: Colors.deepOrangeAccent),
-                    const SizedBox(width: 4),
-                    Text(
-                      '+640 kcal yakıldı',
-                      style: SwanType.caption(Colors.deepOrangeAccent, w: FontWeight.w700),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              // Radial Arc Display
-              SizedBox(
-                width: 90,
-                height: 90,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    SizedBox(
-                      width: 80,
-                      height: 80,
-                      child: CircularProgressIndicator(
-                        value: 0.68,
-                        strokeWidth: 8,
-                        backgroundColor: palette.surfaceAlt,
-                        valueColor: AlwaysStoppedAnimation<Color>(palette.accent),
-                      ),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '920',
-                          style: SwanType.body(palette.accent, w: FontWeight.w900),
-                        ),
-                        Text(
-                          'kcal kaldı',
-                          style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 9),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Metric breakdown list
-              Expanded(
-                child: Column(
-                  children: [
-                    _buildFuelRow(
-                      label: 'Alınan',
-                      value: '1.930 kcal',
-                      dotColor: palette.accent,
-                      palette: palette,
-                    ),
-                    const SizedBox(height: 6),
-                    _buildFuelRow(
-                      label: 'Antrenman',
-                      value: '+640 kcal',
-                      dotColor: Colors.deepOrangeAccent,
-                      palette: palette,
-                    ),
-                    const SizedBox(height: 6),
-                    _buildFuelRow(
-                      label: 'Net İhtiyaç',
-                      value: '1.560 kcal',
-                      dotColor: Colors.blueAccent,
-                      palette: palette,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildFuelRow({
-    required String label,
-    required String value,
-    required Color dotColor,
-    required SwanPalette palette,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: palette.line),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-              ),
-            ],
-          ),
-          Text(
-            value,
-            style: SwanType.caption(palette.ink, w: FontWeight.w700),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMacroSplitGrid(SwanPalette palette, bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              'Makro Besinler',
-              style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-            ),
-            Text(
-              'Hedef %86',
-              style: SwanType.caption(palette.accent, w: FontWeight.w700),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            // Protein
-            Expanded(
-              child: _buildMacroCard(
-                title: 'Protein',
-                percent: '%92',
-                current: '165',
-                target: '180g',
-                progress: 0.92,
-                color: palette.accent,
-                palette: palette,
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Karb
-            Expanded(
-              child: _buildMacroCard(
-                title: 'Karb',
-                percent: '%85',
-                current: '290',
-                target: '340g',
-                progress: 0.85,
-                color: Colors.amber.shade700,
-                palette: palette,
-              ),
-            ),
-            const SizedBox(width: 8),
-            // Yağ
-            Expanded(
-              child: _buildMacroCard(
-                title: 'Yağ',
-                percent: '%82',
-                current: '62',
-                target: '75g',
-                progress: 0.82,
-                color: Colors.purpleAccent,
-                palette: palette,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildMacroCard({
-    required String title,
-    required String percent,
-    required String current,
-    required String target,
-    required double progress,
-    required Color color,
-    required SwanPalette palette,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: palette.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: SwanType.caption(color, w: FontWeight.w800).copyWith(fontSize: 10),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(4),
+                  color: c.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
-                  percent,
-                  style: SwanType.caption(color, w: FontWeight.w800).copyWith(fontSize: 9),
+                  '%${(calorieProgress * 100).round()} Tüketildi',
+                  style: SwanType.caption(c.accent, w: FontWeight.w700),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 6),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.baseline,
-            textBaseline: TextBaseline.alphabetic,
-            children: [
-              Text(
-                current,
-                style: SwanType.body(palette.ink, w: FontWeight.w800),
-              ),
-              const SizedBox(width: 2),
-              Text(
-                '/ $target',
-                style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 10),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
+          const SizedBox(height: SwanSpace.md),
           ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: Container(
-              height: 4,
-              color: palette.surfaceAlt,
-              child: FractionallySizedBox(
-                alignment: Alignment.centerLeft,
-                widthFactor: progress.clamp(0.0, 1.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: color,
-                    borderRadius: BorderRadius.circular(3),
-                  ),
+            borderRadius: BorderRadius.circular(6),
+            child: LinearProgressIndicator(
+              value: calorieProgress,
+              minHeight: 8,
+              backgroundColor: c.surfaceAlt,
+              valueColor: AlwaysStoppedAnimation<Color>(c.accent),
+            ),
+          ),
+          const SizedBox(height: SwanSpace.md),
+          Row(
+            children: [
+              Expanded(
+                child: _buildMacroBox(
+                  c: c,
+                  label: 'Protein',
+                  grams: summary.totalProtein,
+                  color: const Color(0xFFEF4444),
                 ),
               ),
-            ),
+              const SizedBox(width: SwanSpace.xs),
+              Expanded(
+                child: _buildMacroBox(
+                  c: c,
+                  label: 'Karbonhidrat',
+                  grams: summary.totalCarb,
+                  color: const Color(0xFFF59E0B),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Expanded(
+                child: _buildMacroBox(
+                  c: c,
+                  label: 'Yağ',
+                  grams: summary.totalFat,
+                  color: const Color(0xFF8B5CF6),
+                ),
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildHydrationTracker(SwanPalette palette, bool isDark) {
-    final progress = (_waterLiters / _targetWater).clamp(0.0, 1.0);
-    final percentage = (progress * 100).round();
-
+  Widget _buildMacroBox({
+    required SwanPalette c,
+    required String label,
+    required double grams,
+    required Color color,
+  }) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: Colors.blueAccent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(
-              Icons.water_drop_rounded,
-              size: 22,
-              color: Colors.blueAccent,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.baseline,
-                  textBaseline: TextBaseline.alphabetic,
-                  children: [
-                    Text(
-                      _waterLiters.toStringAsFixed(1),
-                      style: SwanType.bodySm(palette.ink, w: FontWeight.w900),
-                    ),
-                    const SizedBox(width: 2),
-                    Text(
-                      '/ $_targetWater Litre',
-                      style: SwanType.caption(palette.inkMuted),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Günlük Hidrasyon %$percentage',
-                  style: SwanType.caption(Colors.blueAccent, w: FontWeight.w700).copyWith(fontSize: 11),
-                ),
-              ],
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              setState(() {
-                if (_waterLiters < 5.0) {
-                  _waterLiters = double.parse((_waterLiters + 0.25).toStringAsFixed(2));
-                }
-              });
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  duration: const Duration(seconds: 1),
-                  content: Text('+250ml su eklendi! Toplam: ${_waterLiters.toStringAsFixed(1)}L'),
-                ),
-              );
-            },
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: Colors.blueAccent,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.blueAccent.withValues(alpha: 0.25),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                  const SizedBox(width: 4),
-                  Text(
-                    '+250ml',
-                    style: SwanType.caption(Colors.white, w: FontWeight.w800),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAiRecommendationBanner(SwanPalette palette, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.accent.withValues(alpha: 0.3)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: palette.accent.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-            ),
-            child: Icon(Icons.psychology_rounded, size: 20, color: palette.accent),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'SWANAI AKILLI ÖNERİ',
-                      style: SwanType.caption(palette.accent, w: FontWeight.w800).copyWith(fontSize: 10),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: BoxDecoration(
-                        color: palette.accent,
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Yarın sabahki yüksek tempolu 14K koşusu öncesi akşam öğününe 60g kompleks karbonhidrat eklemeniz glikojen depolarını optimize edecektir.',
-                  style: SwanType.caption(palette.ink).copyWith(height: 1.35),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMealCard(
-    Map<String, dynamic> meal,
-    int index,
-    SwanPalette palette,
-    bool isDark,
-  ) {
-    final isCompleted = meal['completed'] == true;
-
-    if (!isCompleted) {
-      // Empty action state
-      return Container(
-        margin: const EdgeInsets.only(bottom: 10),
-        padding: const EdgeInsets.all(14),
-        decoration: BoxDecoration(
-          color: palette.surface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: palette.line, strokeAlign: BorderSide.strokeAlignCenter),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: palette.surfaceAlt,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(meal['icon'] as IconData, size: 20, color: palette.inkMuted),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    meal['title'] as String,
-                    style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                  ),
-                  Text(
-                    meal['desc'] as String,
-                    style: SwanType.caption(Colors.deepOrangeAccent, w: FontWeight.w600),
-                  ),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () {
-                _showAddFoodDialog(index, palette);
-              },
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: palette.accent,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Icon(Icons.add_rounded, size: 16, color: Colors.white),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Besin Ekle',
-                      style: SwanType.caption(Colors.white, w: FontWeight.w700),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.line),
+        color: c.surfaceAlt,
+        borderRadius: BorderRadius.circular(SwanRadius.sm),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -870,146 +541,489 @@ class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen>
           Row(
             children: [
               Container(
-                width: 42,
-                height: 42,
+                width: 8,
+                height: 8,
                 decoration: BoxDecoration(
-                  color: palette.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Icon(meal['icon'] as IconData, size: 20, color: palette.accent),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          meal['title'] as String,
-                          style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                        ),
-                        const SizedBox(width: 6),
-                        Icon(Icons.check_circle_rounded, size: 14, color: palette.accent),
-                      ],
-                    ),
-                    Text(
-                      meal['desc'] as String,
-                      style: SwanType.caption(palette.inkMuted),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ],
+                  color: color,
+                  shape: BoxShape.circle,
                 ),
               ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(
-                    '${meal['kcal']}',
-                    style: SwanType.bodySm(palette.accent, w: FontWeight.w800),
-                  ),
-                  Text(
-                    'kcal',
-                    style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 10),
-                  ),
-                ],
+              const SizedBox(width: 4),
+              Text(
+                label,
+                style: SwanType.caption(c.inkMuted).copyWith(fontSize: 11),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Row(
-            children: [
-              _buildMacroPill('P: ${meal['protein']}', palette),
-              const SizedBox(width: 6),
-              _buildMacroPill('K: ${meal['carb']}', palette),
-              const SizedBox(width: 6),
-              _buildMacroPill('Y: ${meal['fat']}', palette),
-            ],
+          const SizedBox(height: 4),
+          Text(
+            '${grams.toStringAsFixed(1)} g',
+            style: SwanType.bodySm(c.ink, w: FontWeight.w700),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMacroPill(String label, SwanPalette palette) {
+  Widget _buildMealSection({
+    required SwanPalette c,
+    required String title,
+    required String mealType,
+    required IconData icon,
+    required List<NutritionLog> logs,
+    required String? profileId,
+  }) {
+    final totalCals =
+        logs.fold<int>(0, (sum, item) => sum + item.calories);
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      padding: const EdgeInsets.all(SwanSpace.md),
       decoration: BoxDecoration(
-        color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(6),
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line),
       ),
-      child: Text(
-        label,
-        style: SwanType.caption(palette.inkMuted, w: FontWeight.w600).copyWith(fontSize: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 18, color: c.accent),
+              const SizedBox(width: SwanSpace.xs),
+              Expanded(
+                child: Text(
+                  title,
+                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                ),
+              ),
+              Text(
+                '$totalCals kcal',
+                style: SwanType.caption(c.accent, w: FontWeight.w700),
+              ),
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline_rounded, size: 18),
+                onPressed: () => _openAddMealModal(
+                  context: context,
+                  c: c,
+                  profileId: profileId,
+                  initialType: mealType,
+                ),
+                tooltip: '$title için besin ekle',
+                color: c.accent,
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ],
+          ),
+          if (logs.isNotEmpty) ...[
+            const SizedBox(height: SwanSpace.xs),
+            Divider(color: c.line, height: 1),
+            const SizedBox(height: SwanSpace.xs),
+            ...logs.map(
+              (item) => Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.title,
+                            style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                          ),
+                          Text(
+                            '${item.calories} kcal · P: ${item.proteinG.round()}g · K: ${item.carbG.round()}g · Y: ${item.fatG.round()}g',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close_rounded, size: 16),
+                      onPressed: () async {
+                        await ref
+                            .read(nutritionServiceProvider)
+                            .deleteLog(item.id);
+                        ref.invalidate(
+                          dailyNutritionSummaryProvider(_selectedDate),
+                        );
+                      },
+                      tooltip: 'Kaydı sil',
+                      color: c.inkMuted,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
 
-  void _showAddFoodDialog(int index, SwanPalette palette) {
-    showModalBottomSheet<void>(
+  Future<void> _openAddMealModal({
+    required BuildContext context,
+    required SwanPalette c,
+    required String? profileId,
+    required String initialType,
+  }) async {
+    if (profileId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kayıt için sporcu profili gereklidir.')),
+      );
+      return;
+    }
+    final athlete =
+        await ref.read(athleteByProfileProvider(profileId).future);
+    if (athlete == null) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Sporcu profili bulunamadı.')),
+      );
+      return;
+    }
+
+    final titleController = TextEditingController();
+    final calController = TextEditingController();
+    final pController = TextEditingController();
+    final cController = TextEditingController();
+    final fController = TextEditingController();
+    String selectedType = initialType;
+    bool isSaving = false;
+
+    await showModalBottomSheet<void>(
       context: context,
+      isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (ctx) => Container(
-        decoration: BoxDecoration(
-          color: palette.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-        ),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Akşam Yemeği Ekle', style: SwanType.h3(palette.ink)),
-            const SizedBox(height: 8),
-            Text(
-              'Besin arayın veya sık kullanılan menülerden seçin:',
-              style: SwanType.caption(palette.inkMuted),
-            ),
-            const SizedBox(height: 14),
-            ListTile(
-              leading: Icon(Icons.restaurant_rounded, color: palette.accent),
-              title: Text('Somon & Fırın Patates', style: SwanType.bodySm(palette.ink, w: FontWeight.w700)),
-              subtitle: Text('720 kcal · P: 48g, K: 52g, Y: 22g', style: SwanType.caption(palette.inkMuted)),
-              onTap: () {
-                Navigator.pop(ctx);
-                setState(() {
-                  _meals[index] = {
-                    'title': 'Akşam Yemeği',
-                    'desc': 'Fırın Somon, Tatlı Patates, Kuşkonmaz',
-                    'kcal': 720,
-                    'protein': '48g',
-                    'carb': '52g',
-                    'fat': '22g',
-                    'completed': true,
-                    'icon': Icons.dinner_dining_rounded,
-                  };
-                });
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.rice_bowl_rounded, color: palette.accent),
-              title: Text('Hindi Fümeli Basmati Pirinç Kasesi', style: SwanType.bodySm(palette.ink, w: FontWeight.w700)),
-              subtitle: Text('650 kcal · P: 54g, K: 70g, Y: 12g', style: SwanType.caption(palette.inkMuted)),
-              onTap: () {
-                Navigator.pop(ctx);
-                setState(() {
-                  _meals[index] = {
-                    'title': 'Akşam Yemeği',
-                    'desc': 'Hindi Füme, Basmati Pirinç, Avokado',
-                    'kcal': 650,
-                    'protein': '54g',
-                    'carb': '70g',
-                    'fat': '12g',
-                    'completed': true,
-                    'icon': Icons.dinner_dining_rounded,
-                  };
-                });
-              },
-            ),
-          ],
-        ),
-      ),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setModalState) {
+            return Container(
+              padding: EdgeInsets.fromLTRB(
+                SwanSpace.lg,
+                SwanSpace.lg,
+                SwanSpace.lg,
+                MediaQuery.of(ctx).viewInsets.bottom + SwanSpace.xl,
+              ),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(24),
+                ),
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 40,
+                        height: 4,
+                        decoration: BoxDecoration(
+                          color: c.line,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: SwanSpace.md),
+                    Text('Öğüne Besin Ekle', style: SwanType.h2(c.ink)),
+                    const SizedBox(height: SwanSpace.sm),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedType,
+                      decoration: InputDecoration(
+                        labelText: 'Öğün Türü',
+                        labelStyle: SwanType.caption(c.inkMuted),
+                        filled: true,
+                        fillColor: c.surfaceAlt,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                          borderSide: BorderSide(color: c.line),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                          borderSide: BorderSide(color: c.line),
+                        ),
+                      ),
+                      dropdownColor: c.surface,
+                      items: const [
+                        DropdownMenuItem(
+                          value: 'breakfast',
+                          child: Text('Kahvaltı'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'lunch',
+                          child: Text('Öğle Yemeği'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'dinner',
+                          child: Text('Akşam Yemeği'),
+                        ),
+                        DropdownMenuItem(
+                          value: 'snack',
+                          child: Text('Ara Öğün & Takviye'),
+                        ),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => selectedType = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: SwanSpace.md),
+                    TextField(
+                      controller: titleController,
+                      decoration: InputDecoration(
+                        labelText: 'Besin / Yemek Adı',
+                        hintText: 'örn. Izgara Somon & Fırın Patates',
+                        labelStyle: SwanType.caption(c.inkMuted),
+                        hintStyle: SwanType.caption(c.inkMuted),
+                        filled: true,
+                        fillColor: c.surfaceAlt,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                          borderSide: BorderSide(color: c.line),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                          borderSide: BorderSide(color: c.line),
+                        ),
+                      ),
+                      style: SwanType.bodySm(c.ink),
+                    ),
+                    const SizedBox(height: SwanSpace.sm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: calController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Kalori (kcal)',
+                              filled: true,
+                              fillColor: c.surfaceAlt,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                            ),
+                            style: SwanType.bodySm(c.ink),
+                          ),
+                        ),
+                        const SizedBox(width: SwanSpace.xs),
+                        Expanded(
+                          child: TextField(
+                            controller: pController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Protein (g)',
+                              filled: true,
+                              fillColor: c.surfaceAlt,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                            ),
+                            style: SwanType.bodySm(c.ink),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: SwanSpace.xs),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: cController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Karb (g)',
+                              filled: true,
+                              fillColor: c.surfaceAlt,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                            ),
+                            style: SwanType.bodySm(c.ink),
+                          ),
+                        ),
+                        const SizedBox(width: SwanSpace.xs),
+                        Expanded(
+                          child: TextField(
+                            controller: fController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Yağ (g)',
+                              filled: true,
+                              fillColor: c.surfaceAlt,
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.md),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                            ),
+                            style: SwanType.bodySm(c.ink),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: SwanSpace.md),
+                    Text(
+                      'Hızlı Şablonlar:',
+                      style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+                    ),
+                    const SizedBox(height: SwanSpace.xs),
+                    Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      children: _quickSuggestions.map((sug) {
+                        return ActionChip(
+                          label: Text(sug['title'] as String),
+                          labelStyle: SwanType.caption(c.ink),
+                          backgroundColor: c.surfaceAlt,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                            side: BorderSide(color: c.line),
+                          ),
+                          onPressed: () {
+                            setModalState(() {
+                              titleController.text = sug['title'] as String;
+                              selectedType = sug['type'] as String;
+                              calController.text = sug['kcal'].toString();
+                              pController.text = sug['p'].toString();
+                              cController.text = sug['c'].toString();
+                              fController.text = sug['f'].toString();
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: SwanSpace.lg),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: isSaving
+                            ? null
+                            : () async {
+                                final title = titleController.text.trim();
+                                if (title.isEmpty) return;
+                                final kcal =
+                                    int.tryParse(calController.text.trim()) ??
+                                        0;
+                                final p =
+                                    double.tryParse(pController.text.trim()) ??
+                                        0.0;
+                                final carb =
+                                    double.tryParse(cController.text.trim()) ??
+                                        0.0;
+                                final fat =
+                                    double.tryParse(fController.text.trim()) ??
+                                        0.0;
+
+                                setModalState(() => isSaving = true);
+                                try {
+                                  await ref
+                                      .read(nutritionServiceProvider)
+                                      .addMeal(
+                                        athleteId: athlete.id,
+                                        date: _selectedDate,
+                                        mealType: selectedType,
+                                        title: title,
+                                        calories: kcal,
+                                        proteinG: p,
+                                        carbG: carb,
+                                        fatG: fat,
+                                      );
+
+                                  ref.invalidate(
+                                    dailyNutritionSummaryProvider(
+                                      _selectedDate,
+                                    ),
+                                  );
+
+                                  if (ctx.mounted) Navigator.pop(ctx);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text('Öğün kaydedildi.'),
+                                        backgroundColor: Color(0xFF10B981),
+                                      ),
+                                    );
+                                  }
+                                } catch (e) {
+                                  setModalState(() => isSaving = false);
+                                  if (context.mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Kayıt başarısız: $e'),
+                                        backgroundColor: c.danger,
+                                      ),
+                                    );
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: c.accent,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(SwanRadius.md),
+                          ),
+                        ),
+                        child: isSaving
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(
+                                'Kaydet',
+                                style: SwanType.bodySm(
+                                  Colors.white,
+                                  w: FontWeight.w700,
+                                ),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
+

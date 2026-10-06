@@ -1439,3 +1439,13 @@ yanlış yola sapar.
 - Altı rota/header/sporcu regresyon dosyası ve `swan_skeleton_test.dart` birlikte 34 test: hepsi geçti. Skeleton dosyası artık 6 test içeriyor; 240px dar ekran ve azaltılmış hareket kontrolleri eklendi. Bu sayı tüm uygulamanın test toplamı değildir.
 - `InkWell` altında opak renkli `Container` dokunma dalgasını örtebilir. Feed filtreleri ortak `StitchFilterPill`, oluşturma seçenekleri renk/clip sahibi `Material` kullanıyor; yeni yüzeylerde bu sırayı koru.
 - Phase 03 kanıtları `.planning/phases/03-design-overhaul-fluidity/03-VERIFICATION.md` içinde. Paket analizi 0 hata, 3 kapsam dışı uyarı; canlı görsel UAT tarayıcı erişim izni reddedildiği için açık.
+
+### 2026-10-06 — Demo ve eylem denetimi
+
+- **Sıfır, demo veri seçmek için sinyal değildir.** Mali özet sıfır geldiğinde 142.500/284.200 gibi örnek tutarlarla değiştiriliyordu. Gerçek sıfır korunur; bağlantı hatası ayrı görünür. Takım yaş/maç/katılım, saha doluluk/IoT ve bağışçı isimleri gibi sabit kayıtlar da kullanıcı ekranlarından kaldırıldı.
+- **Bir snackbar işlemin kanıtı değildir.** Ses kaydı yalnızca zamanlayıcıydı; “Ayırt”, veli araması ve lisans QR kontrolleri yalnızca başarı mesajı gösteriyordu. Gerçek servis olmayan bu kontroller kaldırıldı. Gerçek şablon kaydı servisi bekler ve çift gönderimi engeller.
+- **Açılış kapısı oturumu izler.** `AuthGate` doğrudan Feed döndürüyordu. Ortak `authSessionProvider` ile oturum/tanıtım/giriş ayrımı geri geldi. Üretimde demo rol girişleri kapalıdır; eski demo rotası giriş ekranında karşılanır.
+- Rapor/yapılandırma ve tipli fixture detayları canlı backend veya üretim ortamında örnek kayıt açmaz. Eski rotalar korunur, hizmeti olmayan ekranlar çalışan ilgili ekrana bağlantı verir. Geliştirme fixture modelleri/testleri korunur.
+- Kanıt: `docs/demo-action-audit.md`. Son tam koşu: **232 uygulama, 251 veri, 40 konsol testi**. Uygulama/konsol testlerini boş `--dart-define=SUPABASE_URL= --dart-define=SUPABASE_ANON_KEY=` ile izole et; üretim paketleri `env/prod.json` kullanır. Workspace analizi 0 hata/5 kapsam dışı uyarı; değiştirilen kaynaklarda uyarı yok.
+- Bu çalışma henüz commit edilmedi. Canlı hesaplı görsel UAT ve fiziksel Android cihaz denemesi yapılmadı; önceki tarayıcı erişim reddi aşılmadı.
+- Yayın tamamlandı: web `https://e2f698b3.swansport.pages.dev`; Android `v0.5.1+16` GitHub release'inde. APK imzası yukarıdaki `6da577…915bb` ile aynı; yayımlanan dosyanın özeti yerel paketle eşleşti. Test derleme tanımları yayına taşınmadı; üretim yapılandırması ve konsol paketi doğrulandı.

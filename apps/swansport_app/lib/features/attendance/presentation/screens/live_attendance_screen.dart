@@ -38,6 +38,12 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
 
     final club = ref.watch(activeClubProvider).valueOrNull;
     final today = _todaysEvents(ref);
+    final requested = ModalRoute.of(context)?.settings.arguments;
+    if (_eventId == null &&
+        requested is String &&
+        today.any((e) => e.id == requested)) {
+      _eventId = requested;
+    }
     if (_eventId == null && today.isNotEmpty) _eventId = today.first.id;
 
     final async = _eventId == null
@@ -193,13 +199,15 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                           ),
                           const SizedBox(width: 8),
                           Text('Kaydediliyor…',
-                              style: SwanType.bodySm(Colors.white, w: FontWeight.w700)),
+                              style: SwanType.bodySm(Colors.white,
+                                  w: FontWeight.w700)),
                         ] else ...[
                           const Icon(Icons.check_circle_outline, size: 20),
                           const SizedBox(width: 8),
                           Text(
                             'Yoklamayı Kaydet & Tamamla (${_marks.length} Sporcu)',
-                            style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
+                            style: SwanType.bodySm(Colors.white,
+                                w: FontWeight.w700),
                           ),
                         ],
                       ],
@@ -236,7 +244,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                 icon: Icon(Icons.arrow_back, color: c.ink, size: 22),
                 style: IconButton.styleFrom(
                   backgroundColor: c.surface,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
               ),
               const SizedBox(width: 10),
@@ -258,10 +267,6 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                 ],
               ),
             ],
-          ),
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.more_vert, color: c.inkMuted, size: 20),
           ),
         ],
       ),
@@ -300,43 +305,17 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                 ),
                 const SizedBox(width: 6),
                 Text(
-                  'CANLI OTURUM',
+                  'YOKLAMA',
                   style: SwanType.caption(c.accent, w: FontWeight.w800),
                 ),
               ],
             ),
             const SizedBox(height: 2),
             Text(
-              event?.title ?? 'U18 Genç Takım • Akşam Antrenmanı',
+              event?.title ?? 'Etkinlik seçilmedi',
               style: SwanType.bodySm(c.ink, w: FontWeight.w600),
             ),
           ],
-        ),
-        InkWell(
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('QR Kamera tarayıcısı başlatılıyor...')),
-            );
-          },
-          borderRadius: BorderRadius.circular(12),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: c.line),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.qr_code_scanner, size: 18, color: c.accent),
-                const SizedBox(width: 6),
-                Text(
-                  'Hızlı Tara',
-                  style: SwanType.caption(c.ink, w: FontWeight.w700),
-                ),
-              ],
-            ),
-          ),
         ),
       ],
     );
@@ -402,7 +381,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: c.accent.withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(6),
@@ -440,11 +420,13 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
           Row(
             children: [
               Expanded(
-                child: _statClusterItem(c, label: 'Toplam', value: '$total', color: c.ink),
+                child: _statClusterItem(c,
+                    label: 'Toplam', value: '$total', color: c.ink),
               ),
               const SizedBox(width: 6),
               Expanded(
-                child: _statClusterItem(c, label: 'Var', value: '$present', color: c.accent),
+                child: _statClusterItem(c,
+                    label: 'Var', value: '$present', color: c.accent),
               ),
               const SizedBox(width: 6),
               Expanded(
@@ -525,18 +507,6 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
           const SizedBox(width: 8),
           _actionChip(
             c,
-            icon: Icons.edit_note,
-            iconColor: c.inkMuted,
-            label: 'Antrenman Notu Ekle',
-            onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Antrenman not defteri açıldı.')),
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-          _actionChip(
-            c,
             icon: Icons.restart_alt,
             iconColor: c.inkMuted,
             label: 'Sıfırla',
@@ -611,7 +581,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
               onTap: () => setState(() => _filter = f.$1),
               borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   color: isSel ? c.accent : c.surface,
                   borderRadius: BorderRadius.circular(20),
@@ -693,7 +664,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                         bottom: 0,
                         right: 0,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
                           decoration: BoxDecoration(
                             color: c.accent,
                             borderRadius: const BorderRadius.only(
@@ -737,7 +709,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                       Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 1),
                             decoration: BoxDecoration(
                               color: c.bg,
                               borderRadius: BorderRadius.circular(4),
@@ -746,7 +719,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                               index % 3 == 0
                                   ? 'Forvet'
                                   : (index % 3 == 1 ? 'Orta Saha' : 'Defans'),
-                              style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+                              style: SwanType.caption(c.inkMuted,
+                                  w: FontWeight.w600),
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -854,7 +828,8 @@ class _LiveAttendanceScreenState extends ConsumerState<LiveAttendanceScreen> {
                 children: [
                   Icon(Icons.schedule, size: 12, color: c.accent),
                   const SizedBox(width: 4),
-                  Text('Zamanında katıldı', style: SwanType.caption(c.inkMuted)),
+                  Text('Zamanında katıldı',
+                      style: SwanType.caption(c.inkMuted)),
                 ],
               ),
               Text(

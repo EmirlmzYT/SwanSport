@@ -34,8 +34,8 @@ class ManagementSection extends ConsumerWidget {
         const _Item(Icons.checklist_rounded, 'Yoklama Al', '/attendance'),
         const _Item(Icons.fact_check_rounded, 'Devam Geçmişi', '/devam-durumu'),
         const _Item(Icons.campaign_rounded, 'Duyurular', '/announcements'),
-        const _Item(Icons.bar_chart_rounded, 'Performans',
-            '/performance-analytics'),
+        const _Item(
+            Icons.bar_chart_rounded, 'Performans', '/performance-analytics'),
         const _Item(Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command'),
       ],
       // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
@@ -43,8 +43,8 @@ class ManagementSection extends ConsumerWidget {
       if (access.isClubStaff &&
           ref.watch(
               featureEnabledProvider(FeatureFlags.sportTrainingSessions))) ...[
-        const _Item(Icons.sports_rounded, 'Antrenman Oturumu',
-            '/antrenman-oturumu'),
+        const _Item(
+            Icons.sports_rounded, 'Antrenman Oturumu', '/antrenman-oturumu'),
         const _Item(Icons.tune_rounded, 'Antrenman Şablonları',
             '/antrenman-sablonlari'),
       ],
@@ -53,26 +53,25 @@ class ManagementSection extends ConsumerWidget {
     final ops = <_Item>[
       if (access.isClubStaff || access.isAccountant) ...[
         const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
-        const _Item(Icons.playlist_add_check_rounded, 'Mali İşler', '/mali-isler'),
+        const _Item(
+            Icons.playlist_add_check_rounded, 'Mali İşler', '/mali-isler'),
         const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
-        const _Item(Icons.description_rounded, 'Raporlar', '/reports'),
       ],
       if (access.isClubStaff) ...[
-        const _Item(Icons.medical_services_rounded, 'Medikal',
-            '/medical-center'),
+        const _Item(
+            Icons.medical_services_rounded, 'Medikal', '/medical-center'),
         const _Item(Icons.stadium_rounded, 'Tesisler', '/facilities'),
       ],
     ];
 
     final platform = <_Item>[
       if (access.isPlatformAdmin) ...[
-        const _Item(Icons.admin_panel_settings_rounded, 'Onay Paneli',
-            '/onay-paneli'),
-        const _Item(Icons.rss_feed_rounded, 'Haber Kaynakları',
-            '/haber-kaynaklari'),
+        const _Item(
+            Icons.admin_panel_settings_rounded, 'Onay Paneli', '/onay-paneli'),
+        const _Item(
+            Icons.rss_feed_rounded, 'Haber Kaynakları', '/haber-kaynaklari'),
         const _Item(Icons.verified_rounded, 'Federasyon Yetkilileri',
             '/federasyon-yetkili'),
-        const _Item(Icons.tune_rounded, 'Yapılandırma', '/configuration'),
       ],
     ];
 

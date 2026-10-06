@@ -34,3 +34,13 @@ final supabaseClientProvider = Provider<SupabaseClient>(
     return Supabase.instance.client;
   },
 );
+
+/// Current session and subsequent authentication changes, without widget queries.
+final authSessionProvider = StreamProvider<Session?>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return Stream.value(null);
+  return ref
+      .watch(supabaseClientProvider)
+      .auth
+      .onAuthStateChange
+      .map((event) => event.session);
+});

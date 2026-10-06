@@ -43,7 +43,8 @@ void main() {
     await pumpScreen(tester);
 
     expect(find.text('Can Yılmaz'), findsWidgets);
-    expect(find.text('Aktif'), findsWidgets);
+    expect(find.text('%96'), findsNothing);
+    expect(find.text('Uygunluk: Uygun'), findsOneWidget);
     expect(find.text('Forvet'), findsWidgets);
     expect(find.text('L-2026-01'), findsOneWidget);
     expect(find.text('Veli Davet Kodu Üret'), findsOneWidget);

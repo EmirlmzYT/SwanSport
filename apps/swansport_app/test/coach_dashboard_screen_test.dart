@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_app/features/dashboard/presentation/screens/coach_dashboard_screen.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -10,6 +11,10 @@ void main() {
   ) async {
     await tester.pumpWidget(
       ProviderScope(
+        overrides: [
+          clubAthletesProvider.overrideWith((ref) async => const []),
+          eventsProvider.overrideWith((ref) async => const [])
+        ],
         child: MaterialApp(
           theme: SwanTheme.light(),
           routes: {
@@ -21,7 +26,7 @@ void main() {
       ),
     );
 
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('SwanSport'), findsOneWidget);
     expect(find.text('İyi çalışmalar,'), findsOneWidget);

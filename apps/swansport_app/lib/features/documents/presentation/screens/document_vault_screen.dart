@@ -11,13 +11,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 
-/// Belge Kasası — kulüp ve sporcu evrakları, geçerlilik takibiyle.
-///
-/// Stitch "Calm Athletic Modernism" tasarımına uyumlu:
-/// - Kasa Uyumluluk Özeti (%98 Uyumluluk & İlerleme Çubuğu)
-/// - Yaklaşan Vize / Süre Uyarı Kartı
-/// - Kategori Filtre Hapları
-/// - Modern Belge Kartları ve Aksiyon Menüsü
+/// Gerçek belge listesi, yetkiye göre yükleme ve doğrulama akışları.
 class DocumentVaultScreen extends ConsumerStatefulWidget {
   const DocumentVaultScreen({super.key});
 
@@ -132,8 +126,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                       ),
                       const SizedBox(width: 6),
                       Text(
-                        'Bulut Kasa · 18.4 GB Kullanımda',
-                        style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
+                        'Kulüp belge arşivi',
+                        style: SwanType.caption(palette.inkMuted,
+                            w: FontWeight.w600),
                       ),
                     ],
                   ),
@@ -146,7 +141,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
               GestureDetector(
                 onTap: _add,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: palette.accent,
                     borderRadius: BorderRadius.circular(12),
@@ -161,11 +157,13 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.add_rounded, size: 16, color: Colors.white),
+                      const Icon(Icons.add_rounded,
+                          size: 16, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
                         'Yükle',
-                        style: SwanType.caption(Colors.white, w: FontWeight.w700),
+                        style:
+                            SwanType.caption(Colors.white, w: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -183,17 +181,12 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     SwanPalette palette,
     bool isDark,
   ) {
-    final expiringDocs =
-        allDocs.where((d) => d.isExpired || d.isExpiring).toList();
-    final verifiedCount = allDocs.where((d) => d.verified).length;
-    final complianceRate = allDocs.isEmpty
-        ? 94
-        : ((verifiedCount / allDocs.length) * 100).round();
-
     // Filter documents
     final filteredDocs = allDocs.where((d) {
-      if (_selectedCategory == 'lisans') return d.docType == 'lisans';
-      if (_selectedCategory == 'saglik') return d.docType == 'saglik';
+      if (_selectedCategory == 'lisans')
+        return d.docType == 'lisans' && d.ownerType != 'club';
+      if (_selectedCategory == 'saglik')
+        return d.docType == 'saglik' && d.ownerType != 'club';
       if (_selectedCategory == 'club') return d.ownerType == 'club';
       if (_selectedCategory == 'expiring') return d.isExpired || d.isExpiring;
       if (_selectedCategory == 'other') {
@@ -213,34 +206,24 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
       }
     });
 
-    final lisansCount = allDocs.where((d) => d.docType == 'lisans').length;
-    final saglikCount = allDocs.where((d) => d.docType == 'saglik').length;
+    final lisansCount = allDocs
+        .where((d) => d.docType == 'lisans' && d.ownerType != 'club')
+        .length;
+    final saglikCount = allDocs
+        .where((d) => d.docType == 'saglik' && d.ownerType != 'club')
+        .length;
     final clubCount = allDocs.where((d) => d.ownerType == 'club').length;
-    final pendingSignCount = expiringDocs.isNotEmpty ? expiringDocs.length : 3;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
       children: [
-        // Stitch Storage Gauge & Status Bento Card
-        _buildStitchStorageBento(
-          totalDocs: allDocs.length,
-          complianceRate: complianceRate,
-          pendingSignCount: pendingSignCount,
-          palette: palette,
-          isDark: isDark,
-        ),
-        const SizedBox(height: 14),
-
-        // Stitch Priority E-Signature & Action Stream
-        _buildPrioritySignatureDeck(expiringDocs, palette, isDark),
-        const SizedBox(height: 16),
-
         // Stitch 2x2 Archive Folders Grid
         _buildArchiveFoldersGrid(
           lisansCount: lisansCount,
           saglikCount: saglikCount,
           clubCount: clubCount,
-          otherCount: (allDocs.length - lisansCount - saglikCount - clubCount).clamp(0, 99999),
+          otherCount: (allDocs.length - lisansCount - saglikCount - clubCount)
+              .clamp(0, 99999),
           palette: palette,
           isDark: isDark,
         ),
@@ -326,304 +309,6 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     );
   }
 
-  Widget _buildStitchStorageBento({
-    required int totalDocs,
-    required int complianceRate,
-    required int pendingSignCount,
-    required SwanPalette palette,
-    required bool isDark,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: palette.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              // Circular Storage Gauge
-              SizedBox(
-                width: 64,
-                height: 64,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    CircularProgressIndicator(
-                      value: 0.37,
-                      strokeWidth: 6,
-                      backgroundColor: palette.surfaceAlt,
-                      valueColor: AlwaysStoppedAnimation<Color>(palette.accent),
-                    ),
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          '%37',
-                          style: SwanType.body(palette.ink, w: FontWeight.w800),
-                        ),
-                        Text(
-                          'Dolu',
-                          style: SwanType.caption(palette.inkMuted, w: FontWeight.w600).copyWith(fontSize: 10),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Bulut Arşiv Kapasitesi',
-                          style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: palette.accent.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'Kurumsal Plan',
-                            style: SwanType.caption(palette.accent, w: FontWeight.w700).copyWith(fontSize: 10),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '18.4 GB / 50 GB Kullanılıyor',
-                      style: SwanType.caption(palette.inkMuted),
-                    ),
-                    const SizedBox(height: 8),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(4),
-                      child: Container(
-                        height: 5,
-                        color: palette.surfaceAlt,
-                        child: FractionallySizedBox(
-                          alignment: Alignment.centerLeft,
-                          widthFactor: 0.37,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: palette.accent,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          const Divider(height: 1),
-          const SizedBox(height: 12),
-          // 3 Metric Pills
-          Row(
-            children: [
-              Expanded(
-                child: _buildStorageMetricTile(
-                  label: 'Dijitalleşme',
-                  value: '%$complianceRate',
-                  icon: Icons.verified_user_rounded,
-                  color: palette.success,
-                  palette: palette,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildStorageMetricTile(
-                  label: 'Resmi Evrak',
-                  value: '$totalDocs',
-                  icon: Icons.description_rounded,
-                  color: palette.accent,
-                  palette: palette,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _buildStorageMetricTile(
-                  label: 'Bekleyen İmza',
-                  value: '$pendingSignCount',
-                  icon: Icons.edit_document,
-                  color: palette.warning,
-                  palette: palette,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildStorageMetricTile({
-    required String label,
-    required String value,
-    required IconData icon,
-    required Color color,
-    required SwanPalette palette,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-      decoration: BoxDecoration(
-        color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: palette.line),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(icon, size: 13, color: color),
-              const SizedBox(width: 4),
-              Text(
-                value,
-                style: SwanType.bodySm(palette.ink, w: FontWeight.w800),
-              ),
-            ],
-          ),
-          const SizedBox(height: 2),
-          Text(
-            label,
-            style: SwanType.caption(palette.inkMuted, w: FontWeight.w600).copyWith(fontSize: 10),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPrioritySignatureDeck(
-    List<VaultDoc> expiringDocs,
-    SwanPalette palette,
-    bool isDark,
-  ) {
-    if (expiringDocs.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    final doc = expiringDocs.first;
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: palette.warning.withValues(alpha: isDark ? 0.12 : 0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.warning.withValues(alpha: 0.3)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Icon(Icons.draw_rounded, size: 16, color: palette.warning),
-                  const SizedBox(width: 6),
-                  Text(
-                    'ÖNCELİKLİ E-İMZA & İŞLEM AKIŞI',
-                    style: SwanType.caption(palette.warning, w: FontWeight.w800),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: palette.warning,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '${expiringDocs.length} İşlem',
-                  style: SwanType.caption(Colors.black, w: FontWeight.w800).copyWith(fontSize: 10),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: palette.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: palette.line),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: palette.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Icon(Icons.assignment_ind_rounded, size: 18, color: palette.accent),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        doc.name,
-                        style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      Text(
-                        doc.docType?.toUpperCase() ?? 'BELGE',
-                        style: SwanType.caption(palette.inkMuted),
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('${doc.name} e-imza protokolü açılıyor...')),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: palette.accent,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'İmzala',
-                      style: SwanType.caption(Colors.white, w: FontWeight.w700),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildArchiveFoldersGrid({
     required int lisansCount,
     required int saglikCount,
@@ -634,29 +319,29 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   }) {
     final folders = [
       (
-        'TFF Lisans & Transfer',
-        '$lisansCount Dosya · 4.2 GB',
+        'Lisans Belgeleri',
+        '$lisansCount Dosya',
         Icons.assignment_ind_rounded,
         palette.accent,
         'lisans',
       ),
       (
-        'Sağlık & EKG Raporları',
-        '$saglikCount Dosya · 6.8 GB',
+        'Sağlık Belgeleri',
+        '$saglikCount Dosya',
         Icons.medical_services_rounded,
         palette.warning,
         'saglik',
       ),
       (
-        'Mali Denetim & Faturalar',
-        '$clubCount Dosya · 3.1 GB',
+        'Kulüp Belgeleri',
+        '$clubCount Dosya',
         Icons.receipt_long_rounded,
         Colors.blue,
         'club',
       ),
       (
-        'Tesis & Kira Sözleşmeleri',
-        '$otherCount Dosya · 4.3 GB',
+        'Diğer Belgeler',
+        '$otherCount Dosya',
         Icons.stadium_rounded,
         Colors.purple,
         'other',
@@ -692,7 +377,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: isSelected
                       ? f.$4.withValues(alpha: 0.12)
@@ -722,13 +408,15 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                         children: [
                           Text(
                             f.$1,
-                            style: SwanType.caption(palette.ink, w: FontWeight.w700),
+                            style: SwanType.caption(palette.ink,
+                                w: FontWeight.w700),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
                           Text(
                             f.$2,
-                            style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 10),
+                            style: SwanType.caption(palette.inkMuted)
+                                .copyWith(fontSize: 10),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -750,8 +438,12 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     SwanPalette palette,
     bool isDark,
   ) {
-    final lisansCount = allDocs.where((d) => d.docType == 'lisans').length;
-    final saglikCount = allDocs.where((d) => d.docType == 'saglik').length;
+    final lisansCount = allDocs
+        .where((d) => d.docType == 'lisans' && d.ownerType != 'club')
+        .length;
+    final saglikCount = allDocs
+        .where((d) => d.docType == 'saglik' && d.ownerType != 'club')
+        .length;
     final clubCount = allDocs.where((d) => d.ownerType == 'club').length;
 
     final categories = [

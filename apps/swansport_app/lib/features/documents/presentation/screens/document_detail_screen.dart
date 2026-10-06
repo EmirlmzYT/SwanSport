@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
-
-import '../../application/document_detail_controller.dart';
-import '../../domain/models/document_vault.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
+import '../../../../app/design/swan_type.dart';
+import '../../../../app/widgets/premium.dart';
 import '../routing/document_detail_route_args.dart';
 
 class DocumentDetailScreen extends ConsumerWidget {
@@ -13,146 +15,66 @@ class DocumentDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    if (args == null) {
-      return const Scaffold(
-        body: Center(
-          child: Text(
-            'Geçersiz belge bağlantısı.',
-            key: Key('document-invalid-route'),
-          ),
-        ),
-      );
-    }
-    final state = ref.watch(documentDetailControllerProvider(args!.documentId));
+    final c = context.swan;
     return Scaffold(
+      backgroundColor: c.bg,
       appBar: AppBar(title: const Text('Belge Ayrıntısı')),
-      body: switch (state.status) {
-        DocumentDetailStatus.loading =>
-          const Center(child: CircularProgressIndicator()),
-        DocumentDetailStatus.notFound => const Center(
-            child: Text('Belge bulunamadı.', key: Key('document-not-found')),
-          ),
-        DocumentDetailStatus.permissionDenied =>
-          const Center(child: Text('Bu belgeyi görüntüleme yetkiniz yok.')),
-        DocumentDetailStatus.unavailable =>
-          const Center(child: Text('Bu belge artık kullanılamıyor.')),
-        DocumentDetailStatus.loaded =>
-          _Detail(document: state.document!),
-      },
+      body: args == null
+          ? const Center(
+              child: Text('Geçersiz belge bağlantısı.',
+                  key: Key('document-invalid-route')))
+          : ref.watch(vaultDocsProvider).when(
+                loading: premiumLoading,
+                error: (e, _) => premiumError(context, '$e'),
+                data: (docs) {
+                  VaultDoc? doc;
+                  for (final d in docs) {
+                    if (d.id == args!.documentId.value) doc = d;
+                  }
+                  if (doc == null)
+                    return const Center(
+                        child: Text('Belge bulunamadı.',
+                            key: Key('document-not-found')));
+                  final d = doc;
+                  return ListView(
+                      padding: const EdgeInsets.all(SwanSpace.lg),
+                      children: [
+                        Text(d.name,
+                            key: const Key('document-detail-title'),
+                            style: SwanType.h2(c.ink)),
+                        const SizedBox(height: SwanSpace.md),
+                        Text(d.typeLabel, style: SwanType.body(c.ink)),
+                        Text('Sahip: ${d.ownerLabel}',
+                            style: SwanType.bodySm(c.inkMuted)),
+                        Text('Durum: ${d.state}',
+                            style: SwanType.bodySm(c.inkMuted)),
+                        Text(d.verified ? 'Doğrulanmış' : 'Doğrulanmamış',
+                            style: SwanType.bodySm(c.inkMuted)),
+                        if (d.storagePath != null) ...[
+                          const SizedBox(height: SwanSpace.lg),
+                          FilledButton.icon(
+                              onPressed: () => _open(context, ref, d),
+                              icon: const Icon(Icons.open_in_new_rounded),
+                              label: const Text('Dosyayı aç')),
+                        ],
+                      ]);
+                },
+              ),
     );
   }
-}
 
-class _Detail extends StatelessWidget {
-  const _Detail({required this.document});
-  final VaultDocument document;
-
-  @override
-  Widget build(BuildContext context) => Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 900),
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  Chip(label: Text(document.category.name)),
-                  Chip(label: Text(document.status.name)),
-                  if (document.isPinned) const Chip(label: Text('Sabitlendi')),
-                  if (document.isFavorite) const Chip(label: Text('Favori')),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Text(
-                document.filename,
-                key: const Key('document-detail-title'),
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text('Sahip: ${document.owner}'),
-              Text('Yükleyen: ${document.uploader}'),
-              Text(
-                'Sporcu: ${document.athlete.isEmpty ? "—" : document.athlete}',
-              ),
-              Text('Takım: ${document.team} • Sezon: ${document.season}'),
-              if (document.expiresAt case final expiry?)
-                Text(
-                  'Son geçerlilik: ${expiry.day}.${expiry.month}.${expiry.year}',
-                  style: TextStyle(
-                    color: document.status == DocumentStatus.expired
-                        ? SwanColors.warning
-                        : null,
-                  ),
-                ),
-              const SizedBox(height: 16),
-              Wrap(
-                spacing: 6,
-                children: document.tags
-                    .map((tag) => Chip(label: Text('#$tag')))
-                    .toList(),
-              ),
-              // Bu detay görünümü şu anda fixture veri kaynağıyla çalışıyor.
-              // İndirme/güncelleme/arşivleme/silme için gerçek storage ve
-              // mutation sözleşmesi yok; izin varmış gibi görünen null
-              // düğmeler kullanıcıyı yanıltır. İşlemler veri katmanına
-              // bağlandığında bu bölüm gerçek callback'lerle geri eklenir.
-              const SizedBox(height: 20),
-              const Text(
-                'Sürüm Geçmişi',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-              ...document.versions.map(
-                (version) => ListTile(
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    version.isCurrent ? Icons.check_circle : Icons.history,
-                  ),
-                  title: Text(
-                    'Sürüm ${version.number}${version.isCurrent ? " • Güncel" : ""}',
-                  ),
-                  subtitle: Text('${version.uploader} • ${version.summary}'),
-                ),
-              ),
-              const SizedBox(height: 20),
-              const Text(
-                'İlişkili Belgeler',
-                style: TextStyle(fontWeight: FontWeight.w900),
-              ),
-              if (document.related.isEmpty) const Text('İlişkili belge yok.'),
-              ...document.related.map(
-                (related) => ListTile(
-                  key: Key('related-document-${related.documentId.value}'),
-                  contentPadding: EdgeInsets.zero,
-                  leading: Icon(
-                    related.isMissing
-                        ? Icons.warning_amber_rounded
-                        : Icons.link_rounded,
-                    color: related.isMissing ? SwanColors.warning : null,
-                  ),
-                  title: Text(related.label),
-                  subtitle: Text(
-                    related.isMissing
-                        ? 'Eksik belge • ${related.relationship}'
-                        : 'Tamamlandı • ${related.relationship}',
-                  ),
-                  onTap: related.isMissing
-                      ? null
-                      : () => Navigator.pushNamed(
-                            context,
-                            '/document-detail',
-                            arguments: DocumentDetailRouteArgs(
-                              documentId: related.documentId,
-                            ),
-                          ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
+  Future<void> _open(BuildContext context, WidgetRef ref, VaultDoc doc) async {
+    try {
+      final url =
+          await ref.read(vaultServiceProvider).signedUrl(doc.storagePath!);
+      if (!await launchUrl(Uri.parse(url),
+          mode: LaunchMode.externalApplication)) {
+        throw StateError('Dosya bağlantısı açılamadı.');
+      }
+    } catch (e) {
+      if (context.mounted)
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Dosya açılamadı: $e')));
+    }
+  }
 }

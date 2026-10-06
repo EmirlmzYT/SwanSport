@@ -36,9 +36,9 @@ void main() {
     // Profil > Yönetim
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
     '/announcements', '/performance-analytics', '/home-command',
-    '/finans', '/gider-ekle', '/reports', '/medical-center', '/facilities',
+    '/finans', '/gider-ekle', '/medical-center', '/facilities',
     '/onay-paneli', '/haber-kaynaklari', '/federasyon-yetkili',
-    '/configuration', '/bagis', '/basvurular', '/veli-bagla', '/settings',
+    '/bagis', '/basvurular', '/veli-bagla', '/settings',
     // Profil kısayolları
     '/aidatlarim', '/documents', '/dogrulama', '/antrenmanlarim',
     // Antrenman oturumu (0071-0073). '/antrenman-sonuc' burada YOK:
@@ -47,9 +47,14 @@ void main() {
   ];
 
   group('rota bütünlüğü', () {
+    test('kaldırılan prototip menülerinin eski bağlantıları korunur', () {
+      for (final route in ['/reports', '/configuration']) {
+        expect(routes.contains("'$route'"), isTrue);
+        expect(management.contains("'$route'"), isFalse);
+      }
+    });
     test('erişilebilir sayılan her rota tanımlı', () {
-      final missing =
-          reachable.where((r) => !routes.contains("'$r'")).toList();
+      final missing = reachable.where((r) => !routes.contains("'$r'")).toList();
       expect(missing, isEmpty,
           reason: 'Bu rotalar swansport_app.dart içinde tanımlı değil: '
               '$missing');
@@ -57,8 +62,7 @@ void main() {
 
     test('her rotanın bir giriş noktası var', () {
       // Menü silindi; giriş noktaları artık bu dört dosya.
-      final entryPoints =
-          explore + management + nav + createSheet + profile;
+      final entryPoints = explore + management + nav + createSheet + profile;
       final orphans =
           reachable.where((r) => !entryPoints.contains("'$r'")).toList();
 

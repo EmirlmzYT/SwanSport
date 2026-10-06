@@ -93,7 +93,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
+                  padding: const EdgeInsets.fromLTRB(
+                      SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
                   child: SwanPageHeader(
                     title: widget.title ?? 'Bağlantılar',
                     subtitle: 'Takipçileri ve spor ağını yönet',
@@ -103,14 +104,16 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
 
                 // Search Bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg, vertical: SwanSpace.xs),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: SwanSpace.lg, vertical: SwanSpace.xs),
                   child: Container(
                     height: 46,
                     decoration: BoxDecoration(
                       color: c.surfaceAlt,
                       borderRadius: BorderRadius.circular(SwanRadius.md),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: SwanSpace.md),
                     child: Row(
                       children: [
                         Icon(Icons.search_rounded, color: c.inkMuted, size: 20),
@@ -118,7 +121,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                         Expanded(
                           child: TextField(
                             controller: _searchCtrl,
-                            onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+                            onChanged: (v) =>
+                                setState(() => _query = v.trim().toLowerCase()),
                             style: SwanType.body(c.ink),
                             decoration: InputDecoration(
                               hintText: 'Bağlantılarda ara...',
@@ -135,7 +139,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                               _searchCtrl.clear();
                               setState(() => _query = '');
                             },
-                            child: Icon(Icons.close_rounded, size: 16, color: c.inkMuted),
+                            child: Icon(Icons.close_rounded,
+                                size: 16, color: c.inkMuted),
                           ),
                       ],
                     ),
@@ -157,7 +162,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
 
                 // Context Strip
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
+                  padding: const EdgeInsets.fromLTRB(
+                      SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -169,9 +175,12 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                       ),
                       Row(
                         children: [
-                          Icon(Icons.swap_vert_rounded, size: 16, color: c.accent),
+                          Icon(Icons.swap_vert_rounded,
+                              size: 16, color: c.accent),
                           const SizedBox(width: 2),
-                          Text('Sırala', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                          Text('Sırala',
+                              style: SwanType.caption(c.accent,
+                                  w: FontWeight.w700)),
                         ],
                       ),
                     ],
@@ -187,7 +196,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                       final filtered = list.where((r) {
                         if (_query.isEmpty) return true;
                         final matchName = r.name.toLowerCase().contains(_query);
-                        final matchSub = (r.subtitle ?? '').toLowerCase().contains(_query);
+                        final matchSub =
+                            (r.subtitle ?? '').toLowerCase().contains(_query);
                         return matchName || matchSub;
                       }).toList();
 
@@ -205,11 +215,14 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                                     color: c.surfaceAlt,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.people_outline_rounded, color: c.inkMuted, size: 28),
+                                  child: Icon(Icons.people_outline_rounded,
+                                      color: c.inkMuted, size: 28),
                                 ),
                                 const SizedBox(height: SwanSpace.md),
                                 Text(
-                                  _tab == 0 ? 'Henüz takipçi yok' : 'Henüz kimse takip edilmiyor',
+                                  _tab == 0
+                                      ? 'Henüz takipçi yok'
+                                      : 'Henüz kimse takip edilmiyor',
                                   style: SwanType.h3(c.ink),
                                 ),
                                 const SizedBox(height: SwanSpace.xs),
@@ -227,10 +240,13 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                       }
 
                       return ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
+                        padding: const EdgeInsets.fromLTRB(
+                            SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.sm),
-                        itemBuilder: (_, i) => _buildConnectionCard(c, filtered[i]),
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: SwanSpace.sm),
+                        itemBuilder: (_, i) =>
+                            _buildConnectionCard(c, filtered[i]),
                       );
                     },
                   ),
@@ -305,29 +321,11 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
       ),
       child: Row(
         children: [
-          Stack(
-            children: [
-              SocialAvatar(
-                initials: item.initials,
-                imageUrl: item.avatarUrl,
-                size: 50,
-                gradientIndex: item.name.length % 4,
-              ),
-              Positioned(
-                bottom: 0,
-                right: 0,
-                child: Container(
-                  width: 14,
-                  height: 14,
-                  decoration: BoxDecoration(
-                    color: c.accent,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: c.surface, width: 2),
-                  ),
-                ),
-              ),
-            ],
-          ),
+          SocialAvatar(
+              initials: item.initials,
+              imageUrl: item.avatarUrl,
+              size: 50,
+              gradientIndex: item.name.length % 4),
           const SizedBox(width: SwanSpace.md),
           Expanded(
             child: Column(
@@ -343,35 +341,14 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                         style: SwanType.body(c.ink, w: FontWeight.w700),
                       ),
                     ),
-                    const SizedBox(width: 4),
-                    Icon(Icons.verified_rounded, size: 16, color: c.accent),
                   ],
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  item.subtitle ?? (item.kind == 'coach' ? 'Antrenör • Marmara Okçuluk' : 'Makaralı / Klasik Yay'),
+                  item.subtitle ?? 'Profil',
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: SwanType.caption(c.inkMuted),
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(4),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.military_tech_rounded, size: 12, color: c.accent),
-                      const SizedBox(width: 3),
-                      Text(
-                        'Lisanslı Sporcu',
-                        style: SwanType.caption(c.accent, w: FontWeight.w700),
-                      ),
-                    ],
-                  ),
                 ),
               ],
             ),
@@ -392,7 +369,8 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   if (!isFollowing) ...[
-                    const Icon(Icons.add_rounded, size: 15, color: Colors.white),
+                    const Icon(Icons.add_rounded,
+                        size: 15, color: Colors.white),
                     const SizedBox(width: 2),
                   ],
                   Text(

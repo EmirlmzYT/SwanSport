@@ -43,7 +43,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? const Color(0xFF061424) : SwanPalette.light.bg;
-    final surfContainer = isDark ? const Color(0xFF132031) : const Color(0xFFF1F5F9);
+    final surfContainer =
+        isDark ? const Color(0xFF132031) : const Color(0xFFF1F5F9);
     final surfHigh = isDark ? const Color(0xFF1E2B3C) : const Color(0xFFE2E8F0);
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final line = isDark ? const Color(0xFF293547) : SwanPalette.light.line;
@@ -112,7 +113,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           Row(
                             children: [
                               Text(
-                                p.username ?? p.name.toLowerCase().replaceAll(' ', ''),
+                                p.username ??
+                                    p.name.toLowerCase().replaceAll(' ', ''),
                                 style: GoogleFonts.sora(
                                   color: ink,
                                   fontSize: 18,
@@ -147,7 +149,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               const SizedBox(width: 8),
                               _headerCircleBtn(
                                 icon: Icons.settings_rounded,
-                                onTap: () => Navigator.pushNamed(context, '/settings'),
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/settings'),
                                 surfContainer: surfContainer,
                                 ink: ink,
                               ),
@@ -183,7 +186,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   ],
                                 ),
                                 child: ClipOval(
-                                  child: p.avatarUrl != null && p.avatarUrl!.isNotEmpty
+                                  child: p.avatarUrl != null &&
+                                          p.avatarUrl!.isNotEmpty
                                       ? Image.network(
                                           p.avatarUrl!,
                                           fit: BoxFit.cover,
@@ -212,8 +216,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     decoration: BoxDecoration(
                                       color: kTeal,
                                       shape: BoxShape.circle,
-                                      border: Border.all(
-                                          color: bg, width: 2),
+                                      border: Border.all(color: bg, width: 2),
                                     ),
                                     child: const Icon(Icons.check_rounded,
                                         size: 14, color: Color(0xFF003734)),
@@ -301,30 +304,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: kTeal.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(999),
-                              border: Border.all(
-                                  color: kTeal.withValues(alpha: 0.4)),
-                            ),
-                            child: Text(
-                              'PRO',
-                              style: GoogleFonts.sora(
-                                color: kTeal,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'SwanSport Sporcusu'}',
+                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'Üye'}',
                         style: GoogleFonts.plusJakartaSans(
                           color: kTeal,
                           fontSize: 12,
@@ -335,7 +319,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Text(
                         p.bio != null && p.bio!.trim().isNotEmpty
                             ? p.bio!
-                            : 'SwanSport sporcusu. Henüz bir biyografi eklenmedi.',
+                            : 'Henüz bir biyografi eklenmedi.',
                         style: GoogleFonts.plusJakartaSans(
                           color: SwanColors.textSecondary,
                           fontSize: 13,
@@ -346,20 +330,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: 14),
 
                       // Profile Action Controls (Stitch Screen 26)
-                      _actions(context, ref, p, isDark, ink, surfContainer, line),
+                      _actions(
+                          context, ref, p, isDark, ink, surfContainer, line),
 
                       const SizedBox(height: 18),
 
                       // Weekly Performance HUD (Athletic Glassmorphism - Stitch Screen 26)
                       Consumer(
                         builder: (context, ref, _) {
-                          final history = ref.watch(myTrainingHistoryProvider).valueOrNull ?? const [];
+                          final history = ref
+                                  .watch(myTrainingHistoryProvider)
+                                  .valueOrNull ??
+                              const [];
                           final now = DateTime.now();
-                          final sevenDaysAgo = now.subtract(const Duration(days: 7));
-                          final recent = history.where((e) => e.startedAt.isAfter(sevenDaysAgo)).toList();
+                          final sevenDaysAgo =
+                              now.subtract(const Duration(days: 7));
+                          final recent = history
+                              .where((e) => e.startedAt.isAfter(sevenDaysAgo))
+                              .toList();
                           final count = recent.length;
-                          final sets = recent.fold<int>(0, (sum, e) => sum + e.setsDone);
-                          final totalScore = recent.fold<double>(0.0, (sum, e) => sum + (e.totalScore ?? 0.0));
+                          final sets =
+                              recent.fold<int>(0, (sum, e) => sum + e.setsDone);
+                          final totalScore = recent.fold<double>(
+                              0.0, (sum, e) => sum + (e.totalScore ?? 0.0));
 
                           return Container(
                             padding: const EdgeInsets.all(16),
@@ -378,7 +371,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             child: Column(
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Row(
                                       children: [
@@ -429,7 +423,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     _hudMetricCard(
                                       icon: Icons.emoji_events_rounded,
                                       iconColor: const Color(0xFFFFD166),
-                                      value: totalScore > 0 ? totalScore.toStringAsFixed(0) : '-',
+                                      value: totalScore > 0
+                                          ? totalScore.toStringAsFixed(0)
+                                          : '-',
                                       label: 'Puan / Skor',
                                       surf: surfHigh,
                                       ink: ink,
@@ -765,7 +761,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, size: 17, color: on ? kTeal : SwanColors.textSecondary),
+              Icon(icon,
+                  size: 17, color: on ? kTeal : SwanColors.textSecondary),
               const SizedBox(width: 6),
               Text(
                 label,
@@ -799,7 +796,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           alignment: Alignment.center,
           child: Column(
             children: [
-              Icon(Icons.feed_outlined, size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+              Icon(Icons.feed_outlined,
+                  size: 44,
+                  color: SwanColors.textSecondary.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
               Text(
                 'Henüz paylaşım yok',
@@ -823,7 +822,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 style: OutlinedButton.styleFrom(
                   foregroundColor: kTeal,
                   side: const BorderSide(color: kTeal),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () => showPostComposer(context),
                 icon: const Icon(Icons.add, size: 16),
@@ -842,7 +842,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       alignment: Alignment.center,
       child: Column(
         children: [
-          Icon(Icons.video_library_outlined, size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+          Icon(Icons.video_library_outlined,
+              size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(height: 12),
           Text(
             'Henüz video veya klip yok',
@@ -870,14 +871,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       Color surfContainer, Color surfHigh, Color ink, Color line) {
     return Consumer(
       builder: (context, ref, _) {
-        final protocols = ref.watch(trainingProtocolsProvider).valueOrNull ?? const [];
+        final protocols =
+            ref.watch(trainingProtocolsProvider).valueOrNull ?? const [];
         if (protocols.isEmpty) {
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
             alignment: Alignment.center,
             child: Column(
               children: [
-                Icon(Icons.bookmark_border_rounded, size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+                Icon(Icons.bookmark_border_rounded,
+                    size: 44,
+                    color: SwanColors.textSecondary.withValues(alpha: 0.5)),
                 const SizedBox(height: 12),
                 Text(
                   'Kayıtlı rutin bulunamadı',
@@ -901,9 +905,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: kTeal,
                     side: const BorderSide(color: kTeal),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10)),
                   ),
-                  onPressed: () => Navigator.pushNamed(context, '/antrenman-programi'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/antrenman-sablonlari'),
                   icon: const Icon(Icons.explore_outlined, size: 16),
                   label: const Text('Programları Keşfet'),
                 ),
@@ -913,18 +919,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         }
 
         return Column(
-          children: protocols.take(5).map((p) => Padding(
-            padding: const EdgeInsets.only(bottom: 8),
-            child: _savedCard(
-              title: p.name,
-              sub: '${p.sportCode.toUpperCase()} • Protokol v${p.version}',
-              icon: Icons.fitness_center_rounded,
-              surfContainer: surfContainer,
-              surfHigh: surfHigh,
-              ink: ink,
-              line: line,
-            ),
-          )).toList(),
+          children: protocols
+              .take(5)
+              .map((p) => Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: _savedCard(
+                      title: p.name,
+                      sub:
+                          '${p.sportCode.toUpperCase()} • Protokol v${p.version}',
+                      icon: Icons.fitness_center_rounded,
+                      surfContainer: surfContainer,
+                      surfHigh: surfHigh,
+                      ink: ink,
+                      line: line,
+                    ),
+                  ))
+              .toList(),
         );
       },
     );
@@ -1056,7 +1066,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
           const SizedBox(width: 8),
           GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/analitik'),
+            onTap: () => Navigator.pushNamed(context, '/antrenmanlarim'),
             child: Container(
               width: 44,
               height: 44,
@@ -1252,4 +1262,3 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
     );
   }
 }
-

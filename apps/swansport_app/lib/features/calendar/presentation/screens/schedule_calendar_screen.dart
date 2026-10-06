@@ -53,7 +53,8 @@ class _ScheduleCalendarScreenState
         newYear += 1;
       }
       final daysInMonth = DateTime(newYear, newMonth + 1, 0).day;
-      final day = _selectedDate.day > daysInMonth ? daysInMonth : _selectedDate.day;
+      final day =
+          _selectedDate.day > daysInMonth ? daysInMonth : _selectedDate.day;
       _selectedDate = DateTime(newYear, newMonth, day);
     });
   }
@@ -131,7 +132,8 @@ class _ScheduleCalendarScreenState
 
                   // Filter by kind if selected
                   if (_selectedKind != 'all') {
-                    filtered = filtered.where((e) => e.kind == _selectedKind).toList();
+                    filtered =
+                        filtered.where((e) => e.kind == _selectedKind).toList();
                   }
 
                   // Day events vs all events
@@ -166,7 +168,6 @@ class _ScheduleCalendarScreenState
                       ],
 
                       // 5. Stitch Hero Match Card
-                      _buildHeroMatchCard(context, palette, isDark, allEvents),
                       const SizedBox(height: 18),
 
                       // 6. Day Header & Sessions List
@@ -186,28 +187,24 @@ class _ScheduleCalendarScreenState
                             subtitle: club == null
                                 ? 'Önce Kadro’dan bir kulüp oluştur.'
                                 : 'İlk antrenman/maçı ekle.',
-                            actionLabel:
-                                club == null ? null : 'Etkinlik Ekle',
+                            actionLabel: club == null ? null : 'Etkinlik Ekle',
                             onAction: club == null
                                 ? null
                                 : () => _addEvent(context, ref, club),
                           )
                         else
-                          _buildEmptyDayCard(
-                              palette, isDark, club, canManage),
+                          _buildEmptyDayCard(palette, isDark, club, canManage),
                       ] else ...[
                         for (final event in displayEvents)
-                          _buildEventCard(context, ref, isDark, palette,
-                              event, canManage),
+                          _buildEventCard(
+                              context, ref, isDark, palette, event, canManage),
                       ],
                       const SizedBox(height: 16),
                       // 7. Daily Summary Banner
-                      _buildDailySummary(
-                          palette, isDark, displayEvents.length),
+                      _buildDailySummary(palette, isDark, displayEvents.length),
                       const SizedBox(height: 20),
 
                       // 8. Stitch Yaklaşan Kritik Tarihler
-                      _buildUpcomingCriticalDates(palette, isDark),
                       const SizedBox(height: 20),
 
                       // 9. Stitch Bottom Quick Actions
@@ -267,7 +264,7 @@ class _ScheduleCalendarScreenState
                 ],
               ),
             ),
-            if (club != null)
+            if (club != null && canManage)
               GestureDetector(
                 onTap: () => _addEvent(context, ref, club),
                 child: Container(
@@ -289,11 +286,13 @@ class _ScheduleCalendarScreenState
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(Icons.add_rounded, size: 18, color: Colors.white),
+                      const Icon(Icons.add_rounded,
+                          size: 18, color: Colors.white),
                       const SizedBox(width: 4),
                       Text(
                         'Seans Ekle',
-                        style: SwanType.caption(Colors.white, w: FontWeight.w700),
+                        style:
+                            SwanType.caption(Colors.white, w: FontWeight.w700),
                       ),
                     ],
                   ),
@@ -306,10 +305,13 @@ class _ScheduleCalendarScreenState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
+            Expanded(
+                child: Text(
               '${_dayName(_selectedDate.weekday)}, ${_selectedDate.day} $monthStr',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-            ),
+            )),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
               decoration: BoxDecoration(
@@ -323,24 +325,28 @@ class _ScheduleCalendarScreenState
                   IconButton(
                     icon: const Icon(Icons.chevron_left_rounded, size: 20),
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 28),
                     color: palette.inkMuted,
                     onPressed: () => _changeMonth(-1),
                   ),
                   Row(
                     children: [
-                      Icon(Icons.calendar_month_rounded, size: 15, color: palette.accent),
+                      Icon(Icons.calendar_month_rounded,
+                          size: 15, color: palette.accent),
                       const SizedBox(width: 6),
                       Text(
                         '$monthStr ${now.year}',
-                        style: SwanType.caption(palette.ink, w: FontWeight.w700),
+                        style:
+                            SwanType.caption(palette.ink, w: FontWeight.w700),
                       ),
                     ],
                   ),
                   IconButton(
                     icon: const Icon(Icons.chevron_right_rounded, size: 20),
                     padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                    constraints:
+                        const BoxConstraints(minWidth: 28, minHeight: 28),
                     color: palette.inkMuted,
                     onPressed: () => _changeMonth(1),
                   ),
@@ -361,11 +367,36 @@ class _ScheduleCalendarScreenState
     final otherCount = allEvents.where((e) => e.kind == 'other').length;
 
     final categories = [
-      {'key': 'all', 'label': 'Tümü', 'count': allEvents.length, 'color': palette.accent},
-      {'key': 'match', 'label': 'Resmi Maçlar', 'count': matchCount, 'color': const Color(0xFFFF7A59)},
-      {'key': 'training', 'label': 'Antrenman', 'count': trainingCount, 'color': const Color(0xFF2FBFB6)},
-      {'key': 'meeting', 'label': 'Taktik & Teori', 'count': meetingCount, 'color': const Color(0xFFC0C6D9)},
-      {'key': 'other', 'label': 'Etkinlik', 'count': otherCount, 'color': const Color(0xFF7C5CE6)},
+      {
+        'key': 'all',
+        'label': 'Tümü',
+        'count': allEvents.length,
+        'color': palette.accent
+      },
+      {
+        'key': 'match',
+        'label': 'Resmi Maçlar',
+        'count': matchCount,
+        'color': const Color(0xFFFF7A59)
+      },
+      {
+        'key': 'training',
+        'label': 'Antrenman',
+        'count': trainingCount,
+        'color': const Color(0xFF2FBFB6)
+      },
+      {
+        'key': 'meeting',
+        'label': 'Taktik & Teori',
+        'count': meetingCount,
+        'color': const Color(0xFFC0C6D9)
+      },
+      {
+        'key': 'other',
+        'label': 'Etkinlik',
+        'count': otherCount,
+        'color': const Color(0xFF7C5CE6)
+      },
     ];
 
     return SizedBox(
@@ -430,7 +461,8 @@ class _ScheduleCalendarScreenState
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
                       color: isSelected
                           ? Colors.white.withValues(alpha: 0.2)
@@ -455,484 +487,15 @@ class _ScheduleCalendarScreenState
   }
 
   // --- Stitch Hero Match Card ---
-  Widget _buildHeroMatchCard(
-      BuildContext context, SwanPalette palette, bool isDark, List<EventRow> allEvents) {
-    // Check if there is an upcoming match in events
-    final matches = allEvents.where((e) => e.kind == 'match').toList();
-    final EventRow? matchEvent = matches.isNotEmpty ? matches.first : null;
-    final matchTitle = matchEvent?.title ?? 'SwanSport vs Kuzey Akademi';
-    final location = matchEvent?.place ?? 'Florya Merkez Çim Saha (Ev Sahibi)';
-    final matchTime = matchEvent != null
-        ? '${_hm(matchEvent.startsAt)} · ${matchEvent.startsAt.day} ${_monthName(matchEvent.startsAt.month)}'
-        : '14:30 · 9 Kasım Cmt';
+  Widget _buildBottomActions(BuildContext context, SwanPalette palette,
+          ClubRef? club, bool canManage) =>
+      club == null || !canManage
+          ? const SizedBox.shrink()
+          : FilledButton.icon(
+              onPressed: () => _addEvent(context, ref, club),
+              icon: const Icon(Icons.event_note_outlined),
+              label: const Text('Yeni etkinlik ekle'));
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF1E2B3C), const Color(0xFF132031), const Color(0xFF020F1F)]
-              : [palette.surface, palette.surfaceAlt],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: palette.line,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.08),
-            blurRadius: 16,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header Row
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  const Icon(Icons.sports_soccer_rounded, size: 18, color: Color(0xFFFF7A59)),
-                  const SizedBox(width: 6),
-                  Text(
-                    'U18 ELİT GELİŞİM LİGİ • 9. HAFTA',
-                    style: SwanType.caption(const Color(0xFFFF7A59), w: FontWeight.w800),
-                  ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFF7A59).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 6,
-                      height: 6,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFFF7A59),
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    Text(
-                      '2 Gün Kaldı',
-                      style: SwanType.caption(const Color(0xFFFF7A59), w: FontWeight.w700),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-
-          // Match VS Strip
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 14),
-            decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF061424).withValues(alpha: 0.8) : palette.surfaceAlt,
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Row(
-              children: [
-                // Home Team
-                Expanded(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: palette.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: palette.accent.withValues(alpha: 0.3)),
-                        ),
-                        child: Icon(Icons.shield_rounded, color: palette.accent, size: 24),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'SwanSport',
-                        style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        'Ev Sahibi (3.)',
-                        style: SwanType.caption(palette.accent, w: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // VS Indicator
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  child: Column(
-                    children: [
-                      Text(
-                        'VS',
-                        style: SwanType.h2(const Color(0xFFFF7A59)),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        matchTime,
-                        style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Away Team
-                Expanded(
-                  child: Column(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: palette.surface,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: palette.line),
-                        ),
-                        child: Icon(Icons.shield_outlined, color: palette.inkMuted, size: 24),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        'Kuzey Akademi',
-                        style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                        textAlign: TextAlign.center,
-                      ),
-                      Text(
-                        'Misafir (5.)',
-                        style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // Details
-          Row(
-            children: [
-              Icon(Icons.location_on_outlined, size: 16, color: palette.accent),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  location,
-                  style: SwanType.caption(palette.ink, w: FontWeight.w600),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Row(
-            children: [
-              Icon(Icons.sports_rounded, size: 16, color: palette.inkMuted),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  'Hakem: TFF Bölge Kıdemli Hakemi',
-                  style: SwanType.caption(palette.inkMuted),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
-          // Roster announced strip
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-            decoration: BoxDecoration(
-              color: palette.accent.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(Icons.assignment_turned_in_rounded, size: 16, color: palette.accent),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Kadro Açıklandı',
-                      style: SwanType.caption(palette.accent, w: FontWeight.w800),
-                    ),
-                  ],
-                ),
-                Text(
-                  '18 Kişilik Maç Kafilesi',
-                  style: SwanType.caption(palette.ink, w: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 14),
-
-          // Action Buttons
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Maç kadro ve taktik planı açılıyor...')),
-                    );
-                  },
-                  child: Container(
-                    height: 44,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-                      borderRadius: BorderRadius.circular(10),
-                      boxShadow: [
-                        BoxShadow(
-                          color: kTeal.withValues(alpha: 0.3),
-                          blurRadius: 10,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.sports_rounded, size: 18, color: Colors.white),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Kadro & Taktik İncele',
-                          style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              GestureDetector(
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Stadyum yol tarifi haritası açılıyor...')),
-                  );
-                },
-                child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: palette.surfaceAlt,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: palette.line),
-                  ),
-                  child: Icon(Icons.directions_rounded, size: 20, color: palette.ink),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Stitch Yaklaşan Kritik Tarihler ---
-  Widget _buildUpcomingCriticalDates(SwanPalette palette, bool isDark) {
-    final fixtures = [
-      {
-        'day': '16',
-        'month': 'KASIM',
-        'title': 'Deplasman • Kartal Gençlik Spor',
-        'sub': 'Otobüs Kalkış Saati: 11:00 (Tesisler)',
-        'icon': Icons.directions_bus_rounded,
-        'color': palette.ink,
-      },
-      {
-        'day': '20',
-        'month': 'KASIM',
-        'title': 'TFF Ara Dönem Sağlık Kontrolü',
-        'sub': 'Zorunlu EKG ve Kan Tahlili Vizesi',
-        'icon': Icons.medical_services_rounded,
-        'color': const Color(0xFFFF7A59),
-      },
-      {
-        'day': '23',
-        'month': 'KASIM',
-        'title': 'İstanbul Derbisi • Boğaziçi Yıldızları',
-        'sub': 'Ev Sahibi • Canlı Yayın & Taraftar Günü',
-        'icon': Icons.stars_rounded,
-        'color': palette.accent,
-      },
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.event_available_rounded, size: 18, color: palette.accent),
-                const SizedBox(width: 6),
-                Text(
-                  'Yaklaşan Kritik Tarihler',
-                  style: SwanType.h3(palette.ink),
-                ),
-              ],
-            ),
-            Text(
-              'Tümünü Gör',
-              style: SwanType.caption(palette.accent, w: FontWeight.w700),
-            ),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Column(
-          children: fixtures.map((f) {
-            final day = f['day'] as String;
-            final month = f['month'] as String;
-            final title = f['title'] as String;
-            final sub = f['sub'] as String;
-            final icon = f['icon'] as IconData;
-            final color = f['color'] as Color;
-
-            return Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: palette.surface,
-                borderRadius: BorderRadius.circular(14),
-                border: Border.all(color: palette.line),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 46,
-                    height: 46,
-                    decoration: BoxDecoration(
-                      color: palette.surfaceAlt,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          month,
-                          style: SwanType.caption(palette.inkMuted, w: FontWeight.w700)
-                              .copyWith(fontSize: 9),
-                        ),
-                        Text(
-                          day,
-                          style: SwanType.bodySm(color, w: FontWeight.w800),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          title,
-                          style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          sub,
-                          style: SwanType.caption(palette.inkMuted),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(icon, size: 20, color: color),
-                ],
-              ),
-            );
-          }).toList(),
-        ),
-      ],
-    );
-  }
-
-  // --- Stitch Quick Actions ---
-  Widget _buildBottomActions(
-      BuildContext context, SwanPalette palette, ClubRef? club, bool canManage) {
-    return Column(
-      children: [
-        if (canManage && club != null)
-          GestureDetector(
-            onTap: () => _addEvent(context, ref, club),
-            child: Container(
-              height: 48,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: kTeal.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.event_note_rounded, size: 20, color: Colors.white),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Yeni Etkinlik / Antrenman Ekle',
-                    style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        const SizedBox(height: 8),
-        GestureDetector(
-          onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Takvim Google Calendar / Apple iCal ile senkronize edildi.')),
-            );
-          },
-          child: Container(
-            height: 44,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: palette.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: palette.line),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.sync_rounded, size: 18, color: palette.inkMuted),
-                const SizedBox(width: 8),
-                Text(
-                  'Takvimi Telefona Senkronize Et (iCal / Google)',
-                  style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- Interactive Week Strip Selector ---
   Widget _buildWeekStrip(
     SwanPalette palette,
     bool isDark,
@@ -1485,8 +1048,8 @@ class _ScheduleCalendarScreenState
                                 (isLive || _isSameDay(e.startsAt, now))) ...[
                               GestureDetector(
                                 onTap: () {
-                                  Navigator.pushNamed(
-                                      context, '/canli-yoklama');
+                                  Navigator.pushNamed(context, '/attendance',
+                                      arguments: e.id);
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -2238,10 +1801,4 @@ class _ScheduleCalendarScreenState
         7 => 'Paz',
         _ => '',
       };
-
-  int _weekNumber(DateTime date) {
-    final firstDayOfYear = DateTime(date.year, 1, 1);
-    final dayOfYear = date.difference(firstDayOfYear).inDays;
-    return ((dayOfYear - date.weekday + 10) / 7).floor();
-  }
 }

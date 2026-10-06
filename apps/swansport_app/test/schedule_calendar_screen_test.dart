@@ -21,7 +21,7 @@ void main() {
     await tester.pump();
     await tester.pump();
 
-    expect(find.text('Yaklaşan Etkinlikler'), findsOneWidget);
+    expect(find.text('Bugün'), findsWidgets);
     expect(find.text('Henüz etkinlik yok'), findsOneWidget);
     expect(find.text('Önce Kadro’dan bir kulüp oluştur.'), findsOneWidget);
   });
@@ -41,7 +41,7 @@ void main() {
     );
     await tester.pump();
     await tester.pump();
-    expect(find.text('Yaklaşan Etkinlikler'), findsOneWidget);
+    expect(find.text('Bugün'), findsWidgets);
     expect(find.byIcon(Icons.calendar_month_rounded), findsWidgets);
   });
 }

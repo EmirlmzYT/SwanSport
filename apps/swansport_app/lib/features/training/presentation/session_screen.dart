@@ -7,7 +7,6 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import 'widgets/live_training_gps_hud.dart';
 import 'widgets/phase_timer.dart';
 import 'widgets/score_pad.dart';
 
@@ -33,10 +32,14 @@ class TrainingSessionScreen extends ConsumerWidget {
     // Kimlik verilmediyse sporcunun içinde olduğu canlı oturum veya GPS HUD
     final live = ref.watch(myLiveSessionProvider);
     return live.when(
-      loading: () => _shell(c, const Center(child: CircularProgressIndicator())),
-      error: (e, _) => const LiveTrainingGpsHud(),
+      loading: () =>
+          _shell(c, const Center(child: CircularProgressIndicator())),
+      error: (e, _) => _shell(c, _message(c, 'Oturum yüklenemedi', '$e')),
       data: (s) => s == null
-          ? const LiveTrainingGpsHud()
+          ? _shell(
+              c,
+              _message(c, 'Aktif oturum yok',
+                  'Antrenman şablonlarından bir oturum başlat veya antrenörünün davetini kullan.'))
           : _SessionBody(sessionId: s.id),
     );
   }
@@ -83,12 +86,12 @@ class _SessionBody extends ConsumerWidget {
             constraints: const BoxConstraints(maxWidth: 620),
             child: session.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => TrainingSessionScreen._message(
-                  c, 'Oturum açılamadı', '$e'),
+              error: (e, _) =>
+                  TrainingSessionScreen._message(c, 'Oturum açılamadı', '$e'),
               data: (s) {
                 if (s == null) {
-                  return TrainingSessionScreen._message(
-                      c, 'Oturum bulunamadı', 'Kapanmış ya da silinmiş olabilir.');
+                  return TrainingSessionScreen._message(c, 'Oturum bulunamadı',
+                      'Kapanmış ya da silinmiş olabilir.');
                 }
                 final cfg = config.valueOrNull;
                 // Kişisel oturumda antrenör yok; sahibi kendi yönetiyor.
@@ -143,12 +146,10 @@ class _CoachPanel extends ConsumerWidget {
       children: [
         _header(context, c, session.protocolName, session.statusLabel),
         const SizedBox(height: SwanSpace.lg),
-
         if (session.isLive && session.joinCode != null) ...[
           _joinCard(c, session.joinCode!),
           const SizedBox(height: SwanSpace.lg),
         ],
-
         PhaseTimer(
           phase: session.phase,
           endsAt: session.phaseEndsAt,
@@ -161,13 +162,11 @@ class _CoachPanel extends ConsumerWidget {
           expiredActionLabel: 'Sonraki aşama',
         ),
         const SizedBox(height: SwanSpace.lg),
-
         if (session.isLive) _controls(context, ref, c, svc),
         if (session.awaitingApproval) ...[
           const SizedBox(height: SwanSpace.md),
           _reviewCard(context, ref, c),
         ],
-
         const SizedBox(height: SwanSpace.xl),
         Text('Katılanlar', style: SwanType.h3(c.ink)),
         const SizedBox(height: SwanSpace.sm),
@@ -245,12 +244,10 @@ class _CoachPanel extends ConsumerWidget {
           ),
           const SizedBox(width: SwanSpace.sm),
           OutlinedButton(
-            onPressed: () => _run(context, ref,
-                () => svc.setPaused(session.id, !session.paused)),
+            onPressed: () => _run(
+                context, ref, () => svc.setPaused(session.id, !session.paused)),
             child: Icon(
-                session.paused
-                    ? Icons.play_arrow_rounded
-                    : Icons.pause_rounded,
+                session.paused ? Icons.play_arrow_rounded : Icons.pause_rounded,
                 size: 18,
                 color: c.ink),
           ),
@@ -338,7 +335,8 @@ class _CoachPanel extends ConsumerWidget {
                   () => svc.assignLane(session.id, p.athleteId, lane));
             }),
             child: Text(p.lane == null ? 'Kulvar ata' : 'Kulvar ${p.lane}',
-                style: SwanType.caption(p.lane == null ? c.inkMuted : c.accent)),
+                style:
+                    SwanType.caption(p.lane == null ? c.inkMuted : c.accent)),
           ),
         ]),
       );
@@ -360,8 +358,7 @@ class _CoachPanel extends ConsumerWidget {
         ]),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Vazgeç')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -391,8 +388,7 @@ class _CoachPanel extends ConsumerWidget {
         ]),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Vazgeç')),
+              onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
           FilledButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -423,8 +419,7 @@ class _AthleteRun extends ConsumerWidget {
 
     // Kişisel ritimde sporcu aşamayı kendi ilerletiyor; ortak ritimde
     // antrenör başlatıyor ve sporcu yalnızca izliyor.
-    final canAdvance =
-        session.isLive && session.rhythm.athleteControlsPhase;
+    final canAdvance = session.isLive && session.rhythm.athleteControlsPhase;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(
@@ -433,7 +428,6 @@ class _AthleteRun extends ConsumerWidget {
         _header(context, c, session.protocolName,
             session.isPersonal ? 'Bireysel' : session.statusLabel),
         const SizedBox(height: SwanSpace.lg),
-
         PhaseTimer(
           phase: session.phase,
           endsAt: session.phaseEndsAt,
@@ -448,7 +442,6 @@ class _AthleteRun extends ConsumerWidget {
               : null,
           expiredActionLabel: 'Sonraki aşama',
         ),
-
         if (cfg != null) ...[
           const SizedBox(height: SwanSpace.lg),
           sets.when(
@@ -483,7 +476,6 @@ class _AthleteRun extends ConsumerWidget {
             },
           ),
         ],
-
         const SizedBox(height: SwanSpace.xl),
         Text('Setlerim', style: SwanType.h3(c.ink)),
         const SizedBox(height: SwanSpace.sm),
@@ -495,7 +487,6 @@ class _AthleteRun extends ConsumerWidget {
                   style: SwanType.bodySm(c.inkMuted))
               : Column(children: [for (final s in list) _setRow(c, s)]),
         ),
-
         if (!session.isLive) ...[
           const SizedBox(height: SwanSpace.xl),
           _AssessmentCard(sessionId: session.id),
@@ -593,7 +584,6 @@ class _AssessmentCardState extends ConsumerState<_AssessmentCard> {
         Text('İsteğe bağlı — boş bırakırsan antrenmanın yine kaydedilir.',
             style: SwanType.caption(c.inkMuted)),
         const SizedBox(height: SwanSpace.md),
-
         Text('Zorluk', style: SwanType.bodySm(c.ink)),
         const SizedBox(height: SwanSpace.sm),
         Wrap(spacing: SwanSpace.xs, children: [
@@ -605,18 +595,16 @@ class _AssessmentCardState extends ConsumerState<_AssessmentCard> {
             ),
         ]),
         const SizedBox(height: SwanSpace.md),
-
         Wrap(spacing: SwanSpace.xs, runSpacing: SwanSpace.xs, children: [
           for (final t in _options)
             FilterChip(
               label: Text(t),
               selected: _tags.contains(t),
-              onSelected: (v) => setState(
-                  () => v ? _tags.add(t) : _tags.remove(t)),
+              onSelected: (v) =>
+                  setState(() => v ? _tags.add(t) : _tags.remove(t)),
             ),
         ]),
         const SizedBox(height: SwanSpace.md),
-
         TextField(
           controller: _note,
           maxLines: 2,
@@ -637,8 +625,8 @@ class _AssessmentCardState extends ConsumerState<_AssessmentCard> {
             onPressed: () async {
               final profile = ref.read(currentProfileProvider).valueOrNull;
               if (profile == null) return;
-              final athlete = await ref
-                  .read(athleteByProfileProvider(profile.id).future);
+              final athlete =
+                  await ref.read(athleteByProfileProvider(profile.id).future);
               if (athlete == null) return;
               await ref.read(trainingSessionServiceProvider).saveAssessment(
                     sessionId: widget.sessionId,
@@ -658,7 +646,8 @@ class _AssessmentCardState extends ConsumerState<_AssessmentCard> {
   }
 }
 
-Widget _header(BuildContext context, SwanPalette c, String title, String badge) =>
+Widget _header(
+        BuildContext context, SwanPalette c, String title, String badge) =>
     Row(children: [
       GestureDetector(
         onTap: () => Navigator.maybePop(context),
@@ -676,7 +665,9 @@ Widget _header(BuildContext context, SwanPalette c, String title, String badge) 
       const SizedBox(width: SwanSpace.md),
       Expanded(
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(title, style: SwanType.h2(c.ink), maxLines: 1,
+          Text(title,
+              style: SwanType.h2(c.ink),
+              maxLines: 1,
               overflow: TextOverflow.ellipsis),
           Text(badge, style: SwanType.caption(c.inkMuted)),
         ]),

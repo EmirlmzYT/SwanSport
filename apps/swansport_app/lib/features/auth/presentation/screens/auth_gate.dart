@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../onboarding/presentation/onboarding_screen.dart';
@@ -12,8 +11,7 @@ import 'auth_screen.dart';
 /// `FutureProvider` çünkü `shared_preferences` eşzamansız. Kapının kendisi
 /// eşzamanlı kalabilirdi ama o zaman tanıtım kararını her açılışta `main`'de
 /// vermek gerekirdi; burası daha dar bir yer.
-final onboardingSeenProvider =
-    FutureProvider<bool>((ref) => onboardingSeen());
+final onboardingSeenProvider = FutureProvider<bool>((ref) => onboardingSeen());
 
 /// Uygulama açılış kapısı — "beni hatırla" ve ilk açılış tanıtımı.
 ///
@@ -29,7 +27,21 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const FeedScreen();
+    return ref.watch(authSessionProvider).when(
+          loading: () => const _Blank(),
+          error: (error, _) => const AuthScreen(),
+          data: (session) {
+            if (session != null) return const FeedScreen();
+            return ref.watch(onboardingSeenProvider).when(
+                  loading: () => const _Blank(),
+                  error: (_, __) => const AuthScreen(),
+                  data: (seen) => seen
+                      ? const AuthScreen()
+                      : OnboardingScreen(
+                          onDone: () => ref.invalidate(onboardingSeenProvider)),
+                );
+          },
+        );
   }
 }
 

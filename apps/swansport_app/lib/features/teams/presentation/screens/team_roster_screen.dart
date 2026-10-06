@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_models/swansport_models.dart';
 
 import '../../../../app/design/swan_palette.dart';
@@ -32,7 +33,6 @@ class TeamRosterScreen extends ConsumerStatefulWidget {
 
 class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
   int _tab = 0; // 0: Kadro, 1: Özet, 2: Program, 3: Sohbet, 4: Gelişim
-  String _posFilter = 'all';
   String _searchQuery = '';
   late String _currentTeamId;
   late String _currentTeamName;
@@ -71,7 +71,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
             child: Column(
               children: [
                 // 1. Header (Geri, Başlık, Yeni Sporcu Ekle)
-                _buildHeader(context, c, club, canManage),
+                _buildHeader(context, c, club),
 
                 // 2. Team Category Selector (Yatay Takım Listesi)
                 if (teams.isNotEmpty) ...[
@@ -120,70 +120,25 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
   // ---------------------------------------------------------------------------
   // HEADER
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(
-    BuildContext context,
-    SwanPalette c,
-    ClubRef? club,
-    bool canManage,
-  ) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => Navigator.maybePop(context),
-                icon: Icon(Icons.arrow_back, color: c.ink, size: 22),
-                style: IconButton.styleFrom(
-                  backgroundColor: c.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Takım Kadrosu',
-                    style: GoogleFonts.sora(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: c.ink,
-                    ),
-                  ),
-                  Text(
-                    club?.name ?? 'SwanSport Futbol Akademisi',
-                    style: SwanType.caption(c.accent, w: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          if (canManage)
+  Widget _buildHeader(BuildContext context, SwanPalette c, ClubRef? club) =>
+      Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+          child: Row(children: [
             IconButton(
-              onPressed: () {
-                setState(() => _tab = 0);
-              },
-              icon: const Icon(Icons.person_add, color: Colors.white, size: 20),
-              style: IconButton.styleFrom(
-                backgroundColor: c.accent,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
+                onPressed: () => Navigator.maybePop(context),
+                tooltip: 'Geri',
+                icon: Icon(Icons.arrow_back, color: c.ink)),
+            const SizedBox(width: 10),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text('Takım Kadrosu', style: SwanType.h3(c.ink)),
+                  if (club != null)
+                    Text(club.name, style: SwanType.caption(c.inkMuted))
+                ])),
+          ]));
 
-  // ---------------------------------------------------------------------------
-  // TEAM CATEGORY SELECTOR
-  // ---------------------------------------------------------------------------
   Widget _buildTeamSelector(SwanPalette c, List<TeamRow> teams) {
     return SizedBox(
       height: 36,
@@ -244,149 +199,24 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
   // ---------------------------------------------------------------------------
   // TEAM HERO BENTO CARD
   // ---------------------------------------------------------------------------
-  Widget _buildTeamHeroCard(SwanPalette c) {
-    final roster =
-        ref.watch(teamRosterProvider(_currentTeamId)).valueOrNull ?? const [];
-
-    return Container(
+  Widget _buildTeamHeroCard(SwanPalette c) => Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: c.accent.withValues(alpha: 0.2)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'AKADEMİ ELİT LİGİ',
-                    style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    _currentTeamName,
-                    style: GoogleFonts.sora(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w800,
-                      color: c.ink,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      Icon(Icons.sports, size: 14, color: c.accent),
-                      const SizedBox(width: 4),
-                      Text('Antrenör Ekibi',
-                          style: SwanType.caption(c.accent, w: FontWeight.w700)),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 6, vertical: 1),
-                        decoration: BoxDecoration(
-                          color: c.bg,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          'UEFA Lisanslı',
-                          style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: c.bg,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: c.line),
-                ),
-                child: Icon(Icons.verified, color: c.accent, size: 22),
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: _heroMetric(c, 'Kadro', '${roster.length} Sporcu', c.ink),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _heroMetric(c, 'Yaş Ort.', '17.2', c.accent),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: _heroMetric(c, 'Son Maç', '3 - 1', c.ink,
-                    icon: Icons.trending_up, iconColor: c.accent),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+          color: c.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.line)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(_currentTeamName, style: SwanType.h3(c.ink)),
+        const SizedBox(height: 4),
+        ref.watch(teamRosterProvider(_currentTeamId)).when(
+            loading: () =>
+                Text('Kadro yükleniyor', style: SwanType.caption(c.inkMuted)),
+            error: (_, __) =>
+                Text('Kadro alınamadı', style: SwanType.caption(c.danger)),
+            data: (roster) => Text('${roster.length} sporcu',
+                style: SwanType.caption(c.inkMuted))),
+      ]));
 
-  Widget _heroMetric(
-    SwanPalette c,
-    String label,
-    String val,
-    Color valColor, {
-    IconData? icon,
-    Color? iconColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: c.bg,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: c.line),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label, style: SwanType.caption(c.inkMuted)),
-          const SizedBox(height: 2),
-          Row(
-            children: [
-              Text(
-                val,
-                style: GoogleFonts.sora(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w700,
-                  color: valColor,
-                ),
-              ),
-              if (icon != null) ...[
-                const SizedBox(width: 3),
-                Icon(icon, size: 13, color: iconColor),
-              ],
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // TAB BODY SELECTOR
-  // ---------------------------------------------------------------------------
   Widget _buildTabBody(
     BuildContext context,
     SwanPalette c,
@@ -412,8 +242,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
   // ---------------------------------------------------------------------------
   // KADRO TAB (STITCH SQUAD LISTING)
   // ---------------------------------------------------------------------------
-  Widget _buildRosterTab(
-      BuildContext context, SwanPalette c, bool canManage) {
+  Widget _buildRosterTab(BuildContext context, SwanPalette c, bool canManage) {
     final rosterAsync = ref.watch(teamRosterProvider(_currentTeamId));
 
     return RefreshIndicator(
@@ -450,15 +279,10 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                     ),
                   ),
                 ),
-                Icon(Icons.tune, size: 18, color: c.inkMuted),
               ],
             ),
           ),
           const SizedBox(height: 10),
-
-          // Position Filters
-          _buildPositionFilters(c),
-          const SizedBox(height: 12),
 
           // Squad list
           rosterAsync.when(
@@ -481,10 +305,10 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
 
               final filtered = list.where((m) {
                 if (_searchQuery.isNotEmpty) {
-                  final q = _searchQuery.toLowerCase();
-                  final name = m.name.toLowerCase();
-                  final jersey = (m.jersey ?? '').toLowerCase();
-                  if (!name.contains(q) && !jersey.contains(q)) return false;
+                  if (!trContains(
+                      '${m.name} ${m.jersey ?? ''}', _searchQuery)) {
+                    return false;
+                  }
                 }
                 return true;
               }).toList();
@@ -527,310 +351,46 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
     );
   }
 
-  Widget _buildPositionFilters(SwanPalette c) {
-    final filters = [
-      ('all', 'Tümü'),
-      ('kaleci', 'Kaleciler'),
-      ('defans', 'Defans'),
-      ('ortasaha', 'Orta Saha'),
-      ('forvet', 'Forvet'),
-    ];
-
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        children: filters.map((f) {
-          final isSel = _posFilter == f.$1;
-          return Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: InkWell(
-              onTap: () => setState(() => _posFilter = f.$1),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isSel ? c.accent : c.surface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: isSel ? c.accent : c.line),
-                ),
-                child: Text(
-                  f.$2,
-                  style: SwanType.caption(
-                    isSel ? Colors.white : c.inkMuted,
-                    w: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   Widget _buildAthleteSquadCard(
-    BuildContext context,
-    SwanPalette c,
-    ({String id, String athleteId, String name, String? jersey}) m,
-    int index,
-    bool canManage,
-  ) {
-    final jerseyNo = m.jersey ?? '${index + 1}';
-    final initials = m.name.isNotEmpty ? m.name[0].toUpperCase() : '?';
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: c.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 10,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Avatar + Jersey No Badge
-              Stack(
-                children: [
-                  Container(
-                    width: 52,
-                    height: 52,
-                    decoration: BoxDecoration(
-                      color: c.bg,
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: c.line),
-                    ),
-                    child: Center(
-                      child: Text(
-                        initials,
-                        style: GoogleFonts.sora(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w800,
-                          color: c.accent,
-                        ),
-                      ),
-                    ),
-                  ),
-                  Positioned(
-                    bottom: 0,
-                    right: 0,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: c.accent,
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(6),
-                          bottomRight: Radius.circular(12),
-                        ),
-                      ),
-                      child: Text(
-                        jerseyNo,
-                        style: GoogleFonts.sora(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 12),
-              // Bio & Tags
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            m.name,
-                            style: GoogleFonts.sora(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: c.ink,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: c.accent.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            'Aktif / Lisanslı',
-                            style: SwanType.caption(c.accent,
-                                w: FontWeight.w700),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      index % 3 == 0
-                          ? 'On Numara • Forvet'
-                          : (index % 3 == 1
-                              ? 'Merkez • Orta Saha'
-                              : 'Stoper • Defans'),
-                      style: SwanType.caption(c.inkMuted),
-                    ),
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        Text('2006 (18 Yaş)',
-                            style: SwanType.caption(c.inkMuted)),
-                        const SizedBox(width: 6),
-                        Text('•', style: SwanType.caption(c.inkMuted)),
-                        const SizedBox(width: 6),
-                        Text('Sağ Ayak',
-                            style: SwanType.caption(c.inkMuted)),
-                        const SizedBox(width: 6),
-                        Text('•', style: SwanType.caption(c.inkMuted)),
-                        const SizedBox(width: 6),
-                        Row(
-                          children: [
-                            Icon(Icons.bolt, size: 12, color: c.accent),
-                            Text(
-                              '%${90 + (index * 2 % 8)} Katılım',
-                              style: SwanType.caption(c.accent,
-                                  w: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Action Footer Strip
-          Container(
-            padding: const EdgeInsets.only(top: 8),
-            decoration: BoxDecoration(
-              border: Border(top: BorderSide(color: c.line)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    _footerActionIcon(
-                      c,
-                      Icons.call,
-                      () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Veli araması başlatılıyor...')),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    _footerActionIcon(
-                      c,
-                      Icons.query_stats,
-                      () => Navigator.pushNamed(
-                        context,
-                        '/athlete-detail',
-                        arguments: AthleteDetailRouteArgs(
-                            athleteId: SwanId(m.athleteId)),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    _footerActionIcon(
-                      c,
-                      Icons.qr_code_2,
-                      () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Lisans QR kodu görüntülendi.')),
-                      ),
-                    ),
-                    if (canManage) ...[
-                      const SizedBox(width: 6),
-                      _footerActionIcon(
-                        c,
-                        Icons.remove_circle_outline,
-                        () async {
-                          await ref
-                              .read(clubDataServiceProvider)
-                              .removeFromTeam(m.id);
-                          ref.invalidate(teamRosterProvider(_currentTeamId));
-                        },
-                        iconColor: const Color(0xFFFFB4AB),
-                      ),
-                    ],
-                  ],
-                ),
-                InkWell(
-                  onTap: () => Navigator.pushNamed(
-                    context,
-                    '/athlete-detail',
-                    arguments: AthleteDetailRouteArgs(
-                        athleteId: SwanId(m.athleteId)),
-                  ),
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: c.bg,
-                      borderRadius: BorderRadius.circular(10),
-                      border: Border.all(color: c.line),
-                    ),
-                    child: Row(
-                      children: [
-                        Text('Profil',
-                            style: SwanType.caption(c.accent,
-                                w: FontWeight.w700)),
-                        const SizedBox(width: 2),
-                        Icon(Icons.chevron_right, size: 14, color: c.accent),
-                      ],
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _footerActionIcon(
-    SwanPalette c,
-    IconData icon,
-    VoidCallback onTap, {
-    Color? iconColor,
-  }) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Container(
-        width: 32,
-        height: 32,
-        decoration: BoxDecoration(
-          color: c.bg,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: c.line),
-        ),
-        child: Icon(icon, size: 16, color: iconColor ?? c.inkMuted),
-      ),
-    );
-  }
+          BuildContext context,
+          SwanPalette c,
+          ({String id, String athleteId, String name, String? jersey}) m,
+          int index,
+          bool canManage) =>
+      Card(
+          color: c.surface,
+          child: ListTile(
+            leading: CircleAvatar(
+                backgroundColor: c.surfaceAlt,
+                child: Text(m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
+                    style: SwanType.body(c.ink))),
+            title:
+                Text(m.name, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+            subtitle: m.jersey == null || m.jersey!.isEmpty
+                ? null
+                : Text('Forma: ${m.jersey}',
+                    style: SwanType.caption(c.inkMuted)),
+            onTap: () => Navigator.pushNamed(context, '/athlete-detail',
+                arguments:
+                    AthleteDetailRouteArgs(athleteId: SwanId(m.athleteId))),
+            trailing: canManage
+                ? IconButton(
+                    tooltip: 'Takımdan çıkar',
+                    icon: Icon(Icons.remove_circle_outline, color: c.danger),
+                    onPressed: () async {
+                      try {
+                        await ref
+                            .read(clubDataServiceProvider)
+                            .removeFromTeam(m.id);
+                        ref.invalidate(teamRosterProvider(_currentTeamId));
+                      } catch (e) {
+                        if (context.mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Çıkarılamadı: $e')));
+                      }
+                    })
+                : null,
+          ));
 
   Widget _buildAvailableAthletes(
     BuildContext context,

@@ -298,8 +298,8 @@ class SocialShareService {
     final rows = await _c.rpc<List<dynamic>>('search_mentionable',
         params: {'p_query': query, 'p_limit': limit});
     return rows
-        .map((e) =>
-            MentionCandidate.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+            (e) => MentionCandidate.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
   }
 
@@ -313,6 +313,18 @@ class SocialShareService {
         .map((e) =>
             HashtagSuggestion.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
+  }
+
+  Future<MentionPolicy> mentionPolicy() async {
+    final uid = _c.auth.currentUser?.id;
+    if (uid == null) throw StateError('Oturum bulunamadı');
+    final row = await _c
+        .from('profiles')
+        .select('mention_policy')
+        .eq('id', uid)
+        .maybeSingle();
+    if (row == null) throw StateError('Gizlilik ayarları bulunamadı');
+    return mentionPolicyFrom(row['mention_policy'] as String?);
   }
 
   Future<void> setPrivacy({MentionPolicy? mention, bool? externalShare}) =>
@@ -388,8 +400,8 @@ final socialShareServiceProvider = Provider<SocialShareService>((ref) {
 ///
 /// `autoDispose` **değil değil** — autoDispose: sohbetten çıkınca kart
 /// önbellekte kalmamalı, silinmiş bir içerik yeniden açıldığında tazelensin.
-final sharedCardProvider = FutureProvider.autoDispose
-    .family<SharedCard, String>((ref, key) async {
+final sharedCardProvider =
+    FutureProvider.autoDispose.family<SharedCard, String>((ref, key) async {
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return const SharedCard.unavailable();
   }

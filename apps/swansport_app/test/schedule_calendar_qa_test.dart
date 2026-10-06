@@ -60,7 +60,7 @@ void main() {
       await tester.pump();
       await tester.pump();
 
-      expect(find.text('Yaklaşan Etkinlikler'), findsOneWidget);
+      expect(find.text('Bugün'), findsWidgets);
       expect(find.text('Henüz etkinlik yok'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

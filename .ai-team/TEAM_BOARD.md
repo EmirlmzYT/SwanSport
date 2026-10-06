@@ -1,25 +1,26 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-05 Europe/Istanbul
+Son güncelleme: 2026-10-06 Europe/Istanbul
 Aktif Writer: yok
 Durum: `complete`
 
+Güncel doğrulama: son kaynakla 232 uygulama, 251 veri ve 40 konsol testi geçti. Analiz: 0 hata/5 kapsam dışı uyarı; değiştirilen kaynaklarda uyarı yok. Üretim web ve 0.5.1+16 APK derlemesi/yayını tamamlandı. APK imzası önceki paketle aynı; yayımlanan APK özeti yerel dosyayla eşleşiyor. Detay: `docs/demo-action-audit.md`.
+
 ## Guncel gorev
 
-- Amac: Phase 03 design-overhaul-fluidity; 03-01 ve 03-02 planlarini uygulama.
-- Kapsam: swansport_app mobil/web; kaydirma, iskeletler, Feed filtreleri, dokunma yuzeyleri, kartlar ve create sheet.
-- Kullanici tarafindan secilen Writer: Codex Writer; kod uygulamasi tamamlandi, Writer serbest.
-- Mevcut kullanici degisiklikleri korunuyor; konsol ve veri/tasarim paketlerine dokunulmuyor.
+- 2026-10-06: demo verileri, boş düğmeler ve eksik bağlantıları incele; gerekli akışları gerçek veriye bağla, gereksiz kontrolleri kaldır, ilgili hataları düzelt.
+- Kapsam: swansport_app ve mevcut ortak veri servisleri. Konsol kaynak kodu ve veritabanı şeması değiştirilmedi.
+- Başlangıç Git durumu temizdi; başka aktif Writer yoktu. Bu görev için commit henüz oluşturulmadı.
 
 ## Son durum
 
-- Phase 03 Wave 1 ve Wave 2 uygulandi; ozetler plan klasorunde.
-- Dogrulama: 34/34 dar test, 0 analiz hatasi ve 3 kapsam disi import uyarisi. Degistirilen dosyalarda uyari yok; diff-check temiz.
-- Reviewer: iki gizlenen ripple bulgusu duzeltildi ve ikinci salt okunur incelemede kapandi.
-- Uretim web build ve Cloudflare yayin basarili: https://56ab4071.swansport.pages.dev
-- Canli gorsel UAT: Edge erisim izni kullanici tarafindan reddedildigi icin yapilamadi. Izin baska yontemle asilmadi.
-- Kullanici degisiklikleri korundu; konsol/veri/tasarim paketlerine dokunulmadi, commit veya APK release olusturulmadi.
-- Kanit: `.planning/phases/03-design-overhaul-fluidity/03-VERIFICATION.md`.
+- Gerçek kadro/performans/belge/takvim/duyuru/mali kayıtlar kullanılır. Şablon RPC kaydı ve maskeli defter sayfalaması bağlandı.
+- Sahte ses/arama/rezervasyon/IoT, örnek destekçiler, lisans/yaş/çevrim içi/garanti iddiaları ve desteklenmeyen kaydetme kontrolleri kaldırıldı.
+- Eski rotalar korunur; üretimde fixture detayları kapalıdır. Açılış kapısı oturumu ve tanıtımı kontrol eder.
+- Son doğrulama: 232 uygulama + 251 veri + 40 konsol testi başarılı. Analiz 0 hata/5 kapsam dışı uyarı; değiştirilen kaynaklarda uyarı yok. Diff-check temiz.
+- Web yayımlandı: https://e2f698b3.swansport.pages.dev. Android v0.5.1+16: https://github.com/EmirlmzYT/SwanSport/releases/tag/v0.5.1%2B16. Deployment complete ve uploaded APK doğrulandı.
+- Canlı hesaplı görsel UAT ve fiziksel cihaz denemesi yapılmadı. Önceki tarayıcı erişim reddi aşılmadı.
+- Kanıt: `docs/demo-action-audit.md`; ayrıntılı loglar uygulamanın `build/demo-audit/` klasöründe.
 
 ## Deðiþiklik günlüðü
 
@@ -58,3 +59,8 @@ Durum: `complete`
 - Uygulama/test/yayin islerini tekrar etme; son otomatik kanit ve plan uyarlamalari ozetlerde.
 - Canli ekran goruntusu ve fiziksel cihaz performansi dogrulanmadi; tarayici erisim reddi mevcut.
 - Baska Writer yalnizca kullanici secimiyle gorevi ustlenip defteri active yaparak yazabilir.
+| 2026-10-06 | Codex Writer | active | Demo denetimi: sporcu/performans/takvim/duyuru/kesfet/mali ekranlarin sabit verileri ve sahte basari kontrolleri temizleniyor. Gercek protokol olusturma RPC, belge detayi ve maskeli muhasebe defteri baglandi; eski rotalar korunuyor. | swansport_app, expense_service | Kaynak incelemesi tamamlanan gruplar icin format, tam uygulama testleri ve analiz baslatildi. Graph indeksi yayinlanamadi; kapsama bilinmedigi icin ilgili kaynaklar dogrudan okundu. |
+
+| 2026-10-06 | Codex Writer | active | Kadro/panel/ayarlar/paylaşım prototip verileri temizlendi; mali sıfır ve hata ayrımı düzeltildi; gerçek şablon RPC yazımı ve maskeli defter sayfalaması bağlandı. | Mobil uygulama, ortak veri katmanı | Tam testlerde eski başlık beklentileri ve varsayılan canlı Supabase yapılandırması kaynaklı açılış testleri bulundu; boş define ile izole test ve regresyonlar sürüyor. |
+
+| 2026-10-06 | Codex Writer | complete | Demo verileri ve sahte işlemler temizlendi; gerçek şablon, belge, kadro, mali defter, mesaj, paylaşım ve oturum akışları bağlandı. Eski rotalar korunuyor. Writer serbest. | swansport_app, mevcut swansport_data servisleri, denetim raporu | 232 uygulama + 251 veri + 40 konsol testi; analiz 0 hata/5 kapsam dışı uyarı; diff-check temiz. Web Deployment complete; APK v0.5.1+16 uploaded, imza ve dosya özeti eşleşti. Canlı hesaplı/cihaz UAT yapılmadı. |

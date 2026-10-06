@@ -282,8 +282,7 @@ class ExpenseAuditEntry {
         id: (m['log_id'] as String?) ?? '',
         action: (m['action'] as String?) ?? '',
         actor: (m['actor'] as String?) ?? 'Bilinmiyor',
-        changedAt:
-            DateTime.tryParse('${m['changed_at']}') ?? DateTime.now(),
+        changedAt: DateTime.tryParse('${m['changed_at']}') ?? DateTime.now(),
         reason: m['reason'] as String?,
         changed: (m['changed'] as Map?)?.cast<String, dynamic>() ?? const {},
       );
@@ -1209,6 +1208,17 @@ class ExpenseService {
 
 final expenseServiceProvider = Provider<ExpenseService>((ref) {
   return ExpenseService(ref.watch(supabaseClientProvider));
+});
+
+/// Paginated, server-masked club ledger. No athlete lookup is performed.
+final clubLedgerPageProvider =
+    FutureProvider.autoDispose.family<LedgerPage, int>((ref, offset) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return const LedgerPage(entries: [], totalCount: 0);
+  }
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const LedgerPage(entries: [], totalCount: 0);
+  return ref.watch(expenseServiceProvider).ledger(club.id, offset: offset);
 });
 
 /// Muhasebecisi olunan kulüplerin kimlikleri.
