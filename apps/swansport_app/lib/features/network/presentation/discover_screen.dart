@@ -244,6 +244,8 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   Widget _buildEnrolledClubs(bool isDark, Color ink, Color surf) {
+    final clubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -261,41 +263,63 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               ],
             ),
             Text(
-              '2 Aktif',
+              '${clubs.length} Aktif',
               style: SwanType.caption(kTeal, w: FontWeight.w700),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        // Card 1: Swan Runners
-        _buildEnrolledClubCard(
-          title: 'Swan Runners Istanbul',
-          location: 'Bebek & Belgrad Ormanı',
-          tag: 'PACE LİDERİ',
-          members: '1.420',
-          metric: '3.450 KM',
-          metricLabel: 'Haftalık Koşu',
-          eventTitle: 'BU CUMARTESİ · Belgrad Ormanı 15K Patika Koşusu',
-          icon: Icons.directions_run_rounded,
-          isDark: isDark,
-          ink: ink,
-          surf: surf,
-        ),
-        const SizedBox(height: 12),
-        // Card 2: Iron Swans
-        _buildEnrolledClubCard(
-          title: 'Iron Swans Powerlifting',
-          location: 'Maslak Performance Lab',
-          tag: 'ELITE DIVISION',
-          members: '680',
-          metric: '18.2 TON',
-          metricLabel: 'Haftalık Tonaj',
-          eventTitle: 'Topluluk rekoru kırıldı: 280kg Squat',
-          icon: Icons.fitness_center_rounded,
-          isDark: isDark,
-          ink: ink,
-          surf: surf,
-        ),
+        if (clubs.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: surf,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isDark ? SwanPalette.dark.line : SwanPalette.light.line,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.shield_outlined, color: kTeal, size: 28),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Henüz bir kulübe üye değilsin',
+                        style: SwanType.bodySm(ink, w: FontWeight.w700),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'Aşağıdaki listeden doğrulanmış kulüpleri inceleyebilir ve katılım başvurusu yapabilirsin.',
+                        style: SwanType.caption(SwanColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          for (final club in clubs)
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildEnrolledClubCard(
+                title: club.name,
+                location: club.role ?? 'Üye',
+                tag: 'KULÜBÜN',
+                members: 'Aktif Üye',
+                metric: 'Üye',
+                metricLabel: 'Statü',
+                eventTitle: 'Kulüp takvimi ve antrenmanlar',
+                icon: Icons.shield_rounded,
+                isDark: isDark,
+                ink: ink,
+                surf: surf,
+              ),
+            ),
       ],
     );
   }
@@ -454,11 +478,10 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
   }
 
   Widget _buildXpLeaderboard(bool isDark, Color ink, Color surf) {
-    final leaders = [
-      (1, 'Emir Yılmaz', 'Swan Runners Istanbul', '24.850 XP', 'ALTIN', Colors.amber),
-      (2, 'Caner Demir', 'Iron Swans Powerlifting', '22.400 XP', 'GÜMÜŞ', Colors.grey.shade400),
-      (3, 'Selin Kaya', 'Swan Runners Istanbul', '19.920 XP', 'BRONZ', Colors.brown.shade400),
-    ];
+    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
+    final hasSuggestions = suggestions.isNotEmpty;
+
+    final medalColors = [Colors.amber, Colors.grey.shade400, Colors.brown.shade400];
 
     return Container(
       padding: const EdgeInsets.all(14),
@@ -492,50 +515,66 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
             ],
           ),
           const SizedBox(height: 12),
-          for (final l in leaders)
-            Container(
-              margin: const EdgeInsets.only(bottom: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-              decoration: BoxDecoration(
-                color: isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF8F9FA),
-                borderRadius: BorderRadius.circular(10),
+          if (!hasSuggestions)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'Topluluk ligi henüz başlamadı. Antrenman kaydettikçe sıralamada yer alırsın.',
+                style: SwanType.caption(SwanColors.textSecondary),
               ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 22,
-                    height: 22,
-                    decoration: BoxDecoration(
-                      color: l.$6,
-                      shape: BoxShape.circle,
-                    ),
-                    child: Center(
-                      child: Text(
-                        '${l.$1}',
-                        style: SwanType.caption(Colors.white, w: FontWeight.w900).copyWith(fontSize: 10),
+            )
+          else
+            for (var i = 0; i < suggestions.take(3).length; i++) ...[
+              Builder(builder: (context) {
+                final s = suggestions[i];
+                final medalColor = i < medalColors.length ? medalColors[i] : Colors.blueGrey;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: BoxDecoration(
+                          color: medalColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            '${i + 1}',
+                            style: SwanType.caption(Colors.white, w: FontWeight.w900).copyWith(fontSize: 10),
+                          ),
+                        ),
                       ),
-                    ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(s.name, style: SwanType.caption(ink, w: FontWeight.w700)),
+                            Text(s.subtitle ?? '', style: SwanType.caption(SwanColors.textSecondary).copyWith(fontSize: 10)),
+                          ],
+                        ),
+                      ),
+                      Text('Aktif', style: SwanType.caption(kTeal, w: FontWeight.w800)),
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(l.$2, style: SwanType.caption(ink, w: FontWeight.w700)),
-                        Text(l.$3, style: SwanType.caption(SwanColors.textSecondary).copyWith(fontSize: 10)),
-                      ],
-                    ),
-                  ),
-                  Text(l.$4, style: SwanType.caption(kTeal, w: FontWeight.w800)),
-                ],
-              ),
-            ),
+                );
+              }),
+            ],
         ],
       ),
     );
   }
 
   Widget _buildLocalEvents(bool isDark, Color ink, Color surf) {
+    final events = ref.watch(eventsProvider).valueOrNull ?? const [];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -556,29 +595,42 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           ],
         ),
         const SizedBox(height: 10),
-        // Event 1
-        _buildLocalEventItem(
-          title: 'Boğaz Kıyısı Sabah Koşusu',
-          location: 'Bebek Parkı Buluşma',
-          time: 'Cumartesi 07:00',
-          pace: '5:20/km',
-          attendees: '+42',
-          isDark: isDark,
-          ink: ink,
-          surf: surf,
-        ),
-        const SizedBox(height: 10),
-        // Event 2
-        _buildLocalEventItem(
-          title: 'Street Workout Workshop',
-          location: 'Caddebostan Sahil Parkuru',
-          time: 'Pazar 14:00',
-          pace: 'Kuvvet',
-          attendees: '+19',
-          isDark: isDark,
-          ink: ink,
-          surf: surf,
-        ),
+        if (events.isEmpty)
+          Container(
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: surf,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: isDark ? SwanPalette.dark.line : SwanPalette.light.line),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.event_busy_rounded, color: kTeal, size: 24),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    'Yakın zamanda planlanmış bir kulüp etkinliği bulunmuyor.',
+                    style: SwanType.caption(SwanColors.textSecondary),
+                  ),
+                ),
+              ],
+            ),
+          )
+        else
+          for (final e in events.take(3))
+            Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _buildLocalEventItem(
+                title: e.title,
+                location: e.place ?? 'Kulüp Tesisi',
+                time: '${e.startsAt.day}.${e.startsAt.month} • ${e.startsAt.hour.toString().padLeft(2, '0')}:${e.startsAt.minute.toString().padLeft(2, '0')}',
+                pace: e.kind,
+                attendees: 'Kulüp',
+                isDark: isDark,
+                ink: ink,
+                surf: surf,
+              ),
+            ),
       ],
     );
   }

@@ -40,8 +40,6 @@ class _WorkoutProtocolBuilderScreenState
         title: 'Barbell Incline Bench Press',
         restSeconds: 90,
         targetRpe: 'RPE 8.0',
-        imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuDZoAsl1_k2dk12UKe2-nvuQvSPhqNp_8UzGWx-QGRlUVwNWsqTdtwR9mwTHJPX2NmT9HUc0mhxDLxBZ-z1nHzbLmGl9rmdLFapmP3Pp3eqjErbYHAVqNX3pX2wRziEbx0PTaTIjb-FZuJWxpwMmfvvhpCoWiQRbdLAlezmfJyyFZni_JQOFxyj_-VAbpEONYEaiE0yd0pudpJpZw6ULiPqr2v8lRycII6oRR3Gtvzy-Ux_AlAWlkCI',
         sets: [
           _SetItem(setNum: 1, loadKg: 85, reps: '10', isCompleted: true),
           _SetItem(setNum: 2, loadKg: 85, reps: '10', isCompleted: true),
@@ -61,8 +59,6 @@ class _WorkoutProtocolBuilderScreenState
         restSeconds: 60,
         targetRpe: 'RPE 8.5',
         supersetName: 'Face Pull (Kablo)',
-        imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuBHnsEQ4G_2fw130KxhB7LVkq1uH50s6Il4d0dCuW8kkGRCfcK6gmeO8yBhnOxkd6rqtjlvODTPesCIOy13U3Wcppy8bH9QlNakJAdhwX62jRPTz9MNgk7Zb5OptpBztDds2CR7rUyX3sai5gMtvS-JFe4drK_vXNfJNZ-xvh8VtRAbTDn7ygJTlNXVejAOBUrGUj9_KKyfjkvvAwwxkpO-0_e8YWBTcDht2cealoedREN6J4YIKiEu',
         sets: [
           _SetItem(setNum: 1, loadKg: 14, reps: '15', isCompleted: true),
           _SetItem(setNum: 2, loadKg: 14, reps: '15', isCompleted: true),
@@ -74,8 +70,6 @@ class _WorkoutProtocolBuilderScreenState
         title: 'Kablo Triceps Pushdown',
         restSeconds: 60,
         targetRpe: 'RPE 8.0',
-        imageUrl:
-            'https://lh3.googleusercontent.com/aida-public/AB6AXuCBxFYWRQIFgFRPkXmn0fNHfHA43pgXkChXlOx40WL1HwpwSVrDkuNTNqAbynfXmXgfTPaNTaA2M62VdMr3tntJ35cuWOwrsI12vu42iD2Brya4Z8Md0BtrtuD9jWW3JBiXQkg16mrIhOiguQdsy5ZNOS2wFEYvJ0K07dEYIzeHV5zNWs5MinbxGAk6LSB-A5Ymr9qrVop6JtmgeeecNcQCvKJ9HHhY54gMefWpUzQO0bls57hdtJU4',
         sets: [
           _SetItem(setNum: 1, loadKg: 35, reps: '12', isCompleted: true),
           _SetItem(setNum: 2, loadKg: 35, reps: '12', isCompleted: true),
@@ -577,14 +571,10 @@ class _WorkoutProtocolBuilderScreenState
                   border: Border.all(color: palette.line),
                 ),
                 clipBehavior: Clip.antiAlias,
-                child: Image.network(
-                  exercise.imageUrl,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Icon(
-                    Icons.fitness_center_rounded,
-                    size: 20,
-                    color: palette.accent,
-                  ),
+                child: Icon(
+                  Icons.fitness_center_rounded,
+                  size: 20,
+                  color: palette.accent,
                 ),
               ),
               const SizedBox(width: 10),
@@ -900,8 +890,6 @@ class _WorkoutProtocolBuilderScreenState
               title: 'Yeni Egzersiz',
               restSeconds: 60,
               targetRpe: 'RPE 8.0',
-              imageUrl:
-                  'https://lh3.googleusercontent.com/aida-public/AB6AXuCBxFYWRQIFgFRPkXmn0fNHfHA43pgXkChXlOx40WL1HwpwSVrDkuNTNqAbynfXmXgfTPaNTaA2M62VdMr3tntJ35cuWOwrsI12vu42iD2Brya4Z8Md0BtrtuD9jWW3JBiXQkg16mrIhOiguQdsy5ZNOS2wFEYvJ0K07dEYIzeHV5zNWs5MinbxGAk6LSB-A5Ymr9qrVop6JtmgeeecNcQCvKJ9HHhY54gMefWpUzQO0bls57hdtJU4',
               sets: [
                 _SetItem(setNum: 1, loadKg: 50, reps: '10', isCompleted: false),
                 _SetItem(setNum: 2, loadKg: 50, reps: '10', isCompleted: false),
@@ -1124,7 +1112,6 @@ class _ExerciseItem {
     required this.title,
     required this.restSeconds,
     required this.targetRpe,
-    required this.imageUrl,
     required this.sets,
     this.supersetName,
   });
@@ -1133,7 +1120,6 @@ class _ExerciseItem {
   final String title;
   final int restSeconds;
   final String targetRpe;
-  final String imageUrl;
   final String? supersetName;
   final List<_SetItem> sets;
 }

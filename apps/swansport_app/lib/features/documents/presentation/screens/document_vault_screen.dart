@@ -223,7 +223,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
       children: [
         // Stitch Storage Gauge & Status Bento Card
         _buildStitchStorageBento(
-          totalDocs: allDocs.isNotEmpty ? allDocs.length : 142,
+          totalDocs: allDocs.length,
           complianceRate: complianceRate,
           pendingSignCount: pendingSignCount,
           palette: palette,
@@ -232,15 +232,15 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         const SizedBox(height: 14),
 
         // Stitch Priority E-Signature & Action Stream
-        _buildPrioritySignatureDeck(palette, isDark),
+        _buildPrioritySignatureDeck(expiringDocs, palette, isDark),
         const SizedBox(height: 16),
 
         // Stitch 2x2 Archive Folders Grid
         _buildArchiveFoldersGrid(
-          lisansCount: lisansCount > 0 ? lisansCount : 48,
-          saglikCount: saglikCount > 0 ? saglikCount : 32,
-          clubCount: clubCount > 0 ? clubCount : 45,
-          otherCount: 17,
+          lisansCount: lisansCount,
+          saglikCount: saglikCount,
+          clubCount: clubCount,
+          otherCount: (allDocs.length - lisansCount - saglikCount - clubCount).clamp(0, 99999),
           palette: palette,
           isDark: isDark,
         ),
@@ -515,7 +515,16 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     );
   }
 
-  Widget _buildPrioritySignatureDeck(SwanPalette palette, bool isDark) {
+  Widget _buildPrioritySignatureDeck(
+    List<VaultDoc> expiringDocs,
+    SwanPalette palette,
+    bool isDark,
+  ) {
+    if (expiringDocs.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    final doc = expiringDocs.first;
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -546,14 +555,13 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Text(
-                  '2 İşlem',
+                  '${expiringDocs.length} İşlem',
                   style: SwanType.caption(Colors.black, w: FontWeight.w800).copyWith(fontSize: 10),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
-          // Action Item 1
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -578,13 +586,13 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Semih Kılıçsoy · Gelişim Sözleşmesi',
+                        doc.name,
                         style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        'Vade: 2 Gün · TFF A-Takım Prosedürü',
+                        doc.docType?.toUpperCase() ?? 'BELGE',
                         style: SwanType.caption(palette.inkMuted),
                       ),
                     ],
@@ -593,7 +601,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 GestureDetector(
                   onTap: () {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('E-İmza protokol ekranı açılıyor...')),
+                      SnackBar(content: Text('${doc.name} e-imza protokolü açılıyor...')),
                     );
                   },
                   child: Container(

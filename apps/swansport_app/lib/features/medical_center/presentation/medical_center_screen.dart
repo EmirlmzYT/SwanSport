@@ -83,8 +83,8 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                         _buildFilterPills(),
                         const SizedBox(height: 16),
 
-                        // Priority Protocol Hero Bento Card (Merih Demiral)
-                        _buildPriorityProtocolCard(),
+                        // Priority Protocol Hero Bento Card
+                        _buildPriorityProtocolCard(async.valueOrNull),
                         const SizedBox(height: 20),
 
                         // Active Treatment Section Header
@@ -100,76 +100,61 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'Aktif Tedavi Programı',
+                                  'Aktif Tedavi & Kısıt Programı',
                                   style: SwanType.h3(Colors.white),
                                 ),
                               ],
                             ),
                             Text(
-                              '3 Sporcu Kayıtlı',
+                              '${async.valueOrNull?.length ?? 0} Sporcu Kayıtlı',
                               style: SwanType.caption(SwanColors.textSecondary),
                             ),
                           ],
                         ),
                         const SizedBox(height: 10),
 
-                        // Active Treatment Athlete Cards
-                        _buildTreatmentAthleteCard(
-                          name: 'Arda Güler',
-                          number: '#10',
-                          diagnosis: 'Kasık Ağrısı (Adduktör Gerginliği)',
-                          recoveryPercent: 85,
-                          statusLabel: 'Hafif Antrenmanda',
-                          statusColor: kTeal,
-                          treatmentPlan:
-                              'Koruyucu Havuz Çalışması & Medikal Masaj',
-                          treatmentIcon: Icons.pool_rounded,
-                          statusDotColor: kTeal,
-                        ),
-                        const SizedBox(height: 10),
-                        _buildTreatmentAthleteCard(
-                          name: 'Barış Alper Yılmaz',
-                          number: '#53',
-                          diagnosis: 'Ayak Bileği İnversiyon Burkulması',
-                          recoveryPercent: 40,
-                          statusLabel: 'Akut İstirahat',
-                          statusColor: const Color(0xFFFF5252),
-                          treatmentPlan:
-                              'Buz Protokolü, Manuel Lenf Drenajı & Kompresyon',
-                          treatmentIcon: Icons.ac_unit_rounded,
-                          statusDotColor: const Color(0xFFFF5252),
-                        ),
-                        const SizedBox(height: 10),
-                        _buildTreatmentAthleteCard(
-                          name: 'Uğurcan Çakır',
-                          number: '#1',
-                          diagnosis: 'El Bileği Hafif Kontüzyonu',
-                          recoveryPercent: 100,
-                          statusLabel: 'Maça Uygun (Fit)',
-                          statusColor: kTeal,
-                          treatmentPlan:
-                              'Bandaj Destekli Saha İçi Şut & Tutuş Çalışması',
-                          treatmentIcon: Icons.sports_handball_rounded,
-                          statusDotColor: kTeal,
-                        ),
-                        const SizedBox(height: 20),
-
                         // Database Registered Injuries from Supabase
                         async.when(
-                          loading: () => const SizedBox.shrink(),
-                          error: (e, _) => const SizedBox.shrink(),
+                          loading: () => premiumLoading(),
+                          error: (e, _) => premiumError(context, '$e'),
                           data: (list) {
-                            if (list.isEmpty) return const SizedBox.shrink();
+                            if (list.isEmpty) {
+                              return Container(
+                                padding: const EdgeInsets.all(20),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF132031),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(color: Colors.white10),
+                                ),
+                                child: Center(
+                                  child: Column(
+                                    children: [
+                                      const Icon(Icons.check_circle_outline_rounded,
+                                          size: 36, color: kTeal),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'Aktif sağlık kısıtı bulunmuyor',
+                                        style: SwanType.bodySm(Colors.white,
+                                            w: FontWeight.w700),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Kadroda sakat veya kısıtlı sporcu kaydı yok. Tüm sporcular uygun durumda.',
+                                        style: SwanType.caption(
+                                            SwanColors.textSecondary),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'Veritabanı Kayıtlı Kısıtlar',
-                                  style: SwanType.h3(Colors.white),
-                                ),
-                                const SizedBox(height: 8),
-                                for (final r in list) _buildInjuryCard(c, r),
-                                const SizedBox(height: 16),
+                                for (final r in list) ...[
+                                  _buildInjuryCard(c, r),
+                                  const SizedBox(height: 10),
+                                ],
                               ],
                             );
                           },
@@ -516,7 +501,75 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
     );
   }
 
-  Widget _buildPriorityProtocolCard() {
+  Widget _buildPriorityProtocolCard(List<InjuryRow>? injuries) {
+    final topPriority = injuries?.where((i) => i.status != 'fit').firstOrNull ?? injuries?.firstOrNull;
+
+    if (topPriority == null) {
+      return Container(
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF1E2B3C),
+              Color(0xFF132031),
+              Color(0xFF0F1C2D),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: kTeal.withValues(alpha: 0.3)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.35),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: kTeal.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.verified_user_rounded, color: kTeal, size: 28),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Tüm Kadro Sağlıklı',
+                    style: GoogleFonts.sora(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    'Şu an aktif sakatlık veya rehabilitasyon takibinde olan sporcu bulunmuyor.',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      color: SwanColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final isInjured = topPriority.status == 'injured';
+    final accentColor = isInjured ? const Color(0xFFFF8C6F) : kTeal;
+
     return Container(
       decoration: BoxDecoration(
         gradient: const LinearGradient(
@@ -529,7 +582,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: const Color(0xFFFF8C6F).withValues(alpha: 0.35)),
+        border: Border.all(color: accentColor.withValues(alpha: 0.35)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.35),
@@ -549,10 +602,10 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
               children: [
                 Row(
                   children: [
-                    const Icon(
-                      Icons.notification_important_rounded,
+                    Icon(
+                      isInjured ? Icons.notification_important_rounded : Icons.healing_rounded,
                       size: 16,
-                      color: Color(0xFFFF8C6F),
+                      color: accentColor,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -569,15 +622,15 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFF8C6F).withValues(alpha: 0.2),
+                    color: accentColor.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(6),
                   ),
                   child: Text(
-                    'ACİL TAKİP',
+                    isInjured ? 'ACİL TAKİP' : 'GÖZLEM',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 9,
                       fontWeight: FontWeight.w800,
-                      color: const Color(0xFFFF8C6F),
+                      color: accentColor,
                     ),
                   ),
                 ),
@@ -588,41 +641,18 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
             // Athlete info & circular progress
             Row(
               children: [
-                Stack(
-                  children: [
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF293547),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: const Icon(
-                        Icons.person_rounded,
-                        size: 30,
-                        color: Color(0xFF55DBD2),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: -2,
-                      right: -2,
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF020F1F),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          '#4',
-                          style: GoogleFonts.sora(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: kTeal,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF293547),
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: Icon(
+                    Icons.person_rounded,
+                    size: 30,
+                    color: accentColor,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -631,12 +661,15 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                     children: [
                       Row(
                         children: [
-                          Text(
-                            'Merih Demiral',
-                            style: GoogleFonts.sora(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
+                          Expanded(
+                            child: Text(
+                              topPriority.athleteName,
+                              style: GoogleFonts.sora(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 6),
@@ -648,11 +681,11 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
-                              'U18',
+                              topPriority.statusLabel,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 9,
                                 fontWeight: FontWeight.w600,
-                                color: SwanColors.textSecondary,
+                                color: accentColor,
                               ),
                             ),
                           ),
@@ -660,40 +693,15 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        'Stoper · A Takım Adayı',
+                        topPriority.note?.isNotEmpty == true
+                            ? topPriority.note!
+                            : 'Aktif klinik ve rehabilitasyon takibi',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
                           color: SwanColors.textSecondary,
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-                SwanRing(
-                  value: 0.65,
-                  track: const Color(0xFF293547),
-                  progress: kTeal,
-                  size: 48,
-                  stroke: 5,
-                  center: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        '%65',
-                        style: GoogleFonts.sora(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          height: 1,
-                        ),
-                      ),
-                      Text(
-                        'Rehab',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 8,
-                          fontWeight: FontWeight.w600,
-                          color: kTeal,
-                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ],
                   ),
@@ -716,7 +724,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Klinik Teşhis',
+                          'Klinik Durum',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9,
                             color: SwanColors.textSecondary,
@@ -724,7 +732,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Sağ Hamstring',
+                          topPriority.statusLabel,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -732,12 +740,14 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                           ),
                         ),
                         Text(
-                          'Evre 1 Kas Gerilmesi',
+                          topPriority.note ?? 'Protokol devrede',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
-                            color: const Color(0xFFFF8C6F),
+                            color: accentColor,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
@@ -755,7 +765,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Sorumlu Uzman',
+                          'Sorumlu Birim',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9,
                             color: SwanColors.textSecondary,
@@ -763,7 +773,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Uzm. Fzt. Sinan Kaya',
+                          'Kulüp Sağlık Ekibi',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -771,7 +781,7 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                           ),
                         ),
                         Text(
-                          'Klinik Fizyoterapi',
+                          'Medikal / Fizyoterapi',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 9,
                             fontWeight: FontWeight.w600,
@@ -784,103 +794,11 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Dynamic Loading Stage Progress
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    const Icon(Icons.show_chart_rounded, size: 14, color: kTeal),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Dinamik Yüklenme Etabı',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-                Text(
-                  '6 Gün Kaldı (3 Kasım)',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: kTeal,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 6),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: const LinearProgressIndicator(
-                value: 0.65,
-                minHeight: 6,
-                backgroundColor: Color(0xFF293547),
-                valueColor: AlwaysStoppedAnimation(kTeal),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'İstirahat & Akut',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
-                    color: SwanColors.textSecondary,
-                  ),
-                ),
-                Text(
-                  'Kuvvet & Denge',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w700,
-                    color: kTeal,
-                  ),
-                ),
-                Text(
-                  'Takım Antrenmanı',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 9,
-                    color: SwanColors.textSecondary,
-                  ),
-                ),
-              ],
-            ),
             const SizedBox(height: 14),
 
             // Action Buttons
             Row(
               children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.description_rounded, size: 15),
-                    label: Text(
-                      'Raporu İncele',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white,
-                      side: BorderSide(
-                        color: Colors.white.withValues(alpha: 0.15),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
                 Expanded(
                   child: ElevatedButton.icon(
                     onPressed: _addRecord,
@@ -907,173 +825,6 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildTreatmentAthleteCard({
-    required String name,
-    required String number,
-    required String diagnosis,
-    required int recoveryPercent,
-    required String statusLabel,
-    required Color statusColor,
-    required String treatmentPlan,
-    required IconData treatmentIcon,
-    required Color statusDotColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: const Color(0xFF132031),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Row(
-                children: [
-                  Stack(
-                    children: [
-                      Container(
-                        width: 42,
-                        height: 42,
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF1E2B3C),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.person_rounded,
-                          size: 24,
-                          color: Color(0xFFBBC9C7),
-                        ),
-                      ),
-                      Positioned(
-                        top: -1,
-                        right: -1,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 4, vertical: 1),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF020F1F),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            number,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w700,
-                              color: kTeal,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(width: 10),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            name,
-                            style: GoogleFonts.sora(
-                              fontSize: 13,
-                              fontWeight: FontWeight.w700,
-                              color: Colors.white,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: BoxDecoration(
-                              color: statusDotColor,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        diagnosis,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                          color: statusColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      'İyileşme %$recoveryPercent',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                        color: statusColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    statusLabel,
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 9,
-                      color: SwanColors.textSecondary,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-            decoration: BoxDecoration(
-              color: const Color(0xFF0F1C2D),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    Icon(treatmentIcon, size: 14, color: kTeal),
-                    const SizedBox(width: 6),
-                    Text(
-                      treatmentPlan,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        color: const Color(0xFFBBC9C7),
-                      ),
-                    ),
-                  ],
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  size: 16,
-                  color: SwanColors.textSecondary,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
@@ -1156,14 +907,27 @@ class _MedicalCenterScreenState extends ConsumerState<MedicalCenterScreen> {
           const SizedBox(height: 12),
 
           // Athlete Chips
-          Wrap(
-            spacing: 6,
-            runSpacing: 6,
-            children: [
-              _visaChip('Kerem Aktürkoğlu', 'Son 2 Gün', const Color(0xFFFF5252)),
-              _visaChip('Ferdi Kadıoğlu', 'Son 3 Gün', const Color(0xFFFF5252)),
-              _visaChip('Semih Kılıçsoy', 'Son 5 Gün', const Color(0xFFFF8C6F)),
-            ],
+          Consumer(
+            builder: (context, ref, _) {
+              final athletes = ref.watch(clubAthletesProvider).valueOrNull ?? const [];
+              if (athletes.isEmpty) {
+                return Text(
+                  'Kadroda vize işlemi bekleyen sporcu bulunmuyor.',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    color: const Color(0xFFBBC9C7),
+                  ),
+                );
+              }
+              return Wrap(
+                spacing: 6,
+                runSpacing: 6,
+                children: [
+                  for (final a in athletes.take(3))
+                    _visaChip(a.fullName, 'Kontrol Bekliyor', const Color(0xFFFF8C6F)),
+                ],
+              );
+            },
           ),
           const SizedBox(height: 12),
 

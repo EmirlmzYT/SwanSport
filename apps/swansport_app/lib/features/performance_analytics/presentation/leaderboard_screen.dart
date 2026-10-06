@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
@@ -385,6 +386,11 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   Widget _buildPodiumDeck(SwanPalette palette, bool isDark) {
+    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
+    final first = suggestions.isNotEmpty ? suggestions[0].name : 'Lider Sporcu';
+    final second = suggestions.length > 1 ? suggestions[1].name : '2. Sıra';
+    final third = suggestions.length > 2 ? suggestions[2].name : '3. Sıra';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
@@ -392,7 +398,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         Expanded(
           child: _buildPodiumItem(
             rank: 2,
-            name: 'Selin K.',
+            name: second,
             metric: '112.0 km',
             points: '7.150 P',
             podiumHeight: 70,
@@ -406,7 +412,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         Expanded(
           child: _buildPodiumItem(
             rank: 1,
-            name: 'Caner D.',
+            name: first,
             metric: '128.4 km',
             points: '8.420 P',
             podiumHeight: 100,
@@ -421,7 +427,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
         Expanded(
           child: _buildPodiumItem(
             rank: 3,
-            name: 'Burak A.',
+            name: third,
             metric: '105.8 km',
             points: '6.890 P',
             podiumHeight: 54,
@@ -554,6 +560,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   Widget _buildUserStatusCard(SwanPalette palette, bool isDark) {
+    final profile = ref.watch(currentProfileProvider).valueOrNull;
+    final history = ref.watch(myTrainingHistoryProvider).valueOrNull ?? const [];
+    final workoutCount = history.length;
+    final totalScore = history.fold<double>(0.0, (sum, e) => sum + (e.totalScore ?? 0.0));
+    final scoreStr = totalScore > 0 ? '${totalScore.toStringAsFixed(0)} P' : '$workoutCount Seans';
+    final name = (profile?.fullName.isNotEmpty == true) ? profile!.fullName : 'Senin Durumun';
+    final roleOrClub = profile?.role ?? 'SwanSport Sporcusu';
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -581,7 +595,7 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 ),
                 child: Center(
                   child: Text(
-                    '#14',
+                    '#1',
                     style: SwanType.bodySm(palette.accent, w: FontWeight.w900),
                   ),
                 ),
@@ -593,9 +607,13 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Senin Durumun',
-                          style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+                        Flexible(
+                          child: Text(
+                            name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+                          ),
                         ),
                         const SizedBox(width: 6),
                         Container(
@@ -612,7 +630,9 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                       ],
                     ),
                     Text(
-                      'Emir Yılmaz • Swan Runners',
+                      '$name • $roleOrClub',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: SwanType.caption(palette.inkMuted),
                     ),
                   ],
@@ -622,14 +642,14 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '74.5 km',
+                    scoreStr,
                     style: SwanType.body(palette.accent, w: FontWeight.w800),
                   ),
                   Row(
                     children: [
                       Icon(Icons.arrow_upward_rounded, size: 12, color: palette.success),
                       Text(
-                        '+2 Sıra',
+                        'Aktif',
                         style: SwanType.caption(palette.success, w: FontWeight.w700),
                       ),
                     ],
@@ -811,13 +831,8 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
   }
 
   Widget _buildGeneralRankings(SwanPalette palette, bool isDark) {
-    final athletes = [
-      (4, 'Mert Yılmaz', 'Swan Runners Kulübü', '101.2 km', '6.410 P'),
-      (5, 'Ece Demir', 'Iron Swans Athletic', '98.5 km', '6.230 P'),
-      (6, 'Kaan Çetin', 'Iron Swans Athletic', '94.1 km', '5.980 P'),
-      (7, 'Defne Aras', 'Bosphorus Striders', '91.8 km', '5.790 P'),
-      (8, 'Onur Akın', 'Power Lab', '88.4 km', '5.610 P'),
-    ];
+    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
+    final athletes = suggestions.skip(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -830,71 +845,74 @@ class _LeaderboardScreenState extends ConsumerState<LeaderboardScreen> {
               style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
             ),
             Text(
-              'Aktif 148 Koşucu',
+              'Aktif ${suggestions.length} Sporcu',
               style: SwanType.caption(palette.inkMuted),
             ),
           ],
         ),
         const SizedBox(height: 10),
-        for (final a in athletes)
-          Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-            decoration: BoxDecoration(
-              color: palette.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: palette.line),
+        if (athletes.isEmpty)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Center(
+              child: Text(
+                'Sıralamada başka sporcu bulunmuyor.',
+                style: SwanType.caption(palette.inkMuted),
+              ),
             ),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 24,
-                  child: Text(
-                    '${a.$1}',
-                    style: SwanType.bodySm(palette.inkMuted, w: FontWeight.w800),
-                  ),
-                ),
-                Container(
-                  width: 34,
-                  height: 34,
-                  decoration: BoxDecoration(
-                    color: palette.surfaceAlt,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(Icons.person_rounded, size: 20, color: palette.inkMuted),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        a.$2,
-                        style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                      ),
-                      Text(
-                        a.$3,
-                        style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 10),
-                      ),
-                    ],
-                  ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      a.$4,
-                      style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+          )
+        else
+          for (int i = 0; i < athletes.length; i++)
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              decoration: BoxDecoration(
+                color: palette.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: palette.line),
+              ),
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 24,
+                    child: Text(
+                      '${i + 4}',
+                      style: SwanType.bodySm(palette.inkMuted, w: FontWeight.w800),
                     ),
-                    Text(
-                      a.$5,
-                      style: SwanType.caption(palette.accent, w: FontWeight.w600).copyWith(fontSize: 10),
+                  ),
+                  Container(
+                    width: 34,
+                    height: 34,
+                    decoration: BoxDecoration(
+                      color: palette.surfaceAlt,
+                      shape: BoxShape.circle,
                     ),
-                  ],
-                ),
-              ],
+                    child: Center(
+                      child: Text(
+                        athletes[i].name.isNotEmpty ? athletes[i].name[0].toUpperCase() : 'S',
+                        style: SwanType.bodySm(palette.accent, w: FontWeight.w800),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          athletes[i].name,
+                          style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+                        ),
+                        Text(
+                          athletes[i].subtitle ?? 'SwanSport Sporcusu',
+                          style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 10),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
       ],
     );
   }

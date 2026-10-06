@@ -18,7 +18,7 @@ class NutritionTrackerScreen extends ConsumerStatefulWidget {
 }
 
 class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen> {
-  DateTime _currentDate = DateTime(2026, 10, 24);
+  DateTime _currentDate = DateTime.now();
   double _waterLiters = 2.8;
   final double _targetWater = 3.5;
 
@@ -254,17 +254,28 @@ class _NutritionTrackerScreenState extends ConsumerState<NutritionTrackerScreen>
             children: [
               Icon(Icons.calendar_today_rounded, size: 16, color: palette.accent),
               const SizedBox(width: 8),
-              Column(
-                children: [
-                  Text(
-                    'Bugün',
-                    style: SwanType.bodySm(palette.ink, w: FontWeight.w800),
-                  ),
-                  Text(
-                    '${_currentDate.day} Ekim 2026',
-                    style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 11),
-                  ),
-                ],
+              Builder(
+                builder: (_) {
+                  const months = [
+                    'Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran',
+                    'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'
+                  ];
+                  final isToday = _currentDate.year == DateTime.now().year &&
+                      _currentDate.month == DateTime.now().month &&
+                      _currentDate.day == DateTime.now().day;
+                  return Column(
+                    children: [
+                      Text(
+                        isToday ? 'Bugün' : '${_currentDate.day} ${months[_currentDate.month - 1]}',
+                        style: SwanType.bodySm(palette.ink, w: FontWeight.w800),
+                      ),
+                      Text(
+                        '${_currentDate.day} ${months[_currentDate.month - 1]} ${_currentDate.year}',
+                        style: SwanType.caption(palette.inkMuted).copyWith(fontSize: 11),
+                      ),
+                    ],
+                  );
+                },
               ),
             ],
           ),

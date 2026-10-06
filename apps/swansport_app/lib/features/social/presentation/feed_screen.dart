@@ -86,18 +86,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       ),
                     ),
                   ),
-                  // Google Stitch Öne Çıkan Spor Paylaşımları (Showcase Posts)
-                  if (!_followingOnly) ...[
-                    const SliverToBoxAdapter(
-                      child: StitchWorkoutPostCard(),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: StitchNewsBriefingCard(),
-                    ),
-                    const SliverToBoxAdapter(
-                      child: StitchTransformationPostCard(),
-                    ),
-                  ],
+
                   ...async.when(
                     loading: () => [
                       SliverToBoxAdapter(child: premiumCardLoading()),

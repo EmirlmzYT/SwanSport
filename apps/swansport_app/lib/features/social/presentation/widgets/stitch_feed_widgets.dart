@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
+import '../post_composer_sheet.dart';
 
 /// Google Stitch: Top App Bar
 class StitchFeedTopBar extends StatelessWidget implements PreferredSizeWidget {
@@ -110,51 +113,15 @@ class StitchFeedTopBar extends StatelessWidget implements PreferredSizeWidget {
   }
 }
 
-/// Google Stitch: Stories Bar (Minimalist Circular Rings)
-class StitchStoriesBar extends StatelessWidget {
+/// Google Stitch: Stories Bar (Minimalist Circular Rings connected to real clubs and athletes)
+class StitchStoriesBar extends ConsumerWidget {
   const StitchStoriesBar({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
-
-    final stories = [
-      _StoryData(
-        title: 'Hikayen',
-        imageUrl:
-            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-        isUserAdd: true,
-      ),
-      _StoryData(
-        title: 'Koşu',
-        imageUrl:
-            'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=150',
-        gradient: [c.accent, const Color(0xFFFF7A59)],
-      ),
-      _StoryData(
-        title: 'Antrenman',
-        imageUrl:
-            'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=150',
-        gradient: [c.accent, const Color(0xFF2FBFB6)],
-      ),
-      _StoryData(
-        title: 'Podcast',
-        imageUrl:
-            'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?w=150',
-        gradient: [const Color(0xFFFF7A59), c.accent],
-      ),
-      _StoryData(
-        title: 'Rehber',
-        imageUrl:
-            'https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=150',
-        borderColor: c.line,
-      ),
-      _StoryData(
-        title: 'Etkinlikler',
-        icon: Icons.event_available_rounded,
-        gradient: [c.accent, const Color(0xFF008C95)],
-      ),
-    ];
+    final clubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
+    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
 
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14),
@@ -168,30 +135,38 @@ class StitchStoriesBar extends StatelessWidget {
       ),
       child: SizedBox(
         height: 84,
-        child: ListView.separated(
+        child: ListView(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-          itemCount: stories.length,
-          separatorBuilder: (_, __) => const SizedBox(width: 14),
-          itemBuilder: (context, index) {
-            final story = stories[index];
-            return _buildStoryItem(context, story, c);
-          },
+          children: [
+            // User Story Add Item
+            _buildUserStoryAdd(context, c),
+            const SizedBox(width: 14),
+
+            // Enrolled Clubs Stories
+            for (final club in clubs) ...[
+              _buildClubStoryItem(context, club, c),
+              const SizedBox(width: 14),
+            ],
+
+            // Suggested Athletes / Coaches Stories
+            for (final s in suggestions.take(6)) ...[
+              _buildSuggestionStoryItem(context, s, c),
+              const SizedBox(width: 14),
+            ],
+
+            // If empty, explore prompt
+            if (clubs.isEmpty && suggestions.isEmpty)
+              _buildExploreStoryItem(context, c),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildStoryItem(BuildContext context, _StoryData story, SwanPalette c) {
+  Widget _buildUserStoryAdd(BuildContext context, SwanPalette c) {
     return GestureDetector(
-      onTap: () {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('${story.title} hikayesi açılıyor...'),
-            duration: const Duration(seconds: 1),
-          ),
-        );
-      },
+      onTap: () => showPostComposer(context),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -204,77 +179,195 @@ class StitchStoriesBar extends StatelessWidget {
                 padding: const EdgeInsets.all(2.5),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  gradient: story.gradient != null
-                      ? LinearGradient(
-                          colors: story.gradient!,
-                          begin: Alignment.bottomLeft,
-                          end: Alignment.topRight,
-                        )
-                      : null,
-                  border: story.borderColor != null
-                      ? Border.all(color: story.borderColor!, width: 2)
-                      : (story.isUserAdd
-                          ? Border.all(
-                              color: c.line.withValues(alpha: 0.8),
-                              width: 1.5,
-                            )
-                          : null),
+                  border: Border.all(
+                    color: c.accent.withValues(alpha: 0.8),
+                    width: 1.5,
+                  ),
                 ),
                 child: Container(
-                  padding: const EdgeInsets.all(2),
                   decoration: BoxDecoration(
                     color: c.surface,
                     shape: BoxShape.circle,
                   ),
-                  child: ClipOval(
-                    child: story.imageUrl != null
-                        ? Image.network(
-                            story.imageUrl!,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Container(
-                              color: c.surfaceAlt,
-                              child: Icon(Icons.person, color: c.inkMuted, size: 28),
-                            ),
-                          )
-                        : Container(
-                            color: c.surfaceAlt,
-                            child: Icon(story.icon ?? Icons.star,
-                                color: c.accent, size: 26),
-                          ),
+                  child: Center(
+                    child: Icon(Icons.person_rounded, color: c.accent, size: 28),
                   ),
                 ),
               ),
-              if (story.isUserAdd)
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 18,
-                    height: 18,
-                    decoration: BoxDecoration(
-                      color: c.accent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: c.surface, width: 2),
-                    ),
-                    child: const Center(
-                      child: Icon(Icons.add, size: 12, color: Colors.black),
-                    ),
+              Positioned(
+                bottom: 0,
+                right: 0,
+                child: Container(
+                  width: 18,
+                  height: 18,
+                  decoration: BoxDecoration(
+                    color: c.accent,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: c.surface, width: 2),
+                  ),
+                  child: const Center(
+                    child: Icon(Icons.add, size: 12, color: Colors.black),
                   ),
                 ),
+              ),
             ],
           ),
           const SizedBox(height: 6),
           SizedBox(
             width: 62,
             child: Text(
-              story.title,
+              'Hikayen',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               textAlign: TextAlign.center,
-              style: SwanType.caption(
-                story.isUserAdd ? c.inkMuted : c.ink,
-                w: FontWeight.w600,
+              style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClubStoryItem(BuildContext context, ClubRef club, SwanPalette c) {
+    final initials = club.name.trim().isNotEmpty
+        ? club.name.trim().split(' ').map((e) => e.isNotEmpty ? e[0] : '').take(2).join().toUpperCase()
+        : 'KL';
+
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/kulupler'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            padding: const EdgeInsets.all(2.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [c.accent, const Color(0xFF008C95)],
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
               ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: c.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  initials,
+                  style: SwanType.caption(c.accent, w: FontWeight.w800),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 62,
+            child: Text(
+              club.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: SwanType.caption(c.ink, w: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSuggestionStoryItem(BuildContext context, SuggestionRow s, SwanPalette c) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/profil', arguments: {'id': s.id}),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            padding: const EdgeInsets.all(2.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [c.accent, const Color(0xFFFF7A59)],
+                begin: Alignment.bottomLeft,
+                end: Alignment.topRight,
+              ),
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(2),
+              decoration: BoxDecoration(
+                color: c.surface,
+                shape: BoxShape.circle,
+              ),
+              child: ClipOval(
+                child: s.avatarUrl != null && s.avatarUrl!.isNotEmpty
+                    ? Image.network(
+                        s.avatarUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Center(
+                          child: Text(s.initials, style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                        ),
+                      )
+                    : Center(
+                        child: Text(s.initials, style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                      ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 62,
+            child: Text(
+              s.name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: SwanType.caption(c.ink, w: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildExploreStoryItem(BuildContext context, SwanPalette c) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, '/kesfet'),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 60,
+            height: 60,
+            padding: const EdgeInsets.all(2.5),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: c.line, width: 1.5),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                color: c.surface,
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Icon(Icons.explore_rounded, color: c.accent, size: 24),
+              ),
+            ),
+          ),
+          const SizedBox(height: 6),
+          SizedBox(
+            width: 62,
+            child: Text(
+              'Keşfet',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
             ),
           ),
         ],
@@ -283,23 +376,7 @@ class StitchStoriesBar extends StatelessWidget {
   }
 }
 
-class _StoryData {
-  _StoryData({
-    required this.title,
-    this.imageUrl,
-    this.icon,
-    this.gradient,
-    this.borderColor,
-    this.isUserAdd = false,
-  });
 
-  final String title;
-  final String? imageUrl;
-  final IconData? icon;
-  final List<Color>? gradient;
-  final Color? borderColor;
-  final bool isUserAdd;
-}
 
 /// Google Stitch: Post 1 - Athletic Workout Session Post
 class StitchWorkoutPostCard extends StatefulWidget {

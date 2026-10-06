@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 import 'package:swansport_models/swansport_models.dart';
 
 import '../../../../app/design/swan_palette.dart';
-import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
@@ -79,7 +77,11 @@ class _AthleteWorkspaceScreenState
                   const SizedBox(height: 12),
 
                   // --- 3. Kişisel Çalışma Hub'ı & Günlük Odak Bento Kartı ---
-                  _buildDailyFocusCard(c, athletesAsync.valueOrNull?.length ?? 24),
+                  _buildDailyFocusCard(
+                    c,
+                    athletesAsync.valueOrNull?.length ?? 0,
+                    athletesAsync.valueOrNull?.where((a) => a.isActive).length ?? 0,
+                  ),
                   const SizedBox(height: 24),
 
                   // --- 4. Günlük Görev Akışı (Interactive Checklist) ---
@@ -87,7 +89,7 @@ class _AthleteWorkspaceScreenState
                   const SizedBox(height: 24),
 
                   // --- 5. Öne Çıkan Sporcu Bireysel Gelişim Kartı ---
-                  _buildIndividualDevCard(c),
+                  _buildIndividualDevCard(c, athletesAsync.valueOrNull, clubAsync.valueOrNull),
                   const SizedBox(height: 24),
 
                   // --- 6. Taktik Not Defteri ---
@@ -294,7 +296,7 @@ class _AthleteWorkspaceScreenState
   // ---------------------------------------------------------------------------
   // GÜNLÜK ODAK BENTO KARTI
   // ---------------------------------------------------------------------------
-  Widget _buildDailyFocusCard(SwanPalette c, int rosterCount) {
+  Widget _buildDailyFocusCard(SwanPalette c, int rosterCount, int activeCount) {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -395,7 +397,7 @@ class _AthleteWorkspaceScreenState
                   icon: Icons.groups,
                   iconColor: c.inkMuted,
                   label: 'Kadro',
-                  value: '22/$rosterCount',
+                  value: '$activeCount/$rosterCount',
                 ),
               ),
             ],
@@ -645,7 +647,64 @@ class _AthleteWorkspaceScreenState
   // ---------------------------------------------------------------------------
   // ÖNE ÇIKAN GELİŞİM KARTI
   // ---------------------------------------------------------------------------
-  Widget _buildIndividualDevCard(SwanPalette c) {
+  Widget _buildIndividualDevCard(
+    SwanPalette c,
+    List<AthleteRow>? athletes,
+    ClubRef? club,
+  ) {
+    if (athletes == null || athletes.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Öne Çıkan Gelişim',
+              style: GoogleFonts.sora(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: c.ink,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Kadroda henüz kayıtlı sporcu bulunmuyor. Sporcu ekleyerek gelişim raporlarını ve antrenman performanslarını buradan takip edebilirsiniz.',
+              style: SwanType.bodySm(c.inkMuted),
+            ),
+            if (club != null) ...[
+              const SizedBox(height: 14),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () => _showAddAthlete(club),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: c.line),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    backgroundColor: c.bg,
+                  ),
+                  icon: Icon(Icons.person_add_alt_1_rounded, size: 16, color: c.accent),
+                  label: Text(
+                    'İlk Sporcuyu Ekle',
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      );
+    }
+
+    final topAthlete = athletes.first;
+    final initials = topAthlete.initials.isNotEmpty ? topAthlete.initials : 'SP';
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -668,8 +727,8 @@ class _AthleteWorkspaceScreenState
                 ),
               ),
               Text(
-                'Detaylı Rapor',
-                style: SwanType.caption(c.accent, w: FontWeight.w700),
+                topAthlete.isActive ? 'Aktif Sporcu' : 'Pasif',
+                style: SwanType.caption(topAthlete.isActive ? c.accent : c.inkMuted, w: FontWeight.w700),
               ),
             ],
           ),
@@ -688,7 +747,7 @@ class _AthleteWorkspaceScreenState
                     ),
                     child: Center(
                       child: Text(
-                        'SK',
+                        initials,
                         style: GoogleFonts.sora(
                           fontWeight: FontWeight.w700,
                           color: c.accent,
@@ -703,7 +762,7 @@ class _AthleteWorkspaceScreenState
                       width: 14,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: c.accent,
+                        color: topAthlete.isActive ? c.accent : c.inkMuted,
                         shape: BoxShape.circle,
                         border: Border.all(color: c.surface, width: 2),
                       ),
@@ -718,12 +777,16 @@ class _AthleteWorkspaceScreenState
                   children: [
                     Row(
                       children: [
-                        Text(
-                          'Semih Kılıçsoy',
-                          style: GoogleFonts.sora(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w700,
-                            color: c.ink,
+                        Flexible(
+                          child: Text(
+                            topAthlete.fullName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.sora(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: c.ink,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 6),
@@ -735,7 +798,7 @@ class _AthleteWorkspaceScreenState
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
-                            '#9',
+                            '#1',
                             style: SwanType.caption(c.ink, w: FontWeight.w700),
                           ),
                         ),
@@ -743,7 +806,9 @@ class _AthleteWorkspaceScreenState
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      'Bireysel Özel Hücum & Bitiricilik Çalışması',
+                      topAthlete.position != null && topAthlete.position!.isNotEmpty
+                          ? '${topAthlete.position} • Kadro Sporcusu'
+                          : 'Kadro Sporcusu',
                       style: SwanType.caption(c.accent, w: FontWeight.w600),
                     ),
                   ],
@@ -755,7 +820,11 @@ class _AthleteWorkspaceScreenState
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () {},
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/athlete-detail',
+                arguments: AthleteDetailRouteArgs(athleteId: SwanId(topAthlete.id)),
+              ),
               style: OutlinedButton.styleFrom(
                 side: BorderSide(color: c.line),
                 shape: RoundedRectangleBorder(
@@ -765,7 +834,7 @@ class _AthleteWorkspaceScreenState
               ),
               icon: Icon(Icons.arrow_forward, size: 16, color: c.accent),
               label: Text(
-                'Gelişim Planını Gör',
+                'Sporcu Profilini ve Gelişimini Gör',
                 style: SwanType.bodySm(c.ink, w: FontWeight.w700),
               ),
             ),

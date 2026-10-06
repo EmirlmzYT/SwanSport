@@ -28,8 +28,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   String _query = '';
   int _searchFilter = 0; // 0 hepsi, 1 kulüp, 2 antrenör, 3 sporcu
   int _selectedExploreCategory = 0;
-  bool _challengeJoined = false;
-  final Set<String> _likedExploreItems = <String>{};
   final Set<String> _followingIds = <String>{};
 
   List<SuggestionRow> _results = const [];
@@ -361,7 +359,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           ink: ink,
                           line: line,
                         )
-                      : _buildExploreBentoFeed(
+                      : _buildRealExploreFeed(
                           context: context,
                           surfContainer: surfContainer,
                           surfHigh: surfHigh,
@@ -502,924 +500,241 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  /// Stitch Screen 25 Full Explore Bento Grid & Challenge Feed
-  Widget _buildExploreBentoFeed({
+  /// Real explore feed connected to real providers
+  Widget _buildRealExploreFeed({
     required BuildContext context,
     required Color surfContainer,
     required Color surfHigh,
     required Color ink,
     required Color line,
   }) {
+    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
+    final clubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
+
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Featured Trend Challenge Banner (Stitch Screen 25)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  surfHigh,
-                  surfContainer,
-                  const Color(0xFF020F1F),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: line),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black38,
-                  blurRadius: 18,
-                  offset: Offset(0, 6),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: kTeal.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.local_fire_department_rounded,
-                              size: 14, color: kTeal),
-                          const SizedBox(width: 4),
-                          Text(
-                            'TREND CHALLENGE',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: kTeal,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: 1.1,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Row(
-                      children: [
-                        const Icon(Icons.emoji_events_rounded,
-                            size: 16, color: Color(0xFFFFB6A4)),
-                        const SizedBox(width: 4),
-                        Text(
-                          '1.000 XP + Swan Rozeti',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFFFFB6A4),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  '30 Günlük Swan Push-Up',
-                  style: GoogleFonts.sora(
-                    color: ink,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Her gün formunu mükemmelleştir, patlayıcı itiş gücü kazan ve global sıralamada yerini al.',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: SwanColors.textSecondary,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        SizedBox(
-                          width: 60,
-                          height: 26,
-                          child: Stack(
-                            children: [
-                              _avatarCircle('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100', 0),
-                              _avatarCircle('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100', 16),
-                              Positioned(
-                                left: 32,
-                                child: Container(
-                                  width: 26,
-                                  height: 26,
-                                  decoration: const BoxDecoration(
-                                    color: kTeal,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    '+4k',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: const Color(0xFF003734),
-                                      fontSize: 9,
-                                      fontWeight: FontWeight.w800,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          '4.280 Sporcu',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: SwanColors.textSecondary,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _challengeJoined = !_challengeJoined);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text(_challengeJoined
-                                ? 'Meydan okumaya katıldın! İlk gün antrenmanı atandı.'
-                                : 'Meydan okumadan ayrıldın.'),
-                            backgroundColor: kTeal,
-                          ),
-                        );
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: _challengeJoined ? surfHigh : kTeal,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: _challengeJoined
-                              ? null
-                              : [
-                                  BoxShadow(
-                                    color: kTeal.withValues(alpha: 0.35),
-                                    blurRadius: 12,
-                                    offset: const Offset(0, 4),
-                                  ),
-                                ],
-                        ),
-                        child: Row(
-                          children: [
-                            Icon(
-                              _challengeJoined
-                                  ? Icons.check_circle_rounded
-                                  : Icons.add_circle_rounded,
-                              size: 16,
-                              color: _challengeJoined
-                                  ? kTeal
-                                  : const Color(0xFF003734),
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              _challengeJoined ? 'Katıldın!' : 'Meydan Oku',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: _challengeJoined
-                                    ? kTeal
-                                    : const Color(0xFF003734),
-                                fontSize: 12,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 20),
-
-          // Community Feed Section Header
+          // 1. Önerilen Sporcular & Antrenörler
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.dynamic_feed_rounded,
-                      size: 20, color: kTeal),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Topluluk Akışı',
-                    style: GoogleFonts.sora(
-                      color: ink,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+              Text(
+                'Önerilen Sporcular & Antrenörler',
+                style: GoogleFonts.sora(
+                  color: ink,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              GestureDetector(
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Akış yenilendi'),
-                    backgroundColor: kTeal,
-                  ),
+              Text(
+                '${suggestions.length} Öneri',
+                style: SwanType.caption(kTeal, w: FontWeight.w700),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (suggestions.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: surfContainer,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: line),
+              ),
+              child: Text(
+                'Şimdilik önerilecek hesap bulunamadı.',
+                style: SwanType.bodySm(SwanColors.textSecondary),
+              ),
+            )
+          else
+            for (final s in suggestions.take(5))
+              Container(
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: surfContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: line),
                 ),
                 child: Row(
                   children: [
-                    Text(
-                      'Tazele',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: kTeal,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(Icons.refresh_rounded, size: 14, color: kTeal),
-                  ],
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // 3-Column Asymmetric Bento Grid (Stitch Screen 25)
-          // Row 1: Big card (2-col) + 2 small cards (1-col stacked)
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Big 2x2 Feature Video Card
-              Expanded(
-                flex: 2,
-                child: Container(
-                  height: 236,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(16),
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop&q=80',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 10,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(16),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.black.withValues(alpha: 0.2),
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.88),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                    borderRadius: BorderRadius.circular(999),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      const Icon(Icons.videocam_rounded,
-                                          size: 13, color: kTeal),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        'Form Analizi',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: kTeal,
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                  width: 30,
-                                  height: 30,
-                                  decoration: BoxDecoration(
-                                    color: Colors.black.withValues(alpha: 0.6),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(Icons.play_arrow_rounded,
-                                      size: 18, color: kTeal),
-                                ),
-                              ],
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Koparma Tekniği & Bar Hızı',
-                                  style: GoogleFonts.sora(
-                                    color: Colors.white,
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const Icon(
-                                            Icons.visibility_outlined,
-                                            size: 12,
-                                            color: Colors.white70),
-                                        const SizedBox(width: 4),
-                                        Text('42.5K',
-                                            style: GoogleFonts.plusJakartaSans(
-                                                color: Colors.white70,
-                                                fontSize: 10)),
-                                      ],
-                                    ),
-                                    GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          if (_likedExploreItems
-                                              .contains('snatch')) {
-                                            _likedExploreItems.remove('snatch');
-                                          } else {
-                                            _likedExploreItems.add('snatch');
-                                          }
-                                        });
-                                      },
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            _likedExploreItems.contains('snatch')
-                                                ? Icons.favorite_rounded
-                                                : Icons.favorite_border_rounded,
-                                            size: 14,
-                                            color: _likedExploreItems
-                                                    .contains('snatch')
-                                                ? const Color(0xFFFFB6A4)
-                                                : Colors.white70,
-                                          ),
-                                          const SizedBox(width: 4),
-                                          Text('1.4K',
-                                              style:
-                                                  GoogleFonts.plusJakartaSans(
-                                                      color: Colors.white70,
-                                                      fontSize: 10)),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Small Column (2 cards)
-              Expanded(
-                flex: 1,
-                child: Column(
-                  children: [
-                    // Small Card 1: PR Metric Tile
                     Container(
-                      height: 114,
-                      padding: const EdgeInsets.all(10),
+                      width: 44,
+                      height: 44,
                       decoration: BoxDecoration(
-                        color: surfContainer,
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(color: line),
+                        color: surfHigh,
+                        shape: BoxShape.circle,
                       ),
+                      child: ClipOval(
+                        child: s.avatarUrl != null && s.avatarUrl!.isNotEmpty
+                            ? Image.network(
+                                s.avatarUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Center(
+                                  child: Text(
+                                    s.initials,
+                                    style: SwanType.bodySm(kTeal, w: FontWeight.w800),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  s.initials,
+                                  style: SwanType.bodySm(kTeal, w: FontWeight.w800),
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 6, vertical: 2),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFFF8C6F)
-                                      .withValues(alpha: 0.2),
-                                  borderRadius: BorderRadius.circular(4),
-                                ),
-                                child: Text(
-                                  'PR!',
-                                  style: GoogleFonts.sora(
-                                    color: const Color(0xFFFF8C6F),
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ),
-                              const Icon(Icons.verified_rounded,
-                                  size: 14, color: kTeal),
-                            ],
-                          ),
-                          Center(
-                            child: Column(
-                              children: [
-                                Text(
-                                  '180',
-                                  style: GoogleFonts.sora(
-                                    color: kTeal,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w800,
-                                    height: 1.1,
-                                  ),
-                                ),
-                                Text(
-                                  'KG DEADLIFT',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: SwanColors.textSecondary,
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                '@selin_fit',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: SwanColors.textSecondary,
-                                  fontSize: 9,
-                                ),
+                                s.name,
+                                style: SwanType.bodySm(ink, w: FontWeight.w700),
                               ),
-                              const Icon(Icons.favorite_rounded,
-                                  size: 11, color: Color(0xFFFFB6A4)),
+                              if (s.kind == 'club') ...[
+                                const SizedBox(width: 4),
+                                const Icon(Icons.shield_rounded, size: 14, color: kTeal),
+                              ],
                             ],
                           ),
+                          if (s.subtitle != null && s.subtitle!.isNotEmpty) ...[
+                            const SizedBox(height: 2),
+                            Text(
+                              s.subtitle!,
+                              style: SwanType.caption(SwanColors.textSecondary),
+                            ),
+                          ],
                         ],
                       ),
                     ),
-                    const SizedBox(height: 8),
-
-                    // Small Card 2: Runner Map Route
-                    Container(
-                      height: 114,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(14),
-                        image: const DecorationImage(
-                          image: NetworkImage(
-                            'https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=500&auto=format&fit=crop&q=80',
-                          ),
-                          fit: BoxFit.cover,
+                    GestureDetector(
+                      onTap: () {
+                        if (s.kind == 'club') {
+                          Navigator.pushNamed(context, '/kulupler');
+                        } else {
+                          Navigator.pushNamed(context, '/profil', arguments: {'id': s.id});
+                        }
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: kTeal,
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                      ),
-                      child: Stack(
-                        children: [
-                          Container(
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(14),
-                              gradient: LinearGradient(
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
-                                colors: [
-                                  Colors.transparent,
-                                  Colors.black.withValues(alpha: 0.8),
-                                ],
-                              ),
-                            ),
+                        child: Text(
+                          'Görüntüle',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: const Color(0xFF003734),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
                           ),
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Align(
-                                  alignment: Alignment.topRight,
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 5, vertical: 2),
-                                    decoration: BoxDecoration(
-                                      color:
-                                          Colors.black.withValues(alpha: 0.6),
-                                      borderRadius: BorderRadius.circular(4),
-                                    ),
-                                    child: Text(
-                                      '12.4 km',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        color: kTeal,
-                                        fontSize: 9,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text('Pace 4:32',
-                                        style: GoogleFonts.plusJakartaSans(
-                                            color: Colors.white, fontSize: 9)),
-                                    const Icon(Icons.route_rounded,
-                                        size: 12, color: Colors.white70),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-            ],
-          ),
-
-          const SizedBox(height: 8),
-
-          // Row 2: 3 Square Cards
-          Row(
-            children: [
-              // Small Card 3: Macro Bowl
-              Expanded(
-                child: Container(
-                  height: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500&auto=format&fit=crop&q=80',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.85),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Macro Bowl',
-                                  style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700)),
-                              const Icon(Icons.favorite_border_rounded,
-                                  size: 12, color: Colors.white70),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Small Card 4: Calisthenics Bar Flow
-              Expanded(
-                child: Container(
-                  height: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500&auto=format&fit=crop&q=80',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.85),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Bar Flow',
-                                  style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700)),
-                              Text('8.1K',
-                                  style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.white70, fontSize: 9)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-
-              // Small Card 5: Kettlebell Tabata
-              Expanded(
-                child: Container(
-                  height: 110,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(14),
-                    image: const DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=500&auto=format&fit=crop&q=80',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          gradient: LinearGradient(
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            colors: [
-                              Colors.transparent,
-                              Colors.black.withValues(alpha: 0.85),
-                            ],
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Align(
-                          alignment: Alignment.bottomCenter,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text('Tabata KB',
-                                  style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w700)),
-                              const Icon(Icons.play_circle_outline_rounded,
-                                  size: 13, color: kTeal),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
 
           const SizedBox(height: 20),
 
-          // Movement of the Day: Micro Video Guide Card (Stitch Screen 25)
+          // 2. Aktif Kulüplerim
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
+              Text(
+                'Kulüp Ağlarım',
+                style: GoogleFonts.sora(
+                  color: ink,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, '/kulupler'),
+                child: Text(
+                  'Tüm Kulüpler',
+                  style: SwanType.caption(kTeal, w: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          if (clubs.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: surfContainer,
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: line),
+              ),
+              child: Row(
                 children: [
-                  const Icon(Icons.smart_display_rounded,
-                      size: 20, color: kTeal),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Günün İlham Hareketi',
-                    style: GoogleFonts.sora(
-                      color: ink,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w800,
+                  Icon(Icons.shield_outlined, color: kTeal, size: 28),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Henüz bir kulübe katılmadınız',
+                          style: SwanType.bodySm(ink, w: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'SwanSport ağındaki doğrulanmış kulüpleri inceleyin.',
+                          style: SwanType.caption(SwanColors.textSecondary),
+                        ),
+                      ],
                     ),
                   ),
                 ],
               ),
+            )
+          else
+            for (final c in clubs)
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                margin: const EdgeInsets.only(bottom: 8),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: surfContainer,
-                  borderRadius: BorderRadius.circular(999),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: line),
                 ),
-                child: Text(
-                  '0:45 Rehber',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: kTeal,
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 10),
-
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: surfContainer,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: line),
-            ),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(10),
-                  child: Container(
-                    width: 78,
-                    height: 78,
-                    decoration: const BoxDecoration(
-                      image: DecorationImage(
-                        image: NetworkImage(
-                          'https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=500&auto=format&fit=crop&q=80',
-                        ),
-                        fit: BoxFit.cover,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        color: kTeal.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Center(
+                        child: Icon(Icons.shield_rounded, color: kTeal, size: 22),
                       ),
                     ),
-                    child: Center(
-                      child: Container(
-                        width: 28,
-                        height: 28,
-                        decoration: const BoxDecoration(
-                          color: kTeal,
-                          shape: BoxShape.circle,
-                        ),
-                        child: const Icon(Icons.play_arrow_rounded,
-                            size: 18, color: Color(0xFF003734)),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'MOBİLİTE & DENGE',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: kTeal,
-                          fontSize: 9,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.1,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Tek Bacak Pistol Squat',
-                        style: GoogleFonts.sora(
-                          color: ink,
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Diz kapağı stabilizasyonu ve ayak bileği esnekliği için 3 altın kural.',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: SwanColors.textSecondary,
-                          fontSize: 11,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            children: [
-                              const Icon(Icons.timer_outlined,
-                                  size: 12, color: kTeal),
-                              const SizedBox(width: 4),
-                              Text(
-                                '3 Set x 8 Tekrar',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: SwanColors.textSecondary,
-                                  fontSize: 10,
-                                ),
-                              ),
-                            ],
-                          ),
-                          GestureDetector(
-                            onTap: () =>
-                                ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Hareketi Başlat seçildi'),
-                                backgroundColor: kTeal,
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Text(
-                                  'Başla',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: kTeal,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                                const Icon(Icons.chevron_right_rounded,
-                                    size: 16, color: kTeal),
-                              ],
-                            ),
-                          ),
+                          Text(c.name, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                          Text(c.role ?? 'Üye', style: SwanType.caption(SwanColors.textSecondary)),
                         ],
                       ),
-                    ],
-                  ),
+                    ),
+                    Icon(Icons.chevron_right_rounded, color: SwanColors.textSecondary),
+                  ],
                 ),
-              ],
-            ),
-          ),
+              ),
         ],
-      ),
-    );
-  }
-
-  Widget _avatarCircle(String url, double left) {
-    return Positioned(
-      left: left,
-      child: Container(
-        width: 26,
-        height: 26,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: const Color(0xFF132031), width: 1.5),
-          image: DecorationImage(
-            image: NetworkImage(url),
-            fit: BoxFit.cover,
-          ),
-        ),
       ),
     );
   }

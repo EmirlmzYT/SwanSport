@@ -333,7 +333,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
               const SizedBox(height: 12),
               _buildDateStrip(),
               const SizedBox(height: 14),
-              _buildFeaturedPitchCard(),
+              _buildFeaturedPitchCard(sorted.firstOrNull),
               const SizedBox(height: 14),
               _buildIotOperationsBar(),
               const SizedBox(height: 16),
@@ -497,6 +497,13 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
   }
 
   Widget _buildDateStrip() {
+    final now = DateTime.now();
+    const trMonths = [
+      '', 'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
+      'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
+    ];
+    const trDays = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -506,10 +513,15 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
       ),
       child: Row(
         children: [
-          _datePill('Bugün', '24', 'Eki', true),
-          _datePill('Yarın', '25', 'Eki', false),
-          _datePill('Cmt', '26', 'Eki', false),
-          _datePill('Paz', '27', 'Eki', false),
+          for (int i = 0; i < 4; i++) ...[
+            () {
+              final d = now.add(Duration(days: i));
+              final dayLabel = i == 0 ? 'Bugün' : (i == 1 ? 'Yarın' : trDays[d.weekday - 1]);
+              final dateNum = '${d.day}';
+              final month = trMonths[d.month];
+              return _datePill(dayLabel, dateNum, month, i == 0);
+            }(),
+          ],
           Container(
             width: 36,
             height: 48,
@@ -570,7 +582,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
     );
   }
 
-  Widget _buildFeaturedPitchCard() {
+  Widget _buildFeaturedPitchCard([TurfField? field]) {
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFF132031),
@@ -614,7 +626,9 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            'PRO ZEMİN • FIFA STANDARD',
+                            field != null
+                                ? 'HALI SAHA • ${field.where.toUpperCase()}'
+                                : 'PRO ZEMİN • FIFA STANDARD',
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
@@ -626,7 +640,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      '1 Nolu Hibrit Çim Saha',
+                      field?.name ?? '1 Nolu Tesis Sahası',
                       style: GoogleFonts.sora(
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
@@ -634,7 +648,9 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                       ),
                     ),
                     Text(
-                      'A Takım & U18 Gelişim Grubu',
+                      field != null
+                          ? '${field.venueName} · ${field.district ?? "Merkez"}'
+                          : 'A Takım & U18 Gelişim Grubu',
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11,
                         color: SwanColors.textSecondary,

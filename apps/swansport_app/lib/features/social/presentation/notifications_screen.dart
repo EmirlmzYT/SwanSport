@@ -33,7 +33,6 @@ class NotificationsScreen extends ConsumerStatefulWidget {
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   int _selectedFilter = 0;
-  bool _isClubEventJoined = true;
 
   final List<String> _filters = const [
     'Tümü',
@@ -91,36 +90,51 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                       loading: () => const Center(child: CircularProgressIndicator()),
                       error: (e, _) => ListView(children: [premiumError(context, '$e')]),
                       data: (list) {
-                        return ListView(
-                          padding: const EdgeInsets.fromLTRB(SwanSpace.md, 0, SwanSpace.md, 110),
-                          children: [
-                            // Stitch Curated Notifications Stream for Today & Yesterday
-                            if (_category.isEmpty || _category == 'antrenman')
-                              _buildCoachRoutineNotice(c),
-                            if (_category.isEmpty || _category == 'sosyal')
-                              _buildPrKudosNotice(c),
-                            if (_category.isEmpty || _category == 'kulup')
-                              _buildClubRunNotice(c),
-                            if (_category.isEmpty || _category == 'sosyal')
-                              _buildMilestoneNotice(c),
-
-                            // Real Supabase dynamic notifications
-                            if (list.isNotEmpty) ...[
-                              Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                child: Text(
-                                  'ÖNCEKİ BİLDİRİMLER',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    color: c.accent,
-                                    letterSpacing: 1.0,
+                        if (list.isEmpty) {
+                          return Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Container(
+                                    width: 64,
+                                    height: 64,
+                                    decoration: BoxDecoration(
+                                      color: c.surfaceAlt,
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(Icons.notifications_none_rounded, size: 32, color: c.inkMuted),
                                   ),
-                                ),
+                                  const SizedBox(height: 16),
+                                  Text(
+                                    'Henüz bildiriminiz yok',
+                                    style: GoogleFonts.sora(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w700,
+                                      color: c.ink,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Kulüp etkinlikleri, antrenman güncellemeleri ve etkileşimler burada listelenir.',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 12,
+                                      color: c.inkMuted,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              for (final n in list) _tile(c, n),
-                            ],
-                          ],
+                            ),
+                          );
+                        }
+
+                        return ListView.separated(
+                          padding: const EdgeInsets.fromLTRB(SwanSpace.md, 8, SwanSpace.md, 110),
+                          itemCount: list.length,
+                          separatorBuilder: (_, __) => const SizedBox(height: 8),
+                          itemBuilder: (context, i) => _tile(c, list[i]),
                         );
                       },
                     ),
@@ -304,438 +318,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  Widget _buildCoachRoutineNotice(SwanPalette c) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(SwanRadius.md),
-                ),
-                child: Icon(Icons.fitness_center_rounded, size: 22, color: c.accent),
-              ),
-              Positioned(
-                top: -2,
-                right: -2,
-                child: Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: c.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Antrenör Planı',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: c.accent),
-                      ),
-                    ),
-                    Text('12d önce', style: SwanType.caption(c.inkMuted)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Koç Mert Koç: ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: '"Yeni antrenman planın ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: "'A2 Kuvvet & Mobilite' ",
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.accent),
-                      ),
-                      TextSpan(
-                        text: 'hazır! Seansı incelemek için dokun."',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 6),
-                InkWell(
-                  onTap: () => Navigator.pushNamed(context, '/antrenman-oturumu'),
-                  child: Row(
-                    children: [
-                      Text(
-                        'Antrenmanı Görüntüle',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: c.accent),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_rounded, size: 14, color: c.accent),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildPrKudosNotice(SwanPalette c) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB6A4).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: const Icon(Icons.local_fire_department_rounded, size: 22, color: Color(0xFFFFB6A4)),
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFFB6A4).withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Topluluk Alkışı',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFFFFB6A4)),
-                      ),
-                    ),
-                    Text('42d önce', style: SwanType.caption(c.inkMuted)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Selin Kaya ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: 've ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.inkMuted),
-                      ),
-                      TextSpan(
-                        text: '14 diğer sporcu ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: 'dünkü 180kg Deadlift PR videona tebrik gönderdi 🔥',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
 
-                // PR Card Bento
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                  ),
-                  child: Row(
-                    children: [
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        child: Image.network(
-                          'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200&auto=format&fit=crop',
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'KİŞİSEL REKOR (PR)',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.w800, color: c.accent),
-                            ),
-                            Text(
-                              'Deadlift · 180kg x 2 Tekrar',
-                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: c.ink),
-                            ),
-                            Row(
-                              children: [
-                                const Icon(Icons.thumb_up_alt_rounded, size: 12, color: Color(0xFFFFB6A4)),
-                                const SizedBox(width: 4),
-                                Text('15 Kutlama', style: SwanType.caption(c.inkMuted)),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
-  Widget _buildClubRunNotice(SwanPalette c) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: c.accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Icon(Icons.calendar_month_rounded, size: 22, color: c.accent),
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: c.surfaceAlt,
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Swan Club Etkinliği',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: c.ink),
-                      ),
-                    ),
-                    Text('3s önce', style: SwanType.caption(c.inkMuted)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Swan Runners Istanbul: ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: '"Boğaz Kıyısı Sabah Koşusu yarın 07:00\'de başlıyor. Çantanı hazırla!"',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(Icons.schedule_rounded, size: 14, color: c.accent),
-                        const SizedBox(width: 4),
-                        Text(
-                          'Yarın 07:00 · Bebek Parkı',
-                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: c.inkMuted),
-                        ),
-                      ],
-                    ),
-                    FilledButton.icon(
-                      onPressed: () {
-                        setState(() => _isClubEventJoined = !_isClubEventJoined);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(_isClubEventJoined ? 'Etkinliğe katıldınız!' : 'Katılım iptal edildi.')),
-                        );
-                      },
-                      icon: Icon(
-                        _isClubEventJoined ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
-                        size: 14,
-                        color: _isClubEventJoined ? Colors.black : c.ink,
-                      ),
-                      label: Text(
-                        _isClubEventJoined ? 'Katılıyorum' : 'Katıl',
-                        style: TextStyle(
-                          color: _isClubEventJoined ? Colors.black : c.ink,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _isClubEventJoined ? c.accent : c.surfaceAlt,
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMilestoneNotice(SwanPalette c) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFB6A4).withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: const Icon(Icons.emoji_events_rounded, size: 22, color: Color(0xFFFFB6A4)),
-          ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: c.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text(
-                        'Sistem Başarısı',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: c.accent),
-                      ),
-                    ),
-                    Text('Dün 19:30', style: SwanType.caption(c.inkMuted)),
-                  ],
-                ),
-                const SizedBox(height: 4),
-                RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: 'Tebrikler! ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: '82 Günlük Seri ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.accent),
-                      ),
-                      TextSpan(
-                        text: 'Rozetini açtın 🏆 Global atlet sıralamasında ilk ',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: "%5'e ",
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
-                      ),
-                      TextSpan(
-                        text: 'girdin.',
-                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 8),
-
-                Row(
-                  children: [
-                    Expanded(
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(999),
-                        child: LinearProgressIndicator(
-                          value: 0.95,
-                          minHeight: 6,
-                          backgroundColor: c.surfaceAlt,
-                          valueColor: AlwaysStoppedAnimation<Color>(c.accent),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      'İlk %5',
-                      style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: c.accent),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _tile(SwanPalette c, NotificationRow n) {
     return Container(

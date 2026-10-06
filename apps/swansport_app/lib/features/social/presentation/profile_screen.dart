@@ -18,6 +18,7 @@ import '../../clubs/presentation/club_detail_sections.dart';
 import '../../clubs/presentation/invite_to_club_button.dart';
 import '../../network/presentation/swan_card_sheet.dart';
 import 'edit_profile_sheet.dart';
+import 'post_composer_sheet.dart';
 import 'widgets/management_section.dart';
 import 'widgets/post_card.dart';
 import 'widgets/profile_sections.dart';
@@ -323,7 +324,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • SwanSport Pro Team',
+                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'SwanSport Sporcusu'}',
                         style: GoogleFonts.plusJakartaSans(
                           color: kTeal,
                           fontSize: 12,
@@ -334,7 +335,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Text(
                         p.bio != null && p.bio!.trim().isNotEmpty
                             ? p.bio!
-                            : 'Kuvvet & Kondisyon Tutkunu ⚡ | SwanSport Atlet Ekibi | Marathon finisher 🏅 | 📍 İstanbul',
+                            : 'SwanSport sporcusu. Henüz bir biyografi eklenmedi.',
                         style: GoogleFonts.plusJakartaSans(
                           color: SwanColors.textSecondary,
                           fontSize: 13,
@@ -350,83 +351,95 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: 18),
 
                       // Weekly Performance HUD (Athletic Glassmorphism - Stitch Screen 26)
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: surfContainer.withValues(alpha: 0.8),
-                          borderRadius: BorderRadius.circular(18),
-                          border: Border.all(color: line),
-                          boxShadow: const [
-                            BoxShadow(
-                              color: Colors.black26,
-                              blurRadius: 16,
-                              offset: Offset(0, 4),
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final history = ref.watch(myTrainingHistoryProvider).valueOrNull ?? const [];
+                          final now = DateTime.now();
+                          final sevenDaysAgo = now.subtract(const Duration(days: 7));
+                          final recent = history.where((e) => e.startedAt.isAfter(sevenDaysAgo)).toList();
+                          final count = recent.length;
+                          final sets = recent.fold<int>(0, (sum, e) => sum + e.setsDone);
+                          final totalScore = recent.fold<double>(0.0, (sum, e) => sum + (e.totalScore ?? 0.0));
+
+                          return Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: surfContainer.withValues(alpha: 0.8),
+                              borderRadius: BorderRadius.circular(18),
+                              border: Border.all(color: line),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Colors.black26,
+                                  blurRadius: 16,
+                                  offset: Offset(0, 4),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            child: Column(
                               children: [
                                 Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    const Icon(Icons.bolt_rounded,
-                                        size: 18, color: kTeal),
-                                    const SizedBox(width: 6),
+                                    Row(
+                                      children: [
+                                        const Icon(Icons.bolt_rounded,
+                                            size: 18, color: kTeal),
+                                        const SizedBox(width: 6),
+                                        Text(
+                                          'HAFTALIK PERFORMANS HUD',
+                                          style: GoogleFonts.plusJakartaSans(
+                                            color: kTeal,
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w800,
+                                            letterSpacing: 1.2,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     Text(
-                                      'HAFTALIK PERFORMANS HUD',
+                                      'Son 7 Gün',
                                       style: GoogleFonts.plusJakartaSans(
-                                        color: kTeal,
+                                        color: SwanColors.textSecondary,
                                         fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 1.2,
                                       ),
                                     ),
                                   ],
                                 ),
-                                Text(
-                                  'Son 7 Gün',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: SwanColors.textSecondary,
-                                    fontSize: 10,
-                                  ),
+                                const SizedBox(height: 12),
+                                Row(
+                                  children: [
+                                    _hudMetricCard(
+                                      icon: Icons.fitness_center_rounded,
+                                      iconColor: kTeal,
+                                      value: '$count',
+                                      label: 'Antrenman',
+                                      surf: surfHigh,
+                                      ink: kTeal,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _hudMetricCard(
+                                      icon: Icons.repeat_rounded,
+                                      iconColor: const Color(0xFFFF8C6F),
+                                      value: '$sets',
+                                      label: 'Tamamlanan Set',
+                                      surf: surfHigh,
+                                      ink: ink,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    _hudMetricCard(
+                                      icon: Icons.emoji_events_rounded,
+                                      iconColor: const Color(0xFFFFD166),
+                                      value: totalScore > 0 ? totalScore.toStringAsFixed(0) : '-',
+                                      label: 'Puan / Skor',
+                                      surf: surfHigh,
+                                      ink: ink,
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: [
-                                _hudMetricCard(
-                                  icon: Icons.local_fire_department_rounded,
-                                  iconColor: const Color(0xFFFF8C6F),
-                                  value: '4.820',
-                                  label: 'kcal yakıldı',
-                                  surf: surfHigh,
-                                  ink: ink,
-                                ),
-                                const SizedBox(width: 8),
-                                _hudMetricCard(
-                                  icon: Icons.fitness_center_rounded,
-                                  iconColor: kTeal,
-                                  value: '5/5',
-                                  label: 'Antrenman',
-                                  surf: surfHigh,
-                                  ink: kTeal,
-                                ),
-                                const SizedBox(width: 8),
-                                _hudMetricCard(
-                                  icon: Icons.directions_run_rounded,
-                                  iconColor: Colors.white70,
-                                  value: '14.2',
-                                  label: 'En Uzun (km)',
-                                  surf: surfHigh,
-                                  ink: ink,
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 16),
@@ -534,7 +547,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         _buildKineticGrid(postsAsync, ink, surfHigh),
                       ] else if (_selectedTab == 1) ...[
                         // Tab 1: Video & Reels Grid (Stitch Screen 26)
-                        _buildReelsGrid(surfHigh),
+                        _buildReelsGrid(surfHigh, ink),
                       ] else ...[
                         // Tab 2: Saved Workout Routines (Stitch Screen 26)
                         _buildSavedRoutines(surfContainer, surfHigh, ink, line),
@@ -781,123 +794,40 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: posts.map((post) => PostCard(post: post)).toList(),
           );
         }
-        // Stitch athletic visual default grid
-        const visualPosts = [
-          ('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=500', '220 kg PR', Icons.fitness_center_rounded),
-          ('https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=500', '10.8s 100m', Icons.directions_run_rounded),
-          ('https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=500', null, Icons.military_tech_rounded),
-          ('https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=500', null, null),
-          ('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500', null, Icons.collections_rounded),
-          ('https://images.unsplash.com/photo-1574680096145-d05b474e2155?w=500', null, null),
-          ('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=500', null, Icons.ac_unit_rounded),
-          ('https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=500', null, null),
-          ('https://images.unsplash.com/photo-1517838277536-f5f99be501cd?w=500', null, Icons.groups_rounded),
-        ];
-
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-            crossAxisCount: 3,
-            crossAxisSpacing: 6,
-            mainAxisSpacing: 6,
-            childAspectRatio: 1,
-          ),
-          itemCount: visualPosts.length,
-          itemBuilder: (_, i) {
-            final item = visualPosts[i];
-            return ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: Stack(
-                fit: StackFit.expand,
-                children: [
-                  Image.network(item.$1, fit: BoxFit.cover),
-                  if (item.$2 != null)
-                    Positioned(
-                      bottom: 4,
-                      left: 4,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.75),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          item.$2!,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: kTeal,
-                            fontSize: 8,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (item.$3 != null)
-                    Positioned(
-                      top: 4,
-                      right: 4,
-                      child: Icon(item.$3!, size: 14, color: Colors.white70),
-                    ),
-                ],
-              ),
-            );
-          },
-        );
-      },
-    );
-  }
-
-  Widget _buildReelsGrid(Color surfHigh) {
-    const reels = [
-      ('https://images.unsplash.com/photo-1452626038306-9aae5e071dd3?w=500', '48.2K'),
-      ('https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=500', '31.6K'),
-    ];
-
-    return GridView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        crossAxisSpacing: 8,
-        mainAxisSpacing: 8,
-        childAspectRatio: 9 / 16,
-      ),
-      itemCount: reels.length,
-      itemBuilder: (_, i) {
-        final r = reels[i];
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(14),
-          child: Stack(
-            fit: StackFit.expand,
+        return Container(
+          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+          alignment: Alignment.center,
+          child: Column(
             children: [
-              Image.network(r.$1, fit: BoxFit.cover),
-              Positioned(
-                bottom: 8,
-                left: 8,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withValues(alpha: 0.7),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.play_arrow_rounded,
-                          size: 14, color: kTeal),
-                      const SizedBox(width: 4),
-                      Text(
-                        r.$2,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ],
-                  ),
+              Icon(Icons.feed_outlined, size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+              const SizedBox(height: 12),
+              Text(
+                'Henüz paylaşım yok',
+                style: GoogleFonts.plusJakartaSans(
+                  color: ink,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
                 ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Antrenmanlarını, derecelerini ve spor anlarını toplulukla paylaş.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  color: SwanColors.textSecondary,
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 14),
+              OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: kTeal,
+                  side: const BorderSide(color: kTeal),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                onPressed: () => showPostComposer(context),
+                icon: const Icon(Icons.add, size: 16),
+                label: const Text('İlk Gönderini Paylaş'),
               ),
             ],
           ),
@@ -906,30 +836,97 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Widget _buildReelsGrid(Color surfHigh, Color ink) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+      alignment: Alignment.center,
+      child: Column(
+        children: [
+          Icon(Icons.video_library_outlined, size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+          const SizedBox(height: 12),
+          Text(
+            'Henüz video veya klip yok',
+            style: GoogleFonts.plusJakartaSans(
+              color: ink,
+              fontSize: 15,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Önemli antrenman anlarını ve hareket tekrarlarını video olarak kaydedebilirsin.',
+            textAlign: TextAlign.center,
+            style: GoogleFonts.plusJakartaSans(
+              color: SwanColors.textSecondary,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSavedRoutines(
       Color surfContainer, Color surfHigh, Color ink, Color line) {
-    return Column(
-      children: [
-        _savedCard(
-          title: '5K Tempo Pace Drill',
-          sub: '4 x 1000m • 90s dinlenme',
-          icon: Icons.directions_run_rounded,
-          surfContainer: surfContainer,
-          surfHigh: surfHigh,
-          ink: ink,
-          line: line,
-        ),
-        const SizedBox(height: 8),
-        _savedCard(
-          title: 'Hipertrofi Üst Vücut B',
-          sub: '6 Egzersiz • 55 Dakika',
-          icon: Icons.fitness_center_rounded,
-          surfContainer: surfContainer,
-          surfHigh: surfHigh,
-          ink: ink,
-          line: line,
-        ),
-      ],
+    return Consumer(
+      builder: (context, ref, _) {
+        final protocols = ref.watch(trainingProtocolsProvider).valueOrNull ?? const [];
+        if (protocols.isEmpty) {
+          return Container(
+            padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+            alignment: Alignment.center,
+            child: Column(
+              children: [
+                Icon(Icons.bookmark_border_rounded, size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+                const SizedBox(height: 12),
+                Text(
+                  'Kayıtlı rutin bulunamadı',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: ink,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'Antrenman protokolleri ve egzersiz rutinlerini buradan takip edebilirsin.',
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    color: SwanColors.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: kTeal,
+                    side: const BorderSide(color: kTeal),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  onPressed: () => Navigator.pushNamed(context, '/antrenman-programi'),
+                  icon: const Icon(Icons.explore_outlined, size: 16),
+                  label: const Text('Programları Keşfet'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return Column(
+          children: protocols.take(5).map((p) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: _savedCard(
+              title: p.name,
+              sub: '${p.sportCode.toUpperCase()} • Protokol v${p.version}',
+              icon: Icons.fitness_center_rounded,
+              surfContainer: surfContainer,
+              surfHigh: surfHigh,
+              ink: ink,
+              line: line,
+            ),
+          )).toList(),
+        );
+      },
     );
   }
 

@@ -23,9 +23,8 @@ class CredentialScreen extends ConsumerStatefulWidget {
 
 class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   int _mainTab = 0; // 0: Kulüp & Takım Lisansları, 1: Kişisel Belge Başvurusu
-  int _rosterFilter =
-      0; // 0: Tümü, 1: Onay Bekleyen, 2: Onaylanan, 3: Eksik Evrak
-  bool _semihApproved = false;
+  int _rosterFilter = 0;
+  final Set<String> _approvedAthletes = {};
 
   // Kişisel başvuru durumu
   int _mode = 0; // 0 antrenör, 1 sporcu
@@ -48,6 +47,21 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     final line = isDark ? const Color(0xFF293547) : SwanPalette.light.line;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final async = ref.watch(myCredentialsProvider);
+    final athletes = ref.watch(clubAthletesProvider).valueOrNull ?? const [];
+    final totalAthletes = athletes.length;
+    final activeCount = athletes.where((a) => a.isActive || _approvedAthletes.contains(a.id)).length;
+    final pendingCount = athletes.where((a) => a.status == 'pending' && !_approvedAthletes.contains(a.id)).length;
+    final missingCount = athletes.where((a) => !a.isActive && a.status != 'pending' && !_approvedAthletes.contains(a.id)).length;
+    final ratio = totalAthletes == 0 ? 1.0 : (activeCount / totalAthletes);
+    final percentStr = '%${(ratio * 100).round()}';
+
+    final filteredAthletes = switch (_rosterFilter) {
+      1 => athletes.where((a) => a.status == 'pending' && !_approvedAthletes.contains(a.id)).toList(),
+      2 => athletes.where((a) => a.isActive || _approvedAthletes.contains(a.id)).toList(),
+      3 => athletes.where((a) => !a.isActive && a.status != 'pending' && !_approvedAthletes.contains(a.id)).toList(),
+      _ => athletes,
+    };
+    final priorityAthlete = athletes.where((a) => a.status == 'pending' && !_approvedAthletes.contains(a.id)).firstOrNull ?? athletes.firstOrNull;
 
     return Scaffold(
       backgroundColor: bg,
@@ -191,7 +205,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                                   alignment: Alignment.center,
                                   children: [
                                     CircularProgressIndicator(
-                                      value: 0.90,
+                                      value: ratio,
                                       strokeWidth: 4.5,
                                       backgroundColor: surfHigh,
                                       valueColor:
@@ -199,7 +213,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                                               kTeal),
                                     ),
                                     Text(
-                                      '%90',
+                                      percentStr,
                                       style: GoogleFonts.sora(
                                         color: ink,
                                         fontSize: 13,
@@ -215,7 +229,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      '58 / 64 Sporcu Lisanslı',
+                                      '$activeCount / $totalAthletes Sporcu Lisanslı',
                                       style: GoogleFonts.plusJakartaSans(
                                         color: ink,
                                         fontSize: 14,
@@ -269,7 +283,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '4',
+                                          '$pendingCount',
                                           style: GoogleFonts.sora(
                                             color: const Color(0xFFFF8C6F),
                                             fontSize: 16,
@@ -316,7 +330,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          '2',
+                                          '$missingCount',
                                           style: GoogleFonts.sora(
                                             color: Colors.redAccent,
                                             fontSize: 16,
@@ -346,16 +360,16 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                           scrollDirection: Axis.horizontal,
                           child: Row(
                             children: [
-                              _filterPill('Tümü (64)', 0, _rosterFilter,
+                              _filterPill('Tümü ($totalAthletes)', 0, _rosterFilter,
                                   (i) => setState(() => _rosterFilter = i)),
                               _filterPill(
-                                  'Onay Bekleyenler (4)',
+                                  'Onay Bekleyenler ($pendingCount)',
                                   1,
                                   _rosterFilter,
                                   (i) => setState(() => _rosterFilter = i)),
-                              _filterPill('Onaylananlar (58)', 2, _rosterFilter,
+                              _filterPill('Onaylananlar ($activeCount)', 2, _rosterFilter,
                                   (i) => setState(() => _rosterFilter = i)),
-                              _filterPill('Eksik Evrak (2)', 3, _rosterFilter,
+                              _filterPill('Eksik Evrak ($missingCount)', 3, _rosterFilter,
                                   (i) => setState(() => _rosterFilter = i)),
                             ],
                           ),
@@ -374,308 +388,379 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: line),
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  width: 8,
-                                  height: 8,
-                                  decoration: const BoxDecoration(
-                                    color: kTeal,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Öncelikli Doğrulama İncelemesi',
-                                  style: GoogleFonts.sora(
-                                    color: ink,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              'KUYRUKTA: 1 / 4',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: kTeal,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: surfContainer,
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+                    child: priorityAthlete == null
+                        ? Center(
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 20),
+                              child: Column(
                                 children: [
-                                  ClipRRect(
-                                    borderRadius: BorderRadius.circular(10),
-                                    child: Image.network(
-                                      'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200',
-                                      width: 48,
-                                      height: 48,
-                                      fit: BoxFit.cover,
+                                  const Icon(Icons.verified_user_outlined,
+                                      size: 36, color: kTeal),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'İncelenecek lisans başvurusu bulunmuyor',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: ink,
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              'Semih Kılıçsoy',
-                                              style: GoogleFonts.sora(
-                                                color: ink,
-                                                fontSize: 14,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 6),
-                                            Text('#9',
-                                                style: GoogleFonts.sora(
-                                                    color: kTeal,
-                                                    fontSize: 12,
-                                                    fontWeight:
-                                                        FontWeight.w800)),
-                                          ],
-                                        ),
-                                        Text(
-                                          '2006 Doğumlu • U18 Forvet',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            color: SwanColors.textSecondary,
-                                            fontSize: 11,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFFF8C6F)
-                                          .withValues(alpha: 0.2),
-                                      borderRadius: BorderRadius.circular(6),
-                                    ),
-                                    child: Text(
-                                      'Evraklar Tam',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        color: const Color(0xFFFF8C6F),
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w700,
-                                      ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'Tüm sporcu lisans belgeleri onaylı ve güncel.',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: SwanColors.textSecondary,
+                                      fontSize: 11,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 10),
+                            ),
+                          )
+                        : Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Container(
+                                        width: 8,
+                                        height: 8,
+                                        decoration: const BoxDecoration(
+                                          color: kTeal,
+                                          shape: BoxShape.circle,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Öncelikli Doğrulama İncelemesi',
+                                        style: GoogleFonts.sora(
+                                          color: ink,
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Text(
+                                    pendingCount > 0
+                                        ? 'KUYRUKTA: 1 / $pendingCount'
+                                        : 'GÜNCEL',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: kTeal,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+
                               Container(
-                                padding: const EdgeInsets.all(10),
+                                padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: surfHigh.withValues(alpha: 0.6),
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: surfContainer,
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
                                 child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text('Lisans Tipi:',
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          child: _avatarFallback(
+                                            priorityAthlete.initials,
+                                            surfHigh,
+                                            ink,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Text(
+                                                    priorityAthlete.fullName,
+                                                    style: GoogleFonts.sora(
+                                                      color: ink,
+                                                      fontSize: 14,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                      '#${athletes.indexOf(priorityAthlete) + 1}',
+                                                      style: GoogleFonts.sora(
+                                                          color: kTeal,
+                                                          fontSize: 12,
+                                                          fontWeight:
+                                                              FontWeight.w800)),
+                                                ],
+                                              ),
+                                              Text(
+                                                priorityAthlete.position != null
+                                                    ? '${priorityAthlete.position} • Lisans Başvurusu'
+                                                    : 'Kadro Sporcusu • Lisans Başvurusu',
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                  color:
+                                                      SwanColors.textSecondary,
+                                                  fontSize: 11,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 8, vertical: 4),
+                                          decoration: BoxDecoration(
+                                            color: (priorityAthlete.status ==
+                                                        'pending' &&
+                                                    !_approvedAthletes
+                                                        .contains(
+                                                            priorityAthlete.id))
+                                                ? const Color(0xFFFF8C6F)
+                                                    .withValues(alpha: 0.2)
+                                                : kTeal.withValues(alpha: 0.2),
+                                            borderRadius:
+                                                BorderRadius.circular(6),
+                                          ),
+                                          child: Text(
+                                            (_approvedAthletes.contains(
+                                                        priorityAthlete.id) ||
+                                                    priorityAthlete.isActive)
+                                                ? 'Doğrulandı'
+                                                : 'Evraklar İnceleniyor',
                                             style: GoogleFonts.plusJakartaSans(
-                                                color: SwanColors.textSecondary,
-                                                fontSize: 11)),
-                                        Text('TFF Amatör Vize (2024-25)',
-                                            style: GoogleFonts.plusJakartaSans(
-                                                color: ink,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700)),
+                                              color: (_approvedAthletes
+                                                          .contains(
+                                                              priorityAthlete
+                                                                  .id) ||
+                                                      priorityAthlete.isActive)
+                                                  ? kTeal
+                                                  : const Color(0xFFFF8C6F),
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
-                                    const SizedBox(height: 4),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      padding: const EdgeInsets.all(10),
+                                      decoration: BoxDecoration(
+                                        color: surfHigh.withValues(alpha: 0.6),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text('Lisans Durumu:',
+                                                  style: GoogleFonts
+                                                      .plusJakartaSans(
+                                                          color: SwanColors
+                                                              .textSecondary,
+                                                          fontSize: 11)),
+                                              Text(
+                                                  priorityAthlete.isActive
+                                                      ? 'TFF Amatör Vize Aktif'
+                                                      : 'Evrak Onay Aşaması',
+                                                  style: GoogleFonts
+                                                      .plusJakartaSans(
+                                                          color: ink,
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w700)),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text('Belge Kontrolü:',
+                                                  style: GoogleFonts
+                                                      .plusJakartaSans(
+                                                          color: SwanColors
+                                                              .textSecondary,
+                                                          fontSize: 11)),
+                                              Text('TFF Portalı Entegrasyonu',
+                                                  style: GoogleFonts
+                                                      .plusJakartaSans(
+                                                          color: kTeal,
+                                                          fontSize: 11,
+                                                          fontWeight:
+                                                              FontWeight.w700)),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Wrap(
+                                      spacing: 6,
                                       children: [
-                                        Text('Yüklenen Dosyalar:',
-                                            style: GoogleFonts.plusJakartaSans(
-                                                color: SwanColors.textSecondary,
-                                                fontSize: 11)),
-                                        Text('3 Belge Doğrulandı',
-                                            style: GoogleFonts.plusJakartaSans(
-                                                color: kTeal,
-                                                fontSize: 11,
-                                                fontWeight: FontWeight.w700)),
+                                        _docBadge(Icons.badge_rounded,
+                                            'T.C. Kimlik Belgesi'),
+                                        _docBadge(Icons.medical_services_rounded,
+                                            'Sağlık Raporu'),
+                                        _docBadge(
+                                            Icons.draw_rounded, 'Veli İzin Onayı'),
                                       ],
                                     ),
                                   ],
                                 ),
                               ),
+
+                              const SizedBox(height: 12),
+
+                              // Action Buttons
+                              Builder(
+                                builder: (context) {
+                                  final isApproved = _approvedAthletes.contains(priorityAthlete.id) || priorityAthlete.isActive;
+                                  return GestureDetector(
+                                    onTap: () {
+                                      setState(() => _approvedAthletes.add(priorityAthlete.id));
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '${priorityAthlete.fullName} lisansı onaylandı ve TFF portalına iletildi!'),
+                                          backgroundColor: kTeal,
+                                        ),
+                                      );
+                                    },
+                                    child: Container(
+                                      height: 44,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                            colors: [kTealBright, kTeal]),
+                                        borderRadius: BorderRadius.circular(12),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: kTeal.withValues(alpha: 0.35),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 3),
+                                          ),
+                                        ],
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          const Icon(Icons.verified_rounded,
+                                              size: 16, color: Color(0xFF003734)),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            isApproved
+                                                ? 'ONAYLANDI & İLETİLDİ'
+                                                : 'ONAYLA & TFF PORTALINA İLET',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: const Color(0xFF003734),
+                                              fontSize: 12,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
                               const SizedBox(height: 8),
-                              Wrap(
-                                spacing: 6,
+                              Row(
                                 children: [
-                                  _docBadge(Icons.badge_rounded,
-                                      'T.C. Kimlik (Ön/Arka)'),
-                                  _docBadge(Icons.medical_services_rounded,
-                                      'Sağlık Raporu'),
-                                  _docBadge(
-                                      Icons.draw_rounded, 'Noter Veli İzni'),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content:
+                                              Text('${priorityAthlete.fullName} taranmış evrakları açılıyor...'),
+                                          backgroundColor: kTeal,
+                                        ),
+                                      ),
+                                      child: Container(
+                                        height: 38,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: surfHigh,
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.visibility_rounded,
+                                                size: 15, color: Colors.white70),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Dosyaları İncele',
+                                              style: GoogleFonts.plusJakartaSans(
+                                                color: Colors.white70,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () =>
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                              '${priorityAthlete.fullName} için eksik belge bildirimi iletildi.'),
+                                          backgroundColor: Colors.redAccent,
+                                        ),
+                                      ),
+                                      child: Container(
+                                        height: 38,
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: Colors.redAccent
+                                              .withValues(alpha: 0.15),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            const Icon(Icons.cancel_rounded,
+                                                size: 15, color: Colors.redAccent),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Düzeltme İste',
+                                              style: GoogleFonts.plusJakartaSans(
+                                                color: Colors.redAccent,
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
                           ),
-                        ),
-
-                        const SizedBox(height: 12),
-
-                        // Action Buttons
-                        GestureDetector(
-                          onTap: () {
-                            setState(() => _semihApproved = true);
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text(
-                                    'Semih Kılıçsoy lisansı onaylandı ve TFF portalına iletildi!'),
-                                backgroundColor: kTeal,
-                              ),
-                            );
-                          },
-                          child: Container(
-                            height: 44,
-                            alignment: Alignment.center,
-                            decoration: BoxDecoration(
-                              gradient: const LinearGradient(
-                                  colors: [kTealBright, kTeal]),
-                              borderRadius: BorderRadius.circular(12),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: kTeal.withValues(alpha: 0.35),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 3),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(Icons.verified_rounded,
-                                    size: 16, color: Color(0xFF003734)),
-                                const SizedBox(width: 8),
-                                Text(
-                                  _semihApproved
-                                      ? 'ONAYLANDI & İLETİLDİ'
-                                      : 'ONAYLA & TFF PORTALINA İLET',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: const Color(0xFF003734),
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w800,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () =>
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content:
-                                        Text('Taranmış evraklar açılıyor...'),
-                                    backgroundColor: kTeal,
-                                  ),
-                                ),
-                                child: Container(
-                                  height: 38,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: surfHigh,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.visibility_rounded,
-                                          size: 15, color: Colors.white70),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Dosyaları İncele',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.white70,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: GestureDetector(
-                                onTap: () =>
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                        'Eksik belge bildirimi sporcuya iletildi.'),
-                                    backgroundColor: Colors.redAccent,
-                                  ),
-                                ),
-                                child: Container(
-                                  height: 38,
-                                  alignment: Alignment.center,
-                                  decoration: BoxDecoration(
-                                    color: Colors.redAccent
-                                        .withValues(alpha: 0.15),
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(Icons.cancel_rounded,
-                                          size: 15, color: Colors.redAccent),
-                                      const SizedBox(width: 6),
-                                      Text(
-                                        'Düzeltme İste',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.redAccent,
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -693,7 +778,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                         ),
                       ),
                       Text(
-                        'Son Senkron: 10 Dk Önce',
+                        'Aktif Kadro: $totalAthletes Kişi',
                         style: GoogleFonts.plusJakartaSans(
                           color: SwanColors.textSecondary,
                           fontSize: 10,
@@ -703,89 +788,80 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                   ),
                   const SizedBox(height: 10),
 
-                  // Kerem Aktürkoğlu
-                  _athleteLicenseCard(
-                    name: 'Kerem Aktürkoğlu',
-                    number: '#7',
-                    role: 'TFF Lisansı Aktif • TFF-340912',
-                    status: 'Doğrulandı',
-                    statusColor: kTeal,
-                    statusIcon: Icons.check_circle_rounded,
-                    footerLeft: 'Geçerlilik: Haziran 2025',
-                    footerRight: 'E-Devlet Onaylı',
-                    avatarUrl:
-                        'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150',
-                    surf: surf,
-                    surfContainer: surfContainer,
-                    ink: ink,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Arda Güler
-                  _athleteLicenseCard(
-                    name: 'Arda Güler',
-                    number: '#10',
-                    role: 'Pasaport & FIFA Transfer Kartı',
-                    status: 'Onaylandı',
-                    statusColor: kTeal,
-                    statusIcon: Icons.verified_rounded,
-                    footerLeft: 'Geçerlilik: Ağustos 2026',
-                    footerRight: 'TMS Portalı Eşleşti',
-                    avatarUrl:
-                        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-                    surf: surf,
-                    surfContainer: surfContainer,
-                    ink: ink,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Barış Alper Yılmaz (Eksik Evrak)
-                  _athleteLicenseCard(
-                    name: 'Barış Alper Yılmaz',
-                    number: '#53',
-                    role: 'Veli Muvafakatnamesi Eksik',
-                    status: 'Eksik Belge',
-                    statusColor: Colors.redAccent,
-                    statusIcon: Icons.error_rounded,
-                    footerLeft: 'Son Gün: 3 Gün Kaldı',
-                    actionLabel: 'Veliye SMS Gönder',
-                    onAction: () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                            'Veliye SMS hatırlatma bağlantısı gönderildi!'),
-                        backgroundColor: kTeal,
+                  if (filteredAthletes.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 24, horizontal: 16),
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        color: surf,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: line),
                       ),
-                    ),
-                    avatarUrl:
-                        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-                    surf: surf,
-                    surfContainer: surfContainer,
-                    ink: ink,
-                  ),
-                  const SizedBox(height: 8),
-
-                  // Merih Demiral (Sağlık Raporu Bekleniyor)
-                  _athleteLicenseCard(
-                    name: 'Merih Demiral',
-                    number: '#4',
-                    role: 'Yıllık EKG & Efor Testi',
-                    status: 'Rapor Bekleniyor',
-                    statusColor: const Color(0xFFFF8C6F),
-                    statusIcon: Icons.hourglass_top_rounded,
-                    footerLeft: 'Randevu: Acıbadem Hastanesi',
-                    actionLabel: 'Hatırlatma İlet',
-                    onAction: () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Sporcuya bildirim iletildi.'),
-                        backgroundColor: kTeal,
+                      child: Text(
+                        'Bu filtreye uygun sporcu kaydı bulunamadı',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: SwanColors.textSecondary,
+                          fontSize: 12,
+                        ),
                       ),
-                    ),
-                    avatarUrl:
-                        'https://images.unsplash.com/photo-1492562080023-ab3db95bfbce?w=150',
-                    surf: surf,
-                    surfContainer: surfContainer,
-                    ink: ink,
-                  ),
+                    )
+                  else
+                    for (int i = 0; i < filteredAthletes.length; i++) ...[
+                      () {
+                        final a = filteredAthletes[i];
+                        final isApproved =
+                            _approvedAthletes.contains(a.id) || a.isActive;
+                        final isPend = a.status == 'pending' && !isApproved;
+                        final statText = isApproved
+                            ? 'Doğrulandı'
+                            : (isPend ? 'Onay Bekliyor' : 'Eksik Belge');
+                        final statColor = isApproved
+                            ? kTeal
+                            : (isPend
+                                ? const Color(0xFFFF8C6F)
+                                : Colors.redAccent);
+                        final statIcon = isApproved
+                            ? Icons.check_circle_rounded
+                            : (isPend
+                                ? Icons.hourglass_top_rounded
+                                : Icons.error_rounded);
+
+                        return _athleteLicenseCard(
+                          name: a.fullName,
+                          number: '#${i + 1}',
+                          role: a.position != null
+                              ? '${a.position} • TFF Lisans Kaydı'
+                              : 'Kadro Sporcusu • TFF Lisans Kaydı',
+                          status: statText,
+                          statusColor: statColor,
+                          statusIcon: statIcon,
+                          footerLeft: isApproved
+                              ? 'Geçerlilik: Sezon Sonu'
+                              : (isPend
+                                  ? 'İnceleme Sırasında'
+                                  : 'Evrak Bekleniyor'),
+                          footerRight: isApproved ? 'E-Devlet Onaylı' : null,
+                          actionLabel: !isApproved ? 'Bildirim Gönder' : null,
+                          onAction: !isApproved
+                              ? () => ScaffoldMessenger.of(context)
+                                      .showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                          '${a.fullName} için bildirim iletildi.'),
+                                      backgroundColor: kTeal,
+                                    ),
+                                  )
+                              : null,
+                          initials: a.initials,
+                          surf: surf,
+                          surfContainer: surfContainer,
+                          ink: ink,
+                        );
+                      }(),
+                      if (i < filteredAthletes.length - 1)
+                        const SizedBox(height: 8),
+                    ],
 
                   const SizedBox(height: 16),
 
@@ -1098,6 +1174,27 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     );
   }
 
+  Widget _avatarFallback(String text, Color bg, Color ink) {
+    final clean = text.trim();
+    final letters = clean.isEmpty
+        ? '?'
+        : clean.split(' ').where((p) => p.isNotEmpty).map((p) => p[0]).take(2).join().toUpperCase();
+    return Container(
+      width: 42,
+      height: 42,
+      color: bg,
+      alignment: Alignment.center,
+      child: Text(
+        letters,
+        style: GoogleFonts.sora(
+          color: ink,
+          fontSize: 13,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+  }
+
   Widget _athleteLicenseCard({
     required String name,
     required String number,
@@ -1109,7 +1206,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     String? footerRight,
     String? actionLabel,
     VoidCallback? onAction,
-    required String avatarUrl,
+    String? avatarUrl,
+    String? initials,
     required Color surf,
     required Color surfContainer,
     required Color ink,
@@ -1126,12 +1224,23 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             children: [
               ClipRRect(
                 borderRadius: BorderRadius.circular(10),
-                child: Image.network(
-                  avatarUrl,
-                  width: 42,
-                  height: 42,
-                  fit: BoxFit.cover,
-                ),
+                child: (avatarUrl != null && avatarUrl.isNotEmpty)
+                    ? Image.network(
+                        avatarUrl,
+                        width: 42,
+                        height: 42,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => _avatarFallback(
+                          initials ?? name,
+                          surfContainer,
+                          ink,
+                        ),
+                      )
+                    : _avatarFallback(
+                        initials ?? name,
+                        surfContainer,
+                        ink,
+                      ),
               ),
               const SizedBox(width: 10),
               Expanded(

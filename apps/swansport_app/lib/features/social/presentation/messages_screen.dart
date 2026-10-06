@@ -219,44 +219,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Widget _buildActiveAthletesReel(SwanPalette c) {
-    final athletes = [
-      (
-        name: 'Mert Koç',
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-        badge: '⚡',
-        isCoach: true,
-      ),
-      (
-        name: 'Selin K.',
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop',
-        badge: '🏃‍♂️',
-        isCoach: false,
-      ),
-      (
-        name: 'Bora C.',
-        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
-        badge: '💪',
-        isCoach: false,
-      ),
-      (
-        name: 'Derya N.',
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?q=80&w=200&auto=format&fit=crop',
-        badge: '🏊‍♀️',
-        isCoach: false,
-      ),
-      (
-        name: 'Caner T.',
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=200&auto=format&fit=crop',
-        badge: '🚴',
-        isCoach: false,
-      ),
-      (
-        name: 'Melis E.',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?q=80&w=200&auto=format&fit=crop',
-        badge: '🧘',
-        isCoach: false,
-      ),
-    ];
+    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
+    if (suggestions.isEmpty) return const SizedBox.shrink();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -275,7 +239,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'Canlı Kulvar (6 Sporcu)',
+                    'Aktif Sporcular (${suggestions.length})',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       fontWeight: FontWeight.w700,
@@ -301,16 +265,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           child: ListView.separated(
             padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
             scrollDirection: Axis.horizontal,
-            itemCount: athletes.length,
+            itemCount: suggestions.length,
             separatorBuilder: (_, __) => const SizedBox(width: 14),
             itemBuilder: (context, i) {
-              final a = athletes[i];
+              final a = suggestions[i];
               return InkWell(
                 onTap: () {
-                  Navigator.pushNamed(context, '/sohbet', arguments: {
-                    'id': 'mert-koc-demo',
-                    'name': a.name,
-                  });
+                  Navigator.pushNamed(context, '/profil', arguments: a.id);
                 },
                 borderRadius: BorderRadius.circular(999),
                 child: Column(
@@ -324,19 +285,24 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
                             border: Border.all(
-                              color: a.isCoach ? c.accent : c.surfaceAlt,
+                              color: c.accent,
                               width: 2,
                             ),
                           ),
                           child: ClipOval(
-                            child: Image.network(
-                              a.avatar,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Container(
-                                color: c.surfaceAlt,
-                                child: Icon(Icons.person, color: c.inkMuted),
-                              ),
-                            ),
+                            child: (a.avatarUrl != null && a.avatarUrl!.isNotEmpty)
+                                ? Image.network(
+                                    a.avatarUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (_, __, ___) => Container(
+                                      color: c.surfaceAlt,
+                                      child: Icon(Icons.person, color: c.inkMuted),
+                                    ),
+                                  )
+                                : Container(
+                                    color: c.surfaceAlt,
+                                    child: Icon(Icons.person, color: c.inkMuted),
+                                  ),
                           ),
                         ),
                         Positioned(
@@ -348,21 +314,25 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                               color: c.surface,
                               shape: BoxShape.circle,
                             ),
-                            child: Text(a.badge, style: const TextStyle(fontSize: 11)),
+                            child: const Text('⚡', style: TextStyle(fontSize: 11)),
                           ),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      a.name,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                        color: c.ink,
+                    SizedBox(
+                      width: 56,
+                      child: Text(
+                        a.name,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: c.ink,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
@@ -428,48 +398,64 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Widget _buildChatRoster(SwanPalette c, List<ConversationRow> dms, List<CommunityRow> groups) {
+    final filteredGroups = groups.where((g) => g.joined).toList();
     final entries = <_Entry>[
-      for (final g in groups.where((g) => g.joined)) _Entry.group(g),
+      for (final g in filteredGroups) _Entry.group(g),
       for (final dm in dms) _Entry.dm(dm),
     ];
+
+    if (entries.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 24),
+        child: Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.lg),
+            border: Border.all(color: c.line),
+          ),
+          child: Column(
+            children: [
+              Icon(Icons.chat_bubble_outline_rounded, size: 48, color: c.accent),
+              const SizedBox(height: 12),
+              Text(
+                'Henüz mesajınız yok',
+                style: GoogleFonts.sora(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: c.ink,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Antrenörünüzle veya takım arkadaşlarınızla iletişime geçmek için yeni bir sohbet başlatın.',
+                textAlign: TextAlign.center,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: c.inkMuted,
+                ),
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: () => Navigator.pushNamed(context, '/ara'),
+                icon: const Icon(Icons.search_rounded, size: 16, color: Colors.black),
+                label: const Text('Kullanıcı Ara & Sohbet Başlat'),
+                style: FilledButton.styleFrom(
+                  backgroundColor: c.accent,
+                  foregroundColor: Colors.black,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
       child: Column(
         children: [
-          // Pinned Coach Mert Koç Priority Tile (Stitch Screen 21 Feature)
-          if (_selectedFilter == 0 || _selectedFilter == 1)
-            _buildPinnedCoachTile(c),
-
-          // Community Group Tile: Swan Runners Kadıköy (Stitch Screen 21 Feature)
-          if (_selectedFilter == 0 || _selectedFilter == 2)
-            _buildClubGroupTile(c),
-
-          // Stitch Curated Row: Selin Kaya
-          if (_selectedFilter == 0)
-            _buildCuratedChatTile(
-              c,
-              name: 'Selin Kaya',
-              avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?q=80&w=200&auto=format&fit=crop',
-              time: 'Dün',
-              message: 'Tebrikler: 82 Günlük seri harika gidiyor! 🔥',
-              icon: Icons.local_fire_department_rounded,
-              iconColor: const Color(0xFFFFB6A4),
-            ),
-
-          // Stitch Curated Row: Bora Calisthenics
-          if (_selectedFilter == 0)
-            _buildCuratedChatTile(
-              c,
-              name: 'Bora Calisthenics',
-              avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?q=80&w=200&auto=format&fit=crop',
-              time: '2 gün önce',
-              message: 'Kas gücü antrenman videosunu paylaştı (0:48)',
-              icon: Icons.videocam_rounded,
-              iconColor: c.accent,
-            ),
-
-          // Real Supabase dynamic entries
           for (final e in entries)
             if (e.group != null && (_selectedFilter == 0 || _selectedFilter == 2))
               _buildRealGroupTile(c, e.group!)
@@ -480,312 +466,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  Widget _buildPinnedCoachTile(SwanPalette c) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/sohbet', arguments: {
-            'id': 'mert-koc-demo',
-            'name': 'Mert Koç',
-          });
-        },
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                CircleAvatar(
-                  radius: 26,
-                  backgroundImage: const NetworkImage(
-                    'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200&auto=format&fit=crop',
-                  ),
-                  backgroundColor: c.surfaceAlt,
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      color: c.accent,
-                      shape: BoxShape.circle,
-                      border: Border.all(color: c.surface, width: 2),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Mert Koç',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: c.ink,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: c.accent.withValues(alpha: 0.15),
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              'KUVVET KOÇU',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 9,
-                                fontWeight: FontWeight.w800,
-                                color: c.accent,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text('12:45', style: SwanType.caption(c.accent, w: FontWeight.w700)),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    'Yarınki squat seansında ağırlığı 5kg artırıyoruz 💪',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: c.ink,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              children: [
-                Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
-                  child: const Center(
-                    child: Text('2', style: TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Icon(Icons.push_pin_rounded, size: 14, color: c.accent),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildClubGroupTile(SwanPalette c) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/kulup-detay');
-        },
-        child: Row(
-          children: [
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 52,
-                  height: 52,
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                  ),
-                  child: Icon(Icons.groups_rounded, size: 26, color: c.accent),
-                ),
-                Positioned(
-                  top: -2,
-                  right: -2,
-                  child: Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(color: c.surface, shape: BoxShape.circle),
-                    child: Icon(Icons.verified_rounded, size: 12, color: c.accent),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Text(
-                            'Swan Runners Kadıköy',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: c.ink,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: c.surfaceAlt,
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              '28 Üye',
-                              style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Text('11:20', style: SwanType.caption(c.inkMuted)),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  RichText(
-                    text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: 'Caner: ',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w700,
-                            color: c.accent,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'Sabah 06:30 sahil koşusu için toplanıyoruz! 👟',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: c.inkMuted,
-                          ),
-                        ),
-                      ],
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCuratedChatTile(
-    SwanPalette c, {
-    required String name,
-    required String avatar,
-    required String time,
-    required String message,
-    required IconData icon,
-    required Color iconColor,
-  }) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: InkWell(
-        onTap: () {
-          Navigator.pushNamed(context, '/sohbet', arguments: {
-            'id': name,
-            'name': name,
-          });
-        },
-        child: Row(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundImage: NetworkImage(avatar),
-              backgroundColor: c.surfaceAlt,
-            ),
-            const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        name,
-                        style: GoogleFonts.plusJakartaSans(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w700,
-                          color: c.ink,
-                        ),
-                      ),
-                      Text(time, style: SwanType.caption(c.inkMuted)),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Icon(icon, size: 14, color: iconColor),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          message,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 12,
-                            color: c.inkMuted,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildRealGroupTile(SwanPalette c, CommunityRow g) {
     return Container(
