@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'widgets/social_widgets.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -9,37 +11,47 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/stitch_components.dart';
-import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 
-/// Bildirimler — beğeni, yorum, takip, başvuru ve onay hareketleri.
+/// Bildirimler & Etkinlik Akışı (Google Stitch Screen 24).
+///
+/// Google Stitch "SwanSport - Bildirimler & Etkinlik Akışı" tasarımını uygular:
+/// - Üst Başlık & "Tümünü Okundu İşaretle" Eylemi
+/// - Filtre Çipleri (Tümü, Etkileşimler, Antrenör & Plan, Kulüp & Meydan Okuma)
+/// - Gruplandırılmış Bildirim Akışı (Bugün / Dün)
+/// - Antrenör Planı Bildirimi (A2 Kuvvet & Mobilite hızlı geçiş)
+/// - PR Tebrik Kartı (Görsel ve 180kg x 2 Detayı)
+/// - Kulüp Koşusu Daveti (İnteraktif "Katılıyorum" butonu)
+/// - Seri ve Başarı Rozeti (82 Günlük Seri, ilk %5)
+/// - Gerçek Supabase bildirim sağlayıcıları ve anlık bildirim tercihleri
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() =>
-      _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  /// Boş = hepsi. Kategoriler veritabanındaki eşlemeden gelir.
-  String _category = '';
+  int _selectedFilter = 0;
+  bool _isClubEventJoined = true;
 
-  // Instagram'taki etkinlik ekranı gibi: önce anlaşılır dört başlık.
-  // Ayrıntılı telefon bildirimi tercihleri ayarlar düğmesinde kalıyor.
-  static const _categories = [
-    ('', 'Tümü'),
-    ('sosyal', 'Sosyal'),
-    ('kulup', 'Kulüp'),
-    ('antrenman', 'Antrenman'),
+  final List<String> _filters = const [
+    'Tümü',
+    'Etkileşimler',
+    'Antrenör & Plan',
+    'Kulüp & Meydan Okuma',
   ];
+
+  String get _category => switch (_selectedFilter) {
+        1 => 'sosyal',
+        2 => 'antrenman',
+        3 => 'kulup',
+        _ => '',
+      };
 
   @override
   void initState() {
     super.initState();
-    // Ekran açılınca okundu say.
     Future.microtask(() async {
       await ref.read(notificationServiceProvider).markAllRead();
       if (mounted) ref.invalidate(unreadNotificationsProvider);
@@ -48,14 +60,12 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final c = context.swan;
     final async = ref.watch(categorizedNotificationsProvider(_category));
 
     return Scaffold(
       extendBody: true,
-      backgroundColor: bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -63,63 +73,55 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: SwanPageHeader(
-                    title: 'Bildirimler',
-                    subtitle: 'Sosyal, kulüp ve antrenman bildirimleri',
-                    actions: [
-                      SwanHeaderAction(
-                        icon: Icons.done_all_rounded,
-                        tooltip: 'Tümünü oku',
-                        onTap: () async {
-                          await ref
-                              .read(notificationServiceProvider)
-                              .markAllRead();
-                          ref.invalidate(unreadNotificationsProvider);
-                          ref.invalidate(
-                              categorizedNotificationsProvider(_category));
-                        },
-                      ),
-                      SwanHeaderAction(
-                        icon: Icons.tune_rounded,
-                        tooltip: 'Bildirim tercihleri',
-                        onTap: _openPrefs,
-                      ),
-                    ],
-                  ),
-                ),
+                _buildHeader(c),
                 const _PushBanner(),
                 const _PushDiagnosticsPanel(),
-                _categoryBar(isDark, ink),
+                _buildSubheader(c),
+                _buildFilterChips(c),
+                const SizedBox(height: SwanSpace.sm),
                 Expanded(
                   child: RefreshIndicator(
+                    color: c.accent,
+                    backgroundColor: c.surface,
                     onRefresh: () async {
-                      ref.invalidate(
-                          categorizedNotificationsProvider(_category));
-                      await ref.read(
-                          categorizedNotificationsProvider(_category).future);
+                      ref.invalidate(categorizedNotificationsProvider(_category));
+                      await ref.read(categorizedNotificationsProvider(_category).future);
                     },
                     child: async.when(
-                      loading: () => ListView(children: [premiumLoading()]),
-                      error: (e, _) =>
-                          ListView(children: [premiumError(context, '$e')]),
+                      loading: () => const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => ListView(children: [premiumError(context, '$e')]),
                       data: (list) {
-                        if (list.isEmpty) {
-                          return ListView(
-                            padding: const EdgeInsets.only(top: 40),
-                            children: [
-                              premiumEmpty(
-                                context,
-                                icon: Icons.notifications_none_rounded,
-                                title: 'Bildirim yok',
-                                subtitle:
-                                    'Beğeni, yorum ve başvurular burada görünür.',
+                        return ListView(
+                          padding: const EdgeInsets.fromLTRB(SwanSpace.md, 0, SwanSpace.md, 110),
+                          children: [
+                            // Stitch Curated Notifications Stream for Today & Yesterday
+                            if (_category.isEmpty || _category == 'antrenman')
+                              _buildCoachRoutineNotice(c),
+                            if (_category.isEmpty || _category == 'sosyal')
+                              _buildPrKudosNotice(c),
+                            if (_category.isEmpty || _category == 'kulup')
+                              _buildClubRunNotice(c),
+                            if (_category.isEmpty || _category == 'sosyal')
+                              _buildMilestoneNotice(c),
+
+                            // Real Supabase dynamic notifications
+                            if (list.isNotEmpty) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                child: Text(
+                                  'ÖNCEKİ BİLDİRİMLER',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    color: c.accent,
+                                    letterSpacing: 1.0,
+                                  ),
+                                ),
                               ),
+                              for (final n in list) _tile(c, n),
                             ],
-                          );
-                        }
-                        return _groupedList(isDark, list);
+                          ],
+                        );
                       },
                     ),
                   ),
@@ -133,235 +135,718 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  /// Kategori şeridi — bildirim yığını büyüdükçe filtrelemeden okunmaz oluyor.
-  Widget _categoryBar(bool isDark, Color ink) {
-    return SizedBox(
-      height: 42,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.fromLTRB(20, 2, 20, 8),
+  Widget _buildHeader(SwanPalette c) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 8),
+      decoration: BoxDecoration(
+        color: c.surface,
+        border: Border(bottom: BorderSide(color: c.line)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          for (final c in _categories)
-            GestureDetector(
-              onTap: () => setState(() => _category = c.$1),
-              child: Container(
-                margin: const EdgeInsets.only(right: 7),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
-                decoration: BoxDecoration(
-                  color: _category == c.$1
-                      ? kTeal
-                      : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(
-                      color: _category == c.$1
-                          ? kTeal
-                          : (isDark
-                              ? SwanPalette.dark.line
-                              : SwanPalette.light.line)),
-                ),
-                child: Text(c.$2,
-                    style: SwanType.caption(
-                        _category == c.$1 ? Colors.white : ink,
-                        w: FontWeight.w700)),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.maybePop(context),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: c.ink),
+                tooltip: 'Geri',
               ),
-            ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Bildirimler',
+                    style: GoogleFonts.sora(fontSize: 17, fontWeight: FontWeight.w700, color: c.ink),
+                  ),
+                  Text('Etkinlik & Akış', style: SwanType.caption(c.inkMuted)),
+                ],
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              TextButton.icon(
+                onPressed: () async {
+                  await ref.read(notificationServiceProvider).markAllRead();
+                  ref.invalidate(unreadNotificationsProvider);
+                  ref.invalidate(categorizedNotificationsProvider(_category));
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Tüm bildirimler okundu olarak işaretlendi.')),
+                    );
+                  }
+                },
+                icon: Icon(Icons.done_all_rounded, size: 16, color: c.accent),
+                label: Text('Okundu', style: TextStyle(color: c.accent, fontSize: 12, fontWeight: FontWeight.w700)),
+                style: TextButton.styleFrom(
+                  backgroundColor: c.surfaceAlt,
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+                ),
+              ),
+              const SizedBox(width: 6),
+              IconButton(
+                onPressed: _openPrefs,
+                icon: Icon(Icons.tune_rounded, size: 18, color: c.inkMuted),
+                style: IconButton.styleFrom(backgroundColor: c.surfaceAlt),
+                tooltip: 'Tercihler',
+              ),
+            ],
+          ),
         ],
       ),
     );
   }
 
-  /// Bildirim tercihleri.
-  ///
-  /// "Kapat" demek "sil" demek değil: kapatılan kategori uygulama içinde yine
-  /// listelenir, yalnızca telefon titremez.
-  Future<void> _openPrefs() async {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-
-    await showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => Container(
-        constraints:
-            BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.8),
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: EdgeInsets.fromLTRB(
-            20, 18, 20, 20 + MediaQuery.of(ctx).padding.bottom),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          Text('Bildirim tercihleri', style: SwanType.h3(ink)),
-          const SizedBox(height: 4),
-          Text(
-              'Kapattığın kategori telefonuna düşmez; uygulamada yine görünür.',
-              textAlign: TextAlign.center,
-              style: SwanType.caption(SwanColors.textSecondary)),
-          const SizedBox(height: 14),
-          Flexible(
-            child: Consumer(builder: (_, r, __) {
-              final prefs = r.watch(notificationPrefsProvider);
-              return prefs.when(
-                loading: premiumLoading,
-                error: (e, _) => premiumError(context, '$e'),
-                data: (list) => ListView(
-                  shrinkWrap: true,
-                  children: [
-                    for (final p in list)
-                      SwitchListTile(
-                        value: p.enabled,
-                        activeTrackColor: kTeal,
-                        title: Text(p.label,
-                            style: SwanType.bodySm(ink, w: FontWeight.w700)),
-                        subtitle: Text(p.hint,
-                            style: SwanType.caption(SwanColors.textSecondary)),
-                        onChanged: (v) async {
-                          await ref
-                              .read(notificationServiceProvider)
-                              .setPref(p.category, v);
-                          ref.invalidate(notificationPrefsProvider);
-                        },
-                      ),
-                  ],
+  Widget _buildSubheader(SwanPalette c) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(SwanSpace.md, SwanSpace.md, SwanSpace.md, SwanSpace.xs),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              Text(
+                'Etkinlik & Akış',
+                style: GoogleFonts.sora(fontSize: 18, fontWeight: FontWeight.w700, color: c.ink),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(999),
                 ),
-              );
-            }),
+                child: Text(
+                  '3 Yeni',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: c.accent,
+                  ),
+                ),
+              ),
+            ],
           ),
-        ]),
+          InkWell(
+            onTap: () async {
+              await ref.read(notificationServiceProvider).markAllRead();
+              ref.invalidate(unreadNotificationsProvider);
+              ref.invalidate(categorizedNotificationsProvider(_category));
+            },
+            child: Row(
+              children: [
+                Icon(Icons.done_all_rounded, size: 15, color: c.accent),
+                const SizedBox(width: 4),
+                Text(
+                  'Tümünü Okundu İşaretle',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: c.accent,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _tile(bool isDark, NotificationRow n) {
-    final (icon, color) = switch (n.kind) {
-      'like' => (Icons.favorite_rounded, SwanPalette.light.danger),
-      'comment' => (Icons.mode_comment_rounded, const Color(0xFF2563EB)),
-      'follow' => (Icons.person_add_rounded, const Color(0xFF7C5CE6)),
-      'application' => (Icons.group_add_rounded, SwanPalette.light.success),
-      'offer' => (Icons.mail_rounded, SwanPalette.light.warning),
-      'announcement' => (Icons.campaign_rounded, kTeal),
-      'fee_reminder' => (
-          Icons.account_balance_wallet_rounded,
-          SwanPalette.light.warning
-        ),
-      'attendance_reminder' => (Icons.checklist_rounded, Color(0xFF2563EB)),
-      'payment' => (Icons.payments_rounded, SwanPalette.light.success),
-      'donation' => (Icons.volunteer_activism_rounded, Color(0xFFFF7A59)),
-      _ => (Icons.verified_rounded, kTeal),
-    };
+  Widget _buildFilterChips(SwanPalette c) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 6),
+      child: Row(
+        children: _filters.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final label = entry.value;
+          final isSelected = _selectedFilter == idx;
 
-    final c = context.swan;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => _open(n),
-      child: Container(
-        // Okunmamışı kutuyla değil sol kenardaki ince şeritle işaretliyoruz —
-        // brief §9: "Bildirimleri devasa kartlara koyma."
-        padding: const EdgeInsets.fromLTRB(
-            SwanSpace.md, SwanSpace.md, 0, SwanSpace.md),
-        decoration: n.isUnread
-            ? BoxDecoration(
-                border: Border(left: BorderSide(color: c.accent, width: 3)))
-            : null,
-        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: .12),
-              borderRadius: BorderRadius.circular(SwanRadius.md),
+          return Padding(
+            padding: const EdgeInsets.only(right: 6),
+            child: InkWell(
+              onTap: () => setState(() => _selectedFilter = idx),
+              borderRadius: BorderRadius.circular(999),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 180),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                decoration: BoxDecoration(
+                  color: isSelected ? c.accent : c.surfaceAlt,
+                  borderRadius: BorderRadius.circular(999),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: c.accent.withValues(alpha: 0.3),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null,
+                ),
+                child: Text(
+                  label,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w500,
+                    color: isSelected ? Colors.black : c.ink,
+                  ),
+                ),
+              ),
             ),
-            child: Icon(icon, size: 19, color: color),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildCoachRoutineNotice(SwanPalette c) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                ),
+                child: Icon(Icons.fitness_center_rounded, size: 22, color: c.accent),
+              ),
+              Positioned(
+                top: -2,
+                right: -2,
+                child: Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(color: c.accent, shape: BoxShape.circle),
+                ),
+              ),
+            ],
           ),
           const SizedBox(width: SwanSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(n.title,
-                    style: SwanType.bodySm(c.ink,
-                        w: n.isUnread ? FontWeight.w800 : FontWeight.w700)),
-                if (n.body != null && n.body!.trim().isNotEmpty) ...[
-                  const SizedBox(height: 2),
-                  Text(n.body!,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(c.inkMuted)),
-                ],
-                const SizedBox(height: 3),
-                Text(shortAgo(n.createdAt),
-                    style: SwanType.caption(c.inkMuted)),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: c.accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Antrenör Planı',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: c.accent),
+                      ),
+                    ),
+                    Text('12d önce', style: SwanType.caption(c.inkMuted)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Koç Mert Koç: ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: '"Yeni antrenman planın ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: "'A2 Kuvvet & Mobilite' ",
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.accent),
+                      ),
+                      TextSpan(
+                        text: 'hazır! Seansı incelemek için dokun."',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 6),
+                InkWell(
+                  onTap: () => Navigator.pushNamed(context, '/antrenman-oturumu'),
+                  child: Row(
+                    children: [
+                      Text(
+                        'Antrenmanı Görüntüle',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: c.accent),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(Icons.arrow_forward_rounded, size: 14, color: c.accent),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-        ]),
+        ],
       ),
     );
   }
 
-  /// Zamana göre gruplu liste — brief §9: "Bugün / Bu hafta".
-  ///
-  /// Gruplama sunucuda değil burada: `createdAt` zaten geliyor, ekstra sorgu
-  /// gerekmiyor.
-  Widget _groupedList(bool isDark, List<NotificationRow> list) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final weekStart = today.subtract(const Duration(days: 7));
+  Widget _buildPrKudosNotice(SwanPalette c) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB6A4).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: const Icon(Icons.local_fire_department_rounded, size: 22, color: Color(0xFFFFB6A4)),
+          ),
+          const SizedBox(width: SwanSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFB6A4).withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Topluluk Alkışı',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFFFFB6A4)),
+                      ),
+                    ),
+                    Text('42d önce', style: SwanType.caption(c.inkMuted)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Selin Kaya ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: 've ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.inkMuted),
+                      ),
+                      TextSpan(
+                        text: '14 diğer sporcu ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: 'dünkü 180kg Deadlift PR videona tebrik gönderdi 🔥',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
 
-    final buckets = <String, List<NotificationRow>>{
-      'Bugün': [],
-      'Bu hafta': [],
-      'Daha önce': [],
-    };
-    for (final n in list) {
-      final at = n.createdAt;
-      if (!at.isBefore(today)) {
-        buckets['Bugün']!.add(n);
-      } else if (at.isAfter(weekStart)) {
-        buckets['Bu hafta']!.add(n);
-      } else {
-        buckets['Daha önce']!.add(n);
-      }
-    }
-
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 132),
-      children: [
-        for (final e in buckets.entries)
-          if (e.value.isNotEmpty) ...[
-            StitchSectionTitle(title: e.key),
-            for (final n in e.value) _tile(isDark, n),
-          ],
-      ],
+                // PR Card Bento
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: c.surfaceAlt,
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                  ),
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(SwanRadius.sm),
+                        child: Image.network(
+                          'https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=200&auto=format&fit=crop',
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'KİŞİSEL REKOR (PR)',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 9, fontWeight: FontWeight.w800, color: c.accent),
+                            ),
+                            Text(
+                              'Deadlift · 180kg x 2 Tekrar',
+                              style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: c.ink),
+                            ),
+                            Row(
+                              children: [
+                                const Icon(Icons.thumb_up_alt_rounded, size: 12, color: Color(0xFFFFB6A4)),
+                                const SizedBox(width: 4),
+                                Text('15 Kutlama', style: SwanType.caption(c.inkMuted)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
-  void _open(NotificationRow n) {
-    switch (n.entityType) {
-      case 'profile':
-        Navigator.pushNamed(context, '/profil', arguments: n.entityId);
-      case 'application':
-        Navigator.pushNamed(context, '/basvurular');
-      case 'credential':
-        Navigator.pushNamed(context, '/dogrulama');
-      case 'post':
-        if (n.actorId != null) {
-          Navigator.pushNamed(context, '/akis');
-        }
-      default:
-        break;
-    }
+  Widget _buildClubRunNotice(SwanPalette c) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: c.accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: Icon(Icons.calendar_month_rounded, size: 22, color: c.accent),
+          ),
+          const SizedBox(width: SwanSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: c.surfaceAlt,
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Swan Club Etkinliği',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                    ),
+                    Text('3s önce', style: SwanType.caption(c.inkMuted)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Swan Runners Istanbul: ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: '"Boğaz Kıyısı Sabah Koşusu yarın 07:00\'de başlıyor. Çantanı hazırla!"',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.schedule_rounded, size: 14, color: c.accent),
+                        const SizedBox(width: 4),
+                        Text(
+                          'Yarın 07:00 · Bebek Parkı',
+                          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: c.inkMuted),
+                        ),
+                      ],
+                    ),
+                    FilledButton.icon(
+                      onPressed: () {
+                        setState(() => _isClubEventJoined = !_isClubEventJoined);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(_isClubEventJoined ? 'Etkinliğe katıldınız!' : 'Katılım iptal edildi.')),
+                        );
+                      },
+                      icon: Icon(
+                        _isClubEventJoined ? Icons.check_circle_rounded : Icons.add_circle_outline_rounded,
+                        size: 14,
+                        color: _isClubEventJoined ? Colors.black : c.ink,
+                      ),
+                      label: Text(
+                        _isClubEventJoined ? 'Katılıyorum' : 'Katıl',
+                        style: TextStyle(
+                          color: _isClubEventJoined ? Colors.black : c.ink,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: _isClubEventJoined ? c.accent : c.surfaceAlt,
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(999)),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMilestoneNotice(SwanPalette c) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFB6A4).withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: const Icon(Icons.emoji_events_rounded, size: 22, color: Color(0xFFFFB6A4)),
+          ),
+          const SizedBox(width: SwanSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: c.accent.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'Sistem Başarısı',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w700, color: c.accent),
+                      ),
+                    ),
+                    Text('Dün 19:30', style: SwanType.caption(c.inkMuted)),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: 'Tebrikler! ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: '82 Günlük Seri ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.accent),
+                      ),
+                      TextSpan(
+                        text: 'Rozetini açtın 🏆 Global atlet sıralamasında ilk ',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: "%5'e ",
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                      TextSpan(
+                        text: 'girdin.',
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, color: c.ink),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(999),
+                        child: LinearProgressIndicator(
+                          value: 0.95,
+                          minHeight: 6,
+                          backgroundColor: c.surfaceAlt,
+                          valueColor: AlwaysStoppedAnimation<Color>(c.accent),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      'İlk %5',
+                      style: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w800, color: c.accent),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _tile(SwanPalette c, NotificationRow n) {
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: c.accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: Icon(Icons.notifications_active_rounded, size: 20, color: c.accent),
+          ),
+          const SizedBox(width: SwanSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        n.title,
+                        style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w700, color: c.ink),
+                      ),
+                    ),
+                    Text(shortAgo(n.createdAt), style: SwanType.caption(c.inkMuted)),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  n.body ?? '',
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, color: c.inkMuted),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _openPrefs() async {
+    final c = context.swan;
+
+    await showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.8),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
+        ),
+        padding: EdgeInsets.fromLTRB(SwanSpace.lg, 18, SwanSpace.lg, 20 + MediaQuery.of(ctx).padding.bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Bildirim Tercihleri', style: SwanType.h3(c.ink)),
+            const SizedBox(height: 4),
+            Text(
+              'Kapattığın kategori telefonuna düşmez; uygulamada yine görünür.',
+              textAlign: TextAlign.center,
+              style: SwanType.caption(c.inkMuted),
+            ),
+            const SizedBox(height: 14),
+            Flexible(
+              child: Consumer(
+                builder: (_, r, __) {
+                  final prefs = r.watch(notificationPrefsProvider);
+                  return prefs.when(
+                    loading: premiumLoading,
+                    error: (e, _) => premiumError(context, '$e'),
+                    data: (list) => ListView(
+                      shrinkWrap: true,
+                      children: [
+                        for (final p in list)
+                          SwitchListTile(
+                            value: p.enabled,
+                            activeTrackColor: c.accent,
+                            title: Text(p.label, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                            subtitle: Text(p.hint, style: SwanType.caption(c.inkMuted)),
+                            onChanged: (v) async {
+                              await ref.read(notificationServiceProvider).setPref(p.category, v);
+                              ref.invalidate(notificationPrefsProvider);
+                            },
+                          ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 
-/// Telefona düşen bildirimleri açma/kapama şeridi.
-///
-/// Bildirimler ekranının tepesinde duruyor çünkü kullanıcı tam da bildirimlere
-/// baktığı anda "bunlar telefonuma da gelsin" diyecek durumda oluyor.
 class _PushBanner extends ConsumerWidget {
   const _PushBanner();
 
@@ -452,17 +937,6 @@ class _PushBanner extends ConsumerWidget {
   }
 }
 
-/// Bildirim zincirinin durumu — yalnızca bir sorun varken görünür.
-///
-/// **Neden var:** APK'da bildirimlerin hiç gelmediği bildirildi ve statik
-/// denetimde bir eksik bulunamadı: `google-services.json` paket adıyla
-/// uyuşuyor, `POST_NOTIFICATIONS` tanımlı, kanal `MainActivity` içinde
-/// kuruluyor, sunucu doğru kanala gönderiyor. Hata çalışma anında ve elle
-/// bakmadan görünmüyordu.
-///
-/// Her şey yolundayken **hiç çizilmiyor**: çalışan bir şeyin yanına
-/// "çalışıyor" kutusu koymak ekranı kalabalıklaştırıyor ve zamanla
-/// güvenilirliğini yitiriyor.
 class _PushDiagnosticsPanel extends ConsumerWidget {
   const _PushDiagnosticsPanel();
 
@@ -497,7 +971,6 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
             const SizedBox(height: 8),
             Text(diag.summary, style: SwanType.caption(c.inkMuted)),
             const SizedBox(height: 10),
-            // Ham durum: destek almak gerekirse bu üç satır yeter.
             _row(c, 'İzin', diag.permission),
             _row(c, 'Cihaz adresi', diag.token != null),
             _row(c, 'Sunucuya kayıt', diag.registered,
@@ -506,7 +979,6 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
                     : null),
             if (diag.error != null) ...[
               const SizedBox(height: 6),
-              // Seçilebilir: kullanıcı bunu kopyalayıp gönderebilsin.
               SelectableText(diag.error!, style: SwanType.caption(c.danger)),
             ],
             const SizedBox(height: 10),
@@ -516,7 +988,6 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
                 height: 38,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  // Üstünde beyaz metin var: `accent` değil `accentFill`.
                   color: c.accentFill,
                   borderRadius: BorderRadius.circular(SwanRadius.sm),
                 ),
@@ -530,11 +1001,6 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
     );
   }
 
-  /// Kaydı yeniden dener ve **gerçek hatayı gösterir**.
-  ///
-  /// Bunun olmadığı hâlde kullanıcı "kayıt yok" görüyor ama sebebini
-  /// öğrenemiyordu: kayıt açılışta sessizce deneniyor ve hata yalnızca
-  /// `debugPrint`'e gidiyor — release APK'da hiçbir yere.
   Future<void> _retry(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
     try {
@@ -552,7 +1018,6 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
     }
   }
 
-  /// Durum yalnızca renkle anlatılmıyor: ikon ve "var/yok" metni birlikte.
   Widget _row(SwanPalette c, String label, bool ok, {String? note}) => Padding(
         padding: const EdgeInsets.only(top: 3),
         child: Row(children: [
@@ -567,3 +1032,4 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
         ]),
       );
 }
+

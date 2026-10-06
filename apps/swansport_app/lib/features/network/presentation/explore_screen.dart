@@ -6,8 +6,8 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/inbox_actions.dart';
-import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
+import '../../../app/widgets/swan_skeleton.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../social/presentation/widgets/feed_entry.dart';
 import '../../social/presentation/widgets/follow_suggestions.dart';
@@ -61,7 +61,7 @@ class ExploreScreen extends ConsumerWidget {
                   onAction: () => Navigator.pushNamed(context, '/duyurular'),
                 ),
                 ref.watch(announcementsProvider).when(
-                      loading: () => const LinearProgressIndicator(),
+                      loading: () => const SwanCardSkeleton(),
                       error: (_, __) => TextButton(
                         onPressed: () => ref.invalidate(announcementsProvider),
                         child: const Text('Duyuruları yeniden yükle'),
@@ -83,22 +83,27 @@ class ExploreScreen extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   for (final item in items.take(6))
-                                    SizedBox(
-                                      width: 290,
-                                      child: StitchHeroCard(
-                                        title: item.title,
-                                        subtitle: item.body,
-                                        icon: Icons.campaign_rounded,
-                                        badge: item.pinned
-                                            ? 'Sabit duyuru'
-                                            : 'Kulüp duyurusu',
-                                        meta: shortAgo(item.createdAt),
-                                        actionLabel: 'Detayları Gör',
-                                        onAction: () => Navigator.pushNamed(
-                                          context,
-                                          '/duyurular',
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        right: SwanSpace.md,
+                                      ),
+                                      child: SizedBox(
+                                        width: 290,
+                                        child: StitchHeroCard(
+                                          title: item.title,
+                                          subtitle: item.body,
+                                          icon: Icons.campaign_rounded,
+                                          badge: item.pinned
+                                              ? 'Sabit duyuru'
+                                              : 'Kulüp duyurusu',
+                                          meta: shortAgo(item.createdAt),
+                                          actionLabel: 'Detayları Gör',
+                                          onAction: () => Navigator.pushNamed(
+                                            context,
+                                            '/duyurular',
+                                          ),
+                                          tone: item.pinned ? c.warning : null,
                                         ),
-                                        tone: item.pinned ? c.warning : null,
                                       ),
                                     ),
                                 ],
@@ -135,7 +140,7 @@ class ExploreScreen extends ConsumerWidget {
                   ),
                 ),
                 ref.watch(discoverProvider).when(
-                      loading: () => const LinearProgressIndicator(),
+                      loading: () => const SwanListSkeleton(rows: 3),
                       error: (_, __) => TextButton(
                         onPressed: () => ref.invalidate(discoverProvider),
                         child: const Text('Gönderileri yeniden yükle'),
@@ -191,6 +196,18 @@ class ExploreScreen extends ConsumerWidget {
                   title: 'Organizasyonlar',
                   subtitle: 'Turnuva, kamp ve etkinlikler',
                   onTap: () => Navigator.pushNamed(context, '/organizasyonlar'),
+                ),
+                StitchActionTile(
+                  icon: Icons.military_tech_rounded,
+                  title: 'Liderlik & Ligler',
+                  subtitle: 'Sezon 4 canlı sıralama, podyum ve meydan okumalar',
+                  onTap: () => Navigator.pushNamed(context, '/liderlik'),
+                ),
+                StitchActionTile(
+                  icon: Icons.restaurant_menu_rounded,
+                  title: 'Beslenme & Makrolar',
+                  subtitle: 'Metabolik yakıt dengesi, hidrasyon ve öğün takibi',
+                  onTap: () => Navigator.pushNamed(context, '/beslenme'),
                 ),
 
                 const SizedBox(height: SwanSpace.xl),
@@ -256,71 +273,14 @@ class _StitchExploreHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.swan;
-    final profile = ref.watch(currentProfileProvider).valueOrNull;
-    return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-      decoration: BoxDecoration(
-        color: c.surface.withValues(alpha: c.isDark ? .88 : .94),
-        border: Border(bottom: BorderSide(color: c.line)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: c.isDark ? .18 : .035),
-            blurRadius: 8,
-            offset: const Offset(0, 1),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: c.accentFill,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Text(
-              'S',
-              style: SwanType.h2(Colors.white),
-            ),
-          ),
-          const SizedBox(width: SwanSpace.sm),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('SwanSport', style: SwanType.h3(c.ink)),
-                Text(
-                  'CLUB OPS & NETWORK',
-                  style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
-                ),
-              ],
-            ),
-          ),
-          const InboxActions(),
-          const SizedBox(width: SwanSpace.xs),
-          InkWell(
-            onTap: profile == null
-                ? null
-                : () => Navigator.pushNamed(
-                      context,
-                      '/profil',
-                      arguments: profile.id,
-                    ),
-            borderRadius: BorderRadius.circular(999),
-            child: GradientAvatar(
-              initials: profile?.initials ?? 'S',
-              size: 32,
-              radius: 999,
-              gradientIndex: (profile?.fullName.length ?? 0) % 4,
-            ),
-          ),
-        ],
-      ),
+    return const SwanTopBar(
+      title: 'Keşfet',
+      subtitle: 'Kulüpler, sahalar ve topluluk',
+      showBrandBadge: false,
+      showBack: false,
+      actions: [
+        InboxActions(),
+      ],
     );
   }
 }
@@ -442,7 +402,7 @@ class _QuickExplore extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: c.surface,
                       borderRadius: BorderRadius.circular(SwanRadius.md),
-                      border: Border.all(color: c.line),
+                      border: Border.all(color: c.line.withValues(alpha: .5)),
                     ),
                     child: Row(
                       children: [

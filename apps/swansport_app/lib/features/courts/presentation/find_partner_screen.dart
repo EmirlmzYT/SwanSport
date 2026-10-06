@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../app/design/swan_shape.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
@@ -55,7 +56,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       ),
       body: Column(children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
+          padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 4, SwanSpace.lg, 12),
           child: SwanSegmentedTabs(
             labels: const ['Partner ara', 'Oyuncu aranan'],
             selected: _tab,
@@ -68,7 +69,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           child: IndexedStack(
             index: _tab,
             children: [
-              _seekTab(isDark, ink, verified, sports, interests, myRequest, inbox),
+              _seekTab(
+                  isDark, ink, verified, sports, interests, myRequest, inbox),
               _openSlotsTab(isDark, ink, verified),
             ],
           ),
@@ -94,7 +96,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         ref.invalidate(incomingPartnerPingsProvider);
       },
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+        padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 24),
         children: [
           if (!verified) _verifyBanner(isDark, ink),
           _sectionTitle(ink, 'Gelen istekler'),
@@ -141,7 +143,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         return RefreshIndicator(
           onRefresh: () async => ref.invalidate(openSlotsProvider(null)),
           child: ListView.builder(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+            padding:
+                const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 24),
             itemCount: slots.length,
             itemBuilder: (_, i) =>
                 _openSlotCard(isDark, ink, slots[i], verified),
@@ -167,7 +170,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: surf,
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
         border: Border.all(color: line),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -184,7 +187,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                 Text([s.ownerName, if (where.isNotEmpty) where].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
               ],
             ),
           ),
@@ -221,9 +225,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                   ? null
                   : const LinearGradient(colors: [kTealBright, kTeal]),
               borderRadius: BorderRadius.circular(12),
-              border: (s.requested || !verified)
-                  ? Border.all(color: line)
-                  : null,
+              border:
+                  (s.requested || !verified) ? Border.all(color: line) : null,
             ),
             child: Text(
                 s.requested
@@ -248,7 +251,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   Widget _emptyLine(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(text,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
       );
 
   Widget _verifyBanner(bool isDark, Color ink) => Container(
@@ -256,7 +260,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: kTeal.withValues(alpha: .09),
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(SwanRadius.md),
           border: Border.all(color: kTeal.withValues(alpha: .25)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -267,8 +271,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               'Herhangi bir kortta bir kez "kortta olduğumu doğrula" dedikten '
               'sonra buradan partner arayabilirsin. Bu, sahte hesapların '
               'bildirimlerle seni rahatsız etmesini engelliyor.',
-              style:
-                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
         ]),
       );
 
@@ -289,7 +293,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(text,
-                style: SwanType.caption(filled ? Colors.white : color, w: FontWeight.w800)),
+                style: SwanType.caption(filled ? Colors.white : color,
+                    w: FontWeight.w800)),
           ),
         );
 
@@ -298,7 +303,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: surf,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
         border: Border.all(color: line),
       ),
       child: Row(children: [
@@ -322,7 +327,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: SwanType.bodySm(ink, w: FontWeight.w800)),
               Text('Müsait misin, gitmek ister misin?',
-                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                  style: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w600)),
             ],
           ),
         ),
@@ -350,7 +356,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surf,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
         border: Border.all(color: line),
       ),
       child: sports.when(
@@ -361,69 +367,76 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             return Text(
                 'Henüz hiçbir kortta branş tanımlı değil — partner arama '
                 'yakında burada olacak.',
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600));
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600));
           }
 
           final myInterests = interests.valueOrNull ?? {};
           _selectedSport ??=
               myInterests.isNotEmpty ? myInterests.first : sportList.first.code;
 
-          return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('İlgilendiğin branşlar',
-                style: SwanType.caption(ink, w: FontWeight.w800)),
-            const SizedBox(height: 4),
-            Text('Seçtiğin branşlarda başkası partner arayınca haber verilir.',
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                for (final s in sportList)
-                  _chip(isDark, ink, s.name,
-                      selected: myInterests.contains(s.code),
-                      onTap: () => _toggleInterest(s.code,
-                          !myInterests.contains(s.code))),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Text('Partner arıyorum', style: SwanType.caption(ink, w: FontWeight.w800)),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                for (final s in sportList)
-                  _chip(isDark, ink, s.name,
-                      selected: _selectedSport == s.code,
-                      onTap: () => setState(() => _selectedSport = s.code)),
-              ],
-            ),
-            const SizedBox(height: 14),
-            GestureDetector(
-              onTap: (_busy || !verified) ? null : _seek,
-              child: Container(
-                height: 46,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  gradient: verified
-                      ? const LinearGradient(colors: [kTealBright, kTeal])
-                      : null,
-                  color: verified ? null : line,
-                  borderRadius: BorderRadius.circular(14),
+                Text('İlgilendiğin branşlar',
+                    style: SwanType.caption(ink, w: FontWeight.w800)),
+                const SizedBox(height: 4),
+                Text(
+                    'Seçtiğin branşlarda başkası partner arayınca haber verilir.',
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final s in sportList)
+                      _chip(isDark, ink, s.name,
+                          selected: myInterests.contains(s.code),
+                          onTap: () => _toggleInterest(
+                              s.code, !myInterests.contains(s.code))),
+                  ],
                 ),
-                child: Text(_busy ? 'Aranıyor…' : 'Partner Arıyorum',
-                    style: SwanType.bodySm(verified ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800)),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-                'Yakınındaki ilgili kişilere bildirim gider. İki saat içinde '
-                'kimse kabul etmezse istek kendiliğinden düşer.',
-                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-          ]);
+                const SizedBox(height: 18),
+                Text('Partner arıyorum',
+                    style: SwanType.caption(ink, w: FontWeight.w800)),
+                const SizedBox(height: 10),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final s in sportList)
+                      _chip(isDark, ink, s.name,
+                          selected: _selectedSport == s.code,
+                          onTap: () => setState(() => _selectedSport = s.code)),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                GestureDetector(
+                  onTap: (_busy || !verified) ? null : _seek,
+                  child: Container(
+                    height: 46,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      gradient: verified
+                          ? const LinearGradient(colors: [kTealBright, kTeal])
+                          : null,
+                      color: verified ? null : line,
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                    ),
+                    child: Text(_busy ? 'Aranıyor…' : 'Partner Arıyorum',
+                        style: SwanType.bodySm(
+                            verified ? Colors.white : SwanColors.textSecondary,
+                            w: FontWeight.w800)),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                    'Yakınındaki ilgili kişilere bildirim gider. İki saat içinde '
+                    'kimse kabul etmezse istek kendiliğinden düşer.',
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
+              ]);
         },
       ),
     );
@@ -438,7 +451,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: surf,
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(SwanRadius.md),
           border: Border.all(color: kTeal.withValues(alpha: .4)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
@@ -446,8 +459,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 4),
           Text('${req.acceptedByName} müsait olduğunu söyledi.',
-              style:
-                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
@@ -473,7 +486,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: surf,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
         border: Border.all(color: line),
       ),
       child: Row(children: [
@@ -485,7 +498,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                   style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 3),
               Text('Yanıt gelene kadar bekleniyor.',
-                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                  style: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w600)),
             ],
           ),
         ),
@@ -515,11 +529,16 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? kTeal : (isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA)),
+          color: selected
+              ? kTeal
+              : (isDark
+                  ? SwanPalette.dark.surfaceAlt
+                  : const Color(0xFFF4F7FA)),
           borderRadius: BorderRadius.circular(11),
         ),
         child: Text(label,
-            style: SwanType.caption(selected ? Colors.white : ink, w: FontWeight.w700)),
+            style: SwanType.caption(selected ? Colors.white : ink,
+                w: FontWeight.w700)),
       ),
     );
   }

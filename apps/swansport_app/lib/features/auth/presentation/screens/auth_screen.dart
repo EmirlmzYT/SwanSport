@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_type.dart';
 import '../../application/auth_controller.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
@@ -35,7 +36,6 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     if (!mounted) return;
     if (success) {
-      // Ana sayfa herkes için aynı: sosyal akış.
       // ignore: unawaited_futures
       Navigator.pushReplacementNamed(context, '/akis');
     }
@@ -43,147 +43,160 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = context.swan;
     final authState = ref.watch(authControllerProvider);
     final isSignUp = authState.mode == AuthMode.signUp;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? SwanColors.darkBackground : SwanColors.background,
+      backgroundColor: c.bg,
       body: Stack(
         children: [
-          // Subtle radial depth background
+          // Arka plan soft gradyan
           Positioned.fill(
             child: DecoratedBox(
               decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment.topCenter,
-                  radius: 1.4,
+                  radius: 1.5,
                   colors: [
-                    const Color(
-                      0xFF008C95,
-                    ).withValues(alpha: isDark ? 0.08 : 0.05),
+                    c.accent.withValues(alpha: c.isDark ? 0.08 : 0.04),
                     Colors.transparent,
                   ],
                 ),
               ),
             ),
           ),
-
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 400),
+                  constraints: const BoxConstraints(maxWidth: 420),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Logo mark
+                      // Marka Logosu & Başlık
+                      Center(
+                        child: Column(
+                          children: [
+                            Text(
+                              'swanspor',
+                              style: SwanType.wordmark(c.ink),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Spor Kulüpleri ve Sosyal Spor Ağı',
+                              style: SwanType.bodySm(c.inkMuted, w: FontWeight.w500),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 28),
+
+                      // Ana Kart
                       Container(
-                        width: 52,
-                        height: 52,
+                        padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: SwanColors.primary,
-                          borderRadius: BorderRadius.circular(16),
+                          color: c.surface,
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
+                            color: c.line.withValues(alpha: c.isDark ? 0.4 : 0.7),
+                            width: 0.8,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: SwanColors.primary.withValues(alpha: 0.35),
-                              blurRadius: 20,
+                              color: Colors.black.withValues(alpha: c.isDark ? 0.25 : 0.05),
+                              blurRadius: 24,
                               offset: const Offset(0, 8),
                             ),
                           ],
                         ),
-                        alignment: Alignment.center,
-                        child: const Text(
-                          'S',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 26,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-
-                      // Editorial heading
-                      const Text(
-                        'Hoş Geldiniz,',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                          color: SwanColors.textSecondary,
-                          letterSpacing: -0.2,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      const Text(
-                        'SwanSport',
-                        style: TextStyle(
-                          fontSize: 34,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -1.2,
-                          height: 1.0,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        isSignUp
-                            ? 'Yeni hesap oluştur.'
-                            : 'Profesyonel spor yönetim platformu.',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: SwanColors.textSecondary,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 30),
-
-                      // Login Card
-                      _buildCard(
-                        isDark: isDark,
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            // Mod Seçici (Giriş Yap / Kayıt Ol)
+                            Container(
+                              height: 40,
+                              padding: const EdgeInsets.all(3),
+                              decoration: BoxDecoration(
+                                color: c.surfaceAlt,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: c.line.withValues(alpha: 0.5),
+                                  width: 0.8,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: _tabButton(
+                                      label: 'Giriş Yap',
+                                      active: !isSignUp,
+                                      c: c,
+                                      onTap: () {
+                                        if (isSignUp) {
+                                          ref.read(authControllerProvider.notifier).toggleMode();
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: _tabButton(
+                                      label: 'Kayıt Ol',
+                                      active: isSignUp,
+                                      c: c,
+                                      onTap: () {
+                                        if (!isSignUp) {
+                                          ref.read(authControllerProvider.notifier).toggleMode();
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+
                             if (isSignUp) ...[
-                              _buildInputLabel('Ad Soyad'),
+                              _buildInputLabel('Ad Soyad', c),
                               const SizedBox(height: 8),
                               _buildTextField(
-                                isDark: isDark,
                                 controller: _fullNameController,
-                                hintText: 'Ahmet Koç',
+                                hintText: 'Ad Soyad',
                                 prefixIcon: Icons.person_outline_rounded,
+                                c: c,
                               ),
                               const SizedBox(height: 16),
                             ],
-                            _buildInputLabel('E-posta'),
+
+                            _buildInputLabel('E-posta', c),
                             const SizedBox(height: 8),
                             _buildTextField(
-                              isDark: isDark,
                               controller: _emailController,
                               hintText: 'ornek@kulup.org',
                               keyboardType: TextInputType.emailAddress,
                               prefixIcon: Icons.alternate_email_rounded,
+                              c: c,
                             ),
                             const SizedBox(height: 16),
-                            _buildInputLabel('Şifre'),
+
+                            _buildInputLabel('Şifre', c),
                             const SizedBox(height: 8),
                             _buildTextField(
-                              isDark: isDark,
                               controller: _passwordController,
                               hintText: '••••••••••',
                               obscureText: _obscurePassword,
                               prefixIcon: Icons.lock_outline_rounded,
                               onSubmitted: (_) => _submit(),
+                              c: c,
                               suffixIcon: IconButton(
                                 icon: Icon(
                                   _obscurePassword
                                       ? Icons.visibility_off_rounded
                                       : Icons.visibility_rounded,
                                   size: 20,
-                                  color: SwanColors.textSecondary,
+                                  color: c.inkMuted,
                                 ),
                                 onPressed: () => setState(
                                   () => _obscurePassword = !_obscurePassword,
@@ -191,26 +204,53 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                               ),
                             ),
 
-                            // Error message
                             if (authState.errorMessage != null) ...[
                               const SizedBox(height: 14),
-                              _buildMessage(authState.errorMessage!),
+                              _buildMessage(authState.errorMessage!, c),
                             ],
 
-                            const SizedBox(height: 20),
+                            const SizedBox(height: 22),
 
-                            // Primary CTA
-                            SwanButton.primary(
-                              label: isSignUp ? 'Kayıt Ol' : 'Giriş Yap',
-                              width: double.infinity,
-                              height: 52,
-                              icon: Icons.arrow_forward_rounded,
-                              isLoading: authState.isSubmitting,
-                              onPressed:
-                                  authState.isSubmitting ? null : _submit,
+                            // Birincil Aksiyon Butonu
+                            InkWell(
+                              onTap: authState.isSubmitting ? null : _submit,
+                              borderRadius: BorderRadius.circular(14),
+                              child: Container(
+                                height: 50,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: c.accentFill,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                child: authState.isSubmitting
+                                    ? const SizedBox(
+                                        width: 22,
+                                        height: 22,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2.2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                        ),
+                                      )
+                                    : Row(
+                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            isSignUp ? 'Hesap Oluştur' : 'Giriş Yap',
+                                            style: SwanType.body(Colors.white, w: FontWeight.w700),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          const Icon(
+                                            Icons.arrow_forward_rounded,
+                                            size: 18,
+                                            color: Colors.white,
+                                          ),
+                                        ],
+                                      ),
+                              ),
                             ),
-                            const SizedBox(height: 6),
-                            if (!isSignUp)
+
+                            if (!isSignUp) ...[
+                              const SizedBox(height: 10),
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
@@ -218,71 +258,62 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       ? null
                                       : () => ref
                                           .read(authControllerProvider.notifier)
-                                          .sendPasswordReset(
-                                              _emailController.text),
-                                  child: const Text(
+                                          .sendPasswordReset(_emailController.text),
+                                  child: Text(
                                     'Şifremi unuttum',
-                                    style: TextStyle(
-                                      fontSize: 12.5,
-                                      fontWeight: FontWeight.w700,
-                                      color: SwanColors.primary,
-                                    ),
+                                    style: SwanType.caption(c.accent, w: FontWeight.w700),
                                   ),
                                 ),
                               ),
-                            const SizedBox(height: 6),
+                            ],
 
-                            // Divider
+                            const SizedBox(height: 14),
+
+                            // Ayırıcı
                             Row(
                               children: [
-                                Expanded(
-                                  child: Divider(
-                                    color: isDark
-                                        ? const Color(0xFF2E3440)
-                                        : SwanColors.outline,
-                                  ),
-                                ),
+                                Expanded(child: Divider(color: c.line)),
                                 Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
+                                  padding: const EdgeInsets.symmetric(horizontal: 12),
                                   child: Text(
                                     'veya',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: isDark
-                                          ? SwanColors.darkText
-                                              .withValues(alpha: 0.4)
-                                          : SwanColors.textSecondary,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: SwanType.caption(c.inkMuted),
                                   ),
                                 ),
-                                Expanded(
-                                  child: Divider(
-                                    color: isDark
-                                        ? const Color(0xFF2E3440)
-                                        : SwanColors.outline,
-                                  ),
-                                ),
+                                Expanded(child: Divider(color: c.line)),
                               ],
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 14),
 
-                            // Mode toggle (sign in <-> sign up)
-                            SwanButton.secondary(
-                              label: isSignUp
-                                  ? 'Zaten hesabın var mı? Giriş yap'
-                                  : 'Hesabın yok mu? Kayıt ol',
-                              width: double.infinity,
-                              icon: isSignUp
-                                  ? Icons.login_rounded
-                                  : Icons.person_add_alt_rounded,
-                              onPressed: authState.isSubmitting
-                                  ? null
-                                  : () => ref
-                                      .read(authControllerProvider.notifier)
-                                      .toggleMode(),
+                            // Keşfet & Demo Butonları
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                // ignore: unawaited_futures
+      Navigator.pushReplacementNamed(context, '/akis');
+                              },
+                              icon: Icon(Icons.explore_rounded, size: 18, color: c.ink),
+                              label: Text(
+                                'Giriş Yapmadan Keşfet',
+                                style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: c.line.withValues(alpha: 0.8)),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 13),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextButton.icon(
+                              onPressed: () {
+                                Navigator.pushNamed(context, '/demo-rol');
+                              },
+                              icon: Icon(Icons.theater_comedy_rounded, size: 17, color: c.accent),
+                              label: Text(
+                                'Demo Rolü ile Dene',
+                                style: SwanType.caption(c.accent, w: FontWeight.w700),
+                              ),
                             ),
                           ],
                         ),
@@ -298,71 +329,72 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     );
   }
 
-  Widget _buildCard({required bool isDark, required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: isDark ? SwanColors.darkSurface : SwanColors.surface,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark ? const Color(0xFF2E3440) : const Color(0xFFEAEFF2),
+  Widget _tabButton({
+    required String label,
+    required bool active,
+    required SwanPalette c,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: active ? c.surface : Colors.transparent,
+          borderRadius: BorderRadius.circular(9),
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: c.isDark ? 0.2 : 0.05),
+                    blurRadius: 4,
+                    offset: const Offset(0, 1),
+                  ),
+                ]
+              : null,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+        child: Text(
+          label,
+          style: SwanType.bodySm(
+            active ? c.ink : c.inkMuted,
+            w: active ? FontWeight.w800 : FontWeight.w600,
           ),
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.07),
-            blurRadius: 32,
-            offset: const Offset(0, 12),
-          ),
-        ],
+        ),
       ),
-      child: child,
     );
   }
 
-  Widget _buildInputLabel(String label) {
+  Widget _buildInputLabel(String label, SwanPalette c) {
     return Text(
       label,
-      style: const TextStyle(
-        fontSize: 12,
-        fontWeight: FontWeight.w800,
-        letterSpacing: -0.1,
-      ),
+      style: SwanType.caption(c.ink, w: FontWeight.w700),
     );
   }
 
-  Widget _buildMessage(String message) {
+  Widget _buildMessage(String message, SwanPalette c) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: SwanColors.primary.withValues(alpha: 0.08),
+        color: c.danger.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: SwanColors.primary.withValues(alpha: 0.25),
+          color: c.danger.withValues(alpha: 0.3),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(
+          Icon(
             Icons.info_outline_rounded,
             size: 18,
-            color: SwanColors.primary,
+            color: c.danger,
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
               message,
-              style: const TextStyle(
-                fontSize: 12.5,
-                height: 1.35,
-                fontWeight: FontWeight.w600,
-                color: SwanColors.primary,
-              ),
+              style: SwanType.caption(c.danger, w: FontWeight.w600),
             ),
           ),
         ],
@@ -371,52 +403,40 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
   }
 
   Widget _buildTextField({
-    required bool isDark,
     required TextEditingController controller,
     required String hintText,
+    required SwanPalette c,
     bool obscureText = false,
     TextInputType? keyboardType,
     IconData? prefixIcon,
     Widget? suffixIcon,
     ValueChanged<String>? onSubmitted,
   }) {
-    final fillColor =
-        isDark ? SwanColors.darkSurfaceVariant : SwanColors.surfaceVariant;
-    final borderColor = isDark ? const Color(0xFF2E3440) : SwanColors.outline;
-
     return TextField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       onSubmitted: onSubmitted,
+      style: SwanType.bodySm(c.ink),
       decoration: InputDecoration(
         hintText: hintText,
-        hintStyle: TextStyle(
-          color: isDark
-              ? SwanColors.darkText.withValues(alpha: 0.35)
-              : SwanColors.textSecondary.withValues(alpha: 0.7),
-          fontSize: 14,
-          fontWeight: FontWeight.w500,
-        ),
-        prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, size: 18, color: SwanColors.textSecondary)
-            : null,
+        hintStyle: SwanType.bodySm(c.inkMuted.withValues(alpha: 0.7)),
+        prefixIcon: prefixIcon != null ? Icon(prefixIcon, size: 18, color: c.inkMuted) : null,
         suffixIcon: suffixIcon,
         filled: true,
-        fillColor: fillColor,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        fillColor: c.surfaceAlt,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: borderColor),
+          borderSide: BorderSide(color: c.line.withValues(alpha: 0.6)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: borderColor),
+          borderSide: BorderSide(color: c.line.withValues(alpha: 0.6)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: SwanColors.primary, width: 1.5),
+          borderSide: BorderSide(color: c.accent, width: 1.5),
         ),
       ),
     );

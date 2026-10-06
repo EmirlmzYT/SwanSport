@@ -1,0 +1,40 @@
+01. ID: 561276ad66bc47c2b971790d119a3007 | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport/tree/main/apps/swansport_app/lib/features/attendance/presentation/screens
+02. ID: c2309e0c42a34301808c056ac44a139b | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport
+03. ID: 37843880fd514db987886308ddf0ac61 | Title: SwanSport - Liderlik Tablosu & Ligler
+04. ID: f266fb13876f4d1eb0da913a787eef5d | Title: SwanSport - Mesajlar & Antrenman Grupları
+05. ID: 5a3c13d1ed154dff849b96704a918ca8 | Title: SwanSport - Resmi Kulüp Duyuruları
+06. ID: 7ac4792d7b6d411c89db6cc056c86aa3 | Title: SwanSport - Yoklama Geçmişi (Attendance History)
+07. ID: 2e3dbb2d8e99457297a180b94b60dcb6 | Title: SwanSport - Ayarlar & Sporcu Tercihleri
+08. ID: 2bce3776b75c44c1bc385664960d8dbf | Title: SwanSport - Etkinlik & Yarış Detayı
+09. ID: e9cd0209a3994f178e45b4754df7aa34 | Title: SwanSport - Bildirimler & Etkinlik Akışı
+10. ID: 06c9ad328046441ab375b03f730e98cf | Title: SwanSport - Canlı Yoklama (Live Attendance)
+11. ID: 7d133050deb343f084fff0376c510dfb | Title: SwanSport - Takım & Sporcu Kadrosu (Team Roster)
+12. ID: 29ea27c10a8f454586c445003bc222df | Title: SwanSport - Canlı Antrenman & GPS Koşu
+13. ID: fd5eaee3347f424e8965707203105389 | Title: SwanSport - Performans & İstatistik Kokpiti
+14. ID: 41faaffdc55548a08df4ae6d0e591352 | Title: SwanSport - Topluluk & Kulüpler
+15. ID: b2cdaba436624f0e9fd838660cab9d51 | Title: SwanSport - Sporcu Profili
+16. ID: 264d9dd53a2e45beaac3dad9a60f29d6 | Title: SwanSport - Saha & Tesis Rezervasyonu
+17. ID: 1195b6ca51794ba1900c69917f4b90f6 | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport/tree/main/apps/swansport_app/lib/app
+18. ID: 3a251b35d3324e4abbe16c37d0a210c0 | Title: SwanSport - Kulüp Detayı (Swan Runners Istanbul)
+19. ID: 265f0a9412ce4de9ae94dd20ffd7e2d8 | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport/tree/main/apps/swansport_app/lib/app/app_navigator.dart
+20. ID: f7fa1812ea114439a4bb03e862158f42 | Title: SwanSport - Belgeler & Rapor Arşivi
+21. ID: 86506128c80449ed958b7bee4822e5ce | Title: SwanSport - Beslenme & Makro Takip Günlüğü
+22. ID: 48f35358b7414bed935a1cd94de5b18a | Title: SwanSport - Sohbet Detayı (Mert Koç)
+23. ID: 934b92afe6b745fc8d4870d0cbf87e4b | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport/tree/main/apps/swansport_app/lib/app/routing
+24. ID: 76b29db2df0b496bbd9cbb0e5a83421c | Title: SwanSport - Antrenman & Form Analiz Detayı
+25. ID: 375d1a9263844ce9b173a97c762b4bb6 | Title: SwanSport - Takvim & Maç Programı
+26. ID: 07c193482383447981f730326f7424d7 | Title: SwanSport - Sporcu & Antrenör Çalışma Alanı
+27. ID: 54dce94936934455b8a773c42f7e81d3 | Title: SwanSport - Antrenman Paylaşımı
+28. ID: 7d87b9e901f641e0aabe0b5ac7e4b745 | Title: SwanSport - Lisans & Kimlik Doğrulama
+29. ID: 8bc618eca66646e6b943285740f0befd | Title: SwanSport Akış - Minimalist Sosyal & Keşfet
+30. ID: 2b85cbc9bf0749ffb0cdf293568327ee | Title: SwanSport - Antrenman Planlayıcı & Oluşturucu
+31. ID: 170b022c4167492eba4b65aec0c426cd | Title: SwanSport - Medikal & Sağlık Merkezi
+32. ID: 14622057944123528209 | Title: 5918249039226933105.jpg
+33. ID: 8579dc5adcb047bb829513c61bbb56ff | Title: SwanSport - Aidat & Finans Yönetimi
+34. ID: ad391fdae9c34eada4cbe781b21c56fb | Title: App Store landscape banner and display ad for SwanSport sports networking and athletic club platform. Wide 16:9 composition, sleek dark obsidian and glassmorphic aesthetic (#061424, #0f1c2d) with electric turquoise and cyan neon glow lines. Showcasing floating glass screens of the mobile app: live GPS telemetry running, sports community feed, biometric performance analytics. Bold typography: 'Antrenman, Topluluk ve Kulüp Yönetimi Tek Çatıda', realistic athletes in motion, premium sport tech aesthetic, clean commercial advertising design.
+35. ID: d5d1d3ef5ad54316920f973259040a26 | Title: Professional newsletter and App Store editorial feature header for SwanSport. High-resolution 16:9 banner with elegant dark navy aesthetic, geometric swan emblem badge with glowing teal highlights, stylish typography: 'SwanSport Resmi Lansman & App Store Yayın Paketi'. Modern athletic tech, sleek UI elements, subtle glass cards and data telemetry visualization, minimalist and premium executive design.
+36. ID: 7fab9669d6b94fa098d01a678aee3f32 | Title: SwanSport - App Store Pazarlama & Lansman Metni
+37. ID: e386696c70564a74adb40e6689dac248 | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport/tree/main/apps/swansport_app/lib/features
+38. ID: 147eec7574c84ce4ac05822fcf25e3b9 | Title: App Store and social media promo showcase card for SwanSport athletic sports club and social fitness application. Dark athletic kinetic glass UI background (#061424 deep navy blue), vibrant cyan turquoise (#2fbfb6) glowing accents. Featuring high-tech smartphone mockups displaying the SwanSport mobile app UI, stylized geometric glowing swan logo emblem, sleek typography reading 'SwanSport - Geleceğin Spor Ağı ve Kulüp Yönetimi', high performance athletics, training metrics, modern gym and track vibes, 3D composition, ultra-clean studio lighting, professional App Store promotional graphic.
+39. ID: a8aba416a94341088a676ecbea427c3f | Title: SwanSport - Keşfet & Arama
+40. ID: 731ca8cd38044c8bb1d8bcc7b71ce1cb | Title: Extracted text from https://github.com/EmirlmzYT/SwanSport/tree/main/apps/swansport_app/lib

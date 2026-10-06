@@ -9,6 +9,39 @@ import 'package:swansport_app/app/widgets/swan_skeleton.dart';
 /// bozulması kolay: `AnimationController` sızdırırsa ya da çizim
 /// patlarsa yalnızca çalışırken görünür.
 void main() {
+  testWidgets('kart ve grid dar ekranda tasmaz', (tester) async {
+    for (final skeleton in [
+      const SwanCardSkeleton(),
+      const SwanGridSkeleton(),
+    ]) {
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+            body: Align(
+          alignment: Alignment.topCenter,
+          child: SizedBox(
+              width: 240, child: SingleChildScrollView(child: skeleton)),
+        )),
+      ));
+      await tester.pump(const Duration(milliseconds: 300));
+      expect(tester.takeException(), isNull);
+      expect(find.byType(SwanShimmer), findsWidgets);
+    }
+    await tester.pumpWidget(const SizedBox());
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('azaltilmis hareket tercihinde shimmer durur', (tester) async {
+    await tester.pumpWidget(const MaterialApp(
+      home: MediaQuery(
+        data: MediaQueryData(disableAnimations: true),
+        child: Scaffold(body: SwanShimmer(width: 100, height: 12)),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.hasRunningAnimations, isFalse);
+    expect(tester.takeException(), isNull);
+  });
+
   Widget wrap(Widget child, {Brightness brightness = Brightness.light}) =>
       MaterialApp(
         theme: ThemeData(brightness: brightness),

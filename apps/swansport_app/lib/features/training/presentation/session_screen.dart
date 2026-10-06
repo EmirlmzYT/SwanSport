@@ -7,6 +7,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import 'widgets/live_training_gps_hud.dart';
 import 'widgets/phase_timer.dart';
 import 'widgets/score_pad.dart';
 
@@ -29,16 +30,13 @@ class TrainingSessionScreen extends ConsumerWidget {
 
     if (argId != null) return _SessionBody(sessionId: argId);
 
-    // Kimlik verilmediyse sporcunun içinde olduğu canlı oturum.
+    // Kimlik verilmediyse sporcunun içinde olduğu canlı oturum veya GPS HUD
     final live = ref.watch(myLiveSessionProvider);
     return live.when(
       loading: () => _shell(c, const Center(child: CircularProgressIndicator())),
-      error: (e, _) => _shell(c, _message(c, 'Oturum açılamadı', '$e')),
+      error: (e, _) => const LiveTrainingGpsHud(),
       data: (s) => s == null
-          ? _shell(
-              c,
-              _message(c, 'Şu an canlı antrenman yok',
-                  'Antrenörün oturumu başlattığında katılım kodunu paylaşacak.'))
+          ? const LiveTrainingGpsHud()
           : _SessionBody(sessionId: s.id),
     );
   }

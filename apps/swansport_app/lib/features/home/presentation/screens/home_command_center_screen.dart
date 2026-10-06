@@ -3,15 +3,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/inbox_actions.dart';
-import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/pending_work.dart';
+import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_actions.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../demo/demo_role.dart';
 import '../widgets/role_context_switcher.dart';
-import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/design/swan_type.dart';
-import '../../../../app/design/swan_palette.dart';
 
 /// Komuta Merkezi (Ekran 0) — Supabase verisine bağlı, premium (v3).
 class HomeCommandCenterScreen extends ConsumerWidget {
@@ -25,14 +25,12 @@ class HomeCommandCenterScreen extends ConsumerWidget {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
-    final club = ref.watch(activeClubProvider).valueOrNull;
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final athletes = ref.watch(clubAthletesProvider);
     final events = ref.watch(eventsProvider);
     final anns = ref.watch(announcementsProvider);
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
     final pending = ref.watch(pendingCredentialsProvider);
-    final demoLabel = ref.watch(effectiveRoleLabelProvider);
 
     int n(AsyncValue<List<dynamic>> v) =>
         v.maybeWhen(data: (l) => l.length, orElse: () => 0);
@@ -55,22 +53,13 @@ class HomeCommandCenterScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 132),
                 children: [
-                  Row(children: [
-                    const _Crest(),
-                    const SizedBox(width: 11),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(club?.name ?? 'SwanSport',
-                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                          Text(demoLabel ?? _role(profile?.role),
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-                        ],
-                      ),
-                    ),
-                    const InboxActions(),
-                  ]),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text('swanspor', style: SwanType.wordmark(ink)),
+                      const InboxActions(),
+                    ],
+                  ),
                   const SizedBox(height: 14),
                   const RoleContextSwitcher(),
                   const SizedBox(height: 4),
@@ -170,14 +159,6 @@ class HomeCommandCenterScreen extends ConsumerWidget {
     );
   }
 
-  String _role(String? r) => switch (r) {
-        'club_admin' => 'Yönetici',
-        'coach' => 'Antrenör',
-        'athlete' => 'Sporcu',
-        'parent' => 'Veli',
-        _ => 'Üye',
-      };
-
   Widget _kpi(Color c, String n, String l, Color numColor) => Expanded(
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 13),
@@ -185,7 +166,8 @@ class HomeCommandCenterScreen extends ConsumerWidget {
             Text(n, style: SwanType.h3(numColor)),
             const SizedBox(height: 1),
             Text(l,
-                style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600)),
           ]),
         ),
       );
@@ -195,13 +177,13 @@ class HomeCommandCenterScreen extends ConsumerWidget {
   Widget _label(String t, Color ink) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Text(text,
-            style: SwanType.caption(SwanColors.textSecondary)),
+        child: Text(text, style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
@@ -233,9 +215,7 @@ class HomeCommandCenterScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-              Text(place,
-                  style:
-                      SwanType.caption(SwanColors.textSecondary)),
+              Text(place, style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -251,8 +231,8 @@ class HomeCommandCenterScreen extends ConsumerWidget {
       decoration: BoxDecoration(
           color: surf,
           borderRadius: BorderRadius.circular(16),
-          border:
-              Border.all(color: SwanPalette.light.warning.withValues(alpha: .4))),
+          border: Border.all(
+              color: SwanPalette.light.warning.withValues(alpha: .4))),
       child: Row(children: [
         Container(
           width: 40,
@@ -273,24 +253,4 @@ class HomeCommandCenterScreen extends ConsumerWidget {
       ]),
     );
   }
-
-
-}
-
-class _Crest extends StatelessWidget {
-  const _Crest();
-  @override
-  Widget build(BuildContext context) => Container(
-        width: 40,
-        height: 40,
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [kTeal, kTealDeep]),
-          borderRadius: BorderRadius.circular(13),
-        ),
-        alignment: Alignment.center,
-        child: Text('K', style: SwanType.h3(Colors.white)),
-      );
 }

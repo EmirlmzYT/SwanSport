@@ -7,6 +7,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
+import 'widgets/vbt_form_analysis_view.dart';
 
 /// Antrenör sonuç ekranı.
 ///
@@ -26,15 +27,7 @@ class SessionResultScreen extends ConsumerWidget {
     final id = args is Map ? args['id'] as String? : args as String?;
 
     if (id == null) {
-      return Scaffold(
-        backgroundColor: c.bg,
-        body: SafeArea(
-          child: Center(
-            child: Text('Oturum seçilmedi', style: SwanType.bodySm(c.inkMuted)),
-          ),
-        ),
-        bottomNavigationBar: const SwanBottomNav(),
-      );
+      return const VbtFormAnalysisView();
     }
 
     final overview = ref.watch(sessionOverviewProvider(id));

@@ -4,6 +4,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
 
 /// Ağdan yüklenen avatar; görsel yoksa baş harflerle degrade avatara düşer.
 class SocialAvatar extends StatelessWidget {
@@ -163,27 +164,28 @@ class _RatioImageState extends State<RatioImage> {
                           color: SwanColors.textSecondary, size: 26),
                       const SizedBox(height: 6),
                       Text('Görsel gösterilemiyor',
-                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                          style: SwanType.caption(SwanColors.textSecondary,
+                              w: FontWeight.w600)),
                     ],
                   ),
                 )
               : _ratio == null
-              ? const Center(
-                  child: SizedBox(
-                    width: 22,
-                    height: 22,
-                    child: CircularProgressIndicator(
-                        strokeWidth: 2, color: kTeal),
-                  ),
-                )
-              : Image(
-                  image: widget.image,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Center(
-                    child: Icon(Icons.broken_image_rounded,
-                        color: SwanColors.textSecondary, size: 26),
-                  ),
-                ),
+                  ? const Center(
+                      child: SizedBox(
+                        width: 22,
+                        height: 22,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: kTeal),
+                      ),
+                    )
+                  : Image(
+                      image: widget.image,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Center(
+                        child: Icon(Icons.broken_image_rounded,
+                            color: SwanColors.textSecondary, size: 26),
+                      ),
+                    ),
         ),
       ),
     );
@@ -225,21 +227,38 @@ String compactCount(int n) {
 
 /// Profil/akış üstünde kullanılan sayaç bloğu.
 class SocialStat extends StatelessWidget {
-  const SocialStat({super.key, required this.value, required this.label});
+  const SocialStat({
+    super.key,
+    required this.value,
+    required this.label,
+    this.tone,
+  });
+
   final int value;
   final String label;
+  final Color? tone;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    return Column(
-      children: [
-        Text(compactCount(value), style: SwanType.h3(ink)),
-        const SizedBox(height: 2),
-        Text(label,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-      ],
+    final c = context.swan;
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
+      decoration: BoxDecoration(
+        color: c.surfaceAlt,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line.withValues(alpha: .5)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(compactCount(value), style: SwanType.h3(tone ?? c.ink)),
+          const SizedBox(height: 2),
+          Text(
+            label,
+            style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -1384,6 +1384,23 @@ hedefine koysun.
 
 ## Çalışma kuralları
 
+### Ortak ajan vardiya defteri
+
+- Her Codex ve Antigravity ajanı, bu dosyadan hemen sonra
+  `.ai-team/README.md` ve `.ai-team/TEAM_BOARD.md` dosyalarını okur; defteri
+  gerçek Git durumu ve ilgili dosyalarla doğrular.
+- Aynı anda yalnızca kullanıcının seçtiği **bir Writer** yazar. Aktif Writer,
+  ilk kaynak değişikliğinden önce görevi defterde üstlenir. Başka bir Writer
+  `active` görünüyorsa yazmaz ve çakışmayı bildirir.
+- Aktif Writer defteri her anlamlı değişiklik grubundan, test/analiz
+  sonucundan, engelden ve terminal devrinden sonra günceller. Amaç diğer
+  terminalin işi tekrar etmeden güvenle sürdürebilmesidir.
+- Reviewer ajanlar salt okunurdur: defteri okur ve diff ile karşılaştırır,
+  fakat defteri değiştirmez. Kabul edilen Reviewer bulgularını aktif Writer
+  kaydeder.
+- Deftere sır, kişisel veri, uzun log veya kaynak kod kopyalanmaz. Defter
+  koordinasyon bilgisidir; kod ve Git gerçeğinin yerine geçmez.
+
 - **Kullanıcıya açılan her özelliğin SSS kaydı olmalı.** Bu bir niyet değil,
   kapı: `trg_faq_before_release` (0070) bir bayrağı `testers` ya da
   `everyone` yapmayı, o anahtara bağlı aktif bir `faq_entries` satırı yoksa
@@ -1416,3 +1433,9 @@ Küçük düzeltmeler için gerekmez.
 
 Eskimiş bir kılavuz, hiç kılavuz olmamasından kötüdür: okuyan ona güvenip
 yanlış yola sapar.
+
+### 2026-10-05 — Phase 03 doğrulama notu
+
+- Altı rota/header/sporcu regresyon dosyası ve `swan_skeleton_test.dart` birlikte 34 test: hepsi geçti. Skeleton dosyası artık 6 test içeriyor; 240px dar ekran ve azaltılmış hareket kontrolleri eklendi. Bu sayı tüm uygulamanın test toplamı değildir.
+- `InkWell` altında opak renkli `Container` dokunma dalgasını örtebilir. Feed filtreleri ortak `StitchFilterPill`, oluşturma seçenekleri renk/clip sahibi `Material` kullanıyor; yeni yüzeylerde bu sırayı koru.
+- Phase 03 kanıtları `.planning/phases/03-design-overhaul-fluidity/03-VERIFICATION.md` içinde. Paket analizi 0 hata, 3 kapsam dışı uyarı; canlı görsel UAT tarayıcı erişim izni reddedildiği için açık.

@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
+import 'archery_target.dart';
 
 /// Set sonucu girişi.
 ///
@@ -159,8 +160,13 @@ class _ScorePadState extends State<ScorePad> {
                 : '${_fmt(widget.existing!.totalScore!)} puan',
             style: SwanType.h2(c.ink),
           )
-        else if (_detailed)
-          _grid(c)
+        else if (_detailed) ...[
+          if (_entries.length <= 6) ...[
+            ArcheryTargetWidget(arrows: _entries),
+            const SizedBox(height: SwanSpace.md),
+          ],
+          _grid(c),
+        ]
         else
           _totalField(c),
 

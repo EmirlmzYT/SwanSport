@@ -203,6 +203,7 @@ class TodayTasks extends ConsumerWidget {
           decoration: BoxDecoration(
             color: t.tone == c.accent ? c.surfaceAlt : c.surface,
             borderRadius: BorderRadius.circular(SwanRadius.md),
+            border: Border.all(color: c.line.withValues(alpha: .6)),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,8 +233,11 @@ class TodayTasks extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  Icon(Icons.arrow_outward_rounded,
-                      size: 16, color: c.inkMuted),
+                  Icon(
+                    Icons.arrow_outward_rounded,
+                    size: 16,
+                    color: c.inkMuted,
+                  ),
                 ],
               ),
               Text(

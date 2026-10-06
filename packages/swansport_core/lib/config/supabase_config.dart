@@ -20,8 +20,14 @@ class SupabaseConfig {
   ///   --dart-define=SUPABASE_ANON_KEY=eyJhbGci...
   /// ```
   factory SupabaseConfig.fromCompileTime({
-    String url = const String.fromEnvironment('SUPABASE_URL'),
-    String anonKey = const String.fromEnvironment('SUPABASE_ANON_KEY'),
+    String url = const String.fromEnvironment(
+      'SUPABASE_URL',
+      defaultValue: 'https://gokkimnokigqxmbppvle.supabase.co',
+    ),
+    String anonKey = const String.fromEnvironment(
+      'SUPABASE_ANON_KEY',
+      defaultValue: 'sb_publishable_G5WQXM4DMmpnwPN9V9srFQ_JZZ2_Yje',
+    ),
   }) {
     return SupabaseConfig(
       url: url.trim(),

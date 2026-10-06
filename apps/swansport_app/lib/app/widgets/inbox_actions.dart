@@ -1,22 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../app/design/swan_type.dart';
+import '../design/swan_palette.dart';
+import '../design/swan_type.dart';
 
-/// Üst barın sağındaki "gelen kutusu" ikonları: bildirimler + mesajlar.
+/// Üst barın sağındaki "gelen kutusu" ikonları: bildirimler (hareketler) + mesajlar.
 ///
 /// **Kural:** üst sağ = okunmamışı olan şeyler, alt bar = bölümler arası
 /// gezinme, header'daki avatar = yalnızca kimlik göstergesi (Profil zaten
 /// alt barda, iki yerde olmasın).
 ///
-/// Neden tek bileşen: aynı zil beş ana ekranda ayrı ayrı kopyalanmıştı ve
-/// **beşi de ölüydü** — düz `Container`, `onTap` yok, kullanıcı basıyor
-/// hiçbir şey olmuyordu. Rozet de yalnızca akış ekranında vardı. Tek yerde
-/// durunca bu tür sessiz kopmalar olmuyor.
+/// Minimalist Instagram tarzı: çerçevesiz 44x44 dokunma alanı, kalp ve gönder ikonları.
 class InboxActions extends ConsumerWidget {
-  const InboxActions({super.key, this.spacing = 8});
+  const InboxActions({super.key, this.spacing = 4});
 
   /// İki ikon arasındaki boşluk.
   final double spacing;
@@ -27,28 +24,31 @@ class InboxActions extends ConsumerWidget {
         ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
     final unreadMessages = ref.watch(unreadMessagesProvider).valueOrNull ?? 0;
 
-    return Row(mainAxisSize: MainAxisSize.min, children: [
-      InboxIconButton(
-        icon: Icons.notifications_none_rounded,
-        badge: unreadNotifications,
-        tooltip: 'Bildirimler',
-        onTap: () => Navigator.pushNamed(context, '/bildirimler'),
-      ),
-      SizedBox(width: spacing),
-      InboxIconButton(
-        icon: Icons.chat_bubble_outline_rounded,
-        badge: unreadMessages,
-        tooltip: 'Mesajlar',
-        onTap: () => Navigator.pushNamed(context, '/mesajlar'),
-      ),
-    ]);
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        InboxIconButton(
+          icon: Icons.favorite_border_rounded,
+          badge: unreadNotifications,
+          tooltip: 'Hareketler',
+          onTap: () => Navigator.pushNamed(context, '/bildirimler'),
+        ),
+        SizedBox(width: spacing),
+        InboxIconButton(
+          icon: Icons.send_outlined,
+          badge: unreadMessages,
+          tooltip: 'Mesajlar',
+          onTap: () => Navigator.pushNamed(context, '/mesajlar'),
+        ),
+      ],
+    );
   }
 }
 
 /// Rozetli, tıklanabilir üst bar ikonu.
 ///
-/// Görsel dil `feed_screen`'deki çalışan zilden alındı: 40x40 yuvarlak
-/// köşeli kutu, sağ üstte kırmızı rozet.
+/// Minimalist ve çerçevesiz: 44x44 dokunma alanı, ortalanmış 24px ikon,
+/// yalnızca okunmamış > 0 olduğunda sağ üstte minik kırmızı rozet.
 class InboxIconButton extends StatelessWidget {
   const InboxIconButton({
     required this.icon,
@@ -67,45 +67,44 @@ class InboxIconButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final bg = isDark ? const Color(0xFF0A111E) : const Color(0xFFF4F7FA);
+    final c = context.swan;
 
     final button = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
-      child: Stack(clipBehavior: Clip.none, children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: surf,
-            borderRadius: BorderRadius.circular(13),
-            border: Border.all(color: line),
-          ),
-          child: Icon(icon, size: 21, color: SwanColors.textSecondary),
-        ),
-        if (badge > 0)
-          Positioned(
-            top: -3,
-            right: -3,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-              constraints: const BoxConstraints(minWidth: 17),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF43F5E),
-                borderRadius: BorderRadius.circular(999),
-                // Rozetin çevresindeki ince halka onu zeminden ayırıyor;
-                // ekranın zemin rengiyle aynı olmalı, kutunun değil.
-                border: Border.all(color: bg, width: 1.5),
-              ),
-              child: Text(badgeLabel(badge),
-                  textAlign: TextAlign.center,
-                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+      child: SizedBox(
+        width: 44,
+        height: 44,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Align(
+              alignment: Alignment.center,
+              child: Icon(icon, size: 24, color: c.ink),
             ),
-          ),
-      ]),
+            if (badge > 0)
+              Positioned(
+                top: 4,
+                right: 2,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                  constraints: const BoxConstraints(minWidth: 16),
+                  decoration: BoxDecoration(
+                    color: c.danger,
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: c.bg, width: 1.5),
+                  ),
+                  child: Text(
+                    badgeLabel(badge),
+                    textAlign: TextAlign.center,
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
     );
 
     return tooltip == null ? button : Tooltip(message: tooltip!, child: button);

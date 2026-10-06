@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../comments_sheet.dart';
@@ -70,7 +69,9 @@ class _PostCardState extends ConsumerState<PostCard>
       _likes += next ? 1 : -1;
     });
     // Yalnızca beğenirken; beğeniyi geri alırken pop tuhaf duruyor.
-    if (next) _likePop.forward(from: 0);
+    if (next && !MediaQuery.disableAnimationsOf(context)) {
+      _likePop.forward(from: 0);
+    }
     try {
       await ref.read(socialServiceProvider).setLike(widget.post.id, next);
     } catch (_) {
@@ -134,13 +135,14 @@ class _PostCardState extends ConsumerState<PostCard>
               _editPost();
             }),
             _menuItem(ctx, Icons.delete_outline_rounded, 'Gönderiyi sil',
-                SwanPalette.light.danger, () {
+                context.swan.danger, () {
               Navigator.pop(ctx);
               _confirmDelete();
             }),
           ] else ...[
-            _menuItem(ctx, Icons.flag_outlined, 'Şikayet et',
-                SwanPalette.light.danger, () {
+            _menuItem(
+                ctx, Icons.flag_outlined, 'Şikayet et', context.swan.danger,
+                () {
               Navigator.pop(ctx);
               showReportSheet(context,
                   targetType: 'post', targetId: widget.post.id);
@@ -178,19 +180,21 @@ class _PostCardState extends ConsumerState<PostCard>
         content: Text(
             '${widget.post.displayName} artık gönderilerini göremeyecek ve '
             'sana mesaj gönderemeyecek. Karşılıklı takip kaldırılır.',
-            style: SwanType.bodySm(SwanColors.textSecondary)),
+            style: SwanType.bodySm(
+                (isDark ? SwanPalette.dark : SwanPalette.light).inkMuted)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: SwanType.bodySm(SwanColors.textSecondary,
+                style: SwanType.bodySm(
+                    (isDark ? SwanPalette.dark : SwanPalette.light).inkMuted,
                     w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Engelle',
-                style: SwanType.bodySm(SwanPalette.light.danger,
-                    w: FontWeight.w800)),
+                style:
+                    SwanType.bodySm(context.swan.danger, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -202,14 +206,15 @@ class _PostCardState extends ConsumerState<PostCard>
       ref.invalidate(feedProvider);
       ref.invalidate(discoverProvider);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Kullanıcı engellendi'), backgroundColor: kTeal));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Kullanıcı engellendi'),
+            backgroundColor: context.swan.accent));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Engellenemedi: $e'),
-            backgroundColor: SwanPalette.light.danger));
+            backgroundColor: context.swan.danger));
       }
     }
   }
@@ -220,8 +225,8 @@ class _PostCardState extends ConsumerState<PostCard>
       await ref.read(socialServiceProvider).setPinnedPost(widget.post.id);
       ref.invalidate(socialProfileProvider(widget.post.authorId));
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Profiline sabitlendi')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Profiline sabitlendi')));
       }
     } catch (e) {
       if (mounted) {
@@ -254,7 +259,8 @@ class _PostCardState extends ConsumerState<PostCard>
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: SwanType.bodySm(SwanColors.textSecondary,
+                style: SwanType.bodySm(
+                    (isDark ? SwanPalette.dark : SwanPalette.light).inkMuted,
                     w: FontWeight.w700)),
           ),
           TextButton(
@@ -275,14 +281,15 @@ class _PostCardState extends ConsumerState<PostCard>
       ref.invalidate(discoverProvider);
       widget.onChanged?.call();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Gönderi güncellendi'), backgroundColor: kTeal));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Gönderi güncellendi'),
+            backgroundColor: context.swan.accent));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Güncellenemedi: $e'),
-            backgroundColor: SwanPalette.light.danger));
+            backgroundColor: context.swan.danger));
       }
     }
   }
@@ -299,19 +306,21 @@ class _PostCardState extends ConsumerState<PostCard>
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         title: Text('Gönderiyi sil', style: SwanType.h3(ink)),
         content: Text('Bu gönderi kalıcı olarak silinecek.',
-            style: SwanType.bodySm(SwanColors.textSecondary)),
+            style: SwanType.bodySm(
+                (isDark ? SwanPalette.dark : SwanPalette.light).inkMuted)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style: SwanType.bodySm(SwanColors.textSecondary,
+                style: SwanType.bodySm(
+                    (isDark ? SwanPalette.dark : SwanPalette.light).inkMuted,
                     w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: SwanType.bodySm(SwanPalette.light.danger,
-                    w: FontWeight.w800)),
+                style:
+                    SwanType.bodySm(context.swan.danger, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -324,14 +333,15 @@ class _PostCardState extends ConsumerState<PostCard>
       ref.invalidate(discoverProvider);
       widget.onChanged?.call();
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Gönderi silindi'), backgroundColor: kTeal));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+            content: Text('Gönderi silindi'),
+            backgroundColor: context.swan.accent));
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text('Silinemedi: $e'),
-            backgroundColor: SwanPalette.light.danger));
+            backgroundColor: context.swan.danger));
       }
     }
   }
@@ -359,150 +369,169 @@ class _PostCardState extends ConsumerState<PostCard>
       decoration: BoxDecoration(
         color: context.swan.surface,
         borderRadius: BorderRadius.circular(SwanRadius.md),
-        border: Border.all(color: line),
-      ),
-      padding: const EdgeInsets.only(bottom: SwanSpace.sm),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Başlık
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 13, 10, 10),
-            child: Row(children: [
-              GestureDetector(
-                onTap: _openProfile,
-                child: SocialAvatar(
-                  initials: p.initials,
-                  imageUrl: p.authorAvatarUrl,
-                  size: 42,
-                  gradientIndex: p.displayName.length % 4,
-                ),
-              ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: GestureDetector(
-                  onTap: _openProfile,
-                  behavior: HitTestBehavior.opaque,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(children: [
-                        Flexible(
-                          child: Text(p.displayName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                        ),
-                        if (p.isClubPost) ...[
-                          const SizedBox(width: 4),
-                          const VerifiedBadge(size: 14),
-                        ],
-                      ]),
-                      const SizedBox(height: 1),
-                      Text(
-                        p.isClubPost
-                            ? 'Kulüp · ${shortAgo(p.createdAt)}'
-                            : shortAgo(p.createdAt),
-                        style: SwanType.caption(SwanColors.textSecondary),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              if (p.isNews)
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: kCoral.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: Text('HABER',
-                      style: SwanType.caption(kCoral, w: FontWeight.w800)),
-                ),
-              // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
-              GestureDetector(
-                onTap: _openMenu,
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Icon(Icons.more_horiz_rounded,
-                      size: 20, color: SwanColors.textSecondary),
-                ),
-              ),
-            ]),
-          ),
-
-          // Metin
-          if (p.body.trim().isNotEmpty)
-            Padding(
-              padding:
-                  EdgeInsets.fromLTRB(14, 0, 14, p.imageUrl == null ? 12 : 10),
-              child: Text(p.body,
-                  style: SwanType.bodySm(ink).copyWith(height: 1.45)),
-            ),
-
-          // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış.
-          // Kart kabuğu kalktığı için artık tam genişlik: brief §5
-          // "içeriklerin ekranı doldurması".
-          if (p.imageUrl != null) RatioImage(image: NetworkImage(p.imageUrl!)),
-
-          // Eylemler
-          Padding(
-            padding: const EdgeInsets.fromLTRB(8, 6, 12, 8),
-            child: Row(children: [
-              _action(
-                icon: _liked
-                    ? Icons.favorite_rounded
-                    : Icons.favorite_border_rounded,
-                color: _liked ? SwanPalette.light.danger : null,
-                label: _likes > 0 ? compactCount(_likes) : '',
-                tooltip: 'Beğen',
-                onTap: _toggleLike,
-                scale: _likeScale,
-              ),
-              _action(
-                icon: Icons.mode_comment_outlined,
-                label: _comments > 0 ? compactCount(_comments) : '',
-                tooltip: 'Yorumlar',
-                onTap: _openComments,
-              ),
-              _action(
-                icon: Icons.repeat_rounded,
-                label: '',
-                tooltip: 'Yeniden paylaş',
-                onTap: () => showRepostSheet(
-                  context,
-                  ref,
-                  postId: widget.post.id,
-                  authorName: widget.post.displayName,
-                  preview: widget.post.body.isEmpty
-                      ? '(görsel gönderi)'
-                      : widget.post.body,
-                ),
-              ),
-              _action(
-                icon: Icons.send_outlined,
-                label: '',
-                tooltip: 'Mesajla gönder',
-                onTap: () => showShareSheet(context,
-                    kind: ShareKind.post, id: widget.post.id),
-              ),
-              const Spacer(),
-              // Kaydetme kişisel bir yer imi: gönderi sahibine bildirim
-              // gitmiyor ve sayı gösterilmiyor. Sayı göstermek onu kamusal
-              // bir beğeniye çevirirdi.
-              _action(
-                icon: _saved
-                    ? Icons.bookmark_rounded
-                    : Icons.bookmark_border_rounded,
-                label: '',
-                tooltip: 'Kaydet',
-                onTap: _toggleSaved,
-              ),
-            ]),
+        border: Border.all(
+          color: line.withValues(alpha: isDark ? 0.35 : 0.6),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
           ),
         ],
+      ),
+      padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+      child: Material(
+        color: Colors.transparent,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Başlık
+            Padding(
+              padding: const EdgeInsets.fromLTRB(14, 13, 10, 10),
+              child: Row(children: [
+                GestureDetector(
+                  onTap: _openProfile,
+                  child: SocialAvatar(
+                    initials: p.initials,
+                    imageUrl: p.authorAvatarUrl,
+                    size: 42,
+                    gradientIndex: p.displayName.length % 4,
+                  ),
+                ),
+                const SizedBox(width: 11),
+                Expanded(
+                  child: GestureDetector(
+                    onTap: _openProfile,
+                    behavior: HitTestBehavior.opaque,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(children: [
+                          Flexible(
+                            child: Text(p.displayName,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style:
+                                    SwanType.bodySm(ink, w: FontWeight.w800)),
+                          ),
+                          if (p.isClubPost) ...[
+                            const SizedBox(width: 4),
+                            const VerifiedBadge(size: 14),
+                          ],
+                        ]),
+                        const SizedBox(height: 1),
+                        Text(
+                          p.isClubPost
+                              ? 'Kulüp · ${shortAgo(p.createdAt)}'
+                              : shortAgo(p.createdAt),
+                          style: SwanType.caption(
+                              (isDark ? SwanPalette.dark : SwanPalette.light)
+                                  .inkMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (p.isNews)
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: kCoral.withValues(alpha: .12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text('HABER',
+                        style: SwanType.caption(kCoral, w: FontWeight.w800)),
+                  ),
+                // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
+                GestureDetector(
+                  onTap: _openMenu,
+                  behavior: HitTestBehavior.opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Icon(Icons.more_horiz_rounded,
+                        size: 20,
+                        color: (isDark ? SwanPalette.dark : SwanPalette.light)
+                            .inkMuted),
+                  ),
+                ),
+              ]),
+            ),
+
+            // Metin
+            if (p.body.trim().isNotEmpty)
+              Padding(
+                padding: EdgeInsets.fromLTRB(
+                    14, 0, 14, p.imageUrl == null ? 12 : 10),
+                child: Text(p.body,
+                    style: SwanType.bodySm(ink).copyWith(height: 1.45)),
+              ),
+
+            // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış.
+            // Kart kabuğu kalktığı için artık tam genişlik: brief §5
+            // "içeriklerin ekranı doldurması".
+            if (p.imageUrl != null)
+              RatioImage(image: NetworkImage(p.imageUrl!)),
+
+            // Eylemler
+            Padding(
+              padding: const EdgeInsets.fromLTRB(8, 6, 12, 8),
+              child: Row(children: [
+                _action(
+                  icon: _liked
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                  color: _liked ? context.swan.danger : null,
+                  label: _likes > 0 ? compactCount(_likes) : '',
+                  tooltip: 'Beğen',
+                  onTap: _toggleLike,
+                  scale: _likeScale,
+                ),
+                _action(
+                  icon: Icons.mode_comment_outlined,
+                  label: _comments > 0 ? compactCount(_comments) : '',
+                  tooltip: 'Yorumlar',
+                  onTap: _openComments,
+                ),
+                _action(
+                  icon: Icons.repeat_rounded,
+                  label: '',
+                  tooltip: 'Yeniden paylaş',
+                  onTap: () => showRepostSheet(
+                    context,
+                    ref,
+                    postId: widget.post.id,
+                    authorName: widget.post.displayName,
+                    preview: widget.post.body.isEmpty
+                        ? '(görsel gönderi)'
+                        : widget.post.body,
+                  ),
+                ),
+                _action(
+                  icon: Icons.send_outlined,
+                  label: '',
+                  tooltip: 'Mesajla gönder',
+                  onTap: () => showShareSheet(context,
+                      kind: ShareKind.post, id: widget.post.id),
+                ),
+                const Spacer(),
+                // Kaydetme kişisel bir yer imi: gönderi sahibine bildirim
+                // gitmiyor ve sayı gösterilmiyor. Sayı göstermek onu kamusal
+                // bir beğeniye çevirirdi.
+                _action(
+                  icon: _saved
+                      ? Icons.bookmark_rounded
+                      : Icons.bookmark_border_rounded,
+                  label: '',
+                  tooltip: 'Kaydet',
+                  onTap: _toggleSaved,
+                ),
+              ]),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -532,16 +561,14 @@ class _PostCardState extends ConsumerState<PostCard>
     Color? color,
     Animation<double>? scale,
   }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final c =
-        color ?? (isDark ? const Color(0xFF8FA0B8) : SwanColors.textSecondary);
+    final c = color ?? context.swan.inkMuted;
     return Tooltip(
         message: tooltip ?? label,
         child: Semantics(
             button: true,
             label: tooltip ?? label,
-            child: GestureDetector(
-              behavior: HitTestBehavior.opaque,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(SwanRadius.md),
               onTap: onTap,
               child: Padding(
                 padding:

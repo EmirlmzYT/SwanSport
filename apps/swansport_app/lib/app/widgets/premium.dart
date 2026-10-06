@@ -213,6 +213,8 @@ class _RingPainter extends CustomPainter {
 /// buradan değiştirmek 39 ekranı birden değiştirir.
 Widget premiumLoading() => const SwanListSkeleton();
 
+Widget premiumCardLoading() => const SwanCardSkeleton();
+
 Widget premiumError(BuildContext context, String msg) {
   final c = context.swan;
   return Padding(

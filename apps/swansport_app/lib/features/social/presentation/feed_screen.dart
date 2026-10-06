@@ -4,14 +4,13 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
-import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/create_sheet.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/today_tasks.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
+import 'widgets/stitch_feed_widgets.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -57,28 +56,51 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 await ref.read(activeFeed.future);
               },
               child: CustomScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
+                physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics(),
+                ),
                 slivers: [
-                  // Bu alanın tamamı akışla beraber yukarı kayar. Ana Sayfa
-                  // bir kontrol paneli gibi tepede sabit kalmaz.
-                  SliverToBoxAdapter(
-                    child: _FeedHeader(c: c),
+                  // Pinned Google Stitch üst bar (SwanSport Wordmark + Bildirimler + Mesajlar)
+                  const SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _StitchHeaderDelegate(),
+                  ),
+                  // Google Stitch Hikayeler Çubuğu (Stories Bar)
+                  const SliverToBoxAdapter(
+                    child: StitchStoriesBar(),
                   ),
                   const SliverToBoxAdapter(
                     child: TodayTasks(title: 'Bugün'),
                   ),
-                  SliverToBoxAdapter(
-                    child: _FeedModeBar(
-                      followingOnly: _followingOnly,
-                      onChanged: (value) {
-                        if (value == _followingOnly) return;
-                        setState(() => _followingOnly = value);
-                      },
+                  SliverPersistentHeader(
+                    pinned: true,
+                    delegate: _FeedModeDelegate(
+                      extent: 42 + MediaQuery.textScalerOf(context).scale(12),
+                      color: c.bg,
+                      child: _FeedModeBar(
+                        followingOnly: _followingOnly,
+                        onChanged: (value) {
+                          if (value == _followingOnly) return;
+                          setState(() => _followingOnly = value);
+                        },
+                      ),
                     ),
                   ),
+                  // Google Stitch Öne Çıkan Spor Paylaşımları (Showcase Posts)
+                  if (!_followingOnly) ...[
+                    const SliverToBoxAdapter(
+                      child: StitchWorkoutPostCard(),
+                    ),
+                    const SliverToBoxAdapter(
+                      child: StitchNewsBriefingCard(),
+                    ),
+                    const SliverToBoxAdapter(
+                      child: StitchTransformationPostCard(),
+                    ),
+                  ],
                   ...async.when(
                     loading: () => [
-                      SliverToBoxAdapter(child: premiumLoading()),
+                      SliverToBoxAdapter(child: premiumCardLoading()),
                     ],
                     error: (e, _) => [
                       SliverToBoxAdapter(child: premiumError(context, '$e')),
@@ -182,28 +204,24 @@ class _FeedModeBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.swan;
-    return Container(
-      height: 48,
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border(
-          top: BorderSide(color: c.line),
-          bottom: BorderSide(color: c.line),
-        ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(
+        SwanSpace.lg,
+        SwanSpace.sm,
+        SwanSpace.lg,
+        SwanSpace.xs,
       ),
       child: Row(
         children: [
-          _FeedMode(
+          StitchFilterPill(
             label: 'Sizin İçin',
-            active: !followingOnly,
+            isSelected: !followingOnly,
             onTap: () => onChanged(false),
           ),
-          const SizedBox(width: SwanSpace.xl),
-          _FeedMode(
+          const SizedBox(width: SwanSpace.sm),
+          StitchFilterPill(
             label: 'Takip',
-            active: followingOnly,
+            isSelected: followingOnly,
             onTap: () => onChanged(true),
           ),
         ],
@@ -212,162 +230,51 @@ class _FeedModeBar extends StatelessWidget {
   }
 }
 
-class _FeedMode extends StatelessWidget {
-  const _FeedMode({
-    required this.label,
-    required this.active,
-    required this.onTap,
+class _StitchHeaderDelegate extends SliverPersistentHeaderDelegate {
+  const _StitchHeaderDelegate();
+
+  @override
+  double get minExtent => 56;
+
+  @override
+  double get maxExtent => 56;
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return const StitchFeedTopBar();
+  }
+
+  @override
+  bool shouldRebuild(covariant _StitchHeaderDelegate oldDelegate) => false;
+}
+
+class _FeedModeDelegate extends SliverPersistentHeaderDelegate {
+  const _FeedModeDelegate({
+    required this.child,
+    required this.extent,
+    required this.color,
   });
-
-  final String label;
-  final bool active;
-  final VoidCallback onTap;
-
+  final Widget child;
+  final double extent;
+  final Color color;
   @override
-  Widget build(BuildContext context) {
-    final c = context.swan;
-    final color = active ? c.ink : c.inkMuted;
-    return Semantics(
-      button: true,
-      selected: active,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(SwanRadius.sm),
-        child: SizedBox(
-          height: 48,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              const Spacer(),
-              Text(
-                label,
-                style: SwanType.bodySm(
-                  color,
-                  w: active ? FontWeight.w800 : FontWeight.w600,
-                ),
-              ),
-              const Spacer(),
-              AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                width: active ? 34 : 0,
-                height: 3,
-                decoration: BoxDecoration(
-                  color: c.accent,
-                  borderRadius: BorderRadius.circular(SwanRadius.sm),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Akışın üstü: merkezde açık akış adı, sağda tek hizada üç sade eylem.
-/// Düğmelerde kutu, arka plan ve çerçeve yok; ikonlar header'ın içinde bir
-/// araç çubuğu gibi durur. Rozet yalnız okunmamış olduğunda görünür.
-class _FeedHeader extends StatelessWidget {
-  const _FeedHeader({required this.c});
-
-  final SwanPalette c;
-
+  double get minExtent => extent;
   @override
-  Widget build(BuildContext context) {
-    return StitchTopBar(
-      subtitle: 'SİZİN İÇİN',
-      actions: [
-        _HeaderIcon(
-          icon: Icons.add_box_outlined,
-          tooltip: 'Oluştur',
-          onTap: () => showCreateSheet(context),
-        ),
-        const _ActivitiesHeaderAction(),
-        const _MessagesHeaderAction(),
-      ],
-    );
-  }
-}
-
-class _ActivitiesHeaderAction extends ConsumerWidget {
-  const _ActivitiesHeaderAction();
-
+  double get maxExtent => extent;
   @override
-  Widget build(BuildContext context, WidgetRef ref) => _HeaderIcon(
-        icon: Icons.favorite_border_rounded,
-        badge: ref.watch(unreadNotificationsProvider).valueOrNull ?? 0,
-        tooltip: 'Hareketler',
-        onTap: () => Navigator.pushNamed(context, '/bildirimler'),
-      );
-}
-
-class _MessagesHeaderAction extends ConsumerWidget {
-  const _MessagesHeaderAction();
-
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) =>
+      Material(color: color, child: Center(child: child));
   @override
-  Widget build(BuildContext context, WidgetRef ref) => _HeaderIcon(
-        icon: Icons.send_outlined,
-        badge: ref.watch(unreadMessagesProvider).valueOrNull ?? 0,
-        tooltip: 'Mesajlar',
-        onTap: () => Navigator.pushNamed(context, '/mesajlar'),
-      );
-}
-
-class _HeaderIcon extends StatelessWidget {
-  const _HeaderIcon({
-    required this.icon,
-    required this.onTap,
-    required this.tooltip,
-    this.badge = 0,
-  });
-
-  final IconData icon;
-  final VoidCallback onTap;
-  final String tooltip;
-  final int badge;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = context.swan;
-    return Tooltip(
-      message: tooltip,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
-        onTap: onTap,
-        child: SizedBox(
-          width: 40,
-          height: 44,
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              Align(
-                alignment: Alignment.center,
-                child: Icon(icon, size: 24, color: c.ink),
-              ),
-              if (badge > 0)
-                Positioned(
-                  top: 5,
-                  right: 2,
-                  child: Container(
-                    constraints: const BoxConstraints(minWidth: 15),
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: c.danger,
-                      borderRadius: BorderRadius.circular(999),
-                      border: Border.all(color: c.bg, width: 1.5),
-                    ),
-                    child: Text(
-                      badge > 9 ? '9+' : '$badge',
-                      textAlign: TextAlign.center,
-                      style: SwanType.caption(Colors.white, w: FontWeight.w800),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  bool shouldRebuild(covariant _FeedModeDelegate oldDelegate) =>
+      child != oldDelegate.child ||
+      extent != oldDelegate.extent ||
+      color != oldDelegate.color;
 }

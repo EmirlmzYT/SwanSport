@@ -86,10 +86,30 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
 
     // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
     final targets = <_NavTarget>[
-      _NavTarget(Icons.home_rounded, 'Ana Sayfa', '/akis'),
-      _NavTarget(Icons.explore_rounded, 'Keşfet', '/kesfet'),
-      _NavTarget(Icons.chat_bubble_rounded, 'Mesajlar', '/mesajlar'),
-      _NavTarget(Icons.person_rounded, 'Profil', '/profil'),
+      const _NavTarget(
+        activeIcon: Icons.home_rounded,
+        inactiveIcon: Icons.home_outlined,
+        label: 'Ana Sayfa',
+        route: '/akis',
+      ),
+      const _NavTarget(
+        activeIcon: Icons.explore_rounded,
+        inactiveIcon: Icons.explore_outlined,
+        label: 'Keşfet',
+        route: '/kesfet',
+      ),
+      const _NavTarget(
+        activeIcon: Icons.chat_bubble_rounded,
+        inactiveIcon: Icons.chat_bubble_outline_rounded,
+        label: 'Mesajlar',
+        route: '/mesajlar',
+      ),
+      const _NavTarget(
+        activeIcon: Icons.person_rounded,
+        inactiveIcon: Icons.person_outline_rounded,
+        label: 'Profil',
+        route: '/profil',
+      ),
     ];
 
     return SafeArea(
@@ -181,7 +201,11 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                       if (i == 2) const _CreateButton(),
                       _Tab(
                         key: _keys[i],
-                        icon: targets[i].icon,
+                        icon: (_scrub == null
+                                ? route == targets[i].route
+                                : _scrub == i)
+                            ? targets[i].activeIcon
+                            : targets[i].inactiveIcon,
                         label: targets[i].label,
                         active: _scrub == null
                             ? route == targets[i].route
@@ -220,9 +244,15 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
 
 /// Alt çubuktaki bir gezinme hedefi.
 class _NavTarget {
-  const _NavTarget(this.icon, this.label, this.route);
+  const _NavTarget({
+    required this.activeIcon,
+    required this.inactiveIcon,
+    required this.label,
+    required this.route,
+  });
 
-  final IconData icon;
+  final IconData activeIcon;
+  final IconData inactiveIcon;
   final String label;
   final String route;
 }

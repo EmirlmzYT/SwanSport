@@ -8,8 +8,12 @@ import '../features/announcements/presentation/screens/communication_detail_scre
 import '../features/athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 import '../features/athlete_workspace/presentation/screens/athlete_detail_screen.dart';
 import '../features/athlete_workspace/presentation/screens/athlete_workspace_screen.dart';
+import '../features/athlete_workspace/presentation/screens/nutrition_tracker_screen.dart';
 import '../features/attendance/presentation/screens/live_attendance_screen.dart';
 import '../features/auth/presentation/screens/auth_gate.dart';
+import '../features/auth/presentation/screens/auth_screen.dart';
+import '../features/calendar/presentation/screens/event_roster_detail_screen.dart';
+import '../features/calendar/presentation/screens/race_event_detail_screen.dart';
 import '../features/calendar/presentation/screens/schedule_calendar_screen.dart';
 import '../features/configuration/presentation/configuration_module_args.dart';
 import '../features/configuration/presentation/configuration_screen.dart';
@@ -18,11 +22,17 @@ import '../features/documents/presentation/routing/document_detail_route_args.da
 import '../features/documents/presentation/screens/document_detail_screen.dart';
 import '../features/documents/presentation/screens/document_vault_screen.dart';
 import '../features/facilities/presentation/facility_management_screen.dart';
+import '../features/facilities/presentation/facility_reservation_screen.dart';
 import '../features/home/presentation/screens/home_command_center_screen.dart';
 import '../features/home/presentation/screens/public_landing_screen.dart';
 import '../features/medical_center/presentation/medical_center_screen.dart';
 import '../features/performance_analytics/presentation/athlete_performance_screen.dart';
+import '../features/performance_analytics/presentation/leaderboard_screen.dart';
 import '../features/performance_analytics/presentation/performance_analytics_screen.dart';
+import '../features/performance_analytics/presentation/readiness_rpe_screen.dart';
+import '../features/equipment/presentation/equipment_tuning_screen.dart';
+import '../features/verification/presentation/parent_consent_center_screen.dart';
+import '../features/marketplace/presentation/cart_checkout_screen.dart';
 import '../features/performance_analytics/presentation/performance_route_args.dart';
 import '../features/performance_analytics/presentation/performance_workflow_editors.dart';
 import '../features/performance_analytics/presentation/performance_workflow_screens.dart';
@@ -33,6 +43,7 @@ import '../features/settings/presentation/routing/admin_user_detail_args.dart';
 import '../features/settings/presentation/screens/admin_user_detail_screen.dart';
 import '../features/settings/presentation/screens/club_settings_screen.dart';
 import '../features/clubs/presentation/club_applications_screen.dart';
+import '../features/clubs/presentation/club_profile_detail_screen.dart';
 import '../features/demo/demo_role_screen.dart';
 import '../features/social/presentation/connections_screen.dart';
 import '../features/network/presentation/discover_screen.dart';
@@ -60,13 +71,17 @@ import '../features/social/presentation/privacy_screen.dart';
 import '../features/social/presentation/rss_admin_screen.dart';
 import '../features/social/presentation/search_screen.dart';
 import '../features/verification/presentation/admin_review_screen.dart';
+import '../features/financial_management/presentation/accountant_privacy_ledger_screen.dart';
+import '../features/financial_management/presentation/closed_period_reversal_screen.dart';
 import '../features/financial_management/presentation/finance_tasks_screen.dart';
 import '../features/social/presentation/saved_posts_screen.dart';
 import '../features/support/presentation/help_screen.dart';
+import '../features/training/presentation/match_simulation_screen.dart';
 import '../features/training/presentation/my_training_screen.dart';
 import '../features/training/presentation/protocol_list_screen.dart';
 import '../features/training/presentation/session_result_screen.dart';
 import '../features/training/presentation/session_screen.dart';
+import '../features/training/presentation/workout_builder_screen.dart';
 import '../features/support/presentation/support_screen.dart';
 import '../features/financial_management/presentation/quick_expense_screen.dart';
 import '../features/verification/presentation/credential_screen.dart';
@@ -88,6 +103,11 @@ class SwanSportApp extends ConsumerWidget {
     final environment = ref.watch(appEnvironmentProvider);
 
     return MaterialApp(
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        physics: const BouncingScrollPhysics(
+          parent: AlwaysScrollableScrollPhysics(),
+        ),
+      ),
       title: environment.appName,
       debugShowCheckedModeBanner: false,
       navigatorKey: swanNavigatorKey,
@@ -102,10 +122,12 @@ class SwanSportApp extends ConsumerWidget {
       // telefonun ayarını izliyordu; varsayılanı değiştirmek hiçbir tercih
       // yapmamış herkesin temasını bir güncellemede değiştirirdi.
       themeMode: ref.watch(themeModeProvider),
-      builder: (context, child) => AppUpdateGate(child: child ?? const SizedBox()),
+      builder: (context, child) =>
+          AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: '/',
       routes: {
         '/': (context) => const AuthGate(),
+        '/auth': (context) => const AuthScreen(),
         '/home-command': (context) => const HomeCommandCenterScreen(),
         '/landing': (context) => const PublicLandingScreen(),
         '/dashboard': (context) => const CoachDashboardScreen(),
@@ -127,6 +149,7 @@ class SwanSportApp extends ConsumerWidget {
         '/antrenman-oturumu': (context) => const TrainingSessionScreen(),
         '/antrenman-sonuc': (context) => const SessionResultScreen(),
         '/antrenman-sablonlari': (context) => const ProtocolListScreen(),
+        '/antrenman-olustur': (context) => const WorkoutProtocolBuilderScreen(),
         '/antrenmanlarim': (context) => const MyTrainingScreen(),
         '/dogrulama': (context) => const CredentialScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
@@ -159,10 +182,24 @@ class SwanSportApp extends ConsumerWidget {
         '/basvurular': (context) => const ClubApplicationsScreen(),
         '/configuration': (context) => const ConfigurationScreen(),
         '/facilities': (context) => const FacilityManagementScreen(),
+        '/rezervasyon': (context) => const FacilityReservationScreen(),
         '/medical-center': (context) => const MedicalCenterScreen(),
         '/reports': (context) => const ReportsScreen(),
         '/performance-analytics': (context) =>
             const PerformanceAnalyticsScreen(),
+        '/hazirbulunusluk': (context) => const ReadinessRpeScreen(),
+        '/ekipman-tuning': (context) => const EquipmentTuningScreen(),
+        '/veli-izinleri': (context) => const ParentConsentCenterScreen(),
+        '/sepet': (context) => const CartCheckoutScreen(),
+        '/musabaka-simulasyonu': (context) => const MatchSimulationScreen(),
+        '/etkinlik-detay': (context) => const EventRosterDetailScreen(),
+        '/ters-islem': (context) => const ClosedPeriodReversalScreen(),
+        '/muhasebeci-defter': (context) =>
+            const AccountantPrivacyLedgerScreen(),
+        '/liderlik': (context) => const LeaderboardScreen(),
+        '/beslenme': (context) => const NutritionTrackerScreen(),
+        '/yaris-detay': (context) => const RaceEventDetailScreen(),
+        '/kulup-detay': (context) => const ClubProfileDetailScreen(),
       },
       onGenerateRoute: (settings) {
         // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
@@ -178,7 +215,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/sporcu-performans') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => AthletePerformanceScreen(
@@ -189,7 +226,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/baglantilar') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => ConnectionsScreen(
@@ -201,7 +238,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/takim-kadro') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => TeamRosterScreen(
@@ -212,7 +249,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/federasyon') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => FederationChannelScreen(
@@ -223,7 +260,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/topluluk') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => CommunityChatScreen(
@@ -234,7 +271,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/urun') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => ListingDetailScreen(listingId: '${m['id'] ?? ''}'),
@@ -242,7 +279,7 @@ class SwanSportApp extends ConsumerWidget {
         }
         if (settings.name == '/sohbet') {
           final args = settings.arguments;
-          final m = args is Map ? args : const {};
+          final m = args is Map ? args : const <Object?, Object?>{};
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => ChatScreen(

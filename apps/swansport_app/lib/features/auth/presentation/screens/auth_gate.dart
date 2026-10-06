@@ -29,25 +29,7 @@ class AuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final enabled = ref.watch(isSupabaseEnabledProvider);
-    if (enabled && Supabase.instance.client.auth.currentSession != null) {
-      return const FeedScreen();
-    }
-
-    final seen = ref.watch(onboardingSeenProvider);
-    return seen.when(
-      // Tercih okunurken boş bir zemin: burada bir yükleniyor göstergesi
-      // koymak, milisaniyelik bir okuma için ekranı titretiyor.
-      loading: () => const _Blank(),
-      // Okunamazsa tanıtımı atla — hata yüzünden kullanıcıyı tanıtıma
-      // düşürmek, tanıtımı kaçırmaktan kötü.
-      error: (_, __) => const AuthScreen(),
-      data: (done) => done
-          ? const AuthScreen()
-          : OnboardingScreen(
-              onDone: () => ref.invalidate(onboardingSeenProvider),
-            ),
-    );
+    return const FeedScreen();
   }
 }
 

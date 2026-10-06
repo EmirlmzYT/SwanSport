@@ -5,69 +5,110 @@ import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
 import 'premium.dart';
 
-class StitchTopBar extends StatelessWidget {
+typedef SwanTopBar = StitchTopBar;
+
+class StitchTopBar extends StatelessWidget implements PreferredSizeWidget {
   const StitchTopBar({
     super.key,
-    this.subtitle = 'CLUB OPS & NETWORK',
+    this.title = 'SwanSport',
+    this.subtitle,
     this.actions = const [],
     this.trailing,
+    this.showBrandBadge = false,
+    this.isBrand = false,
+    this.showBack,
+    this.onBack,
   });
 
-  final String subtitle;
+  final String title;
+  final String? subtitle;
   final List<Widget> actions;
   final Widget? trailing;
+  final bool showBrandBadge;
+  final bool isBrand;
+  final bool? showBack;
+  final VoidCallback? onBack;
+
+  @override
+  Size get preferredSize => const Size.fromHeight(48);
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
+    final canPop = showBack ?? Navigator.canPop(context);
+
     return Container(
-      height: 64,
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-      decoration: BoxDecoration(
-        color: c.surface.withValues(alpha: c.isDark ? .90 : .96),
-        border: Border(bottom: BorderSide(color: c.line)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: c.isDark ? .18 : .035),
-            blurRadius: 8,
-            offset: const Offset(0, 1),
-          ),
-        ],
+      height: preferredSize.height,
+      padding: const EdgeInsets.symmetric(
+        horizontal: SwanSpace.lg,
       ),
-      child: Row(
-        children: [
-          Container(
-            width: 36,
-            height: 36,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: c.accentFill,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Text('S', style: SwanType.h2(Colors.white)),
-          ),
-          const SizedBox(width: SwanSpace.sm),
-          Expanded(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('SwanSport', style: SwanType.h3(c.ink)),
-                Text(
-                  subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
+      decoration: BoxDecoration(
+        color: c.surface.withValues(alpha: c.isDark ? .92 : .98),
+        border: Border(bottom: BorderSide(color: c.line.withValues(alpha: .5))),
+      ),
+      child: SafeArea(
+        bottom: false,
+        top: false,
+        child: Row(
+          children: [
+            if (isBrand) ...[
+              Text(
+                'swanspor',
+                style: SwanType.wordmark(c.ink),
+              ),
+              const Spacer(),
+            ] else ...[
+              if (canPop) ...[
+                Tooltip(
+                  message: 'Geri dön',
+                  child: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: onBack ?? () => Navigator.maybePop(context),
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: SwanSpace.sm),
+                      child: Container(
+                        width: 28,
+                        height: 28,
+                        alignment: Alignment.centerLeft,
+                        child: Icon(
+                          Icons.arrow_back_ios_new_rounded,
+                          size: 18,
+                          color: c.ink,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
               ],
-            ),
-          ),
-          ...actions,
-          if (trailing != null) ...[
-            const SizedBox(width: SwanSpace.xs),
-            trailing!,
+              Expanded(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: SwanType.h3(c.ink),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    if (subtitle != null && subtitle!.trim().isNotEmpty)
+                      Text(
+                        subtitle!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+            ...actions,
+            if (trailing != null) ...[
+              const SizedBox(width: SwanSpace.xs),
+              trailing!,
+            ],
           ],
-        ],
+        ),
       ),
     );
   }
@@ -82,9 +123,9 @@ class StitchSectionTitle extends StatelessWidget {
     this.trailing,
     this.padding = const EdgeInsets.fromLTRB(
       SwanSpace.lg,
-      0,
+      SwanSpace.md,
       SwanSpace.lg,
-      SwanSpace.sm,
+      SwanSpace.xs,
     ),
   });
 
@@ -100,34 +141,41 @@ class StitchSectionTitle extends StatelessWidget {
     return Padding(
       padding: padding,
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Container(
-            width: 6,
-            height: 18,
-            decoration: BoxDecoration(
-              color: c.accent,
-              borderRadius: BorderRadius.circular(999),
-            ),
-          ),
-          const SizedBox(width: 7),
           Expanded(
             child: Text(
               title,
-              maxLines: 2,
+              maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: SwanType.h3(c.ink),
             ),
           ),
           if (trailing != null) trailing!,
           if (actionLabel != null && onAction != null)
-            TextButton(
-              onPressed: onAction,
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(actionLabel!),
-                  const Icon(Icons.chevron_right_rounded, size: 16),
-                ],
+            InkWell(
+              onTap: onAction,
+              borderRadius: BorderRadius.circular(SwanRadius.sm),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SwanSpace.xs,
+                  vertical: 2,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      actionLabel!,
+                      style: SwanType.caption(c.accent, w: FontWeight.w700),
+                    ),
+                    const SizedBox(width: 2),
+                    Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      size: 11,
+                      color: c.accent,
+                    ),
+                  ],
+                ),
               ),
             ),
         ],
@@ -158,22 +206,23 @@ class StitchSearchBar extends StatelessWidget {
             onTap: onTap,
             borderRadius: BorderRadius.circular(SwanRadius.md),
             child: Container(
-              height: 50,
-              padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+              height: 44,
+              padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
               decoration: BoxDecoration(
                 color: c.surfaceAlt,
                 borderRadius: BorderRadius.circular(SwanRadius.md),
+                border: Border.all(color: c.line.withValues(alpha: .5)),
               ),
               child: Row(
                 children: [
                   Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
-                  const SizedBox(width: SwanSpace.md),
+                  const SizedBox(width: SwanSpace.sm),
                   Expanded(
                     child: Text(
                       hint,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: SwanType.body(c.inkMuted),
+                      style: SwanType.bodySm(c.inkMuted),
                     ),
                   ),
                 ],
@@ -187,13 +236,14 @@ class StitchSearchBar extends StatelessWidget {
             onTap: onFilter,
             borderRadius: BorderRadius.circular(SwanRadius.md),
             child: Container(
-              width: 50,
-              height: 50,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: c.surfaceAlt,
                 borderRadius: BorderRadius.circular(SwanRadius.md),
+                border: Border.all(color: c.line.withValues(alpha: .5)),
               ),
-              child: Icon(Icons.tune_rounded, size: 20, color: c.ink),
+              child: Icon(Icons.tune_rounded, size: 19, color: c.ink),
             ),
           ),
         ],
@@ -225,16 +275,17 @@ class StitchInlineSearchField extends StatelessWidget {
       children: [
         Expanded(
           child: Container(
-            height: 50,
-            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
             decoration: BoxDecoration(
               color: c.surfaceAlt,
               borderRadius: BorderRadius.circular(SwanRadius.md),
+              border: Border.all(color: c.line.withValues(alpha: .5)),
             ),
             child: Row(
               children: [
                 Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
-                const SizedBox(width: SwanSpace.md),
+                const SizedBox(width: SwanSpace.sm),
                 Expanded(
                   child: TextField(
                     controller: controller,
@@ -244,10 +295,11 @@ class StitchInlineSearchField extends StatelessWidget {
                     decoration: InputDecoration(
                       border: InputBorder.none,
                       isDense: true,
+                      contentPadding: EdgeInsets.zero,
                       hintText: hint,
-                      hintStyle: SwanType.body(c.inkMuted),
+                      hintStyle: SwanType.bodySm(c.inkMuted),
                     ),
-                    style: SwanType.body(c.ink, w: FontWeight.w600),
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w600),
                   ),
                 ),
                 if (controller.text.isNotEmpty)
@@ -259,8 +311,11 @@ class StitchInlineSearchField extends StatelessWidget {
                     borderRadius: BorderRadius.circular(999),
                     child: Padding(
                       padding: const EdgeInsets.all(4),
-                      child: Icon(Icons.close_rounded,
-                          size: 18, color: c.inkMuted),
+                      child: Icon(
+                        Icons.close_rounded,
+                        size: 18,
+                        color: c.inkMuted,
+                      ),
                     ),
                   ),
               ],
@@ -273,13 +328,14 @@ class StitchInlineSearchField extends StatelessWidget {
             onTap: onFilter,
             borderRadius: BorderRadius.circular(SwanRadius.md),
             child: Container(
-              width: 50,
-              height: 50,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
                 color: c.surfaceAlt,
                 borderRadius: BorderRadius.circular(SwanRadius.md),
+                border: Border.all(color: c.line.withValues(alpha: .5)),
               ),
-              child: Icon(Icons.tune_rounded, size: 20, color: c.ink),
+              child: Icon(Icons.tune_rounded, size: 19, color: c.ink),
             ),
           ),
         ],
@@ -317,15 +373,8 @@ class StitchHeroCard extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: c.isDark ? .16 : .04),
-            blurRadius: 12,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.line.withValues(alpha: .8)),
       ),
       clipBehavior: Clip.antiAlias,
       child: InkWell(
@@ -334,7 +383,7 @@ class StitchHeroCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: 128,
+              height: 110,
               width: double.infinity,
               padding: const EdgeInsets.all(SwanSpace.md),
               decoration: BoxDecoration(
@@ -342,9 +391,11 @@ class StitchHeroCard extends StatelessWidget {
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [
-                    color.withValues(alpha: .86),
-                    c.accentFill.withValues(alpha: .70),
-                    const Color(0xFF111827),
+                    color.withValues(alpha: .85),
+                    c.accentFill.withValues(alpha: .65),
+                    c.isDark
+                        ? const Color(0xFF0F172A)
+                        : const Color(0xFF1E293B),
                   ],
                 ),
               ),
@@ -542,6 +593,78 @@ class StitchMiniStat extends StatelessWidget {
         value: value,
         icon: icon,
         tone: tone,
+      ),
+    );
+  }
+}
+
+class StitchFilterPill extends StatelessWidget {
+  const StitchFilterPill({
+    super.key,
+    required this.label,
+    this.count,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  final String label;
+  final int? count;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Semantics(
+      button: true,
+      selected: isSelected,
+      child: AnimatedContainer(
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        height: 36,
+        decoration: BoxDecoration(
+          color: isSelected ? c.accentFill : c.surfaceAlt,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+              color: isSelected ? c.accentFill : c.line.withValues(alpha: .6)),
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(20),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onTap,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Text(label,
+                    style: SwanType.caption(
+                      isSelected ? Colors.white : c.ink,
+                      w: isSelected ? FontWeight.w700 : FontWeight.w500,
+                    )),
+                if (count != null) ...[
+                  const SizedBox(width: SwanSpace.sm),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    decoration: BoxDecoration(
+                      color: isSelected
+                          ? Colors.white.withValues(alpha: .24)
+                          : c.line.withValues(alpha: .8),
+                      borderRadius: BorderRadius.circular(SwanRadius.sm),
+                    ),
+                    child: Text('$count',
+                        style: SwanType.caption(
+                            isSelected ? Colors.white : c.inkMuted,
+                            w: FontWeight.w700)),
+                  ),
+                ],
+              ]),
+            ),
+          ),
+        ),
       ),
     );
   }

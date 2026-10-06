@@ -35,7 +35,17 @@ class _SwanShimmerState extends State<SwanShimmer>
   late final AnimationController _c = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1200),
-  )..repeat();
+  );
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _c.stop();
+    } else {
+      _c.repeat();
+    }
+  }
 
   @override
   void dispose() {
@@ -93,13 +103,13 @@ class SwanListSkeleton extends StatelessWidget {
       padding: const EdgeInsets.symmetric(
           horizontal: SwanSpace.lg, vertical: SwanSpace.md),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           for (var i = 0; i < rows; i++)
             Padding(
               padding: const EdgeInsets.only(bottom: SwanSpace.lg),
               child: Row(children: [
-                const SwanShimmer(
-                    width: 48, height: 48, radius: SwanRadius.md),
+                const SwanShimmer(width: 48, height: 48, radius: SwanRadius.md),
                 const SizedBox(width: SwanSpace.md),
                 Expanded(
                   child: Column(
@@ -119,4 +129,64 @@ class SwanListSkeleton extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Gönderi geometrisi: kimlik, medya ve iki metin satırı.
+class SwanCardSkeleton extends StatelessWidget {
+  const SwanCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Row(children: [
+            SwanShimmer(width: 40, height: 40, radius: SwanRadius.md),
+            SizedBox(width: SwanSpace.md),
+            Expanded(child: SwanShimmer(width: double.infinity, height: 14)),
+          ]),
+          const SizedBox(height: SwanSpace.md),
+          const SwanShimmer(
+              width: double.infinity, height: 180, radius: SwanRadius.md),
+          const SizedBox(height: SwanSpace.md),
+          const SwanShimmer(width: double.infinity, height: 13),
+          const SizedBox(height: SwanSpace.sm),
+          const Align(
+              alignment: Alignment.centerLeft,
+              child: SwanShimmer(width: 160, height: 11)),
+        ]),
+      );
+}
+
+/// Galeri iskeleti; kendi kaydırıcısını kurmadan sliver içinde de kullanılır.
+class SwanGridSkeleton extends StatelessWidget {
+  const SwanGridSkeleton({this.rows = 2, super.key});
+  final int rows;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (var i = 0; i < rows; i++)
+            const Padding(
+              padding: EdgeInsets.only(bottom: SwanSpace.md),
+              child: Row(children: [
+                Expanded(
+                    child: AspectRatio(
+                        aspectRatio: 1,
+                        child: SwanShimmer(
+                            width: double.infinity,
+                            height: double.infinity,
+                            radius: SwanRadius.md))),
+                SizedBox(width: SwanSpace.md),
+                Expanded(
+                    child: AspectRatio(
+                        aspectRatio: 1,
+                        child: SwanShimmer(
+                            width: double.infinity,
+                            height: double.infinity,
+                            radius: SwanRadius.md))),
+              ]),
+            ),
+        ]),
+      );
 }

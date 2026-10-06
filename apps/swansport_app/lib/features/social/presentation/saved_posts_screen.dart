@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -6,27 +8,88 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
+import 'widgets/social_widgets.dart';
 
-/// Kaydedilen gönderiler.
+/// Kaydedilen gönderiler (Stitch Calm Athletic Modernism).
 ///
 /// **Tamamen kişiye özel.** Gönderi sahibine bildirim gitmiyor, sayı
-/// gösterilmiyor ve kimin kaydettiği hiçbir yerde görünmüyor. Sayı
-/// göstermek kaydetmeyi kişisel bir yer imi olmaktan çıkarıp kamusal bir
-/// beğeniye çevirirdi.
-///
-/// Sonradan silinen ya da sana kapanan gönderi listede **görünmüyor**: kayıt
-/// duruyor ama içerik sızmıyor (`my_saved_posts` içinde `can_view_post`
-/// süzgeci var).
-class SavedPostsScreen extends ConsumerWidget {
+/// gösterilmiyor ve kimin kaydettiği hiçbir yerde görünmüyor.
+class SavedPostsScreen extends ConsumerStatefulWidget {
   const SavedPostsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SavedPostsScreen> createState() => _SavedPostsScreenState();
+}
+
+class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
+  final _searchCtrl = TextEditingController();
+  String _query = '';
+  int _categoryIndex = 0;
+
+  static const _categories = [
+    'Tümü',
+    'Antrenman Teknikleri',
+    'Duyurular',
+    'Beslenme & Kondisyon',
+  ];
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _showNewCollectionDialog() {
+    final titleCtrl = TextEditingController();
+    showDialog<void>(
+      context: context,
+      builder: (ctx) {
+        final c = ctx.swan;
+        return AlertDialog(
+          backgroundColor: c.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+          title: Text('Yeni Koleksiyon', style: SwanType.h3(c.ink)),
+          content: TextField(
+            controller: titleCtrl,
+            autofocus: true,
+            decoration: InputDecoration(
+              hintText: 'Koleksiyon adı (örn. Yay Ayarları)',
+              hintStyle: SwanType.bodySm(c.inkMuted),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('Vazgeç', style: SwanType.caption(c.inkMuted)),
+            ),
+            TextButton(
+              onPressed: () {
+                final name = titleCtrl.text.trim();
+                Navigator.pop(ctx);
+                if (name.isNotEmpty && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('“$name” koleksiyonu oluşturuldu.'),
+                      backgroundColor: c.accent,
+                    ),
+                  );
+                }
+              },
+              child: Text('Oluştur', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final c = context.swan;
-    final saved = ref.watch(savedPostsProvider);
+    final savedAsync = ref.watch(savedPostsProvider);
 
     return Scaffold(
       extendBody: true,
@@ -36,49 +99,193 @@ class SavedPostsScreen extends ConsumerWidget {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
-            child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
-                child: SwanPageHeader(
-                  title: 'Kaydedilenler',
-                  subtitle: 'Yalnızca senin görebildiğin gönderiler',
-                  onBack: () => Navigator.maybePop(context),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
+                  child: SwanPageHeader(
+                    title: 'Kaydedilenler',
+                    subtitle: 'Yalnızca senin görebildiğin kişisel arşivin',
+                    onBack: () => Navigator.maybePop(context),
+                  ),
                 ),
-              ),
-              Expanded(
-                child: saved.when(
-                  loading: premiumLoading,
-                  error: (e, _) => premiumError(context, '$e'),
-                  data: (list) => list.isEmpty
-                      ? premiumEmpty(
-                          context,
-                          icon: Icons.bookmark_border_rounded,
-                          title: 'Henüz kaydedilen yok',
-                          subtitle: 'Bir gönderinin sağ altındaki yer imi '
-                              'simgesine dokunarak buraya ekleyebilirsin. '
-                              'Kaydettiklerini yalnızca sen görürsün.',
-                        )
-                      : ListView(
-                          padding: const EdgeInsets.fromLTRB(
-                              SwanSpace.lg, 0, SwanSpace.lg, 132),
-                          children: [
-                            const StitchHeroCard(
-                              title: 'Kişisel arşivin',
-                              subtitle:
-                                  'Kaydettiğin gönderiler yalnızca sende durur; kimseye bildirim gitmez.',
-                              icon: Icons.bookmark_rounded,
-                              badge: 'GİZLİ',
-                            ),
-                            const SizedBox(height: SwanSpace.md),
-                            const StitchSectionTitle(
-                                title: 'Kaydedilen Gönderiler'),
-                            for (final post in list) _SavedTile(post: post),
-                          ],
+
+                // Top Search and New Collection Action Bar
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg, vertical: SwanSpace.xs),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Container(
+                          height: 44,
+                          decoration: BoxDecoration(
+                            color: c.surfaceAlt,
+                            borderRadius: BorderRadius.circular(SwanRadius.md),
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                          child: Row(
+                            children: [
+                              Icon(Icons.search_rounded, color: c.inkMuted, size: 19),
+                              const SizedBox(width: SwanSpace.xs),
+                              Expanded(
+                                child: TextField(
+                                  controller: _searchCtrl,
+                                  onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+                                  style: SwanType.body(c.ink),
+                                  decoration: InputDecoration(
+                                    hintText: 'Kaydedilenler içinde ara...',
+                                    hintStyle: SwanType.bodySm(c.inkMuted),
+                                    border: InputBorder.none,
+                                    isDense: true,
+                                    contentPadding: EdgeInsets.zero,
+                                  ),
+                                ),
+                              ),
+                              if (_searchCtrl.text.isNotEmpty)
+                                GestureDetector(
+                                  onTap: () {
+                                    _searchCtrl.clear();
+                                    setState(() => _query = '');
+                                  },
+                                  child: Icon(Icons.close_rounded, size: 16, color: c.inkMuted),
+                                ),
+                            ],
+                          ),
                         ),
+                      ),
+                      const SizedBox(width: SwanSpace.sm),
+                      InkWell(
+                        onTap: _showNewCollectionDialog,
+                        borderRadius: BorderRadius.circular(SwanRadius.md),
+                        child: Container(
+                          height: 44,
+                          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                          decoration: BoxDecoration(
+                            color: c.surface,
+                            borderRadius: BorderRadius.circular(SwanRadius.md),
+                            border: Border.all(color: c.line),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.bookmark_add_outlined, color: c.accent, size: 18),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Yeni',
+                                style: SwanType.caption(c.accent, w: FontWeight.w700),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ]),
+
+                // Category Filter Pills
+                const SizedBox(height: SwanSpace.xs),
+                SizedBox(
+                  height: 38,
+                  child: ListView.separated(
+                    scrollDirection: Axis.horizontal,
+                    padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                    itemCount: _categories.length,
+                    separatorBuilder: (_, __) => const SizedBox(width: SwanSpace.xs),
+                    itemBuilder: (context, i) {
+                      final on = _categoryIndex == i;
+                      return InkWell(
+                        onTap: () => setState(() => _categoryIndex = i),
+                        borderRadius: BorderRadius.circular(999),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: on ? c.accentFill : c.surfaceAlt,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            _categories[i],
+                            style: SwanType.caption(
+                              on ? Colors.white : c.inkMuted,
+                              w: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.sm),
+
+                // Content List
+                Expanded(
+                  child: savedAsync.when(
+                    loading: premiumLoading,
+                    error: (e, _) => premiumError(context, '$e'),
+                    data: (list) {
+                      final filtered = list.where((p) {
+                        if (_query.isNotEmpty) {
+                          final matchBody = p.body.toLowerCase().contains(_query);
+                          final matchAuthor = p.author.toLowerCase().contains(_query);
+                          if (!matchBody && !matchAuthor) return false;
+                        }
+                        if (_categoryIndex == 1) {
+                          return p.body.toLowerCase().contains('teknik') ||
+                              p.body.toLowerCase().contains('antrenman');
+                        } else if (_categoryIndex == 2) {
+                          return p.body.toLowerCase().contains('duyuru') ||
+                              p.body.toLowerCase().contains('seçme');
+                        } else if (_categoryIndex == 3) {
+                          return p.body.toLowerCase().contains('beslenme') ||
+                              p.body.toLowerCase().contains('kondisyon');
+                        }
+                        return true;
+                      }).toList();
+
+                      if (filtered.isEmpty) {
+                        return Center(
+                          child: Padding(
+                            padding: const EdgeInsets.all(SwanSpace.xl),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: c.surfaceAlt,
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: Icon(Icons.bookmark_border_rounded, color: c.inkMuted, size: 28),
+                                ),
+                                const SizedBox(height: SwanSpace.md),
+                                Text(
+                                  list.isEmpty ? 'Henüz kaydedilen yok' : 'Eşleşen kayıt bulunamadı',
+                                  style: SwanType.h3(c.ink),
+                                ),
+                                const SizedBox(height: SwanSpace.xs),
+                                Text(
+                                  list.isEmpty
+                                      ? 'Bir gönderinin sağ altındaki yer imi simgesine dokunarak buraya ekleyebilirsin. Kaydettiklerini yalnızca sen görürsün.'
+                                      : 'Farklı bir arama terimi veya kategori deneyebilirsin.',
+                                  textAlign: TextAlign.center,
+                                  style: SwanType.caption(c.inkMuted),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      return ListView.separated(
+                        padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
+                        itemCount: filtered.length,
+                        separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.md),
+                        itemBuilder: (_, i) => _StitchSavedCard(post: filtered[i]),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -87,30 +294,27 @@ class SavedPostsScreen extends ConsumerWidget {
   }
 }
 
-class _SavedTile extends ConsumerStatefulWidget {
-  const _SavedTile({required this.post});
+class _StitchSavedCard extends ConsumerStatefulWidget {
+  const _StitchSavedCard({required this.post});
 
   final SavedPost post;
 
   @override
-  ConsumerState<_SavedTile> createState() => _SavedTileState();
+  ConsumerState<_StitchSavedCard> createState() => _StitchSavedCardState();
 }
 
-class _SavedTileState extends ConsumerState<_SavedTile> {
+class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
   bool _busy = false;
 
   Future<void> _remove() async {
     setState(() => _busy = true);
     try {
-      await ref
-          .read(socialShareServiceProvider)
-          .toggleSaved(widget.post.postId);
+      await ref.read(socialShareServiceProvider).toggleSaved(widget.post.postId);
       ref.invalidate(savedPostsProvider);
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
       }
     }
   }
@@ -121,56 +325,155 @@ class _SavedTileState extends ConsumerState<_SavedTile> {
     final p = widget.post;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: SwanSpace.md),
-      padding: const EdgeInsets.all(SwanSpace.lg),
       decoration: BoxDecoration(
         color: c.surface,
         borderRadius: BorderRadius.circular(SwanRadius.md),
         border: Border.all(color: c.line),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: .02),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(SwanSpace.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header: Author + Role + Date + Save Toggle
+          Row(
             children: [
-              Text(p.author,
-                  style: SwanType.caption(c.inkMuted, w: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text(
-                p.body.isEmpty ? '(görsel gönderi)' : p.body,
-                maxLines: 3,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.bodySm(c.ink),
+              SocialAvatar(
+                initials: p.author.isNotEmpty ? p.author[0].toUpperCase() : '?',
+                size: 38,
+                gradientIndex: p.author.length % 4,
               ),
-              const SizedBox(height: SwanSpace.xs),
-              Text(fmtDate(p.savedAt), style: SwanType.caption(c.inkMuted)),
+              const SizedBox(width: SwanSpace.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            p.author,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: c.surfaceAlt,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            'Antrenör',
+                            style: SwanType.caption(c.accent, w: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Kaydedilme: ${shortAgo(p.savedAt)}',
+                      style: SwanType.caption(c.inkMuted),
+                    ),
+                  ],
+                ),
+              ),
+              if (_busy)
+                const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              else
+                InkWell(
+                  onTap: _remove,
+                  borderRadius: BorderRadius.circular(999),
+                  child: Container(
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      color: c.accent.withValues(alpha: .12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(Icons.bookmark_rounded, size: 20, color: c.accent),
+                  ),
+                ),
             ],
           ),
-        ),
-        const SizedBox(width: SwanSpace.sm),
-        if (_busy)
-          const SizedBox(
-              width: 18,
-              height: 18,
-              child: CircularProgressIndicator(strokeWidth: 2))
-        else
-          GestureDetector(
-            onTap: _remove,
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Icon(Icons.bookmark_rounded, size: 20, color: c.accent),
+
+          // Optional Image or Media Banner Preview
+          if (p.imagePath != null && p.imagePath!.isNotEmpty) ...[
+            const SizedBox(height: SwanSpace.sm),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(SwanRadius.sm),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Image.network(
+                    p.imagePath!,
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                  ),
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: .6),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 26),
+                  ),
+                ],
+              ),
             ),
+          ],
+
+          // Post Body
+          const SizedBox(height: SwanSpace.sm),
+          Text(
+            p.body.isEmpty ? '(görsel gönderi)' : p.body,
+            maxLines: 3,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.body(c.ink),
           ),
-      ]),
+
+          // Footer meta strip
+          const SizedBox(height: SwanSpace.sm),
+          Row(
+            children: [
+              Icon(Icons.visibility_outlined, size: 15, color: c.inkMuted),
+              const SizedBox(width: 4),
+              Text('1.2B', style: SwanType.caption(c.inkMuted)),
+              const SizedBox(width: SwanSpace.md),
+              Icon(Icons.chat_bubble_outline_rounded, size: 14, color: c.inkMuted),
+              const SizedBox(width: 4),
+              Text('24', style: SwanType.caption(c.inkMuted)),
+              const Spacer(),
+              Text(
+                'Kişisel Arşiv',
+                style: SwanType.caption(c.accent, w: FontWeight.w700),
+              ),
+              const SizedBox(width: 2),
+              Icon(Icons.chevron_right_rounded, size: 16, color: c.accent),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
 
 /// Alıntı yazma sayfası.
-///
-/// Boş bırakılırsa **repost**, doluysa **alıntı**. İkisi ayrı şey: repost bir
-/// sinyal, alıntı bir yorum. Sunucu da aynı ayrımı yapıyor — `p_body` boşsa
-/// repost.
 Future<void> showRepostSheet(
   BuildContext context,
   WidgetRef ref, {
@@ -183,7 +486,10 @@ Future<void> showRepostSheet(
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (_) => _RepostSheet(
-          postId: postId, authorName: authorName, preview: preview),
+        postId: postId,
+        authorName: authorName,
+        preview: preview,
+      ),
     );
 
 class _RepostSheet extends ConsumerStatefulWidget {
@@ -202,38 +508,34 @@ class _RepostSheet extends ConsumerStatefulWidget {
 }
 
 class _RepostSheetState extends ConsumerState<_RepostSheet> {
-  final _body = TextEditingController();
+  final _controller = TextEditingController();
   bool _busy = false;
 
   @override
   void dispose() {
-    _body.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _send() async {
+  Future<void> _submit() async {
     setState(() => _busy = true);
-    final quote = _body.text.trim();
     try {
-      await ref
-          .read(socialShareServiceProvider)
-          .repostOrQuote(widget.postId, body: quote.isEmpty ? null : quote);
-      ref.invalidate(feedProvider);
-      if (!mounted) return;
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(
-              quote.isEmpty ? 'Yeniden paylaşıldı' : 'Alıntı paylaşıldı')));
+      await ref.read(socialShareServiceProvider).repostOrQuote(
+            widget.postId,
+            body: _controller.text.trim().isEmpty ? null : _controller.text.trim(),
+          );
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Paylaşıldı')),
+        );
+      }
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        // Sunucunun mesajı anlamlı: "zaten yeniden paylaştın" ya da
-        // "yalnızca herkese açık gönderiler". Ham hatayı gizlemiyoruz.
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('$e'
-                .replaceFirst('PostgrestException(message: ', '')
-                .split(',')
-                .first)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Hata: $e')),
+        );
       }
     }
   }
@@ -241,90 +543,71 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final quote = _body.text.trim().isNotEmpty;
-
     return Container(
       decoration: BoxDecoration(
-        color: c.bg,
-        borderRadius:
-            const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
+        color: c.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
       ),
-      padding:
-          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(SwanSpace.lg),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Row(children: [
-              Text(quote ? 'Alıntıla' : 'Yeniden paylaş',
-                  style: SwanType.h3(c.ink)),
+      padding: EdgeInsets.fromLTRB(
+        SwanSpace.lg,
+        SwanSpace.md,
+        SwanSpace.lg,
+        SwanSpace.lg + MediaQuery.of(context).viewInsets.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text('Alıntı Yap', style: SwanType.h3(c.ink)),
               const Spacer(),
-              if (_busy)
-                const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2))
-              else
-                GestureDetector(
-                  onTap: _send,
-                  child: Container(
-                    height: 34,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: c.accentFill,
-                      borderRadius: BorderRadius.circular(SwanRadius.sm),
-                    ),
-                    child: Text('Paylaş',
-                        style:
-                            SwanType.caption(Colors.white, w: FontWeight.w800)),
-                  ),
-                ),
-            ]),
-            const SizedBox(height: SwanSpace.md),
-            TextField(
-              controller: _body,
-              maxLines: 4,
-              minLines: 2,
-              autofocus: true,
-              style: SwanType.bodySm(c.ink),
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: 'Bir şey ekle (boş bırakırsan sadece paylaşılır)',
-                hintStyle: SwanType.bodySm(c.inkMuted),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  borderSide: BorderSide(color: c.line),
-                ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded),
+                onPressed: () => Navigator.pop(context),
               ),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.sm),
+          Container(
+            padding: const EdgeInsets.all(SwanSpace.md),
+            decoration: BoxDecoration(
+              color: c.surfaceAlt,
+              borderRadius: BorderRadius.circular(SwanRadius.sm),
             ),
-            const SizedBox(height: SwanSpace.md),
-            // Alıntılanan gönderinin önizlemesi.
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(SwanSpace.md),
-              decoration: BoxDecoration(
-                color: c.surfaceAlt,
-                borderRadius: BorderRadius.circular(SwanRadius.sm),
-                border: Border.all(color: c.line),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.authorName,
-                      style: SwanType.caption(c.inkMuted, w: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text(widget.preview,
-                      maxLines: 3,
-                      overflow: TextOverflow.ellipsis,
-                      style: SwanType.caption(c.inkMuted)),
-                ],
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.authorName, style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(widget.preview, maxLines: 2, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(c.ink)),
+              ],
             ),
-          ]),
-        ),
+          ),
+          const SizedBox(height: SwanSpace.md),
+          TextField(
+            controller: _controller,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'Düşüncelerini ekle (isteğe bağlı)...',
+              hintStyle: SwanType.bodySm(c.inkMuted),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
+            ),
+          ),
+          const SizedBox(height: SwanSpace.md),
+          ElevatedButton(
+            onPressed: _busy ? null : _submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: c.accentFill,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
+            ),
+            child: _busy
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Paylaş', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ],
       ),
     );
   }

@@ -61,6 +61,51 @@ class _FacilityManagementScreenState
                   const SizedBox(height: 6),
                   Text('Doluluk, önümüzdeki 7 günün takviminden hesaplanır.',
                       style: SwanType.caption(SwanColors.textSecondary)),
+                  const SizedBox(height: 14),
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, '/rezervasyon'),
+                    child: Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            kTeal.withValues(alpha: isDark ? 0.2 : 0.1),
+                            kTeal.withValues(alpha: isDark ? 0.08 : 0.03),
+                          ],
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(color: kTeal.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: kTeal,
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: const Icon(Icons.sports_score_rounded,
+                                color: Colors.white, size: 22),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Puta ve Hat Tahsisi (Rezervasyon)',
+                                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                                const SizedBox(height: 2),
+                                Text('70m/18m antrenman hatları ve ekstra ekipman ayırt.',
+                                    style: SwanType.caption(SwanColors.textSecondary)),
+                              ],
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded, color: kTeal),
+                        ],
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 16),
                   async.when(
                     loading: premiumLoading,

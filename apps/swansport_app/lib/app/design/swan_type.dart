@@ -37,12 +37,12 @@ class SwanType {
 
   /// Ürün adı için imza hissinde logotype. Yalnız marka ismiyle kullanılır;
   /// gövde ve başlıklarda kullanılmaz, çünkü okunabilirlik önceliklidir.
-  static TextStyle wordmark(Color c) => GoogleFonts.caveat(
-        fontSize: 28,
-        fontWeight: FontWeight.w700,
+  static TextStyle wordmark(Color c) => GoogleFonts.grandHotel(
+        fontSize: 32,
+        fontWeight: FontWeight.w600,
         color: c,
-        letterSpacing: -0.8,
-        height: 1,
+        letterSpacing: -0.5,
+        height: 1.1,
       );
 
   /// 32 — hero, performans skoru. Ekranda en fazla bir tane.

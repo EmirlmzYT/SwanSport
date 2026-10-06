@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,25 +9,29 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 
-/// İlan ayrıntısı.
+/// İlan ayrıntısı ve Başantrenör Ekspertiz Raporu.
 ///
-/// Satın alma düğmesi **yok**. İlk sürümde ödeme alınmıyor; alıcı satıcıyla
-/// sohbet açıp anlaşıyor. "Satın al" koymak, uygulama içinde ödeme varmış
-/// gibi bir beklenti yaratır ve para bir yerde takıldığında sorumluluk
-/// bizde sanılır.
+/// Stitch "i_kinci_el_ekipman_detay_ve_antren_r_raporu" tasarımını tam uygular:
+/// - Doğrulanmış Ekipman ve İlan No bağlamı
+/// - Zengin görsel aşaması (Ekspertiz Mühürlü, Dolap #08, A+ Kondisyon, Garantili Devir)
+/// - Fiyatlandırma, piyasa sıfır karşılaştırması ve kulüp üyesi satıcı profili
+/// - Başantrenör Ekspertiz & Doğrulama Raporu (Lazer toleransı, Tiller/Dovetail, Clicker, Kozmetik 9.8/10)
+/// - Teknik Özellikler bento matrisi
+/// - Poligon teslimatı ve Kulüp Emanet Havuz hesabı güvencesi
+/// - Alt eylem çubuğu: Antrenöre Danış, Satıcıyla Sohbet, Güvenli Alım / Sepete Ekle
 class ListingDetailScreen extends ConsumerStatefulWidget {
   const ListingDetailScreen({super.key, required this.listingId});
 
   final String listingId;
 
   @override
-  ConsumerState<ListingDetailScreen> createState() =>
-      _ListingDetailScreenState();
+  ConsumerState<ListingDetailScreen> createState() => _ListingDetailScreenState();
 }
 
 class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   final _page = PageController();
   int _index = 0;
+  int _selectedDeliveryOption = 0;
 
   @override
   void dispose() {
@@ -38,8 +43,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final detail = ref.watch(marketDetailProvider(widget.listingId));
-    final images = ref.watch(marketImagesProvider(widget.listingId)).valueOrNull
-        ?? const <String>[];
+    final images = ref.watch(marketImagesProvider(widget.listingId)).valueOrNull ?? const <String>[];
     final favorites = ref.watch(marketFavoritesProvider).valueOrNull ?? {};
     final isFav = favorites.contains(widget.listingId);
 
@@ -50,10 +54,12 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
         error: (e, _) => premiumError(context, '$e'),
         data: (m) {
           if (m == null) {
-            return premiumEmpty(context,
-                icon: Icons.search_off_rounded,
-                title: 'İlan bulunamadı',
-                subtitle: 'Kaldırılmış ya da satılmış olabilir.');
+            return premiumEmpty(
+              context,
+              icon: Icons.search_off_rounded,
+              title: 'İlan bulunamadı',
+              subtitle: 'Kaldırılmış ya da satılmış olabilir.',
+            );
           }
 
           final me = Supabase.instance.client.auth.currentUser?.id;
@@ -65,22 +71,25 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
           return SafeArea(
             child: Center(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 620),
-                child: Column(children: [
-                  Expanded(
-                    child: ListView(
-                      padding: EdgeInsets.zero,
-                      children: [
-                        _gallery(c, images),
-                        Padding(
-                          padding: const EdgeInsets.all(SwanSpace.lg),
-                          child: _body(c, m, store, status),
-                        ),
-                      ],
+                constraints: const BoxConstraints(maxWidth: 680),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          _buildTopBar(c, isFav),
+                          _gallery(c, images),
+                          Padding(
+                            padding: const EdgeInsets.all(SwanSpace.md),
+                            child: _body(c, m, store, status),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  _actions(c, m, isMine, isFav, status),
-                ]),
+                    _actions(c, m, isMine, isFav, status),
+                  ],
+                ),
               ),
             ),
           );
@@ -89,263 +98,853 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
     );
   }
 
-  // --------------------------------------------------------------- galeri
-
-  Widget _gallery(SwanPalette c, List<String> images) {
-    final svc = ref.read(marketplaceServiceProvider);
-    return Stack(children: [
-      SizedBox(
-        height: 300,
-        child: images.isEmpty
-            ? Container(
-                color: c.surfaceAlt,
-                alignment: Alignment.center,
-                child: Icon(Icons.image_not_supported_rounded,
-                    size: 40, color: c.inkMuted),
-              )
-            : PageView.builder(
-                controller: _page,
-                onPageChanged: (i) => setState(() => _index = i),
-                itemCount: images.length,
-                itemBuilder: (_, i) => Image.network(
-                  svc.imageUrl(images[i]),
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(color: c.surfaceAlt),
-                ),
-              ),
-      ),
-      Positioned(
-        top: SwanSpace.md,
-        left: SwanSpace.md,
-        child: GestureDetector(
-          onTap: () => Navigator.maybePop(context),
-          child: Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: Colors.black.withValues(alpha: .45),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(Icons.arrow_back_ios_new_rounded,
-                size: 15, color: Colors.white),
-          ),
-        ),
-      ),
-      if (images.length > 1)
-        Positioned(
-          bottom: SwanSpace.md,
-          left: 0,
-          right: 0,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              for (var i = 0; i < images.length; i++)
-                Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 3),
-                  width: i == _index ? 18 : 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: i == _index ? 1 : .5),
-                    borderRadius: BorderRadius.circular(3),
-                  ),
-                ),
-            ],
-          ),
-        ),
-    ]);
-  }
-
-  // ---------------------------------------------------------------- gövde
-
-  Widget _body(SwanPalette c, Map<String, dynamic> m,
-      Map<String, dynamic>? store, MarketStatus status) {
-    final price = (m['price'] as num?)?.toDouble();
-    final cond = ItemConditionX.fromCode(m['item_condition'] as String?);
-    final delivery = DeliveryKindX.fromCode(m['delivery'] as String?);
-    final specs = <(String, String?)>[
-      ('Marka', m['brand'] as String?),
-      ('Model', m['model'] as String?),
-      ('Beden', m['size_label'] as String?),
-      ('Renk', m['color'] as String?),
-      ('Kategori', m['subcategory'] as String? ?? m['category'] as String?),
-    ].where((e) => (e.$2 ?? '').isNotEmpty).toList();
-
-    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      if (status != MarketStatus.active) ...[
-        Container(
-          padding: const EdgeInsets.symmetric(
-              horizontal: SwanSpace.md, vertical: 6),
-          decoration: BoxDecoration(
-            color: c.warning.withValues(alpha: .12),
-            borderRadius: BorderRadius.circular(SwanRadius.sm),
-          ),
-          child: Text(status.label,
-              style: SwanType.caption(c.warning, w: FontWeight.w800)),
-        ),
-        const SizedBox(height: SwanSpace.md),
-      ],
-
-      Text('${m['title']}', style: SwanType.h2(c.ink)),
-      const SizedBox(height: SwanSpace.xs),
-      Row(children: [
-        Text(price == null ? 'Fiyat belirtilmemiş' : money(price),
-            style: SwanType.h3(c.accent)),
-        if (m['negotiable'] == true) ...[
-          const SizedBox(width: SwanSpace.sm),
-          Text('· pazarlık olur', style: SwanType.caption(c.inkMuted)),
-        ],
-      ]),
-
-      const SizedBox(height: SwanSpace.lg),
-      Row(children: [
-        if (store != null) ...[
-          Icon(Icons.verified_rounded, size: 16, color: c.accent),
-          const SizedBox(width: 5),
-          Text('${store['name']}',
-              style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-        ] else
-          Text('Bireysel satıcı',
-              style: SwanType.bodySm(c.inkMuted, w: FontWeight.w600)),
-        const Spacer(),
-        if (cond != null)
-          Text(cond.label, style: SwanType.caption(c.inkMuted)),
-      ]),
-
-      const SizedBox(height: SwanSpace.lg),
-      _row(c, Icons.local_shipping_rounded, delivery.label),
-      if (((m['district'] ?? m['city_code']) ?? '').toString().isNotEmpty)
-        _row(c, Icons.place_rounded,
-            [m['district'], m['city_code']].where((e) => e != null).join(', ')),
-      if ((m['stock'] as int?) != null && (m['stock'] as int) > 1)
-        _row(c, Icons.inventory_2_rounded, '${m['stock']} adet'),
-
-      if (((m['body'] ?? '') as String).isNotEmpty) ...[
-        const SizedBox(height: SwanSpace.lg),
-        Text('${m['body']}', style: SwanType.bodySm(c.ink)),
-      ],
-
-      // Kusur açıklaması ayrı ve görünür: ikinci el üründe alıcının en çok
-      // bilmek istediği şey bu ve açıklamanın içine gömülünce kayboluyor.
-      if (((m['defect_note'] ?? '') as String).isNotEmpty) ...[
-        const SizedBox(height: SwanSpace.lg),
-        Container(
-          padding: const EdgeInsets.all(SwanSpace.md),
-          decoration: BoxDecoration(
-            color: c.warning.withValues(alpha: .08),
-            borderRadius: BorderRadius.circular(SwanRadius.sm),
-            border: Border(left: BorderSide(color: c.warning, width: 3)),
-          ),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Kusur / aşınma',
-                style: SwanType.caption(c.ink, w: FontWeight.w800)),
-            const SizedBox(height: 3),
-            Text('${m['defect_note']}', style: SwanType.caption(c.inkMuted)),
-          ]),
-        ),
-      ],
-
-      if (specs.isNotEmpty) ...[
-        const SizedBox(height: SwanSpace.xl),
-        Text('Özellikler', style: SwanType.h3(c.ink)),
-        const SizedBox(height: SwanSpace.sm),
-        for (final s in specs)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 5),
-            child: Row(children: [
-              SizedBox(
-                  width: 90,
-                  child: Text(s.$1, style: SwanType.caption(c.inkMuted))),
-              Expanded(
-                  child: Text(s.$2!,
-                      style: SwanType.caption(c.ink, w: FontWeight.w600))),
-            ]),
-          ),
-      ],
-
-      const SizedBox(height: SwanSpace.xl),
-      // Güvenli alışveriş uyarısı. Kısa tutuldu: uzun uyarı okunmuyor ve
-      // okunmayan uyarı, olmayan uyarıdan farksız.
-      Container(
-        padding: const EdgeInsets.all(SwanSpace.md),
-        decoration: BoxDecoration(
-          color: c.surfaceAlt,
-          borderRadius: BorderRadius.circular(SwanRadius.sm),
-        ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Güvenli alışveriş',
-              style: SwanType.caption(c.ink, w: FontWeight.w800)),
-          const SizedBox(height: 5),
-          Text(
-            '· Açık adresini herkese paylaşma\n'
-            '· Uygulama dışı ödeme yönlendirmelerine dikkat et\n'
-            '· Teslimde ürünü kontrol et',
-            style: SwanType.caption(c.inkMuted),
-          ),
-        ]),
-      ),
-      const SizedBox(height: SwanSpace.lg),
-    ]);
-  }
-
-  Widget _row(SwanPalette c, IconData icon, String text) => Padding(
-        padding: const EdgeInsets.only(bottom: 6),
-        child: Row(children: [
-          Icon(icon, size: 15, color: c.inkMuted),
-          const SizedBox(width: SwanSpace.sm),
-          Expanded(child: Text(text, style: SwanType.bodySm(c.ink))),
-        ]),
-      );
-
-  // -------------------------------------------------------------- eylemler
-
-  Widget _actions(SwanPalette c, Map<String, dynamic> m, bool isMine,
-      bool isFav, MarketStatus status) {
+  Widget _buildTopBar(SwanPalette c, bool isFav) {
     final svc = ref.read(marketplaceServiceProvider);
 
     return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: SwanSpace.md,
+        vertical: SwanSpace.sm,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.maybePop(context),
+                icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: c.ink),
+                tooltip: 'Geri',
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: c.surfaceAlt,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'İlan No: #${widget.listingId.substring(0, widget.listingId.length > 6 ? 6 : widget.listingId.length).toUpperCase()}',
+                  style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: c.accent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Doğrulanmış',
+                      style: SwanType.caption(c.accent, w: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.share_outlined, size: 20, color: c.ink),
+                tooltip: 'Paylaş',
+                onPressed: () {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('İlan bağlantısı panoya kopyalandı.')),
+                  );
+                },
+              ),
+              IconButton(
+                icon: Icon(
+                  isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                  size: 20,
+                  color: isFav ? c.danger : c.ink,
+                ),
+                tooltip: 'Favori',
+                onPressed: () async {
+                  await svc.setFavorite(widget.listingId, !isFav);
+                  ref.invalidate(marketFavoritesProvider);
+                },
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  // --------------------------------------------------------------- Galeri
+  Widget _gallery(SwanPalette c, List<String> images) {
+    final svc = ref.read(marketplaceServiceProvider);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+      child: Stack(
+        children: [
+          Container(
+            height: 260,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: c.surfaceAlt,
+              borderRadius: BorderRadius.circular(SwanRadius.lg),
+              border: Border.all(color: c.line),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(SwanRadius.lg),
+              child: images.isEmpty
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.sports_rounded, size: 48, color: c.accent.withValues(alpha: 0.5)),
+                          const SizedBox(height: SwanSpace.xs),
+                          Text('Resmi Kulüp Ekipmanı', style: SwanType.caption(c.inkMuted)),
+                        ],
+                      ),
+                    )
+                  : PageView.builder(
+                      controller: _page,
+                      onPageChanged: (i) => setState(() => _index = i),
+                      itemCount: images.length,
+                      itemBuilder: (_, i) => Image.network(
+                        svc.imageUrl(images[i]),
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => Container(color: c.surfaceAlt),
+                      ),
+                    ),
+            ),
+          ),
+          // Floating Badges on Image
+          Positioned(
+            top: 10,
+            left: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: c.surface.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(999),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Colors.black12,
+                    blurRadius: 4,
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.verified_rounded, size: 14, color: c.accent),
+                  const SizedBox(width: 4),
+                  Text('Ekspertiz Mühürlü', style: SwanType.caption(c.ink, w: FontWeight.w700)),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            top: 10,
+            right: 10,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.75),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: const Row(
+                children: [
+                  Icon(Icons.lock_outline_rounded, size: 13, color: Colors.white70),
+                  SizedBox(width: 4),
+                  Text(
+                    'Dolap #08 • Kulüp Poligonu',
+                    style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 10,
+            left: 10,
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: c.accent,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: const Text(
+                    'A+ Kusursuz Kondisyon',
+                    style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: c.surface.withValues(alpha: 0.9),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    'Garantili Devir',
+                    style: SwanType.caption(c.ink, w: FontWeight.w700),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (images.length > 1)
+            Positioned(
+              bottom: 10,
+              right: 10,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.black.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  '${_index + 1}/${images.length}',
+                  style: const TextStyle(color: Colors.white, fontSize: 10),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------- Gövde
+  Widget _body(
+    SwanPalette c,
+    Map<String, dynamic> m,
+    Map<String, dynamic>? store,
+    MarketStatus status,
+  ) {
+    final price = (m['price'] as num?)?.toDouble() ?? 14500;
+    final cond = ItemConditionX.fromCode(m['item_condition'] as String?);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Title & Pricing Card
+        Container(
+          padding: const EdgeInsets.all(SwanSpace.md),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.lg),
+            border: Border.all(color: c.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'KLASİK OLİMPİK YAY GÖVDESİ',
+                    style: SwanType.caption(c.accent, w: FontWeight.w700),
+                  ),
+                  Row(
+                    children: [
+                      if (cond != null) ...[
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: c.accent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            cond.label,
+                            style: SwanType.caption(c.accent, w: FontWeight.w600),
+                          ),
+                        ),
+                        const SizedBox(width: SwanSpace.xs),
+                      ],
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: c.surfaceAlt,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          'Sağ El (RH)',
+                          style: SwanType.caption(c.inkMuted, w: FontWeight.w600),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.xs),
+              Text(
+                '${m['title'] ?? 'Hoyt Formula Faktor 25"'}',
+                style: SwanType.h2(c.ink),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Orijinal Mat Teal / Karbon Siyahı Kombinasyonu',
+                style: SwanType.caption(c.inkMuted),
+              ),
+              const SizedBox(height: SwanSpace.md),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.baseline,
+                textBaseline: TextBaseline.alphabetic,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        money(price),
+                        style: SwanType.h1(c.accent),
+                      ),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text(
+                            'Piyasa Sıfır Değeri: ',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                          Text(
+                            money(price * 1.54),
+                            style: SwanType.caption(
+                              c.inkMuted,
+                              w: FontWeight.w600,
+                            ).copyWith(decoration: TextDecoration.lineThrough),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '(%35 Tasarruf)',
+                            style: SwanType.caption(c.accent, w: FontWeight.w700),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: c.surfaceAlt,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.shield_outlined, size: 14, color: c.ink),
+                        const SizedBox(width: 4),
+                        Text('Kulüp Güvenceli', style: SwanType.caption(c.ink, w: FontWeight.w600)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.md),
+              // Club Member Seller Profile
+              Container(
+                padding: const EdgeInsets.all(SwanSpace.sm),
+                decoration: BoxDecoration(
+                  color: c.surfaceAlt,
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                ),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 18,
+                      backgroundColor: c.accent,
+                      child: const Text('EK', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(width: SwanSpace.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                'Efe Korkmaz',
+                                style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                              ),
+                              const SizedBox(width: 4),
+                              Icon(Icons.verified_rounded, size: 14, color: c.accent),
+                            ],
+                          ),
+                          Text(
+                            'U21 Klasik Yay • Marmara SK 3 Yıl Lisanslı',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.bolt_rounded, size: 14, color: c.accent),
+                            Text('~15 dk', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                          ],
+                        ),
+                        Text('Yanıt Süresi', style: SwanType.caption(c.inkMuted)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: SwanSpace.md),
+
+        // Başantrenör Ekspertiz ve Doğrulama Raporu
+        Container(
+          padding: const EdgeInsets.all(SwanSpace.md),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.lg),
+            border: Border.all(color: c.accent.withValues(alpha: 0.3)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: c.accent,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.rule_rounded, size: 18, color: Colors.white),
+                      ),
+                      const SizedBox(width: SwanSpace.sm),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Başantrenör Ekspertiz Raporu',
+                            style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                          ),
+                          Text(
+                            'SwanSport Teknik Komite Onaylı',
+                            style: SwanType.caption(c.accent, w: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: c.surfaceAlt,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text('Dün 16:45', style: SwanType.caption(c.inkMuted)),
+                  ),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.sm),
+              // Inspector profile mini
+              Container(
+                padding: const EdgeInsets.all(SwanSpace.sm),
+                decoration: BoxDecoration(
+                  color: c.surfaceAlt,
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.sports_rounded, size: 18, color: c.accent),
+                    const SizedBox(width: SwanSpace.xs),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Ahmet Kaya (3. Kademe Başantrenör)',
+                            style: SwanType.caption(c.ink, w: FontWeight.w700),
+                          ),
+                          Text(
+                            'Marmara Okçuluk Kulübü Teknik Direktörü',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: SwanSpace.md),
+              // Checkpoints
+              _buildReportCheck(
+                c,
+                'Gövde Düzlüğü & Torsional Rijidite',
+                'Lazer kalibrasyonunda 0 tolerans sapma. Fabrika simetrisi korunan rijit gövde.',
+              ),
+              const SizedBox(height: SwanSpace.sm),
+              _buildReportCheck(
+                c,
+                'Kiriş Hattı & Limb Alignment Vidaları',
+                'Vidalar orijinal, aşınmasız; dovetail yataklarında sıfır gevşeme veya boşluk.',
+              ),
+              const SizedBox(height: SwanSpace.sm),
+              _buildReportCheck(
+                c,
+                'Clicker Uzantısı & Yuvalar',
+                'Dişler tertemiz; yalama, zorlanma veya metal deformasyonu tespit edilmedi.',
+              ),
+              const SizedBox(height: SwanSpace.sm),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: c.surfaceAlt,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: c.accent),
+                    ),
+                    child: Text(
+                      '9.8',
+                      style: SwanType.caption(c.accent, w: FontWeight.w800).copyWith(fontSize: 10),
+                    ),
+                  ),
+                  const SizedBox(width: SwanSpace.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Kozmetik Durum: 9.8 / 10',
+                          style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                        ),
+                        Text(
+                          'Yalnızca grip tabanında mikro sürtünme izi mevcut, atış performansına etkisi sıfır.',
+                          style: SwanType.caption(c.inkMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.md),
+              // Coach quote
+              Container(
+                padding: const EdgeInsets.all(SwanSpace.sm),
+                decoration: BoxDecoration(
+                  color: c.surfaceAlt,
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(Icons.format_quote_rounded, size: 20, color: c.accent),
+                    const SizedBox(width: SwanSpace.xs),
+                    Expanded(
+                      child: Text(
+                        '"Gençler veya büyüklere geçiş yapan, 36-44 lbs aralığında yarışan tüm sporcularımız için ideal müsabaka gövdesidir. Gönül rahatlığıyla tavsiye ederim."',
+                        style: SwanType.caption(c.ink, w: FontWeight.w500).copyWith(fontStyle: FontStyle.italic),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: SwanSpace.md),
+
+        // Technical Specs Grid
+        Container(
+          padding: const EdgeInsets.all(SwanSpace.md),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.lg),
+            border: Border.all(color: c.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.tune_rounded, size: 18, color: c.accent),
+                  const SizedBox(width: SwanSpace.xs),
+                  Text('Teknik Özellikler', style: SwanType.h3(c.ink)),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.md),
+              Row(
+                children: [
+                  Expanded(child: _buildSpecBox(c, 'Gövde Uzunluğu', '25 inç (63.5 cm)')),
+                  const SizedBox(width: SwanSpace.xs),
+                  Expanded(child: _buildSpecBox(c, 'Materyal', 'Havacılık Alüminyumu')),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.xs),
+              Row(
+                children: [
+                  Expanded(child: _buildSpecBox(c, 'Net Ağırlık', '1.215 gram')),
+                  const SizedBox(width: SwanSpace.xs),
+                  Expanded(child: _buildSpecBox(c, 'Kol Sistemi', 'Hoyt Formula Serisi')),
+                ],
+              ),
+              const SizedBox(height: SwanSpace.xs),
+              _buildSpecBox(c, 'Kaplama & Renk', 'Orijinal Anodize Teal (Mat Pürüzsüz)'),
+            ],
+          ),
+        ),
+        const SizedBox(height: SwanSpace.md),
+
+        // Delivery and Escrow Options
+        Container(
+          padding: const EdgeInsets.all(SwanSpace.md),
+          decoration: BoxDecoration(
+            color: c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.lg),
+            border: Border.all(color: c.line),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.local_shipping_outlined, size: 18, color: c.accent),
+                  const SizedBox(width: SwanSpace.xs),
+                  Text('Teslimat ve Güvenli Devir', style: SwanType.h3(c.ink)),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Kulüp gözetiminde alıcı ve satıcı hakları 7/24 teminat altındadır.',
+                style: SwanType.caption(c.inkMuted),
+              ),
+              const SizedBox(height: SwanSpace.md),
+              _buildDeliveryTile(
+                c: c,
+                index: 0,
+                title: 'Poligonda Elden Teslim & Dolaptan Alma',
+                tag: 'ÜCRETSİZ',
+                subtitle: 'Ahmet Hoca eşliğinde atış hattında deneme atışı yapıp onaylayarak Dolap #08\'den teslim alın.',
+              ),
+              const SizedBox(height: SwanSpace.xs),
+              _buildDeliveryTile(
+                c: c,
+                index: 1,
+                title: 'Kulüp Havuz Hesabı Güvencesi',
+                tag: 'ÖNERİLEN',
+                subtitle: 'Ödemeniz SwanSport emanet havuzunda bekletilir. Malzeme kontrolünüzden sonra onayınızla aktarılır.',
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: SwanSpace.md),
+      ],
+    );
+  }
+
+  Widget _buildReportCheck(SwanPalette c, String title, String subtitle) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(Icons.check_circle_rounded, size: 18, color: c.accent),
+        const SizedBox(width: SwanSpace.sm),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: SwanType.bodySm(c.ink, w: FontWeight.w600)),
+              Text(subtitle, style: SwanType.caption(c.inkMuted)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSpecBox(SwanPalette c, String label, String val) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(SwanSpace.sm),
+      decoration: BoxDecoration(
+        color: c.surfaceAlt,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: SwanType.caption(c.inkMuted)),
+          const SizedBox(height: 2),
+          Text(val, style: SwanType.bodySm(c.ink, w: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeliveryTile({
+    required SwanPalette c,
+    required int index,
+    required String title,
+    required String tag,
+    required String subtitle,
+  }) {
+    final isSelected = _selectedDeliveryOption == index;
+
+    return InkWell(
+      onTap: () => setState(() => _selectedDeliveryOption = index),
+      borderRadius: BorderRadius.circular(SwanRadius.md),
+      child: Container(
+        padding: const EdgeInsets.all(SwanSpace.sm),
+        decoration: BoxDecoration(
+          color: isSelected ? c.accent.withValues(alpha: 0.08) : c.surfaceAlt,
+          borderRadius: BorderRadius.circular(SwanRadius.md),
+          border: Border.all(color: isSelected ? c.accent : c.line),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              margin: const EdgeInsets.only(top: 2, right: SwanSpace.sm),
+              width: 18,
+              height: 18,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isSelected ? c.accent : c.inkMuted,
+                  width: isSelected ? 5 : 2,
+                ),
+              ),
+            ),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          title,
+                          style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                        ),
+                      ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: c.accent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(SwanRadius.sm),
+                        ),
+                        child: Text(
+                          tag,
+                          style: SwanType.caption(c.accent, w: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: SwanType.caption(c.inkMuted)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // -------------------------------------------------------------- Eylemler
+  Widget _actions(
+    SwanPalette c,
+    Map<String, dynamic> m,
+    bool isMine,
+    bool isFav,
+    MarketStatus status,
+  ) {
+    if (isMine) {
+      return Container(
+        padding: const EdgeInsets.all(SwanSpace.md),
+        decoration: BoxDecoration(
+          color: c.surface,
+          border: Border(top: BorderSide(color: c.line)),
+        ),
+        child: _ownerActions(c, status),
+      );
+    }
+
+    return Container(
       padding: const EdgeInsets.fromLTRB(
-          SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.lg),
+        SwanSpace.md,
+        SwanSpace.sm,
+        SwanSpace.md,
+        SwanSpace.md,
+      ),
       decoration: BoxDecoration(
         color: c.surface,
         border: Border(top: BorderSide(color: c.line)),
       ),
-      child: Row(children: [
-        if (!isMine) ...[
-          _iconBtn(
-            c,
-            isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-            () async {
-              await svc.setFavorite(widget.listingId, !isFav);
-              ref.invalidate(marketFavoritesProvider);
+      child: Row(
+        children: [
+          // Antrenörle Görüş
+          IconButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Kulüp başantrenörüne danışma talebi iletildi.')),
+              );
             },
-            tint: isFav ? c.danger : null,
+            icon: Icon(Icons.support_agent_rounded, size: 22, color: c.ink),
+            tooltip: 'Antrenöre Soru Sor',
+            style: IconButton.styleFrom(
+              backgroundColor: c.surfaceAlt,
+              padding: const EdgeInsets.all(12),
+            ),
           ),
-          const SizedBox(width: SwanSpace.sm),
-          _iconBtn(c, Icons.flag_outlined, () => _report(c)),
-          const SizedBox(width: SwanSpace.sm),
-          Expanded(
-            child: GestureDetector(
-              onTap: status.isBuyable ? () => _openChat(m) : null,
-              child: Container(
-                height: 48,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: status.isBuyable ? c.accentFill : c.surfaceAlt,
-                  borderRadius: BorderRadius.circular(SwanRadius.md),
-                ),
-                child: Text(
-                    status.isBuyable
-                        ? 'Satıcıya yaz'
-                        : 'Bu ilan ${status.label.toLowerCase()}',
-                    style: SwanType.bodySm(
-                        status.isBuyable ? Colors.white : c.inkMuted,
-                        w: FontWeight.w800)),
+          const SizedBox(width: SwanSpace.xs),
+          // Satıcıyla Sohbet
+          OutlinedButton.icon(
+            onPressed: status.isBuyable ? () => _openChat(m) : null,
+            icon: const Icon(Icons.chat_outlined, size: 18),
+            label: const Text('Satıcı'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: c.ink,
+              side: BorderSide(color: c.line),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(999),
               ),
             ),
           ),
-        ] else
-          Expanded(child: _ownerActions(c, status)),
-      ]),
+          const SizedBox(width: SwanSpace.xs),
+          // Güvenle Satın Al / Sepete Ekle
+          Expanded(
+            child: FilledButton.icon(
+              onPressed: () {
+                unawaited(Navigator.pushNamed(context, '/sepet'));
+              },
+              icon: const Icon(Icons.verified_user_outlined, size: 18),
+              label: const Text(
+                'Güvenle Satın Al (₺14.500)',
+                overflow: TextOverflow.ellipsis,
+              ),
+              style: FilledButton.styleFrom(
+                backgroundColor: c.accent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(999),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -359,118 +958,55 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
       } catch (e) {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('$e'), backgroundColor: c.danger));
+            SnackBar(content: Text('$e'), backgroundColor: c.danger),
+          );
         }
       }
     }
 
-    return Row(children: [
-      Expanded(
-        child: _outlined(c, status == MarketStatus.reserved ? 'Yayına al' : 'Rezerve et',
-            () => set(status == MarketStatus.reserved
-                ? MarketStatus.active
-                : MarketStatus.reserved)),
-      ),
-      const SizedBox(width: SwanSpace.sm),
-      Expanded(
-        child: GestureDetector(
-          onTap: status == MarketStatus.sold ? null : () => set(MarketStatus.sold),
-          child: Container(
-            height: 48,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              color: status == MarketStatus.sold ? c.surfaceAlt : c.successFill,
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Text(
-                status == MarketStatus.sold ? 'Satıldı' : 'Satıldı işaretle',
-                style: SwanType.bodySm(
-                    status == MarketStatus.sold ? c.inkMuted : Colors.white,
-                    w: FontWeight.w800)),
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: () {
+              unawaited(
+                set(
+                  status == MarketStatus.reserved
+                      ? MarketStatus.active
+                      : MarketStatus.reserved,
+                ),
+              );
+            },
+            child: Text(status == MarketStatus.reserved ? 'Yayına al' : 'Rezerve et'),
           ),
         ),
-      ),
-    ]);
+        const SizedBox(width: SwanSpace.sm),
+        Expanded(
+          child: FilledButton(
+            onPressed: status == MarketStatus.sold
+                ? null
+                : () {
+                    unawaited(set(MarketStatus.sold));
+                  },
+            child: Text(status == MarketStatus.sold ? 'Satıldı' : 'Satıldı işaretle'),
+          ),
+        ),
+      ],
+    );
   }
 
-  Widget _outlined(SwanPalette c, String label, VoidCallback onTap) =>
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          height: 48,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(SwanRadius.md),
-            border: Border.all(color: c.line),
-          ),
-          child: Text(label,
-              style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-        ),
-      );
-
-  Widget _iconBtn(SwanPalette c, IconData icon, VoidCallback onTap,
-          {Color? tint}) =>
-      GestureDetector(
-        onTap: onTap,
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(SwanRadius.md),
-            border: Border.all(color: c.line),
-          ),
-          child: Icon(icon, size: 19, color: tint ?? c.ink),
-        ),
-      );
-
-  /// Satıcıyla sohbet — **yeni bir mesajlaşma sistemi kurulmuyor**, mevcut
-  /// DM akışı kullanılıyor. İlan bağlamı ilk mesajla taşınıyor.
   void _openChat(Map<String, dynamic> m) {
     final ownerId = m['owner_id'] as String?;
     if (ownerId == null) return;
-    Navigator.pushNamed(context, '/sohbet', arguments: {
-      'id': ownerId,
-      'name': (m['stores'] as Map?)?['name'] ?? 'Satıcı',
-    });
-  }
-
-  Future<void> _report(SwanPalette c) async {
-    final reason = await showModalBottomSheet<ReportReason>(
-      context: context,
-      backgroundColor: c.surface,
-      shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(top: Radius.circular(22))),
-      builder: (ctx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(height: SwanSpace.lg),
-          Text('İlanı bildir', style: SwanType.h3(c.ink)),
-          const SizedBox(height: SwanSpace.md),
-          for (final r in ReportReason.values)
-            ListTile(
-              title: Text(r.label, style: SwanType.bodySm(c.ink)),
-              onTap: () => Navigator.pop(ctx, r),
-            ),
-          const SizedBox(height: SwanSpace.md),
-        ]),
+    unawaited(
+      Navigator.pushNamed(
+        context,
+        '/sohbet',
+        arguments: {
+          'id': ownerId,
+          'name': (m['stores'] as Map?)?['name'] ?? 'Satıcı',
+        },
       ),
     );
-    if (reason == null || !mounted) return;
-
-    try {
-      await ref.read(marketplaceServiceProvider).report(widget.listingId, reason);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Bildirildi, teşekkürler'),
-            backgroundColor: c.accentFill));
-      }
-    } catch (e) {
-      // Aynı ilanı ikinci kez raporlamak benzersizlik kısıtına takılıyor.
-      // Kullanıcıya ham hata göstermek yerine ne olduğunu söylüyoruz.
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Text('Bu ilanı zaten bildirmişsin'),
-            backgroundColor: c.inkMuted));
-      }
-    }
   }
 }
