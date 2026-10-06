@@ -141,7 +141,12 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
                 const SizedBox(height: SwanSpace.lg),
 
-                // 4. Öne Çıkan Duyurular (Stitch Hero Cards)
+                // 4. Hızlı Modül Hub'ı (4 Ana Kategori Kartı)
+                const _ExploreModuleHub(),
+
+                const SizedBox(height: SwanSpace.xl),
+
+                // 5. Öne Çıkan Duyurular (Stitch Hero Cards)
                 StitchSectionTitle(
                   title: 'Öne Çıkan Duyurular',
                   actionLabel: 'Tümü',
@@ -196,7 +201,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
                 const SizedBox(height: SwanSpace.xl),
 
-                // 5. Popüler Sporcular & Antrenörler
+                // 6. Popüler Sporcular & Antrenörler
                 StitchSectionTitle(
                   title: 'Popüler Sporcular & Antrenörler',
                   actionLabel: 'Tümü',
@@ -212,7 +217,213 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
                 const SizedBox(height: SwanSpace.xl),
 
-                // 6. Google Stitch Screen 25 Trend Challenge Banner
+                // 7. Modüller: Spor Yap (Kompakt 2 Sütunlu Izgara)
+                StitchSectionTitle(
+                  title: 'Spor yap',
+                  actionLabel: 'Tüm Tesisler',
+                  onAction: () => Navigator.pushNamed(context, '/kortlar'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final itemWidth = (constraints.maxWidth - 10) / 2;
+                      return Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.stadium_rounded,
+                              title: 'Kortlar & Sahalar',
+                              subtitle: 'Tesis rezervasyonları',
+                              iconColor: kTeal,
+                              badge: 'Rezervasyon',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/kortlar'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.handshake_rounded,
+                              title: 'Partner bul',
+                              subtitle: 'Birlikte oynayacak biri',
+                              iconColor: const Color(0xFF38BDF8),
+                              badge: 'Eşleş',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/partner-ara'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.emoji_events_rounded,
+                              title: 'Organizasyonlar',
+                              subtitle: 'Turnuva, kamp & etkinlik',
+                              iconColor: const Color(0xFFF59E0B),
+                              badge: 'Turnuva',
+                              onTap: () => Navigator.pushNamed(
+                                  context, '/organizasyonlar'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.military_tech_rounded,
+                              title: 'Liderlik & Ligler',
+                              subtitle: 'Sezon 4 canlı sıralama',
+                              iconColor: const Color(0xFFEC4899),
+                              badge: 'Lig',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/liderlik'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.restaurant_menu_rounded,
+                              title: 'Beslenme & Makro',
+                              subtitle: 'Metabolik yakıt & öğün',
+                              iconColor: const Color(0xFF10B981),
+                              badge: 'Sağlık',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/beslenme'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: SwanSpace.xl),
+
+                // 8. Modüller: Topluluğa Katıl (Kompakt 2 Sütunlu Izgara)
+                StitchSectionTitle(
+                  title: 'Topluluğa katıl',
+                  actionLabel: 'Kulüpler',
+                  onAction: () => Navigator.pushNamed(context, '/kulupler'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final itemWidth = (constraints.maxWidth - 10) / 2;
+                      return Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.travel_explore_rounded,
+                              title: 'Kulüpler',
+                              subtitle: 'İl, ilçe ve branşa göre',
+                              iconColor: const Color(0xFF8B5CF6),
+                              badge: 'Keşfet',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/kulupler'),
+                            ),
+                          ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.forum_rounded,
+                              title: 'Topluluklar',
+                              subtitle: 'Antrenör ve sporcu odaları',
+                              iconColor: const Color(0xFF6366F1),
+                              badge: 'Sohbet',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/topluluklar'),
+                            ),
+                          ),
+                          if (access.isClubStaff)
+                            SizedBox(
+                              width: itemWidth,
+                              child: _ModuleGridCard(
+                                icon: Icons.shield_rounded,
+                                title: 'Takımlar',
+                                subtitle: 'Kadrolar ve takım sayfaları',
+                                iconColor: kTeal,
+                                badge: 'Kulüp',
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/teams'),
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: SwanSpace.xl),
+
+                // 9. Modüller: İhtiyacını Bul (Kompakt 2 Sütunlu Izgara)
+                StitchSectionTitle(
+                  title: 'İhtiyacını bul',
+                  actionLabel: 'İlanlar',
+                  onAction: () => Navigator.pushNamed(context, '/ilanlar'),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final itemWidth = (constraints.maxWidth - 10) / 2;
+                      return Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          if (ref.watch(
+                              featureEnabledProvider(FeatureFlags.marketplace)))
+                            SizedBox(
+                              width: itemWidth,
+                              child: _ModuleGridCard(
+                                icon: Icons.storefront_rounded,
+                                title: 'Pazaryeri',
+                                subtitle: 'Sıfır ve 2. el ekipman',
+                                iconColor: const Color(0xFFF97316),
+                                badge: 'Pazar',
+                                onTap: () =>
+                                    Navigator.pushNamed(context, '/pazaryeri'),
+                              ),
+                            ),
+                          if (ref.watch(
+                              featureEnabledProvider('coach_discovery')))
+                            SizedBox(
+                              width: itemWidth,
+                              child: _ModuleGridCard(
+                                icon: Icons.sports_rounded,
+                                title: 'Antrenör bul',
+                                subtitle: 'Onaylı antrenör kadrosu',
+                                iconColor: const Color(0xFF06B6D4),
+                                badge: 'Eğitmen',
+                                onTap: () => Navigator.pushNamed(
+                                    context, '/antrenor-bul'),
+                              ),
+                            ),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.campaign_rounded,
+                              title: 'İlanlar',
+                              subtitle: 'Sporcu, antrenör, seçme',
+                              iconColor: const Color(0xFFEC4899),
+                              badge: 'Duyuru',
+                              onTap: () =>
+                                  Navigator.pushNamed(context, '/ilanlar'),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: SwanSpace.xl),
+
+                // 10. Google Stitch Screen 25 Trend Challenge Banner
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                   child: _buildTrendChallengeBanner(
@@ -221,7 +432,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
                 const SizedBox(height: SwanSpace.xl),
 
-                // 7. Google Stitch Screen 25 Asymmetric 3-Column Bento Grid
+                // 11. Google Stitch Screen 25 Asymmetric 3-Column Bento Grid
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                   child: Column(
@@ -265,7 +476,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
                 const SizedBox(height: SwanSpace.xl),
 
-                // 8. Google Stitch Screen 25 Günün Hareketi
+                // 12. Google Stitch Screen 25 Günün Hareketi
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                   child: _buildMovementOfTheDay(
@@ -274,7 +485,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
                 const SizedBox(height: SwanSpace.xl),
 
-                // 9. Kulüp Gönderileri & Trendler
+                // 13. Kulüp Gönderileri & Trendler (Sosyal Akış - En Altta)
                 StitchSectionTitle(
                   title: 'Kulüp Gönderileri & Trendler',
                   trailing: Row(
@@ -316,101 +527,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                         );
                       },
                     ),
-
-                const SizedBox(height: SwanSpace.xl),
-
-                // 10. Hızlı Keşif Kısayolları
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                  child: _QuickExplore(
-                    marketplaceEnabled: ref.watch(
-                        featureEnabledProvider(FeatureFlags.marketplace)),
-                  ),
-                ),
-
-                const SizedBox(height: SwanSpace.xl),
-
-                // 11. Modüller: Spor Yap
-                const StitchSectionTitle(title: 'Spor yap'),
-                StitchActionTile(
-                  icon: Icons.stadium_rounded,
-                  title: 'Kortlar & Sahalar',
-                  subtitle: 'Tesis ve saha rezervasyonları',
-                  onTap: () => Navigator.pushNamed(context, '/kortlar'),
-                ),
-                StitchActionTile(
-                  icon: Icons.handshake_rounded,
-                  title: 'Partner bul',
-                  subtitle: 'Birlikte oynayacak birini ara',
-                  onTap: () => Navigator.pushNamed(context, '/partner-ara'),
-                ),
-                StitchActionTile(
-                  icon: Icons.emoji_events_rounded,
-                  title: 'Organizasyonlar',
-                  subtitle: 'Turnuva, kamp ve etkinlikler',
-                  onTap: () => Navigator.pushNamed(context, '/organizasyonlar'),
-                ),
-                StitchActionTile(
-                  icon: Icons.military_tech_rounded,
-                  title: 'Liderlik & Ligler',
-                  subtitle: 'Sezon 4 canlı sıralama, podyum ve meydan okumalar',
-                  onTap: () => Navigator.pushNamed(context, '/liderlik'),
-                ),
-                StitchActionTile(
-                  icon: Icons.restaurant_menu_rounded,
-                  title: 'Beslenme & Makrolar',
-                  subtitle: 'Metabolik yakıt dengesi, hidrasyon ve öğün takibi',
-                  onTap: () => Navigator.pushNamed(context, '/beslenme'),
-                ),
-
-                const SizedBox(height: SwanSpace.xl),
-
-                // 12. Modüller: Topluluğa Katıl
-                const StitchSectionTitle(title: 'Topluluğa katıl'),
-                StitchActionTile(
-                  icon: Icons.travel_explore_rounded,
-                  title: 'Kulüpler',
-                  subtitle: 'İl, ilçe ve branşa göre bul',
-                  onTap: () => Navigator.pushNamed(context, '/kulupler'),
-                ),
-                StitchActionTile(
-                  icon: Icons.forum_rounded,
-                  title: 'Topluluklar',
-                  subtitle: 'İlinin antrenör grupları',
-                  onTap: () => Navigator.pushNamed(context, '/topluluklar'),
-                ),
-                if (access.isClubStaff)
-                  StitchActionTile(
-                    icon: Icons.shield_rounded,
-                    title: 'Takımlar',
-                    subtitle: 'Kadrolar ve takım sayfaları',
-                    onTap: () => Navigator.pushNamed(context, '/teams'),
-                  ),
-
-                const SizedBox(height: SwanSpace.xl),
-
-                // 13. Modüller: İhtiyacını Bul
-                const StitchSectionTitle(title: 'İhtiyacını bul'),
-                if (ref.watch(featureEnabledProvider(FeatureFlags.marketplace)))
-                  StitchActionTile(
-                    icon: Icons.storefront_rounded,
-                    title: 'Spor Malzemeleri Pazaryeri',
-                    subtitle: 'Sıfır ve ikinci el ürünler',
-                    onTap: () => Navigator.pushNamed(context, '/pazaryeri'),
-                  ),
-                if (ref.watch(featureEnabledProvider('coach_discovery')))
-                  StitchActionTile(
-                    icon: Icons.sports_rounded,
-                    title: 'Antrenör bul',
-                    subtitle: 'Doğrulanmış antrenörler, branş ve şehre göre',
-                    onTap: () => Navigator.pushNamed(context, '/antrenor-bul'),
-                  ),
-                StitchActionTile(
-                  icon: Icons.campaign_rounded,
-                  title: 'İlanlar',
-                  subtitle: 'Sporcu, antrenör ve seçme ilanları',
-                  onTap: () => Navigator.pushNamed(context, '/ilanlar'),
-                ),
               ],
             ),
           ),
@@ -1019,69 +1135,297 @@ class _StitchExploreHeader extends ConsumerWidget {
   }
 }
 
-/// En çok kullanılan keşif yolları.
-class _QuickExplore extends StatelessWidget {
-  const _QuickExplore({required this.marketplaceEnabled});
-  final bool marketplaceEnabled;
+/// Göz hizası hızlı modül erişim merkezi (4 Ana Kategori).
+class _ExploreModuleHub extends ConsumerWidget {
+  const _ExploreModuleHub();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.swan;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textPrimary =
+        isDark ? const Color(0xFFD6E3FA) : SwanPalette.light.ink;
+    final marketplaceEnabled =
+        ref.watch(featureEnabledProvider(FeatureFlags.marketplace));
+
+    final hubs = [
+      (
+        title: 'Spor Yap',
+        badge: 'Kort & Lig',
+        icon: Icons.stadium_rounded,
+        color: kTeal,
+        route: '/kortlar',
+      ),
+      (
+        title: 'Topluluk',
+        badge: 'Kulüpler',
+        icon: Icons.groups_rounded,
+        color: const Color(0xFF8B5CF6),
+        route: '/kulupler',
+      ),
+      (
+        title: 'Pazar & İlan',
+        badge: 'Fırsatlar',
+        icon: Icons.storefront_rounded,
+        color: const Color(0xFFF59E0B),
+        route: marketplaceEnabled ? '/pazaryeri' : '/ilanlar',
+      ),
+      (
+        title: 'Liderlik',
+        badge: 'Sezon 4',
+        icon: Icons.emoji_events_rounded,
+        color: const Color(0xFFEC4899),
+        route: '/liderlik',
+      ),
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Hızlı Modül Hub\'ı',
+                style: GoogleFonts.sora(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: textPrimary,
+                ),
+              ),
+              InkWell(
+                onTap: () => Navigator.pushNamed(context, '/kortlar'),
+                borderRadius: BorderRadius.circular(8),
+                child: Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+                  child: Text(
+                    'Tüm Servisler →',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: c.accent,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              for (var i = 0; i < hubs.length; i++) ...[
+                if (i > 0) const SizedBox(width: 8),
+                Expanded(
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.pushNamed(context, hubs[i].route),
+                      borderRadius: BorderRadius.circular(14),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 6, vertical: 10),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              hubs[i].color.withValues(alpha: isDark ? 0.16 : 0.10),
+                              isDark
+                                  ? const Color(0xFF132031)
+                                  : SwanPalette.light.surface,
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(
+                            color: hubs[i].color.withValues(alpha: isDark ? 0.35 : 0.25),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
+                              blurRadius: 6,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                color: hubs[i].color.withValues(alpha: 0.18),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(hubs[i].icon,
+                                  color: hubs[i].color, size: 19),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              hubs[i].title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.sora(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: textPrimary,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              hubs[i].badge,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w800,
+                                color: hubs[i].color,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// 2 Sütunlu Kompakt Modül Kartı
+class _ModuleGridCard extends StatelessWidget {
+  const _ModuleGridCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+    this.badge,
+    this.iconColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+  final String? badge;
+  final Color? iconColor;
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final items = [
-      (Icons.stadium_rounded, 'Saha', '/kortlar'),
-      (Icons.handshake_rounded, 'Partner', '/partner-ara'),
-      (Icons.groups_rounded, 'Kulüp', '/kulupler'),
-      if (marketplaceEnabled)
-        (Icons.storefront_rounded, 'Pazaryeri', '/pazaryeri'),
-    ];
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text('Hızlı keşfet', style: SwanType.h3(c.ink)),
-        const SizedBox(height: SwanSpace.sm),
-        SizedBox(
-          height: 76,
-          child: ListView.separated(
-            scrollDirection: Axis.horizontal,
-            itemCount: items.length,
-            separatorBuilder: (_, __) => const SizedBox(width: SwanSpace.sm),
-            itemBuilder: (context, index) {
-              final item = items[index];
-              return Semantics(
-                button: true,
-                label: '${item.$2} bölümünü aç',
-                child: InkWell(
-                  onTap: () => Navigator.pushNamed(context, item.$3),
-                  borderRadius: BorderRadius.circular(SwanRadius.md),
-                  child: Container(
-                    width: 112,
-                    padding: const EdgeInsets.all(SwanSpace.md),
-                    decoration: BoxDecoration(
-                      color: c.surface,
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
-                      border: Border.all(color: c.line.withValues(alpha: .5)),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surf = isDark ? const Color(0xFF132031) : SwanPalette.light.surface;
+    final borderCol = isDark ? const Color(0xFF293547) : SwanPalette.light.line;
+    final textPrimary =
+        isDark ? const Color(0xFFD6E3FA) : SwanPalette.light.ink;
+    final textMuted =
+        isDark ? const Color(0xFF869491) : SwanColors.textSecondary;
+    final icCol = iconColor ?? c.accent;
+
+    return Semantics(
+      button: true,
+      label: '$title, $subtitle',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: surf,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: borderCol.withValues(alpha: 0.8)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: icCol.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(icon, color: icCol, size: 20),
                     ),
-                    child: Row(
-                      children: [
-                        Icon(item.$1, color: c.accent, size: 19),
-                        const SizedBox(width: 8),
-                        Expanded(
+                    if (badge != null)
+                      Flexible(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: icCol.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           child: Text(
-                            item.$2,
+                            badge!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: SwanType.caption(c.ink, w: FontWeight.w800),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              color: icCol,
+                            ),
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                      )
+                    else
+                      Icon(Icons.arrow_forward_rounded,
+                          size: 16, color: textMuted.withValues(alpha: 0.6)),
+                  ],
                 ),
-              );
-            },
+                const SizedBox(height: 8),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.sora(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10,
+                        color: textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
-      ],
+      ),
     );
   }
 }
