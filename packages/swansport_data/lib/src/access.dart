@@ -37,14 +37,46 @@ class SwanAccess {
     this.delegatedTurfFieldIds = const {},
     this.sportCredentials = const [],
     this.federationAppointments = const [],
+    this.hasAccount = true,
+    this.hasVerifiedIdentity = false,
+    this.legacyIdentityClubIds = const {},
   });
 
   static const SwanAccess none = SwanAccess(
     isPlatformAdmin: false,
+    hasAccount: false,
     clubRole: null,
     coachLevel: 0,
     athleteKind: null,
   );
+
+  final bool hasAccount;
+  final bool hasVerifiedIdentity;
+  final Set<String> legacyIdentityClubIds;
+
+  bool get isInIdentityWaitingRoom =>
+      hasAccount && !hasVerifiedIdentity && legacyIdentityClubIds.isEmpty;
+
+  /// One axis only: membership role, child/guardian and RLS checks still apply.
+  bool passesIdentityGateForClub(String clubId) =>
+      hasVerifiedIdentity || legacyIdentityClubIds.contains(clubId);
+
+  bool canRequestSportMembership(
+    String sportCode, {
+    String role = 'athlete',
+    DateTime? at,
+  }) =>
+      hasVerifiedIdentity &&
+      (role == 'athlete' || role == 'coach') &&
+      sportCredentials.any(
+        (credential) =>
+            credential.sportCode == sportCode &&
+            credential.isValidOn(at ?? DateTime.now()) &&
+            (role == 'coach'
+                ? credential.kind == 'coach'
+                : credential.kind == 'athlete_licensed' ||
+                    credential.kind == 'athlete_individual'),
+      );
 
   /// Kimlik doğrulama kademesi: none | location | phone | id.
   ///
@@ -197,6 +229,8 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
 
   final isAdmin = ref.watch(isPlatformAdminProvider).valueOrNull ?? false;
   final creds = ref.watch(myCredentialsProvider).valueOrNull ?? const [];
+  final identityGate = ref.watch(myIdentityGateProvider).valueOrNull ??
+      const IdentityGateState();
 
   var level = 0;
   String? athleteKind;
@@ -223,6 +257,8 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
 
   return SwanAccess(
     isPlatformAdmin: isAdmin,
+    hasVerifiedIdentity: identityGate.verified,
+    legacyIdentityClubIds: identityGate.legacyClubIds,
     clubRole: profile.role,
     coachLevel: level,
     sportCredentials: creds,

@@ -4,7 +4,9 @@ Son güncelleme: 2026-10-09 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
-Güncel doğrulama: Faz B dar RPC kapsamı yerelde tamamlandı. 0097 yayın anahtarı + üç anon/authenticated genel RPC; yeni tablo/ekran yok. 27 SQL (16 A + 11 B), 20 dar Dart testi başarılı. Genel analiz 0 hata/5 önceki uyarı/2641 info (çıkış 1). Parse/diff temiz. Push/deploy/canlı SQL yok; docs/federation-public-verification.md.
+Güncel doğrulama: Faz C1 kimlik/üyelik sunucu kapısı yerelde tamamlandı. 0099/0100, mevcut belge sisteminde tekil doğrulanmış TCKN, eski aktif üyelik geçişi, branş/süre/veli kapıları ve eski RPC/doğrudan yazma koruması. 34 kimlik/temel + 28 public SQL, 679 Flutter (343 veri/290 uygulama/46 konsol), değişen Dart analizi 0 bulgu. Parse/diff temiz. 0009 kulüpsüz eski sporcu varsa 0100 atomik durur; ekran/expiry bağlantısı ve C2 privacy/lifecycle işleri bekler. Push/deploy/canlı SQL yok. Kanıt docs/identity-membership-verification.md. Writer serbest.
+
+Önceki Faz B doğrulaması: Faz B dar RPC kapsamı yerelde tamamlandı. 0097 yayın anahtarı + üç anon/authenticated genel RPC; yeni tablo/ekran yok. 27 SQL (16 A + 11 B), 20 dar Dart testi başarılı. Genel analiz 0 hata/5 önceki uyarı/2641 info (çıkış 1). Parse/diff temiz. Push/deploy/canlı SQL yok; docs/federation-public-verification.md.
 
 Önceki Faz A doğrulaması: 2026-10-09 federasyon Faz A yerel temeli hazır. 0094–0096, branş/il/duty/süre kontrolü, eski yazma/okuma sınırları, resmi roster/result/derece geçmişi, dedup/transfer/itiraz/veli tercihi ve SwanAccess ek API'si. 672 Flutter, 16 gerçek SQL, son 20 dar test; yeni 5 Dart dosyası analiz 0 bulgu; tam analiz 0 hata/5 önceki kapsam uyarısı. 96 parse, SSS 39/39, push 39 ve diff-check başarılı. B–E yalnız plan. Yeni belge expiry UI geçişi ve eski privacy/lifecycle riskleri raporda; canlıya hazır tam ürün iddiası yok. Push/deploy/canlı SQL/commit yok; Writer serbest. Ayrıntı docs/federation-foundation-verification.md.
 
@@ -150,3 +152,7 @@ Güncel doğrulama: Faz B dar RPC kapsamı yerelde tamamlandı. 0097 yayın anah
 | 2026-10-09 | Codex Writer | active | 0098: reşit sonuç adı veli tercihlerinden bağımsız; 0097 değişmez. | Tek fonksiyon ve tek yeni SQL senaryosu | Push/deploy/canlı SQL yok; Dart ürünü değişmez. |
 
 | 2026-10-09 | Codex Writer | complete | 0098 reşit adı: veli izni/retinden bağımsız, 18. yaş günü reşit. 0097 korunur; çocuk kuralı değişmez. | 0098, tek yeni SQL senaryosu, dokümanlar | 28/28 SQL, parse/diff temiz. Dart/analyze yok; push/deploy/canlı SQL yok. Writer serbest. |
+
+| 2026-10-09 | Codex Writer | active | Faz C1: mevcut credential/belge sistemiyle doğrulanmış TCKN, branş ve üyelik yazma kapıları; eski aktif üyeler için sunucuda sabit geçiş. | 0099+, veri katmanı, SQL testleri | Yeni ekran/konsol, hesap silme veya antrenör okuma RLS daraltması yok. Push/deploy/canlı SQL yok. |
+
+| 2026-10-09 | Codex Writer | complete | Faz C1 kimlik/üyelik kapısı | 0099/0100, mevcut Dart veri API, kimlik testleri ve rapor | 34+28 SQL, 679 Flutter, dar analiz temiz. Yerel commit; push/deploy/canlı SQL yok. |

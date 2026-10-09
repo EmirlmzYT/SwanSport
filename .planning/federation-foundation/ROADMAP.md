@@ -1,6 +1,6 @@
 # Federasyon / resmi sportif kayıt — kilitli sözleşme
 
-2026-10-09. Faz A ve dar Faz B RPC temeli yerelde uygulandı. Faz C–E plandır; kodlanmadı.
+2026-10-09. Faz A ve dar Faz B RPC temeli yerelde uygulandı. Faz C1 kimlik/üyelik sunucu kapısı yerelde uygulandı. C2 ve D–E plandır.
 Mevcut 0077–0093 kullanıcı/AGY/Codex çalışmaları nedeniyle Faz A sırası 0094–0096, Faz B 0097.
 Duyuru kanalı kurum değildir. Resmi veri federasyon göreviyle, kulüp gelişimi kulüple yazılır.
 Platform yöneticiliği resmi yazma yetkisi değildir; ayrı, branş/il/görev/süre kapsamlı atama gerekir.
@@ -22,9 +22,13 @@ Sonuç protokolü ortak JSON allowlist'idir; branş başına yeni maç tablosu a
 - 0098 ile yalnız çocuk/bilinmeyen doğum için canlı allowed=true ve ret olmaması gerekir; aksi halde sporcu yazılır. Reşit ve aynı branşta kayıtlı kişinin adı dönebilir. İzinli isimde de UUID verilmez.
 - Fikstür yeri müsabaka alanıdır; özel canlı konum değildir. Yasal kulüp adı korunur. Etkinlik davetlisi ayrı bir Faz E yetkisidir.
 - 27 SQL (16 A + 11 B), 20 Dart testi geçti. Authenticated kulüp tablo/maç akışları regresyonla korundu. Canlı API ve tüm üretim zinciri UAT yapılmadı; sınırlar docs/federation-public-verification.md içinde.
-- Yeni ekran yok. C–E başlamadı. Push/deploy/canlı SQL bu oturumda yasak.
+- Yeni ekran yok. C1 sunucu kapısı aşağıda kaydedildi; C2 ve D–E başlamadı.
 
-## Faz C — hesap bekleme odası (uygulanmadı)
+## Faz C — hesap bekleme odası (C1 yerel sunucu temeli uygulandı)
+
+C1: 0099/0100, mevcut belge sisteminde tekil doğrulanmış TCKN, eski aktif üye geçişi, branş/süre/veli kontrolleri ve eski üyelik/davet RPC kapıları. 34 kimlik/temel SQL, 28 public SQL, 679 Flutter testi geçti; değişen Dart analizi temiz. Ekran yok. Kanıt: docs/identity-membership-verification.md. 0009 kulüpsüz eski satır bırakmışsa 0100 veri değiştirmeden durur.
+
+C2 henüz uygulanmadı: bekleme odası/expiry arayüzü, antrenör okuma RLS daraltması ve hesap silme yaşam döngüsü. Aşağıdaki daha geniş Faz C maddelerinin tamamlandığı iddia edilmez.
 
 - Mevcut oturum/giriş akışı şimdi değiştirilmez. Sonra hesap/kimlik/branş kapıları ayrı durumlar olarak modellenir.
 - Tek doğrulanmış TCKN / tek hesap; profiles.national_id beyanı doğrulanmış kimlik sayılamaz.

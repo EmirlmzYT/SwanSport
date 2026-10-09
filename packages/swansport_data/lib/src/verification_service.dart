@@ -23,7 +23,7 @@ class CredentialRow {
   });
 
   final String id;
-  final String kind; // coach | athlete_licensed | athlete_individual
+  final String kind; // identity | coach | athlete_licensed | athlete_individual
   final int? coachLevel;
   final String status; // pending | approved | rejected
   final String? note;
@@ -46,6 +46,7 @@ class CredentialRow {
   bool get isCoach => kind == 'coach';
 
   String get label {
+    if (kind == 'identity') return 'Kimlik';
     if (isCoach) {
       final k = '${coachLevel ?? '?'}. Kademe Antrenör';
       return sportName == null ? k : '$sportName · $k';
@@ -82,6 +83,26 @@ class CredentialRow {
   }
 }
 
+/// Server-owned identity state; declarations and platform roles do not supply it.
+class IdentityGateState {
+  const IdentityGateState({
+    this.verified = false,
+    this.legacyClubIds = const {},
+  });
+
+  final bool verified;
+  final Set<String> legacyClubIds;
+
+  factory IdentityGateState.fromMap(Map<String, dynamic> map) =>
+      IdentityGateState(
+        verified: map['identity_verified'] == true,
+        legacyClubIds: Set.unmodifiable(
+          (map['legacy_club_ids'] as List? ?? const [])
+              .whereType<String>(),
+        ),
+      );
+}
+
 class PendingClub {
   const PendingClub({required this.id, required this.name, this.city});
   final String id;
@@ -102,6 +123,25 @@ class VerificationService {
 
   /// Doğrulama belgelerinin Storage bucket adı.
   static const String docsBucket = 'verification-docs';
+
+  Future<IdentityGateState> identityGate() async {
+    if (_uid == null) return const IdentityGateState();
+    final result = await _c.rpc<dynamic>('my_identity_gate');
+    return IdentityGateState.fromMap(
+      (result as Map).cast<String, dynamic>(),
+    );
+  }
+
+  /// Uses the existing verification_documents attachment/upload workflow.
+  Future<String> submitIdentityCredential() async {
+    if (_uid == null) throw StateError('Oturum bulunamadı');
+    final row = await _c
+        .from('profile_credentials')
+        .insert({'profile_id': _uid, 'kind': 'identity'})
+        .select('id')
+        .single();
+    return row['id'] as String;
+  }
 
   // ----- Başvuru (kişi kendi kimliğini oluşturur) -----
   /// Antrenörlük başvurusu. Branş burada seçilir çünkü antrenörlük belgesi
@@ -301,6 +341,8 @@ class VerificationService {
     String? note,
     int? coachLevel,
     String? sportCode,
+    String? nationalId,
+    DateTime? expiresOn,
   }) async {
     await _c.rpc<dynamic>('review_credential', params: {
       'p_cred': id,
@@ -308,6 +350,9 @@ class VerificationService {
       if (note != null) 'p_note': note,
       if (coachLevel != null) 'p_coach_level': coachLevel,
       if (sportCode != null && sportCode.isNotEmpty) 'p_sport_code': sportCode,
+      if (nationalId != null) 'p_national_id': nationalId,
+      if (expiresOn != null)
+        'p_expires_on': expiresOn.toIso8601String().substring(0, 10),
     },);
   }
 
@@ -353,3 +398,16 @@ final pendingClubsProvider =
     FutureProvider.autoDispose<List<PendingClub>>((ref) {
   return ref.watch(verificationServiceProvider).pendingClubs();
 });
+
+
+/// Guest/fixture mode is closed without constructing a live Supabase client.
+final myIdentityGateProvider = FutureProvider.autoDispose<IdentityGateState>(
+  (ref) {
+    if (!ref.watch(isSupabaseEnabledProvider)) {
+      return const IdentityGateState();
+    }
+    ref.watch(authSessionProvider);
+    ref.watch(myCredentialsProvider);
+    return ref.watch(verificationServiceProvider).identityGate();
+  },
+);

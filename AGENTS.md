@@ -1600,3 +1600,12 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 ### 2026-10-09 — 0098 reşit sonuç adı düzeltmesi (yerel)
 
 0097 değişmez; 0098 yalnız public_program_result(uuid) fonksiyonunu aynı imza ve grant ile yeniden kurar. Sonuç kadrosunda/branşta kayıtlı, doğum tarihi dolu reşit sporcu veli satırı veya izin/ret tercihinden bağımsız adla görünür. Türkiye takviminde 18. yaş günü reşittir. Çocuk/bilinmeyen doğum için canlı izin ve ret baskınlığı korunur; athlete UUID asla verilmez. 28/28 SQL testi ve 0098 parse geçti; Dart ürünü/analyze, push/deploy/canlı SQL yok. Kanıt docs/federation-public-verification.md, sql-0098.log.
+
+
+### 2026-10-09 — Faz C1: kimlik/üyelik sunucu kapısı (yerel)
+
+- 0099 enum ve 0100 kapı ayrı işlemlerde uygulanır. İkinci tablo/belge sistemi yok. Doğrulanmış TCKN mevcut profile_credentials üzerinde tekil ve yalnız platform yönetici review_credential RPC incelemesiyle yazılır. Beyan/rol/admin kimlik kapısını açmaz.
+- Aktif eski üyelikler bir defalık legacy kapsamını korur; yeni rol/takım/üyelikler doğrulanmış kimlik ve aynı branşta geçerli belge ister. Yeni onayda expiry zorunlu, eski onaylı NULL geçerli. Veli kimlik+davet ile lisanssız bağlanır; yeni çocuk üyeliği veli ister. Eski RPC ve doğrudan yazılar birlikte korunur.
+- Şema tuzağı: 0009 club_id NOT NULL kısıtını geçmişte kaldırmış. 0100 kulüpsüz satır varsa atomik durur; veri silmez/uydurmaz. profile_id nullable kalır.
+- Ekran/konsol/hesap silme/antrenör okuma RLS değişmedi. Eski athlete_public ve lifecycle riskleri çözülmüş sayılmaz. Kimlik/expiry ekran bağlantıları sonraki kapsamdır.
+- Kanıt: docs/identity-membership-verification.md. 34 C1/temel + 28 public SQL; 343 veri + 290 uygulama + 46 konsol = 679 Flutter; değişen 3 Dart dosyası analiz temiz; parse/diff temiz. Canlı SQL, push, deploy yok; bu fazın açık push yasağı genel GitHub tercihinin önündedir.
