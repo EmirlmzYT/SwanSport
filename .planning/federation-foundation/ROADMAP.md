@@ -1,7 +1,7 @@
 # Federasyon / resmi sportif kayıt — kilitli sözleşme
 
-2026-10-09. Yalnız Faz A uygulanır. Faz B–E aşağıda plandır; kodlanmaz.
-Mevcut 0077–0093 kullanıcı/AGY/Codex çalışmaları nedeniyle yeni sıra 0094–0096.
+2026-10-09. Faz A ve dar Faz B RPC temeli yerelde uygulandı. Faz C–E plandır; kodlanmadı.
+Mevcut 0077–0093 kullanıcı/AGY/Codex çalışmaları nedeniyle Faz A sırası 0094–0096, Faz B 0097.
 Duyuru kanalı kurum değildir. Resmi veri federasyon göreviyle, kulüp gelişimi kulüple yazılır.
 Platform yöneticiliği resmi yazma yetkisi değildir; ayrı, branş/il/görev/süre kapsamlı atama gerekir.
 
@@ -14,15 +14,15 @@ Misafir grant, ekran, konsol masası, events kopyası, push/deploy yok.
 Faaliyet yılı club seasons değildir. athletes.club_id NOT NULL, profile_id nullable kalır.
 Sonuç protokolü ortak JSON allowlist'idir; branş başına yeni maç tablosu açılmaz.
 
-## Faz B — misafir allowlist (uygulanmadı)
+## Faz B — yayın anahtarı ve genel RPC allowlist (yerelde uygulandı)
 
-- Yalnız yayımlanmış faaliyet programı, fikstür, sonuç için ayrı salt okunur RPC.
-- Allowlist alanları açıkça seçilir; hiçbir SELECT *, güvenlik-definer görünüm veya athletes anon SELECT yok.
-- Ad/sağlık/TCKN/kadro/aidat/konum guest payload'ına girmez. Çocukta kategori/kulüp/sonuç korunur.
-- Yayın tercihi her okumada hesaplanır, önbellek/harici kopya isimleri geri açamaz.
-- Etkinlik davetlisi bu misafirden ayrı bir yetki türüdür.
-- Ön kapı: gerçek anon rolü ile tüm tablo/view/RPC grant taraması; mevcut athlete_public ve definer RPC'ler ayrıca incelenir.
-- Testler: yayımlanmamış kayıt yok, izin iptali anında isim yok, guardian silinmesi, aynı çocuğun hesap olmadan korunması, türetilmiş isim sızıntısı.
+- 0097: federation_publish_program(p_org,p_public), yalnız program_publisher branş/il/süre yetkisi ve audit ile resmi programın is_public tercihini değiştirir. Varsayılan kapalı kalır, otomatik yayın yok.
+- public_sport_programs/public_program_fixture/public_program_result yalnız official=true ve is_public=true kayıtları döndürür. Tabloya anon SELECT yok; PUBLIC execute kapalı.
+- Sonuç protokolü alan alan yeniden kurulur. score/sets yalnız sayılar; time/rank yalnız sonuç girdilerinin name/value/placement alanları. Athlete UUID, lisans, TCKN, fotoğraf, tam kadro ve özel sportif/mali veriler yok.
+- Çocuk/bilinmeyen doğum/veli ilişkisi için canlı allowed=true ve ret olmaması gerekir; aksi halde sporcu yazılır. Reşit ve aynı branşta kayıtlı kişinin adı dönebilir. İzinli isimde de UUID verilmez.
+- Fikstür yeri müsabaka alanıdır; özel canlı konum değildir. Yasal kulüp adı korunur. Etkinlik davetlisi ayrı bir Faz E yetkisidir.
+- 27 SQL (16 A + 11 B), 20 Dart testi geçti. Authenticated kulüp tablo/maç akışları regresyonla korundu. Canlı API ve tüm üretim zinciri UAT yapılmadı; sınırlar docs/federation-public-verification.md içinde.
+- Yeni ekran yok. C–E başlamadı. Push/deploy/canlı SQL bu oturumda yasak.
 
 ## Faz C — hesap bekleme odası (uygulanmadı)
 
@@ -61,3 +61,7 @@ Sonuç protokolü ortak JSON allowlist'idir; branş başına yeni maç tablosu a
 Faz A yerel test kanıtı canlı kuruluma eşit değildir. Migration'lar dosya başına ayrı işlem ve 15s lock_timeout ile uygulanır.
 İki gerçek PostgreSQL oturumunda atama iptali/yazma, roster/result ve kimlik yarışları ayrıca doğrulanır.
 Kullanıcı talimatıyla bu oturumda push/deploy ve canlı SQL yok.
+
+## 2026-10-09 Faz B uygulama kaydı
+
+Kullanıcının daraltılmış kapsamıyla 0097: federation_publish_program ve üç public_* RPC yerelde uygulandı. Yeni ekran/tablo yok. 27 SQL ve 20 dar Dart testi geçti; genel analiz 0 hata/5 önceki uyarı. Kanıt: docs/federation-public-verification.md. Faz B bölümündeki daha geniş guest ürün ekranları yapılmadı; C–E başlamadı. Push/deploy/canlı SQL yok.

@@ -1589,3 +1589,10 @@ yanlış yola sapar.
 ### GitHub kayıt tercihi — 2026-10-09
 
 Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposuna push edilmesini istedi; Grok incelemesi güncel kaynak üzerinden yapılacak. Önceki yerel çalışmalar ve federasyon Faz A bu kayıt kapsamındadır. GitHub kaydı canlı SQL veya Cloudflare yayını anlamına gelmez.
+
+### 2026-10-09 — Faz B: yayın anahtarı ve genel RPC okumaları (yerel)
+
+- 0097 mevcut tablolarda federation_publish_program ve public_sport_programs/public_program_fixture/public_program_result ekler; yeni tablo/ekran yok. create_program is_public=false olarak kalır. Resmi yayın program_publisher branş/il/süre yetkisi ve audit gerektirir; platform admin bypass yok.
+- Genel okuma yalnız official ve is_public programlar içindir. Sonuç JSON alanları yeniden kurulur; time/rank girdileri yalnız name/value/placement taşır, athlete UUID asla dönmez. Çocuk/bilinmeyen doğum/veli ilişkisi için canlı izin kontrol edilir, ret tercihi baskındır; izin yoksa sporcu yazılır. Kadro listesi verilmez.
+- Anon/PUBLIC özel kaynak tablo ve athlete_public SELECT izinleri kapatıldı; authenticated grant/policy korunur. Mevcut authenticated gizlilik/kimlik sorunları Faz C kapsamındadır.
+- Kanıt: docs/federation-public-verification.md; 27 SQL (16 A + 11 B), 20 dar Dart testi, 0097 parse ve diff-check geçti. Genel analiz 0 hata/5 önceki uyarı/2641 info, çıkış 1. Canlı SQL/push/deploy bu oturumda yasak; uygulanmadı.

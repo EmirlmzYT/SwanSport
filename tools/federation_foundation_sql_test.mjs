@@ -265,3 +265,6 @@ test('archived license restores same durable athlete key after club deletion, na
  assert.equal((await db.query('select count(*) n from athletes')).rows[0].n,1);
  assert.equal((await db.query('select club_id from athletes')).rows[0].club_id,other);
  }finally{await db.close();}});
+
+// Reuse the actual Phase A fixture for additive migration regression suites.
+export { setup, apply, actor, call, id, admin, officer, coach, guardian, child, club, other };
