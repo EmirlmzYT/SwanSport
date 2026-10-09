@@ -146,3 +146,7 @@ Güncel doğrulama: Faz B dar RPC kapsamı yerelde tamamlandı. 0097 yayın anah
 | 2026-10-09 | Codex Writer | active | Faz B üstlenildi: yalnız program yayımlama ve hesapsız allowlist RPC okumaları; yeni tablo/ekran yok. | 0097, SQL testleri, kanıt raporu | Kullanıcının bu oturum yasağı: canlı SQL, push, deploy yok. Faz A 6d85a75 korunur. |
 
 | 2026-10-09 | Codex Writer | complete | Faz B: yayın anahtarı + güvenli genel program/fikstür/sonuç RPC, çocuk UUID kapalı, dinamik isim izni, anon kaynak SELECT kapalı. | 0097, iki SQL test dosyası, rapor ve yol haritası | 27/27 SQL, 20/20 Dart; analyze 0 hata/5 önceki uyarı; parse/diff temiz. Canlı SQL/push/deploy yok. Writer serbest. |
+
+| 2026-10-09 | Codex Writer | active | 0098: reşit sonuç adı veli tercihlerinden bağımsız; 0097 değişmez. | Tek fonksiyon ve tek yeni SQL senaryosu | Push/deploy/canlı SQL yok; Dart ürünü değişmez. |
+
+| 2026-10-09 | Codex Writer | complete | 0098 reşit adı: veli izni/retinden bağımsız, 18. yaş günü reşit. 0097 korunur; çocuk kuralı değişmez. | 0098, tek yeni SQL senaryosu, dokümanlar | 28/28 SQL, parse/diff temiz. Dart/analyze yok; push/deploy/canlı SQL yok. Writer serbest. |

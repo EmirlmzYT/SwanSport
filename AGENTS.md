@@ -1596,3 +1596,7 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - Genel okuma yalnız official ve is_public programlar içindir. Sonuç JSON alanları yeniden kurulur; time/rank girdileri yalnız name/value/placement taşır, athlete UUID asla dönmez. Çocuk/bilinmeyen doğum/veli ilişkisi için canlı izin kontrol edilir, ret tercihi baskındır; izin yoksa sporcu yazılır. Kadro listesi verilmez.
 - Anon/PUBLIC özel kaynak tablo ve athlete_public SELECT izinleri kapatıldı; authenticated grant/policy korunur. Mevcut authenticated gizlilik/kimlik sorunları Faz C kapsamındadır.
 - Kanıt: docs/federation-public-verification.md; 27 SQL (16 A + 11 B), 20 dar Dart testi, 0097 parse ve diff-check geçti. Genel analiz 0 hata/5 önceki uyarı/2641 info, çıkış 1. Canlı SQL/push/deploy bu oturumda yasak; uygulanmadı.
+
+### 2026-10-09 — 0098 reşit sonuç adı düzeltmesi (yerel)
+
+0097 değişmez; 0098 yalnız public_program_result(uuid) fonksiyonunu aynı imza ve grant ile yeniden kurar. Sonuç kadrosunda/branşta kayıtlı, doğum tarihi dolu reşit sporcu veli satırı veya izin/ret tercihinden bağımsız adla görünür. Türkiye takviminde 18. yaş günü reşittir. Çocuk/bilinmeyen doğum için canlı izin ve ret baskınlığı korunur; athlete UUID asla verilmez. 28/28 SQL testi ve 0098 parse geçti; Dart ürünü/analyze, push/deploy/canlı SQL yok. Kanıt docs/federation-public-verification.md, sql-0098.log.

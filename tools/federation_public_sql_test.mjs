@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 const migration=await readFile(new URL('../supabase/migrations/0097_federation_public_reads.sql',import.meta.url),'utf8');
+const adultMigration=await readFile(new URL('../supabase/migrations/0098_public_result_adult_name.sql',import.meta.url),'utf8');
 async function phaseB(){const f=await setup();try{
  // Deliberately permissive stand-ins exercise the new revokes without unrelated migrations.
  await f.db.exec(`create table invoices(athlete_id uuid,amount numeric);
@@ -17,7 +18,7 @@ async function phaseB(){const f=await setup();try{
  insert into health_restrictions values('${child}','restricted');`);
  // Simulate a legacy PUBLIC grant as well as Supabase anon default privileges.
  await f.db.exec('grant select on athlete_public,athletes to public');
- await apply(f.db,migration);return f;
+ await apply(f.db,migration);await apply(f.db,adultMigration);return f;
  }catch(e){await f.db.close();throw e;}}
 async function role(db,name){await db.exec('reset role');await actor(db,name==='anon'?'':coach);await db.exec('set role '+name);}
 async function official(db){await db.exec('reset role');await actor(db,officer);}
@@ -28,7 +29,7 @@ function noIdentity(rows){const s=JSON.stringify(rows);for(const forbidden of [c
 
 test('B: migration reapplies, publishes nothing automatically and has exact RPC privileges',async()=>{
  const {db,org,match}=await phaseB();try{
- await apply(db,migration);
+ await apply(db,migration);await apply(db,adultMigration);
  assert.equal((await db.query('select is_public from organizations where id=$1',[org])).rows[0].is_public,false);
  for(const sig of ['public_sport_programs()','public_program_fixture(uuid)','public_program_result(uuid)']){
   const grants=(await db.query("select has_function_privilege('anon',$1,'execute') a,has_function_privilege('authenticated',$1,'execute') u",[sig])).rows[0];assert.deepEqual(grants,{a:true,u:true});
@@ -183,4 +184,21 @@ test('B: malformed historical protocol fails closed instead of exposing unexpect
  await publish(db,org);await result(db,match,{type:'score',home:1,away:0});
  await db.query("update org_result_revisions set protocol=protocol||jsonb_build_object('national_id','11111111110') where match_id=$1",[match]);
  assert.deepEqual(await guestResult(db,match),[]);
+ }finally{await db.close();}});
+
+
+test('B: registered adult with a guardian is named without consent and despite refusal',async()=>{
+ const {db,org,match}=await phaseB();try{
+ await db.query("update athletes set birth_date=((now() at time zone 'Europe/Istanbul')::date-interval '25 years')::date where id=$1",[child]);
+ await publish(db,org);
+ for(const [version,type] of ['time','rank'].entries()){
+  await result(db,match,{type,entries:[{athlete_id:child,value:12.34,placement:1}]},version);
+  const rows=await guestResult(db,match);
+  assert.deepEqual(rows,[{protocol:{type,entries:[{name:'Private Child',value:12.34,placement:1}]}}]);noIdentity(rows);
+ }
+ await db.exec('reset role');await actor(db,guardian);await call(db,'set_athlete_publicity',[child,false]);
+ let rows=await guestResult(db,match);assert.equal(rows[0].protocol.entries[0].name,'Private Child');noIdentity(rows);
+ // Exactly the eighteenth birthday is already adult, even with a retained refusal.
+ await db.exec('reset role');await db.query("update athletes set birth_date=((now() at time zone 'Europe/Istanbul')::date-interval '18 years')::date where id=$1",[child]);
+ rows=await guestResult(db,match);assert.equal(rows[0].protocol.entries[0].name,'Private Child');noIdentity(rows);
  }finally{await db.close();}});

@@ -44,7 +44,7 @@ konsol, Dart ürün API'si, sosyal/pazaryeri/ödeme veya club_id değişikliği 
 Hiçbir sonuç girdisi athlete_id/profile_id/lisans/TCKN/fotoğraf veya kadro
 UUID'si taşımaz. Sonuç protokolündeki sporcular dışında kimse dönmez.
 
-18 yaş altı, doğum tarihi bilinmeyen veya mevcut veli ilişkisi olan sporcu için
+0098 sonrasında 18 yaş altı veya doğum tarihi bilinmeyen sporcu için
 canlı veli bağlantısındaki allowed=true gerekir; bir velinin açık ret tercihi
 izinleri geçersiz kılar. İzin geri alma veya veli/izin silme bir sonraki okumada
 etkilidir. İzin yoksa name tam olarak `sporcu` olur. Reşit sporcunun aynı branşta
@@ -99,3 +99,29 @@ iki gerçek PostgreSQL oturumunda yarış testi yapılmadı. Push/deploy/canlı 
 bu oturumun açık yasağı nedeniyle yapılmadı.
 
 Bu çalışma yerel Git commit olarak kaydedilir; push bu oturumda yapılmaz.
+
+
+## 0098 — reşit ad kuralı düzeltmesi (2026-10-09)
+
+0097 GitHub'daki haliyle değişmeden bırakıldı. 0098_public_result_adult_name.sql
+public_program_result(uuid) fonksiyonunu aynı imza ve grant'lerle drop/create
+eder. PUBLIC/anon/authenticated execute önce kaldırılır; yalnız anon ve
+authenticated'a verilir. Tek gövde farkı: mevcut guardians satırı, reşit kişiyi
+izin kontrolüne sokmaz. Türkiye takviminde 18 yaşını dolduran, sonuç kadrosunda
+ve aynı branşta kayıtlı sporcunun adı veli izni/ret tercihinden bağımsızdır.
+Çocuk veya doğum tarihi boş kişide canlı izin/ret kuralı aynen korunur.
+
+Tek yeni senaryo: 25 yaş, branş kaydı ve veli ilişkisi var, izin yokken ad;
+aynı velinin allowed=false tercihinden sonra da ad; tam 18. yaş gününde de ad.
+time/rank çıktı allowlist'i ve UUID gizliliği ayrıca kontrol edilir.
+Fixture artık 0097 ardından 0098 uygular; yeniden uygulama ve grant testleri de
+son fonksiyon sürümünü kontrol eder. Skor/set/fikstür/yayın anahtarı değişmedi.
+
+`node --test tools/federation_public_sql_test.mjs`: **28/28 geçti**, çıkış 0.
+Önceki çocuk, bilinmeyen doğum, izin silme ve ret baskınlığı senaryoları dahil.
+`python tools/check_migrations.py supabase/migrations/0098_public_result_adult_name.sql`:
+OK, 0 sorun. `git diff --check`: çıkış 0. 0098 gövdesi eski fonksiyonla
+karşılaştırıldı: yalnız belirtilen koşul kaldırıldı, imza/çıktı/grant aynı.
+Log: `build/federation-phase-b/sql-0098.log`.
+Dart ürün kodu değişmedi; bu düzeltmede Flutter analyze çalıştırılmadı.
+Yerel commit dışında push/deploy/canlı SQL yapılmadı.

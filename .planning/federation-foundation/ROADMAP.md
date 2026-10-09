@@ -19,7 +19,7 @@ Sonuç protokolü ortak JSON allowlist'idir; branş başına yeni maç tablosu a
 - 0097: federation_publish_program(p_org,p_public), yalnız program_publisher branş/il/süre yetkisi ve audit ile resmi programın is_public tercihini değiştirir. Varsayılan kapalı kalır, otomatik yayın yok.
 - public_sport_programs/public_program_fixture/public_program_result yalnız official=true ve is_public=true kayıtları döndürür. Tabloya anon SELECT yok; PUBLIC execute kapalı.
 - Sonuç protokolü alan alan yeniden kurulur. score/sets yalnız sayılar; time/rank yalnız sonuç girdilerinin name/value/placement alanları. Athlete UUID, lisans, TCKN, fotoğraf, tam kadro ve özel sportif/mali veriler yok.
-- Çocuk/bilinmeyen doğum/veli ilişkisi için canlı allowed=true ve ret olmaması gerekir; aksi halde sporcu yazılır. Reşit ve aynı branşta kayıtlı kişinin adı dönebilir. İzinli isimde de UUID verilmez.
+- 0098 ile yalnız çocuk/bilinmeyen doğum için canlı allowed=true ve ret olmaması gerekir; aksi halde sporcu yazılır. Reşit ve aynı branşta kayıtlı kişinin adı dönebilir. İzinli isimde de UUID verilmez.
 - Fikstür yeri müsabaka alanıdır; özel canlı konum değildir. Yasal kulüp adı korunur. Etkinlik davetlisi ayrı bir Faz E yetkisidir.
 - 27 SQL (16 A + 11 B), 20 Dart testi geçti. Authenticated kulüp tablo/maç akışları regresyonla korundu. Canlı API ve tüm üretim zinciri UAT yapılmadı; sınırlar docs/federation-public-verification.md içinde.
 - Yeni ekran yok. C–E başlamadı. Push/deploy/canlı SQL bu oturumda yasak.
