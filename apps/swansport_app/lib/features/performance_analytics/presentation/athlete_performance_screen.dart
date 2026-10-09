@@ -64,6 +64,18 @@ class _AthletePerformanceScreenState
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
                 children: [
                   _buildTopBar(context, ink, surf, line),
+                  if (ref.watch(
+                    featureEnabledProvider(FeatureFlags.developmentReport),
+                  ))
+                    TextButton.icon(
+                      onPressed: () => Navigator.pushNamed(
+                        context,
+                        '/gelisim-raporu',
+                        arguments: {'id': widget.athleteId},
+                      ),
+                      icon: const Icon(Icons.insights_rounded),
+                      label: const Text('Dönem gelişim raporu'),
+                    ),
                   const SizedBox(height: 14),
                   Row(
                     children: [

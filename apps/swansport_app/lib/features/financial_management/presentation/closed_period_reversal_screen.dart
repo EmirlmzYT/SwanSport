@@ -376,6 +376,9 @@ class _ClosedPeriodReversalScreenState
             approve: approve,
           );
       ref.invalidate(financeAdjustmentsProvider);
+      ref.invalidate(accountBalancesProvider);
+      ref.invalidate(financeOperationsSummaryProvider);
+      ref.invalidate(clubOperationsSummaryProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -421,13 +424,58 @@ class _NewAdjustmentModalState extends ConsumerState<_NewAdjustmentModal> {
   final _formKey = GlobalKey<FormState>();
   final _amountCtrl = TextEditingController();
   final _reasonCtrl = TextEditingController();
+  final _searchCtrl = TextEditingController();
+
   String _targetKind = 'expense';
-  bool _isReversal = true;
+  String? _selectedTargetId;
+  ClosedPeriodCandidateEntry? _selectedTargetEntry;
+  String? _kindFilter; // null for all, or 'expense', 'payment', 'donation'
+  int _offset = 0;
+  static const int _pageSize = 50;
+  String _searchQuery = '';
   bool _submitting = false;
+
+  @override
+  void dispose() {
+    _amountCtrl.dispose();
+    _reasonCtrl.dispose();
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _onFilterChanged(String? newKind) {
+    setState(() {
+      _kindFilter = newKind;
+      _offset = 0;
+      if (_selectedTargetEntry != null &&
+          newKind != null &&
+          _selectedTargetEntry!.targetKind != newKind) {
+        _selectedTargetId = null;
+        _selectedTargetEntry = null;
+        _amountCtrl.clear();
+        _reasonCtrl.clear();
+      }
+    });
+  }
+
+  void _onSearchChanged(String text) {
+    setState(() {
+      _searchQuery = text.trim();
+      _offset = 0;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
+    final pageAsync = ref.watch(
+      closedPeriodCandidatesPageProvider((
+        targetKind: _kindFilter,
+        query: _searchQuery.isEmpty ? null : _searchQuery,
+        limit: _pageSize,
+        offset: _offset,
+      ),),
+    );
 
     return Padding(
       padding: EdgeInsets.only(
@@ -441,157 +489,347 @@ class _NewAdjustmentModalState extends ConsumerState<_NewAdjustmentModal> {
         ),
         child: Form(
           key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Yeni Ters Kayıt / Düzeltme',
-                    style: SwanType.h3(c.ink),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: SwanSpace.sm),
-              DropdownButtonFormField<String>(
-                initialValue: _targetKind,
-                decoration: InputDecoration(
-                  labelText: 'İşlem Türü',
-                  filled: true,
-                  fillColor: c.bg,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                    borderSide: BorderSide.none,
-                  ),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Yeni Kapanmış Dönem Ters Kaydı',
+                      style: SwanType.h3(c.ink),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                  ],
                 ),
-                dropdownColor: c.surface,
-                items: const [
-                  DropdownMenuItem(
-                    value: 'expense',
-                    child: Text('Gider Ters Kaydı (İade / İptal)'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'payment',
-                    child: Text('Ödeme / Aidat Düzeltmesi'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'invoice',
-                    child: Text('Fatura Düzeltmesi'),
-                  ),
-                  DropdownMenuItem(
-                    value: 'donation',
-                    child: Text('Bağış Kaydı Düzeltmesi'),
-                  ),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _targetKind = val);
-                },
-              ),
-              const SizedBox(height: SwanSpace.sm),
-              Row(
-                children: [
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Center(child: Text('Ters Kayıt (Eksi)')),
-                      selected: _isReversal,
-                      onSelected: (val) => setState(() => _isReversal = true),
-                      selectedColor: c.accent.withValues(alpha: 0.2),
-                      side: BorderSide(
-                        color: _isReversal ? c.accent : c.line,
+                const SizedBox(height: SwanSpace.xs),
+                Text(
+                  'Kapanmış bir mali dönemdeki işlemin iadesi veya iptali için cari döneme ters hareket oluşturulur.',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                // Arama kutusu ve filtre çipleri
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _searchCtrl,
+                        decoration: InputDecoration(
+                          hintText: 'Hedef kayıtlarda ara (Türkçe duyarlı)...',
+                          prefixIcon: const Icon(Icons.search, size: 18),
+                          suffixIcon: _searchCtrl.text.isNotEmpty
+                              ? IconButton(
+                                  icon: const Icon(Icons.clear, size: 18),
+                                  onPressed: () {
+                                    _searchCtrl.clear();
+                                    _onSearchChanged('');
+                                  },
+                                )
+                              : null,
+                          isDense: true,
+                          filled: true,
+                          fillColor: c.bg,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(SwanRadius.sm),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        onChanged: _onSearchChanged,
                       ),
                     ),
+                  ],
+                ),
+                const SizedBox(height: SwanSpace.xs),
+                Wrap(
+                  spacing: 6,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('Tümü'),
+                      selected: _kindFilter == null,
+                      onSelected: (_) => _onFilterChanged(null),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Giderler'),
+                      selected: _kindFilter == 'expense',
+                      onSelected: (_) => _onFilterChanged('expense'),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Tahsilatlar'),
+                      selected: _kindFilter == 'payment',
+                      onSelected: (_) => _onFilterChanged('payment'),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Bağışlar'),
+                      selected: _kindFilter == 'donation',
+                      onSelected: (_) => _onFilterChanged('donation'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: SwanSpace.sm),
+                pageAsync.when(
+                  loading: () => const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 12),
+                    child: LinearProgressIndicator(),
                   ),
-                  const SizedBox(width: SwanSpace.xs),
-                  Expanded(
-                    child: ChoiceChip(
-                      label: const Center(child: Text('Artı Düzeltme')),
-                      selected: !_isReversal,
-                      onSelected: (val) => setState(() => _isReversal = false),
-                      selectedColor: c.accent.withValues(alpha: 0.2),
-                      side: BorderSide(
-                        color: !_isReversal ? c.accent : c.line,
-                      ),
+                  error: (e, _) => Padding(
+                    padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+                    child: Text(
+                      'İşlemler yüklenemedi: $e',
+                      style: SwanType.caption(c.danger),
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: SwanSpace.sm),
-              TextFormField(
-                controller: _amountCtrl,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                decoration: InputDecoration(
-                  labelText: 'Tutar (₺)',
-                  hintText: '0.00',
-                  filled: true,
-                  fillColor: c.bg,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                    borderSide: BorderSide.none,
-                  ),
+                  data: (page) {
+                    final entries = page.entries;
+                    final totalCount = page.totalCount;
+
+                    // Seçili kayıt başka sayfada kalsa dahi dropdown'da tutulmasını sağla
+                    final displayItems =
+                        List<ClosedPeriodCandidateEntry>.from(entries);
+                    if (_selectedTargetEntry != null &&
+                        (_kindFilter == null ||
+                            _selectedTargetEntry!.targetKind == _kindFilter) &&
+                        !displayItems.any((e) =>
+                            e.entryId == _selectedTargetEntry!.entryId,)) {
+                      displayItems.insert(0, _selectedTargetEntry!);
+                    }
+
+                    if (displayItems.isEmpty) {
+                      return Container(
+                        padding: const EdgeInsets.all(SwanSpace.md),
+                        decoration: BoxDecoration(
+                          color: c.surfaceAlt,
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                        ),
+                        child: Text(
+                          _searchQuery.isNotEmpty || _kindFilter != null
+                              ? 'Arama kriterlerine uygun kapanmış dönem kaydı bulunamadı.'
+                              : 'Kapanmış dönemlerde düzeltilebilecek (bakiye kalan) bir işlem kaydı bulunamadı.',
+                          style: SwanType.caption(c.inkMuted),
+                        ),
+                      );
+                    }
+
+                    final totalPages = totalCount > 0
+                        ? ((totalCount - 1) ~/ _pageSize) + 1
+                        : 1;
+                    final currentPage = (_offset ~/ _pageSize) + 1;
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        DropdownButtonFormField<String>(
+                          key: ValueKey('target-$_selectedTargetId-$_kindFilter'),
+                          initialValue: _selectedTargetId,
+                          isExpanded: true,
+                          decoration: InputDecoration(
+                            labelText: 'Düzeltilecek Hedef Kayıt *',
+                            filled: true,
+                            fillColor: c.bg,
+                            border: OutlineInputBorder(
+                              borderRadius:
+                                  BorderRadius.circular(SwanRadius.md),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          dropdownColor: c.surface,
+                          items: displayItems.map((e) {
+                            return DropdownMenuItem<String>(
+                              value: e.entryId,
+                              child: Text(
+                                '[${e.targetKindLabel}] ${e.label} • ₺${e.amount} (Kalan: ₺${e.remainingAmount})',
+                                style: SwanType.bodySm(c.ink),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            );
+                          }).toList(),
+                          validator: (val) {
+                            if (val == null || val.isEmpty) {
+                              return 'Lütfen düzeltilecek hedef işlemi seçiniz';
+                            }
+                            return null;
+                          },
+                          onChanged: (val) {
+                            if (val != null) {
+                              final entry = displayItems
+                                  .firstWhere((e) => e.entryId == val);
+                              setState(() {
+                                _selectedTargetId = val;
+                                _selectedTargetEntry = entry;
+                                _targetKind = entry.targetKind;
+                                _amountCtrl.text =
+                                    entry.remainingAmount.toString();
+                                _reasonCtrl.text =
+                                    'Ters kayıt (${entry.targetKindLabel}): ${entry.label}';
+                              });
+                            }
+                          },
+                        ),
+                        if (totalCount > _pageSize) ...[
+                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                'Toplam $totalCount kayıt (Sayfa $currentPage / $totalPages)',
+                                style: SwanType.caption(c.inkMuted),
+                              ),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.chevron_left,
+                                        size: 20,),
+                                    onPressed: _offset > 0
+                                        ? () => setState(
+                                              () => _offset =
+                                                  (_offset - _pageSize)
+                                                      .clamp(0, totalCount),
+                                            )
+                                        : null,
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.chevron_right,
+                                        size: 20,),
+                                    onPressed:
+                                        (_offset + _pageSize) < totalCount
+                                            ? () => setState(
+                                                  () => _offset += _pageSize,
+                                                )
+                                            : null,
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    );
+                  },
                 ),
-                validator: (val) {
-                  if (val == null || val.trim().isEmpty) {
-                    return 'Lütfen tutar giriniz';
-                  }
-                  final n = num.tryParse(val.replaceAll(',', '.'));
-                  if (n == null || n <= 0) {
-                    return 'Geçerli ve sıfırdan büyük bir tutar giriniz';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: SwanSpace.sm),
-              TextFormField(
-                controller: _reasonCtrl,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  labelText: 'Düzeltme Gerekçesi',
-                  hintText:
-                      'Örn: 2026/08 dönemindeki mükerrer fatura iadesi cari hesaba mahsup edilmiştir.',
-                  filled: true,
-                  fillColor: c.bg,
-                  border: OutlineInputBorder(
+                const SizedBox(height: SwanSpace.sm),
+                // Hedef tür ve ters hareket yönü bilgi kartı (tür seçilen kayıttan türetilir)
+                Container(
+                  padding: const EdgeInsets.all(SwanSpace.sm),
+                  decoration: BoxDecoration(
+                    color: c.surfaceAlt,
                     borderRadius: BorderRadius.circular(SwanRadius.md),
-                    borderSide: BorderSide.none,
+                    border: Border.all(color: c.line),
                   ),
-                ),
-                validator: (val) {
-                  if (val == null || val.trim().length < 5) {
-                    return 'Lütfen en az 5 karakterlik açıklama giriniz';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: SwanSpace.md),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: c.accent,
-                  foregroundColor: const Color(0xFF0D141F),
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                  ),
-                ),
-                onPressed: _submitting ? null : _submit,
-                child: _submitting
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text(
-                        'Düzeltme Kaydı Oluştur',
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _targetKind == 'expense'
+                            ? Icons.arrow_downward_rounded
+                            : Icons.arrow_upward_rounded,
+                        color: _targetKind == 'expense'
+                            ? const Color(0xFF10B981)
+                            : c.danger,
+                        size: 20,
                       ),
-              ),
-            ],
+                      const SizedBox(width: SwanSpace.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _selectedTargetEntry != null
+                                  ? 'Hedef: ${_selectedTargetEntry!.targetKindLabel} (Hesap: ${_selectedTargetEntry!.accountName})'
+                                  : 'İşlem Türü: Gider Ters Kaydı',
+                              style:
+                                  SwanType.caption(c.ink, w: FontWeight.bold),
+                            ),
+                            Text(
+                              _targetKind == 'expense'
+                                  ? 'Cari Dönem Etkisi: Kasa Girişi (Gider Mahsubu/İade)'
+                                  : 'Cari Dönem Etkisi: Kasa Çıkışı (Ödeme/Bağış İadesi)',
+                              style: SwanType.caption(c.inkMuted),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.sm),
+                TextFormField(
+                  controller: _amountCtrl,
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: 'Ters Kayıt Tutarı (₺) *',
+                    hintText: '0.00',
+                    filled: true,
+                    fillColor: c.bg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().isEmpty) {
+                      return 'Lütfen tutar giriniz';
+                    }
+                    final n = num.tryParse(val.replaceAll(',', '.'));
+                    if (n == null || n <= 0) {
+                      return 'Geçerli ve sıfırdan büyük bir tutar giriniz';
+                    }
+                    if (_selectedTargetEntry != null &&
+                        n > _selectedTargetEntry!.remainingAmount) {
+                      return 'Tutar kalan iade edilebilir tutardan (₺${_selectedTargetEntry!.remainingAmount}) büyük olamaz';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: SwanSpace.sm),
+                TextFormField(
+                  controller: _reasonCtrl,
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Düzeltme Gerekçesi *',
+                    hintText:
+                        'Örn: Kapanmış dönemdeki mükerrer fatura iadesi cari hesaba mahsup edilmiştir.',
+                    filled: true,
+                    fillColor: c.bg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  validator: (val) {
+                    if (val == null || val.trim().length < 5) {
+                      return 'Lütfen en az 5 karakterlik açıklama giriniz';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: SwanSpace.md),
+                FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: c.accent,
+                    foregroundColor: const Color(0xFF0D141F),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                    ),
+                  ),
+                  onPressed: _submitting ? null : _submit,
+                  child: _submitting
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Ters Kayıt Oluştur',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -609,16 +847,17 @@ class _NewAdjustmentModalState extends ConsumerState<_NewAdjustmentModal> {
         throw Exception('Aktif kulüp bulunamadı');
       }
 
-      var parsed = num.parse(_amountCtrl.text.trim().replaceAll(',', '.'));
-      if (_isReversal) {
-        parsed = -parsed.abs();
-      } else {
-        parsed = parsed.abs();
+      final parsed =
+          num.parse(_amountCtrl.text.trim().replaceAll(',', '.')).abs();
+
+      if (_selectedTargetId == null) {
+        throw Exception('Düzeltme yapılacak hedef işlem seçilmelidir');
       }
 
       await ref.read(financeOpsServiceProvider).createAdjustment(
             clubId: club.id,
             targetKind: _targetKind,
+            targetId: _selectedTargetId,
             amount: parsed,
             reason: _reasonCtrl.text.trim(),
           );
@@ -641,4 +880,3 @@ class _NewAdjustmentModalState extends ConsumerState<_NewAdjustmentModal> {
     }
   }
 }
-

@@ -32,6 +32,8 @@ class _FacilityReservationScreenState
   bool _checkedConflicts = false;
   bool _isChecking = false;
   bool _isSubmitting = false;
+  int _conflictCheckToken = 0;
+  String? _checkError;
 
   static const List<int> _durations = [60, 90, 120];
 
@@ -46,10 +48,20 @@ class _FacilityReservationScreenState
   DateTime get _endDateTime =>
       _startDateTime.add(Duration(minutes: _durationMinutes));
 
+  void _invalidateConflictCheck() {
+    _conflictCheckToken++;
+    _isChecking = false;
+    _checkedConflicts = false;
+    _conflicts = [];
+    _checkError = null;
+  }
+
   Future<void> _checkConflicts(String facilityId) async {
+    final token = ++_conflictCheckToken;
     setState(() {
       _isChecking = true;
       _checkedConflicts = false;
+      _checkError = null;
     });
 
     try {
@@ -58,17 +70,20 @@ class _FacilityReservationScreenState
             start: _startDateTime,
             end: _endDateTime,
           );
-      if (mounted) {
+      if (mounted && token == _conflictCheckToken) {
         setState(() {
           _conflicts = res;
           _checkedConflicts = true;
           _isChecking = false;
+          _checkError = null;
         });
       }
-    } catch (_) {
-      if (mounted) {
+    } catch (e) {
+      if (mounted && token == _conflictCheckToken) {
         setState(() {
           _isChecking = false;
+          _checkedConflicts = false;
+          _checkError = 'Çakışma kontrolü başarısız oldu: $e';
         });
       }
     }
@@ -85,24 +100,27 @@ class _FacilityReservationScreenState
 
     setState(() => _isSubmitting = true);
     try {
-      await ref.read(clubOpsServiceProvider).createEvent(
-            clubId: clubId,
-            title: title,
-            kind: 'training',
-            startsAt: _startDateTime,
-            endsAt: _endDateTime,
-            facilityId: facilityId,
-            place: facilityName,
-          );
+      await ref.read(diagnosticsProvider).trace(
+          'action:facility_reservation',
+          () => ref.read(clubOpsServiceProvider).createEvent(
+                clubId: clubId,
+                title: title,
+                kind: 'training',
+                startsAt: _startDateTime,
+                endsAt: _endDateTime,
+                facilityId: facilityId,
+                place: facilityName,
+              ));
 
       ref.invalidate(facilityLoadProvider);
       ref.invalidate(facilityScheduleProvider(facilityId));
+      ref.invalidate(eventsProvider);
+      ref.invalidate(clubOperationsSummaryProvider);
 
       if (context.mounted) {
         setState(() {
           _isSubmitting = false;
-          _checkedConflicts = false;
-          _conflicts = [];
+          _invalidateConflictCheck();
         });
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -187,8 +205,7 @@ class _FacilityReservationScreenState
                           padding: const EdgeInsets.all(SwanSpace.lg),
                           decoration: BoxDecoration(
                             color: c.surface,
-                            borderRadius:
-                                BorderRadius.circular(SwanRadius.md),
+                            borderRadius: BorderRadius.circular(SwanRadius.md),
                             border: Border.all(color: c.line),
                           ),
                           child: Text(
@@ -209,8 +226,7 @@ class _FacilityReservationScreenState
                           padding: const EdgeInsets.all(SwanSpace.md),
                           decoration: BoxDecoration(
                             color: c.surface,
-                            borderRadius:
-                                BorderRadius.circular(SwanRadius.md),
+                            borderRadius: BorderRadius.circular(SwanRadius.md),
                             border: Border.all(color: c.line),
                           ),
                           child: Text(
@@ -312,6 +328,7 @@ class _FacilityReservationScreenState
           ),
           const SizedBox(height: 6),
           DropdownButtonFormField<String>(
+            isExpanded: true,
             initialValue: selected.facilityId,
             decoration: InputDecoration(
               filled: true,
@@ -340,8 +357,7 @@ class _FacilityReservationScreenState
               if (val != null) {
                 setState(() {
                   _selectedFacilityId = val;
-                  _checkedConflicts = false;
-                  _conflicts = [];
+                  _invalidateConflictCheck();
                 });
               }
             },
@@ -403,7 +419,7 @@ class _FacilityReservationScreenState
                     if (picked != null) {
                       setState(() {
                         _selectedDate = picked;
-                        _checkedConflicts = false;
+                        _invalidateConflictCheck();
                       });
                     }
                   },
@@ -432,7 +448,7 @@ class _FacilityReservationScreenState
                     if (picked != null) {
                       setState(() {
                         _selectedTime = picked;
-                        _checkedConflicts = false;
+                        _invalidateConflictCheck();
                       });
                     }
                   },
@@ -480,7 +496,7 @@ class _FacilityReservationScreenState
                     if (val) {
                       setState(() {
                         _durationMinutes = d;
-                        _checkedConflicts = false;
+                        _invalidateConflictCheck();
                       });
                     }
                   },
@@ -518,17 +534,40 @@ class _FacilityReservationScreenState
                   child: Text(
                     _conflicts.isEmpty
                         ? 'Saha müsait'
-                        : '${_conflicts.length} çakışma var!',
+                        : '${_conflicts.length} çakışma var! (Uyarı: Rezervasyon engellenmez)',
                     style: SwanType.caption(
-                      _conflicts.isEmpty
-                          ? const Color(0xFF10B981)
-                          : c.danger,
+                      _conflicts.isEmpty ? const Color(0xFF10B981) : c.danger,
                       w: FontWeight.w700,
                     ),
                   ),
                 ),
             ],
           ),
+          if (_checkError != null) ...[
+            const SizedBox(height: SwanSpace.sm),
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: c.danger.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      _checkError!,
+                      style: SwanType.caption(c.danger),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => _checkConflicts(facility.facilityId),
+                    child:
+                        Text('Tekrar Dene', style: SwanType.caption(c.accent)),
+                  ),
+                ],
+              ),
+            ),
+          ],
           if (_checkedConflicts && _conflicts.isNotEmpty) ...[
             const SizedBox(height: SwanSpace.sm),
             Container(
@@ -539,12 +578,19 @@ class _FacilityReservationScreenState
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: _conflicts.map((conf) {
-                  return Text(
-                    '• ${conf.title} (${conf.startsAt.hour}:${conf.startsAt.minute.toString().padLeft(2, '0')})',
-                    style: SwanType.caption(c.danger, w: FontWeight.w600),
-                  );
-                }).toList(),
+                children: [
+                  Text(
+                    'Çakışan Diğer Seanslar:',
+                    style: SwanType.caption(c.danger, w: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 4),
+                  ..._conflicts.map((conf) {
+                    return Text(
+                      '• ${conf.title} (${conf.startsAt.hour}:${conf.startsAt.minute.toString().padLeft(2, '0')})',
+                      style: SwanType.caption(c.danger, w: FontWeight.w600),
+                    );
+                  }),
+                ],
               ),
             ),
           ],
@@ -605,7 +651,15 @@ class _FacilityReservationScreenState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text('7 Günlük Tesis Programı', style: SwanType.h3(c.ink)),
-            Text(facilityName, style: SwanType.caption(c.accent, w: FontWeight.w600)),
+            const SizedBox(width: 8),
+            Flexible(
+              child: Text(
+                facilityName,
+                style: SwanType.caption(c.accent, w: FontWeight.w600),
+                overflow: TextOverflow.ellipsis,
+                textAlign: TextAlign.end,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: SwanSpace.sm),
@@ -681,4 +735,3 @@ class _FacilityReservationScreenState
     );
   }
 }
-

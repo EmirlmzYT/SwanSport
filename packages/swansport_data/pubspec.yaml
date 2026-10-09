@@ -15,6 +15,10 @@ dependencies:
     sdk: flutter
   flutter_riverpod: ^2.6.1
   http: ^1.2.2
+  sembast: ^3.8.11
+  sembast_web: ^2.4.6
+  path_provider: ^2.1.6
+  shared_preferences: ^2.5.0
   supabase_flutter: ^2.8.0
   swansport_branch_engine: ^0.1.0
   swansport_core: ^0.1.0

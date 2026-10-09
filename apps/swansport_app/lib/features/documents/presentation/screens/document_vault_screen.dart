@@ -10,10 +10,15 @@ import '../../../../app/media/image_pick.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_page_header.dart';
+
+final documentImagePickerProvider =
+    Provider<Future<PickedImage?> Function()>((ref) => pickImage);
 
 /// Gerçek belge listesi, yetkiye göre yükleme ve doğrulama akışları.
 class DocumentVaultScreen extends ConsumerStatefulWidget {
-  const DocumentVaultScreen({super.key});
+  const DocumentVaultScreen({super.key, this.child});
+  final GuardianChild? child;
 
   @override
   ConsumerState<DocumentVaultScreen> createState() =>
@@ -23,6 +28,12 @@ class DocumentVaultScreen extends ConsumerStatefulWidget {
 class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   String _selectedCategory = 'all'; // all | lisans | saglik | club | other
   bool _sortByDateDesc = true;
+  AutoDisposeFutureProvider<List<VaultDoc>> get _docsProvider =>
+      widget.child == null
+          ? vaultDocsProvider
+          : childVaultDocsProvider(
+              (clubId: widget.child!.clubId, athleteId: widget.child!.id),
+            );
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +41,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     final palette = isDark ? SwanPalette.dark : SwanPalette.light;
     final bg = palette.bg;
 
-    final asyncDocs = ref.watch(vaultDocsProvider);
+    final asyncDocs = ref.watch(_docsProvider);
 
     return Scaffold(
       extendBody: true,
@@ -46,8 +57,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
-                      ref.invalidate(vaultDocsProvider);
-                      await ref.read(vaultDocsProvider.future);
+                      ref.invalidate(_docsProvider);
+                      await ref.read(_docsProvider.future);
                     },
                     child: asyncDocs.when(
                       loading: () => ListView(children: [premiumLoading()]),
@@ -67,114 +78,21 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, SwanPalette palette) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: palette.surface.withValues(alpha: 0.95),
-        border: Border(
-          bottom: BorderSide(
-            color: palette.line.withValues(alpha: 0.6),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                },
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: palette.surfaceAlt,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: palette.line),
-                  ),
-                  child: Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 16,
-                    color: palette.ink,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'Belgeler & Rapor Arşivi',
-                    style: SwanType.h3(palette.ink),
-                  ),
-                  Row(
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: palette.accent,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        'Kulüp belge arşivi',
-                        style: SwanType.caption(palette.inkMuted,
-                            w: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: _add,
-                child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: palette.accent,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: palette.accent.withValues(alpha: 0.25),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(Icons.add_rounded,
-                          size: 16, color: Colors.white),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Yükle',
-                        style:
-                            SwanType.caption(Colors.white, w: FontWeight.w700),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+  Widget _buildHeader(BuildContext context, SwanPalette palette) =>
+      SwanPageHeader(
+        title: widget.child == null
+            ? 'Belgeler & Rapor Arşivi'
+            : '${widget.child!.name} · Belgeler',
+        subtitle: widget.child?.clubName ?? 'Kulüp belge arşivi',
+        onBack: () => Navigator.maybePop(context),
+        actions: [
+          TextButton.icon(
+            onPressed: _add,
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('Yükle'),
           ),
         ],
-      ),
-    );
-  }
+      );
 
   Widget _buildContent(
     List<VaultDoc> allDocs,
@@ -183,10 +101,12 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
   ) {
     // Filter documents
     final filteredDocs = allDocs.where((d) {
-      if (_selectedCategory == 'lisans')
+      if (_selectedCategory == 'lisans') {
         return d.docType == 'lisans' && d.ownerType != 'club';
-      if (_selectedCategory == 'saglik')
+      }
+      if (_selectedCategory == 'saglik') {
         return d.docType == 'saglik' && d.ownerType != 'club';
+      }
       if (_selectedCategory == 'club') return d.ownerType == 'club';
       if (_selectedCategory == 'expiring') return d.isExpired || d.isExpiring;
       if (_selectedCategory == 'other') {
@@ -408,8 +328,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                         children: [
                           Text(
                             f.$1,
-                            style: SwanType.caption(palette.ink,
-                                w: FontWeight.w700),
+                            style: SwanType.caption(
+                              palette.ink,
+                              w: FontWeight.w700,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -711,7 +633,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                     style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
                   ),
                   Text(
-                    'PDF, Görsel ve Tescil Belgeleri (Maks. 10MB)',
+                    'Belge görselini seç ve bilgilerini doldur',
                     style: SwanType.caption(palette.inkMuted),
                   ),
                 ],
@@ -730,8 +652,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
   // ------------------------------- Eylemler --------------------------------
   Future<void> _add() async {
-    final club = ref.read(activeClubProvider).valueOrNull;
-    if (club == null) return;
+    final clubId =
+        widget.child?.clubId ?? ref.read(activeClubProvider).valueOrNull?.id;
+    if (clubId == null) return;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
@@ -759,13 +682,16 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             Text('Belge türü', style: SwanType.h3(ink)),
             const SizedBox(height: 8),
             for (final e in kDocTypes.entries)
-              ListTile(
-                dense: true,
-                title: Text(
-                  e.value,
-                  style: SwanType.bodySm(ink, w: FontWeight.w600),
+              Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  dense: true,
+                  title: Text(
+                    e.value,
+                    style: SwanType.bodySm(ink, w: FontWeight.w600),
+                  ),
+                  onTap: () => Navigator.pop(ctx, e.key),
                 ),
-                onTap: () => Navigator.pop(ctx, e.key),
               ),
           ],
         ),
@@ -774,9 +700,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     if (type == null) return;
 
     // 2) Sahibi — sporcu belgesi ise hangi sporcu
-    String ownerType = 'club';
-    String? ownerId;
-    if (type == 'lisans' || type == 'saglik') {
+    String ownerType = widget.child == null ? 'club' : 'athlete';
+    String? ownerId = widget.child?.id;
+    if (widget.child == null && (type == 'lisans' || type == 'saglik')) {
       final athletes = ref.read(clubAthletesProvider).valueOrNull ?? const [];
       if (athletes.isNotEmpty) {
         if (!mounted) return;
@@ -798,20 +724,26 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
                 Expanded(
                   child: ListView(
                     children: [
-                      ListTile(
-                        title: Text(
-                          'Kulübe ait',
-                          style: SwanType.bodySm(ink, w: FontWeight.w600),
-                        ),
-                        onTap: () => Navigator.pop(ctx, ''),
-                      ),
-                      for (final a in athletes)
-                        ListTile(
+                      Material(
+                        type: MaterialType.transparency,
+                        child: ListTile(
                           title: Text(
-                            a.fullName,
+                            'Kulübe ait',
                             style: SwanType.bodySm(ink, w: FontWeight.w600),
                           ),
-                          onTap: () => Navigator.pop(ctx, a.id),
+                          onTap: () => Navigator.pop(ctx, ''),
+                        ),
+                      ),
+                      for (final a in athletes)
+                        Material(
+                          type: MaterialType.transparency,
+                          child: ListTile(
+                            title: Text(
+                              a.fullName,
+                              style: SwanType.bodySm(ink, w: FontWeight.w600),
+                            ),
+                            onTap: () => Navigator.pop(ctx, a.id),
+                          ),
                         ),
                     ],
                   ),
@@ -831,7 +763,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     // 3) Dosya
     String? path;
     String fileLabel = '';
-    final picked = await pickImage();
+    final picked = await ref.read(documentImagePickerProvider)();
     if (picked != null) {
       try {
         path = await ref
@@ -849,6 +781,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
         }
       }
     }
+
+    if (picked != null && path == null) return;
 
     // 4) Künye
     final name = FormField_('Belge adı', hint: kDocTypes[type] ?? 'Belge')
@@ -868,37 +802,34 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
           : 'Dosya: $fileLabel',
       fields: [name, expires],
       onSubmit: () async {
-        try {
-          await ref.read(vaultServiceProvider).add(
-                clubId: club.id,
-                name: name.value,
-                ownerType: ownerType,
-                ownerId: ownerId,
-                docType: type,
-                path: path,
-                expires: _parseDate(expires.value),
-              );
-          ref.invalidate(vaultDocsProvider);
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Belge eklendi'),
-                backgroundColor: kTeal,
-              ),
+        await ref.read(vaultServiceProvider).add(
+              clubId: clubId,
+              name: name.value,
+              ownerType: ownerType,
+              ownerId: ownerId,
+              docType: type,
+              path: path,
+              expires: _validatedDate(expires.value),
             );
-          }
-        } catch (e) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Eklenemedi: $e'),
-                backgroundColor: SwanPalette.light.danger,
-              ),
-            );
-          }
+        ref.invalidate(_docsProvider);
+        if (mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Belge eklendi'),
+              backgroundColor: kTeal,
+            ),
+          );
         }
       },
     );
+  }
+
+  DateTime? _validatedDate(String value) {
+    if (value.trim().isEmpty) return null;
+    final date = _parseDate(value);
+    if (date == null) throw StateError('Geçerli bir tarih gir (GG.AA.YYYY).');
+    return date;
   }
 
   DateTime? _parseDate(String s) {
@@ -908,7 +839,8 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     final m = int.tryParse(p[1]);
     final y = int.tryParse(p[2]);
     if (d == null || m == null || y == null) return null;
-    return DateTime(y, m, d);
+    final date = DateTime(y, m, d);
+    return date.year == y && date.month == m && date.day == d ? date : null;
   }
 
   Future<void> _actions(VaultDoc d) async {
@@ -943,97 +875,108 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             ),
             const SizedBox(height: 14),
             if (d.storagePath != null)
-              ListTile(
-                dense: true,
-                leading: const Icon(
-                  Icons.open_in_new_rounded,
-                  size: 20,
-                  color: kTeal,
-                ),
-                title: Text(
-                  'Bağlantıyı kopyala',
-                  style: SwanType.bodySm(ink, w: FontWeight.w600),
-                ),
-                subtitle: Text(
-                  '1 saat geçerli, tarayıcıda aç',
-                  style: SwanType.caption(SwanColors.textSecondary),
-                ),
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  try {
-                    final url = await ref
-                        .read(vaultServiceProvider)
-                        .signedUrl(d.storagePath!);
-                    await Clipboard.setData(ClipboardData(text: url));
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Bağlantı kopyalandı'),
-                          backgroundColor: kTeal,
-                        ),
-                      );
+              Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  dense: true,
+                  leading: const Icon(
+                    Icons.open_in_new_rounded,
+                    size: 20,
+                    color: kTeal,
+                  ),
+                  title: Text(
+                    'Bağlantıyı kopyala',
+                    style: SwanType.bodySm(ink, w: FontWeight.w600),
+                  ),
+                  subtitle: Text(
+                    '1 saat geçerli, tarayıcıda aç',
+                    style: SwanType.caption(SwanColors.textSecondary),
+                  ),
+                  onTap: () async {
+                    Navigator.pop(ctx);
+                    try {
+                      final url = await ref
+                          .read(vaultServiceProvider)
+                          .signedUrl(d.storagePath!);
+                      await Clipboard.setData(ClipboardData(text: url));
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Bağlantı kopyalandı'),
+                            backgroundColor: kTeal,
+                          ),
+                        );
+                      }
+                    } catch (e) {
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Bağlantı alınamadı: $e'),
+                            backgroundColor: SwanPalette.light.danger,
+                          ),
+                        );
+                      }
                     }
-                  } catch (e) {
-                    if (mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Bağlantı alınamadı: $e'),
-                          backgroundColor: SwanPalette.light.danger,
-                        ),
-                      );
-                    }
-                  }
-                },
-              ),
-            ListTile(
-              dense: true,
-              leading: Icon(
-                d.verified ? Icons.gpp_bad_rounded : Icons.verified_rounded,
-                size: 20,
-                color: d.verified ? SwanColors.textSecondary : kTeal,
-              ),
-              title: Text(
-                d.verified ? 'Doğrulamayı kaldır' : 'Doğrula',
-                style: SwanType.bodySm(ink, w: FontWeight.w600),
-              ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _guard(
-                  () async {
-                    await ref
-                        .read(vaultServiceProvider)
-                        .verify(d.id, !d.verified);
-                    ref.invalidate(vaultDocsProvider);
                   },
-                  d.verified ? 'Doğrulama kaldırıldı' : 'Belge doğrulandı',
-                );
-              },
-            ),
-            ListTile(
-              dense: true,
-              leading: Icon(
-                Icons.delete_outline_rounded,
-                size: 20,
-                color: SwanPalette.light.danger,
-              ),
-              title: Text(
-                'Belgeyi sil',
-                style: SwanType.bodySm(
-                  SwanPalette.light.danger,
-                  w: FontWeight.w700,
                 ),
               ),
-              onTap: () {
-                Navigator.pop(ctx);
-                _guard(
-                  () async {
-                    await ref.read(vaultServiceProvider).remove(d.id);
-                    ref.invalidate(vaultDocsProvider);
+            if (widget.child == null)
+              Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  dense: true,
+                  leading: Icon(
+                    d.verified ? Icons.gpp_bad_rounded : Icons.verified_rounded,
+                    size: 20,
+                    color: d.verified ? SwanColors.textSecondary : kTeal,
+                  ),
+                  title: Text(
+                    d.verified ? 'Doğrulamayı kaldır' : 'Doğrula',
+                    style: SwanType.bodySm(ink, w: FontWeight.w600),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _guard(
+                      () async {
+                        await ref
+                            .read(vaultServiceProvider)
+                            .verify(d.id, !d.verified);
+                        ref.invalidate(_docsProvider);
+                      },
+                      d.verified ? 'Doğrulama kaldırıldı' : 'Belge doğrulandı',
+                    );
                   },
-                  'Belge silindi',
-                );
-              },
-            ),
+                ),
+              ),
+            if (widget.child == null)
+              Material(
+                type: MaterialType.transparency,
+                child: ListTile(
+                  dense: true,
+                  leading: Icon(
+                    Icons.delete_outline_rounded,
+                    size: 20,
+                    color: SwanPalette.light.danger,
+                  ),
+                  title: Text(
+                    'Belgeyi sil',
+                    style: SwanType.bodySm(
+                      SwanPalette.light.danger,
+                      w: FontWeight.w700,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.pop(ctx);
+                    _guard(
+                      () async {
+                        await ref.read(vaultServiceProvider).remove(d.id);
+                        ref.invalidate(_docsProvider);
+                      },
+                      'Belge silindi',
+                    );
+                  },
+                ),
+              ),
           ],
         ),
       ),

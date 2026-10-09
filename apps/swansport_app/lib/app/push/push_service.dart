@@ -407,7 +407,12 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
           .addPostFrameCallback((_) => _openMessage(message));
       return;
     }
-    navigator.pushNamed(pushRouteOrNotifications(message.route));
+    final recorder = ref.read(diagnosticsProvider);
+    final target = pushRouteOrNotifications(message.route);
+    final trace = diagnosticId();
+    recorder.record('start', operation: 'action:push_open', traceId: trace);
+    navigator.pushNamed(target);
+    recorder.record('success', operation: 'action:push_open', traceId: trace);
   }
 
   @override

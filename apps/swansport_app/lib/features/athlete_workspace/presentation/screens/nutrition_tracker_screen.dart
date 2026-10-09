@@ -22,6 +22,7 @@ class NutritionTrackerScreen extends ConsumerStatefulWidget {
 class _NutritionTrackerScreenState
     extends ConsumerState<NutritionTrackerScreen> {
   DateTime _selectedDate = DateTime.now();
+  bool _isUpdatingWater = false;
 
   static const List<Map<String, dynamic>> _quickSuggestions = [
     {
@@ -288,8 +289,10 @@ class _NutritionTrackerScreenState
     DailyNutritionSummary summary,
     String? profileId,
   ) {
-    final progress =
-        (summary.totalWaterMl / summary.targetWaterMl).clamp(0.0, 1.0);
+    final hasTarget = summary.targetWaterMl != null && summary.targetWaterMl! > 0;
+    final progress = hasTarget
+        ? (summary.totalWaterMl / summary.targetWaterMl!).clamp(0.0, 1.0)
+        : 0.0;
     const waterBlue = Color(0xFF0284C7);
 
     return Container(
@@ -328,9 +331,33 @@ class _NutritionTrackerScreenState
                         'Günlük Hidrasyon',
                         style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                       ),
-                      Text(
-                        'Hedef: ${summary.targetWaterMl} ml',
-                        style: SwanType.caption(c.inkMuted),
+                      GestureDetector(
+                        onTap: () => _openSetTargetsModal(
+                          context: context,
+                          c: c,
+                          profileId: profileId,
+                          currentCalories: summary.targetCalories,
+                          currentWaterMl: summary.targetWaterMl,
+                        ),
+                        child: Row(
+                          children: [
+                            Text(
+                              hasTarget
+                                  ? 'Hedef: ${summary.targetWaterMl} ml'
+                                  : 'Hedef Belirlenmedi',
+                              style: SwanType.caption(
+                                hasTarget ? c.inkMuted : c.accent,
+                                w: hasTarget ? FontWeight.normal : FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Icon(
+                              Icons.edit_outlined,
+                              size: 13,
+                              color: hasTarget ? c.inkMuted : c.accent,
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -357,7 +384,9 @@ class _NutritionTrackerScreenState
             children: [
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _updateWater(profileId, 250),
+                  onPressed: _isUpdatingWater
+                      ? null
+                      : () => _updateWater(profileId, 250),
                   icon: const Icon(Icons.add_rounded, size: 16),
                   label: const Text('+250 ml (1 Bardak)'),
                   style: OutlinedButton.styleFrom(
@@ -374,7 +403,9 @@ class _NutritionTrackerScreenState
               const SizedBox(width: SwanSpace.xs),
               Expanded(
                 child: OutlinedButton.icon(
-                  onPressed: () => _updateWater(profileId, 500),
+                  onPressed: _isUpdatingWater
+                      ? null
+                      : () => _updateWater(profileId, 500),
                   icon: const Icon(Icons.add_rounded, size: 16),
                   label: const Text('+500 ml (Şişe)'),
                   style: OutlinedButton.styleFrom(
@@ -390,7 +421,7 @@ class _NutritionTrackerScreenState
               ),
               const SizedBox(width: SwanSpace.xs),
               IconButton(
-                onPressed: summary.totalWaterMl > 0
+                onPressed: summary.totalWaterMl > 0 && !_isUpdatingWater
                     ? () => _updateWater(profileId, -250)
                     : null,
                 icon: const Icon(Icons.remove_rounded, size: 18),
@@ -405,23 +436,44 @@ class _NutritionTrackerScreenState
   }
 
   Future<void> _updateWater(String? profileId, int deltaMl) async {
-    if (profileId == null) return;
-    final athlete =
-        await ref.read(athleteByProfileProvider(profileId).future);
-    if (athlete == null) return;
+    if (profileId == null || _isUpdatingWater) return;
+    setState(() => _isUpdatingWater = true);
 
-    await ref.read(nutritionServiceProvider).logWater(
-          athleteId: athlete.id,
-          date: _selectedDate,
-          deltaMl: deltaMl,
+    try {
+      final athlete =
+          await ref.read(athleteByProfileProvider(profileId).future);
+      if (athlete == null) return;
+
+      await ref.read(nutritionServiceProvider).logWater(
+            athleteId: athlete.id,
+            date: _selectedDate,
+            deltaMl: deltaMl,
+          );
+
+      ref.invalidate(dailyNutritionSummaryProvider(_selectedDate));
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Su tüketimi kaydedilemedi: $e'),
+            backgroundColor: context.swan.danger,
+          ),
         );
-
-    ref.invalidate(dailyNutritionSummaryProvider(_selectedDate));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isUpdatingWater = false);
+      }
+    }
   }
 
   Widget _buildCalorieCard(SwanPalette c, DailyNutritionSummary summary) {
-    final calorieProgress =
-        (summary.totalCalories / summary.targetCalories).clamp(0.0, 1.0);
+    final profile = ref.watch(currentProfileProvider).valueOrNull;
+    final hasTarget =
+        summary.targetCalories != null && summary.targetCalories! > 0;
+    final calorieProgress = hasTarget
+        ? (summary.totalCalories / summary.targetCalories!).clamp(0.0, 1.0)
+        : 0.0;
 
     return Container(
       padding: const EdgeInsets.all(SwanSpace.lg),
@@ -454,25 +506,53 @@ class _NutritionTrackerScreenState
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        '/ ${summary.targetCalories} kcal',
+                        hasTarget
+                            ? '/ ${summary.targetCalories} kcal'
+                            : 'kcal (Hedef Yok)',
                         style: SwanType.caption(c.inkMuted),
                       ),
                     ],
                   ),
                 ],
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 6,
+              InkWell(
+                onTap: () => _openSetTargetsModal(
+                  context: context,
+                  c: c,
+                  profileId: profile?.id,
+                  currentCalories: summary.targetCalories,
+                  currentWaterMl: summary.targetWaterMl,
                 ),
-                decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  '%${(calorieProgress * 100).round()} Tüketildi',
-                  style: SwanType.caption(c.accent, w: FontWeight.w700),
+                borderRadius: BorderRadius.circular(999),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: hasTarget
+                        ? c.accent.withValues(alpha: 0.12)
+                        : c.line.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        hasTarget
+                            ? '%${(calorieProgress * 100).round()} Tüketildi'
+                            : 'Hedef Belirle',
+                        style: SwanType.caption(
+                          hasTarget ? c.accent : c.ink,
+                          w: FontWeight.w700,
+                        ),
+                      ),
+                      if (!hasTarget) ...[
+                        const SizedBox(width: 4),
+                        Icon(Icons.add_circle_outline, size: 14, color: c.ink),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -1023,6 +1103,163 @@ class _NutritionTrackerScreenState
           },
         );
       },
+    );
+  }
+
+  void _openSetTargetsModal({
+    required BuildContext context,
+    required SwanPalette c,
+    required String? profileId,
+    int? currentCalories,
+    int? currentWaterMl,
+  }) {
+    final calCtrl = TextEditingController(
+      text: currentCalories != null ? '$currentCalories' : '',
+    );
+    final waterCtrl = TextEditingController(
+      text: currentWaterMl != null ? '$currentWaterMl' : '',
+    );
+    bool isSaving = false;
+
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(ctx).viewInsets.bottom,
+          ),
+          child: Container(
+            padding: const EdgeInsets.all(SwanSpace.lg),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text('Beslenme ve Su Hedefleri', style: SwanType.h3(c.ink)),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Navigator.of(ctx).pop(),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Kişisel antrenman yoğunluğu ve branş gereksinimlerine göre günlük hedeflerinizi belirleyin.',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                TextField(
+                  controller: calCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Günlük Kalori Hedefi (kcal)',
+                    hintText: 'Örn: 2200',
+                    filled: true,
+                    fillColor: c.bg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.sm),
+                TextField(
+                  controller: waterCtrl,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'Günlük Su Hedefi (ml)',
+                    hintText: 'Örn: 2500',
+                    filled: true,
+                    fillColor: c.bg,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: c.accent,
+                    foregroundColor: const Color(0xFF0D141F),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                    ),
+                  ),
+                  onPressed: isSaving
+                      ? null
+                      : () async {
+                          if (profileId == null) return;
+                          final athlete = await ref.read(
+                            athleteByProfileProvider(profileId).future,
+                          );
+                          if (athlete == null) return;
+
+                          setModalState(() => isSaving = true);
+                          try {
+                            final calVal = int.tryParse(calCtrl.text.trim());
+                            final waterVal =
+                                int.tryParse(waterCtrl.text.trim());
+
+                            await ref
+                                .read(nutritionServiceProvider)
+                                .setTargets(
+                                  athleteId: athlete.id,
+                                  targetCalories: calVal,
+                                  targetWaterMl: waterVal,
+                                );
+
+                            ref.invalidate(
+                              dailyNutritionSummaryProvider(_selectedDate),
+                            );
+                            if (ctx.mounted) {
+                              Navigator.of(ctx).pop();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content:
+                                      Text('Hedefler başarıyla güncellendi.'),
+                                  backgroundColor: Color(0xFF10B981),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (ctx.mounted) {
+                              setModalState(() => isSaving = false);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text('Hedef kaydedilemedi: $e'),
+                                  backgroundColor: c.danger,
+                                ),
+                              );
+                            }
+                          }
+                        },
+                  child: isSaving
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text(
+                          'Hedefleri Kaydet',
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
     );
   }
 }

@@ -3,9 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../../app/widgets/premium.dart';
-import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/premium.dart';
+import '../../saha_operations/presentation/turf_duty_invite_dialog.dart';
 
 /// Sahanın haftalık doluluk şeridi.
 ///
@@ -34,7 +35,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
 
     final async = ref.watch(turfOccupancyGridProvider(_field.id));
     final isManager =
-        ref.watch(swanAccessProvider).isTurfManagerOf(_field.id);
+        ref.watch(swanAccessProvider).canEditTurfOccupancy(_field.id);
 
     return Scaffold(
       backgroundColor: bg,
@@ -45,9 +46,13 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_field.name, style: SwanType.h3(ink)),
-            Text('${_field.venueName} · ${_field.opensAt}–${_field.closesAt}',
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+            Text(
+              '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}',
+              style: SwanType.caption(
+                SwanColors.textSecondary,
+                w: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -66,7 +71,8 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
 
           final byDay = <String, List<TurfSlot>>{};
           for (final s in slots) {
-            final key = '${s.startsAt.year}-${s.startsAt.month}-${s.startsAt.day}';
+            final key =
+                '${s.startsAt.year}-${s.startsAt.month}-${s.startsAt.day}';
             byDay.putIfAbsent(key, () => []).add(s);
           }
 
@@ -77,6 +83,27 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
               children: [
                 if (isManager) _managerBanner(isDark, ink),
+                if (ref
+                    .watch(featureEnabledProvider(FeatureFlags.turfDelegation)))
+                  TextButton(
+                    onPressed: () =>
+                        Navigator.pushNamed(context, '/saha-islemlerim'),
+                    child: const Text('Saha görevlerim'),
+                  ),
+                if (ref.watch(
+                      featureEnabledProvider(FeatureFlags.turfDelegation),
+                    ) &&
+                    ref.watch(swanAccessProvider).isTurfManagerOf(_field.id))
+                  TextButton(
+                    onPressed: _busy
+                        ? null
+                        : () => showDialog<void>(
+                              context: context,
+                              builder: (_) =>
+                                  TurfDutyInviteDialog(fieldId: _field.id),
+                            ),
+                    child: const Text('Görev devret'),
+                  ),
                 for (final day in byDay.entries) ...[
                   _dayHeader(ink, day.value.first.startsAt),
                   const SizedBox(height: 8),
@@ -84,14 +111,20 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                     spacing: 8,
                     runSpacing: 8,
                     children: [
-                      for (final s in day.value) _cell(isDark, ink, s, isManager),
+                      for (final s in day.value)
+                        _cell(isDark, ink, s, isManager),
                     ],
                   ),
                   const SizedBox(height: 18),
                 ],
                 if (_field.phone != null && _field.phone!.isNotEmpty)
-                  Text('Rezervasyon için ara: ${_field.phone}',
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                  Text(
+                    'Rezervasyon için ara: ${_field.phone}',
+                    style: SwanType.caption(
+                      SwanColors.textSecondary,
+                      w: FontWeight.w600,
+                    ),
+                  ),
               ],
             ),
           );
@@ -106,34 +139,49 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
         decoration: BoxDecoration(
           color: const Color(0xFF3FB950).withValues(alpha: .09),
           borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: const Color(0xFF3FB950).withValues(alpha: .25)),
+          border:
+              Border.all(color: const Color(0xFF3FB950).withValues(alpha: .25)),
         ),
-        child: Row(children: [
-          const Icon(Icons.edit_calendar_rounded,
-              color: Color(0xFF3FB950), size: 18),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-                'Bu sahayı sen yönetiyorsun — bir saate dokunarak dolu/boş '
-                'işaretleyebilirsin.',
-                style: SwanType.caption(ink, w: FontWeight.w700)),
-          ),
-        ]),
+        child: Row(
+          children: [
+            const Icon(
+              Icons.edit_calendar_rounded,
+              color: Color(0xFF3FB950),
+              size: 18,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                ref.watch(swanAccessProvider).isTurfManagerOf(_field.id)
+                    ? 'Bu sahayı sen yönetiyorsun; bir saate dokunarak dolu/boş işaretleyebilirsin.'
+                    : 'Geçici saha görevin var; doluluk işaretleyebilirsin. Süre bitince erişimin kapanır.',
+                style: SwanType.caption(ink, w: FontWeight.w700),
+              ),
+            ),
+          ],
+        ),
       );
 
   Widget _dayHeader(Color ink, DateTime day) {
     const gunler = [
-      'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'
+      'Pazartesi',
+      'Salı',
+      'Çarşamba',
+      'Perşembe',
+      'Cuma',
+      'Cumartesi',
+      'Pazar',
     ];
-    final label = '${gunler[day.weekday - 1]} · ${day.day.toString().padLeft(2, '0')}.'
+    final label =
+        '${gunler[day.weekday - 1]} · ${day.day.toString().padLeft(2, '0')}.'
         '${day.month.toString().padLeft(2, '0')}';
     return Text(label, style: SwanType.bodySm(ink, w: FontWeight.w800));
   }
 
   Widget _cell(bool isDark, Color ink, TurfSlot s, bool isManager) {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    final freeColor = const Color(0xFF3FB950);
-    final busyColor = const Color(0xFFD64545);
+    const freeColor = Color(0xFF3FB950);
+    const busyColor = Color(0xFFD64545);
     final requestedColor = SwanPalette.light.warning;
 
     final VoidCallback? onTap;
@@ -165,18 +213,27 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
         padding: const EdgeInsets.symmetric(vertical: 9),
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: fg.withValues(alpha: s.occupied || s.requestedByMe ? .12 : .10),
+          color:
+              fg.withValues(alpha: s.occupied || s.requestedByMe ? .12 : .10),
           borderRadius: BorderRadius.circular(11),
           border: Border.all(
-              color: (s.occupied || s.requestedByMe)
-                  ? fg.withValues(alpha: .3)
-                  : line),
+            color: (s.occupied || s.requestedByMe)
+                ? fg.withValues(alpha: .3)
+                : line,
+          ),
         ),
-        child: Column(children: [
-          Text(s.hourLabel,
-              style: SwanType.caption((s.occupied || s.requestedByMe) ? fg : ink, w: FontWeight.w800)),
-          Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
-        ]),
+        child: Column(
+          children: [
+            Text(
+              s.hourLabel,
+              style: SwanType.caption(
+                (s.occupied || s.requestedByMe) ? fg : ink,
+                w: FontWeight.w800,
+              ),
+            ),
+            Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
+          ],
+        ),
       ),
     );
   }
@@ -214,13 +271,15 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           .requestSlot(fieldId: _field.id, startsAt: s.startsAt);
       ref.invalidate(turfOccupancyGridProvider(_field.id));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Mesajın gönderildi.'),
-        action: SnackBarAction(
-          label: 'Sohbete git',
-          onPressed: () => Navigator.pushNamed(context, '/mesajlar'),
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: const Text('Mesajın gönderildi.'),
+          action: SnackBarAction(
+            label: 'Sohbete git',
+            onPressed: () => Navigator.pushNamed(context, '/mesajlar'),
+          ),
         ),
-      ));
+      );
     } catch (e) {
       _say(_readable(e));
     } finally {
@@ -237,12 +296,14 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
   }
 
   Future<void> _toggle(TurfSlot s) async {
+    if (_busy) return;
     if (s.occupied) {
       setState(() => _busy = true);
       try {
         await ref
             .read(turfServiceProvider)
             .markFree(fieldId: _field.id, startsAt: s.startsAt);
+        if (!mounted) return;
         ref.invalidate(turfOccupancyGridProvider(_field.id));
       } catch (e) {
         _say(_readable(e));
@@ -256,7 +317,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
       context: context,
       builder: (_) => _NoteDialog(hour: s.hourLabel),
     );
-    if (note == null) return;
+    if (note == null || !mounted) return;
 
     setState(() => _busy = true);
     try {
@@ -265,6 +326,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
             startsAt: s.startsAt,
             note: note.trim().isEmpty ? null : note.trim(),
           );
+      if (!mounted) return;
       ref.invalidate(turfOccupancyGridProvider(_field.id));
     } catch (e) {
       _say(_readable(e));

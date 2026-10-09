@@ -18,6 +18,8 @@ class CredentialRow {
     this.note,
     this.personName,
     this.sportName,
+    this.sportCode,
+    this.expiresOn,
   });
 
   final String id;
@@ -29,6 +31,17 @@ class CredentialRow {
 
   /// Onaylanan branş — federasyon kanalı buna göre belirlenir.
   final String? sportName;
+  final String? sportCode;
+  final DateTime? expiresOn;
+
+  /// Legacy null expiry stays valid. Day boundaries match PostgreSQL Turkey time.
+  bool isValidOn(DateTime instant) {
+    if (status != 'approved') return false;
+    if (expiresOn == null) return true;
+    final local = instant.toUtc().add(const Duration(hours: 3));
+    return !DateTime.utc(expiresOn!.year, expiresOn!.month, expiresOn!.day)
+        .isBefore(DateTime.utc(local.year, local.month, local.day));
+  }
 
   bool get isCoach => kind == 'coach';
 
@@ -59,6 +72,8 @@ class CredentialRow {
       coachLevel: m['coach_level'] as int?,
       status: (m['status'] as String?) ?? 'pending',
       note: m['note'] as String?,
+      sportCode: m['sport_code'] as String?,
+      expiresOn: DateTime.tryParse(m['expires_on'] as String? ?? ''),
       personName: (name == null || name.isEmpty) ? null : name,
       sportName: (m['sports'] is Map)
           ? (m['sports'] as Map)['name'] as String?
@@ -92,14 +107,18 @@ class VerificationService {
   /// Antrenörlük başvurusu. Branş burada seçilir çünkü antrenörlük belgesi
   /// zaten branşa özeldir ("Yüzme 2. Kademe") — platform hangi branşta
   /// onayladıysa federasyon kanalı da o branşa göre açılır.
-  Future<String> submitCoachCredential(int level, {String? sportCode}) async {
+  Future<String> submitCoachCredential(int level,
+      {String? sportCode, DateTime? expiresOn,}) async {
+    _requireNewCredential(sportCode, expiresOn);
     final row = await _c
         .from('profile_credentials')
         .insert({
           'profile_id': _uid,
           'kind': 'coach',
           'coach_level': level,
-          if (sportCode != null && sportCode.isNotEmpty) 'sport_code': sportCode,
+          if (sportCode != null && sportCode.isNotEmpty)
+            'sport_code': sportCode,
+          'expires_on': expiresOn!.toIso8601String().substring(0, 10),
         })
         .select('id')
         .single();
@@ -115,7 +134,9 @@ class VerificationService {
   /// Branş burada da sorulur: lisans her zaman bir branşa aittir ("Yüzme
   /// ferdi sporcusu"). Ferdi olmak branşsız olmak demek değil — kulüpsüz
   /// olmak demek.
-  Future<String> submitAthleteCredential({String? sportCode}) async {
+  Future<String> submitAthleteCredential(
+      {String? sportCode, DateTime? expiresOn,}) async {
+    _requireNewCredential(sportCode, expiresOn);
     final membership = await _c
         .from('club_memberships')
         .select('club_id')
@@ -129,11 +150,19 @@ class VerificationService {
         .insert({
           'profile_id': _uid,
           'kind': hasClub ? 'athlete_licensed' : 'athlete_individual',
-          if (sportCode != null && sportCode.isNotEmpty) 'sport_code': sportCode,
+          if (sportCode != null && sportCode.isNotEmpty)
+            'sport_code': sportCode,
+          'expires_on': expiresOn!.toIso8601String().substring(0, 10),
         })
         .select('id')
         .single();
     return row['id'] as String;
+  }
+
+  static void _requireNewCredential(String? sport, DateTime? expiry) {
+    if (sport == null || sport.isEmpty || expiry == null) {
+      throw ArgumentError('Yeni belge için branş ve bitiş tarihi zorunlu.');
+    }
   }
 
   /// Bir dosyayı Storage'a yükler, kaydedilen storage yolunu döner.
@@ -182,7 +211,8 @@ class VerificationService {
     if (uid == null) return const [];
     final rows = await _c
         .from('profile_credentials')
-        .select('id, kind, coach_level, status, note, sports(name)')
+        .select(
+            'id, kind, coach_level, status, note, sport_code, expires_on, sports(name)',)
         .eq('profile_id', uid)
         .order('submitted_at', ascending: false);
     return (rows as List)
@@ -218,7 +248,8 @@ class VerificationService {
         .from('profile_credentials')
         // profile_credentials → profiles arasında iki bağlantı var
         // (başvuran: profile_id, inceleyen: reviewed_by). Başvuranı istiyoruz.
-        .select('id, kind, coach_level, status, note, sports(name), '
+        .select(
+            'id, kind, coach_level, status, note, sport_code, expires_on, sports(name), '
             'profiles!profile_credentials_profile_id_fkey(full_name)')
         .eq('status', 'pending')
         .order('submitted_at');

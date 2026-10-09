@@ -1,3 +1,5 @@
+import 'support_fix_panel.dart';
+import 'support_diagnostic_panel.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -38,22 +40,21 @@ class _ConsoleSupportScreenState extends ConsumerState<ConsoleSupportScreen> {
               'eskiye sıralamak eskileri kuyruğun dibinde unutturuyordu.',
         ),
         const SizedBox(height: ConsoleDensity.lg),
-
         SegmentedButton<String>(
           segments: const [
             ButtonSegment(value: 'all', label: Text('Tümü')),
             ButtonSegment(value: 'new', label: Text('Yeni')),
-            ButtonSegment(
-                value: 'under_review', label: Text('İnceleniyor')),
+            ButtonSegment(value: 'under_review', label: Text('İnceleniyor')),
             ButtonSegment(
                 value: 'awaiting_user_response', label: Text('Yanıt bekliyor')),
           ],
           selected: {_status},
-          onSelectionChanged: (s) =>
-              setState(() { _status = s.first; _selected = null; }),
+          onSelectionChanged: (s) => setState(() {
+            _status = s.first;
+            _selected = null;
+          }),
         ),
         const SizedBox(height: ConsoleDensity.lg),
-
         AsyncSection<List<SupportQueueItem>>(
           value: queue,
           errorPrefix: 'Destek kuyruğu alınamadı',
@@ -65,10 +66,8 @@ class _ConsoleSupportScreenState extends ConsumerState<ConsoleSupportScreen> {
                       _QueueRow(
                         item: q,
                         expanded: _selected?.ticketId == q.ticketId,
-                        onTap: () => setState(() =>
-                            _selected = _selected?.ticketId == q.ticketId
-                                ? null
-                                : q),
+                        onTap: () => setState(() => _selected =
+                            _selected?.ticketId == q.ticketId ? null : q),
                       ),
                   ],
                 ),
@@ -207,10 +206,12 @@ class _QueueRowState extends ConsumerState<_QueueRow> {
     final msgs = ref.watch(ticketMessagesProvider(q.ticketId));
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(ConsoleDensity.lg, 0,
-          ConsoleDensity.lg, ConsoleDensity.lg),
+      padding: const EdgeInsets.fromLTRB(
+          ConsoleDensity.lg, 0, ConsoleDensity.lg, ConsoleDensity.lg),
       child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
         const Divider(height: ConsoleDensity.lg),
+        SupportDiagnosticPanel(ticketId: q.ticketId),
+        SupportFixPanel(ticketId: q.ticketId),
         AsyncSection<List<SupportMessage>>(
           value: msgs,
           errorPrefix: 'Yazışma alınamadı',
@@ -221,8 +222,8 @@ class _QueueRowState extends ConsumerState<_QueueRow> {
                   children: [
                     for (final m in list)
                       Padding(
-                        padding: const EdgeInsets.only(
-                            bottom: ConsoleDensity.sm),
+                        padding:
+                            const EdgeInsets.only(bottom: ConsoleDensity.sm),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -235,8 +236,8 @@ class _QueueRowState extends ConsumerState<_QueueRow> {
                                           : t.colorScheme.onSurfaceVariant)),
                             ),
                             Expanded(
-                                child: Text(m.body,
-                                    style: t.textTheme.bodySmall)),
+                                child:
+                                    Text(m.body, style: t.textTheme.bodySmall)),
                             Text(fmtDate(m.createdAt),
                                 style: t.textTheme.labelSmall),
                           ],

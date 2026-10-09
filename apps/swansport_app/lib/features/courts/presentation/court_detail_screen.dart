@@ -3,12 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_type.dart';
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
 import 'claim_sheet.dart';
 import 'join_requests_sheet.dart';
-import '../../../app/design/swan_type.dart';
-import '../../../app/design/swan_palette.dart';
 
 /// Kortun saat şeridi.
 ///
@@ -48,9 +48,13 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(_court.name, style: SwanType.h3(ink)),
-            Text('${_court.opensAt} – ${_court.closesAt}',
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+            Text(
+              '${_court.opensAt} – ${_court.closesAt}',
+              style: SwanType.caption(
+                SwanColors.textSecondary,
+                w: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -65,12 +69,34 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
             children: [
               if (!verified) _verifyBanner(isDark, ink),
               const SizedBox(height: 4),
-              for (final s in slots) _slotRow(isDark, ink, s, verified),
+              if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)))
+                TextButton(
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/saha-islemlerim'),
+                  child: const Text('Bekleme listem'),
+                ),
+              for (final s in slots) ...[
+                _slotRow(isDark, ink, s, verified),
+                if (!s.isFree &&
+                    !s.mine &&
+                    s.startsAt.isAfter(DateTime.now()) &&
+                    ref.watch(
+                      featureEnabledProvider(FeatureFlags.courtWaitlist),
+                    ))
+                  TextButton(
+                    onPressed: _busy ? null : () => _wait(s),
+                    child: const Text('Bekleme listesine gir'),
+                  ),
+              ],
               const SizedBox(height: 14),
               Text(
-                  'En fazla 3 saat ilerisi alınabilir. Sıranı aldıktan sonra '
-                  'korta varınca uygulamadan onaylaman gerekiyor.',
-                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                'En fazla 3 saat ilerisi alınabilir. Sıranı aldıktan sonra '
+                'korta varınca uygulamadan onaylaman gerekiyor.',
+                style: SwanType.caption(
+                  SwanColors.textSecondary,
+                  w: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -90,30 +116,40 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: kTeal.withValues(alpha: .25)),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Sıra alabilmek için bir kez kortta ol',
-              style: SwanType.bodySm(ink, w: FontWeight.w800)),
-          const SizedBox(height: 5),
-          Text(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sıra alabilmek için bir kez kortta ol',
+              style: SwanType.bodySm(ink, w: FontWeight.w800),
+            ),
+            const SizedBox(height: 5),
+            Text(
               'Kortta olduğunu bir kez doğrula, bundan sonra evden sıra '
               'alabilirsin. Bu, sahte hesapların sırayı doldurmasını engelliyor.',
-              style:
-                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-          const SizedBox(height: 11),
-          GestureDetector(
-            onTap: _busy ? null : _verifyHere,
-            child: Container(
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-                borderRadius: BorderRadius.circular(12),
+              style: SwanType.caption(
+                SwanColors.textSecondary,
+                w: FontWeight.w600,
               ),
-              child: Text('Kortta olduğumu doğrula',
-                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
             ),
-          ),
-        ]),
+            const SizedBox(height: 11),
+            GestureDetector(
+              onTap: _busy ? null : _verifyHere,
+              child: Container(
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [kTealBright, kTeal]),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Kortta olduğumu doğrula',
+                  style: SwanType.caption(Colors.white, w: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
+        ),
       );
 
   Widget _slotRow(bool isDark, Color ink, TimelineSlot s, bool verified) {
@@ -137,39 +173,52 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
         borderRadius: BorderRadius.circular(15),
         border: Border.all(color: s.mine ? kTeal.withValues(alpha: .45) : line),
       ),
-      child: Row(children: [
-        SizedBox(
-          width: 46,
-          child: Text(s.hourLabel, style: SwanType.bodySm(ink, w: FontWeight.w800)),
-        ),
-        Container(
-          width: 8,
-          height: 8,
-          margin: const EdgeInsets.only(right: 10),
-          decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
-        ),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label,
+      child: Row(
+        children: [
+          SizedBox(
+            width: 46,
+            child: Text(
+              s.hourLabel,
+              style: SwanType.bodySm(ink, w: FontWeight.w800),
+            ),
+          ),
+          Container(
+            width: 8,
+            height: 8,
+            margin: const EdgeInsets.only(right: 10),
+            decoration: BoxDecoration(color: dot, shape: BoxShape.circle),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(ink, w: FontWeight.w700)),
-              if (s.lookingForPlayers)
-                Text('${s.needed} oyuncu aranıyor',
-                    style: SwanType.caption(kTeal, w: FontWeight.w700)),
-            ],
+                  style: SwanType.caption(ink, w: FontWeight.w700),
+                ),
+                if (s.lookingForPlayers)
+                  Text(
+                    '${s.needed} oyuncu aranıyor',
+                    style: SwanType.caption(kTeal, w: FontWeight.w700),
+                  ),
+              ],
+            ),
           ),
-        ),
-        _slotAction(s, verified, line),
-      ]),
+          _slotAction(s, verified, line),
+        ],
+      ),
     );
   }
 
   Widget _slotAction(TimelineSlot s, bool verified, Color line) {
-    Widget button(String text, VoidCallback? onTap,
-            {bool filled = true, Color color = kTeal}) =>
+    Widget button(
+      String text,
+      VoidCallback? onTap, {
+      bool filled = true,
+      Color color = kTeal,
+    }) =>
         GestureDetector(
           onTap: _busy ? null : onTap,
           child: Container(
@@ -180,8 +229,13 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               color: filled ? color : color.withValues(alpha: .10),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(text,
-                style: SwanType.caption(filled ? Colors.white : color, w: FontWeight.w800)),
+            child: Text(
+              text,
+              style: SwanType.caption(
+                filled ? Colors.white : color,
+                w: FontWeight.w800,
+              ),
+            ),
           ),
         );
 
@@ -193,18 +247,25 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
     if (s.mine) {
       // Kortta olduğunu henüz doğrulamadıysa asıl iş bu; başka her şey sonra.
       if (!s.isPlaying) return button('Geldim', () => _checkIn(s));
-      return Row(mainAxisSize: MainAxisSize.min, children: [
-        if (s.needed > 0) ...[
-          button('İstekler', () => _openRequests(s), filled: false),
-          const SizedBox(width: 7),
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (s.needed > 0) ...[
+            button('İstekler', () => _openRequests(s), filled: false),
+            const SizedBox(width: 7),
+          ],
+          button('Devam et', () => _extend(s), filled: false),
         ],
-        button('Devam et', () => _extend(s), filled: false),
-      ]);
+      );
     }
 
     if (s.lookingForPlayers && verified) {
-      return button('Katıl', () => _requestJoin(s),
-          filled: false, color: SwanPalette.light.warning);
+      return button(
+        'Katıl',
+        () => _requestJoin(s),
+        filled: false,
+        color: SwanPalette.light.warning,
+      );
     }
 
     return const SizedBox.shrink();
@@ -248,6 +309,25 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
             );
         _say('Onaylandı, iyi oyunlar.');
       });
+
+  Future<void> _wait(TimelineSlot s) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(sahaOperationsServiceProvider)
+          .joinWait(_court.id, s.startsAt);
+      if (mounted) {
+        _say(
+          'Bekleme listesine katıldın. Saha İşlemlerim’den takip edebilirsin.',
+        );
+      }
+    } catch (e) {
+      _say(_readable(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   Future<void> _claim(TimelineSlot s) async {
     final result = await showModalBottomSheet<ClaimResult>(

@@ -27,6 +27,13 @@ class ManagementSection extends ConsumerWidget {
     final access = ref.watch(swanAccessProvider);
 
     final club = <_Item>[
+      if (access.isClubAdmin &&
+          ref.watch(featureEnabledProvider(FeatureFlags.seasonSetup)))
+        const _Item(
+          Icons.event_available_rounded,
+          'Sezon Açılışı',
+          '/sezon-acilisi',
+        ),
       if (access.isClubStaff) ...[
         const _Item(Icons.groups_rounded, 'Sporcular', '/athletes'),
         const _Item(Icons.shield_rounded, 'Takımlar', '/teams'),
@@ -35,18 +42,28 @@ class ManagementSection extends ConsumerWidget {
         const _Item(Icons.fact_check_rounded, 'Devam Geçmişi', '/devam-durumu'),
         const _Item(Icons.campaign_rounded, 'Duyurular', '/announcements'),
         const _Item(
-            Icons.bar_chart_rounded, 'Performans', '/performance-analytics'),
+          Icons.bar_chart_rounded,
+          'Performans',
+          '/performance-analytics',
+        ),
         const _Item(Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command'),
       ],
       // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
       // görmüyor. Rotalar tanımlı kalıyor.
       if (access.isClubStaff &&
           ref.watch(
-              featureEnabledProvider(FeatureFlags.sportTrainingSessions))) ...[
+            featureEnabledProvider(FeatureFlags.sportTrainingSessions),
+          )) ...[
         const _Item(
-            Icons.sports_rounded, 'Antrenman Oturumu', '/antrenman-oturumu'),
-        const _Item(Icons.tune_rounded, 'Antrenman Şablonları',
-            '/antrenman-sablonlari'),
+          Icons.sports_rounded,
+          'Antrenman Oturumu',
+          '/antrenman-oturumu',
+        ),
+        const _Item(
+          Icons.tune_rounded,
+          'Antrenman Şablonları',
+          '/antrenman-sablonlari',
+        ),
       ],
     ];
 
@@ -54,12 +71,18 @@ class ManagementSection extends ConsumerWidget {
       if (access.isClubStaff || access.isAccountant) ...[
         const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
         const _Item(
-            Icons.playlist_add_check_rounded, 'Mali İşler', '/mali-isler'),
+          Icons.playlist_add_check_rounded,
+          'Mali İşler',
+          '/mali-isler',
+        ),
         const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
       ],
       if (access.isClubStaff) ...[
         const _Item(
-            Icons.medical_services_rounded, 'Medikal', '/medical-center'),
+          Icons.medical_services_rounded,
+          'Medikal',
+          '/medical-center',
+        ),
         const _Item(Icons.stadium_rounded, 'Tesisler', '/facilities'),
       ],
     ];
@@ -67,15 +90,43 @@ class ManagementSection extends ConsumerWidget {
     final platform = <_Item>[
       if (access.isPlatformAdmin) ...[
         const _Item(
-            Icons.admin_panel_settings_rounded, 'Onay Paneli', '/onay-paneli'),
+          Icons.admin_panel_settings_rounded,
+          'Onay Paneli',
+          '/onay-paneli',
+        ),
         const _Item(
-            Icons.rss_feed_rounded, 'Haber Kaynakları', '/haber-kaynaklari'),
-        const _Item(Icons.verified_rounded, 'Federasyon Yetkilileri',
-            '/federasyon-yetkili'),
+          Icons.rss_feed_rounded,
+          'Haber Kaynakları',
+          '/haber-kaynaklari',
+        ),
+        const _Item(
+          Icons.verified_rounded,
+          'Federasyon Yetkilileri',
+          '/federasyon-yetkili',
+        ),
       ],
     ];
 
     final account = <_Item>[
+      if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
+          ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation)))
+        const _Item(
+          Icons.sports_tennis_rounded,
+          'Saha İşlemlerim',
+          '/saha-islemlerim',
+        ),
+      if (ref.watch(featureEnabledProvider(FeatureFlags.developmentReport)))
+        const _Item(
+          Icons.insights_rounded,
+          'Gelişim Raporu',
+          '/gelisim-raporu',
+        ),
+      if (ref.watch(featureEnabledProvider(FeatureFlags.parentHub)))
+        const _Item(
+          Icons.family_restroom_rounded,
+          'Veli İşlem Merkezi',
+          '/veli-izinleri',
+        ),
       const _Item(Icons.volunteer_activism_rounded, 'Bağış', '/bagis'),
       const _Item(Icons.group_add_rounded, 'Başvurular', '/basvurular'),
       const _Item(Icons.vpn_key_rounded, 'Davet Kodu', '/veli-bagla'),
@@ -108,14 +159,16 @@ class ManagementSection extends ConsumerWidget {
       onTap: () => Navigator.pushNamed(context, item.route),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
-        child: Row(children: [
-          Icon(item.icon, size: 20, color: c.inkMuted),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Text(item.label, style: SwanType.body(c.ink)),
-          ),
-          Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
-        ]),
+        child: Row(
+          children: [
+            Icon(item.icon, size: 20, color: c.inkMuted),
+            const SizedBox(width: SwanSpace.md),
+            Expanded(
+              child: Text(item.label, style: SwanType.body(c.ink)),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
+          ],
+        ),
       ),
     );
   }

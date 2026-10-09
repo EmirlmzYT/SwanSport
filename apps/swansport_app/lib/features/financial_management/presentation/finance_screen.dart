@@ -9,6 +9,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import 'fee_plan_status_switch.dart';
 
 /// Kulüp finansı — aidat tahakkuku, tahsilat onayı ve planlar.
 ///
@@ -1308,7 +1309,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                     ),
                                   ),
                                   Text(
-                                    'Her ayın ${p.dueDay}. günü son ödeme',
+                                    '${p.active ? 'Aktif' : 'Pasif taslak'} · Her ayın ${p.dueDay}. günü son ödeme',
                                     style: SwanType.caption(palette.inkMuted),
                                   ),
                                 ],
@@ -1321,6 +1322,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                 w: FontWeight.w700,
                               ),
                             ),
+                            FeePlanStatusSwitch(plan: p),
                           ],
                         ),
                       ),
@@ -1496,11 +1498,17 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   }
 
   Future<void> _assign(String athleteId, String athleteName) async {
-    final plans = ref.read(feePlansProvider).valueOrNull ?? const <FeePlan>[];
-    if (plans.isEmpty) {
+    final plans = (ref.read(feePlansProvider).valueOrNull ?? const <FeePlan>[])
+        .where((p) => p.active)
+        .toList();
+    final hasAssignment =
+        ref.read(feeAssignmentsProvider).valueOrNull?.containsKey(athleteId) ??
+            false;
+    if (plans.isEmpty && !hasAssignment) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: const Text('Önce bir aidat planı ekle'),
+          content: const Text(
+              'Önce bir aidat planı ekle veya taslak planı etkinleştir'),
           backgroundColor: SwanPalette.light.danger,
         ),
       );

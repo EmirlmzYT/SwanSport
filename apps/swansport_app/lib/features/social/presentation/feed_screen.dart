@@ -8,6 +8,7 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/today_tasks.dart';
+import '../../attendance/presentation/attendance_queue_banner.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/stitch_feed_widgets.dart';
@@ -72,6 +73,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   const SliverToBoxAdapter(
                     child: TodayTasks(title: 'Bugün'),
                   ),
+                  const SliverToBoxAdapter(child: AttendanceQueueBanner()),
                   SliverPersistentHeader(
                     pinned: true,
                     delegate: _FeedModeDelegate(

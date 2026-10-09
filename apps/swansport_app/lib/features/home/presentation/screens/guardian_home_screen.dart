@@ -3,11 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/design/swan_type.dart';
-import '../../../../app/design/swan_palette.dart';
 
 /// Veli Ana Ekranı — velinin kendi gözünden (premium v3).
 ///
@@ -49,51 +49,69 @@ class GuardianHomeScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 132),
                 children: [
-                  Row(children: [
-                    GradientAvatar(
+                  Row(
+                    children: [
+                      GradientAvatar(
                         initials: profile?.initials ?? 'V',
                         size: 46,
-                        gradientIndex: 2),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile?.fullName ?? 'Veli',
-                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                          Text(
+                        gradientIndex: 2,
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile?.fullName ?? 'Veli',
+                              style: SwanType.bodySm(ink, w: FontWeight.w800),
+                            ),
+                            Text(
                               club?.name != null
                                   ? 'Veli · ${club!.name}'
                                   : 'Veli',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-                        ],
+                              style: SwanType.caption(
+                                SwanColors.textSecondary,
+                                w: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const InboxActions(),
-                  ]),
+                      const InboxActions(),
+                    ],
+                  ),
                   const SizedBox(height: 18),
                   Text('Veli Paneli', style: SwanType.h3(ink)),
                   const SizedBox(height: 4),
-                  Text('Merhaba, ${profile?.firstName ?? 'Veli'}',
-                      style: SwanType.h2(ink)),
+                  Text(
+                    'Merhaba, ${profile?.firstName ?? 'Veli'}',
+                    style: SwanType.h2(ink),
+                  ),
                   const SizedBox(height: 16),
 
                   // Bağlı çocuk(lar)
                   children.when(
                     loading: () => _skeleton(surf, line, 96),
-                    error: (_, __) => _linkCta(context, isDark,
-                        'Çocuk bilgisi yüklenemedi', 'Tekrar dene'),
+                    error: (_, __) => _linkCta(
+                      context,
+                      isDark,
+                      'Çocuk bilgisi yüklenemedi',
+                      'Tekrar dene',
+                    ),
                     data: (list) {
                       if (list.isEmpty) {
                         return _linkCta(
-                            context,
-                            isDark,
-                            'Henüz çocuğun bağlı değil',
-                            'Kulüpten aldığın davet kodunu gir');
+                          context,
+                          isDark,
+                          'Henüz çocuğun bağlı değil',
+                          'Kulüpten aldığın davet kodunu gir',
+                        );
                       }
                       return Column(
-                          children:
-                              list.map((c) => _childCard(context, isDark, c)).toList());
+                        children: list
+                            .map((c) => _childCard(context, ref, isDark, c))
+                            .toList(),
+                      );
                     },
                   ),
                   const SizedBox(height: 20),
@@ -101,21 +119,53 @@ class GuardianHomeScreen extends ConsumerWidget {
                   // Kısayollar
                   Text('Kısayollar', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
-                  Row(children: [
-                    _quick(context, isDark, Icons.calendar_month_rounded,
-                        'Takvim', '/calendar'),
-                    const SizedBox(width: 10),
-                    _quick(context, isDark, Icons.medical_services_rounded,
-                        'Sağlık', '/medical-center'),
-                  ]),
+                  Row(
+                    children: [
+                      _quick(
+                        context,
+                        isDark,
+                        Icons.calendar_month_rounded,
+                        'Takvim',
+                        '/calendar',
+                      ),
+                      const SizedBox(width: 10),
+                      _quick(
+                        context,
+                        isDark,
+                        Icons.medical_services_rounded,
+                        'Sağlık',
+                        '/medical-center',
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 10),
-                  Row(children: [
-                    _quick(context, isDark, Icons.folder_rounded, 'Belgeler',
-                        '/documents'),
-                    const SizedBox(width: 10),
-                    _quick(context, isDark, Icons.family_restroom_rounded,
-                        'Veli Bağla', '/veli-bagla'),
-                  ]),
+                  Row(
+                    children: [
+                      _quick(
+                        context,
+                        isDark,
+                        Icons.folder_rounded,
+                        'Belgeler',
+                        '/documents',
+                      ),
+                      const SizedBox(width: 10),
+                      _quick(
+                        context,
+                        isDark,
+                        Icons.family_restroom_rounded,
+                        ref.watch(
+                          featureEnabledProvider(FeatureFlags.parentHub),
+                        )
+                            ? 'İşlemler'
+                            : 'Veli Bağla',
+                        ref.watch(
+                          featureEnabledProvider(FeatureFlags.parentHub),
+                        )
+                            ? '/veli-izinleri'
+                            : '/veli-bagla',
+                      ),
+                    ],
+                  ),
 
                   // Yaklaşan program
                   _label('YAKLAŞAN PROGRAM'),
@@ -125,18 +175,28 @@ class GuardianHomeScreen extends ConsumerWidget {
                     data: (list) {
                       final now = DateTime.now();
                       final up = (list
-                          .where((e) => e.startsAt
-                              .isAfter(now.subtract(const Duration(hours: 3))))
-                          .toList()
-                        ..sort((a, b) => a.startsAt.compareTo(b.startsAt)))
+                              .where(
+                                (e) => e.startsAt.isAfter(
+                                  now.subtract(const Duration(hours: 3)),
+                                ),
+                              )
+                              .toList()
+                            ..sort((a, b) => a.startsAt.compareTo(b.startsAt)))
                           .take(3)
                           .toList();
                       if (up.isEmpty) return _mini('Yaklaşan etkinlik yok');
                       return Column(
-                          children: up
-                              .map((e) => _agenda(isDark, e.startsAt, e.title,
-                                  e.place ?? _kindLabel(e.kind)))
-                              .toList());
+                        children: up
+                            .map(
+                              (e) => _agenda(
+                                isDark,
+                                e.startsAt,
+                                e.title,
+                                e.place ?? _kindLabel(e.kind),
+                              ),
+                            )
+                            .toList(),
+                      );
                     },
                   ),
 
@@ -148,11 +208,14 @@ class GuardianHomeScreen extends ConsumerWidget {
                     data: (list) {
                       if (list.isEmpty) return _mini('Duyuru yok');
                       return Column(
-                          children: list
-                              .take(3)
-                              .map((a) =>
-                                  _annCard(isDark, a.title, a.body, a.pinned))
-                              .toList());
+                        children: list
+                            .take(3)
+                            .map(
+                              (a) =>
+                                  _annCard(isDark, a.title, a.body, a.pinned),
+                            )
+                            .toList(),
+                      );
                     },
                   ),
                 ],
@@ -170,7 +233,12 @@ class GuardianHomeScreen extends ConsumerWidget {
   ///
   /// Her çocuk kendi kulübüyle gelir: kardeşler farklı kulüplerde olabilir,
   /// eskiden uygulama tek "aktif kulüp" varsaydığı için bu durum kırılıyordu.
-  Widget _childCard(BuildContext context, bool isDark, ChildOverview c) {
+  Widget _childCard(
+    BuildContext context,
+    WidgetRef ref,
+    bool isDark,
+    ChildOverview c,
+  ) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -183,84 +251,118 @@ class GuardianHomeScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: line),
       ),
-      child: Column(children: [
-        Row(children: [
-          GradientAvatar(
-              initials: c.initials,
-              size: 50,
-              radius: 16,
-              gradientIndex: c.athleteId.hashCode.abs() % 4),
-          const SizedBox(width: 13),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(c.name, style: SwanType.h3(ink)),
-                const SizedBox(height: 2),
-                Text(
-                    [
-                      if ((c.clubName ?? '').isNotEmpty) c.clubName!,
-                      if ((c.branch ?? '').isNotEmpty) c.branch!,
-                    ].join(' · '),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary)),
-              ],
-            ),
-          ),
-          if (c.isInjured)
-            PremiumStatusChip(
-                label: 'Sakat',
-                color: SwanPalette.light.danger,
-                icon: Icons.personal_injury_rounded),
-        ]),
-        const SizedBox(height: 14),
-        Divider(color: line, height: 1),
-        const SizedBox(height: 12),
-        Row(children: [
-          _stat(ink, 'Devam', '%${c.attendanceRate}',
-              alert: c.attendanceRate < 60),
-          _stat(ink, 'Borç',
-              c.hasDebt ? '${c.openFeeTotal.round()} ₺' : 'Yok',
-              alert: c.hasDebt),
-          Expanded(
-            flex: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                    c.nextEventAt == null
-                        ? '—'
-                        : '${c.nextEventAt!.day}.${c.nextEventAt!.month} '
-                            '${c.nextEventAt!.hour.toString().padLeft(2, '0')}:'
-                            '${c.nextEventAt!.minute.toString().padLeft(2, '0')}',
-                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                const SizedBox(height: 2),
-                Text(c.nextEvent ?? 'Program yok',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-              ],
-            ),
-          ),
-        ]),
-        if (c.hasDebt) ...[
-          const SizedBox(height: 12),
-          GestureDetector(
-            onTap: () => Navigator.pushNamed(context, '/aidatlarim'),
-            child: Container(
-              height: 40,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: kTeal.withValues(alpha: .10),
-                borderRadius: BorderRadius.circular(12),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              GradientAvatar(
+                initials: c.initials,
+                size: 50,
+                radius: 16,
+                gradientIndex: c.athleteId.hashCode.abs() % 4,
               ),
-              child: Text('${c.openFeeCount} ödenmemiş aidat · öde',
-                  style: SwanType.caption(kTeal, w: FontWeight.w800)),
-            ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(c.name, style: SwanType.h3(ink)),
+                    const SizedBox(height: 2),
+                    Text(
+                      [
+                        if ((c.clubName ?? '').isNotEmpty) c.clubName!,
+                        if ((c.branch ?? '').isNotEmpty) c.branch!,
+                      ].join(' · '),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.caption(SwanColors.textSecondary),
+                    ),
+                  ],
+                ),
+              ),
+              if (c.isInjured)
+                PremiumStatusChip(
+                  label: 'Sakat',
+                  color: SwanPalette.light.danger,
+                  icon: Icons.personal_injury_rounded,
+                ),
+            ],
           ),
+          const SizedBox(height: 14),
+          Divider(color: line, height: 1),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _stat(
+                ink,
+                'Devam',
+                '%${c.attendanceRate}',
+                alert: c.attendanceRate < 60,
+              ),
+              _stat(
+                ink,
+                'Borç',
+                c.hasDebt ? '${c.openFeeTotal.round()} ₺' : 'Yok',
+                alert: c.hasDebt,
+              ),
+              Expanded(
+                flex: 2,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      c.nextEventAt == null
+                          ? '—'
+                          : '${c.nextEventAt!.day}.${c.nextEventAt!.month} '
+                              '${c.nextEventAt!.hour.toString().padLeft(2, '0')}:'
+                              '${c.nextEventAt!.minute.toString().padLeft(2, '0')}',
+                      style: SwanType.bodySm(ink, w: FontWeight.w800),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      c.nextEvent ?? 'Program yok',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.caption(
+                        SwanColors.textSecondary,
+                        w: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          if (ref.watch(featureEnabledProvider(FeatureFlags.developmentReport)))
+            TextButton.icon(
+              onPressed: () => Navigator.pushNamed(
+                context,
+                '/gelisim-raporu',
+                arguments: {'id': c.athleteId},
+              ),
+              icon: const Icon(Icons.insights_rounded),
+              label: const Text('Dönem gelişim raporu'),
+            ),
+          if (c.hasDebt) ...[
+            const SizedBox(height: 12),
+            GestureDetector(
+              onTap: () => Navigator.pushNamed(context, '/aidatlarim'),
+              child: Container(
+                height: 40,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: kTeal.withValues(alpha: .10),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${c.openFeeCount} ödenmemiş aidat · öde',
+                  style: SwanType.caption(kTeal, w: FontWeight.w800),
+                ),
+              ),
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 
@@ -269,18 +371,31 @@ class GuardianHomeScreen extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(value,
-                style: SwanType.bodySm(alert ? SwanPalette.light.danger : ink, w: FontWeight.w800)),
+            Text(
+              value,
+              style: SwanType.bodySm(
+                alert ? SwanPalette.light.danger : ink,
+                w: FontWeight.w800,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(label,
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+            Text(
+              label,
+              style: SwanType.caption(
+                SwanColors.textSecondary,
+                w: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       );
 
   Widget _linkCta(
-      BuildContext context, bool isDark, String title, String subtitle) {
+    BuildContext context,
+    bool isDark,
+    String title,
+    String subtitle,
+  ) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/veli-bagla'),
       child: Container(
@@ -300,38 +415,53 @@ class GuardianHomeScreen extends ConsumerWidget {
             ),
           ],
         ),
-        child: Row(children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: .18),
-              borderRadius: BorderRadius.circular(14),
+        child: Row(
+          children: [
+            Container(
+              width: 48,
+              height: 48,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: .18),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Icon(
+                Icons.family_restroom_rounded,
+                color: Colors.white,
+                size: 24,
+              ),
             ),
-            child: const Icon(Icons.family_restroom_rounded,
-                color: Colors.white, size: 24),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: SwanType.h3(Colors.white)),
-                const SizedBox(height: 3),
-                Text(subtitle,
-                    style: SwanType.caption(Colors.white70, w: FontWeight.w600)),
-              ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: SwanType.h3(Colors.white)),
+                  const SizedBox(height: 3),
+                  Text(
+                    subtitle,
+                    style: SwanType.caption(Colors.white70, w: FontWeight.w600),
+                  ),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right_rounded,
-              color: Colors.white, size: 22),
-        ]),
+            const Icon(
+              Icons.chevron_right_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _quick(BuildContext context, bool isDark, IconData icon, String label,
-      String route) {
+  Widget _quick(
+    BuildContext context,
+    bool isDark,
+    IconData icon,
+    String label,
+    String route,
+  ) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -341,26 +471,32 @@ class GuardianHomeScreen extends ConsumerWidget {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
           decoration: BoxDecoration(
-              color: surf,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: line)),
-          child: Row(children: [
-            Container(
-              width: 38,
-              height: 38,
-              decoration: BoxDecoration(
+            color: surf,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: line),
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
                   color: kTeal.withValues(alpha: .10),
-                  borderRadius: BorderRadius.circular(11)),
-              child: Icon(icon, color: kTeal, size: 19),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Text(label,
+                  borderRadius: BorderRadius.circular(11),
+                ),
+                child: Icon(icon, color: kTeal, size: 19),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(ink, w: FontWeight.w700)),
-            ),
-          ]),
+                  style: SwanType.caption(ink, w: FontWeight.w700),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -374,19 +510,21 @@ class GuardianHomeScreen extends ConsumerWidget {
           border: Border.all(color: line),
         ),
         child: const Center(
-            child: CircularProgressIndicator(color: kTeal, strokeWidth: 2)),
+          child: CircularProgressIndicator(color: kTeal, strokeWidth: 2),
+        ),
       );
 
   Widget _label(String t) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
-        child: Text(t,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+        child: Text(
+          t,
+          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700),
+        ),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Text(text,
-            style: SwanType.caption(SwanColors.textSecondary)),
+        child: Text(text, style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
@@ -399,32 +537,34 @@ class GuardianHomeScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line)),
-      child: Row(children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
+        color: surf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
               color: kTeal.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(12)),
-          alignment: Alignment.center,
-          child: Text(hm, style: SwanType.h3(kTeal)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-              Text(place,
-                  style:
-                      SwanType.caption(SwanColors.textSecondary)),
-            ],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(hm, style: SwanType.h3(kTeal)),
           ),
-        ),
-      ]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                Text(place, style: SwanType.caption(SwanColors.textSecondary)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -436,34 +576,40 @@ class GuardianHomeScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line)),
+        color: surf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: line),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            if (pinned) ...[
-              const Icon(Icons.push_pin_rounded, size: 14, color: kCoral),
-              const SizedBox(width: 6),
-            ],
-            Expanded(
-              child: Text(title,
+          Row(
+            children: [
+              if (pinned) ...[
+                const Icon(Icons.push_pin_rounded, size: 14, color: kCoral),
+                const SizedBox(width: 6),
+              ],
+              Expanded(
+                child: Text(
+                  title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
-            ),
-          ]),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 4),
-          Text(body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: SwanType.caption(SwanColors.textSecondary)),
+          Text(
+            body,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.caption(SwanColors.textSecondary),
+          ),
         ],
       ),
     );
   }
-
 
   String _kindLabel(String kind) => switch (kind) {
         'match' => 'Maç',

@@ -1,11 +1,13 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../../app/widgets/premium.dart';
-import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_page_header.dart';
 
 /// Davet kodu girişi.
@@ -87,8 +89,10 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
                     const SizedBox(width: 6),
                     Text(
                       'Kod tek kullanımlık ve süreli — veren kişiden yeni kod iste',
-                      style: SwanType.caption(SwanColors.textSecondary,
-                          w: FontWeight.w600),
+                      style: SwanType.caption(
+                        SwanColors.textSecondary,
+                        w: FontWeight.w600,
+                      ),
                     ),
                   ],
                 ),
@@ -130,6 +134,9 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
     setState(() => _busy = true);
     try {
       await ref.read(verificationServiceProvider).redeemInvite(code);
+      ref.invalidate(guardianAthleteIdsProvider);
+      ref.invalidate(parentActionsProvider);
+      ref.invalidate(childrenOverviewProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -137,7 +144,13 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
             backgroundColor: kTeal,
           ),
         );
-        Navigator.pushNamedAndRemoveUntil(context, '/dashboard', (_) => false);
+        unawaited(
+          Navigator.pushNamedAndRemoveUntil(
+            context,
+            '/dashboard',
+            (_) => false,
+          ),
+        );
       }
     } catch (e) {
       if (mounted) {

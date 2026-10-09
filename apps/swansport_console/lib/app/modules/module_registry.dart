@@ -1,3 +1,4 @@
+import '../../features/platform/diagnostics_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/athletes/athletes_screen.dart';
@@ -160,6 +161,14 @@ const List<ConsoleModule> kConsoleModules = [
     builder: _report,
   ),
 
+  ConsoleModule(
+      id: 'diagnostics',
+      label: 'Hata ve Kullanım',
+      icon: Icons.bug_report_outlined,
+      route: '/hata-merkezi',
+      audience: {ConsoleAudience.platformAdmin},
+      builder: _diagnostics),
+
   // -------------------------------------------------------- platform
   ConsoleModule(
     id: 'approvals',
@@ -295,3 +304,5 @@ Widget _flags(BuildContext _) => const FeatureFlagsScreen();
 Widget _metrics(BuildContext _) => const MetricsScreen();
 Widget _courts(BuildContext _) => const ConsoleCourtsScreen();
 Widget _turfFields(BuildContext _) => const ConsoleTurfFieldsScreen();
+
+Widget _diagnostics(BuildContext _) => const DiagnosticsScreen();

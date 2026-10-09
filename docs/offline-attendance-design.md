@@ -1,221 +1,101 @@
-# Çevrimdışı Yoklama — Teknik Tasarım
+# Çevrimdışı yoklama — uygulanan sözleşme
 
-**Durum:** sunucu tarafı UYGULANDI (0065). Mobil kuyruk ve çakışma çözme
-ekranı hâlâ yazılmadı; `offline_attendance` bayrağı `off`.
-**Tarih:** 1 Eylül 2026 · **Güncelleme:** 2 Eylül 2026
+2026-10-07. Yerel uygulama ve 0088 migration hazır; canlıya uygulanmadı.
+`offline_attendance` bayrağı **off** kalır. Eski cihaz-saatiyle son yazanı seçme
+önerisi geçersizdir; sunucu sürümü ve açık kullanıcı kararı kullanılır.
 
-> ## ⚠️ 3. BÖLÜMDEKİ KARAR DEĞİŞTİ
->
-> Aşağıda "`marked_at` kazanır" yazıyor — yani cihazda en son işaretlenen.
-> **Bu karar 0065 ile geri alındı.** Yerine iyimser sürüm kontrolü geldi:
-> istemci okuduğu sürümü geri gönderiyor, sürüm değişmişse yazma
-> reddediliyor ve çakışma antrenöre gösteriliyor.
->
-> Sebebi belgenin kendi "bilinen sınır" notunda zaten yazılıydı: cihaz
-> saatleri güvenilmez ve saati yanlış kurulmuş bir telefon hep kazanır.
-> Buna ek olarak sessiz ezme, iki antrenörün farklı gördüğü bir gerçeği
-> kimseye sormadan karara bağlıyordu.
->
-> `op_id` kararı **aynen geçerli** ve artık sunucuda: `attendance_op_logs`
-> tablosunda `(actor_id, op_id)` benzersiz. Cihaz verisi silinse bile aynı
-> işlem ikinci kez yazılmıyor.
->
-> Belgenin geri kalanı (kuyruk deposu, hata gösterimi, RSVP ön-dolum tuzağı)
-> hâlâ geçerli ve hâlâ uygulanmadı.
+## Kullanıcı akışı
 
-Plan bu özelliği bilerek doğrudan yayınlatmıyor: önce aşağıdaki soruların
-cevaplanmasını istiyor. Bu belge onları cevaplıyor ve **uygulanmadan önce ne
-karar verilmesi gerektiğini** ayrıca işaretliyor.
+1. İnternet ve yetki varken Yoklama ekranında etkinlik seçilir, **Çevrimdışına
+   hazırla / güncelle** ile gerçek kadro alınır. Bu düğme özellik bayrağını sorar;
+   sunucu da bayrak ve aktif kulüp personeli yetkisini denetler.
+2. Yalnız antrenörün dokunduğu satırlar cihazda kalıcı taslak olur. RSVP
+   “katılacak” yanıtıdır; hiçbir zaman otomatik gerçek yoklamaya dönüşmez.
+3. **İşaretleri kuyruğa al** taslakları tek yerel işlemde gönderim kaydına çevirir.
+   Etkinlik başına bir çözülmemiş işlem bulunur; işlem beklerken satırlar kilitlenir.
+4. Ana Sayfa bekleyen gönderim ve cihaz taslağı sayısını gösterir. Yoklama
+   ekranında bekliyor, gönderiliyor, reddedildi, duraklatıldı ve çakıştı ayrı görünür.
+   Yalnız RPC'nin doğruladığı satırlar “sunucuda doğrulandı” sayılır.
+5. Bağlantı hatasında aynı `op_id` ve değişmeyen payload tekrar gönderilir.
+   Sunucudaki aynı işlem tekrar uygulanmaz. Kesin reddedileni tekrar denemek veya
+   açık onayla bırakıp güncel kadrodan yeniden işaretlemek mümkündür. Bırakılan
+   işaretler yerel geçmişte tutulur; belirsiz gönderim bu yolla bırakılamaz.
+6. Çakışmada sunucudakini kabul etmek yeni yazma yapmaz. Kendi işaretini uygulamak
+   kadroyu yeniden alır, güncel sürümle **yeni** işlem üretir. Kadro/uygunluk tekrar
+   kontrol edilir. Çevrimiçi akışın belirsiz sonucunda kayıtları kontrol ederek
+   çıkış vardır; bu çıkış sunucudaki kaydı silmez.
 
----
+## Dört depo/çatışma kararı
 
-## Problem
-
-Antrenman salonlarında ve sahalarda internet çoğu zaman yok. Antrenör
-yoklamayı alıyor, "Kaydet" diyor, istek düşüyor ve **işaretlediği her şey
-kayboluyor.** Bugünkü ekran bunu kurtarmıyor: `_marks` yalnızca bellekte
-duruyor, ekran kapanınca gidiyor.
-
-Bu, kaybı en pahalı olan veri: 18 kişilik bir kadroyu ikinci kez işaretlemek
-kimsenin yapmak istemediği bir iş ve yapılmayınca o günün katılımı hiç
-kaydedilmiyor. Üstüne kurulan her şey (katılım oranı, gelişim, başarılar)
-eksik veriyle çalışıyor.
-
----
-
-## 1. Yerel işlem kuyruğu nasıl tutulacak?
-
-**Karar: `shared_preferences` değil, yapılandırılmış yerel depo.**
-
-`shared_preferences` zaten bağımlılık ve tanıtım bayrağı için kullanılıyor,
-ama burada uygun değil: kuyruk sıralı, sorgulanabilir ve kısmi güncellenebilir
-olmalı. Anahtar-değer deposunda bunu yapmak, JSON'u her yazışta baştan
-serileştirmek demek ve 18 satırlık bir yoklamada bile yarış durumu üretiyor.
-
-**Öneri:** `drift` (SQLite). Gerekçesi:
-- Sıralı okuma ve `where` desteği var.
-- Şema değişikliği migration'la yönetiliyor; kuyruk biçimi değişince eski
-  kayıtlar okunamaz hâle gelmiyor.
-- Flutter'da yaygın ve bakımlı.
-
-**Alternatif:** `sqflite` doğrudan. Daha az bağımlılık, daha çok elle SQL.
-
-**Karar verilecek:** yeni bir bağımlılık eklemeye değer mi. Değmezse
-`sqflite`; o da istenmezse kuyruk tek bir JSON dosyasında (`path_provider`
-zaten var) tutulabilir ama o zaman kısmi güncelleme yerine dosyanın tamamı
-yeniden yazılır.
-
-### Kuyruk kaydının şekli
-
-| Alan | Ne için |
+| Konu | Karar |
 |---|---|
-| `op_id` | İstemcide üretilen UUID — idempotency anahtarı |
-| `event_id` | Hangi antrenman |
-| `athlete_id` | Kim |
-| `status` | present / absent / excused / late |
-| `marked_at` | **Cihazda işaretlendiği an** — sunucuya ulaştığı an değil |
-| `attempts` | Kaç kez denendi |
-| `last_error` | Son hata; kullanıcıya gösterilecek |
+| Depo | Sembast 3.8.11; native uygulama destek dizininde `attendance-v1.db`, webde Sembast Web 2.4.6 / IndexedDB. |
+| Kalıcılık | Native yazma sıralanır, transaction ardından `db.compact()` atomik dosya yenilemesi beklenir. IO transaction tek başına disk yazmasını beklemez. Webde IndexedDB transaction commit beklenir. |
+| Saat ve iki cihaz | `marked_at` bilgi olarak kalır; saati büyük olan kazanmaz. Sunucu `version` eşleşmezse çakışma döner, kullanıcı karar verir. |
+| Saklama | Kadro hazırlığı 7 gün; hesap başına 20 etkinlik, kadro başına 200 sporcu, 100 çözülmemiş işlem. Yedi günden eski gönderimler ve beş başarısız deneme duraklatılır, otomatik silinmez. En fazla 100 tamamlanmış işlem geçmişi tutulur. |
 
----
+Kadro süresi bitince yeni çevrimdışı işaret yapılamaz; önceden yazılmış taslak ve
+kuyruk korunur. Hazırlanmış, aynı hesaba ait kadro internet yokken yedi günlük
+süre içinde kullanılabilir; bağlantı hatası yeni bir özelliği açmaz. Sunucu
+bayrağı/yetkiyi yeni gönderimde tekrar denetler. Bayrak kapatıldıktan sonra
+önceden tamamlanmış işlemin sonucunu tekrar almak yeni yazma yapmaz.
 
-## 2. Idempotency anahtarı ne olacak?
+## Veri ve yetki
 
-**Karar: `op_id` (istemcide üretilen UUID), `(event_id, athlete_id)` değil.**
+- Widget Supabase sorgulamaz; tüm servis, kuyruk ve Riverpod sağlayıcıları ortak
+  `swansport_data` içindedir. `/attendance` ve eski ekran importu korunur.
+- Her cache/taslak/işlem `actor_id` ile ayrılır. Hesap değişince eski worker durur;
+  gönderim RPC'si yerel actor ile `auth.uid()` eşleşmesini ayrıca zorlar.
+  Çıkışta sessiz veri silinmez; aynı hesap yeniden açınca bekleyen işini görür.
+- Sunucu aktif personel, etkinlik, aktif sporcu, aynı kulüp, takım kadrosu ve
+  uygunluğu denetler. Muhasebeci kadro RPC'sine erişmez. Hesapsız sporcu desteklenir.
+- 0088, 0065'in RPC imzalarını korur. Etkinlik ve işlem kilidi + koşullu sürüm
+  güncellemesi iki isteğin sessizce birbirini ezmesini önler. Doğrudan eski
+  istemci güncellemesi de trigger ile sürümü artırır.
+- Aynı actor/op farklı etkinlik veya farklı payload için kullanılamaz. Eski,
+  hash'i olmayan işlem kayıtları yalnız saklanmış sonucu tekrar döndürür.
+- Mevcut 0032 denetim trigger'ı korunur; tekrar gönderim ikinci denetim satırı
+  üretmez. Takımsız etkinlik aktif kulüp kadrosunu alır; çok sezonlu takım
+  üyeliği aynı sporcuyu çoğaltmaz.
+- Web sekmeleri yerel transaction/30 saniyelik lease ile gönderimi paylaşır.
+  Ağ isteği 10 saniyede zaman aşımına uğrar. Uygulama açıkken 30 saniyelik
+  kontrol ve artan bekleme uygulanır; kapalı uygulamada OS arka plan servisi yoktur.
+- Yerel kayıt parola, token veya teşhis içermez. Cihazın uygulama alanında ad ve
+  kadro bulunduğu için ortak cihazda oturum açmak depodaki fiziksel veriyi silmez.
+  Sunucuya ulaşmadan yetki iptali eski cache'e anında yansıtılamaz; süreli cache
+  bu sınıra sahiptir. Sunucu erişim reddi alındığında cache ekran için kullanılmaz.
 
-İkisi farklı şeyi çözüyor:
+## Doğrulama
 
-- `(event_id, athlete_id)` **doğal anahtar** — aynı sporcunun aynı antrenmanda
-  tek yoklaması olmalı. Bu zaten `unique (event_id, athlete_id)` ile korunuyor.
-- `op_id` **işlem kimliği** — aynı işlemin iki kez gönderilmesini ayırt eder.
+- 12 veri davranış testi: dokunulan satır, hesap ayrımı, sürümün korunması,
+  aynı kimlikle tekrar, beş hata/eski işlem, iki worker lease'i, güncel sürümle
+  çakışma çözümü, yazmasız kabul, kesin reddi bırakma, native kapanma/açılma,
+  disk bariyeri hatasında ağ gönderiminin engellenmesi; kayıp yanıttan sonra yetki reddi gelince önceki işlemin belirsiz kalması.
+- 1 gerçek Chrome/IndexedDB testi: transaction, kapat/aç, aynı işlem kimliği ve
+  hesap ayrımı. `tools/test_offline_attendance_web.ps1` yeniden çalıştırır.
+  Flutter 3.44.7 Windows test sunucusunun CanvasKit yol hatası için yalnız test
+  süresince SDK'daki aynı yerel dosyaları test dizininden servis eder ve kaldırır.
+- 6 widget testi: RSVP otomatik yazılmaz, belirsiz sonuç aynı kimlikle tekrar
+  denenir, ağsız hazırlanmış kadro ve kuyruk, reddedilen işlemi açık onayla
+  bırakma, çevrimiçi çıkış ve Ana Sayfa durumu. 360px ekran kontrol edilir.
+- 8 PGlite/PostgreSQL davranış testi gerçek 0088 ve 0032 denetim fonksiyonlarını
+  çalıştırır: kadro, idempotency/hash, sürüm, kısmi çakışma, izinler, bayrak,
+  sağlık/bozuk payload ve migration'ın yeniden uygulanması.
 
-Yalnızca doğal anahtara güvenmek yetmiyor: ağ kesilip istek iki kez gidince
-ikincisi `upsert` ile birinciyi ezer. Ezmesi genelde zararsız ama **denetim
-kaydı iki satır** yazar ve "kim ne zaman değiştirdi" bozulur.
+Tam regresyon: **257 uygulama + 300 veri + 43 konsol = 600 Flutter testi** geçti.
+Yeni kaynak analizi 0 bulgu; migration parse 88/88, SSS 36/36, push rotaları 37,
+katalog senkronu ve diff kontrolü başarılı. Üretim web derlemesi başarılı;
+ayrıca 1 Chrome/IndexedDB ve 8 SQL testi geçti. Sonuçlar TEAM_BOARD.md'de kaydedilir. SQL fixture'ları
+bütün Supabase şemasını veya gerçek iki PostgreSQL oturumunu temsil etmez.
+Kapat/aç testleri ani güç kaybı/fsync garantisi değildir. Fiziksel Android cihazda
+uygulamayı zorla kapatma, gerçek iki cihaz/sekme, oturum yenileme, yetki iptali,
+çakışma ekranı ve bildirim UAT'si canlı açılıştan önce yapılmalıdır.
 
-**Yapılacak:** `attendance` tablosuna `op_id uuid` sütunu ve
-`unique (op_id)` kısmi indeksi. Sunucu aynı `op_id`'yi ikinci kez görürse
-sessizce başarı döner, yeni denetim satırı yazmaz.
+## Yayın sırası
 
----
-
-## 3. Aynı sporcu için çakışan iki kayıt nasıl çözülecek?
-
-**Karar: `marked_at` kazanır, `created_at` değil.**
-
-Senaryo: antrenör telefonda "geldi" işaretliyor (10:05, çevrimdışı). Yardımcı
-antrenör tabletten "gelmedi" işaretliyor (10:12, çevrimiçi — hemen gidiyor).
-Ağ 10:20'de gelince ilk cihazın isteği sunucuya ulaşıyor.
-
-Sunucuya varış sırasına göre **10:05'teki işaret 10:12'dekini eziyor** — yani
-eski karar yeniyi bozuyor. Doğrusu, cihazda işaretlendiği an kazanmalı.
-
-**Yapılacak:** `attendance.marked_at timestamptz` sütunu. Upsert koşulu:
-
-```sql
-on conflict (event_id, athlete_id) do update
-  set status = excluded.status, marked_at = excluded.marked_at
-  where attendance.marked_at is null
-     or excluded.marked_at > attendance.marked_at;
-```
-
-**Bilinen sınır:** cihaz saatleri güvenilir değil. Saati yanlış kurulmuş bir
-telefon, kendi kaydını hep kazandırır. Kabul edilebilir çünkü alternatif
-(sunucu saati) yukarıdaki senaryoyu ters çeviriyor. Sapma büyükse
-(örn. 24 saatten fazla) sunucu reddetmeli.
-
----
-
-## 4. Bağlantı geldiğinde hangi işlem kazanır?
-
-Yukarıdaki kural: **en son işaretlenen.** Kuyruk `marked_at` sırasıyla
-gönderiliyor ama sıra garanti değil (paralel istek, kısmi başarı), o yüzden
-kararı sunucudaki `where` veriyor — istemcinin gönderme sırası önemsiz.
-
----
-
-## 5. Sunucu reddederse kullanıcıya nasıl gösterilecek?
-
-**Karar: sessizce yutmak yok.** Bu projede push zincirinin üç katmanında hata
-yutuldu ve aylarca görünmedi; aynı hatayı yoklamada yapmak çok daha pahalı
-olur, çünkü kaybolan şey veri.
-
-Davranış:
-
-| Durum | Ne olur |
-|---|---|
-| Ağ yok | Kuyrukta bekler, ekranda "3 yoklama bekliyor" rozeti |
-| Sunucu 4xx (yetki, geçersiz) | Kuyruktan **çıkarılır**, kullanıcıya sebebi gösterilir |
-| Sunucu 5xx / zaman aşımı | Kuyrukta kalır, artan aralıkla tekrar denenir |
-| 5 denemede geçmedi | Kuyrukta kalır ama otomatik denenmez; kullanıcı elle tetikler |
-
-Bekleyen kuyruk **Ana Sayfa'da görünür** — telefonu cebine koyup unutan
-antrenör, ertesi gün açtığında bekleyen yoklamayı görmeli.
-
----
-
-## 6. Denetim izi nasıl korunacak?
-
-`attendance_audit_log` zaten var ve `previous_status`, `actor_profile_id`,
-`created_at` tutuyor. Çevrimdışı yazmada iki ek gerekiyor:
-
-- `marked_at` da yazılmalı — denetim "ne zaman kaydedildi"yi değil "ne zaman
-  işaretlendi"yi göstermeli.
-- Aynı `op_id` ikinci kez gelirse denetim satırı **yazılmamalı**, yoksa tek bir
-  işaret birden çok kez yapılmış görünür.
-
----
-
-## 7. RSVP ön-dolumuyla çelişirse ne olur?
-
-Çelişmiyor: ön-dolum yalnızca **ekranın açılış hâli**, kaydedilmiş bir veri
-değil. Antrenör dokunmadıysa kuyruğa hiçbir şey girmiyor.
-
-**Ama bir tuzak var:** bugün ekran RSVP'den ön-doluyor ve antrenör hiçbir şeye
-dokunmadan "Kaydet" derse, RSVP tahminleri gerçek yoklama olarak kaydediliyor.
-Çevrimiçiyken bu görünür bir tercih; çevrimdışıyken kuyruğa girip saatler
-sonra sessizce uygulanıyor.
-
-**Karar:** çevrimdışı kuyruğa yalnızca **antrenörün dokunduğu** satırlar
-girer. Dokunulmamış ön-dolum kaydedilmez. Bu, ekranın "hangi satıra
-dokunuldu" bilgisini ayrıca tutmasını gerektiriyor.
-
----
-
-## Uygulanmadan önce karar verilecekler
-
-1. **Yerel depo:** `drift` mi, `sqflite` mi, JSON dosyası mı? (bağımlılık
-   kararı)
-2. **Saat sapması sınırı:** sunucu hangi eşikten sonra `marked_at`'i reddetsin?
-3. **Kuyruk ömrü:** bir hafta gönderilememiş yoklama ne olsun — silinsin mi,
-   sonsuza kadar mı beklesin?
-4. **Çok cihazlı antrenör:** aynı kişi iki cihazdan işaretlerse kuyruklar
-   birbirini görmüyor; `marked_at` kuralı çözüyor ama kullanıcı iki farklı
-   "bekleyen" listesi görecek.
-
----
-
-## Şema değişikliği özeti (uygulanırsa)
-
-```sql
-alter table public.attendance
-  add column if not exists op_id     uuid,
-  add column if not exists marked_at timestamptz;
-
-create unique index if not exists idx_attendance_op
-  on public.attendance (op_id) where op_id is not null;
-```
-
-Artı `save_attendance_batch(p_ops jsonb)` RPC'si: kuyruğu tek çağrıda alır,
-`op_id` tekilliğini ve `marked_at` karşılaştırmasını sunucuda uygular.
-
----
-
-## Neden şimdi uygulanmıyor
-
-Plan böyle istiyor ve gerekçesi sağlam: çevrimdışı yazma, **yanlış yapıldığında
-veri kaybettiren** bir özellik. Bu depoda benzer bir şey zaten yaşandı —
-`saveAttendance` `event_id` yazmıyordu ve aylarca kimse fark etmedi, çünkü
-ekran çalışıyor görünüyordu.
-
-Yukarıdaki dört karar verilmeden ve testler yazılmadan açılmamalı.
+0088 dosya başına transaction ve `lock_timeout=15s` ile uygulanır; mevcut migration
+paketleme kuralına uyulur. Uygulama paketi yayınlanır; SSS satırı aynı migration'dadır.
+Bayrak yalnız seçili gerçek hesap/cihaz UAT'sinden sonra `admins`/`testers` aşamasına
+geçirilir. Bu görev canlı SQL, APK veya web yayını yapmaz. Çalışma commit edilmedi.
+Uygulama verisini silmek, kaldırmak veya web site depolamasını temizlemek yerel
+kuyruğu kaybettirir; sunucuya gitmeyen kayıt için bulut yedeği yoktur.

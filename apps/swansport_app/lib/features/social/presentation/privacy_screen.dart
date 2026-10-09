@@ -1,3 +1,4 @@
+import '../../../app/diagnostics/diagnostic_preferences_tile.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -39,6 +40,8 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                               title: 'Gizlilik ve güvenlik',
                               onBack: () => Navigator.maybePop(context)),
                           const SizedBox(height: SwanSpace.lg),
+                          const DiagnosticPreferencesTile(),
+                          const Divider(),
                           Text('Etiketlenme', style: SwanType.h3(c.ink)),
                           Text(
                               'Seni kim gönderilerde etiketleyebilir. Engellediğin kişiler etiketleyemez.',

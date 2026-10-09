@@ -470,15 +470,21 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - **Puan/yorum yok.** Doğrulanabilir hizmet kaydı olmadan yıldız toplamak
   manipülasyona açık. İletişim mevcut DM ile; ödeme, randevu, sözleşme yok.
 
-**Çevrimdışı yoklama — tasarım var, kod yok**
-- `docs/offline-attendance-design.md`. Plan bilerek uygulatmıyor: çevrimdışı
-  yazma yanlış yapıldığında veri kaybettiriyor.
-- Cevaplanan sorular: kuyruk deposu, `op_id` idempotency anahtarı,
-  `marked_at` çakışma çözümü, hata gösterimi, denetim izi.
-- **Uygulanmadan önce dört karar** gerekiyor; belgede işaretli.
-- Belgedeki tuzak: bugün ekran RSVP'den ön-doluyor ve antrenör hiçbir şeye
-  dokunmadan kaydederse tahminler gerçek yoklama olarak yazılıyor.
-  Çevrimdışında bu saatler sonra sessizce oluyor.
+**Çevrimdışı yoklama — yerelde uygulandı, bayrak off (0088)**
+- `docs/offline-attendance-design.md` güncel uygulama sözleşmesidir. Eski cihaz
+  saatine göre çakışma çözümü kullanılmaz; `version` ve açık kullanıcı kararı vardır.
+- Sembast dosya + IndexedDB; native transaction ardından `compact()` kalıcılık
+  bariyeri beklenir. Sadece transaction'ın dönmesi dosyanın yazıldığı anlamına gelmez.
+- Yalnız dokunulan satırlar kalıcı taslaktır. RSVP otomatik yoklama değildir.
+- Kuyruk ve kadro hesabına bağlıdır; `save_attendance_offline` yerel actor ile
+  auth.uid eşleşmesini zorlar. Aynı op/payload yeniden denenir; çakışmaya güncel
+  sürümle yeni op açılır. Reddedilen/eski/belirsiz işler sessizce silinmez.
+- Kadro 7 gün, 20 etkinlik/200 sporcu; 100 çözülmemiş işlem ve 100 tamamlanmış
+  geçmiş. Süresi dolan kadroda yeni işaret kapalıdır, eski taslak korunur.
+- 0088 aynı RPC imzalarını korur; koşullu update ve trigger sürüm artışını atomik
+  yapar. 0065'te takımsız etkinliğin boş kadrosu ve çok sezonlu üyeliğin tekrarları giderildi.
+- Gerçek hesap/Android zorla kapatma ve iki cihaz UAT yapılmadan bayrağı açma.
+  Canlı migration/yayın bu görevde yapılmadı; kalıcılık testleri güç kaybı garantisi değildir.
 
 **Özellik bayrakları — kademeli yayın (0053)**
 - Büyük özellikler artık doğrudan herkese açılmıyor. Kademeler:
@@ -1449,3 +1455,137 @@ yanlış yola sapar.
 - Kanıt: `docs/demo-action-audit.md`. Son tam koşu: **232 uygulama, 251 veri, 40 konsol testi**. Uygulama/konsol testlerini boş `--dart-define=SUPABASE_URL= --dart-define=SUPABASE_ANON_KEY=` ile izole et; üretim paketleri `env/prod.json` kullanır. Workspace analizi 0 hata/5 kapsam dışı uyarı; değiştirilen kaynaklarda uyarı yok.
 - Bu çalışma henüz commit edilmedi. Canlı hesaplı görsel UAT ve fiziksel Android cihaz denemesi yapılmadı; önceki tarayıcı erişim reddi aşılmadı.
 - Yayın tamamlandı: web `https://e2f698b3.swansport.pages.dev`; Android `v0.5.1+16` GitHub release'inde. APK imzası yukarıdaki `6da577…915bb` ile aynı; yayımlanan dosyanın özeti yerel paketle eşleşti. Test derleme tanımları yayına taşınmadı; üretim yapılandırması ve konsol paketi doğrulandı.
+
+### 2026-10-07 — Sezon açılışı (yerel, yayınlanmadı)
+
+- Yol haritası `docs/product-development-roadmap.md`; ilk aşamanın sözleşmesi ve canlı doğrulama sınırları `docs/season-setup-verification.md`.
+- Profil > Yönetim > Sezon Açılışı, `/sezon-acilisi`, `season_setup` bayrağı (ilk kademe admins). Yalnız aktif kulübün yöneticisi; 0087 `open_club_season` RPC'si yetkiyi ayrıca doğrular.
+- Mevcut seasons/teams/team_memberships/events/fee_plans kullanılır; yalnız işlem tekrarları için özel `season_setup_runs` tablosu eklendi. Yeni takım açılır; mevcut takımın sezonlar arası taşınması bu sürümde yoktur. Hesapsız sporcular seçilebilir.
+- Aidat planı pasif taslak oluşturulur; atama/tahakkuk yok. Aidat Yönetimi > Planlar ekranında mevcut `setPlanActive` artık gerçek kontrolle bağlıdır. Pasif plan yeni atamada seçilemez, mevcut atamayı kaldırma korunur.
+- Belirsiz ağ sonucunda form aynı işlem kimliğiyle tekrar dener. Cihazda kalıcı hazırlık deposu yok; çıkış/kapanma sonrasında önce oluşmuş kayıtlar kontrol edilir.
+- Son tam koşu 250 uygulama + 288 veri testi; eklenen çıkış senaryosu dahil sezon widget testleri 8/8 ayrıca geçti. SQL 8/8, migration parse 87/87, SSS 36/36, bildirim rotası 37, üretim web derlemesi başarılı. Yeni kaynak analizi temiz.
+- Canlı migration/yayın, gerçek hesaplı bildirim ve iki oturumlu PostgreSQL yarış testi yapılmadı. Çalışma commit edilmedi. Sezon aşaması sonunda çevrimdışı yoklama henüz uygulanmamıştı; aşağıdaki 0088 notu güncel durumdur.
+
+
+### 2026-10-07 — Çevrimdışı yoklama (yerel, yayınlanmadı)
+
+- Ortak veri modülü `offline_attendance.dart` ve koşullu dosya/IndexedDB depoları;
+  `/attendance` eski importunu koruyan yeni `attendance_workspace.dart` ekranı.
+  Ana Sayfa'da gerçek bekleyen kayıt satırı vardır; örnek nabız/IoT alanları kaldırıldı.
+- Kalıcı taslak, actor ayrımı, tek etkinlik işlemi, lease/backoff, aynı kimlikle tekrar,
+  çakışmayı kabul etme/güncel sürüme uygulama ve kesin reddi açık onayla bırakma hazır.
+  Bırakılan işlem sunucuda doğrulanmış gibi sayılmaz; belirsiz gönderim sessiz bırakılmaz.
+- Bayrak `offline_attendance` mevcut anahtardır ve off kalır. 0088 RPC'leri hem
+  özellik hem sunucu yetkisini kontrol eder; SSS ve idempotent migration birlikte gelir.
+- 257 app + 300 data + 43 console tam test, ayrıca 1 gerçek Chrome IndexedDB ve
+  8 gerçek SQL fixture testi geçti. Yeni widget dosyası 6, kuyruk veri dosyası 12 testtir.
+  Üretim web derlemesi başarılı, yeni kaynak analizi 0 bulgu; kalan kapsam/komutlar güncel tasarım belgesindedir.
+- Flutter 3.44.7 Windows test sunucusunda CanvasKit URI ayıracı hatası var;
+  `tools/test_offline_attendance_web.ps1` aynı SDK assetlerini geçici test klasöründen
+  sunar, SDK'yı değiştirmez ve kendisine ait dosyaları test sonunda kaldırır.
+- Graph MCP Transport closed döndü; bu aşama kaynak ve SQL okunarak doğrulandı.
+  Canlı SQL/yayın, fiziksel Android ve iki gerçek oturum UAT yapılmadı. Commit yok.
+
+
+### 2026-10-07 — Hata düzeltmesini doğrulama (0089, yerel)
+
+- `docs/diagnostic-fix-verification.md`: hata merkezinde yayın sürümü/platformu,
+  destek talebiyle bağ/bağı kaldırma ve kullanıcı teyidi. İkinci hata/destek sistemi yok.
+- “Resolved” artık **düzeltme bildirildi** anlamında görünür. Hata görülmemesi
+  doğrulama değildir; teknik tekrar ve kullanıcı teyidi sayaçları ayrıdır.
+- Regresyon yalnız eşleşen uygulama/platform + sayısal sürüm/build >= bildirilen
+  sürüm + bildirimden sonra oluşan event için sayılır. Eski/unknown sürüm, gecikmiş
+  olay ve duplikat kimlik tekrar sayılmaz. Bir güncel doğrulama kapsamı vardır;
+  önceki kapsamlar `diagnostic_fixes` geçmişinde kalır.
+- Talep sahibi ekipçe bildirilen güncel düzeltmeyi teyit edebilir. Bu, genel
+  `set_support_status` ile kendi talebini resolved yapma yetkisi değildir.
+  Sahip/güncel fix kimliği/sürüm/platform/uygulama sunucuda denetlenir; ekip kullanıcı
+  adına teyit veremez. Kullanıcı sürümü istemci metaverisidir, yazılım attestation değil.
+- Aynı bildirim/teyit idempotent; yeni fix eski formu kapatır. Yanlış bağ kaldırılırken
+  mesajlar korunur; açık talep incelemeye döner. Kilit sırası issue → ticket.
+- Bekleyen teyidi olan açık talebin hata özeti 90 günlük silinmeden korunur;
+  eventlerin 30 günlük saklama ve teknik kayıt izni kuralları değişmedi.
+- 261 app + 306 data + 46 console = 613 tam Flutter testi; 19 SQL (9 yeni),
+  değişen 11 dosyada analiz 0 bulgu, 89 parse, SSS 36/36, push 37, katalog/diff temiz.
+  Her iki web paketi `-t lib/main_production.dart` ve üretim yapılandırmasıyla derlendi.
+- `lib/main.dart` uygulamada development'a yönlendirir; konsolda o dosya yoktur.
+  Üretim doğrulamasında giriş noktasını açık yaz. Konsol base-href `/konsol/`.
+- Canlı migration/yayın, fiziksel Android veya iki oturumlu PostgreSQL UAT yok;
+  önceki kullanıcı/AGY değişiklikleri korundu, commit yok. Sıradaki aşama veli işlem merkezi.
+
+
+**Veli işlem merkezi (0090)**
+- `/veli-izinleri` artık davet kodunun kopyası değil; gerçek etkinlik RSVP,
+  belge süre uyarısı ve kendi destek yanıtlarını toplar. Hukuki izin talebi
+  sistemi yoktur; katılım yanıtını hukuki izin veya yoklama gibi etiketleme.
+- Kaynak gerçek `guardians` bağlantısıdır. `my_children_overview` veli ilişkisi
+  hesabında kullanılmaz: sportif yetkisi olan kişi orada diğer sporcuları da
+  okuyabilir. `SwanAccess.guardianAthleteIds` rolün bağımsız eksenidir.
+- Veli birden çok kulüpte çocuğa bağlı olabilir. Belge ekranının `child`
+  kapsamı çocuğun kulübü + athlete kimliğiyle okur ve yükler; aktif kulüp
+  kullanılmaz. Giriş hesabı olmayan çocuklar korunur.
+- `parent_hub` mevcut bayraktır. SQL + ekran + menü + TodayTasks kontrolü
+  vardır; 0090 mevcut yayın kademesini değiştirmez. Yeni ayrı bayrak yazma.
+- RSVP beklenen timestamp **metin olarak mikro saniyeleriyle** taşınır.
+  Yuvarlamak eski form kontrolünü bozar. Aynı kararın tekrarı idempotenttir.
+- Belge kasası `<uid>/belge_<zaman>.<uzantı>` yolunu kullanır. Sporcu belge
+  satırını okuyabilmek önceden dosyayı okumaya yetmiyordu; 0090 Storage SELECT
+  politikasını bağladı. Kimlik dosyalarını bu erişime karıştırma.
+- Dosya bağlantısının güvenliği yalnız RPC değil `documents` tetikleyicisinde:
+  başka yükleyicinin dosyasını sahte `uploaded_by` ile ilişkilendirme ve sporcu /
+  kulüp uyuşmazlığı reddedilir. Doğrulama/süre güncellemesi eski dosya yolunu
+  değiştirmiyorsa engellenmez.
+- Kanıt ve canlı UAT sınırları `docs/parent-action-center-verification.md`.
+
+
+**Dönem gelişim raporu (0091)**
+- Yoklama dönemi `events.starts_at` Türkiye takviminden; `taken_at` sonradan
+  çevrimdışı senkron tarihi olabilir. Etkinliksiz kayıt ayrı, oran dışında.
+  İzinliler paydaya girmez; kayıt eksikliği devamsızlık veya yüzde sıfır değildir.
+- Ölçüm karşılaştırması kategori/test adı/birim/yönü birlikte eşler. Tek ölçümde
+  gelişim yok; sıfır/negatif başlangıçtan yüzde türetme.
+- Hedef tarihçesi yok: rapor hedefleri güncel durumu gösterir, dönem sonundaki
+  geçmiş yüzdeyi değil. Tarihçe yokken bu etiketleri değiştirme.
+- Metin kopyalama taze RPC ile yetki/bayrak kontrolü yapar; fingerprint değişince
+  önizlemeyi yeniler ve tekrar eylem ister. Fingerprint erişim anahtarı değildir.
+  Kimlik varsayılan kapalı; özel notlar/sağlık verisi dışa aktarıma girmez.
+- `development_report` beş parçalı bayrak sözleşmesine ve mevcut sportif yetkiye
+  bağlıdır; muhasebecilik tek başına sportif erişim vermez. Yeni rapor defteri yok.
+
+
+**Saha işlemleri (0092–0093)**
+- Kort saatinin benzersizliği yalnız canlı `claimed|active|done` kayıtlardadır.
+  İptal/expire geçmişini silerek saat açma; eski oyuncu kayıtları korunur.
+- Kort yazıları global işlem kilidini satır/index kilidinden önce alır.
+  Statement tetikleyicisi eski doğrudan yazı/cron yollarını da kapsar. Kilit
+  sırasını tersine çevirme; MVP küresel kilidi yüksek hacimde ayrıca ölçülmelidir.
+- `_swan_feature_for_profile` iç yardımcıdır; authenticated/anon/PUBLIC'e açma.
+  Kullanıcı bayrakları `my_feature_flags` üzerinden, mevcut tester anlamıyla okunur.
+- Saha devri yalnız doluluk yazma hakkıdır. `is_turf_manager` kalıcı kalır;
+  görev alan kişi görev devredemez. Kaynak yöneticinin aktifliği her yazıda aranır.
+- Süre kontrolü kilit beklemesinden sonra `clock_timestamp()` ile yapılır.
+  İstemci 30 saniyede yenilenir; yetki kararı bu yenilemeye dayanmaz.
+- Saat gösterimi Türkiye UTC+3, RPC anı UTC'dir. Bekleme fırsatı otomatik
+  rezervasyon değildir; mevcut ClaimSheet ve konum/check-in akışı korunur.
+
+
+### 2026-10-09 — Federasyon / resmi kayıt temeli (Faz A, yerel)
+
+- 0077–0093 zaten dolu olduğundan bu görev **0094–0096** ile sürer; eski migration numaralarını yeniden kullanma. Canlı SQL, push/deploy/commit yapılmadı.
+- Kurum `federations` → `federation_offices` → süreli, branş/il/duty kapsamlı `federation_appointments`. Duyuru kanalının staff üyeliği resmi yazma yetkisi değildir. Platform yöneticisi atama yapabilir ama sonuç/lisans/tescil için ayrı doğru atama gerekir.
+- Club `seasons` ile `sport_seasons` ayrıdır. Resmi müsabaka mevcut `organizations/org_matches/org_participants` üstündedir; events kopyası veya üçüncü maç tablosu yok.
+- Resmi sonuç/kadro revizyonları eklenir, silinmez. Sonuç revizyonu yayımlandığı andaki roster revision ID'lerini taşır; yeni kadro eski sonucu değiştiremez. JSON protokolü score/sets/time/rank için açık allowlist'tir.
+- **Yeni resmi satırı eklemek eski okumaları da değiştirir.** 0027 fikstür/puan/tablo genel okumaları ve 0063 organization_share resmi kayıtları dışlar; aksi halde roster UUID'si eski athlete_public ile isim sızıntısına dönüşebilirdi. Eski kulüp maç akışı SQL regresyonuyla korunur.
+- `athlete_achievements.source='federation_result'` yalnız federasyon RPC'sinden, maç+sonuç revizyonuyla yazılır. goal/attendance_*/manual ve verified=true resmi kaynak değildir. Kulüp rozetleri silinmedi.
+- Club/account silme resmi sonucu silmez. Yeni tarihsel UUID anahtarları isim snapshot'ı taşımaz; yazar FK'ları null olur. Kulüp CASCADE'ı athlete satırını sildiğinde resmi dereceler ve roster UUID'leri korunur. Arşiv lisansı ulusal kayıt yetkisiyle aynı athlete ID'ye yeniden bağlanır.
+- `athletes.club_id` **NOT NULL**, `profile_id` **nullable** kalır. Ferdi nullable geçiş yalnız E planıdır. Lisans bitişinin birincil-branş kolonu korunur; resmi kadro branşlı lisansı ayrıca kontrol eder.
+- Kimlik/lisans dedup statement kilidini satır kilidinden önce alır; global MVP kilidi üretim hacminde ve iki gerçek oturumda ayrıca ölçülmeli. Eski duplicate kimlikler otomatik birleştirilmez.
+- `SwanAccess.coachLevel` eski API olarak durur; yeni `coachLevelForSport`/`hasCoachLevelForSport` ve `canWriteFederation` admin/kulüp bypass'ı yapmaz. Belge expiry null olan eskiler geçerlidir.
+- **Yayın kapısı:** yeni belge başvurusu gerçek expiresOn ister; mevcut UI bu alanı henüz toplamaz. Ekran yazımı bu Faz A'da yasaktır. C/D belge ekranı geçişi olmadan bu backend temeli tek başına canlı uygulanmamalıdır.
+- Yeni genel/anon okuma yok. Atanmış görevlinin dar kartı güncel veli tercihini okur; çocuk adı varsayılan kapalı, teşhis/aidat/TCKN/belge/konum yok. Eski athlete_public, takım-geneli RLS ve özel veri hesap-silme sorunları tamamen çözülmüş değildir; ayrı privacy riskleri rapordadır.
+- Kanıt: `docs/federation-foundation-verification.md`; **672 Flutter**, **16 SQL**, son **20 dar test**, yeni beş Dart dosyası **0 analiz bulgusu**, **96 parse**, SSS **39/39**, push **39**. Tam analiz 0 hata/5 kapsam dışı mevcut uyarı; temiz workspace denmedi.
+- B–E yalnız `.planning/federation-foundation/ROADMAP.md` planıdır; bekleme odası, misafir UI, konsol masası, resmi CV/takvim ve ferdi geçiş kodlanmadı.
+
+### GitHub kayıt tercihi — 2026-10-09
+
+Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposuna push edilmesini istedi; Grok incelemesi güncel kaynak üzerinden yapılacak. Önceki yerel çalışmalar ve federasyon Faz A bu kayıt kapsamındadır. GitHub kaydı canlı SQL veya Cloudflare yayını anlamına gelmez.

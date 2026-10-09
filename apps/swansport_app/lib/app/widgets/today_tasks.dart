@@ -76,6 +76,23 @@ class TodayTasks extends ConsumerWidget {
   List<_Task> _collect(WidgetRef ref, SwanPalette c) {
     final access = ref.watch(swanAccessProvider);
     final out = <_Task>[];
+    if (ref.watch(featureEnabledProvider(FeatureFlags.parentHub)) &&
+        access.isParent) {
+      final count = ref.watch(parentActionsProvider).valueOrNull?.count ?? 0;
+      if (count > 0) {
+        out.add(
+          _Task(
+            priority: 0,
+            role: 'Veli olarak',
+            icon: Icons.family_restroom_rounded,
+            title: '$count veli işlemi',
+            subtitle: 'Etkinlik, belge ve yanıtlar',
+            route: '/veli-izinleri',
+            tone: c.accent,
+          ),
+        );
+      }
+    }
 
     // ---- Sporcu / veli: ödenmemiş aidat -----------------------------------
     final fees = ref.watch(myFeesProvider).valueOrNull ?? const [];

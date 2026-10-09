@@ -41,6 +41,7 @@ final consoleRouterProvider = Provider<GoRouter>((ref) {
     initialLocation: '/',
     refreshListenable: auth,
     redirect: (context, state) {
+      ref.read(diagnosticsProvider).navigate(state.matchedLocation);
       final signedIn = Supabase.instance.client.auth.currentSession != null;
       final atLogin = state.matchedLocation == '/giris';
 
@@ -178,7 +179,6 @@ class _ConsoleHome extends ConsumerWidget {
           style: t.textTheme.bodySmall,
         ),
         const SizedBox(height: ConsoleDensity.xl),
-
         if (showFinance) ...[
           Text('Mali', style: t.textTheme.titleMedium),
           const SizedBox(height: ConsoleDensity.sm),
@@ -194,7 +194,6 @@ class _ConsoleHome extends ConsumerWidget {
             ),
           ),
         ],
-
         if (showOps) ...[
           const SizedBox(height: ConsoleDensity.xxl),
           Text('Kulüp operasyonu', style: t.textTheme.titleMedium),

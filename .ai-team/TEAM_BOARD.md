@@ -1,16 +1,29 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-06 Europe/Istanbul
-Aktif Writer: yok
+Son güncelleme: 2026-10-09 Europe/Istanbul
+Aktif Writer: Yok
 Durum: `complete`
 
-Güncel doğrulama: son kaynakla 232 uygulama, 251 veri ve 40 konsol testi geçti. Analiz: 0 hata/5 kapsam dışı uyarı; değiştirilen kaynaklarda uyarı yok. Üretim web ve 0.5.1+16 APK derlemesi/yayını tamamlandı. APK imzası önceki paketle aynı; yayımlanan APK özeti yerel dosyayla eşleşiyor. Detay: `docs/demo-action-audit.md`.
+Güncel doğrulama: 2026-10-09 federasyon Faz A yerel temeli hazır. 0094–0096, branş/il/duty/süre kontrolü, eski yazma/okuma sınırları, resmi roster/result/derece geçmişi, dedup/transfer/itiraz/veli tercihi ve SwanAccess ek API'si. 672 Flutter, 16 gerçek SQL, son 20 dar test; yeni 5 Dart dosyası analiz 0 bulgu; tam analiz 0 hata/5 önceki kapsam uyarısı. 96 parse, SSS 39/39, push 39 ve diff-check başarılı. B–E yalnız plan. Yeni belge expiry UI geçişi ve eski privacy/lifecycle riskleri raporda; canlıya hazır tam ürün iddiası yok. Push/deploy/canlı SQL/commit yok; Writer serbest. Ayrıntı docs/federation-foundation-verification.md.
+
+Önceki Cloudflare doğrulaması: 2026-10-09 kullanıcı talebiyle Cloudflare Production/main yayını tamamlandı. Proje swanspor; swansport.pages.dev ve /konsol/. Dağıtım 05b28ac9-15ed-4172-9020-c6eb078cb129; Functions compiled/uploaded, Deployment complete ve üretim listesi doğrulandı. Güncel app/console paketleri birleştirildi; eski konsol kopyası dışlandı. Önceki 665 Flutter, 10 SQL ve iki üretim build geçerli; derlemeden sonra değişen lib kaynağı yok. Bu ağdaki ESB yönlendirmesi/TLS hatası nedeniyle canlı HTTP/hash/UAT doğrulanamadı. Supabase migration uygulanmadı; commit/push yok. Writer serbest. Ayrıntı docs/cloudflare-release-2026-10-09.md.
+
+Önceki tanılama doğrulaması: Hata/kullanım merkezi yerelde tamamlandı. 240 uygulama + 281 veri + 43 konsol = 564 Flutter testi; 10 gerçek SQL senaryosu ve 4 Storage API bakım testi geçti. İki üretim web derlemesi başarılı; yeni kaynak analizi temiz, entegrasyonda 0 hata/uyarı. 0086 sözdizimi, katalog, 35/35 SSS ve diff kontrolü geçti. Canlı migration/yayın ve hesaplı/fiziksel cihaz UAT yapılmadı. Etkinleştirme adımları ve kapsam sınırları `docs/diagnostics-center.md` içinde.
+
+Önceki mali doğrulama: Codex mali RPC imzasını/yetkilerini, kaynak kilit sırasını, negatif tutar ve bağlı defter hareketi kontrolünü düzeltti; otomatik geçmiş telafi kaldırıldı. 12 PostgreSQL davranış senaryosu, 13 RSS testi, 5 widget testi başarılı. 85 migration sözdizimi, 35/35 SSS ve 37 bildirim rotası kontrol edildi. Canlı migration/yayın yapılmadı; iki oturumlu eşzamanlılık UAT yapılmadı.
+
+Önceki doğrulama: Codex 2. inceleme bulgularının (1: reconciliation_issues RLS/security_invoker ve kulüp RPC izolasyonu, 2: telafide toplam iade sınırı, kilit sırası ve migration 0084, 3: eski negatif kayıtlar ve kapasite korunumu, 4: aday arama/filtre/sayfalama UI bağlantısı ve widget testi, 5: IPv4-mapped IPv6 ::ffff:hex ayrıştırması) çözümü tamamlandı.
 
 ## Guncel gorev
 
-- 2026-10-06: demo verileri, boş düğmeler ve eksik bağlantıları incele; gerekli akışları gerçek veriye bağla, gereksiz kontrolleri kaldır, ilgili hataları düzelt.
-- Kapsam: swansport_app ve mevcut ortak veri servisleri. Konsol kaynak kodu ve veritabanı şeması değiştirilmedi.
-- Başlangıç Git durumu temizdi; başka aktif Writer yoktu. Bu görev için commit henüz oluşturulmadı.
+- Kullanıcı isteğiyle ürün yol haritasının sezon açılışı ve çevrimdışı yoklama aşamaları yerelde tamamlandı. Hata düzeltmesini doğrulama aşaması da tamamlandı. Veli işlem merkezi (aşama 4) yerelde tamamlandı. Dönem gelişim raporu (aşama 5) yerelde tamamlandı. Saha bekleme listesi ve görev devri (aşama 6) de yerelde tamamlandı. Altı aşama hazır; canlı kurulum/UAT ayrı yürütülür. Canlı dağıtım bu görevde yapılmadı.
+
+- 2026-10-07: Kullanıcı Codex Writer seçti. Mali düzeltme kapsamı tamamlandı; kanıt ve sınırlar `docs/finance-adjustment-verification.md` içinde.
+- Önceki AGY işi ve başlangıç değişiklikleri korundu. Aşağıdaki önceki görev bilgileri tarihçedir.
+
+- 2026-10-07: 6 bulgunun detaylı düzeltilmesi (Finding 1-6 v2), yeni migration(lar), Riverpod & sayfalama, UI istek döngüsü, rss-image stream/redirect güvenliği ve gerçek davranış testleri.
+- Kapsam: apps/swansport_app, packages/swansport_data, supabase/migrations, functions/api/rss-image.js ve otomatik testler.
+- Başlangıç Git durumu korundu; başka aktif Writer yok. Kullanıcı tarafından AGY Writer seçildi.
 
 ## Son durum
 
@@ -65,4 +78,65 @@ Güncel doğrulama: son kaynakla 232 uygulama, 251 veri ve 40 konsol testi geçt
 
 | 2026-10-06 | Codex Writer | complete | Demo verileri ve sahte işlemler temizlendi; gerçek şablon, belge, kadro, mali defter, mesaj, paylaşım ve oturum akışları bağlandı. Eski rotalar korunuyor. Writer serbest. | swansport_app, mevcut swansport_data servisleri, denetim raporu | 232 uygulama + 251 veri + 40 konsol testi; analiz 0 hata/5 kapsam dışı uyarı; diff-check temiz. Web Deployment complete; APK v0.5.1+16 uploaded, imza ve dosya özeti eşleşti. Canlı hesaplı/cihaz UAT yapılmadı. |
 | 2026-10-07 | AGY Writer | complete | 5 modül (hazırbulunuşluk, beslenme, ekipman tuning, rezervasyon, ters işlem) gerçek Supabase servisleri ve RLS ile tamamlandı. 78 migration doğrulandı, 483 test geçti, commit 4466695 oluşturuldu ve Cloudflare Pages web dağıtımı tamamlandı. | 5 modül ekranı, swansport_data servisleri, migrations 0077-0078 | 78 migration OK, 35/35 SSS/bayrak OK, 251 veri + 232 app testi geçti (483/483), web deploy complete (https://a4bf1963.swansport.pages.dev). |
+| 2026-10-07 | AGY Writer | complete | 6 güvenlik ve iş mantığı bulgusu (Finding 1-6) doğrulandı, migration'lar (0079-0081), servisler ve UI düzeltildi. | apps/swansport_app, packages/swansport_data, supabase/migrations (0079-0081), tools | 81/81 migration OK, 35/35 SSS/bayrak OK, 9/9 Node rss_image_test OK, 7/7 findings_regression_test OK, flutter analyze 0 hata/uyarı. |
+| 2026-10-07 | AGY Writer | complete | Codex 2. inceleme bulguları tamamlandı: 0084 ileri migration (reconciliation_issues RLS/security_invoker, get_issues RPC, telafi toplam iade sınırı, kilit sırası, negatif kayıt filtreleme), closedPeriodCandidatesPageProvider ve arayüzde sunucu arama/filtre/sayfalama bağlantısı, rss-image mapped IPv6 (hex/dotted) ayrıştırması. | rss-image.js, closed_period_reversal_screen.dart, finance_ops_service.dart, migrations 0082/0084, testler | 84/84 migration OK, 35/35 SSS OK, 13/13 Node rss-image test OK, 14/14 veri regresyon OK, 3/3 rezervasyon widget OK, 2/2 aday sayfalama widget OK, flutter analyze 0 hata/0 uyarı. |
 
+
+
+| 2026-10-07 | Codex Writer | active | Kullanıcı isteğiyle mali düzeltmeler devralındı; mevcut AGY değişiklikleri korunuyor. | 0082, 0084, yeni 0085 ve SQL davranış testleri | Git ve Writer durumu kontrol edildi. |
+
+| 2026-10-07 | Codex Writer | active | RPC tek imzaya alındı; personel/kendi talebi kontrolleri korundu; kaynak önce kilitleniyor; otomatik eski telafi kaldırıldı; gerçek defter bağlantısı ve aşım incelemesi eklendi. | 0082, 0084, 0085, tools/finance_rpc_test.mjs, docs/finance-adjustment-verification.md | Önceki 11 SQL senaryosu, 13 RSS testi ve 5 widget testi başarılı; son 12 senaryo koşusu sürüyor. Canlı işlem yok. |
+
+| 2026-10-07 | Codex Writer | complete | Mali düzeltme işi tamamlandı; Writer serbest. İleri düzeltme 0085 ve izole PostgreSQL davranış testleri hazır. | 0082, 0084, 0085, tools/finance_rpc_test.mjs, docs/finance-adjustment-verification.md | 12/12 SQL, 13/13 RSS, 5/5 widget; 85/85 parse; SSS 35/35, push 37; diff-check temiz. Canlı işlem ve iki oturumlu yarış testi yapılmadı. |
+
+| 2026-10-07 | Codex Writer | active | Kullanıcı hata ve kullanım izleme merkezinin uygulanmasını istedi; görev devralındı. Mevcut değişiklikler korunuyor. | app, console, data, migration 0086 ve testler | Writer yoktu; Git ve mevcut destek/menü altyapısı incelendi. |
+
+| 2026-10-07 | Codex Writer | active | Hata/kullanım merkezi: izinli teknik kayıt, özel destek görseli, platform konsolu, 0086 ve Storage API temizliği uygulandı. SQL değişken çakışması düzeltildi. | diagnostics, support, console, 0086 | 13 Dart çekirdek testi ve 9 gerçek SQL senaryosu geçti; arayüz/analiz doğrulaması sürüyor. Canlı migration/yayın yapılmadı. |
+
+| 2026-10-07 | Codex Writer | active | Tam regresyonda veri 280/280, konsol 43/43 geçti. Uygulama açılışında tanılama metaverisini bekleme kaldırıldı; boş yapılandırma testleri için SUPABASE_URL/ANON_KEY boş derleme tanımlarıyla tekrar doğrulanıyor. Mali tutarlılık sayaçları mevcut 0085 doğrulayıcısını kullanır. | diagnostics, bootstrap, tests | 10 SQL ve 4 Storage bakım testi başarılı; ilk uygulama turu 5 başarısız test içeriyordu ve başarı diye rapor edilmedi. |
+
+| 2026-10-07 | Codex Writer | active | Son kontrol: 240 uygulama, 281 veri, 43 konsol testi geçti; toplam 564. İki üretim web derlemesi başarılı. Yeni kaynakların analizi temiz; entegrasyon analizi 0 hata/uyarı. Kurulum ve kapsam sınırları belgelendi. | docs/diagnostics-center.md, diagnostics tests/build | SQL son ekran bazlı gruplama regresyonu bekleniyor. Tek dar test çağrısında olmayan support_faq_test.dart yolu verildi; doğru report_problem_test.dart çağrısı 3/3 geçti. Canlı migration/yayın yapılmadı. |
+
+| 2026-10-07 | Codex Writer | complete | Hata ve kullanım merkezi: isteğe bağlı teknik izler, hata tekrarları/durumları, özel destek ekran görüntüsü, sunucu korelasyonu, mali tutarlılık sayaçları ve günlük temizleme hazır. Writer kilidi serbest. | docs/diagnostics-center.md; 0086; uygulama/veri/konsol | 578 davranış/regresyon testi geçti; 2 web üretim derlemesi başarılı. Son SQL ekran bazlı gruplama ve saklama regresyonları 10/10 geçti. Canlı değişiklik yapılmadı. |
+
+| 2026-10-07 | Codex Writer | active | Kullanıcı yol haritası ve uygulamaya başlama istedi: önce sezon açılış sihirbazı, ardından çevrimdışı yoklama. Mevcut değişiklikler korunur; canlı migration/yayın yapılmaz. | sezon/program/kadro/aidat akışları | Writer boşluğu ve Git kontrol edildi; keşif başladı. |
+
+| 2026-10-07 | Codex Writer | active | Yol haritası, sezon hazırlık sözleşmesi, yönetim menüsü ve beş adımlı ekran, 0087 atomik RPC ve SSS eklendi. Dar ekran tekrar-deneme düğmesi taşması düzeltildi. | season_setup, docs/product-development-roadmap.md | 8/8 gerçek SQL ve 5/5 veri testi; SSS 36/36; yeni kaynaklarda analiz hatası/uyarısı yok. Tam regresyon ve üretim derlemesi sürüyor. Canlı işlem yok. |
+
+| 2026-10-07 | Codex Writer | active | Sezon ekranında belirsiz ağ sonucundan çıkıp kayıtları kontrol etme yolu eklendi. Mevcut aidat etkinleştirme servisi arayüze bağlandı; pasif plan atama listesinden çıkarıldı, mevcut atamayı kaldırma korunur. | finance_screen, fee_plan_status_switch, season_setup | 245/245 uygulama testi ve 7/7 yeni veri testi geçti. İlk tam veri turunda mock HTTP yanıtının request alanı eksikti; test düzeltildi, tekrar başarılı. Önceki web derlemesi başarılı; son değişikliklerin doğrulaması sürüyor. |
+
+| 2026-10-07 | Codex Writer | complete | Ürün yol haritası ve sezon açılışı ilk aşaması hazır. Mevcut kayıtlar atomik hazırlanır; tekrar deneme, hesap bağı olmayan sporcular, pasif aidat taslağı ve gerçek etkinleştirme kontrolü çalışır. Writer serbest. | docs/product-development-roadmap.md, docs/season-setup-verification.md, 0087 | 250 app + 288 data tam koşu; son sezon widget 8/8; SQL 8/8; parse 87/87; SSS 36/36; push 37; yeni analiz temiz; web üretim derlemesi başarılı. Canlı işlem, cihaz UAT ve iki oturumlu yarış yapılmadı. Commit yok. |
+
+| 2026-10-07 | Codex Writer | active | Kullanıcı devam istedi; çevrimdışı yoklama aşaması devralındı. Mobil/web kalıcı depo, sürümlü kayıt ve çakışma ekranı uygulanacak. | attendance, ortak veri, migration/testler | Graph MCP bağlantısı kapalı; gerçek kaynak/SQL üzerinden doğrulama yapılıyor. Mevcut değişiklikler korunur, canlı migration/yayın yok. |
+
+| 2026-10-07 | Codex Writer | active | Kalıcı Sembast dosya/IndexedDB depoları, hesabına bağlı taslak/kuyruk, idempotent gönderim, lease/backoff/manuel çözüm, hazırlanmış kadro ve ana sayfa durum satırı eklendi. 0088 atomik sürüm ve payload bağlaması sağlıyor. | offline_attendance, attendance_workspace, 0088 | Kaynak analizi derleme hatasız; gerçek depo kapanma/yeniden açma ve kuyruk testleri başladı. Eski ekranın statik nabız/IoT örnekleri yeni akışta yok. Bayrak off kalıyor; canlı işlem yok. |
+
+| 2026-10-07 | Codex Writer | active | Kuyruk ekranı ve açık bırakma/çakışma kararları tamamlandı; ilk gerçek IndexedDB denemesinde Flutter Windows CanvasKit yol hatası saptandı, yerel test asset fallback ile test geçti. | offline attendance / docs / tests | 11 veri + 1 web + 6 widget + 8 SQL başarılı; 299 veri ve 43 konsol tam regresyonu geçti. Son app regresyonu ve üretim derlemesi sürüyor; canlı işlem yok. |
+
+| 2026-10-07 | Codex Writer | complete | Çevrimdışı yoklama tamamlandı; yerel taslak/kuyruk, actor ayrımı, atomik sürüm, açık çakışma/reddetme yönetimi ve gerçek durum görünümü hazır. Kayıp yanıttan sonra yetki reddi önceki işlemi belirsiz tutar, uygulandı/uygulanmadı diye uydurmaz. Writer serbest. | docs/offline-attendance-design.md; 0088; attendance UI/data; test helper | 257 app + 300 data + 43 console; 1 IndexedDB; 8 SQL; yeni analiz 0 bulgu; 88 parse, 36/36 SSS, 37 push, katalog/diff temiz. Son web üretim build başarılı. Canlı işlem/cihaz ve iki oturum UAT yok, bayrak off, commit yok. |
+
+| 2026-10-07 | Codex Writer | active | Kullanıcı devam istedi; yol haritası aşama 3: düzeltme sürümü, gerçek tekrar oluşma ve destek sahibinin teyidi mevcut sisteme bağlanıyor. | diagnostics/support, 0089, testler | Git değişiklikleri korunuyor; graph erişimi döndü ancak yeni dosyalar kapsam dışında/eski hash, kaynak üzerinden doğrulanıyor. Canlı işlem yok. |
+
+| 2026-10-07 | Codex Writer | active | Sürüm/platform bildirimi, kapsamlı teknik tekrar, sahip/güncel düzeltme teyidi, konsol sayaçları ve yanlış bağlantıyı kaldırma hazır. Dialog controller kapanış yarışı widget testinde yakalanıp State ömrüne taşındı. | diagnostics/support, 0089, docs/diagnostic-fix-verification.md | 261 app + 306 data + 46 console ve 19 SQL başarılı; analiz 0 bulgu. İlk konsol build varsayılan main.dart olmadığı için çalışmadı; README'deki main_production.dart ile doğru derleme sürüyor. Canlı işlem yok. |
+
+| 2026-10-07 | Codex Writer | complete | Yol haritası aşama 3 hazır: sürüm/platform bildirimi, eski sürümü gerileme saymama, sahip/güncel düzeltme teyidi, ayrı sayaçlar, idempotent tekrar ve hatalı bağlantıyı temiz kaldırma. Writer serbest. | docs/diagnostic-fix-verification.md; 0089; diagnostics/support UI/data/tests | 613 Flutter, 19 SQL; yeni analiz 0 bulgu; 89 parse, 36/36 SSS, 37 push, katalog/diff temiz. İki main_production web build başarılı. Canlı işlem/cihaz ve iki gerçek oturum UAT yok, commit yok. |
+
+| 2026-10-07 | Codex Writer | complete | Aşama 4: gerçek veli/çoklu çocuk/kulüp işlem listesi, eski RSVP formu kontrolü, çocuk belgelerinin doğru kulübe bağlanması, özel dosya erişimi ve sahte dosya ilişkisi engeli, destek yazışması, bayrak/SSS/TodayTasks bağlantısı. | 0090, parent_actions.dart, parent_consent_center_screen, access, vault, girişler ve testler | 628 Flutter, son 15 ilgili test, 8 SQL/Storage RLS, 11 dosya analiz temiz, 90 parse, iki üretim build; canlı/commit yok. |
+
+| 2026-10-07 | Codex Writer | complete | Dönem gelişim raporu: gerçek dönem yoklaması, uyumlu ölçümler, açıkça güncel hedefler; veli/sporcu/personel yetkisi; sunucudan yeniden kontrol edilen kimlik tercihiyle metin önizleme/kopyalama. Writer serbest. | 0091, development_report, rapor ekranı/dışa aktarım, 4 giriş, testler ve doğrulama belgesi | 647 Flutter; 7 SQL; son 25 app + 13 data; 14 dosya analiz temiz; 91 parse; SSS 37/37; 37 push; iki prod build. Canlı migration/yayın/commit yok. |
+
+| 2026-10-08 | Codex Writer | active | Kullanıcı aşama 6 saha bekleme listesi ve görev devrinin sorusuz tamamlanmasını istedi. Mevcut değişiklikler korunarak devralındı. | Rezervasyon, erişim ve bildirim akışları | Canlı yayın/migration/commit yok; keşif ve davranış sözleşmesi başlatıldı. |
+
+| 2026-10-08 | Codex Writer | complete | Aşama 6: FIFO kort fırsatı, gerçek rezervasyon/kişi sayısı, geçmişi koruyan yeniden alım; dolulukla sınırlı süreli davet, tek alıcı, geri alma/bırakma, yazma atfı/denetim ve sıfır satır silme kontrolü. Altı yerel aşama tamamlandı, Writer serbest. | 0092–0093; saha_operations; saha detayları/erişim/girişler; tests/docs | 665 Flutter; 10 SQL; 16 öğe analiz temiz; 93 parse; SSS 39/39; 39 push; iki prod build. Canlı migration/yayın/commit yok; gerçek hesap/cihaz ve iki oturum UAT açık. |
+
+| 2026-10-09 | Codex Writer | active | Kullanıcı Cloudflare üretim yayınını açıkça istedi. Güncel doğrulanmış app/console paketleri ayrı release klasöründe birleştirildi; eski konsol paketi dışlandı. | swanspor Pages projesi, main production; swansport.pages.dev | Derlemeden sonra değişen lib kaynağı yok. Canlı Supabase migration bu Cloudflare görevinin kapsamında değil. Dağıtım ve HTTP/hash doğrulaması sürüyor. |
+
+| 2026-10-09 | Codex Writer | complete | Cloudflare üretim yayını tamamlandı: güncel app/console ve Pages Functions. Writer serbest. | swanspor / main; swansport.pages.dev; 05b28ac9 | Wrangler Deployment complete ve Production/main listesi doğrulandı. HTTP ESB yönlendirmesi/TLS hatası nedeniyle canlı sayfa testi tamamlanamadı. Supabase migration/commit/push yok. |
+
+| 2026-10-09 | Codex Writer | active | Kilitli federasyon sözleşmesi Faz A devralındı; yalnız şema/RLS/RPC/SwanAccess/test, B–E plan. Mevcut 0093 nedeniyle yeni sıra 0094. | federation foundation | Başlangıç dosya hashleri build/federation-phase-a/baseline.json içinde; push/deploy yok. |
+
+| 2026-10-09 | Codex Writer | active | Faz A şema/RLS/RPC ve branşlı SwanAccess hazır; eski fikstür/puan/paylaşım resmi kayıt okuması kapandı, kulüp dostluk maçı korundu. B–E yalnız plan ve ayrı privacy risk raporu yazıldı. | 0094–0096, federation_records, verification, testler ve .planning | 336 data + 290 app + 46 console; 16 SQL önceki son koşu başarılı. Son legacy boş branş/süpervizör fixture genişletmesi çalışıyor. Genel analiz 0 hata/5 önceki kapsam uyarısı; yeni kaynak dar analizi sürüyor. Canlı işlem/commit yok. |
+
+| 2026-10-09 | Codex Writer | complete | Yalnız federasyon Faz A temel uygulaması ve B–E planları tamamlandı. Eski kullanıcı/AGY değişiklikleri korundu, Writer serbest. | docs/federation-foundation-verification.md; .planning/federation-foundation/ROADMAP.md; 0094–0096 | 672 Flutter, 16 SQL, son 20 dar; yeni analiz 0 bulgu, genel 0 hata/5 önceki uyarı; 96 parse, SSS 39/39, push 39. Canlı SQL/push/deploy/commit yok; expiry UI ve eski privacy geçiş kapıları raporda. |
+
+| 2026-10-09 | Codex Writer | complete | Kullanıcı talebiyle önceki yerel çalışmalar ve federasyon Faz A GitHub kaydına hazırlandı. Her iş sonunda commit/push tercihi geçerli. | kaynaklar, testler, migration 0079–0096, raporlar | Önceki 672 Flutter/16 SQL doğrulaması geçerli; bu işlem kaynak davranışını değiştirmiyor. Yerel Flutter plugin metadata dosyası hariç. |

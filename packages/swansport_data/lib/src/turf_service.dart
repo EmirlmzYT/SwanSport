@@ -105,8 +105,7 @@ class TurfSlot {
   /// rezervasyon değil, yalnızca sahanın yöneticisine giden bir haber.
   final bool requestedByMe;
 
-  String get hourLabel =>
-      '${startsAt.hour.toString().padLeft(2, '0')}:'
+  String get hourLabel => '${startsAt.hour.toString().padLeft(2, '0')}:'
       '${startsAt.minute.toString().padLeft(2, '0')}';
 
   factory TurfSlot.fromMap(Map<String, dynamic> m) => TurfSlot(
@@ -138,42 +137,52 @@ class TurfService {
   }
 
   Future<List<TurfSlot>> occupancyGrid(String fieldId, {int days = 7}) async {
-    final rows = await _c.rpc<List<dynamic>>('turf_occupancy_grid',
-        params: {'p_field': fieldId, 'p_days': days});
+    final rows = await _c.rpc<List<dynamic>>(
+      'turf_occupancy_grid',
+      params: {'p_field': fieldId, 'p_days': days},
+    );
     return rows
         .map((r) => TurfSlot.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
   }
 
-  /// Hücreyi dolu işaretler. RPC yok — RLS (`is_turf_manager`) yetkisiz
+  /// Hücreyi dolu işaretler. RPC yok — RLS (`can_edit_turf_occupancy`) yetkisiz
   /// yazmayı zaten reddediyor.
   Future<void> markOccupied({
     required String fieldId,
     required DateTime startsAt,
     String? note,
   }) =>
-      _c.from('turf_occupancy').upsert({
-        'field_id': fieldId,
-        'starts_at': startsAt.toUtc().toIso8601String(),
-        'note': note,
-        'created_by': _c.auth.currentUser?.id,
-      }, onConflict: 'field_id,starts_at');
+      _c.from('turf_occupancy').upsert(
+        {
+          'field_id': fieldId,
+          'starts_at': startsAt.toUtc().toIso8601String(),
+          'note': note,
+          'created_by': _c.auth.currentUser?.id,
+        },
+        onConflict: 'field_id,starts_at',
+      );
 
   Future<void> markFree({
     required String fieldId,
     required DateTime startsAt,
-  }) =>
-      _c
-          .from('turf_occupancy')
-          .delete()
-          .eq('field_id', fieldId)
-          .eq('starts_at', startsAt.toUtc().toIso8601String());
+  }) async {
+    final removed = await _c.from('turf_occupancy').delete()
+        .eq('field_id', fieldId)
+        .eq('starts_at', startsAt.toUtc().toIso8601String()).select('id');
+    if (removed.isEmpty) {
+      throw StateError('Doluluk değişmedi. Güncel kaydı ve saha yetkini kontrol et.');
+    }
+  }
 
   Future<String> createManagerInvite(String fieldId, {String? email}) async {
-    final res = await _c.rpc<String>('create_turf_manager_invite', params: {
-      'p_field': fieldId,
-      if (email != null && email.trim().isNotEmpty) 'p_email': email.trim(),
-    });
+    final res = await _c.rpc<String>(
+      'create_turf_manager_invite',
+      params: {
+        'p_field': fieldId,
+        if (email != null && email.trim().isNotEmpty) 'p_email': email.trim(),
+      },
+    );
     return res;
   }
 
@@ -184,10 +193,13 @@ class TurfService {
     required String fieldId,
     required DateTime startsAt,
   }) =>
-      _c.rpc<void>('request_turf_slot', params: {
-        'p_field': fieldId,
-        'p_starts_at': startsAt.toUtc().toIso8601String(),
-      });
+      _c.rpc<void>(
+        'request_turf_slot',
+        params: {
+          'p_field': fieldId,
+          'p_starts_at': startsAt.toUtc().toIso8601String(),
+        },
+      );
 }
 
 // =============================== Provider'lar ==============================
@@ -196,8 +208,8 @@ final turfServiceProvider = Provider<TurfService>((ref) {
   return TurfService(ref.watch(supabaseClientProvider));
 });
 
-final turfFieldsProvider =
-    FutureProvider.autoDispose.family<List<TurfField>, String?>((ref, cityCode) {
+final turfFieldsProvider = FutureProvider.autoDispose
+    .family<List<TurfField>, String?>((ref, cityCode) {
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <TurfField>[]);
   }
@@ -216,6 +228,7 @@ final turfOccupancyGridProvider =
 /// (expense_service.dart) ile birebir aynı şekilde çalışır.
 final myManagedTurfFieldIdsProvider = FutureProvider<Set<String>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const {};
+  ref.watch(authSessionProvider);
   final client = ref.watch(supabaseClientProvider);
   final uid = client.auth.currentUser?.id;
   if (uid == null) return const {};

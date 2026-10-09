@@ -1,10 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../config/app_environment.dart';
+import '../diagnostics/diagnostic_runtime.dart';
 import '../push/push_service.dart';
 import '../swansport_app.dart';
 import 'startup_failure_app.dart';
@@ -27,6 +31,7 @@ Future<void> bootstrap(
   SupabaseConfig supabaseConfig = SupabaseConfig.empty,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
+  unawaited(initializeAppDiagnostics());
 
   var effectiveConfig = supabaseConfig;
   Object? startupError;
@@ -40,17 +45,26 @@ Future<void> bootstrap(
       if (key.startsWith('sb_publishable_')) {
         await Supabase.initialize(
           url: supabaseConfig.url,
+          httpClient: DiagnosticHttpClient(
+              http.Client(), DiagnosticsRecorder.instance,
+              backendHost: Uri.parse(supabaseConfig.url).host),
           publishableKey: key,
         ).timeout(const Duration(seconds: 10));
       } else {
         await Supabase.initialize(
           url: supabaseConfig.url,
+          httpClient: DiagnosticHttpClient(
+              http.Client(), DiagnosticsRecorder.instance,
+              backendHost: Uri.parse(supabaseConfig.url).host),
           // ignore: deprecated_member_use
           anonKey: key,
         ).timeout(const Duration(seconds: 10));
       }
+      await bindAppDiagnostics(Supabase.instance.client);
       debugPrint('SwanSport: Supabase initialized (${supabaseConfig.url}).');
     } catch (error, stackTrace) {
+      DiagnosticsRecorder.instance
+          .capture(error, stackTrace, operation: 'auth');
       startupError = error;
       debugPrint('SwanSport: Supabase.initialize FAILED: $error');
       debugPrint('$stackTrace');
@@ -86,6 +100,7 @@ Future<void> bootstrap(
 
   runApp(
     ProviderScope(
+      observers: [DiagnosticProviderObserver()],
       overrides: <Override>[
         appEnvironmentProvider.overrideWithValue(environment),
         supabaseConfigProvider.overrideWithValue(effectiveConfig),

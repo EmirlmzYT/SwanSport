@@ -3,8 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'supabase_scope.dart';
 import 'supabase_athletes.dart';
+import 'supabase_scope.dart';
 
 /// ---------------------------------------------------------------------------
 /// Belge kasası — dosya, tür ve geçerlilik takibi.
@@ -85,8 +85,8 @@ class VaultDoc {
         verified: (m['verified'] as bool?) ?? false,
         daysLeft: m['days_left'] as int?,
         state: (m['state'] as String?) ?? 'süresiz',
-        createdAt:
-            DateTime.tryParse('${m['created_at']}')?.toLocal() ?? DateTime.now(),
+        createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
+            DateTime.now(),
       );
 }
 
@@ -97,13 +97,19 @@ class VaultService {
   /// Belgeler özel bir kovada durur; bağlantılar imzalıdır ve süreyle sınırlıdır.
   static const String bucket = 'verification-docs';
 
-  Future<List<VaultDoc>> list(String clubId,
-      {String? ownerType, String? ownerId}) async {
-    final rows = await _c.rpc<List<dynamic>>('document_list', params: {
-      'p_club': clubId,
-      if (ownerType != null) 'p_owner_type': ownerType,
-      if (ownerId != null) 'p_owner_id': ownerId,
-    });
+  Future<List<VaultDoc>> list(
+    String clubId, {
+    String? ownerType,
+    String? ownerId,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>(
+      'document_list',
+      params: {
+        'p_club': clubId,
+        if (ownerType != null) 'p_owner_type': ownerType,
+        if (ownerId != null) 'p_owner_id': ownerId,
+      },
+    );
     return rows
         .map((r) => VaultDoc.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
@@ -114,8 +120,11 @@ class VaultService {
     final dot = fileName.lastIndexOf('.');
     final ext = dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : 'pdf';
     final path = '$uid/belge_${DateTime.now().millisecondsSinceEpoch}.$ext';
-    await _c.storage.from(bucket).uploadBinary(path, bytes,
-        fileOptions: const FileOptions(upsert: true));
+    await _c.storage.from(bucket).uploadBinary(
+          path,
+          bytes,
+          fileOptions: const FileOptions(upsert: true),
+        );
     return path;
   }
 
@@ -134,24 +143,28 @@ class VaultService {
     DateTime? expires,
     String? note,
   }) async {
-    await _c.rpc<void>('add_document', params: {
-      'p_club': clubId,
-      'p_name': name.trim(),
-      'p_owner_type': ownerType,
-      if (ownerId != null) 'p_owner_id': ownerId,
-      if (docType != null) 'p_doc_type': docType,
-      if (path != null) 'p_path': path,
-      if (issued != null)
-        'p_issued': issued.toIso8601String().split('T').first,
-      if (expires != null)
-        'p_expires': expires.toIso8601String().split('T').first,
-      if (note != null && note.trim().isNotEmpty) 'p_note': note.trim(),
-    });
+    await _c.rpc<void>(
+      'add_document',
+      params: {
+        'p_club': clubId,
+        'p_name': name.trim(),
+        'p_owner_type': ownerType,
+        if (ownerId != null) 'p_owner_id': ownerId,
+        if (docType != null) 'p_doc_type': docType,
+        if (path != null) 'p_path': path,
+        if (issued != null)
+          'p_issued': issued.toIso8601String().split('T').first,
+        if (expires != null)
+          'p_expires': expires.toIso8601String().split('T').first,
+        if (note != null && note.trim().isNotEmpty) 'p_note': note.trim(),
+      },
+    );
   }
 
-  Future<void> verify(String id, bool verified) =>
-      _c.rpc<void>('verify_document',
-          params: {'p_document': id, 'p_verified': verified});
+  Future<void> verify(String id, bool verified) => _c.rpc<void>(
+        'verify_document',
+        params: {'p_document': id, 'p_verified': verified},
+      );
 
   Future<void> remove(String id) async {
     await _c.from('documents').delete().eq('id', id);
@@ -164,9 +177,22 @@ final vaultServiceProvider = Provider<VaultService>((ref) {
   return VaultService(ref.watch(supabaseClientProvider));
 });
 
-final vaultDocsProvider = FutureProvider.autoDispose<List<VaultDoc>>((ref) async {
+final vaultDocsProvider =
+    FutureProvider.autoDispose<List<VaultDoc>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   final club = await ref.watch(activeClubProvider.future);
   if (club == null) return const [];
   return ref.watch(vaultServiceProvider).list(club.id);
+});
+
+/// Child-scoped reading never depends on the parent's active club.
+final childVaultDocsProvider = FutureProvider.autoDispose
+    .family<List<VaultDoc>, ({String clubId, String athleteId})>((ref, scope) {
+  ref.watch(authSessionProvider);
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return Future.value(const <VaultDoc>[]);
+  }
+  return ref
+      .watch(vaultServiceProvider)
+      .list(scope.clubId, ownerType: 'athlete', ownerId: scope.athleteId);
 });

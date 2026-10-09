@@ -1,3 +1,4 @@
+import 'diagnostics.dart';
 import 'dart:math';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,8 +35,10 @@ String newOpId() {
   final b = List<int>.generate(16, (_) => r.nextInt(256));
   b[6] = (b[6] & 0x0f) | 0x40; // sürüm 4
   b[8] = (b[8] & 0x3f) | 0x80; // varyant
-  String hex(int from, int to) =>
-      b.sublist(from, to).map((x) => x.toRadixString(16).padLeft(2, '0')).join();
+  String hex(int from, int to) => b
+      .sublist(from, to)
+      .map((x) => x.toRadixString(16).padLeft(2, '0'))
+      .join();
   return '${hex(0, 4)}-${hex(4, 6)}-${hex(6, 8)}-${hex(8, 10)}-${hex(10, 16)}';
 }
 
@@ -106,9 +109,8 @@ class RecurringExpense {
       frequency: _freqFrom(m['frequency'] as String?),
       intervalMonths: (m['interval_months'] as num?)?.toInt(),
       startsOn: DateTime.tryParse('${m['starts_on']}') ?? DateTime.now(),
-      endsOn: m['ends_on'] == null
-          ? null
-          : DateTime.tryParse('${m['ends_on']}'),
+      endsOn:
+          m['ends_on'] == null ? null : DateTime.tryParse('${m['ends_on']}'),
       vendorId: m['vendor_id'] as String?,
       vendorName: v is Map ? v['name'] as String? : null,
       categoryId: m['category_id'] as String?,
@@ -149,10 +151,9 @@ class RecurringOccurrence {
   bool get isPending => status == 'pending';
 
   /// Vadeye kalan gün. Negatifse vade geçmiş.
-  int daysLeft(DateTime now) =>
-      DateTime(dueOn.year, dueOn.month, dueOn.day)
-          .difference(DateTime(now.year, now.month, now.day))
-          .inDays;
+  int daysLeft(DateTime now) => DateTime(dueOn.year, dueOn.month, dueOn.day)
+      .difference(DateTime(now.year, now.month, now.day))
+      .inDays;
 
   bool isOverdue(DateTime now) => isPending && daysLeft(now) < 0;
 
@@ -212,8 +213,7 @@ class ExpenseApprovalPolicy {
         minAmount: (m['min_amount'] as num?) ?? 0,
         maxAmount: m['max_amount'] as num?,
         categoryId: m['category_id'] as String?,
-        requiredApprovals:
-            (m['required_approvals'] as num?)?.toInt() ?? 1,
+        requiredApprovals: (m['required_approvals'] as num?)?.toInt() ?? 1,
         approverRoles: ((m['approver_roles'] as List?) ?? const [])
             .map((e) => '$e')
             .toList(),
@@ -438,8 +438,7 @@ class BudgetLine {
         scopeLabel: (m['scope_label'] as String?) ?? 'Kulüp geneli',
         categoryId: m['category_id'] as String?,
         category: (m['category'] as String?) ?? 'Tüm kategoriler',
-        periodFrom:
-            DateTime.tryParse('${m['period_from']}') ?? DateTime.now(),
+        periodFrom: DateTime.tryParse('${m['period_from']}') ?? DateTime.now(),
         periodTo: DateTime.tryParse('${m['period_to']}') ?? DateTime.now(),
         planned: (m['planned'] as num?) ?? 0,
         actual: (m['actual'] as num?) ?? 0,
@@ -533,8 +532,7 @@ class FinancePeriod {
   factory FinancePeriod.fromMap(Map<String, dynamic> m) => FinancePeriod(
         id: m['id'] as String,
         clubId: (m['club_id'] as String?) ?? '',
-        periodFrom:
-            DateTime.tryParse('${m['period_from']}') ?? DateTime.now(),
+        periodFrom: DateTime.tryParse('${m['period_from']}') ?? DateTime.now(),
         periodTo: DateTime.tryParse('${m['period_to']}') ?? DateTime.now(),
         status: (m['status'] as String?) ?? 'open',
         closedAt: m['closed_at'] == null
@@ -584,6 +582,8 @@ class FinanceAdjustment {
     required this.amount,
     required this.reason,
     required this.status,
+    this.entryKind,
+    this.entryId,
     required this.createdAt,
     this.approvedAt,
   });
@@ -596,6 +596,8 @@ class FinanceAdjustment {
   final num amount;
   final String reason;
   final String status;
+  final String? entryKind;
+  final String? entryId;
   final DateTime createdAt;
   final DateTime? approvedAt;
 
@@ -623,12 +625,71 @@ class FinanceAdjustment {
         amount: (m['amount'] as num?) ?? 0,
         reason: (m['reason'] as String?) ?? '',
         status: (m['status'] as String?) ?? 'pending',
-        createdAt:
-            DateTime.tryParse('${m['created_at']}') ?? DateTime.now(),
+        entryKind: m['entry_kind'] as String?,
+        entryId: m['entry_id'] as String?,
+        createdAt: DateTime.tryParse('${m['created_at']}') ?? DateTime.now(),
         approvedAt: m['approved_at'] != null
             ? DateTime.tryParse('${m['approved_at']}')
             : null,
       );
+}
+
+/// Kapanmış dönemde düzeltme (ters kayıt) yapılabilecek kaynak hareket kaydı.
+class ClosedPeriodCandidateEntry {
+  const ClosedPeriodCandidateEntry({
+    required this.entryId,
+    required this.targetKind,
+    required this.movedOn,
+    required this.amount,
+    required this.label,
+    required this.counterpart,
+    this.accountId,
+    required this.accountName,
+    required this.alreadyReversed,
+    required this.remainingAmount,
+  });
+
+  final String entryId;
+  final String targetKind; // expense | payment | donation
+  final DateTime movedOn;
+  final num amount;
+  final String label;
+  final String counterpart;
+  final String? accountId;
+  final String accountName;
+  final num alreadyReversed;
+  final num remainingAmount;
+
+  String get targetKindLabel => switch (targetKind) {
+        'expense' => 'Gider',
+        'payment' => 'Tahsilat / Aidat',
+        'donation' => 'Bağış',
+        _ => targetKind,
+      };
+
+  factory ClosedPeriodCandidateEntry.fromMap(Map<String, dynamic> m) =>
+      ClosedPeriodCandidateEntry(
+        entryId: (m['entry_id'] as String?) ?? '',
+        targetKind: (m['target_kind'] as String?) ?? 'expense',
+        movedOn: DateTime.tryParse('${m['moved_on']}') ?? DateTime.now(),
+        amount: (m['amount'] as num?) ?? 0,
+        label: (m['label'] as String?) ?? '',
+        counterpart: (m['counterpart'] as String?) ?? '—',
+        accountId: m['account_id'] as String?,
+        accountName: (m['account_name'] as String?) ?? '—',
+        alreadyReversed: (m['already_reversed'] as num?) ?? 0,
+        remainingAmount: (m['remaining_amount'] as num?) ?? 0,
+      );
+}
+
+class ClosedPeriodCandidatesPage {
+  const ClosedPeriodCandidatesPage({
+    required this.entries,
+    required this.totalCount,
+  });
+
+  final List<ClosedPeriodCandidateEntry> entries;
+  final int totalCount;
 }
 
 /// Kulübün sportif/operasyonel bekleyen işleri.
@@ -673,63 +734,78 @@ class ClubOperationsSummary {
   List<FinanceWorkItem> get items {
     final out = <FinanceWorkItem>[];
 
-    void add(String code, String title, int count, FinanceRisk risk,
-        String why, String route) {
+    void add(
+      String code,
+      String title,
+      int count,
+      FinanceRisk risk,
+      String why,
+      String route,
+    ) {
       if (count > 0) {
-        out.add(FinanceWorkItem(
+        out.add(
+          FinanceWorkItem(
             code: code,
             title: title,
             count: count,
             total: 0,
             risk: risk,
             why: why,
-            route: route));
+            route: route,
+          ),
+        );
       }
     }
 
     add(
-        'pending_membership',
-        'Onay bekleyen üyelik',
-        pendingMembershipCount,
-        FinanceRisk.attention,
-        'Kulübe katılmak isteyenler yanıt bekliyor.',
-        '/onaylar');
+      'pending_membership',
+      'Onay bekleyen üyelik',
+      pendingMembershipCount,
+      FinanceRisk.attention,
+      'Kulübe katılmak isteyenler yanıt bekliyor.',
+      '/onaylar',
+    );
     add(
-        'expiring_document',
-        'Süresi dolmak üzere belge',
-        expiringDocumentCount,
-        FinanceRisk.attention,
-        'Otuz gün içinde süresi dolacak belgeler var.',
-        '/onaylar');
+      'expiring_document',
+      'Süresi dolmak üzere belge',
+      expiringDocumentCount,
+      FinanceRisk.attention,
+      'Otuz gün içinde süresi dolacak belgeler var.',
+      '/onaylar',
+    );
     add(
-        'unmarked_event',
-        'Yoklaması alınmamış antrenman',
-        unmarkedEventCount,
-        FinanceRisk.attention,
-        'Geçmiş antrenmanların yoklaması hiç alınmamış; katılım oranı ve '
-            'gelişim verisi eksik kalıyor.',
-        '/yoklama');
+      'unmarked_event',
+      'Yoklaması alınmamış antrenman',
+      unmarkedEventCount,
+      FinanceRisk.attention,
+      'Geçmiş antrenmanların yoklaması hiç alınmamış; katılım oranı ve '
+          'gelişim verisi eksik kalıyor.',
+      '/yoklama',
+    );
     add(
-        'low_rsvp',
-        'Yanıt oranı düşük antrenman',
-        lowRsvpEventCount,
-        FinanceRisk.info,
-        'Yaklaşan antrenmanda kadronun yarısından azı yanıt verdi.',
-        '/takvim');
+      'low_rsvp',
+      'Yanıt oranı düşük antrenman',
+      lowRsvpEventCount,
+      FinanceRisk.info,
+      'Yaklaşan antrenmanda kadronun yarısından azı yanıt verdi.',
+      '/takvim',
+    );
     add(
-        'open_report',
-        'İncelenmemiş şikayet',
-        openReportCount,
-        FinanceRisk.critical,
-        'Raporlanan içerik moderasyon bekliyor.',
-        '/moderasyon');
+      'open_report',
+      'İncelenmemiş şikayet',
+      openReportCount,
+      FinanceRisk.critical,
+      'Raporlanan içerik moderasyon bekliyor.',
+      '/moderasyon',
+    );
     add(
-        'pending_store',
-        'Bekleyen mağaza başvurusu',
-        pendingStoreCount,
-        FinanceRisk.info,
-        'Pazaryeri mağaza başvurusu değerlendirilmeyi bekliyor.',
-        '/pazaryeri');
+      'pending_store',
+      'Bekleyen mağaza başvurusu',
+      pendingStoreCount,
+      FinanceRisk.info,
+      'Pazaryeri mağaza başvurusu değerlendirilmeyi bekliyor.',
+      '/pazaryeri',
+    );
 
     return out;
   }
@@ -817,11 +893,14 @@ class FinanceOpsService {
 
   // -------------------------------------------------------------- denetim
   Future<List<ExpenseAuditEntry>> auditTrail(String expenseId) async {
-    final rows = await _c.rpc<List<dynamic>>('expense_audit_trail',
-        params: {'p_expense': expenseId});
+    final rows = await _c.rpc<List<dynamic>>(
+      'expense_audit_trail',
+      params: {'p_expense': expenseId},
+    );
     return rows
-        .map((e) =>
-            ExpenseAuditEntry.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+          (e) => ExpenseAuditEntry.fromMap((e as Map).cast<String, dynamic>()),
+        )
         .toList();
   }
 
@@ -836,14 +915,17 @@ class FinanceOpsService {
     String? note,
     DateTime? spentOn,
   }) =>
-      _c.rpc<String>('create_draft_expense', params: {
-        'p_club': clubId,
-        'p_amount': amount,
-        'p_op_id': opId,
-        'p_receipt': receiptPath,
-        'p_note': note,
-        'p_spent_on': spentOn == null ? null : _d(spentOn),
-      });
+      _c.rpc<String>(
+        'create_draft_expense',
+        params: {
+          'p_club': clubId,
+          'p_amount': amount,
+          'p_op_id': opId,
+          'p_receipt': receiptPath,
+          'p_note': note,
+          'p_spent_on': spentOn == null ? null : _d(spentOn),
+        },
+      );
 
   /// Taslağı tamamlar. Dönen değer `not_required` | `pending`: onay
   /// gerekiyorsa gider `complete` olmuyor, kuyrukta bekliyor.
@@ -861,20 +943,23 @@ class FinanceOpsService {
     String? eventId,
     String? reason,
   }) =>
-      _c.rpc<String>('complete_draft_expense', params: {
-        'p_expense': expenseId,
-        'p_category': categoryId,
-        'p_account': accountId,
-        'p_vendor': vendorId,
-        'p_amount': amount,
-        'p_spent_on': spentOn == null ? null : _d(spentOn),
-        'p_note': note,
-        'p_receipt': receiptPath,
-        'p_team': teamId,
-        'p_facility': facilityId,
-        'p_event': eventId,
-        'p_reason': reason,
-      });
+      _c.rpc<String>(
+        'complete_draft_expense',
+        params: {
+          'p_expense': expenseId,
+          'p_category': categoryId,
+          'p_account': accountId,
+          'p_vendor': vendorId,
+          'p_amount': amount,
+          'p_spent_on': spentOn == null ? null : _d(spentOn),
+          'p_note': note,
+          'p_receipt': receiptPath,
+          'p_team': teamId,
+          'p_facility': facilityId,
+          'p_event': eventId,
+          'p_reason': reason,
+        },
+      );
 
   // ------------------------------------------------------------- taahhüt
   Future<List<RecurringExpense>> recurringExpenses(String clubId) async {
@@ -885,13 +970,16 @@ class FinanceOpsService {
         .order('active', ascending: false)
         .order('title');
     return rows
-        .map((e) =>
-            RecurringExpense.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+          (e) => RecurringExpense.fromMap((e as Map).cast<String, dynamic>()),
+        )
         .toList();
   }
 
-  Future<List<RecurringOccurrence>> upcomingOccurrences(String clubId,
-      {int withinDays = 30}) async {
+  Future<List<RecurringOccurrence>> upcomingOccurrences(
+    String clubId, {
+    int withinDays = 30,
+  }) async {
     final until = DateTime.now().add(Duration(days: withinDays));
     final rows = await _c
         .from('recurring_occurrences')
@@ -901,19 +989,20 @@ class FinanceOpsService {
         .lte('due_on', _d(until))
         .order('due_on');
     return rows
-        .map((e) =>
-            RecurringOccurrence.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+          (e) =>
+              RecurringOccurrence.fromMap((e as Map).cast<String, dynamic>()),
+        )
         .toList();
   }
 
-  Future<String> saveRecurringExpense(Map<String, dynamic> row,
-      {String? id}) async {
+  Future<String> saveRecurringExpense(
+    Map<String, dynamic> row, {
+    String? id,
+  }) async {
     if (id == null) {
-      final r = await _c
-          .from('recurring_expenses')
-          .insert(row)
-          .select('id')
-          .single();
+      final r =
+          await _c.from('recurring_expenses').insert(row).select('id').single();
       return r['id'] as String;
     }
     await _c.from('recurring_expenses').update(row).eq('id', id);
@@ -923,14 +1012,21 @@ class FinanceOpsService {
   Future<void> cancelRecurringExpense(String id) =>
       _c.rpc<void>('cancel_recurring_expense', params: {'p_id': id});
 
-  Future<String> recordOccurrence(String occurrenceId,
-          {num? amount, String? accountId, DateTime? spentOn}) =>
-      _c.rpc<String>('record_recurring_occurrence', params: {
-        'p_occurrence': occurrenceId,
-        'p_amount': amount,
-        'p_account': accountId,
-        'p_spent_on': spentOn == null ? null : _d(spentOn),
-      });
+  Future<String> recordOccurrence(
+    String occurrenceId, {
+    num? amount,
+    String? accountId,
+    DateTime? spentOn,
+  }) =>
+      _c.rpc<String>(
+        'record_recurring_occurrence',
+        params: {
+          'p_occurrence': occurrenceId,
+          'p_amount': amount,
+          'p_account': accountId,
+          'p_spent_on': spentOn == null ? null : _d(spentOn),
+        },
+      );
 
   // ---------------------------------------------------------------- onay
   Future<List<ExpenseApprovalPolicy>> approvalPolicies(String clubId) async {
@@ -940,8 +1036,10 @@ class FinanceOpsService {
         .eq('club_id', clubId)
         .order('min_amount');
     return rows
-        .map((e) =>
-            ExpenseApprovalPolicy.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+          (e) =>
+              ExpenseApprovalPolicy.fromMap((e as Map).cast<String, dynamic>()),
+        )
         .toList();
   }
 
@@ -965,13 +1063,19 @@ class FinanceOpsService {
   }
 
   /// Dönen değer: `approved` | `rejected` | `pending`.
-  Future<String> decideApproval(String expenseId, bool approve,
-          {String? reason}) =>
-      _c.rpc<String>('decide_expense_approval', params: {
-        'p_expense': expenseId,
-        'p_approve': approve,
-        'p_reason': reason,
-      });
+  Future<String> decideApproval(
+    String expenseId,
+    bool approve, {
+    String? reason,
+  }) =>
+      _c.rpc<String>(
+        'decide_expense_approval',
+        params: {
+          'p_expense': expenseId,
+          'p_approve': approve,
+          'p_reason': reason,
+        },
+      );
 
   /// Onay bekleyen giderler.
   ///
@@ -1019,22 +1123,32 @@ class FinanceOpsService {
     required List<Map<String, dynamic>> rows,
     String? filePath,
   }) =>
-      _c.rpc<String>('import_bank_statement', params: {
-        'p_club': clubId,
-        'p_account': accountId,
-        'p_hash': hash,
-        'p_rows': rows,
-        'p_path': filePath,
-      });
+      _c.rpc<String>(
+        'import_bank_statement',
+        params: {
+          'p_club': clubId,
+          'p_account': accountId,
+          'p_hash': hash,
+          'p_rows': rows,
+          'p_path': filePath,
+        },
+      );
 
-  Future<List<BankTransaction>> bankTransactions(String clubId,
-      {String status = 'unmatched', int limit = 100, int offset = 0}) async {
-    final rows = await _c.rpc<List<dynamic>>('bank_transactions_page', params: {
-      'p_club': clubId,
-      'p_status': status,
-      'p_limit': limit,
-      'p_offset': offset,
-    });
+  Future<List<BankTransaction>> bankTransactions(
+    String clubId, {
+    String status = 'unmatched',
+    int limit = 100,
+    int offset = 0,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>(
+      'bank_transactions_page',
+      params: {
+        'p_club': clubId,
+        'p_status': status,
+        'p_limit': limit,
+        'p_offset': offset,
+      },
+    );
     return rows
         .map((e) => BankTransaction.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
@@ -1044,29 +1158,45 @@ class FinanceOpsService {
     final rows = await _c
         .rpc<List<dynamic>>('bank_match_suggestions', params: {'p_txn': txnId});
     return rows
-        .map((e) =>
-            BankMatchSuggestion.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+          (e) =>
+              BankMatchSuggestion.fromMap((e as Map).cast<String, dynamic>()),
+        )
         .toList();
   }
 
-  Future<void> decideMatch(String txnId, String action,
-          {String? kind, String? entryId, String? note}) =>
-      _c.rpc<void>('decide_bank_match', params: {
-        'p_txn': txnId,
-        'p_action': action,
-        'p_kind': kind,
-        'p_id': entryId,
-        'p_note': note,
-      });
+  Future<void> decideMatch(
+    String txnId,
+    String action, {
+    String? kind,
+    String? entryId,
+    String? note,
+  }) =>
+      _c.rpc<void>(
+        'decide_bank_match',
+        params: {
+          'p_txn': txnId,
+          'p_action': action,
+          'p_kind': kind,
+          'p_id': entryId,
+          'p_note': note,
+        },
+      );
 
   // --------------------------------------------------------------- bütçe
-  Future<List<BudgetLine>> budgetLines(String clubId,
-      {DateTime? from, DateTime? to}) async {
-    final rows = await _c.rpc<List<dynamic>>('budget_vs_actual', params: {
-      'p_club': clubId,
-      'p_from': from == null ? null : _d(from),
-      'p_to': to == null ? null : _d(to),
-    });
+  Future<List<BudgetLine>> budgetLines(
+    String clubId, {
+    DateTime? from,
+    DateTime? to,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>(
+      'budget_vs_actual',
+      params: {
+        'p_club': clubId,
+        'p_from': from == null ? null : _d(from),
+        'p_to': to == null ? null : _d(to),
+      },
+    );
     return rows
         .map((e) => BudgetLine.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
@@ -1081,8 +1211,8 @@ class FinanceOpsService {
   }
 
   Future<List<CashForecast>> cashForecast(String clubId) async {
-    final rows =
-        await _c.rpc<List<dynamic>>('cash_forecast', params: {'p_club': clubId});
+    final rows = await _c
+        .rpc<List<dynamic>>('cash_forecast', params: {'p_club': clubId});
     return rows
         .map((e) => CashForecast.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
@@ -1110,25 +1240,32 @@ class FinanceOpsService {
       });
 
   Future<List<CloseCheckItem>> closeChecklist(
-      String clubId, DateTime from, DateTime to) async {
-    final rows =
-        await _c.rpc<List<dynamic>>('period_close_checklist', params: {
-      'p_club': clubId,
-      'p_from': _d(from),
-      'p_to': _d(to),
-    });
+    String clubId,
+    DateTime from,
+    DateTime to,
+  ) async {
+    final rows = await _c.rpc<List<dynamic>>(
+      'period_close_checklist',
+      params: {
+        'p_club': clubId,
+        'p_from': _d(from),
+        'p_to': _d(to),
+      },
+    );
     return rows
         .map((e) => CloseCheckItem.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
   }
 
   Future<void> closePeriod(String periodId, {String? note}) => _c.rpc<void>(
-      'close_finance_period',
-      params: {'p_period': periodId, 'p_note': note});
+        'close_finance_period',
+        params: {'p_period': periodId, 'p_note': note},
+      );
 
   Future<void> reopenPeriod(String periodId, String reason) => _c.rpc<void>(
-      'reopen_finance_period',
-      params: {'p_period': periodId, 'p_reason': reason});
+        'reopen_finance_period',
+        params: {'p_period': periodId, 'p_reason': reason},
+      );
 
   Future<String> createAdjustment({
     required String clubId,
@@ -1137,13 +1274,18 @@ class FinanceOpsService {
     required num amount,
     required String reason,
   }) =>
-      _c.rpc<String>('create_finance_adjustment', params: {
-        'p_club': clubId,
-        'p_target_kind': targetKind,
-        'p_target_id': targetId,
-        'p_amount': amount,
-        'p_reason': reason,
-      });
+      DiagnosticsRecorder.instance.trace(
+          'action:finance_adjustment',
+          () => _c.rpc<String>(
+                'create_finance_adjustment',
+                params: {
+                  'p_club': clubId,
+                  'p_target_kind': targetKind,
+                  'p_target_id': targetId,
+                  'p_amount': amount,
+                  'p_reason': reason,
+                },
+              ));
 
   Future<List<FinanceAdjustment>> adjustments(String clubId) async {
     final rows = await _c
@@ -1153,8 +1295,9 @@ class FinanceOpsService {
         .order('created_at', ascending: false)
         .limit(50);
     return rows
-        .map((e) =>
-            FinanceAdjustment.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+          (e) => FinanceAdjustment.fromMap((e as Map).cast<String, dynamic>()),
+        )
         .toList();
   }
 
@@ -1163,19 +1306,57 @@ class FinanceOpsService {
     required bool approve,
     String? note,
   }) =>
-      _c.rpc<void>('approve_finance_adjustment', params: {
-        'p_id': adjustmentId,
-        'p_approve': approve,
-        'p_note': note,
-      });
+      _c.rpc<void>(
+        'approve_finance_adjustment',
+        params: {
+          'p_id': adjustmentId,
+          'p_approve': approve,
+          'p_note': note,
+        },
+      );
+
+  Future<ClosedPeriodCandidatesPage> closedPeriodCandidates(
+    String clubId, {
+    String? search,
+    String? targetKind,
+    int limit = 50,
+    int offset = 0,
+  }) async {
+    final rows = await _c.rpc<List<dynamic>>(
+      'acc_closed_period_candidates',
+      params: {
+        'p_club': clubId,
+        if (search != null && search.trim().isNotEmpty)
+          'p_search': search.trim(),
+        if (targetKind != null && targetKind.isNotEmpty)
+          'p_target_kind': targetKind,
+        'p_limit': limit,
+        'p_offset': offset,
+      },
+    );
+    final list = rows
+        .map(
+          (r) => ClosedPeriodCandidateEntry.fromMap(
+            (r as Map).cast<String, dynamic>(),
+          ),
+        )
+        .toList();
+    final total = rows.isEmpty
+        ? 0
+        : ((rows.first as Map)['total_count'] as num?)?.toInt() ?? list.length;
+    return ClosedPeriodCandidatesPage(entries: list, totalCount: total);
+  }
 
   // ------------------------------------------------------- operasyon özeti
   Future<ClubOperationsSummary> clubOperations(String clubId) async {
-    final rows = await _c.rpc<List<dynamic>>('club_operations_summary',
-        params: {'p_club': clubId});
+    final rows = await _c.rpc<List<dynamic>>(
+      'club_operations_summary',
+      params: {'p_club': clubId},
+    );
     if (rows.isEmpty) return const ClubOperationsSummary.empty();
     return ClubOperationsSummary.fromMap(
-        (rows.first as Map).cast<String, dynamic>());
+      (rows.first as Map).cast<String, dynamic>(),
+    );
   }
 }
 
@@ -1297,3 +1478,41 @@ final financeAdjustmentsProvider =
   return ref.watch(financeOpsServiceProvider).adjustments(club.id);
 });
 
+final candidateAdjustableEntriesProvider =
+    FutureProvider.autoDispose<List<ClosedPeriodCandidateEntry>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) return const [];
+  final page = await ref
+      .watch(financeOpsServiceProvider)
+      .closedPeriodCandidates(club.id, limit: 100);
+  return page.entries;
+});
+
+typedef CandidateQueryParams = ({
+  String? targetKind,
+  String? query,
+  int limit,
+  int offset,
+});
+
+final closedPeriodCandidatesPageProvider = FutureProvider.autoDispose
+    .family<ClosedPeriodCandidatesPage, CandidateQueryParams>((
+  ref,
+  params,
+) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) {
+    return const ClosedPeriodCandidatesPage(entries: [], totalCount: 0);
+  }
+  final club = await ref.watch(activeClubProvider.future);
+  if (club == null) {
+    return const ClosedPeriodCandidatesPage(entries: [], totalCount: 0);
+  }
+  return ref.watch(financeOpsServiceProvider).closedPeriodCandidates(
+        club.id,
+        targetKind: params.targetKind,
+        search: params.query,
+        limit: params.limit,
+        offset: params.offset,
+      );
+});

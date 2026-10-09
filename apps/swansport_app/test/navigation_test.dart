@@ -36,6 +36,7 @@ void main() {
     // Profil > Yönetim
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
     '/announcements', '/performance-analytics', '/home-command',
+    '/sezon-acilisi', '/veli-izinleri', '/gelisim-raporu', '/saha-islemlerim',
     '/finans', '/gider-ekle', '/medical-center', '/facilities',
     '/onay-paneli', '/haber-kaynaklari', '/federasyon-yetkili',
     '/bagis', '/basvurular', '/veli-bagla', '/settings',
@@ -55,9 +56,12 @@ void main() {
     });
     test('erişilebilir sayılan her rota tanımlı', () {
       final missing = reachable.where((r) => !routes.contains("'$r'")).toList();
-      expect(missing, isEmpty,
-          reason: 'Bu rotalar swansport_app.dart içinde tanımlı değil: '
-              '$missing');
+      expect(
+        missing,
+        isEmpty,
+        reason: 'Bu rotalar swansport_app.dart içinde tanımlı değil: '
+            '$missing',
+      );
     });
 
     test('her rotanın bir giriş noktası var', () {
@@ -66,10 +70,13 @@ void main() {
       final orphans =
           reachable.where((r) => !entryPoints.contains("'$r'")).toList();
 
-      expect(orphans, isEmpty,
-          reason: 'Bu rotalar tanımlı ama hiçbir yerden açılamıyor — '
-              'Keşfet ya da Profil > Yönetim listesinden düşmüş olabilir: '
-              '$orphans');
+      expect(
+        orphans,
+        isEmpty,
+        reason: 'Bu rotalar tanımlı ama hiçbir yerden açılamıyor — '
+            'Keşfet ya da Profil > Yönetim listesinden düşmüş olabilir: '
+            '$orphans',
+      );
     });
   });
 
@@ -83,10 +90,16 @@ void main() {
           .map((m) => m.group(1)!)
           .toSet();
 
-      expect(navRoutes, unorderedEquals(expected),
-          reason: 'Alt gezinme tam bu dört rotayı göstermeli');
-      expect(nav.contains('_CreateButton'), isTrue,
-          reason: 'Ortadaki oluştur düğmesi kaybolmuş');
+      expect(
+        navRoutes,
+        unorderedEquals(expected),
+        reason: 'Alt gezinme tam bu dört rotayı göstermeli',
+      );
+      expect(
+        nav.contains('_CreateButton'),
+        isTrue,
+        reason: 'Ortadaki oluştur düğmesi kaybolmuş',
+      );
     });
 
     test('rol-uyarlamalı yuvalar geri gelmemiş', () {
@@ -101,8 +114,10 @@ void main() {
     test('kAllModules ve showModuleLauncher yok', () {
       final premium = read('lib/app/widgets/premium.dart');
       expect(premium.contains('showModuleLauncher'), isFalse);
-      expect(File('$root/lib/app/widgets/module_launcher.dart').existsSync(),
-          isFalse);
+      expect(
+        File('$root/lib/app/widgets/module_launcher.dart').existsSync(),
+        isFalse,
+      );
     });
   });
 }

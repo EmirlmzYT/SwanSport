@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart' show kIsWeb, defaultTargetPlatform;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -10,6 +9,8 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
+import 'report_problem_sheet.dart';
+import 'support_fix_card.dart';
 
 /// Destek taleplerim.
 ///
@@ -30,10 +31,10 @@ class SupportScreen extends ConsumerWidget {
       backgroundColor: c.bg,
       floatingActionButton: FloatingActionButton.extended(
         backgroundColor: c.accentFill,
-        onPressed: () => _newTicket(context, ref),
+        onPressed: () => _newTicket(context),
         icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-        label: Text('Yeni talep',
-            style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+        label: Text('Sorun bildir',
+            style: SwanType.bodySm(Colors.white, w: FontWeight.w800),),
       ),
       body: SafeArea(
         bottom: false,
@@ -43,7 +44,7 @@ class SupportScreen extends ConsumerWidget {
             child: Column(children: [
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
+                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md,),
                 child: SwanPageHeader(
                   title: 'Destek',
                   subtitle: 'Taleplerin ve SwanSport ekibi',
@@ -72,7 +73,7 @@ class SupportScreen extends ConsumerWidget {
                         )
                       : ListView(
                           padding: const EdgeInsets.fromLTRB(
-                              SwanSpace.lg, 0, SwanSpace.lg, 132),
+                              SwanSpace.lg, 0, SwanSpace.lg, 132,),
                           children: [
                             StitchHeroCard(
                               title: 'Destek merkezi',
@@ -90,7 +91,7 @@ class SupportScreen extends ConsumerWidget {
                         ),
                 ),
               ),
-            ]),
+            ],),
           ),
         ),
       ),
@@ -134,14 +135,14 @@ class _TicketTile extends StatelessWidget {
               child: Text(t.subject,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),),
             ),
             const SizedBox(width: SwanSpace.sm),
             Text(t.statusLabel, style: SwanType.caption(tone)),
-          ]),
+          ],),
           const SizedBox(height: 2),
           Text(fmtDate(t.createdAt), style: SwanType.caption(c.inkMuted)),
-        ]),
+        ],),
       ),
     );
   }
@@ -192,7 +193,18 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final msgs = ref.watch(ticketMessagesProvider(widget.ticket.id));
-    final closed = widget.ticket.status == 'closed';
+    final ticket = ref
+            .watch(myTicketsProvider)
+            .valueOrNull
+            ?.where((t) => t.id == widget.ticket.id)
+            .firstOrNull ??
+        widget.ticket;
+    final closed = (ref
+                .watch(supportFixProvider(widget.ticket.id))
+                .valueOrNull
+                ?.ticketStatus ??
+            ticket.status) ==
+        'closed';
 
     return Scaffold(
       backgroundColor: c.bg,
@@ -215,9 +227,9 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                       decoration: BoxDecoration(
                           color: c.surface,
                           borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line)),
+                          border: Border.all(color: c.line),),
                       child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink),
+                          size: 15, color: c.ink,),
                     ),
                   ),
                   const SizedBox(width: SwanSpace.md),
@@ -225,12 +237,12 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(widget.ticket.subject,
+                        Text(ticket.subject,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: SwanType.bodySm(c.ink, w: FontWeight.w800)),
-                        Text(widget.ticket.statusLabel,
-                            style: SwanType.caption(c.inkMuted)),
+                            style: SwanType.bodySm(c.ink, w: FontWeight.w800),),
+                        Text(ticket.statusLabel,
+                            style: SwanType.caption(c.inkMuted),),
                       ],
                     ),
                   ),
@@ -239,19 +251,20 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                       onTap: _close,
                       child: Text('Kapat',
                           style:
-                              SwanType.caption(c.inkMuted, w: FontWeight.w700)),
+                              SwanType.caption(c.inkMuted, w: FontWeight.w700),),
                     ),
-                ]),
+                ],),
               ),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg),
+                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg,),
                   children: [
+                    SupportFixCard(ticketId: widget.ticket.id),
                     // İlk mesaj talebin kendi gövdesi.
                     if ((widget.ticket.body ?? '').isNotEmpty)
                       _bubble(c, widget.ticket.body!, false,
-                          widget.ticket.createdAt),
+                          widget.ticket.createdAt,),
                     ...msgs.maybeWhen(
                       orElse: () => <Widget>[],
                       data: (list) => [
@@ -266,12 +279,12 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                 Padding(
                   padding: const EdgeInsets.all(SwanSpace.lg),
                   child: Text('Bu talep kapatıldı.',
-                      style: SwanType.caption(c.inkMuted)),
+                      style: SwanType.caption(c.inkMuted),),
                 )
               else
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg),
+                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg,),
                   child: Row(children: [
                     Expanded(
                       child: TextField(
@@ -306,14 +319,14 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
                                 width: 18,
                                 height: 18,
                                 child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white))
+                                    strokeWidth: 2, color: Colors.white,),)
                             : const Icon(Icons.send_rounded,
-                                size: 18, color: Colors.white),
+                                size: 18, color: Colors.white,),
                       ),
                     ),
-                  ]),
+                  ],),
                 ),
-            ]),
+            ],),
           ),
         ),
       ),
@@ -352,133 +365,31 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
             children: [
               if (isStaff)
                 Text('SwanSport ekibi',
-                    style: SwanType.caption(c.accent, w: FontWeight.w800)),
+                    style: SwanType.caption(c.accent, w: FontWeight.w800),),
               Text(body,
                   style: SwanType.bodySm(isStaff ? c.ink : Colors.white)
-                      .copyWith(height: 1.4)),
+                      .copyWith(height: 1.4),),
               const SizedBox(height: 2),
               Text(fmtDate(at),
                   style:
-                      SwanType.caption(isStaff ? c.inkMuted : Colors.white70)),
+                      SwanType.caption(isStaff ? c.inkMuted : Colors.white70),),
             ],
           ),
         ),
       );
 }
 
-/// Yeni talep sayfası.
-///
-/// Otomatik bağlam eklenir: uygulama sürümü ve platform. Kullanıcıdan
-/// istemek yerine toplamak, "hangi sürümü kullanıyorsun" diye sorup
-/// bekleme turunu ortadan kaldırıyor. İçerik sunucuda ayıklanıyor.
-Future<void> _newTicket(BuildContext context, WidgetRef ref) async {
-  final subject = TextEditingController();
-  final body = TextEditingController();
-
-  final ok = await showModalBottomSheet<bool>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (ctx) {
-      final c = ctx.swan;
-      return Container(
-        decoration: BoxDecoration(
-          color: c.bg,
-          borderRadius:
-              const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
-        ),
-        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
-        child: SafeArea(
-          top: false,
-          child: Padding(
-            padding: const EdgeInsets.all(SwanSpace.lg),
-            child: Column(mainAxisSize: MainAxisSize.min, children: [
-              Row(children: [
-                Text('Yeni destek talebi', style: SwanType.h3(c.ink)),
-                const Spacer(),
-                GestureDetector(
-                  onTap: () => Navigator.pop(ctx, true),
-                  child: Container(
-                    height: 34,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: c.accentFill,
-                      borderRadius: BorderRadius.circular(SwanRadius.sm),
-                    ),
-                    child: Text('Gönder',
-                        style:
-                            SwanType.caption(Colors.white, w: FontWeight.w800)),
-                  ),
-                ),
-              ]),
-              const SizedBox(height: SwanSpace.md),
-              TextField(
-                controller: subject,
-                autofocus: true,
-                style: SwanType.bodySm(c.ink),
-                decoration: InputDecoration(
-                  labelText: 'Konu',
-                  hintText: 'Aidatım görünmüyor',
-                  labelStyle: SwanType.caption(c.inkMuted),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
-                    borderSide: BorderSide(color: c.line),
-                  ),
-                ),
-              ),
-              const SizedBox(height: SwanSpace.md),
-              TextField(
-                controller: body,
-                minLines: 4,
-                maxLines: 8,
-                style: SwanType.bodySm(c.ink),
-                decoration: InputDecoration(
-                  labelText: 'Ne oldu?',
-                  hintText: 'Ne yaptın, ne bekliyordun, ne oldu?',
-                  labelStyle: SwanType.caption(c.inkMuted),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
-                    borderSide: BorderSide(color: c.line),
-                  ),
-                ),
-              ),
-              const SizedBox(height: SwanSpace.sm),
-              Text(
-                'Şifre, kart numarası ve IBAN yazma — yazsan bile sunucuda '
-                'otomatik ayıklanıyor.',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ]),
-          ),
-        ),
-      );
-    },
-  );
-
-  if (ok != true) return;
-  if (subject.text.trim().isEmpty || body.text.trim().isEmpty) return;
-
-  final club = await ref.read(activeClubProvider.future);
-  try {
-    await ref.read(clubLifecycleServiceProvider).openTicket(
-      subject: subject.text.trim(),
-      body: body.text.trim(),
-      clubId: club?.id,
-      context: {
-        'platform': kIsWeb ? 'web' : defaultTargetPlatform.name,
-        'screen': '/destek',
-      },
+/// Destek talebi; teknik bilgi ve görsel yalnızca kullanıcının seçimiyle eklenir.
+Future<void> _newTicket(BuildContext context) async {
+  final sent = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      builder: (_) => const ReportProblemSheet(),);
+  if (sent == true && context.mounted) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Talebin alındı')),
     );
-    ref.invalidate(myTicketsProvider);
-    if (context.mounted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(const SnackBar(content: Text('Talebin alındı')));
-    }
-  } catch (e) {
-    if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
-    }
   }
 }

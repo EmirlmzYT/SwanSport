@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:ui';
+import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_web_plugins/url_strategy.dart';
@@ -7,6 +10,18 @@ import 'package:swansport_data/swansport_data.dart';
 
 import 'console_app.dart';
 import 'theme/console_theme.dart';
+
+bool _diagnosticHandlersInstalled = false;
+
+class _ConsoleDiagnosticObserver extends ProviderObserver {
+  @override
+  void providerDidFail(ProviderBase<Object?> provider, Object error,
+      StackTrace stackTrace, ProviderContainer container) {
+    container
+        .read(diagnosticsProvider)
+        .capture(error, stackTrace, code: 'provider', operation: 'provider');
+  }
+}
 
 /// Konsolu başlatır.
 ///
@@ -19,6 +34,30 @@ Future<void> bootstrapConsole({
   SupabaseConfig supabaseConfig = const SupabaseConfig(url: '', anonKey: ''),
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
+  final recorder = DiagnosticsRecorder.instance;
+  recorder.application = 'console';
+  recorder.platform = 'web';
+  recorder.release =
+      const String.fromEnvironment('APP_VERSION', defaultValue: '0.1.0');
+  unawaited(DiagnosticPreferencesController.initialize(recorder));
+  if (!_diagnosticHandlersInstalled) {
+    _diagnosticHandlersInstalled = true;
+    final previousError = FlutterError.onError;
+    FlutterError.onError = (details) {
+      recorder.capture(details.exception, details.stack ?? StackTrace.current,
+          code: 'framework', operation: 'framework');
+      if (previousError != null) {
+        previousError(details);
+      } else {
+        FlutterError.presentError(details);
+      }
+    };
+    final previousAsync = PlatformDispatcher.instance.onError;
+    PlatformDispatcher.instance.onError = (error, stack) {
+      recorder.capture(error, stack, operation: 'async');
+      return previousAsync?.call(error, stack) ?? false;
+    };
+  }
 
   // Adres çubuğunda `/#/sporcular` değil `/sporcular` görünsün — konsol
   // kullanıcısı yer imi koyar ve linki paylaşır.
@@ -37,11 +76,15 @@ Future<void> bootstrapConsole({
     if (key.startsWith('sb_publishable_')) {
       await Supabase.initialize(
         url: supabaseConfig.url,
+        httpClient: DiagnosticHttpClient(http.Client(), recorder,
+            backendHost: Uri.parse(supabaseConfig.url).host),
         publishableKey: key,
       ).timeout(const Duration(seconds: 10));
     } else {
       await Supabase.initialize(
         url: supabaseConfig.url,
+        httpClient: DiagnosticHttpClient(http.Client(), recorder,
+            backendHost: Uri.parse(supabaseConfig.url).host),
         // ignore: deprecated_member_use
         anonKey: key,
       ).timeout(const Duration(seconds: 10));
@@ -55,8 +98,10 @@ Future<void> bootstrapConsole({
     return;
   }
 
+  await recorder.bind(Supabase.instance.client);
   runApp(
     ProviderScope(
+      observers: [_ConsoleDiagnosticObserver()],
       overrides: [
         supabaseConfigProvider.overrideWithValue(supabaseConfig),
       ],

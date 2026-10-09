@@ -2,6 +2,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'club_data.dart';
 import 'expense_service.dart';
+import 'federation_records.dart';
+import 'parent_actions.dart';
+import 'saha_operations.dart';
 import 'turf_service.dart';
 import 'verification_service.dart';
 
@@ -28,8 +31,12 @@ class SwanAccess {
     required this.coachLevel,
     required this.athleteKind,
     this.accountantClubIds = const {},
+    this.guardianAthleteIds = const {},
     this.verificationTier = 'none',
     this.managedTurfFieldIds = const {},
+    this.delegatedTurfFieldIds = const {},
+    this.sportCredentials = const [],
+    this.federationAppointments = const [],
   });
 
   static const SwanAccess none = SwanAccess(
@@ -71,6 +78,41 @@ class SwanAccess {
   /// `kind='coach'` ve `status='approved'` olan satırlar.
   final int coachLevel;
 
+  final List<CredentialRow> sportCredentials;
+  final List<FederationAppointment> federationAppointments;
+
+  /// Sport credentials never inherit the club-admin or platform-admin shortcut.
+  int coachLevelForSport(String sportCode, {DateTime? at}) {
+    var level = 0;
+    for (final credential in sportCredentials) {
+      if (credential.kind == 'coach' &&
+          credential.sportCode == sportCode &&
+          credential.isValidOn(at ?? DateTime.now())) {
+        final candidate = credential.coachLevel ?? 1;
+        if (candidate > level) level = candidate;
+      }
+    }
+    return level;
+  }
+
+  bool hasCoachLevelForSport(String sportCode, int minimum, {DateTime? at}) =>
+      minimum <= 0 || coachLevelForSport(sportCode, at: at) >= minimum;
+
+  bool canWriteFederation(
+    String sportCode,
+    String? cityCode,
+    FederationDuty duty, {
+    DateTime? at,
+  }) =>
+      federationAppointments.any(
+        (appointment) => appointment.authorizes(
+          sportCode,
+          cityCode,
+          duty,
+          at ?? DateTime.now(),
+        ),
+      );
+
   /// Onaylanmış sporcu kimliğinin türü: `athlete_licensed` |
   /// `athlete_individual`; sporcu kimliği yoksa null.
   ///
@@ -111,6 +153,9 @@ class SwanAccess {
   final Set<String> managedTurfFieldIds;
 
   bool isTurfManagerOf(String fieldId) => managedTurfFieldIds.contains(fieldId);
+  final Set<String> delegatedTurfFieldIds;
+  bool canEditTurfOccupancy(String fieldId) =>
+      isTurfManagerOf(fieldId) || delegatedTurfFieldIds.contains(fieldId);
 
   /// Kulüpte görev alıyor mu?
   ///
@@ -129,7 +174,10 @@ class SwanAccess {
       clubRole == 'club_admin' || clubRole == 'coach';
 
   bool get isClubAdmin => clubRole == 'club_admin';
-  bool get isParent => clubRole == 'parent';
+
+  /// Bağlı çocuklar; kulüp rolünden bağımsız veli görünürlüğü.
+  final Set<String> guardianAthleteIds;
+  bool get isParent => clubRole == 'parent' || guardianAthleteIds.isNotEmpty;
 
   /// Kademe eşiğini karşılıyor mu?
   ///
@@ -153,7 +201,7 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
   var level = 0;
   String? athleteKind;
   for (final c in creds) {
-    if (c.status != 'approved') continue;
+    if (!c.isValidOn(DateTime.now())) continue;
     if (c.kind == 'coach') {
       final l = c.coachLevel ?? 1;
       if (l > level) level = l;
@@ -177,9 +225,16 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     isPlatformAdmin: isAdmin,
     clubRole: profile.role,
     coachLevel: level,
+    sportCredentials: creds,
+    federationAppointments:
+        ref.watch(myFederationAppointmentsProvider).valueOrNull ?? const [],
     athleteKind: athleteKind,
     accountantClubIds: accountantClubs,
+    guardianAthleteIds:
+        ref.watch(guardianAthleteIdsProvider).valueOrNull ?? const {},
     verificationTier: profile.verificationTier,
     managedTurfFieldIds: managedTurfFields,
+    delegatedTurfFieldIds:
+        ref.watch(delegatedTurfFieldIdsProvider).valueOrNull ?? const {},
   );
 });

@@ -35,9 +35,13 @@ class FeatureFlags {
   /// derleme zamanında yakalansın; `has('marketpalce')` sessizce false döner.
   static const marketplace = 'marketplace';
   static const courts = 'courts';
+  static const courtWaitlist = 'court_waitlist';
+  static const turfDelegation = 'turf_delegation';
   static const partnerSearch = 'partner_search';
   static const turfFields = 'turf_fields';
   static const teamHub = 'team_hub';
+  static const seasonSetup = 'season_setup';
+  static const developmentReport = 'development_report';
 
   /// 0054. Sabiti eksikti; feature_flag_sync_test bunu yakaladı.
   static const coachDiscovery = 'coach_discovery';

@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../../app/widgets/premium.dart';
-import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/premium.dart';
 
 /// Kutu alırken verilen bilgiler.
 class ClaimResult {
@@ -46,38 +46,65 @@ class _ClaimSheetState extends State<ClaimSheet> {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    final field = isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA);
+    final field =
+        isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA);
 
-    final hour = '${widget.startsAt.hour.toString().padLeft(2, '0')}:'
-        '${widget.startsAt.minute.toString().padLeft(2, '0')}';
+    final shown = widget.startsAt.toUtc().add(const Duration(hours: 3));
+    final hour = '${shown.hour.toString().padLeft(2, '0')}:'
+        '${shown.minute.toString().padLeft(2, '0')}';
 
-    Widget stepper(String title, String hint, int value, int max,
-            ValueChanged<int> onChanged) =>
+    Widget stepper(
+      String title,
+      String hint,
+      int value,
+      int max,
+      ValueChanged<int> onChanged,
+    ) =>
         Padding(
           padding: const EdgeInsets.only(top: 16),
-          child: Row(children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-                  const SizedBox(height: 2),
-                  Text(hint,
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-                ],
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: SwanType.bodySm(ink, w: FontWeight.w700),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      hint,
+                      style: SwanType.caption(
+                        SwanColors.textSecondary,
+                        w: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            _round(Icons.remove_rounded, field, ink,
-                value > 0 ? () => onChanged(value - 1) : null),
-            SizedBox(
-              width: 38,
-              child: Text('$value',
+              _round(
+                Icons.remove_rounded,
+                field,
+                ink,
+                value > 0 ? () => onChanged(value - 1) : null,
+              ),
+              SizedBox(
+                width: 38,
+                child: Text(
+                  '$value',
                   textAlign: TextAlign.center,
-                  style: SwanType.body(ink, w: FontWeight.w800)),
-            ),
-            _round(Icons.add_rounded, field, ink,
-                value < max ? () => onChanged(value + 1) : null),
-          ]),
+                  style: SwanType.body(ink, w: FontWeight.w800),
+                ),
+              ),
+              _round(
+                Icons.add_rounded,
+                field,
+                ink,
+                value < max ? () => onChanged(value + 1) : null,
+              ),
+            ],
+          ),
         );
 
     return Container(
@@ -86,49 +113,73 @@ class _ClaimSheetState extends State<ClaimSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-          20, 18, 20, 20 + MediaQuery.of(context).padding.bottom),
-      child: Column(mainAxisSize: MainAxisSize.min, children: [
-        Container(
-          width: 38,
-          height: 4,
-          decoration:
-              BoxDecoration(color: line, borderRadius: BorderRadius.circular(2)),
-        ),
-        const SizedBox(height: 14),
-        Text('$hour · ${widget.court.name}',
-            style: SwanType.h3(ink)),
-        const SizedBox(height: 4),
-        Text('Bir saat senin.',
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-
-        stepper('Yanındakiler', 'Uygulamada olmayan arkadaşların', _guests,
-            _guests + _room, (v) => setState(() => _guests = v)),
-
-        stepper('Oyuncu arıyor musun?', 'Boş yerine katılmak isteyen olabilir',
-            _needed, _needed + _room, (v) => setState(() => _needed = v)),
-
-        const SizedBox(height: 18),
-        GestureDetector(
-          onTap: () => Navigator.pop(
-              context, ClaimResult(guests: _guests, needed: _needed)),
-          child: Container(
-            height: 48,
-            alignment: Alignment.center,
+        20,
+        18,
+        20,
+        20 + MediaQuery.of(context).padding.bottom,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 38,
+            height: 4,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-              borderRadius: BorderRadius.circular(14),
+              color: line,
+              borderRadius: BorderRadius.circular(2),
             ),
-            child: Text('Saati al',
-                style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
           ),
-        ),
-        const SizedBox(height: 10),
-        Text(
+          const SizedBox(height: 14),
+          Text('$hour · ${widget.court.name}', style: SwanType.h3(ink)),
+          const SizedBox(height: 4),
+          Text(
+            'Bir saat senin.',
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
+          ),
+          stepper(
+            'Yanındakiler',
+            'Uygulamada olmayan arkadaşların',
+            _guests,
+            _guests + _room,
+            (v) => setState(() => _guests = v),
+          ),
+          stepper(
+            'Oyuncu arıyor musun?',
+            'Boş yerine katılmak isteyen olabilir',
+            _needed,
+            _needed + _room,
+            (v) => setState(() => _needed = v),
+          ),
+          const SizedBox(height: 18),
+          GestureDetector(
+            onTap: () => Navigator.pop(
+              context,
+              ClaimResult(guests: _guests, needed: _needed),
+            ),
+            child: Container(
+              height: 48,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [kTealBright, kTeal]),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Text(
+                'Saati al',
+                style: SwanType.bodySm(Colors.white, w: FontWeight.w800),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
             'Gelemezsen iptal et — cezası yok. Haber vermeden gelmemek '
             'sıranı ve sonrakini yakıyor.',
             textAlign: TextAlign.center,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-      ]),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 
@@ -143,9 +194,11 @@ class _ClaimSheetState extends State<ClaimSheet> {
             color: fill,
             borderRadius: BorderRadius.circular(11),
           ),
-          child: Icon(icon,
-              size: 18,
-              color: onTap == null ? SwanColors.textSecondary : ink),
+          child: Icon(
+            icon,
+            size: 18,
+            color: onTap == null ? SwanColors.textSecondary : ink,
+          ),
         ),
       );
 }

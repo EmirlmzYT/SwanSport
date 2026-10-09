@@ -91,8 +91,10 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
 
                           ref.watch(athleteCardProvider(a.id)).when(
                                 loading: () => const SizedBox.shrink(),
-                                error: (e, _) => Text('Özet yüklenemedi.',
-                                    style: SwanType.bodySm(c.inkMuted)),
+                                error: (e, _) => Text(
+                                  'Özet yüklenemedi.',
+                                  style: SwanType.bodySm(c.inkMuted),
+                                ),
                                 data: (card) => !card.hasData
                                     ? const SizedBox.shrink()
                                     : Wrap(
@@ -100,25 +102,47 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                                         runSpacing: SwanSpace.sm,
                                         children: [
                                           Chip(
-                                              label: Text(
-                                                  '${card.trainings} antrenman')),
+                                            label: Text(
+                                              '${card.trainings} antrenman',
+                                            ),
+                                          ),
                                           if (card.trainings > 0)
                                             Chip(
-                                                label: Text(
-                                                    '%${card.attendancePct} katılım')),
-                                          Chip(
                                               label: Text(
-                                                  '${card.goalsDone} tamamlanan hedef')),
+                                                '%${card.attendancePct} katılım',
+                                              ),
+                                            ),
+                                          Chip(
+                                            label: Text(
+                                              '${card.goalsDone} tamamlanan hedef',
+                                            ),
+                                          ),
                                         ],
                                       ),
                               ),
                           const SizedBox(height: SwanSpace.md),
+                          if (ref.watch(
+                            featureEnabledProvider(
+                              FeatureFlags.developmentReport,
+                            ),
+                          ))
+                            TextButton.icon(
+                              onPressed: () => Navigator.pushNamed(
+                                context,
+                                '/gelisim-raporu',
+                                arguments: {'id': a.id},
+                              ),
+                              icon: const Icon(Icons.insights_rounded),
+                              label: const Text('Dönem gelişim raporu'),
+                            ),
                           ListTile(
                             title: const Text('Testler ve gelişim hedefleri'),
                             trailing: const Icon(Icons.chevron_right_rounded),
                             onTap: () => Navigator.pushNamed(
-                                context, '/sporcu-performans',
-                                arguments: {'id': a.id, 'name': a.fullName}),
+                              context,
+                              '/sporcu-performans',
+                              arguments: {'id': a.id, 'name': a.fullName},
+                            ),
                           ),
                         ],
                       ),
@@ -213,14 +237,20 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                     ),
                     const SizedBox(height: 8),
                     ref.watch(eligibilityProvider(a.id)).when(
-                          loading: () => Text('Uygunluk kontrol ediliyor…',
-                              style: SwanType.caption(c.inkMuted)),
-                          error: (e, _) => Text('Uygunluk bilgisi alınamadı.',
-                              style: SwanType.caption(c.inkMuted)),
+                          loading: () => Text(
+                            'Uygunluk kontrol ediliyor…',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                          error: (e, _) => Text(
+                            'Uygunluk bilgisi alınamadı.',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
                           data: (status) => Text(
-                              'Uygunluk: ${status.badgeLabel}',
-                              style: SwanType.caption(
-                                  status.blocked ? c.danger : c.inkMuted)),
+                            'Uygunluk: ${status.badgeLabel}',
+                            style: SwanType.caption(
+                              status.blocked ? c.danger : c.inkMuted,
+                            ),
+                          ),
                         ),
                   ],
                 ),
@@ -345,7 +375,9 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                         const SizedBox(width: 6),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 5, vertical: 1),
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
                           decoration: BoxDecoration(
                             color: c.accent.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(4),

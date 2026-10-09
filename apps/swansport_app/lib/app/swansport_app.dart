@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'widgets/unavailable_feature_screen.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../features/announcements/presentation/routing/communication_detail_route_args.dart';
@@ -11,94 +11,98 @@ import '../features/athlete_workspace/presentation/routing/athlete_detail_route_
 import '../features/athlete_workspace/presentation/screens/athlete_detail_screen.dart';
 import '../features/athlete_workspace/presentation/screens/athlete_workspace_screen.dart';
 import '../features/athlete_workspace/presentation/screens/nutrition_tracker_screen.dart';
+import '../features/attendance/presentation/screens/attendance_history_screen.dart';
 import '../features/attendance/presentation/screens/live_attendance_screen.dart';
 import '../features/auth/presentation/screens/auth_gate.dart';
 import '../features/auth/presentation/screens/auth_screen.dart';
 import '../features/calendar/presentation/screens/event_roster_detail_screen.dart';
 import '../features/calendar/presentation/screens/race_event_detail_screen.dart';
 import '../features/calendar/presentation/screens/schedule_calendar_screen.dart';
+import '../features/clubs/presentation/club_applications_screen.dart';
+import '../features/clubs/presentation/club_profile_detail_screen.dart';
+import '../features/communities/presentation/community_chat_screen.dart';
+import '../features/communities/presentation/federation_admin_screen.dart';
+import '../features/communities/presentation/federation_channel_screen.dart';
 import '../features/configuration/presentation/configuration_module_args.dart';
 import '../features/configuration/presentation/configuration_screen.dart';
+import '../features/configuration/presentation/season_setup_screen.dart';
+import '../features/courts/presentation/find_partner_screen.dart';
+import '../features/courts/presentation/venues_screen.dart';
 import '../features/dashboard/presentation/screens/coach_dashboard_screen.dart';
+import '../features/demo/demo_role_screen.dart';
 import '../features/documents/presentation/routing/document_detail_route_args.dart';
 import '../features/documents/presentation/screens/document_detail_screen.dart';
 import '../features/documents/presentation/screens/document_vault_screen.dart';
+import '../features/equipment/presentation/equipment_tuning_screen.dart';
 import '../features/facilities/presentation/facility_management_screen.dart';
 import '../features/facilities/presentation/facility_reservation_screen.dart';
+import '../features/financial_management/presentation/accountant_privacy_ledger_screen.dart';
+import '../features/financial_management/presentation/campaigns_screen.dart';
+import '../features/financial_management/presentation/closed_period_reversal_screen.dart';
+import '../features/financial_management/presentation/finance_screen.dart';
+import '../features/financial_management/presentation/finance_tasks_screen.dart';
+import '../features/financial_management/presentation/my_fees_screen.dart';
+import '../features/financial_management/presentation/quick_expense_screen.dart';
 import '../features/home/presentation/screens/home_command_center_screen.dart';
 import '../features/home/presentation/screens/public_landing_screen.dart';
-import '../features/medical_center/presentation/medical_center_screen.dart';
-import '../features/performance_analytics/presentation/athlete_performance_screen.dart';
-import '../features/performance_analytics/presentation/leaderboard_screen.dart';
-import '../features/performance_analytics/presentation/performance_analytics_screen.dart';
-import '../features/performance_analytics/presentation/readiness_rpe_screen.dart';
-import '../features/equipment/presentation/equipment_tuning_screen.dart';
-import '../features/verification/presentation/parent_consent_center_screen.dart';
 import '../features/marketplace/presentation/cart_checkout_screen.dart';
-import '../features/performance_analytics/presentation/performance_route_args.dart';
-import '../features/performance_analytics/presentation/performance_workflow_editors.dart';
-import '../features/performance_analytics/presentation/performance_workflow_screens.dart';
-import '../features/reports/presentation/routing/report_detail_args.dart';
-import '../features/reports/presentation/screens/report_detail_screen.dart';
-import '../features/reports/presentation/screens/reports_screen.dart';
-import '../features/settings/presentation/routing/admin_user_detail_args.dart';
-import '../features/settings/presentation/screens/admin_user_detail_screen.dart';
-import '../features/settings/presentation/screens/club_settings_screen.dart';
-import '../features/clubs/presentation/club_applications_screen.dart';
-import '../features/clubs/presentation/club_profile_detail_screen.dart';
-import '../features/demo/demo_role_screen.dart';
-import '../features/social/presentation/connections_screen.dart';
+import '../features/marketplace/presentation/create_listing_screen.dart';
+import '../features/marketplace/presentation/listing_detail_screen.dart';
+import '../features/marketplace/presentation/marketplace_screen.dart';
+import '../features/marketplace/presentation/store_application_screen.dart';
+import '../features/medical_center/presentation/medical_center_screen.dart';
+import '../features/network/presentation/coach_discovery_screen.dart';
 import '../features/network/presentation/discover_screen.dart';
 import '../features/network/presentation/explore_screen.dart';
 import '../features/network/presentation/listings_screen.dart';
 import '../features/network/presentation/organizations_screen.dart';
-import '../features/financial_management/presentation/campaigns_screen.dart';
-import '../features/financial_management/presentation/finance_screen.dart';
-import '../features/financial_management/presentation/my_fees_screen.dart';
-import '../features/communities/presentation/community_chat_screen.dart';
-import '../features/communities/presentation/federation_admin_screen.dart';
-import '../features/communities/presentation/federation_channel_screen.dart';
-import '../features/courts/presentation/find_partner_screen.dart';
-import '../features/courts/presentation/venues_screen.dart';
+import '../features/performance_analytics/presentation/athlete_performance_screen.dart';
+import '../features/performance_analytics/presentation/leaderboard_screen.dart';
+import '../features/performance_analytics/presentation/performance_analytics_screen.dart';
+import '../features/performance_analytics/presentation/performance_route_args.dart';
+import '../features/performance_analytics/presentation/performance_workflow_editors.dart';
+import '../features/performance_analytics/presentation/performance_workflow_screens.dart';
+import '../features/performance_analytics/presentation/readiness_rpe_screen.dart';
+import '../features/reports/presentation/routing/report_detail_args.dart';
+import '../features/reports/presentation/screens/development_report_screen.dart';
+import '../features/reports/presentation/screens/report_detail_screen.dart';
+import '../features/reports/presentation/screens/reports_screen.dart';
+import '../features/saha_operations/presentation/saha_operations_screen.dart';
+import '../features/settings/presentation/routing/admin_user_detail_args.dart';
+import '../features/settings/presentation/screens/admin_user_detail_screen.dart';
+import '../features/settings/presentation/screens/club_settings_screen.dart';
+import '../features/social/presentation/connections_screen.dart';
 import '../features/social/presentation/feed_screen.dart';
-import '../features/marketplace/presentation/marketplace_screen.dart';
-import '../features/network/presentation/coach_discovery_screen.dart';
-import '../features/marketplace/presentation/listing_detail_screen.dart';
-import '../features/marketplace/presentation/create_listing_screen.dart';
-import '../features/marketplace/presentation/store_application_screen.dart';
-import '../features/social/presentation/profile_screen.dart';
 import '../features/social/presentation/messages_screen.dart';
 import '../features/social/presentation/notifications_screen.dart';
 import '../features/social/presentation/privacy_screen.dart';
+import '../features/social/presentation/profile_screen.dart';
 import '../features/social/presentation/rss_admin_screen.dart';
-import '../features/social/presentation/search_screen.dart';
-import '../features/verification/presentation/admin_review_screen.dart';
-import '../features/financial_management/presentation/accountant_privacy_ledger_screen.dart';
-import '../features/financial_management/presentation/closed_period_reversal_screen.dart';
-import '../features/financial_management/presentation/finance_tasks_screen.dart';
 import '../features/social/presentation/saved_posts_screen.dart';
+import '../features/social/presentation/search_screen.dart';
 import '../features/support/presentation/help_screen.dart';
+import '../features/support/presentation/support_screen.dart';
+import '../features/teams/presentation/screens/team_roster_directory_screen.dart';
+import '../features/teams/presentation/screens/team_roster_screen.dart';
 import '../features/training/presentation/match_simulation_screen.dart';
 import '../features/training/presentation/my_training_screen.dart';
 import '../features/training/presentation/protocol_list_screen.dart';
 import '../features/training/presentation/session_result_screen.dart';
 import '../features/training/presentation/session_screen.dart';
 import '../features/training/presentation/workout_builder_screen.dart';
-import '../features/support/presentation/support_screen.dart';
-import '../features/financial_management/presentation/quick_expense_screen.dart';
+import '../features/verification/presentation/admin_review_screen.dart';
 import '../features/verification/presentation/credential_screen.dart';
 import '../features/verification/presentation/guardian_link_screen.dart';
-import '../features/attendance/presentation/screens/attendance_history_screen.dart';
-import '../features/teams/presentation/screens/team_roster_directory_screen.dart';
-import '../features/teams/presentation/screens/team_roster_screen.dart';
-import 'config/app_environment.dart';
+import '../features/verification/presentation/parent_consent_center_screen.dart';
 import 'app_navigator.dart';
-import 'update/update_gate.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
-import 'widgets/page_transitions.dart';
-import 'theme/theme_mode_controller.dart';
+import 'config/app_environment.dart';
+import 'diagnostics/diagnostic_runtime.dart';
 import 'l10n/app_locale.dart';
 import 'l10n/swan_localizations.dart';
+import 'theme/theme_mode_controller.dart';
+import 'update/update_gate.dart';
+import 'widgets/page_transitions.dart';
+import 'widgets/unavailable_feature_screen.dart';
 
 class SwanSportApp extends ConsumerWidget {
   const SwanSportApp({super.key});
@@ -116,6 +120,7 @@ class SwanSportApp extends ConsumerWidget {
       title: environment.appName,
       debugShowCheckedModeBanner: false,
       navigatorKey: swanNavigatorKey,
+      navigatorObservers: [ref.watch(diagnosticNavigationObserverProvider)],
       scaffoldMessengerKey: swanMessengerKey,
       theme: SwanTheme.light().copyWith(
         pageTransitionsTheme: kSwanPageTransitions,
@@ -196,27 +201,30 @@ class SwanSportApp extends ConsumerWidget {
         '/gizlilik': (context) => const PrivacyScreen(),
         '/devam-durumu': (context) => const AttendanceHistoryScreen(),
         '/basvurular': (context) => const ClubApplicationsScreen(),
-        '/configuration': (context) => environment.isProduction ||
-                ref.read(isSupabaseEnabledProvider)
-            ? const UnavailableFeatureScreen(
-                title: 'Kulüp yapılandırması',
-                message:
-                    'Bu gelişmiş yapılandırma ekranı henüz kullanıma açık değil. Kulüp profilini Ayarlar üzerinden düzenleyebilirsin.',
-                route: '/settings',
-                actionLabel: 'Ayarları aç')
-            : const ConfigurationScreen(),
+        '/sezon-acilisi': (context) => const SeasonSetupScreen(),
+        '/configuration': (context) =>
+            environment.isProduction || ref.read(isSupabaseEnabledProvider)
+                ? const UnavailableFeatureScreen(
+                    title: 'Kulüp yapılandırması',
+                    message:
+                        'Bu gelişmiş yapılandırma ekranı henüz kullanıma açık değil. Kulüp profilini Ayarlar üzerinden düzenleyebilirsin.',
+                    route: '/settings',
+                    actionLabel: 'Ayarları aç',
+                  )
+                : const ConfigurationScreen(),
         '/facilities': (context) => const FacilityManagementScreen(),
         '/rezervasyon': (context) => const FacilityReservationScreen(),
         '/medical-center': (context) => const MedicalCenterScreen(),
-        '/reports': (context) => environment.isProduction ||
-                ref.read(isSupabaseEnabledProvider)
-            ? const UnavailableFeatureScreen(
-                title: 'Raporlar',
-                message:
-                    'Bu rapor arşivi henüz kullanıma açık değil. Mevcut mali kayıtlarını finans ekranından takip edebilirsin.',
-                route: '/finans',
-                actionLabel: 'Finansı aç')
-            : const ReportsScreen(),
+        '/reports': (context) =>
+            environment.isProduction || ref.read(isSupabaseEnabledProvider)
+                ? const UnavailableFeatureScreen(
+                    title: 'Raporlar',
+                    message:
+                        'Bu rapor arşivi henüz kullanıma açık değil. Mevcut mali kayıtlarını finans ekranından takip edebilirsin.',
+                    route: '/finans',
+                    actionLabel: 'Finansı aç',
+                  )
+                : const ReportsScreen(),
         '/performance-analytics': (context) =>
             const PerformanceAnalyticsScreen(),
         '/hazirbulunusluk': (context) => const ReadinessRpeScreen(),
@@ -262,6 +270,23 @@ class SwanSportApp extends ConsumerWidget {
             builder: (_) => ProfileScreen(
               id: args is String ? args : null,
               isClub: settings.name == '/kulup-profil',
+            ),
+          );
+        }
+        if (settings.name == '/saha-islemlerim') {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => const SahaOperationsScreen(),
+          );
+        }
+        if (settings.name == '/gelisim-raporu') {
+          final args = settings.arguments;
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => DevelopmentReportScreen(
+              athleteId: args is Map && args['id'] is String
+                  ? args['id'] as String
+                  : null,
             ),
           );
         }

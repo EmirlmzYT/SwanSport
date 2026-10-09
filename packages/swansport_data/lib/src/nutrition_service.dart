@@ -61,6 +61,39 @@ class NutritionLog {
       };
 }
 
+class AthleteNutritionTarget {
+  const AthleteNutritionTarget({
+    required this.athleteId,
+    this.targetCalories,
+    this.targetWaterMl,
+    this.setBy,
+    this.updatedAt,
+  });
+
+  final String athleteId;
+  final int? targetCalories;
+  final int? targetWaterMl;
+  final String? setBy;
+  final DateTime? updatedAt;
+
+  factory AthleteNutritionTarget.fromMap(Map<String, dynamic> m) =>
+      AthleteNutritionTarget(
+        athleteId: m['athlete_id'] as String,
+        targetCalories: (m['target_calories'] as num?)?.toInt(),
+        targetWaterMl: (m['target_water_ml'] as num?)?.toInt(),
+        setBy: m['set_by'] as String?,
+        updatedAt: m['updated_at'] != null
+            ? DateTime.tryParse(m['updated_at'].toString())
+            : null,
+      );
+
+  Map<String, dynamic> toMap() => {
+        'athlete_id': athleteId,
+        'target_calories': targetCalories,
+        'target_water_ml': targetWaterMl,
+      };
+}
+
 class DailyNutritionSummary {
   const DailyNutritionSummary({
     required this.date,
@@ -69,8 +102,8 @@ class DailyNutritionSummary {
     required this.totalCarb,
     required this.totalFat,
     required this.totalWaterMl,
-    this.targetCalories = 2500,
-    this.targetWaterMl = 3000,
+    this.targetCalories,
+    this.targetWaterMl,
     this.logs = const [],
   });
 
@@ -80,8 +113,8 @@ class DailyNutritionSummary {
   final double totalCarb;
   final double totalFat;
   final int totalWaterMl;
-  final int targetCalories;
-  final int targetWaterMl;
+  final int? targetCalories;
+  final int? targetWaterMl;
   final List<NutritionLog> logs;
 
   static DailyNutritionSummary empty(DateTime date) =>
@@ -92,6 +125,8 @@ class DailyNutritionSummary {
         totalCarb: 0.0,
         totalFat: 0.0,
         totalWaterMl: 0,
+        targetCalories: null,
+        targetWaterMl: null,
         logs: const [],
       );
 }
@@ -141,42 +176,48 @@ class NutritionService {
     });
   }
 
-  Future<void> logWater({
+  Future<int> logWater({
     required String athleteId,
     required DateTime date,
     required int deltaMl,
   }) async {
     final dateStr = date.toIso8601String().substring(0, 10);
-    // Varsa bugünkü water logunu güncelle veya ekle
-    final existing = await _db
-        .from('athlete_nutrition_logs')
-        .select('id, water_ml')
-        .eq('athlete_id', athleteId)
-        .eq('log_date', dateStr)
-        .eq('meal_type', 'water')
-        .maybeSingle();
+    final res = await _db.rpc<dynamic>(
+      'log_athlete_water',
+      params: {
+        'p_athlete_id': athleteId,
+        'p_date': dateStr,
+        'p_delta_ml': deltaMl,
+      },
+    );
+    return (res as num?)?.toInt() ?? 0;
+  }
 
-    if (existing != null) {
-      final current = (existing['water_ml'] as num?)?.toInt() ?? 0;
-      final nextVal = (current + deltaMl).clamp(0, 15000);
-      await _db
-          .from('athlete_nutrition_logs')
-          .update({'water_ml': nextVal})
-          .eq('id', existing['id'] as String);
-    } else {
-      final val = deltaMl.clamp(0, 15000);
-      await _db.from('athlete_nutrition_logs').insert({
-        'athlete_id': athleteId,
-        'log_date': dateStr,
-        'meal_type': 'water',
-        'title': 'Su Tüketimi',
-        'calories': 0,
-        'protein_g': 0.0,
-        'carb_g': 0.0,
-        'fat_g': 0.0,
-        'water_ml': val,
-      });
-    }
+  Future<AthleteNutritionTarget?> getTargets(String athleteId) async {
+    final row = await _db
+        .from('athlete_nutrition_targets')
+        .select()
+        .eq('athlete_id', athleteId)
+        .maybeSingle();
+    if (row == null) return null;
+    return AthleteNutritionTarget.fromMap(
+      (row as Map).cast<String, dynamic>(),
+    );
+  }
+
+  Future<void> setTargets({
+    required String athleteId,
+    int? targetCalories,
+    int? targetWaterMl,
+  }) async {
+    await _db.rpc<void>(
+      'set_athlete_nutrition_targets',
+      params: {
+        'p_athlete_id': athleteId,
+        'p_target_calories': targetCalories,
+        'p_target_water_ml': targetWaterMl,
+      },
+    );
   }
 
   Future<void> deleteLog(String logId) async {
@@ -190,6 +231,12 @@ final nutritionServiceProvider = Provider<NutritionService>((ref) {
   return NutritionService(ref.watch(supabaseClientProvider));
 });
 
+final athleteNutritionTargetProvider = FutureProvider.autoDispose
+    .family<AthleteNutritionTarget?, String>((ref, athleteId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return null;
+  return ref.watch(nutritionServiceProvider).getTargets(athleteId);
+});
+
 final dailyNutritionSummaryProvider = FutureProvider.autoDispose
     .family<DailyNutritionSummary, DateTime>((ref, date) async {
   if (!ref.watch(isSupabaseEnabledProvider)) {
@@ -201,9 +248,9 @@ final dailyNutritionSummaryProvider = FutureProvider.autoDispose
   final athlete = await ref.watch(athleteByProfileProvider(profile.id).future);
   if (athlete == null) return DailyNutritionSummary.empty(date);
 
-  final logs = await ref
-      .watch(nutritionServiceProvider)
-      .logsForDate(athleteId: athlete.id, date: date);
+  final service = ref.watch(nutritionServiceProvider);
+  final logs = await service.logsForDate(athleteId: athlete.id, date: date);
+  final targets = await service.getTargets(athlete.id);
 
   int cals = 0;
   double p = 0.0;
@@ -229,6 +276,8 @@ final dailyNutritionSummaryProvider = FutureProvider.autoDispose
     totalCarb: c,
     totalFat: f,
     totalWaterMl: water,
+    targetCalories: targets?.targetCalories,
+    targetWaterMl: targets?.targetWaterMl,
     logs: logs,
   );
 });

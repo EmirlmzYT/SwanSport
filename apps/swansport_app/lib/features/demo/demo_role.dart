@@ -130,6 +130,7 @@ extension DemoRoleX on DemoRole {
             '/reports',
             '/facilities',
             '/configuration',
+            '/sezon-acilisi',
             '/teams',
             '/documents',
             '/medical-center',
@@ -258,7 +259,6 @@ final debugToolsEnabledProvider = Provider<bool>((ref) {
 /// Üretimde demo araçları kapalı olduğu için bu değer daima null kalır.
 final demoRoleProvider = StateProvider<DemoRole?>((ref) => null);
 
-
 /// Gerçek (demo olmayan) rolün görebileceği rotalar.
 ///
 /// Demo rolleri için hazırlanan kümeler burada yeniden kullanılıyor: aynı
@@ -332,9 +332,8 @@ final effectiveAllowedRoutesProvider = Provider<Set<String>?>((ref) {
 
 /// Demo-duyarlı platform admin bayrağı.
 final effectiveIsPlatformAdminProvider = Provider<bool>((ref) {
-  final demo = ref.watch(debugToolsEnabledProvider)
-      ? ref.watch(demoRoleProvider)
-      : null;
+  final demo =
+      ref.watch(debugToolsEnabledProvider) ? ref.watch(demoRoleProvider) : null;
   if (demo != null) return demo.isPlatformAdmin;
   return ref.watch(isPlatformAdminProvider).valueOrNull ?? false;
 });

@@ -1,0 +1,21 @@
+name: Diagnostic attachment retention
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '41 3 * * *'
+permissions:
+  contents: read
+jobs:
+  remove-expired-attachments:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Remove expired private screenshots
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: node tools/purge_diagnostic_attachments.mjs

@@ -2,6 +2,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'season_setup.dart';
 import 'supabase_scope.dart';
 import 'supabase_athletes.dart';
 
@@ -10,7 +11,7 @@ import 'supabase_athletes.dart';
 ///
 /// Hepsi mevcut yetki kurallarıyla çalışır: `clubs` ve `club_memberships`
 /// üzerinde kulüp yöneticisine yazma izni zaten tanımlı, `seasons` üzerinde
-/// kulüp görevlisine. Bu yüzden yeni bir veritabanı kurulumu gerekmiyor.
+/// kulüp görevlisine. Atomik sezon hazırlığı ayrıca 0087 RPC'sini gerektirir.
 /// ---------------------------------------------------------------------------
 
 /// Kulüp profilinde gösterilebilecek bölümler.
@@ -144,9 +145,8 @@ class ClubMember {
 
   String get roleLabel => switch (role) {
         'club_admin' => 'Kulüp Yöneticisi',
-        'coach' => coachLevel == null
-            ? 'Antrenör'
-            : '$coachLevel. Kademe Antrenör',
+        'coach' =>
+          coachLevel == null ? 'Antrenör' : '$coachLevel. Kademe Antrenör',
         'athlete' => 'Sporcu',
         'parent' => 'Veli',
         'official' => 'Görevli',
@@ -194,9 +194,8 @@ class SeasonRow {
         startsOn: m['starts_on'] == null
             ? null
             : DateTime.tryParse('${m['starts_on']}'),
-        endsOn: m['ends_on'] == null
-            ? null
-            : DateTime.tryParse('${m['ends_on']}'),
+        endsOn:
+            m['ends_on'] == null ? null : DateTime.tryParse('${m['ends_on']}'),
       );
 }
 
@@ -208,7 +207,8 @@ class ClubConfigService {
   Future<ClubIdentity?> identity(String clubId) async {
     final row = await _c
         .from('clubs')
-        .select('id, name, short_name, city, district, bio, status, logo_path, cover_path, brand_color, sections, phone, email, website, instagram, address, founded_year')
+        .select(
+            'id, name, short_name, city, district, bio, status, logo_path, cover_path, brand_color, sections, phone, email, website, instagram, address, founded_year')
         .eq('id', clubId)
         .maybeSingle();
     return row == null
@@ -272,8 +272,7 @@ class ClubConfigService {
   /// Ayrı RPC: yükleme istemcide yapılıyor ama yolun **bu kulübün** klasörüne
   /// (`club/<id>/...`) ait olduğunu sunucu doğruluyor. Doğrulamasaydık bir
   /// kulüp yöneticisi başka kulübün görselini kendi kapağı yapabilirdi.
-  Future<void> setMedia(String clubId,
-          {String? logoPath, String? coverPath}) =>
+  Future<void> setMedia(String clubId, {String? logoPath, String? coverPath}) =>
       _c.rpc<void>('set_club_media', params: {
         'p_club': clubId,
         'p_logo': logoPath,
@@ -327,6 +326,25 @@ class ClubConfigService {
     await _c.from('club_memberships').delete().eq('id', membershipId);
   }
 
+  Future<SeasonSetupResult> openSeason(
+    SeasonSetupDraft draft, {
+    required String operationId,
+  }) async {
+    final validation = draft.validate();
+    if (validation != null) {
+      throw ArgumentError(validation);
+    }
+    final result = await _c.rpc<dynamic>(
+      'open_club_season',
+      params: {
+        'p_club': draft.clubId,
+        'p_op': operationId,
+        'p_input': draft.toMap(),
+      },
+    );
+    return SeasonSetupResult.fromMap((result as Map).cast<String, dynamic>());
+  }
+
   // ------------------------------- sezonlar --------------------------------
   Future<List<SeasonRow>> seasons(String clubId) async {
     final rows = await _c
@@ -346,17 +364,13 @@ class ClubConfigService {
       'label': label.trim(),
       if (startsOn != null)
         'starts_on': startsOn.toIso8601String().split('T').first,
-      if (endsOn != null)
-        'ends_on': endsOn.toIso8601String().split('T').first,
+      if (endsOn != null) 'ends_on': endsOn.toIso8601String().split('T').first,
     });
   }
 
   /// Bir sezonu aktif yapar; aynı kulüpteki diğerleri pasife düşer.
   Future<void> activateSeason(String clubId, String seasonId) async {
-    await _c
-        .from('seasons')
-        .update({'is_active': false})
-        .eq('club_id', clubId);
+    await _c.from('seasons').update({'is_active': false}).eq('club_id', clubId);
     await _c.from('seasons').update({'is_active': true}).eq('id', seasonId);
   }
 
