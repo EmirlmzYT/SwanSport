@@ -2,7 +2,7 @@
 
 Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `complete`
+Durum: `blocked`
 
 2026-10-10: Dört evrensel antrenman arketipi; saf Dart faz/metric motoru, mevcut protokol/set tabloları üzerinde 0105 ve veri katmanı entegrasyonu. Eski okçuluk, kilitler ve yetkiler korunacak. Yerel test kapsamı; canlı SQL/deploy/push yok. Başlangıç kullanıcı değişiklikleri korunur.
 
@@ -199,3 +199,9 @@ Son doğrulama: 351 app + 393 veri + 50 konsol = 794 Flutter testi, 17 gerçek S
 Kontrol noktası: SwanAccess telefon/kimlik kararı, ortak alt sayfa, mevcut doğrulama ekranında Auth SMS kodu, açık tercihli partner vitrini, mevcut RPC/RLS kapıları ve 0107 hazır. Harita bağlantısı ve isteğe bağlı gerçek zemin/fotoğraflar mevcut tesis modellerine eklendi; otomatik konum isteme kullanıcı eylemine taşındı. 45 dar widget ve 20 SQL (10 yeni/10 mevcut) geçti. Tam regresyon son kaynakla sürüyor; canlı işlem yok.
 
 Sonuç: Misafir saha/partner vitrini ve telefon/kimlik işlem kapısı tamamlandı. 402 data + 368 app + 50 console = 820 Flutter; 21 SQL (11 yeni/10 mevcut), 107 parse ve SSS 39/39 başarılı. Analiz 0 hata/5 önceki uyarı. Son SQL turu 0040 gerçek DM → bildirim hattını, engel/yöneticisiz saha ve yinelenmeyen mesajı da doğrular. Rapor docs/venue-guest-action-gate-verification.md. Canlı SQL/deploy/SMS-cihaz UAT yok. Writer serbest; kullanıcı tercihi doğrultusunda görev GitHub'a kaydedilir. Başlangıçtaki metadata/yol haritası korunur.
+
+
+2026-10-10: Kullanıcı 0105–0107 canlı migration, Cloudflare yayını ve canlı kontrollerin tamamını yetkilendirdi. Codex Writer devraldı. Başlangıç metadata/yol haritası korunur; yönetim aracı zaman aşımı araştırılıyor.
+
+
+2026-10-10 canlı 0107 önkontrol: app/konsol prod build başarılı, konsol base href doğru; paket build/rollout-0107-release-path.txt yolunda. CLI yönetim oturumu yok (AccessTokenRequiredError). Canlı Auth external.phone=false; courts yeni sütun sorgusu 42703. Migration/deploy yapılmadı. Yönetim girişi ve SMS sağlayıcı yapılandırması bekleniyor; Writer serbest. Rapor docs/production-rollout-0107.md.
