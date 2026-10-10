@@ -179,6 +179,16 @@ class _ConsoleHome extends ConsumerWidget {
           style: t.textTheme.bodySmall,
         ),
         const SizedBox(height: ConsoleDensity.xl),
+        if (access.canPublishFederationResults) ...[
+          Text('Federasyon', style: t.textTheme.titleMedium),
+          const SizedBox(height: ConsoleDensity.sm),
+          ListTile(
+              leading: const Icon(Icons.verified_user_rounded),
+              title: const Text('Sonuç bekleyen resmi müsabakalar'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.go('/federasyon-sonuclari')),
+          const SizedBox(height: ConsoleDensity.xl),
+        ],
         if (showFinance) ...[
           Text('Mali', style: t.textTheme.titleMedium),
           const SizedBox(height: ConsoleDensity.sm),

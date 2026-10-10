@@ -107,3 +107,19 @@ Kuralların kapsamı için incelenen resmi kaynaklar:
 - [ITF skor ve tie-break açıklamaları](https://www.itftennis.com/en/about-us/organisation/tennis-glossary/)
 - [World Aquatics Competition Regulations](https://www.worldaquatics.com/news/3090417/competition-regulations)
 - [World Athletics Book of Rules](https://worldathletics.org/about-iaaf/documents/book-of-rules)
+
+
+## Resmi okçuluk sonucu (0103)
+
+`okculuk`: `performances` satırları `athlete_ref`, `heat`, `lane` (hedef),
+`series` (1–100 seri toplamı, her biri 0–360), `rank` taşır. DQ/DNF satırında
+puan ve sıra bulunmaz. Eşit toplamda hakem tie-break sırası korunur; farklı
+puanlar ters sıralanamaz. Bu model mevcut ok başına antrenman sözleşmesini
+ve `ArcheryDefinition` yapısını değiştirmez.
+
+Konsol zengin protokolü `publish_official_match_result` üzerinden gönderir.
+0103 aynı işlemde özel revizyona zengin protokolü ve mevcut genel sonuç
+sözleşmesine sayısal izdüşümü kaydeder. `time` istemcide tamsayı `time_ms`
+alanına normalize edilir. Genel RPC zengin protokolü/oyuncu referanslarını
+hiç döndürmez. Yerel doğrulama sunucu yetkisinin veya sunucu doğrulamasının
+yerine geçmez. Yarış serileri genel sıralama/şampiyonluk sayılmaz.

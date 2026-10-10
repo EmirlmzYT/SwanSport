@@ -42,7 +42,8 @@ extension ConsoleAudienceAccess on SwanAccess {
         ConsoleAudience.platformAdmin => isPlatformAdmin,
         ConsoleAudience.accountant => isAccountant,
         // Henüz kimseye açılmadı — modül yazıldığında burası dolacak.
-        ConsoleAudience.federation || ConsoleAudience.marketplace => false,
+        ConsoleAudience.federation => canPublishFederationResults,
+        ConsoleAudience.marketplace => false,
       };
 
   /// Kitlelerden **herhangi biri** açıksa modül görünür.

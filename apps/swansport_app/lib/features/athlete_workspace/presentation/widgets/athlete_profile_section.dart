@@ -7,6 +7,8 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_shape.dart';
+import 'official_athlete_cv.dart';
 
 /// Profil sayfasındaki "Sporcu" bölümü — künye + başarılar.
 ///
@@ -44,17 +46,19 @@ class AthleteProfileSection extends ConsumerWidget {
               child: Row(children: [
                 const Icon(Icons.edit_rounded, size: 15, color: kTeal),
                 const SizedBox(width: 5),
-                Text('Düzenle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
+                Text('Düzenle',
+                    style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ]),
             ),
         ]),
         const SizedBox(height: 10),
         _card(context, isDark, athlete),
-
-        const SizedBox(height: 22),
+        const SizedBox(height: SwanSpace.xl),
+        OfficialAthleteCv(athleteId: athlete.id),
+        const SizedBox(height: SwanSpace.xl),
         Row(children: [
           Expanded(
-            child: Text('Başarılar', style: SwanType.h3(ink)),
+            child: Text('Kulüp Başarıları', style: SwanType.h3(ink)),
           ),
           if (canManage)
             GestureDetector(
@@ -62,7 +66,8 @@ class AthleteProfileSection extends ConsumerWidget {
               child: Row(children: [
                 const Icon(Icons.add_rounded, size: 16, color: kTeal),
                 const SizedBox(width: 4),
-                Text('Ekle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
+                Text('Ekle',
+                    style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ]),
             ),
         ]),
@@ -70,14 +75,12 @@ class AthleteProfileSection extends ConsumerWidget {
         if (achievements.isEmpty)
           _emptyAchievements(isDark, canManage)
         else
-          ...achievements.map(
-              (a) => _achievement(context, ref, isDark, a, canManage)),
-
+          ...achievements
+              .map((a) => _achievement(context, ref, isDark, a, canManage)),
         if (!canManage && athlete.clubName != null) ...[
           const SizedBox(height: 6),
           Text('Sportif bilgileri kulüp yönetir.',
-              style:
-                  SwanType.caption(SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
         ],
         const SizedBox(height: 4),
         Text('', style: SwanType.caption(ink, w: FontWeight.w400)),
@@ -116,7 +119,8 @@ class AthleteProfileSection extends ConsumerWidget {
               width: 42,
               height: 42,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kTealBright, kTealDeep]),
+                gradient:
+                    const LinearGradient(colors: [kTealBright, kTealDeep]),
                 borderRadius: BorderRadius.circular(13),
               ),
               child: Icon(
@@ -174,7 +178,8 @@ class AthleteProfileSection extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(label.toUpperCase(),
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w800)),
           const SizedBox(height: 2),
           Text(value, style: SwanType.bodySm(ink, w: FontWeight.w800)),
         ],
@@ -227,8 +232,8 @@ class AthleteProfileSection extends ConsumerWidget {
       decoration: BoxDecoration(
         color: surf,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-            color: a.isPodium ? medal.withValues(alpha: .45) : line),
+        border:
+            Border.all(color: a.isPodium ? medal.withValues(alpha: .45) : line),
       ),
       child: Row(children: [
         Container(
@@ -257,7 +262,11 @@ class AthleteProfileSection extends ConsumerWidget {
               const SizedBox(height: 2),
               Text(
                   [
-                    if (a.placement != null) a.placementLabel else a.categoryLabel,
+                    a.sourceLabel,
+                    if (a.placement != null)
+                      a.placementLabel
+                    else
+                      a.categoryLabel,
                     if (a.eventDate != null) _date(a.eventDate!),
                     if (a.location != null) a.location!,
                   ].join(' · '),
@@ -274,7 +283,7 @@ class AthleteProfileSection extends ConsumerWidget {
             ],
           ),
         ),
-        if (canManage)
+        if (canManage && !a.isOfficial)
           GestureDetector(
             onTap: () async {
               await ref
@@ -291,8 +300,18 @@ class AthleteProfileSection extends ConsumerWidget {
 
   String _date(DateTime d) {
     const months = [
-      'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
-      'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
+      'Oca',
+      'Şub',
+      'Mar',
+      'Nis',
+      'May',
+      'Haz',
+      'Tem',
+      'Ağu',
+      'Eyl',
+      'Eki',
+      'Kas',
+      'Ara'
     ];
     return '${d.day} ${months[d.month - 1]} ${d.year}';
   }

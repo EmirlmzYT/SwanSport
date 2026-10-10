@@ -4,6 +4,10 @@ Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+Resmi sonuç/CV son doğrulaması: 763 Flutter, 135 Dart ve 49 SQL koşusu geçti. 0103 gerçek RPC→revizyon→CV→anon redaksiyon zinciri, DQ düzeltmesi ve atomik rollback doğrulandı. Motor analizi temiz; genel analiz 0 hata/5 önceki uyarı/2888 info. Üretim app ve konsol web derlemeleri geçti; mevcut CupertinoIcons font uyarısı var. Yerel görev tamamlandı, Writer serbest. Kanıt docs/official-federation-result-verification.md. Başlangıç kullanıcı değişiklikleri korunur; canlı SQL/push/deploy yok.
+
+Kontrol noktası: 0103'te mevcut sonuç yazıcısı ortak iç fonksiyona taşındı; zengin branş protokolü özel revizyon sütununda, genel sonuçlar eski allowlist'te kalır. Otomatik CV, sürüm çakışması, kaynak erişimi ve immutable kayıt testlerinin ilk üçü gerçek PostgreSQL fixture üzerinde geçti. Konsol branş formları/kadro seçimi ve mobil kalkanlı sicil hazır; ayrıntılı testler sürüyor. Dar analiz 0 hata/uyarı, stil info bulguları var.
+
 Birleşik Takvim doğrulaması: 0102 public allowlist ve yetkili kulüp/veli okuma RPC'leri, Riverpod birleştirme, aylık gün işaretleri/filtreler/resmi detay ve ortak misafir rota ekranı tamamlandı. 360 veri + 317 uygulama (boş Supabase define) + 46 konsol = 723 Flutter ve 49 gerçek/azaltılmış fixture SQL testi geçti. Sporcu RSVP ve antrenör kulüp maç sonucu formu korunur. Genel analiz 0 hata/5 önceki kapsam dışı uyarı/2778 info; parse, SSS 39/39 ve diff-check geçti. Kanıt docs/unified-calendar-verification.md. Push/deploy/canlı SQL yok; Writer serbest.
 
 Branş motoru doğrulaması: 2026-10-10 basketbol/futbol/tenis/yüzme/kulvarlı atletizm müsabaka modelleri saf Dart içinde tamamlandı. Kontrat/okçuluk korunur; yeni bağımlılık yok. 131 VM + 130 Chrome testi, 6 ScorePad ve 28 veri regresyonu geçti. Paket analizi 0 bulgu; uygulama kapsamı 0 hata/uyarı, mevcut 7 info. ScorePad zorla okçuluk cast'i düzeltildi. Kanıt docs/branch-match-protocol-verification.md. Push/deploy/canlı SQL yok; Writer serbest.

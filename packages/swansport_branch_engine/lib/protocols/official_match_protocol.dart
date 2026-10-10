@@ -5,6 +5,7 @@ part 'basketball_protocol.dart';
 part 'football_protocol.dart';
 part 'tennis_protocol.dart';
 part 'race_protocol.dart';
+part 'archery_match_protocol.dart';
 
 enum MatchStatus { inProgress, finished }
 
@@ -44,6 +45,7 @@ OfficialMatchProtocol validateMatchProtocol(
     'futbol' => _football(rawProtocol, status),
     'tenis' => _tennis(rawProtocol, status),
     'yuzme' || 'atletizm' => _race(sportCode, rawProtocol, status),
+    'okculuk' => _archeryMatch(rawProtocol, status),
     _ => _fail('sport_code', 'Desteklenmeyen müsabaka branşı: $sportCode'),
   };
 }

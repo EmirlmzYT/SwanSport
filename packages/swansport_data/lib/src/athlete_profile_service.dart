@@ -90,6 +90,12 @@ class Achievement {
     this.eventDate,
     this.location,
     this.note,
+    this.source,
+    this.officialMatchId,
+    this.sourceId,
+    this.sportCode,
+    this.matchName,
+    this.resultVersion,
   });
 
   final String id;
@@ -100,6 +106,17 @@ class Achievement {
   final DateTime? eventDate;
   final String? location;
   final String? note;
+  final String? source, officialMatchId, sourceId, sportCode, matchName;
+  final int? resultVersion;
+  bool get isOfficial =>
+      source == 'federation_result' &&
+      officialMatchId != null &&
+      sourceId != null;
+  String get sourceLabel => isOfficial
+      ? 'Resmi Federasyon Derecesi'
+      : source == null || source == 'manual'
+          ? 'Kulüp Beyanı'
+          : 'Kulüp Gelişimi';
 
   /// 1., 2., 3. için madalya rengi mantığı ekranda kullanılır.
   bool get isPodium => placement != null && placement! >= 1 && placement! <= 3;
@@ -130,6 +147,13 @@ class Achievement {
             : DateTime.tryParse('${m['event_date']}'),
         location: m['location'] as String?,
         note: m['note'] as String?,
+        source: m['source'] as String?,
+        officialMatchId: m['official_match_id'] as String?,
+        sourceId: m['source_id'] as String?,
+        sportCode: m['sport_code'] as String?,
+        matchName: m['match_name'] as String?,
+        resultVersion:
+            m['result_version'] is int ? m['result_version'] as int : null,
       );
 }
 
@@ -164,7 +188,7 @@ class AthleteProfileService {
     final rows = await _c
         .from('athlete_achievements')
         .select('id, athlete_id, title, category, placement, event_date, '
-            'location, note')
+            'location, note, source')
         .eq('athlete_id', athleteId)
         .order('event_date', ascending: false, nullsFirst: false);
     return (rows as List)
@@ -196,7 +220,11 @@ class AthleteProfileService {
   }
 
   Future<void> removeAchievement(String id) async {
-    await _c.from('athlete_achievements').delete().eq('id', id);
+    await _c
+        .from('athlete_achievements')
+        .delete()
+        .eq('id', id)
+        .or('source.is.null,source.neq.federation_result');
   }
 
   /// Sportif bilgileri güncelle (yetki veritabanında denetlenir).
@@ -295,8 +323,8 @@ class AthleteCard {
 }
 
 /// Sporcu kartının verisi.
-final athleteCardProvider =
-    FutureProvider.autoDispose.family<AthleteCard, String>((ref, athleteId) async {
+final athleteCardProvider = FutureProvider.autoDispose
+    .family<AthleteCard, String>((ref, athleteId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return AthleteCard.empty;
   final client = ref.watch(supabaseClientProvider);
   try {
@@ -304,8 +332,7 @@ final athleteCardProvider =
         .rpc<dynamic>('athlete_card', params: {'p_athlete': athleteId});
     final list = (rows as List?) ?? const [];
     if (list.isEmpty) return AthleteCard.empty;
-    return AthleteCard.fromMap(
-        Map<String, dynamic>.from(list.first as Map));
+    return AthleteCard.fromMap(Map<String, dynamic>.from(list.first as Map));
   } catch (_) {
     // 0046 çalıştırılmadıysa fonksiyon yok. Kart eski hâliyle (yalnızca ad
     // ve QR) çalışmaya devam etsin; hata göstermek kartı kullanılamaz yapardı.

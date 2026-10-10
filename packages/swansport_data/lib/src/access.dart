@@ -164,6 +164,11 @@ class SwanAccess {
   bool hasCoachLevelForSport(String sportCode, int minimum, {DateTime? at}) =>
       minimum <= 0 || coachLevelForSport(sportCode, at: at) >= minimum;
 
+  bool get canPublishFederationResults => federationAppointments.any(
+        (a) => canWriteFederation(
+            a.sportCode, a.cityCode, FederationDuty.resultPublisher),
+      );
+
   bool canWriteFederation(
     String sportCode,
     String? cityCode,

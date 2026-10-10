@@ -10,6 +10,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/stitch_components.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../routing/athlete_detail_route_args.dart';
+import '../widgets/official_athlete_cv.dart';
 
 /// Sporcu Detayı — Stitch "Calm Athletic Modernism" Sporcu Detay & Veli Bağlantısı.
 class AthleteDetailScreen extends ConsumerStatefulWidget {
@@ -82,6 +83,8 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                           _buildAthleteHeroCard(c, a),
                           const SizedBox(height: 14),
 
+                          OfficialAthleteCv(athleteId: a.id, includeClub: true),
+                          const SizedBox(height: SwanSpace.xl),
                           // Linked Guardian Section
                           if (needsGuardian)
                             _buildGuardianCard(c, a.id)

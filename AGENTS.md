@@ -1631,3 +1631,15 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - 0102 mevcut resmi program/maç ve kulüp etkinlik/oturum tablolarını projekte eder. Resmi maçları `events` içine kopyalama; bağlı `training_sessions.event_id` kayıtlarını iki kez listeleme. Veli yalnız bağlı çocuk kulübü/takımı kapsamındadır; muhasebeci/platform admin tek başına özel takvimi açmaz.
 - Türkiye takviminde çok günlük faaliyet son günü dahildir; modelde `endsAt` sonraki gün gece yarısı ve hariçtir. `DateTime.hour` cihaz saat diliminden okunmaz; `calendarTurkeyTime` kullanılır.
 - Kanıt ve test komutları: docs/unified-calendar-verification.md. 0102 canlıya uygulanmadı; push/deploy yok.
+
+
+### 2026-10-10 — Resmi sonuç girişi ve değiştirilemez CV (0103, yerel)
+
+- Konsolun mevcut federasyon kitlesi `/federasyon-sonuclari` modülüne bağlandı. Merkezi SwanAccess.canWriteFederation/resultPublisher branş-il-süre kapısı ve sunucuda _federation_require gerekir; platform admin bypass yok.
+- 0096'da publish_official_match_result yoktu. 0103 bu zengin protokol RPC'sini ekler; eski federation_publish_result imzası korunur. İki yol aynı özel yazıcıyı kullanır. Yeni tablo yok; org_result_revisions.match_protocol özel zengin protokoldür, protocol eski public sayısal sözleşmede kalır.
+- Sonuç + frozen roster + otomatik athlete_achievements + audit atomiktir. Resmi kayıt düzenlenmez/silinmez. Düzeltme yeni revizyon/supersedes_id üretir; profil yalnız güncel maç revizyonunu gösterir. DQ/DNF derece üretmez. Seri sırası genel şampiyonluk değildir, tek maç galibiyeti altın madalya değildir. Eski sonuçlara sessiz backfill yok.
+- Yeni sonuç zaten otomatik sicil üretir; aynı sporcu/revizyon için federation_award_achievement ile ikinci derece eklemeye çalışma: mevcut source tekilliği reddeder. Eski sonuçların manuel federasyon derece yolu korunur.
+- Resmi CV tablolarına yeni anon/auth SELECT verilmedi. Özel whitelist RPC'leri sporcu/bağlı veli/sportif personel içindir; muhasebeci ve admin tek başına okuyamaz. Kaynak kartına tam protokol/kadro taşıma. Genel sonuçlar 0097/0098 ad kuralını kullanır, UUID sızmaz; program is_public kendiliğinden açılmaz.
+- Mobil profil mevcut AthleteProfileSection üzerinden ortak OfficialAthleteCv kullanır; yeşil kalkan ve kaynak detayında düzenleme/silme yok. Kulüp Beyanı/Gelişimi ayrıdır. Konsol bilerek ayrı ConsoleDensity/Theme dilini korur.
+- Okçuluk resmi seri toplamı modeli saf Dart'a eklendi; antrenman ArcheryDefinition sözleşmesi değişmez. Data katmanı validateMatchProtocol ve milisaniye normalizasyonunu yapar; widget Supabase çağırmaz.
+- Kanıt docs/official-federation-result-verification.md. 763 Flutter + 135 Dart, 49 SQL koşusu (33 farklı), motor analizi temiz; genel analiz 0 hata/5 mevcut uyarı/2888 info. İki üretim web derlemesi hazırlandı; mevcut CupertinoIcons font uyarısı var. Canlı SQL/push/deploy ve hesaplı canlı UAT yok. Başlangıç kullanıcı değişiklikleri commit dışında korunur.

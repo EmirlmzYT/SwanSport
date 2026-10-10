@@ -24,6 +24,7 @@ import '../../features/platform/turf_fields_screen.dart';
 import '../../features/platform/platform_screens.dart';
 import '../../features/schedule/schedule_screen.dart';
 import 'console_module.dart';
+import '../../features/federation/federation_results_screen.dart';
 
 /// Konsolun tüm modülleri — tek liste.
 ///
@@ -33,6 +34,13 @@ import 'console_module.dart';
 /// Yeni modül eklemek = buraya bir satır. Yeni **kitle** eklemek de öyle:
 /// `ConsoleAudience`'ta yuvası zaten var.
 const List<ConsoleModule> kConsoleModules = [
+  ConsoleModule(
+      id: 'federation_results',
+      label: 'Resmi Sonuçlar',
+      icon: Icons.verified_user_rounded,
+      route: '/federasyon-sonuclari',
+      audience: {ConsoleAudience.federation},
+      builder: _federationResults),
   // ----------------------------------------------------------- kulüp
   ConsoleModule(
     id: 'athletes',
@@ -306,3 +314,6 @@ Widget _courts(BuildContext _) => const ConsoleCourtsScreen();
 Widget _turfFields(BuildContext _) => const ConsoleTurfFieldsScreen();
 
 Widget _diagnostics(BuildContext _) => const DiagnosticsScreen();
+
+Widget _federationResults(BuildContext context) =>
+    const FederationResultsScreen();
