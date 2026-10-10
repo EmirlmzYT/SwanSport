@@ -28,7 +28,7 @@ Sonuç protokolü ortak JSON allowlist'idir; branş başına yeni maç tablosu a
 
 C1: 0099/0100, mevcut belge sisteminde tekil doğrulanmış TCKN, eski aktif üye geçişi, branş/süre/veli kontrolleri ve eski üyelik/davet RPC kapıları. 34 kimlik/temel SQL, 28 public SQL, 679 Flutter testi geçti; değişen Dart analizi temiz. Ekran yok. Kanıt: docs/identity-membership-verification.md. 0009 kulüpsüz eski satır bırakmışsa 0100 veri değiştirmeden durur.
 
-C2 henüz uygulanmadı: bekleme odası/expiry arayüzü, antrenör okuma RLS daraltması ve hesap silme yaşam döngüsü. Aşağıdaki daha geniş Faz C maddelerinin tamamlandığı iddia edilmez.
+C2 arayüz bağlantısı 2026-10-10 kullanıcı göreviyle yerelde uygulandı: misafir keşfi, hesap/kimlik işlem kapıları, mevcut kimlik belgesi yükleme ve spor belgesi expiry alanı. Kanıt: docs/guest-identity-verification.md. Antrenör okuma RLS daraltması ve hesap silme yaşam döngüsü henüz uygulanmadı. Aşağıdaki daha geniş Faz C maddelerinin tamamlandığı iddia edilmez.
 
 - Mevcut oturum/giriş akışı şimdi değiştirilmez. Sonra hesap/kimlik/branş kapıları ayrı durumlar olarak modellenir.
 - Tek doğrulanmış TCKN / tek hesap; profiles.national_id beyanı doğrulanmış kimlik sayılamaz.

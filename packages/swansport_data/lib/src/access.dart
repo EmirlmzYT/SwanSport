@@ -5,8 +5,20 @@ import 'expense_service.dart';
 import 'federation_records.dart';
 import 'parent_actions.dart';
 import 'saha_operations.dart';
+import 'supabase_scope.dart';
 import 'turf_service.dart';
 import 'verification_service.dart';
+
+enum SwanAction {
+  clubApplication,
+  rsvp,
+  message,
+  listing,
+  reservation,
+  publish
+}
+
+enum SwanActionDecision { allowed, accountRequired, identityRequired }
 
 /// Bir kişinin SwanSport'taki konumu — tek kaynak.
 ///
@@ -53,6 +65,27 @@ class SwanAccess {
   final bool hasAccount;
   final bool hasVerifiedIdentity;
   final Set<String> legacyIdentityClubIds;
+
+  SwanActionDecision decisionFor(SwanAction action) {
+    if (!hasAccount) return SwanActionDecision.accountRequired;
+    if (action == SwanAction.clubApplication && !hasVerifiedIdentity) {
+      return SwanActionDecision.identityRequired;
+    }
+    return SwanActionDecision.allowed;
+  }
+
+  /// Only these named routes may construct screens without an account.
+  static bool isGuestRoute(String? route) => const {
+        '/',
+        '/auth',
+        '/landing',
+        '/akis',
+        '/kesfet',
+        '/kortlar',
+        '/halisahalar',
+        '/federasyon-takvimi',
+        '/yardim',
+      }.contains(route);
 
   bool get isInIdentityWaitingRoom =>
       hasAccount && !hasVerifiedIdentity && legacyIdentityClubIds.isEmpty;
@@ -224,6 +257,10 @@ class SwanAccess {
 /// Üç kaynağı birleştirir; herhangi biri henüz yüklenmemişse elindekiyle
 /// hesaplar (menüyü boş göstermektense eksik göstermek daha az yanıltıcı).
 final swanAccessProvider = Provider<SwanAccess>((ref) {
+  if (ref.watch(isSupabaseEnabledProvider) &&
+      ref.watch(authSessionProvider).valueOrNull == null) {
+    return SwanAccess.none;
+  }
   final profile = ref.watch(currentProfileProvider).valueOrNull;
   if (profile == null) return SwanAccess.none;
 

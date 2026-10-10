@@ -1,3 +1,4 @@
+import '../../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import '../../../../app/design/swan_shape.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1208,6 +1209,7 @@ class _ScheduleCalendarScreenState
     return Expanded(
       child: GestureDetector(
         onTap: () async {
+          if (!await requireSwanAction(context, ref, SwanAction.rsvp) || !context.mounted) return;
           try {
             await ref
                 .read(clubDataServiceProvider)

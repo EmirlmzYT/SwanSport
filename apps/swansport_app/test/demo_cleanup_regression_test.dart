@@ -141,7 +141,7 @@ void main() {
 
   testWidgets('live preview route never displays fixture report',
       (tester) async {
-    await tester.pumpWidget(ProviderScope(overrides: [
+    await tester.pumpWidget(ProviderScope(overrides: [swanAccessProvider.overrideWithValue(const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null)),
       appEnvironmentProvider
           .overrideWithValue(const AppEnvironment.production()),
     ], child: const SwanSportApp()));

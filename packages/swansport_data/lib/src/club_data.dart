@@ -37,6 +37,7 @@ class ProfileInfo {
 
 final currentProfileProvider = FutureProvider<ProfileInfo?>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return null;
+  ref.watch(authSessionProvider);
   final client = ref.watch(supabaseClientProvider);
   final uid = client.auth.currentUser?.id;
   if (uid == null) return null;

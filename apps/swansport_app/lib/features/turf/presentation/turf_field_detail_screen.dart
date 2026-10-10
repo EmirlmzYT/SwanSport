@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -242,6 +243,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
   /// gerçek bir mesaj gider, iki taraf sohbetten anlaşır. Son söz hâlâ
   /// yönetici — kesinleşince hücreyi o işaretler.
   Future<void> _request(TurfSlot s) async {
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(

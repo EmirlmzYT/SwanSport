@@ -1,3 +1,5 @@
+import 'widgets/action_gate.dart';
+import '../features/network/presentation/guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -143,7 +145,7 @@ class SwanSportApp extends ConsumerWidget {
       builder: (context, child) =>
           AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: '/',
-      routes: {
+      routes: <String, WidgetBuilder>{
         '/': (context) => const AuthGate(),
         '/auth': (context) => const AuthScreen(),
         '/home-command': (context) => const HomeCommandCenterScreen(),
@@ -181,6 +183,7 @@ class SwanSportApp extends ConsumerWidget {
         '/bildirimler': (context) => const NotificationsScreen(),
         '/mesajlar': (context) => const MessagesScreen(),
         '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
+        '/federasyon-takvimi': (context) => const PublicSportCalendarScreen(),
         '/kesfet': (context) => const ExploreScreen(),
         '/kulupler': (context) => const DiscoverScreen(),
         '/pazaryeri': (context) => const MarketplaceScreen(),
@@ -240,8 +243,10 @@ class SwanSportApp extends ConsumerWidget {
         '/beslenme': (context) => const NutritionTrackerScreen(),
         '/yaris-detay': (context) => const RaceEventDetailScreen(),
         '/kulup-detay': (context) => const ClubProfileDetailScreen(),
-      },
-      onGenerateRoute: (settings) {
+      }.map((route, builder) => MapEntry(route, SwanAccess.isGuestRoute(route)
+          ? builder
+          : (context) => AccountRouteGate(builder: builder))),
+      onGenerateRoute: guardAccountRoutes((settings) {
         // These secondary design previews still use fixture repositories.
         // Preserve their URLs, but never expose fabricated records on a live backend.
         final previewRoute = settings.name;
@@ -541,7 +546,7 @@ class SwanSportApp extends ConsumerWidget {
         }
 
         return null;
-      },
+      }),
     );
   }
 }

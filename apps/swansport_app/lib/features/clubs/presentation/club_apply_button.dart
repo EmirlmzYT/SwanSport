@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -105,6 +106,7 @@ class ClubApplyButton extends ConsumerWidget {
   }
 
   Future<void> _openSheet(BuildContext context, WidgetRef ref) async {
+    if (!await requireSwanAction(context, ref, SwanAction.clubApplication) || !context.mounted) return;
     final sent = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -138,6 +140,7 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
   }
 
   Future<void> _send() async {
+    if (!await requireSwanAction(context, ref, SwanAction.clubApplication) || !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(clubApplicationServiceProvider).apply(

@@ -1,3 +1,4 @@
+import 'package:swansport_data/swansport_data.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -14,7 +15,7 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
-    await tester.pumpWidget(const ProviderScope(child: SwanSportApp()));
+    await tester.pumpWidget(ProviderScope(overrides: [swanAccessProvider.overrideWithValue(const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null))], child: const SwanSportApp()));
     await tester.pumpAndSettle();
   }
 

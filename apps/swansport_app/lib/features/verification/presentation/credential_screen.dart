@@ -1,7 +1,8 @@
+import '../../../app/widgets/action_gate.dart';
+import '../../../app/design/swan_shape.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
@@ -23,10 +24,12 @@ class CredentialScreen extends ConsumerStatefulWidget {
 
 class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   // Kişisel başvuru durumu
-  int _mode = 0; // 0 antrenör, 1 sporcu
+  int _mode = 2; // 0 antrenör, 1 sporcu, 2 kimlik
   int _kademe = 2;
   String? _sportCode;
   bool _busy = false;
+  DateTime? _expiresOn;
+  String? _credentialId;
 
   final Map<String, ({String fileName, String storagePath})> _docs = {};
   final Set<String> _uploading = {};
@@ -34,10 +37,10 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF061424) : SwanPalette.light.bg;
-    final surf = isDark ? const Color(0xFF132031) : SwanPalette.light.surface;
+    final bg = context.swan.bg;
+    final surf = context.swan.surface;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final line = isDark ? const Color(0xFF293547) : SwanPalette.light.line;
+    final line = context.swan.line;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final async = ref.watch(myCredentialsProvider);
     return Scaffold(
@@ -70,11 +73,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                       child: Text(
                         'Lisans & Kimlik Doğrulama',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.sora(
-                          color: ink,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        style: SwanType.h3(ink),
                       ),
                     ),
                     Container(
@@ -91,8 +90,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                           ),
                         ],
                       ),
-                      child: const Icon(Icons.person_rounded,
-                          size: 19, color: Color(0xFF003734)),
+                      child:
+                          Icon(Icons.person_rounded, color: context.swan.ink),
                     ),
                   ],
                 ),
@@ -101,9 +100,16 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
 
                 // Kişisel Başvuru Bölümü (Supabase backend'e bağlı)
                 SwanSegmentedTabs(
-                  labels: const ['Antrenör Belgesi', 'Sporcu Lisansı'],
+                  labels: const ['Antrenör', 'Sporcu', 'Kimlik'],
                   selected: _mode,
-                  onSelect: (i) => setState(() => _mode = i),
+                  onSelect: (i) {
+                    if (_busy || _uploading.isNotEmpty || i == _mode) return;
+                    setState(() {
+                      _mode = i;
+                      _credentialId = null;
+                      _docs.clear();
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
 
@@ -135,7 +141,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                     'Belgen hangi branşa aitse onu seç. Platform bu branşta onaylar.',
                     style: SwanType.caption(SwanColors.textSecondary),
                   ),
-                ] else ...[
+                ] else if (_mode == 1) ...[
                   Text('Sporcu Branşı', style: SwanType.h3(ink)),
                   const SizedBox(height: 8),
                   _sportPicker(isDark, alt, ink),
@@ -147,13 +153,31 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 ],
 
                 const SizedBox(height: 16),
+                if (_mode != 2) ...[
+                  Text('Belge bitiş tarihi', style: SwanType.h3(ink)),
+                  TextButton.icon(
+                    onPressed: _busy ? null : _pickExpiry,
+                    icon: const Icon(Icons.event_outlined),
+                    label: Text(_expiresOn == null
+                        ? 'Bitiş tarihi seç'
+                        : _expiresOn!.toIso8601String().substring(0, 10)),
+                  ),
+                  const SizedBox(height: SwanSpace.lg),
+                ] else ...[
+                  Text(
+                      'Kimlik belgen platform yöneticisi tarafından incelenir. Kimlik onayı branş lisansı yerine geçmez.',
+                      style: SwanType.bodySm(ink)),
+                  const SizedBox(height: SwanSpace.lg),
+                ],
                 Text('Belgeler', style: SwanType.h3(ink)),
                 const SizedBox(height: 8),
                 if (_mode == 0) ...[
                   _uploadTile(isDark, 'kademe_belgesi', 'Kademe Belgesi'),
                   _uploadTile(isDark, 'kimlik', 'Kimlik (TC)'),
-                ] else
-                  _uploadTile(isDark, 'federasyon', 'Federasyon Lisansı'),
+                ] else if (_mode == 1)
+                  _uploadTile(isDark, 'federasyon', 'Federasyon Lisansı')
+                else
+                  _uploadTile(isDark, 'kimlik', 'Kimlik Belgesi'),
                 const SizedBox(height: 4),
                 Text(
                   'ⓘ PDF veya fotoğraf (JPG/PNG) yükleyebilirsin.',
@@ -325,7 +349,22 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   }
 
   Future<void> _submit() async {
-    if (_sportCode == null || _sportCode!.isEmpty) {
+    if (!await requireSwanAction(context, ref, SwanAction.publish) || !mounted)
+      return;
+    final requiredDocs = _mode == 0
+        ? ['kademe_belgesi', 'kimlik']
+        : [_mode == 1 ? 'federasyon' : 'kimlik'];
+    final today = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final day = DateTime(today.year, today.month, today.day);
+    if (_uploading.isNotEmpty ||
+        requiredDocs.any((d) => !_docs.containsKey(d)) ||
+        (_mode != 2 && (_expiresOn == null || _expiresOn!.isBefore(day)))) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text(
+              'Gerekli belgeleri yükle ve spor belgesi için geçerli bitiş tarihi seç.')));
+      return;
+    }
+    if (_mode != 2 && (_sportCode == null || _sportCode!.isEmpty)) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: const Text('Önce branşını seç'),
@@ -337,9 +376,15 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     setState(() => _busy = true);
     try {
       final s = ref.read(verificationServiceProvider);
-      final credId = _mode == 0
-          ? await s.submitCoachCredential(_kademe, sportCode: _sportCode)
-          : await s.submitAthleteCredential(sportCode: _sportCode);
+      final credId = _credentialId ??
+          (_mode == 2
+              ? await s.submitIdentityCredential()
+              : _mode == 0
+                  ? await s.submitCoachCredential(_kademe,
+                      sportCode: _sportCode, expiresOn: _expiresOn)
+                  : await s.submitAthleteCredential(
+                      sportCode: _sportCode, expiresOn: _expiresOn));
+      _credentialId = credId;
 
       if (_docs.isNotEmpty) {
         await s.attachDocuments(
@@ -354,7 +399,10 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
 
       ref.invalidate(myCredentialsProvider);
       if (mounted) {
-        setState(_docs.clear);
+        setState(() {
+          _docs.clear();
+          _credentialId = null;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Başvurun alındı — platform inceleyecek'),
@@ -513,7 +561,20 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     );
   }
 
+  Future<void> _pickExpiry() async {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final today = DateTime(now.year, now.month, now.day);
+    final picked = await showDatePicker(
+        context: context,
+        firstDate: today,
+        lastDate: DateTime(today.year + 30),
+        initialDate: _expiresOn ?? today);
+    if (picked != null && mounted) setState(() => _expiresOn = picked);
+  }
+
   Future<void> _pickAndUpload(String docType) async {
+    if (!await requireSwanAction(context, ref, SwanAction.publish) || !mounted)
+      return;
     try {
       final f = await FilePicker.pickFile(
         type: FileType.custom,

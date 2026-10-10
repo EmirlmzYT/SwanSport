@@ -65,6 +65,10 @@ class NewsService {
 
   // ----------------------------- kaynaklar -----------------------------
   Future<List<RssSource>> sources({bool onlyActive = true}) async {
+    if (onlyActive && _c.auth.currentUser == null) {
+      final rows = await _c.rpc<List<dynamic>>('public_news_sources');
+      return rows.map((r) => RssSource.fromMap(Map<String, dynamic>.from(r as Map))).toList();
+    }
     var q = _c.from('rss_sources').select('id, name, url, active');
     if (onlyActive) q = q.eq('active', true);
     final rows = await q.order('name');

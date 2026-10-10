@@ -1609,3 +1609,11 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - Şema tuzağı: 0009 club_id NOT NULL kısıtını geçmişte kaldırmış. 0100 kulüpsüz satır varsa atomik durur; veri silmez/uydurmaz. profile_id nullable kalır.
 - Ekran/konsol/hesap silme/antrenör okuma RLS değişmedi. Eski athlete_public ve lifecycle riskleri çözülmüş sayılmaz. Kimlik/expiry ekran bağlantıları sonraki kapsamdır.
 - Kanıt: docs/identity-membership-verification.md. 34 C1/temel + 28 public SQL; 343 veri + 290 uygulama + 46 konsol = 679 Flutter; değişen 3 Dart dosyası analiz temiz; parse/diff temiz. Canlı SQL, push, deploy yok; bu fazın açık push yasağı genel GitHub tercihinin önündedir.
+
+### 2026-10-10 — Misafir gezinti ve kimlik kapısı UI
+
+- AuthGate tanıtımdan sonra oturumsuz keşfe gider; anonim auth hesabı oluşturmaz. Oturum değişimi profili yeniler; misafir SwanAccess.none kullanır.
+- SwanAccess.decisionFor işlem kararının tek kaynağıdır. requireSwanAction giriş/kimlik alt penceresini gösterir; dönüşte yazmayı otomatik tekrarlamaz. Yeni özel rota eklerken AccountRouteGate korumasını, doğrudan açılan ekranda yazma girişlerini kontrol et.
+- Misafir faaliyet takvimi yalnız 0097 public program/fikstür RPC'lerini kullanır. 0101 aktif RSS kaynağı RPC'si ve yardım ekler; yeni anon tablo grant'i yoktur.
+- Mevcut belge ekranı Kimlik bölümünü ve spor/antrenör bitiş tarihini toplar. Kimlik onayı branş belgesinin yerine geçmez. Antrenör RLS daraltması ve hesap silme işleri bekler.
+- Kanıt: docs/guest-identity-verification.md. 698 Flutter, 63 SQL testi; değişen Dart analizinde 0 hata/uyarı, 535 info. Canlı SQL/push/deploy yok.

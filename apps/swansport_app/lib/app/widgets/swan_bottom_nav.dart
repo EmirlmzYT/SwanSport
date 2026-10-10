@@ -3,7 +3,8 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'action_gate.dart';
 
 import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
@@ -81,7 +82,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     final current = ModalRoute.of(context)?.settings.name;
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
-    final myId = Supabase.instance.client.auth.currentUser?.id;
+    final myId = ref.watch(currentProfileProvider).valueOrNull?.id;
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
 
     // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
@@ -126,14 +127,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
           setState(() => _scrub = null);
           if (i == null) return;
           final t = targets[i];
-          if (t.route == '/profil') {
-            if (myId != null) {
-              Navigator.pushReplacementNamed(context, '/profil',
-                  arguments: myId);
-            }
-          } else {
-            _go(context, t.route);
-          }
+          _go(context, t.route, profileId: myId);
         },
         onLongPressCancel: () => setState(() => _scrub = null),
         onHorizontalDragStart: isIos
@@ -150,17 +144,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                 setState(() => _scrub = null);
                 if (i == null) return;
                 final target = targets[i];
-                if (target.route == '/profil') {
-                  if (myId != null) {
-                    Navigator.pushReplacementNamed(
-                      context,
-                      '/profil',
-                      arguments: myId,
-                    );
-                  }
-                } else {
-                  _go(context, target.route);
-                }
+                _go(context, target.route, profileId: myId);
               }
             : null,
         onHorizontalDragCancel:
@@ -199,7 +183,8 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                   children: [
                     for (var i = 0; i < targets.length; i++) ...[
                       if (i == 2) const _CreateButton(),
-                      _Tab(
+                      Expanded(
+                          child: _Tab(
                         key: _keys[i],
                         icon: (_scrub == null
                                 ? route == targets[i].route
@@ -212,19 +197,9 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                             : _scrub == i,
                         scrubbing: _scrub == i,
                         onTap: () {
-                          if (targets[i].route == '/profil') {
-                            if (myId != null) {
-                              Navigator.pushReplacementNamed(
-                                context,
-                                '/profil',
-                                arguments: myId,
-                              );
-                            }
-                            return;
-                          }
-                          _go(context, targets[i].route);
+                          _go(context, targets[i].route, profileId: myId);
                         },
-                      ),
+                      )),
                     ],
                   ],
                 ),
@@ -236,9 +211,14 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     );
   }
 
-  void _go(BuildContext context, String route) {
+  Future<void> _go(BuildContext context, String route,
+      {String? profileId}) async {
+    if (!SwanAccess.isGuestRoute(route) &&
+        !await requireSwanAction(context, ref, SwanAction.message)) return;
+    if (!context.mounted) return;
     if (ModalRoute.of(context)?.settings.name == route) return;
-    Navigator.pushReplacementNamed(context, route);
+    Navigator.pushReplacementNamed(context, route,
+        arguments: route == '/profil' ? profileId : null);
   }
 }
 
@@ -321,15 +301,20 @@ class _Tab extends StatelessWidget {
 }
 
 /// Ortadaki "+" — bağlama göre oluşturma eylemleri.
-class _CreateButton extends StatelessWidget {
+class _CreateButton extends ConsumerWidget {
   const _CreateButton();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => showCreateSheet(context),
+      onTap: () async {
+        if (await requireSwanAction(context, ref, SwanAction.publish) &&
+            context.mounted) {
+          await showCreateSheet(context);
+        }
+      },
       child: Container(
         width: 46,
         height: 46,

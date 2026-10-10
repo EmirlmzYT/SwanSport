@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -444,6 +445,7 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
   }
 
   Future<void> _send() async {
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
     final text = _ctrl.text.trim();
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);

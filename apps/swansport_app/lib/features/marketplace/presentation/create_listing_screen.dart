@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -302,6 +303,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
       );
 
   Future<void> _publish() async {
+    if (!await requireSwanAction(context, ref, SwanAction.listing) || !mounted) return;
     final c = context.swan;
     if (_title.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

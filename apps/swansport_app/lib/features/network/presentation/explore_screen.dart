@@ -1,3 +1,4 @@
+import 'guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,6 +31,7 @@ class ExploreScreen extends ConsumerStatefulWidget {
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
+    if (!ref.watch(swanAccessProvider).hasAccount) return const GuestExploreScreen();
     final c = context.swan;
     final access = ref.watch(swanAccessProvider);
 

@@ -1,10 +1,12 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-09 Europe/Istanbul
+Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
-Güncel doğrulama: Faz C1 kimlik/üyelik sunucu kapısı yerelde tamamlandı. 0099/0100, mevcut belge sisteminde tekil doğrulanmış TCKN, eski aktif üyelik geçişi, branş/süre/veli kapıları ve eski RPC/doğrudan yazma koruması. 34 kimlik/temel + 28 public SQL, 679 Flutter (343 veri/290 uygulama/46 konsol), değişen Dart analizi 0 bulgu. Parse/diff temiz. 0009 kulüpsüz eski sporcu varsa 0100 atomik durur; ekran/expiry bağlantısı ve C2 privacy/lifecycle işleri bekler. Push/deploy/canlı SQL yok. Kanıt docs/identity-membership-verification.md. Writer serbest.
+Güncel doğrulama: Misafir keşfi ve kimlik kapısı UI yerelde uygulandı. AuthGate, merkezi SwanAccess işlem kararı, özel rota koruması, mevcut kimlik/belge ekranı ve zorunlu spor belgesi expiry alanı bağlı. 698 Flutter (348 veri/304 uygulama/46 konsol), 63 SQL; değişen Dart analizi 0 hata/uyarı, 535 info. 0101 parse, SSS 39/39, diff-check ve üretim web derlemesi geçti. Derlemede CupertinoIcons font uyarısı var. Push/deploy/canlı SQL yok. Kanıt docs/guest-identity-verification.md. Writer serbest.
+
+Önceki Faz C1 doğrulaması: 0099/0100, mevcut belge sisteminde tekil doğrulanmış TCKN, eski aktif üyelik geçişi, branş/süre/veli kapıları ve eski RPC/doğrudan yazma koruması. 34 kimlik/temel + 28 public SQL, 679 Flutter. 0009 kulüpsüz eski sporcu varsa 0100 atomik durur; C2 privacy/lifecycle işleri bekler. Kanıt docs/identity-membership-verification.md.
 
 Önceki Faz B doğrulaması: Faz B dar RPC kapsamı yerelde tamamlandı. 0097 yayın anahtarı + üç anon/authenticated genel RPC; yeni tablo/ekran yok. 27 SQL (16 A + 11 B), 20 dar Dart testi başarılı. Genel analiz 0 hata/5 önceki uyarı/2641 info (çıkış 1). Parse/diff temiz. Push/deploy/canlı SQL yok; docs/federation-public-verification.md.
 
@@ -156,3 +158,5 @@ Güncel doğrulama: Faz C1 kimlik/üyelik sunucu kapısı yerelde tamamlandı. 0
 | 2026-10-09 | Codex Writer | active | Faz C1: mevcut credential/belge sistemiyle doğrulanmış TCKN, branş ve üyelik yazma kapıları; eski aktif üyeler için sunucuda sabit geçiş. | 0099+, veri katmanı, SQL testleri | Yeni ekran/konsol, hesap silme veya antrenör okuma RLS daraltması yok. Push/deploy/canlı SQL yok. |
 
 | 2026-10-09 | Codex Writer | complete | Faz C1 kimlik/üyelik kapısı | 0099/0100, mevcut Dart veri API, kimlik testleri ve rapor | 34+28 SQL, 679 Flutter, dar analiz temiz. Yerel commit; push/deploy/canlı SQL yok. |
+
+| 2026-10-10 | Codex Writer | active | Misafir gezinti, merkezi eylem/rota kapıları ve kimlik belge ekranı bağlantısı | app/data/test | Mevcut yol haritası ve generated metadata korunur; canlı SQL/deploy yok. |

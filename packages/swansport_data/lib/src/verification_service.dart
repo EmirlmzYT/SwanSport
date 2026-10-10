@@ -135,6 +135,14 @@ class VerificationService {
   /// Uses the existing verification_documents attachment/upload workflow.
   Future<String> submitIdentityCredential() async {
     if (_uid == null) throw StateError('Oturum bulunamadı');
+    final existing = await _c.from('profile_credentials').select('id,status')
+        .eq('profile_id', _uid!).eq('kind', 'identity').maybeSingle();
+    if (existing != null) {
+      if (existing['status'] == 'pending') return existing['id'] as String;
+      throw StateError(existing['status'] == 'approved'
+          ? 'Kimliğin zaten onaylı.'
+          : 'Kimlik başvurun reddedilmiş. Yeniden inceleme için destek ekibine başvur.');
+    }
     final row = await _c
         .from('profile_credentials')
         .insert({'profile_id': _uid, 'kind': 'identity'})

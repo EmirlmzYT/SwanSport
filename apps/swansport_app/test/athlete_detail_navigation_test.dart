@@ -13,6 +13,7 @@ import 'package:swansport_models/swansport_models.dart';
 void main() {
   ProviderScope scope(Widget child) => ProviderScope(
         overrides: [
+          swanAccessProvider.overrideWithValue(const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null)),
           athleteByIdProvider.overrideWith(
               (ref, id) async => id == 'athlete_can_yilmaz' ? _athlete : null),
         ],

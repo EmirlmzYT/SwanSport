@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -663,6 +664,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _send() async {
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
     final text = _ctrl.text.trim();
     if (text.isEmpty) return;
     _ctrl.clear();
@@ -670,6 +672,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _deliver(String text, {String? retryId}) async {
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
     final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
     setState(() {
       _pending

@@ -26,7 +26,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          swanAccessProvider.overrideWithValue(SwanAccess.none),
+          swanAccessProvider.overrideWithValue(const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null)),
           featureFlagsProvider
               .overrideWith((ref) async => const FeatureFlags.none()),
           unreadNotificationsProvider.overrideWith((ref) async => 0),

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -24,9 +23,7 @@ class PublicLandingScreen extends ConsumerWidget {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
-    final enabled = ref.watch(isSupabaseEnabledProvider);
-    final signedIn =
-        enabled && Supabase.instance.client.auth.currentSession != null;
+    final signedIn = ref.watch(authSessionProvider).valueOrNull != null;
 
     return Scaffold(
       backgroundColor: bg,

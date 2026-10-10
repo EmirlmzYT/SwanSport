@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -240,6 +241,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
         );
 
     if (s.isFree) {
+      if (!ref.read(swanAccessProvider).hasAccount) return button('Al', () => _claim(s));
       if (!verified) return const SizedBox.shrink();
       return button('Al', () => _claim(s));
     }
@@ -276,6 +278,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   /// Konum gerektiren işleri tek yerden geçiriyoruz: her çağıran ayrı ayrı
   /// izin ve hata yönetirse biri unutur, hata da ancak sahada görünür.
   Future<void> _withPlace(Future<void> Function(Place place) action) async {
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
     setState(() => _busy = true);
     try {
       final place = await currentPlace();
@@ -311,6 +314,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
       });
 
   Future<void> _wait(TimelineSlot s) async {
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
     if (_busy) return;
     setState(() => _busy = true);
     try {
@@ -330,6 +334,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   }
 
   Future<void> _claim(TimelineSlot s) async {
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
     final result = await showModalBottomSheet<ClaimResult>(
       context: context,
       isScrollControlled: true,
@@ -358,6 +363,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   }
 
   Future<void> _extend(TimelineSlot s) async {
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(courtServiceProvider).extend(s.slotId!);
@@ -372,6 +378,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   }
 
   Future<void> _requestJoin(TimelineSlot s) async {
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(courtServiceProvider).requestJoin(s.slotId!);

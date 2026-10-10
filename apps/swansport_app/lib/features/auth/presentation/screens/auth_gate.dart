@@ -4,7 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../../onboarding/presentation/onboarding_screen.dart';
 import '../../../social/presentation/feed_screen.dart';
-import 'auth_screen.dart';
+import '../../../network/presentation/guest_explore_screen.dart';
 
 /// Tanıtımın görülüp görülmediği.
 ///
@@ -17,7 +17,7 @@ final onboardingSeenProvider = FutureProvider<bool>((ref) => onboardingSeen());
 ///
 /// Supabase oturumu tarayıcıda (localStorage) kalıcı saklanır. Açılışta aktif
 /// bir oturum varsa doğrudan ana sayfaya (akış) gider. Oturum yoksa **önce
-/// tanıtım** gösterilir (bir kez), sonra giriş ekranı.
+/// tanıtım** gösterilir (bir kez), sonra hesapsız keşif akışı.
 ///
 /// Sıra bilerek böyle: tanıtımın işi uygulamanın ne olduğunu anlatmak, o da
 /// kimlik sorulmadan önce anlatılmalı. Oturumu olan kullanıcı tanıtımı hiç
@@ -29,14 +29,14 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(authSessionProvider).when(
           loading: () => const _Blank(),
-          error: (error, _) => const AuthScreen(),
+          error: (error, _) => const GuestExploreScreen(),
           data: (session) {
             if (session != null) return const FeedScreen();
             return ref.watch(onboardingSeenProvider).when(
                   loading: () => const _Blank(),
-                  error: (_, __) => const AuthScreen(),
+                  error: (_, __) => const GuestExploreScreen(),
                   data: (seen) => seen
-                      ? const AuthScreen()
+                      ? const GuestExploreScreen()
                       : OnboardingScreen(
                           onDone: () => ref.invalidate(onboardingSeenProvider)),
                 );

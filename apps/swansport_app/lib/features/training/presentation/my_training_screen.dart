@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -138,7 +139,8 @@ class MyTrainingScreen extends ConsumerWidget {
   ///
   /// Kamera okuyucu yok — kod her yerde ve web'de çalışıyor. Kod doğru olsa
   /// bile başka kulübün oturumuna girilemiyor; kapsamı sunucu kesiyor.
-  void _joinDialog(BuildContext context, WidgetRef ref) {
+  Future<void> _joinDialog(BuildContext context, WidgetRef ref) async {
+    if (!await requireSwanAction(context, ref, SwanAction.rsvp) || !context.mounted) return;
     final ctrl = TextEditingController();
     String? error;
 
@@ -167,6 +169,7 @@ class MyTrainingScreen extends ConsumerWidget {
                 child: const Text('Vazgeç')),
             FilledButton(
               onPressed: () async {
+                if (!context.mounted || !await requireSwanAction(context, ref, SwanAction.rsvp) || !ctx.mounted) return;
                 try {
                   final id = await ref
                       .read(trainingSessionServiceProvider)

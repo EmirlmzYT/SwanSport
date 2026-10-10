@@ -1,3 +1,4 @@
+import '../../network/presentation/guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -28,12 +29,15 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      await ensureMyCommunities(ref);
+      if (mounted && ref.read(swanAccessProvider).hasAccount) {
+        await ensureMyCommunities(ref);
+      }
     });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (!ref.watch(swanAccessProvider).hasAccount) return const GuestExploreScreen();
     final c = context.swan;
 
     final activeFeed = _followingOnly ? feedProvider : discoverProvider;

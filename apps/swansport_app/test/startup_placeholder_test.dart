@@ -1,3 +1,4 @@
+import 'package:swansport_app/features/network/presentation/guest_explore_screen.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swansport_app/features/auth/presentation/screens/auth_screen.dart';
@@ -22,7 +23,7 @@ void main() {
     expect(find.byType(AuthScreen), findsNothing);
   });
 
-  testWidgets('tanıtım görülmüşse doğrudan giriş ekranı açılır', (
+  testWidgets('tanıtım görülmüşse doğrudan misafir gezintisi açılır', (
     tester,
   ) async {
     SharedPreferences.setMockInitialValues({kOnboardingSeenKey: true});
@@ -30,7 +31,8 @@ void main() {
     app.main();
     await tester.pumpAndSettle();
 
-    expect(find.byType(AuthScreen), findsOneWidget);
+    expect(find.byType(AuthScreen), findsNothing);
+    expect(find.byType(GuestExploreScreen), findsOneWidget);
     expect(find.byType(OnboardingScreen), findsNothing);
   });
 
@@ -43,7 +45,8 @@ void main() {
     await tester.tap(find.text('Atla'));
     await tester.pumpAndSettle();
 
-    expect(find.byType(AuthScreen), findsOneWidget);
+    expect(find.byType(AuthScreen), findsNothing);
+    expect(find.byType(GuestExploreScreen), findsOneWidget);
     // Bayrak gerçekten yazıldı mı — yazılmazsa tanıtım her açılışta çıkardı.
     expect(await onboardingSeen(), isTrue);
   });

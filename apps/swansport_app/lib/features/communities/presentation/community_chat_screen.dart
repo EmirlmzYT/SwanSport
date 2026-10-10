@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
@@ -127,6 +128,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   }
 
   Future<void> _sendDirect(String text) async {
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
     try {
@@ -240,6 +242,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   }
 
   Future<void> _send() async {
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
     final text = _ctrl.text.trim();
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);

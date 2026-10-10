@@ -16,6 +16,7 @@ void main() {
 
   final routes = read('lib/app/swansport_app.dart');
   final explore = read('lib/features/network/presentation/explore_screen.dart');
+  final guest = read('lib/features/network/presentation/guest_explore_screen.dart');
   final management =
       read('lib/features/social/presentation/widgets/management_section.dart');
   final nav = read('lib/app/widgets/swan_bottom_nav.dart');
@@ -29,7 +30,7 @@ void main() {
   /// onların girişi kendi bağlamında.
   const reachable = [
     // Alt gezinme
-    '/akis', '/kesfet', '/mesajlar', '/profil',
+    '/akis', '/kesfet', '/mesajlar', '/profil', '/federasyon-takvimi',
     // Keşfet
     '/kortlar', '/partner-ara', '/ilanlar', '/kulupler', '/topluluklar',
     '/organizasyonlar',
@@ -66,7 +67,7 @@ void main() {
 
     test('her rotanın bir giriş noktası var', () {
       // Menü silindi; giriş noktaları artık bu dört dosya.
-      final entryPoints = explore + management + nav + createSheet + profile;
+      final entryPoints = explore + management + nav + createSheet + profile + guest;
       final orphans =
           reachable.where((r) => !entryPoints.contains("'$r'")).toList();
 

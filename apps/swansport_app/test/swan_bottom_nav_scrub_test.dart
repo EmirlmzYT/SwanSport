@@ -1,3 +1,4 @@
+import 'package:swansport_data/swansport_data.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -13,7 +14,10 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 /// kaydırırken istemediğin sayfa açılıyor.
 void main() {
   /// Gezinilen son rotayı yakalayan bir kabuk.
-  Widget host(List<String> log) => ProviderScope(
+  Widget host(List<String> log, {bool signedIn = true}) => ProviderScope(
+        overrides: [swanAccessProvider.overrideWithValue(signedIn
+          ? const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null)
+          : SwanAccess.none)],
         child: MaterialApp(
           theme: SwanTheme.light(),
           onGenerateRoute: (settings) {
@@ -92,7 +96,7 @@ void main() {
     // yokken gitmek argümansız bir profil ekranı açardı. Kaydırma bu
     // korumayı ATLAMAMALI — dokunuşta olduğu gibi burada da geçerli.
     final log = <String>[];
-    await tester.pumpWidget(host(log));
+    await tester.pumpWidget(host(log, signedIn: false));
     await tester.pumpAndSettle();
 
     final g = await tester.startGesture(centerOf(tester, 'Ana Sayfa'));
@@ -103,6 +107,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log, isEmpty);
+    expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'), findsOneWidget);
   });
 
   testWidgets('kaydırmadan bırakmak basılı tutulan sekmeyi açıyor',
