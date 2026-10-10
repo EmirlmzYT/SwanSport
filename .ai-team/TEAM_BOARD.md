@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-10 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `active`
+Aktif Writer: Yok
+Durum: `complete`
 
 2026-10-10: Dört evrensel antrenman arketipi; saf Dart faz/metric motoru, mevcut protokol/set tabloları üzerinde 0105 ve veri katmanı entegrasyonu. Eski okçuluk, kilitler ve yetkiler korunacak. Yerel test kapsamı; canlı SQL/deploy/push yok. Başlangıç kullanıcı değişiklikleri korunur.
 
@@ -210,3 +210,6 @@ Sonuç: Misafir saha/partner vitrini ve telefon/kimlik işlem kapısı tamamland
 2026-10-10: Kullanıcı yönetim girişini tamamladı; CLI swanspor105/gokkimnokigqxmbppvle ACTIVE_HEALTHY doğrulandı. Canlı şema önkontrolü ve ayrı migration işlemleri devralındı.
 
 Kontrol noktası: 0105/0106 commit; 0107 SSS audience all→everyone düzeltmesi ve gerçek fixture constraint sonrası 21/21 SQL, ayrı 0107 commit başarılı. 17 RPC ACL, 15 RLS, 25/25 gerçek anon API ve rollback edilmiş authenticated doğrulamasız yazma reddi geçti. 107 parse/39 SSS. Cloudflare dağıtımı başlatılıyor; SMS yapılandırması açık.
+
+
+Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da5493-378c-449f-b950-6707e1b2ff28 Functions dahil Deployment complete ve liste doğrulandı. 21 SQL, 25 gerçek anon API, 17 ACL/15 RLS ve canlı dört arketip doğrulaması geçti. Kullanıcı SMS sağlayıcı hesabı olmadığını söyledi; gerçek SMS/UAT açık. pages.dev HTTP testleri ERR_SSL_WRONG_VERSION_NUMBER; koruma aşılmadı, UI/hash doğrulanamadı. Rapor docs/production-rollout-0107.md; Writer serbest. Görev yayın kısmı tamamlandı; cihaz/SMS dış bağımlılıkları raporda.
