@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -60,6 +61,8 @@ class _SahaOperationsScreenState extends ConsumerState<SahaOperationsScreen> {
 
   Future<void> _accept(CourtWaitEntry wait) async {
     if (_busy || _sessionChanged) return;
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) ||
+        !mounted) return;
     setState(() {
       _busy = true;
       _error = null;

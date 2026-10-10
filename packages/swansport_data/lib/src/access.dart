@@ -15,10 +15,17 @@ enum SwanAction {
   message,
   listing,
   reservation,
+  partner,
+  courtCheckIn,
   publish
 }
 
-enum SwanActionDecision { allowed, accountRequired, identityRequired }
+enum SwanActionDecision {
+  allowed,
+  accountRequired,
+  identityRequired,
+  phoneRequired
+}
 
 /// Bir kişinin SwanSport'taki konumu — tek kaynak.
 ///
@@ -71,6 +78,12 @@ class SwanAccess {
     if (action == SwanAction.clubApplication && !hasVerifiedIdentity) {
       return SwanActionDecision.identityRequired;
     }
+    if ((action == SwanAction.reservation ||
+            action == SwanAction.partner ||
+            action == SwanAction.courtCheckIn) &&
+        !hasVerificationTier('phone')) {
+      return SwanActionDecision.phoneRequired;
+    }
     return SwanActionDecision.allowed;
   }
 
@@ -83,6 +96,8 @@ class SwanAccess {
         '/kesfet',
         '/kortlar',
         '/halisahalar',
+        '/partner-ara',
+        '/oyuncu-aranan',
         '/federasyon-takvimi',
         '/calendar',
         '/yardim',
@@ -116,7 +131,7 @@ class SwanAccess {
   ///
   /// Belge doğrulamasından (lisans, antrenörlük) ayrı bir eksen — o belgeler
   /// "ne yapabilirsin"i, bu "gerçek bir insan olduğun ne kadar biliniyor"u
-  /// söylüyor. Bugün yalnızca `location` erişilebilir.
+  /// söylüyor. Telefon seviyesi Supabase Auth onayından, kimlik seviyesi onaylı kimlik belgesinden gelir.
   final String verificationTier;
 
   /// Kademe sıralaması — sunucudaki `verification_rank` ile aynı.
@@ -320,7 +335,9 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     accountantClubIds: accountantClubs,
     guardianAthleteIds:
         ref.watch(guardianAthleteIdsProvider).valueOrNull ?? const {},
-    verificationTier: profile.verificationTier,
+    verificationTier: identityGate.verified
+        ? 'id'
+        : (ref.watch(myVenueVerificationTierProvider).valueOrNull ?? 'none'),
     managedTurfFieldIds: managedTurfFields,
     delegatedTurfFieldIds:
         ref.watch(delegatedTurfFieldIdsProvider).valueOrNull ?? const {},

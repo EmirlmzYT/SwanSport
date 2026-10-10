@@ -76,9 +76,8 @@ class CredentialRow {
       sportCode: m['sport_code'] as String?,
       expiresOn: DateTime.tryParse(m['expires_on'] as String? ?? ''),
       personName: (name == null || name.isEmpty) ? null : name,
-      sportName: (m['sports'] is Map)
-          ? (m['sports'] as Map)['name'] as String?
-          : null,
+      sportName:
+          (m['sports'] is Map) ? (m['sports'] as Map)['name'] as String? : null,
     );
   }
 }
@@ -97,8 +96,7 @@ class IdentityGateState {
       IdentityGateState(
         verified: map['identity_verified'] == true,
         legacyClubIds: Set.unmodifiable(
-          (map['legacy_club_ids'] as List? ?? const [])
-              .whereType<String>(),
+          (map['legacy_club_ids'] as List? ?? const []).whereType<String>(),
         ),
       );
 }
@@ -124,6 +122,30 @@ class VerificationService {
   /// Doğrulama belgelerinin Storage bucket adı.
   static const String docsBucket = 'verification-docs';
 
+  /// Server-owned tier. Never infer verification from an editable profile.
+  Future<String> venueVerificationTier() async {
+    if (_uid == null) return 'none';
+    final result = await _c.rpc<dynamic>('my_venue_verification_tier');
+    return result == 'id' || result == 'phone' ? result as String : 'none';
+  }
+
+  Future<void> requestPhoneVerification(String phone) async {
+    if (_uid == null) throw StateError('Oturum bulunamadı');
+    if (!RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone)) {
+      throw ArgumentError('Telefonu ülke koduyla yazın. Örnek: +905321234567');
+    }
+    await _c.auth.updateUser(UserAttributes(phone: phone));
+  }
+
+  Future<void> confirmPhoneVerification(String phone, String code) async {
+    if (_uid == null) throw StateError('Oturum bulunamadı');
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(code)) {
+      throw ArgumentError('SMS ile gelen 6 haneli kodu yazın.');
+    }
+    await _c.auth
+        .verifyOTP(phone: phone, token: code, type: OtpType.phoneChange);
+  }
+
   Future<IdentityGateState> identityGate() async {
     if (_uid == null) return const IdentityGateState();
     final result = await _c.rpc<dynamic>('my_identity_gate');
@@ -135,8 +157,12 @@ class VerificationService {
   /// Uses the existing verification_documents attachment/upload workflow.
   Future<String> submitIdentityCredential() async {
     if (_uid == null) throw StateError('Oturum bulunamadı');
-    final existing = await _c.from('profile_credentials').select('id,status')
-        .eq('profile_id', _uid!).eq('kind', 'identity').maybeSingle();
+    final existing = await _c
+        .from('profile_credentials')
+        .select('id,status')
+        .eq('profile_id', _uid!)
+        .eq('kind', 'identity')
+        .maybeSingle();
     if (existing != null) {
       if (existing['status'] == 'pending') return existing['id'] as String;
       throw StateError(existing['status'] == 'approved'
@@ -155,8 +181,11 @@ class VerificationService {
   /// Antrenörlük başvurusu. Branş burada seçilir çünkü antrenörlük belgesi
   /// zaten branşa özeldir ("Yüzme 2. Kademe") — platform hangi branşta
   /// onayladıysa federasyon kanalı da o branşa göre açılır.
-  Future<String> submitCoachCredential(int level,
-      {String? sportCode, DateTime? expiresOn,}) async {
+  Future<String> submitCoachCredential(
+    int level, {
+    String? sportCode,
+    DateTime? expiresOn,
+  }) async {
     _requireNewCredential(sportCode, expiresOn);
     final row = await _c
         .from('profile_credentials')
@@ -182,8 +211,10 @@ class VerificationService {
   /// Branş burada da sorulur: lisans her zaman bir branşa aittir ("Yüzme
   /// ferdi sporcusu"). Ferdi olmak branşsız olmak demek değil — kulüpsüz
   /// olmak demek.
-  Future<String> submitAthleteCredential(
-      {String? sportCode, DateTime? expiresOn,}) async {
+  Future<String> submitAthleteCredential({
+    String? sportCode,
+    DateTime? expiresOn,
+  }) async {
     _requireNewCredential(sportCode, expiresOn);
     final membership = await _c
         .from('club_memberships')
@@ -225,8 +256,7 @@ class VerificationService {
     if (uid == null) throw StateError('Oturum bulunamadı');
     final dot = fileName.lastIndexOf('.');
     final ext = dot >= 0 ? fileName.substring(dot + 1).toLowerCase() : 'bin';
-    final path =
-        '$uid/${DateTime.now().millisecondsSinceEpoch}_$docType.$ext';
+    final path = '$uid/${DateTime.now().millisecondsSinceEpoch}_$docType.$ext';
     await _c.storage.from(docsBucket).uploadBinary(
           path,
           bytes,
@@ -260,7 +290,8 @@ class VerificationService {
     final rows = await _c
         .from('profile_credentials')
         .select(
-            'id, kind, coach_level, status, note, sport_code, expires_on, sports(name)',)
+          'id, kind, coach_level, status, note, sport_code, expires_on, sports(name)',
+        )
         .eq('profile_id', uid)
         .order('submitted_at', ascending: false);
     return (rows as List)
@@ -281,8 +312,8 @@ class VerificationService {
 
   // ----- Veli davet kodu -----
   Future<String> createGuardianInvite(String athleteId) async {
-    final res = await _c
-        .rpc<dynamic>('create_guardian_invite', params: {'p_athlete': athleteId});
+    final res = await _c.rpc<dynamic>('create_guardian_invite',
+        params: {'p_athlete': athleteId});
     return res as String;
   }
 
@@ -320,7 +351,9 @@ class VerificationService {
   /// Bir başvuruya/kulübe bağlı belgeleri, 1 saat geçerli imzalı URL'lerle döner
   /// (yalnızca yetkili görebilir; platform admin tüm belgeleri okuyabilir).
   Future<List<({String docType, String url})>> documentsFor(
-      String ownerType, String ownerId,) async {
+    String ownerType,
+    String ownerId,
+  ) async {
     final rows = await _c
         .from('verification_documents')
         .select('doc_type, storage_path')
@@ -352,16 +385,20 @@ class VerificationService {
     String? nationalId,
     DateTime? expiresOn,
   }) async {
-    await _c.rpc<dynamic>('review_credential', params: {
-      'p_cred': id,
-      'p_approve': approve,
-      if (note != null) 'p_note': note,
-      if (coachLevel != null) 'p_coach_level': coachLevel,
-      if (sportCode != null && sportCode.isNotEmpty) 'p_sport_code': sportCode,
-      if (nationalId != null) 'p_national_id': nationalId,
-      if (expiresOn != null)
-        'p_expires_on': expiresOn.toIso8601String().substring(0, 10),
-    },);
+    await _c.rpc<dynamic>(
+      'review_credential',
+      params: {
+        'p_cred': id,
+        'p_approve': approve,
+        if (note != null) 'p_note': note,
+        if (coachLevel != null) 'p_coach_level': coachLevel,
+        if (sportCode != null && sportCode.isNotEmpty)
+          'p_sport_code': sportCode,
+        if (nationalId != null) 'p_national_id': nationalId,
+        if (expiresOn != null)
+          'p_expires_on': expiresOn.toIso8601String().substring(0, 10),
+      },
+    );
   }
 
   Future<void> approveClub(String id) async {
@@ -369,8 +406,10 @@ class VerificationService {
   }
 
   Future<void> rejectClub(String id, {String? note}) async {
-    await _c.rpc<dynamic>('reject_club',
-        params: {'p_club': id, if (note != null) 'p_note': note},);
+    await _c.rpc<dynamic>(
+      'reject_club',
+      params: {'p_club': id, if (note != null) 'p_note': note},
+    );
   }
 }
 
@@ -407,7 +446,6 @@ final pendingClubsProvider =
   return ref.watch(verificationServiceProvider).pendingClubs();
 });
 
-
 /// Guest/fixture mode is closed without constructing a live Supabase client.
 final myIdentityGateProvider = FutureProvider.autoDispose<IdentityGateState>(
   (ref) {
@@ -419,3 +457,11 @@ final myIdentityGateProvider = FutureProvider.autoDispose<IdentityGateState>(
     return ref.watch(verificationServiceProvider).identityGate();
   },
 );
+
+/// Fail closed while loading/error; re-read when authentication changes.
+final myVenueVerificationTierProvider =
+    FutureProvider.autoDispose<String>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return 'none';
+  if (ref.watch(authSessionProvider).valueOrNull == null) return 'none';
+  return ref.watch(verificationServiceProvider).venueVerificationTier();
+});

@@ -44,6 +44,12 @@ class GuestExploreScreen extends ConsumerWidget {
             title: const Text('Federasyon Faaliyet Takvimi'),
             onTap: () => Navigator.pushNamed(context, '/federasyon-takvimi'),
           ),
+          ListTile(
+            leading: const Icon(Icons.sports_tennis_outlined),
+            title: const Text('Partner Bul'),
+            subtitle: const Text('Halka açık oyun ilanlarına göz at'),
+            onTap: () => Navigator.pushNamed(context, '/partner-ara'),
+          ),
           const SizedBox(height: SwanSpace.xl),
           Text('Spor haberleri', style: SwanType.h3(c.ink)),
           const SizedBox(height: SwanSpace.md),

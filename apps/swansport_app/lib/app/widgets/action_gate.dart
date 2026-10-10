@@ -26,51 +26,76 @@ Future<bool> requireSwanAction(
 ) async {
   final decision = ref.read(swanAccessProvider).decisionFor(action);
   if (decision == SwanActionDecision.allowed) return true;
-  final identity = decision == SwanActionDecision.identityRequired;
   final route = await showModalBottomSheet<String>(
     context: context,
     isScrollControlled: true,
-    builder: (context) {
-      final c = context.swan;
-      return SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(SwanSpace.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(identity ? 'Kimlik ve lisans doğrulaması' : 'Hesap gerekli',
-                  style: SwanType.h3(c.ink)),
-              const SizedBox(height: SwanSpace.md),
-              Text(
-                identity
-                    ? 'Resmi kulüp kadrosuna katılmak için kimlik/lisans doğrulamanız gerekmektedir'
-                    : 'Bu özelliği kullanabilmek için hesap açmalısınız',
-                style: SwanType.bodySm(c.inkMuted),
-              ),
-              const SizedBox(height: SwanSpace.xl),
-              FilledButton(
-                onPressed: () =>
-                    Navigator.pop(context, identity ? '/dogrulama' : '/auth'),
-                child: Text(identity
-                    ? 'Kimlik ve belge yükle'
-                    : 'Giriş Yap / Kayıt Ol'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Gezintiye devam et'),
-              ),
-            ],
-          ),
-        ),
-      );
-    },
+    builder: (_) =>
+        SwanActionGateBottomSheet(decision: decision, action: action),
   );
   if (route != null && context.mounted) {
     await Navigator.pushNamed(context, route);
   }
   // Returning from authentication never silently repeats the original action.
   return false;
+}
+
+/// Shared account/identity/phone explanation for a protected action.
+class SwanActionGateBottomSheet extends StatelessWidget {
+  const SwanActionGateBottomSheet(
+      {required this.decision, required this.action, super.key});
+  final SwanActionDecision decision;
+  final SwanAction action;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    final identity = decision == SwanActionDecision.identityRequired;
+    final phone = decision == SwanActionDecision.phoneRequired;
+    final venue = action == SwanAction.reservation ||
+        action == SwanAction.partner ||
+        action == SwanAction.courtCheckIn;
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(SwanSpace.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+                identity
+                    ? 'Kimlik ve lisans doğrulaması'
+                    : phone
+                        ? 'Telefon doğrulaması'
+                        : 'Hesap gerekli',
+                style: SwanType.h3(c.ink)),
+            const SizedBox(height: SwanSpace.md),
+            Text(
+                identity
+                    ? 'Resmi kulüp kadrosuna katılmak için kimlik/lisans doğrulamanız gerekmektedir'
+                    : phone
+                        ? 'Tesis güvenliği ve sahte rezervasyonları önlemek için telefon numarası doğrulaması gerekmektedir.'
+                        : venue
+                            ? 'Tesis rezervasyonu ve partner iletişimi için SwanSport hesabı gereklidir.'
+                            : 'Bu özelliği kullanabilmek için hesap açmalısınız',
+                style: SwanType.bodySm(c.inkMuted)),
+            const SizedBox(height: SwanSpace.xl),
+            FilledButton(
+              onPressed: () => Navigator.pop(
+                  context, identity || phone ? '/dogrulama' : '/auth'),
+              child: Text(identity
+                  ? 'Kimlik ve belge yükle'
+                  : phone
+                      ? 'Telefonumu doğrula'
+                      : 'Giriş Yap / Kayıt Ol'),
+            ),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Gezintiye devam et')),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// Protects private deep links before constructing their providers or screen.

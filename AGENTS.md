@@ -1672,3 +1672,12 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - Taslak sayaçlar swansport_data Riverpod içinde, oturum/set anahtarıyla tutulur. Sunucu yenilemesi taslağı sıfırlamaz; hesap değişimi yeniden kurar. Taslak kalıcı çevrimdışı kuyruk değildir; uygulama tamamen kapanmadan önce kaydet.
 - Kalan aşama süresi gerçek paused_at ile donar. Canlı/review yenilemesi veri katmanındadır; geç tamamlanan istek dispose sonrası timer açmaz.
 - 0106 yalnız mevcut sport_training_sessions SSS içeriğidir. Canlı kullanım önkoşulu 0105 ve 0106; bu görev canlı SQL/deploy yapmadı. Kanıt: docs/training-cockpit-verification.md.
+
+
+### 2026-10-10 — Misafir saha/partner işlem kapısı (0107 yerel)
+
+- Sahalar ve iki eski partner rotası misafire açıktır; yazma kararı merkezi SwanAccess.decisionFor üzerinden hesap/telefon kapısına gider. Telefon seviyesi mevcut Auth phone + phone_confirmed_at, kimlik mevcut onaylı credential kaynağıdır. Editable profiles.verification_tier ve platform admin kanıt değildir; server RPC yardımcıları bunu tekrar denetler.
+- Halı saha saat isteğinin son kaynağı **0040** request_turf_slot'tur: gerçek DM ve onun bildirim tetikleyicisi korunur. 0039 sürümünü yeniden kurmak sohbeti sessizce koparır. Saat isteği kesin rezervasyon değildir; yönetici/engel ve tekrar gönderim kontrolü vardır.
+- Partner istekleri eski kayıtlarda özel kalır; is_public yalnız açık tercihle yazılır. Public projeksiyon kişi adı/UUID/telefon/koordinat içermez. Oynayalım mevcut eşleşmeyi atomik kabul eder. Açık ilan id'si ile başkasının pinglerini iptal etmek ve NULL yanıtla kabul kapısını geçmek engellendi.
+- Mevcut courts/turf_fields isteğe bağlı zemin ve public post-media fotoğraf yolları taşır; veri yoksa örnek gösterilmez. Metadata düzenleme ekranı bu kapsamda yoktur. Konum yalnız Yakınımdakiler eyleminde istenir; detay haritası tesis koordinatını kullanır.
+- Kanıt docs/venue-guest-action-gate-verification.md: 820 Flutter, 21 SQL; 107 parse, SSS 39/39, analiz 0 hata/5 önceki uyarı. Canlı SQL/deploy ve gerçek SMS/cihaz UAT yapılmadı. Yeni istemci 0107 sonrası yayımlanır; önceki bekleyen 0105/0106 sırası korunur.

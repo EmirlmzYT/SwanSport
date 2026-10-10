@@ -1,3 +1,4 @@
+import 'venue_overview.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
 
     final async = ref.watch(courtTimelineProvider(_court.id));
     final access = ref.watch(swanAccessProvider);
-    final verified = access.hasVerificationTier('location');
+    final verified = access.hasVerificationTier('phone');
 
     return Scaffold(
       backgroundColor: bg,
@@ -68,6 +69,12 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
           child: ListView(
             padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
             children: [
+              VenueOverview(
+                  where: _court.where,
+                  surfaceType: _court.surfaceType,
+                  photoUrls: _court.photoUrls,
+                  lat: _court.lat,
+                  lng: _court.lng),
               if (!verified) _verifyBanner(isDark, ink),
               const SizedBox(height: 4),
               if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)))
@@ -121,13 +128,13 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Sıra alabilmek için bir kez kortta ol',
+              'Sıra almak için hesabını doğrula',
               style: SwanType.bodySm(ink, w: FontWeight.w800),
             ),
             const SizedBox(height: 5),
             Text(
-              'Kortta olduğunu bir kez doğrula, bundan sonra evden sıra '
-              'alabilirsin. Bu, sahte hesapların sırayı doldurmasını engelliyor.',
+              'Saatleri serbestçe inceleyebilirsin. Sıra ve rezervasyon için '
+              'telefon veya kimlik doğrulaması gereklidir.',
               style: SwanType.caption(
                 SwanColors.textSecondary,
                 w: FontWeight.w600,
@@ -135,7 +142,10 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
             ),
             const SizedBox(height: 11),
             GestureDetector(
-              onTap: _busy ? null : _verifyHere,
+              onTap: _busy
+                  ? null
+                  : () =>
+                      requireSwanAction(context, ref, SwanAction.reservation),
               child: Container(
                 height: 40,
                 alignment: Alignment.center,
@@ -144,7 +154,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  'Kortta olduğumu doğrula',
+                  'Hesabımı doğrula',
                   style: SwanType.caption(Colors.white, w: FontWeight.w800),
                 ),
               ),
@@ -241,8 +251,6 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
         );
 
     if (s.isFree) {
-      if (!ref.read(swanAccessProvider).hasAccount) return button('Al', () => _claim(s));
-      if (!verified) return const SizedBox.shrink();
       return button('Al', () => _claim(s));
     }
 
@@ -261,7 +269,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
       );
     }
 
-    if (s.lookingForPlayers && verified) {
+    if (s.lookingForPlayers) {
       return button(
         'Katıl',
         () => _requestJoin(s),
@@ -278,7 +286,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   /// Konum gerektiren işleri tek yerden geçiriyoruz: her çağıran ayrı ayrı
   /// izin ve hata yönetirse biri unutur, hata da ancak sahada görünür.
   Future<void> _withPlace(Future<void> Function(Place place) action) async {
-    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.courtCheckIn) ||
+        !mounted) return;
     setState(() => _busy = true);
     try {
       final place = await currentPlace();
@@ -293,17 +302,6 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
     }
   }
 
-  Future<void> _verifyHere() => _withPlace((place) async {
-        await ref.read(courtServiceProvider).verifyLocation(
-              courtId: _court.id,
-              lat: place.lat,
-              lng: place.lng,
-            );
-        // Kademe profilde değişti; erişim hesabı yeniden okunmalı.
-        ref.invalidate(currentProfileProvider);
-        _say('Doğrulandı — artık sıra alabilirsin.');
-      });
-
   Future<void> _checkIn(TimelineSlot s) => _withPlace((place) async {
         await ref.read(courtServiceProvider).checkIn(
               slotId: s.slotId!,
@@ -314,7 +312,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
       });
 
   Future<void> _wait(TimelineSlot s) async {
-    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) ||
+        !mounted) return;
     if (_busy) return;
     setState(() => _busy = true);
     try {
@@ -334,7 +333,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   }
 
   Future<void> _claim(TimelineSlot s) async {
-    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) ||
+        !mounted) return;
     final result = await showModalBottomSheet<ClaimResult>(
       context: context,
       isScrollControlled: true,
@@ -363,7 +363,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   }
 
   Future<void> _extend(TimelineSlot s) async {
-    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) ||
+        !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(courtServiceProvider).extend(s.slotId!);
@@ -378,7 +379,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
   }
 
   Future<void> _requestJoin(TimelineSlot s) async {
-    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) ||
+        !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(courtServiceProvider).requestJoin(s.slotId!);

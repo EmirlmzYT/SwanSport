@@ -118,7 +118,12 @@ void main() {
               ))));
       await tester.tap(find.text('ACTION'));
       await tester.pumpAndSettle();
-      expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),
+      expect(
+          find.text(action == SwanAction.reservation ||
+                  action == SwanAction.partner ||
+                  action == SwanAction.courtCheckIn
+              ? 'Tesis rezervasyonu ve partner iletişimi için SwanSport hesabı gereklidir.'
+              : 'Bu özelliği kullanabilmek için hesap açmalısınız'),
           findsOneWidget);
       expect(writes, 0);
       await tester.tap(find.text('Gezintiye devam et'));
@@ -191,7 +196,12 @@ void main() {
     ], child: const SwanSportApp()));
     await tester.pumpAndSettle();
     final nav = tester.state<NavigatorState>(find.byType(Navigator));
-    for (final route in ['/ilan-ver', '/sohbet', '/dogrulama', '/resmi-sonuc?notification=private']) {
+    for (final route in [
+      '/ilan-ver',
+      '/sohbet',
+      '/dogrulama',
+      '/resmi-sonuc?notification=private'
+    ]) {
       unawaited(nav.pushNamed(route));
       await tester.pumpAndSettle();
       expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),

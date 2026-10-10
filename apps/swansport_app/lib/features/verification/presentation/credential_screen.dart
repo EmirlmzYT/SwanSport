@@ -1,3 +1,4 @@
+import 'phone_verification_section.dart';
 import '../../../app/widgets/action_gate.dart';
 import '../../../app/design/swan_shape.dart';
 import 'package:file_picker/file_picker.dart';
@@ -97,6 +98,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                 ),
 
                 const SizedBox(height: 16),
+
+                const PhoneVerificationSection(),
 
                 // Kişisel Başvuru Bölümü (Supabase backend'e bağlı)
                 SwanSegmentedTabs(

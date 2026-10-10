@@ -135,7 +135,7 @@ void main() {
               clubRole: 'member',
               coachLevel: 0,
               athleteKind: null,
-              verificationTier: 'location',
+              verificationTier: 'phone',
               delegatedTurfFieldIds: {'f'},
             ),
           ),

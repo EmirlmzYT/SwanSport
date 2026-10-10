@@ -33,6 +33,8 @@ class Court {
     this.sportCode,
     this.sportName,
     this.distanceMeters,
+    this.surfaceType,
+    this.photoUrls = const [],
   });
 
   final String id;
@@ -57,6 +59,8 @@ class Court {
 
   /// Kullanıcının konumu biliniyorsa doldurulur; bilinmiyorsa null.
   final double? distanceMeters;
+  final String? surfaceType;
+  final List<String> photoUrls;
 
   String get where => [
         if ((district ?? '').isNotEmpty) district!,
@@ -85,6 +89,8 @@ class Court {
         sportCode: sportCode,
         sportName: sportName,
         distanceMeters: meters,
+        surfaceType: surfaceType,
+        photoUrls: photoUrls,
       );
 
   factory Court.fromMap(Map<String, dynamic> m) {
@@ -93,6 +99,11 @@ class Court {
     return Court(
       id: m['id'] as String,
       name: (m['name'] as String?) ?? '',
+      surfaceType:
+          m['surface_type'] is String ? m['surface_type'] as String : null,
+      photoUrls: List.unmodifiable(m['photo_urls'] is List
+          ? (m['photo_urls'] as List).whereType<String>()
+          : const <String>[]),
       lat: (m['lat'] as num).toDouble(),
       lng: (m['lng'] as num).toDouble(),
       opensAt: _hhmm(m['opens_at']),
@@ -144,8 +155,7 @@ class TimelineSlot {
   bool get lookingForPlayers => needed > 0;
 
   /// `14:00`
-  String get hourLabel =>
-      '${startsAt.hour.toString().padLeft(2, '0')}:'
+  String get hourLabel => '${startsAt.hour.toString().padLeft(2, '0')}:'
       '${startsAt.minute.toString().padLeft(2, '0')}';
 
   factory TimelineSlot.fromMap(Map<String, dynamic> m) => TimelineSlot(
@@ -257,8 +267,8 @@ class IncomingPartnerPing {
         requesterName: ((m['requester_name'] as String?) ?? '').trim().isEmpty
             ? 'Biri'
             : (m['requester_name'] as String).trim(),
-        createdAt:
-            DateTime.tryParse('${m['created_at']}')?.toLocal() ?? DateTime.now(),
+        createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
+            DateTime.now(),
       );
 }
 
@@ -293,10 +303,10 @@ class MyPartnerRequest {
         sportCode: (m['sport_code'] as String?) ?? '',
         sportName: (m['sport_name'] as String?) ?? '',
         status: (m['status'] as String?) ?? 'open',
-        createdAt:
-            DateTime.tryParse('${m['created_at']}')?.toLocal() ?? DateTime.now(),
-        expiresAt:
-            DateTime.tryParse('${m['expires_at']}')?.toLocal() ?? DateTime.now(),
+        createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
+            DateTime.now(),
+        expiresAt: DateTime.tryParse('${m['expires_at']}')?.toLocal() ??
+            DateTime.now(),
         acceptedBy: m['accepted_by'] as String?,
         acceptedByName: m['accepted_by_name'] as String?,
       );
@@ -317,6 +327,42 @@ double metersBetween(double lat1, double lng1, double lat2, double lng2) {
   return earthRadius * 2 * math.asin(math.sqrt(a.toDouble()));
 }
 
+/// Public invitation metadata; intentionally no profile UUID, name or coordinates.
+class PublicPartnerRequest {
+  const PublicPartnerRequest(
+      {required this.id,
+      required this.sportCode,
+      required this.sportName,
+      this.cityName,
+      required this.expiresAt});
+  final String id;
+  final String sportCode;
+  final String sportName;
+  final String? cityName;
+  final DateTime expiresAt;
+
+  factory PublicPartnerRequest.fromMap(Map<String, dynamic> map) {
+    final id = map['request_id'];
+    final sport = map['sport_code'];
+    final name = map['sport_name'];
+    final expires = map['expires_at'];
+    final parsed = expires is String ? DateTime.tryParse(expires) : null;
+    if (id is! String ||
+        sport is! String ||
+        name is! String ||
+        parsed == null) {
+      throw const FormatException('Geçersiz halka açık partner ilanı');
+    }
+    return PublicPartnerRequest(
+        id: id,
+        sportCode: sport,
+        sportName: name,
+        cityName:
+            map['city_name'] is String ? map['city_name'] as String : null,
+        expiresAt: parsed.toLocal());
+  }
+}
+
 class CourtService {
   CourtService(this._c);
   final SupabaseClient _c;
@@ -326,15 +372,25 @@ class CourtService {
     var q = _c
         .from('courts')
         .select('id, name, venue, district, lat, lng, opens_at, closes_at, '
-            'capacity, sport_code, cities(name), sports(name)')
+            'capacity, sport_code, surface_type, photo_paths, cities(name), sports(name)')
         .eq('active', true);
     if (cityCode != null && cityCode.isNotEmpty) {
       q = q.eq('city_code', cityCode);
     }
     final rows = await q.order('name');
-    return (rows as List)
-        .map((r) => Court.fromMap((r as Map).cast<String, dynamic>()))
-        .toList();
+    return (rows as List).map((r) {
+      final map = (r as Map).cast<String, dynamic>();
+      final paths = map['photo_paths'];
+      return Court.fromMap({
+        ...map,
+        'photo_urls': [
+          if (paths is List)
+            for (final path in paths.whereType<String>())
+              if (path.trim().isNotEmpty)
+                _c.storage.from('post-media').getPublicUrl(path),
+        ]
+      });
+    }).toList();
   }
 
   /// Kortun 3 saatlik şeridi.
@@ -346,7 +402,7 @@ class CourtService {
         .toList();
   }
 
-  /// Kortta olduğunu bir kez kanıtla; bundan sonra evden sıra alabilirsin.
+  /// Legacy location evidence; phone/identity is separately required for actions.
   Future<void> verifyLocation({
     required String courtId,
     required double lat,
@@ -384,8 +440,9 @@ class CourtService {
       _c.rpc<void>('cancel_slot', params: {'p_slot': slotId});
 
   Future<List<OpenSlot>> openSlots({String? cityCode}) async {
-    final rows = await _c.rpc<List<dynamic>>('open_slots',
-        params: {if (cityCode != null && cityCode.isNotEmpty) 'p_city': cityCode});
+    final rows = await _c.rpc<List<dynamic>>('open_slots', params: {
+      if (cityCode != null && cityCode.isNotEmpty) 'p_city': cityCode
+    });
     return rows
         .map((r) => OpenSlot.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
@@ -424,7 +481,9 @@ class CourtService {
             : 'Oyuncu',
         status: (m['status'] as String?) ?? 'pending',
         avatarUrl: p is Map && p['avatar_path'] != null
-            ? _c.storage.from('post-media').getPublicUrl(p['avatar_path'] as String)
+            ? _c.storage
+                .from('post-media')
+                .getPublicUrl(p['avatar_path'] as String)
             : null,
       );
     }).toList();
@@ -476,9 +535,25 @@ class CourtService {
     required String sportCode,
     double? lat,
     double? lng,
+    bool isPublic = false,
   }) =>
-      _c.rpc<String>('seek_partner',
-          params: {'p_sport': sportCode, 'p_lat': lat, 'p_lng': lng});
+      _c.rpc<String>('seek_partner', params: {
+        'p_sport': sportCode,
+        'p_lat': lat,
+        'p_lng': lng,
+        'p_public': isPublic
+      });
+
+  Future<List<PublicPartnerRequest>> publicPartnerRequests() async {
+    final rows = await _c.rpc<List<dynamic>>('public_partner_requests');
+    return rows
+        .whereType<Map<String, dynamic>>()
+        .map(PublicPartnerRequest.fromMap)
+        .toList();
+  }
+
+  Future<void> sendPartnerPing(String requestId) =>
+      _c.rpc<void>('send_partner_ping', params: {'p_request': requestId});
 
   Future<void> respondPartnerPing({
     required String requestId,
@@ -491,8 +566,8 @@ class CourtService {
       _c.rpc<void>('cancel_partner_request', params: {'p_id': id});
 
   Future<List<IncomingPartnerPing>> incomingPartnerPings() async {
-    final rows =
-        await _c.rpc<List<dynamic>>('my_incoming_partner_pings');
+    if (_c.auth.currentUser == null) return const [];
+    final rows = await _c.rpc<List<dynamic>>('my_incoming_partner_pings');
     return rows
         .map((r) =>
             IncomingPartnerPing.fromMap((r as Map).cast<String, dynamic>()))
@@ -500,9 +575,11 @@ class CourtService {
   }
 
   Future<MyPartnerRequest?> myOpenPartnerRequest() async {
+    if (_c.auth.currentUser == null) return null;
     final rows = await _c.rpc<List<dynamic>>('my_open_partner_request');
     if (rows.isEmpty) return null;
-    return MyPartnerRequest.fromMap((rows.first as Map).cast<String, dynamic>());
+    return MyPartnerRequest.fromMap(
+        (rows.first as Map).cast<String, dynamic>());
   }
 }
 
@@ -525,6 +602,7 @@ final courtTimelineProvider = FutureProvider.autoDispose
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <TimelineSlot>[]);
   }
+  ref.watch(authSessionProvider);
   return ref.watch(courtServiceProvider).timeline(courtId);
 });
 
@@ -533,6 +611,7 @@ final openSlotsProvider =
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <OpenSlot>[]);
   }
+  ref.watch(authSessionProvider);
   return ref.watch(courtServiceProvider).openSlots(cityCode: cityCode);
 });
 
@@ -544,13 +623,16 @@ final joinRequestsProvider =
   return ref.watch(courtServiceProvider).joinRequests(slotId);
 });
 
-final courtSportCodesProvider = FutureProvider.autoDispose<List<CityRow>>((ref) {
+final courtSportCodesProvider =
+    FutureProvider.autoDispose<List<CityRow>>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
   return ref.watch(courtServiceProvider).courtSportCodes();
 });
 
 final mySportInterestsProvider = FutureProvider.autoDispose<Set<String>>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const {});
+  if (ref.watch(authSessionProvider).valueOrNull == null)
+    return Future.value({});
   return ref.watch(courtServiceProvider).mySportInterests();
 });
 
@@ -559,12 +641,16 @@ final incomingPartnerPingsProvider =
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <IncomingPartnerPing>[]);
   }
+  if (ref.watch(authSessionProvider).valueOrNull == null)
+    return Future.value(<IncomingPartnerPing>[]);
   return ref.watch(courtServiceProvider).incomingPartnerPings();
 });
 
 final myOpenPartnerRequestProvider =
     FutureProvider.autoDispose<MyPartnerRequest?>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
+  if (ref.watch(authSessionProvider).valueOrNull == null)
+    return Future.value(null);
   return ref.watch(courtServiceProvider).myOpenPartnerRequest();
 });
 
@@ -711,4 +797,11 @@ final courtUsageByCourtProvider =
     return Future.value(const <CourtUsageRow>[]);
   }
   return ref.watch(courtServiceProvider).usageByCourt(days: days);
+});
+
+final publicPartnerRequestsProvider =
+    FutureProvider.autoDispose<List<PublicPartnerRequest>>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  ref.watch(authSessionProvider);
+  return ref.watch(courtServiceProvider).publicPartnerRequests();
 });

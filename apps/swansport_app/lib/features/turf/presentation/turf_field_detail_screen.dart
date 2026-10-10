@@ -1,3 +1,4 @@
+import '../../courts/presentation/venue_overview.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -61,15 +62,6 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
         data: (slots) {
-          if (slots.isEmpty) {
-            return premiumEmpty(
-              context,
-              icon: Icons.grass_rounded,
-              title: 'Bu saha kapalı görünüyor',
-              subtitle: 'Saatler henüz tanımlanmamış olabilir.',
-            );
-          }
-
           final byDay = <String, List<TurfSlot>>{};
           for (final s in slots) {
             final key =
@@ -83,6 +75,15 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
               children: [
+                VenueOverview(
+                    where: _field.where,
+                    surfaceType: _field.surfaceType,
+                    photoUrls: _field.photoUrls,
+                    lat: _field.lat,
+                    lng: _field.lng),
+                if (slots.isEmpty)
+                  Text('Bu saha için müsait saat bulunmuyor.',
+                      style: SwanType.bodySm(ink)),
                 if (isManager) _managerBanner(isDark, ink),
                 if (ref
                     .watch(featureEnabledProvider(FeatureFlags.turfDelegation)))
@@ -243,7 +244,8 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
   /// gerçek bir mesaj gider, iki taraf sohbetten anlaşır. Son söz hâlâ
   /// yönetici — kesinleşince hücreyi o işaretler.
   Future<void> _request(TurfSlot s) async {
-    if (!await requireSwanAction(context, ref, SwanAction.reservation) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.reservation) ||
+        !mounted) return;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(

@@ -26,6 +26,8 @@ class TurfField {
     this.lat,
     this.lng,
     this.distanceMeters,
+    this.surfaceType,
+    this.photoUrls = const [],
   });
 
   final String id;
@@ -39,6 +41,8 @@ class TurfField {
   final double? lat;
   final double? lng;
   final double? distanceMeters;
+  final String? surfaceType;
+  final List<String> photoUrls;
 
   String get where => [
         if ((district ?? '').isNotEmpty) district!,
@@ -64,6 +68,8 @@ class TurfField {
         lat: lat,
         lng: lng,
         distanceMeters: meters,
+        surfaceType: surfaceType,
+        photoUrls: photoUrls,
       );
 
   factory TurfField.fromMap(Map<String, dynamic> m) {
@@ -71,6 +77,11 @@ class TurfField {
     return TurfField(
       id: m['id'] as String,
       name: (m['name'] as String?) ?? '',
+      surfaceType:
+          m['surface_type'] is String ? m['surface_type'] as String : null,
+      photoUrls: List.unmodifiable(m['photo_urls'] is List
+          ? (m['photo_urls'] as List).whereType<String>()
+          : const <String>[]),
       venueName: (m['venue_name'] as String?) ?? '',
       opensAt: _hhmm(m['opens_at']),
       closesAt: _hhmm(m['closes_at']),
@@ -125,15 +136,25 @@ class TurfService {
     var q = _c
         .from('turf_fields')
         .select('id, name, venue_name, phone, district, lat, lng, '
-            'opens_at, closes_at, cities(name)')
+            'opens_at, closes_at, surface_type, photo_paths, cities(name)')
         .eq('active', true);
     if (cityCode != null && cityCode.isNotEmpty) {
       q = q.eq('city_code', cityCode);
     }
     final rows = await q.order('venue_name').order('name');
-    return (rows as List)
-        .map((r) => TurfField.fromMap((r as Map).cast<String, dynamic>()))
-        .toList();
+    return (rows as List).map((r) {
+      final map = (r as Map).cast<String, dynamic>();
+      final paths = map['photo_paths'];
+      return TurfField.fromMap({
+        ...map,
+        'photo_urls': [
+          if (paths is List)
+            for (final path in paths.whereType<String>())
+              if (path.trim().isNotEmpty)
+                _c.storage.from('post-media').getPublicUrl(path),
+        ]
+      });
+    }).toList();
   }
 
   Future<List<TurfSlot>> occupancyGrid(String fieldId, {int days = 7}) async {
@@ -167,11 +188,15 @@ class TurfService {
     required String fieldId,
     required DateTime startsAt,
   }) async {
-    final removed = await _c.from('turf_occupancy').delete()
+    final removed = await _c
+        .from('turf_occupancy')
+        .delete()
         .eq('field_id', fieldId)
-        .eq('starts_at', startsAt.toUtc().toIso8601String()).select('id');
+        .eq('starts_at', startsAt.toUtc().toIso8601String())
+        .select('id');
     if (removed.isEmpty) {
-      throw StateError('Doluluk değişmedi. Güncel kaydı ve saha yetkini kontrol et.');
+      throw StateError(
+          'Doluluk değişmedi. Güncel kaydı ve saha yetkini kontrol et.');
     }
   }
 
@@ -221,6 +246,7 @@ final turfOccupancyGridProvider =
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <TurfSlot>[]);
   }
+  ref.watch(authSessionProvider);
   return ref.watch(turfServiceProvider).occupancyGrid(fieldId);
 });
 

@@ -68,15 +68,9 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
 
   bool _matches(String haystack) => trContains(haystack, _q);
 
-  @override
-  void initState() {
-    super.initState();
-    // Konum yalnızca listeyi yakınlığa göre sıralamak için; alınamazsa ekran
-    // sorunsuz çalışmaya devam eder, sadece mesafe yazmaz.
-    Future.microtask(() async {
-      final place = await currentPlaceOrNull();
-      if (mounted && place != null) setState(() => _me = place);
-    });
+  Future<void> _locate() async {
+    final place = await currentPlaceOrNull();
+    if (mounted && place != null) setState(() => _me = place);
   }
 
   @override
@@ -101,6 +95,10 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
                 isBrand: false,
                 showBack: true,
                 actions: [
+                  IconButton(
+                      tooltip: 'Yakınımdakiler',
+                      onPressed: _locate,
+                      icon: const Icon(Icons.near_me_outlined)),
                   TextButton(
                     onPressed: () =>
                         Navigator.pushNamed(context, '/partner-ara'),

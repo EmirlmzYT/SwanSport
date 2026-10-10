@@ -1,3 +1,4 @@
+import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import '../../../app/design/swan_shape.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,6 +34,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   late int _tab = widget.initialTab;
   String? _selectedSport;
   bool _busy = false;
+  bool _isPublic = false;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +43,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     final access = ref.watch(swanAccessProvider);
-    final verified = access.hasVerificationTier('location');
+    final verified = access.hasVerificationTier('phone');
     final sports = ref.watch(courtSportCodesProvider);
     final interests = ref.watch(mySportInterestsProvider);
     final myRequest = ref.watch(myOpenPartnerRequestProvider);
@@ -71,7 +73,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             children: [
               _seekTab(
                   isDark, ink, verified, sports, interests, myRequest, inbox),
-              _openSlotsTab(isDark, ink, verified),
+              _openSlotsTab(isDark, ink),
             ],
           ),
         ),
@@ -92,6 +94,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   ) {
     return RefreshIndicator(
       onRefresh: () async {
+        ref.invalidate(publicPartnerRequestsProvider);
         ref.invalidate(myOpenPartnerRequestProvider);
         ref.invalidate(incomingPartnerPingsProvider);
       },
@@ -99,6 +102,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 24),
         children: [
           if (!verified) _verifyBanner(isDark, ink),
+          _publicInvitations(),
+          const SizedBox(height: SwanSpace.xl),
           _sectionTitle(ink, 'Gelen istekler'),
           const SizedBox(height: 8),
           inbox.when(
@@ -117,7 +122,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             loading: premiumLoading,
             error: (e, _) => premiumError(context, '$e'),
             data: (req) => req == null
-                ? _seekForm(context, isDark, ink, verified, sports, interests)
+                ? _seekForm(context, isDark, ink, sports, interests)
                 : _myRequestCard(isDark, ink, req),
           ),
         ],
@@ -125,7 +130,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     );
   }
 
-  Widget _openSlotsTab(bool isDark, Color ink, bool verified) {
+  Widget _openSlotsTab(bool isDark, Color ink) {
     final async = ref.watch(openSlotsProvider(null));
     return async.when(
       loading: premiumLoading,
@@ -146,15 +151,14 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             padding:
                 const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 24),
             itemCount: slots.length,
-            itemBuilder: (_, i) =>
-                _openSlotCard(isDark, ink, slots[i], verified),
+            itemBuilder: (_, i) => _openSlotCard(isDark, ink, slots[i]),
           ),
         );
       },
     );
   }
 
-  Widget _openSlotCard(bool isDark, Color ink, OpenSlot s, bool verified) {
+  Widget _openSlotCard(bool isDark, Color ink, OpenSlot s) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
@@ -198,48 +202,10 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               icon: Icons.group_add_rounded),
         ]),
         const SizedBox(height: 12),
-        GestureDetector(
-          onTap: (s.requested || !verified)
-              ? null
-              : () async {
-                  try {
-                    await ref.read(courtServiceProvider).requestJoin(s.slotId);
-                    ref.invalidate(openSlotsProvider(null));
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                          content: Text(
-                              'İsteğin gönderildi. Sahibi onaylayınca haber vereceğiz.')));
-                    }
-                  } catch (e) {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context)
-                          .showSnackBar(SnackBar(content: Text('$e')));
-                    }
-                  }
-                },
-          child: Container(
-            height: 40,
-            alignment: Alignment.center,
-            decoration: BoxDecoration(
-              gradient: (s.requested || !verified)
-                  ? null
-                  : const LinearGradient(colors: [kTealBright, kTeal]),
-              borderRadius: BorderRadius.circular(12),
-              border:
-                  (s.requested || !verified) ? Border.all(color: line) : null,
-            ),
-            child: Text(
-                s.requested
-                    ? 'İstek gönderildi'
-                    : (verified
-                        ? 'Katılmak istiyorum'
-                        : 'Önce kortta doğrulanmalısın'),
-                style: SwanType.caption(
-                    (s.requested || !verified)
-                        ? context.swan.inkMuted
-                        : Colors.white,
-                    w: FontWeight.w800)),
-          ),
+        OutlinedButton(
+          onPressed:
+              s.requested || _busy ? null : () => _joinOpenSlot(s.slotId),
+          child: Text(s.requested ? 'İstek gönderildi' : 'Katılmak istiyorum'),
         ),
       ]),
     );
@@ -264,13 +230,12 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           border: Border.all(color: kTeal.withValues(alpha: .25)),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text('Partner aramak için önce bir kortu doğrula',
+          Text('İlanları incele, oynamak için hesabını doğrula',
               style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 5),
           Text(
-              'Herhangi bir kortta bir kez "kortta olduğumu doğrula" dedikten '
-              'sonra buradan partner arayabilirsin. Bu, sahte hesapların '
-              'bildirimlerle seni rahatsız etmesini engelliyor.',
+              'İlan açmak ve partner iletişimi için doğrulanmış telefon veya '
+              'onaylı kimlik gereklidir.',
               style: SwanType.caption(SwanColors.textSecondary,
                   w: FontWeight.w600)),
         ]),
@@ -345,7 +310,6 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     BuildContext context,
     bool isDark,
     Color ink,
-    bool verified,
     AsyncValue<List<CityRow>> sports,
     AsyncValue<Set<String>> interests,
   ) {
@@ -411,31 +375,26 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                           onTap: () => setState(() => _selectedSport = s.code)),
                   ],
                 ),
-                const SizedBox(height: 14),
-                GestureDetector(
-                  onTap: (_busy || !verified) ? null : _seek,
-                  child: Container(
-                    height: 46,
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      gradient: verified
-                          ? const LinearGradient(colors: [kTealBright, kTeal])
-                          : null,
-                      color: verified ? null : line,
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
-                    ),
-                    child: Text(_busy ? 'Aranıyor…' : 'Partner Arıyorum',
-                        style: SwanType.bodySm(
-                            verified ? Colors.white : SwanColors.textSecondary,
-                            w: FontWeight.w800)),
+                Material(
+                  color: surf,
+                  child: CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    title: Text('İsteğimi halka açık yayımla',
+                        style: SwanType.bodySm(ink)),
+                    subtitle: Text(
+                        'Branş, şehir ve geçerlilik saati misafirlere görünür. Oynayalım diyen doğrulanmış kişiyle eşleşirsin.',
+                        style: SwanType.caption(context.swan.inkMuted)),
+                    value: _isPublic,
+                    onChanged: _busy
+                        ? null
+                        : (value) => setState(() => _isPublic = value ?? false),
                   ),
                 ),
-                const SizedBox(height: 8),
-                Text(
-                    'Yakınındaki ilgili kişilere bildirim gider. İki saat içinde '
-                    'kimse kabul etmezse istek kendiliğinden düşer.',
-                    style: SwanType.caption(SwanColors.textSecondary,
-                        w: FontWeight.w600)),
+                const SizedBox(height: SwanSpace.md),
+                FilledButton(
+                  onPressed: _busy ? null : _seek,
+                  child: Text(_busy ? 'Aranıyor…' : 'Partner Arıyorum'),
+                ),
               ]);
         },
       ),
@@ -543,9 +502,84 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     );
   }
 
+  Widget _publicInvitations() {
+    final c = context.swan;
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text('Halka açık oyun ilanları', style: SwanType.h3(c.ink)),
+      const SizedBox(height: SwanSpace.md),
+      ref.watch(publicPartnerRequestsProvider).when(
+            loading: premiumLoading,
+            error: (_, __) => TextButton(
+                onPressed: () => ref.invalidate(publicPartnerRequestsProvider),
+                child: const Text('İlanlar yüklenemedi. Yeniden dene')),
+            data: (requests) => requests.isEmpty
+                ? Text('Şu an halka açık partner ilanı yok.',
+                    style: SwanType.bodySm(c.inkMuted))
+                : Column(children: [
+                    for (final request in requests)
+                      Padding(
+                        padding:
+                            const EdgeInsets.symmetric(vertical: SwanSpace.sm),
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(request.sportName,
+                                  style: SwanType.body(c.ink)),
+                              Text(
+                                  [
+                                    if (request.cityName != null)
+                                      request.cityName!,
+                                    'Son saat: ${request.expiresAt.hour.toString().padLeft(2, '0')}:${request.expiresAt.minute.toString().padLeft(2, '0')}'
+                                  ].join(' · '),
+                                  style: SwanType.caption(c.inkMuted)),
+                              const SizedBox(height: SwanSpace.sm),
+                              OutlinedButton(
+                                  onPressed:
+                                      _busy ? null : () => _ping(request.id),
+                                  child: const Text('Oynayalım')),
+                            ]),
+                      ),
+                  ]),
+          ),
+    ]);
+  }
+
+  Future<void> _joinOpenSlot(String slotId) async {
+    if (!await requireSwanAction(context, ref, SwanAction.partner) || !mounted)
+      return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(courtServiceProvider).requestJoin(slotId);
+      ref.invalidate(openSlotsProvider(null));
+      _say('İsteğin gönderildi. Sahibi onaylayınca haber vereceğiz.');
+    } catch (e) {
+      _say(_readable(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _ping(String requestId) async {
+    if (!await requireSwanAction(context, ref, SwanAction.partner) || !mounted)
+      return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(courtServiceProvider).sendPartnerPing(requestId);
+      ref.invalidate(publicPartnerRequestsProvider);
+      ref.invalidate(incomingPartnerPingsProvider);
+      _say('Eşleşme kaydedildi; ilan sahibine haber verildi.');
+    } catch (e) {
+      _say(_readable(e));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   // ------------------------------- eylemler --------------------------------
 
   Future<void> _toggleInterest(String sportCode, bool interested) async {
+    if (!await requireSwanAction(context, ref, SwanAction.partner) || !mounted)
+      return;
     try {
       await ref
           .read(courtServiceProvider)
@@ -557,6 +591,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   }
 
   Future<void> _seek() async {
+    if (!await requireSwanAction(context, ref, SwanAction.partner) || !mounted)
+      return;
     final sport = _selectedSport;
     if (sport == null) return;
 
@@ -565,10 +601,12 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
       final place = await currentPlaceOrNull();
       await ref.read(courtServiceProvider).seekPartner(
             sportCode: sport,
+            isPublic: _isPublic,
             lat: place?.lat,
             lng: place?.lng,
           );
       ref.invalidate(myOpenPartnerRequestProvider);
+      ref.invalidate(publicPartnerRequestsProvider);
       _say('İstek gönderildi — yakınındaki ilgili kişilere haber gitti.');
     } catch (e) {
       _say(_readable(e));
@@ -581,6 +619,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     setState(() => _busy = true);
     try {
       await ref.read(courtServiceProvider).cancelPartnerRequest(id);
+      ref.invalidate(publicPartnerRequestsProvider);
       ref.invalidate(myOpenPartnerRequestProvider);
     } catch (e) {
       _say(_readable(e));
@@ -590,6 +629,9 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   }
 
   Future<void> _respond(String requestId, bool accept) async {
+    if (accept &&
+        (!await requireSwanAction(context, ref, SwanAction.partner) ||
+            !mounted)) return;
     setState(() => _busy = true);
     try {
       await ref
