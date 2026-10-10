@@ -47,7 +47,7 @@ C2 arayüz bağlantısı 2026-10-10 kullanıcı göreviyle yerelde uygulandı: m
 - Atama yönetimi platform kurulumudur. Platform yöneticisi sonuç/tescil/lisans yazarken ayrıca doğru atamayı taşır.
 - Yerel cihaz kuyruğu ve otomatik resmi offline tekrar yok. Beklenen sürüm uyuşmazlığı açık gösterilir.
 - Branş motorunun yaş/cinsiyet/zorunlu engel sınıfı kategorileri ve gerçek müsabaka protokol kuralları tamamlanır; yeni federasyon kategoriden türetilmez.
-- Mevcut motor yalnız antrenman/okçuluk sözlüğüdür; resmi kategori/yarış protokolü motoru varmış gibi davranılmaz.
+- 2026-10-10 saf Dart motoruna basketbol/futbol/tenis ve yüzme/kulvarlı atletizm müsabaka protokolleri eklendi. Yerel skor/şema doğrulaması vardır; resmi kategori, sunucu sonuç dönüşümü ve federasyon yazma bağlantısı tamamlanmış değildir. Kanıt: docs/branch-match-protocol-verification.md.
 - Yazma arayüzü açılmadan branch-specific doğrulama ve yalnız gerekli kategorik veri erişimi değerlendirilir.
 - Yayın bayrağı gerekiyorsa beş yüzey+SSS birlikte, test edenler açılmadan yardım kapısı.
 

@@ -1617,3 +1617,10 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - Misafir faaliyet takvimi yalnız 0097 public program/fikstür RPC'lerini kullanır. 0101 aktif RSS kaynağı RPC'si ve yardım ekler; yeni anon tablo grant'i yoktur.
 - Mevcut belge ekranı Kimlik bölümünü ve spor/antrenör bitiş tarihini toplar. Kimlik onayı branş belgesinin yerine geçmez. Antrenör RLS daraltması ve hesap silme işleri bekler.
 - Kanıt: docs/guest-identity-verification.md. 698 Flutter, 63 SQL testi; değişen Dart analizinde 0 hata/uyarı, 535 info. Canlı SQL/push/deploy yok.
+
+### 2026-10-10 — Saf Dart müsabaka protokolleri
+
+- Branş motoru basketbol, futbol, tenis, yüzme ve kulvarlı atletizm tanımlarını içerir. BranchDefinitionContract değişmez; okçuluk/antrenman sözleşmesi korunur. Yeni branşa rağmen her tanımı ArcheryDefinition'a cast etme; ScorePad tür kontrolü bunun için düzeltildi.
+- validateMatchProtocol tipli/değişmez yerel modeli veya alan yolu içeren ProtocolValidationException verir. Eksik skor sıfır değildir; yanlış tip, negatif/kesirli sayı ve JSON tamsayı toplam taşması reddedilir.
+- JSON şemaları ve format sınırları packages/swansport_branch_engine/lib/protocols/README.md içindedir. Bu zengin model SQL public sonuç şemasının yerine geçmez; ref/id'ler public sonuçlara taşınmaz.
+- Kanıt: docs/branch-match-protocol-verification.md. 131 Dart VM/130 Chrome, 6 ScorePad/28 veri regresyonu; paket analizi 0 bulgu. Yeni runtime bağımlılığı, ekran, SQL, push/deploy yok.

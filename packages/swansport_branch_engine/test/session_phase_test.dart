@@ -35,39 +35,59 @@ void main() {
 
   group('aşama sırası', () {
     test('tam protokolde sıra eksiksiz ilerliyor', () {
-      expect(nextPhase(SessionPhase.prep, 1, full),
-          const PhaseStep(SessionPhase.shoot, 1));
-      expect(nextPhase(SessionPhase.shoot, 1, full),
-          const PhaseStep(SessionPhase.collect, 1));
-      expect(nextPhase(SessionPhase.collect, 1, full),
-          const PhaseStep(SessionPhase.score, 1));
-      expect(nextPhase(SessionPhase.score, 1, full),
-          const PhaseStep(SessionPhase.rest, 1));
-      expect(nextPhase(SessionPhase.rest, 1, full),
-          const PhaseStep(SessionPhase.prep, 2));
+      expect(
+        nextPhase(SessionPhase.prep, 1, full),
+        const PhaseStep(SessionPhase.shoot, 1),
+      );
+      expect(
+        nextPhase(SessionPhase.shoot, 1, full),
+        const PhaseStep(SessionPhase.collect, 1),
+      );
+      expect(
+        nextPhase(SessionPhase.collect, 1, full),
+        const PhaseStep(SessionPhase.score, 1),
+      );
+      expect(
+        nextPhase(SessionPhase.score, 1, full),
+        const PhaseStep(SessionPhase.rest, 1),
+      );
+      expect(
+        nextPhase(SessionPhase.rest, 1, full),
+        const PhaseStep(SessionPhase.prep, 2),
+      );
     });
 
     test('ok toplama süresi 0 ise atlanıyor', () {
       // Sıfır saniyelik aşama ekranda bir kare titreyip geçen adım olurdu.
-      expect(nextPhase(SessionPhase.shoot, 1, lean),
-          const PhaseStep(SessionPhase.score, 1));
+      expect(
+        nextPhase(SessionPhase.shoot, 1, lean),
+        const PhaseStep(SessionPhase.score, 1),
+      );
     });
 
     test('dinlenme 0 ise doğrudan sonraki setin hazırlığına', () {
-      expect(nextPhase(SessionPhase.score, 1, lean),
-          const PhaseStep(SessionPhase.prep, 2));
+      expect(
+        nextPhase(SessionPhase.score, 1, lean),
+        const PhaseStep(SessionPhase.prep, 2),
+      );
     });
 
     test('son sette skordan sonra oturum bitiyor', () {
-      expect(nextPhase(SessionPhase.score, 3, full),
-          const PhaseStep(SessionPhase.done, 3));
-      expect(nextPhase(SessionPhase.score, 2, lean),
-          const PhaseStep(SessionPhase.done, 2));
+      expect(
+        nextPhase(SessionPhase.score, 3, full),
+        const PhaseStep(SessionPhase.done, 3),
+      );
+      expect(
+        nextPhase(SessionPhase.score, 2, lean),
+        const PhaseStep(SessionPhase.done, 2),
+      );
     });
 
     test('bitmiş oturum bitmiş kalıyor', () {
-      expect(nextPhase(SessionPhase.done, 3, full),
-          const PhaseStep(SessionPhase.done, 3));
+      expect(
+        nextPhase(SessionPhase.done, 3, full),
+        const PhaseStep(SessionPhase.done, 3),
+      );
     });
   });
 
@@ -91,8 +111,10 @@ void main() {
 
     test('kalan süre iki zaman damgasının farkı', () {
       final now = DateTime.utc(2026, 9, 2, 10, 0, 30);
-      expect(remaining(endsAt: ends, now: now),
-          const Duration(minutes: 4, seconds: 30));
+      expect(
+        remaining(endsAt: ends, now: now),
+        const Duration(minutes: 4, seconds: 30),
+      );
     });
 
     test('arka plandan uzun süre sonra dönmek sayacı ileri taşımıyor', () {
@@ -110,8 +132,10 @@ void main() {
     test('duraklatılmışken kalan süre donuyor', () {
       final paused = DateTime.utc(2026, 9, 2, 10, 2, 0);
       final now = DateTime.utc(2026, 9, 2, 10, 4, 30);
-      expect(remaining(endsAt: ends, now: now, pausedAt: paused),
-          const Duration(minutes: 3));
+      expect(
+        remaining(endsAt: ends, now: now, pausedAt: paused),
+        const Duration(minutes: 3),
+      );
     });
 
     test('süresiz aşamada sayaç yok', () {
@@ -121,10 +145,14 @@ void main() {
     test('süre dolduğunda işaretleniyor ama ilerletme kararı verilmiyor', () {
       // Fonksiyon yalnızca "doldu" diyor; ne yapılacağına insan karar
       // veriyor. Sahte durum üretmek en tehlikeli seçenekti.
-      expect(phaseExpired(endsAt: ends, now: DateTime.utc(2026, 9, 2, 10, 6)),
-          isTrue);
-      expect(phaseExpired(endsAt: ends, now: DateTime.utc(2026, 9, 2, 10, 4)),
-          isFalse);
+      expect(
+        phaseExpired(endsAt: ends, now: DateTime.utc(2026, 9, 2, 10, 6)),
+        isTrue,
+      );
+      expect(
+        phaseExpired(endsAt: ends, now: DateTime.utc(2026, 9, 2, 10, 4)),
+        isFalse,
+      );
       expect(phaseExpired(endsAt: null, now: DateTime.utc(2026)), isFalse);
     });
 

@@ -1,5 +1,9 @@
-import 'branch_definition_contract.dart';
 import '../schemas/branch_field_schema.dart';
+import 'athletics_swimming_definition.dart';
+import 'basketball_definition.dart';
+import 'branch_definition_contract.dart';
+import 'football_definition.dart';
+import 'tennis_definition.dart';
 
 /// Okçuluk — motorun ilk çalışan branşı.
 ///
@@ -44,6 +48,11 @@ class ArcheryDefinition implements BranchDefinitionContract {
 /// Motorun tanıdığı branşlar. Yeni branş buraya bir satır.
 const List<BranchDefinitionContract> kBranchDefinitions = [
   ArcheryDefinition(),
+  BasketballDefinition(),
+  FootballDefinition(),
+  TennisDefinition(),
+  AthleticsSwimmingDefinition.swimming(),
+  AthleticsSwimmingDefinition.athletics(),
 ];
 
 /// Branş kodundan tanım. Tanınmayan branş `null` — çağıran taraf genel

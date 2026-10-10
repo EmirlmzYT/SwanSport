@@ -47,7 +47,10 @@ class _ScorePadState extends State<ScorePad> {
   String? _error;
   bool _busy = false;
 
-  String get _unit => (widget.branch as ArcheryDefinition?)?.unitLabel ?? 'atış';
+  String get _unit => switch (widget.branch) {
+        ArcheryDefinition(:final unitLabel) => unitLabel,
+        _ => 'atış',
+      };
 
   @override
   void initState() {

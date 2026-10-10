@@ -31,35 +31,47 @@ void main() {
     test('protokolün üst sınırını aşamıyor', () {
       // 6 ok x 10 puan = 60
       expect(
-          checkSetTotal(60, unitsPerSet: 6, maxUnitScore: 10).isValid, isTrue);
+        checkSetTotal(60, unitsPerSet: 6, maxUnitScore: 10).isValid,
+        isTrue,
+      );
       expect(
-          checkSetTotal(61, unitsPerSet: 6, maxUnitScore: 10).isValid, isFalse);
+        checkSetTotal(61, unitsPerSet: 6, maxUnitScore: 10).isValid,
+        isFalse,
+      );
     });
 
     test('girilmemiş toplam geçerli', () {
-      expect(checkSetTotal(null, unitsPerSet: 6, maxUnitScore: 10).isValid,
-          isTrue);
+      expect(
+        checkSetTotal(null, unitsPerSet: 6, maxUnitScore: 10).isValid,
+        isTrue,
+      );
     });
   });
 
   group('atış listesi', () {
     test('protokoldeki ok sayısını aşamıyor', () {
       expect(
-          checkEntries([10, 9, 8, 7], unitsPerSet: 3, maxUnitScore: 10).isValid,
-          isFalse);
-      expect(checkEntries([10, 9, 8], unitsPerSet: 3, maxUnitScore: 10).isValid,
-          isTrue);
+        checkEntries([10, 9, 8, 7], unitsPerSet: 3, maxUnitScore: 10).isValid,
+        isFalse,
+      );
+      expect(
+        checkEntries([10, 9, 8], unitsPerSet: 3, maxUnitScore: 10).isValid,
+        isTrue,
+      );
     });
 
     test('eksik ok içeren liste geçerli', () {
       expect(
-          checkEntries([10, null, 8], unitsPerSet: 3, maxUnitScore: 10).isValid,
-          isTrue);
+        checkEntries([10, null, 8], unitsPerSet: 3, maxUnitScore: 10).isValid,
+        isTrue,
+      );
     });
 
     test('listedeki aralık dışı puan yakalanıyor', () {
-      expect(checkEntries([10, 12], unitsPerSet: 3, maxUnitScore: 10).isValid,
-          isFalse);
+      expect(
+        checkEntries([10, 12], unitsPerSet: 3, maxUnitScore: 10).isValid,
+        isFalse,
+      );
     });
   });
 
@@ -137,7 +149,8 @@ void main() {
 
     test('sıfır süreli aşamalar işaretleniyor', () {
       final c = TrainingProtocolConfig.fromMap(
-          const {'collect_seconds': 0, 'rest_seconds': 0});
+        const {'collect_seconds': 0, 'rest_seconds': 0},
+      );
       expect(c.hasCollect, isFalse);
       expect(c.hasRest, isFalse);
     });

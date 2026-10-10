@@ -4,6 +4,8 @@ Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+Branş motoru doğrulaması: 2026-10-10 basketbol/futbol/tenis/yüzme/kulvarlı atletizm müsabaka modelleri saf Dart içinde tamamlandı. Kontrat/okçuluk korunur; yeni bağımlılık yok. 131 VM + 130 Chrome testi, 6 ScorePad ve 28 veri regresyonu geçti. Paket analizi 0 bulgu; uygulama kapsamı 0 hata/uyarı, mevcut 7 info. ScorePad zorla okçuluk cast'i düzeltildi. Kanıt docs/branch-match-protocol-verification.md. Push/deploy/canlı SQL yok; Writer serbest.
+
 Güncel doğrulama: Misafir keşfi ve kimlik kapısı UI yerelde uygulandı. AuthGate, merkezi SwanAccess işlem kararı, özel rota koruması, mevcut kimlik/belge ekranı ve zorunlu spor belgesi expiry alanı bağlı. 698 Flutter (348 veri/304 uygulama/46 konsol), 63 SQL; değişen Dart analizi 0 hata/uyarı, 535 info. 0101 parse, SSS 39/39, diff-check ve üretim web derlemesi geçti. Derlemede CupertinoIcons font uyarısı var. Push/deploy/canlı SQL yok. Kanıt docs/guest-identity-verification.md. Writer serbest.
 
 Önceki Faz C1 doğrulaması: 0099/0100, mevcut belge sisteminde tekil doğrulanmış TCKN, eski aktif üyelik geçişi, branş/süre/veli kapıları ve eski RPC/doğrudan yazma koruması. 34 kimlik/temel + 28 public SQL, 679 Flutter. 0009 kulüpsüz eski sporcu varsa 0100 atomik durur; C2 privacy/lifecycle işleri bekler. Kanıt docs/identity-membership-verification.md.

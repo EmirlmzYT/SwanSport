@@ -6,7 +6,12 @@
 library;
 
 export 'definitions/archery_definition.dart';
+export 'definitions/athletics_swimming_definition.dart';
+export 'definitions/basketball_definition.dart';
 export 'definitions/branch_definition_contract.dart';
+export 'definitions/football_definition.dart';
+export 'definitions/tennis_definition.dart';
+export 'protocols/official_match_protocol.dart';
 export 'protocols/training_protocol_config.dart';
 export 'schemas/branch_field_schema.dart';
 export 'scoring/score_rules.dart';
