@@ -1,5 +1,7 @@
 # Canlı yayın önkontrolü — 2026-10-10
 
+Güncelleme: Kullanıcının test kaydı aidiyetini netleştirmesinin ardından engeller giderildi; 0077–0104 canlıya uygulandı ve Cloudflare yayını tamamlandı. Son durum ve doğrulama sınırları `production-release-2026-10-10.md` içindedir. Aşağıdaki kayıt ilk önkontrolün tarihsel durumudur.
+
 Kullanıcı canlı önkontrol, uygun migration'ları uygulama ve Cloudflare yayını için talimat verdi. Önkontrol veritabanında yalnız SELECT sorgularıyla yapıldı. Migration veya deployment başlatılmadı.
 
 ## Doğrulanan durum

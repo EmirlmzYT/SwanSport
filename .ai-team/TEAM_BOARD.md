@@ -2,7 +2,10 @@
 
 Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `waiting_user`
+Durum: `complete`
+
+Canlı yayın tamamlandı: 2026-10-10. Kullanıcının belirttiği test kaydı kulübüne bağlandı; 0077–0104 arasındaki 28 migration ayrı transaction/15s lock_timeout ile başarıyla commit edildi. Eksik tablo yok; 26 tabloda RLS, 13 RPC ACL, mevcut üyelik okuma ve 18 gerçek anon API kontrolü geçti. App/konsol build yenilendi; swanspor Production/main af653c4 dağıtımı fb88bc82-6c94-4796-96db-ff85f8fb76c5, Functions dahil Deployment complete. Bu ağda pages.dev TLS/DNS hatası olduğundan canlı UI ve fiziksel Android FCM UAT açık; yeni APK/push yok. Kanıt docs/production-release-2026-10-10.md. Writer serbest.
+
 
 Canlı yayın önkontrolü: 2026-10-10. Supabase yönetim oturumu ve Cloudflare swanspor OAuth doğrulandı. Canlıda migration ledger, federasyon/kimlik temeli ve 0086–0093 şema işaretleri yok. 0100'ı engelleyen 1 kulüpsüz sporcu hesabı var; hesabın kulüp yöneticiliği sporcu aidiyeti sayılmadı, kullanıcıya doğru durum soruldu. Yalnız SELECT; migration/deploy yapılmadı. Yerel release paketi hazırlandı. Kanıt docs/production-preflight-2026-10-10.md. Writer serbest; kullanıcı yanıtından sonra şema kapsamı incelenerek devam.
 
