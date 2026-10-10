@@ -1,4 +1,5 @@
 import '../scoring/score_rules.dart';
+import 'drill_metric_payload.dart';
 
 /// Bir antrenman protokolünün yapılandırması.
 ///
@@ -14,11 +15,12 @@ class TrainingProtocolConfig {
     required this.unitsPerSet,
     required this.prepSeconds,
     required this.shootSeconds,
-    required this.collectSeconds,
+    this.collectSeconds = 0,
     required this.restSeconds,
     required this.maxUnitScore,
     required this.entryMode,
     required this.mode,
+    this.archetype = TrainingArchetype.targetScore,
   });
 
   /// Sunucudan gelen jsonb.
@@ -29,12 +31,12 @@ class TrainingProtocolConfig {
   factory TrainingProtocolConfig.fromMap(Map<String, Object?> m) {
     int i(String k, int fallback) {
       final v = m[k];
-      return v is num ? v.toInt() : fallback;
+      return v is num && v.isFinite ? v.toInt() : fallback;
     }
 
     num n(String k, num fallback) {
       final v = m[k];
-      return v is num ? v : fallback;
+      return v is num && v.isFinite ? v : fallback;
     }
 
     return TrainingProtocolConfig(
@@ -45,8 +47,12 @@ class TrainingProtocolConfig {
       collectSeconds: i('collect_seconds', 0),
       restSeconds: i('rest_seconds', 0),
       maxUnitScore: n('max_unit_score', 10),
-      entryMode: ScoreEntryMode.parse(m['entry_mode'] as String?),
-      mode: TrainingMode.parse(m['mode'] as String?),
+      entryMode: ScoreEntryMode.parse(
+        m['entry_mode'] is String ? m['entry_mode'] as String : null,
+      ),
+      mode:
+          TrainingMode.parse(m['mode'] is String ? m['mode'] as String : null),
+      archetype: TrainingArchetype.parse(m['archetype']),
     );
   }
 
@@ -59,9 +65,32 @@ class TrainingProtocolConfig {
   final num maxUnitScore;
   final ScoreEntryMode entryMode;
   final TrainingMode mode;
+  final TrainingArchetype archetype;
+
+  /// Same bounds as valid_training_config. Call before creating a template.
+  void validate() {
+    if (setCount < 1 ||
+        setCount > 50 ||
+        unitsPerSet < 1 ||
+        unitsPerSet > 100 ||
+        prepSeconds < 0 ||
+        prepSeconds > 3600 ||
+        shootSeconds < 5 ||
+        shootSeconds > 3600 ||
+        collectSeconds < 0 ||
+        collectSeconds > 3600 ||
+        restSeconds < 0 ||
+        restSeconds > 3600 ||
+        !maxUnitScore.isFinite ||
+        maxUnitScore < 1 ||
+        maxUnitScore > 1000) {
+      throw const FormatException('Antrenman yapılandırması sınırlar dışında');
+    }
+  }
 
   /// Aşama makinesine verilecek biçim.
   Map<String, Object?> toMap() => {
+        'archetype': archetype.wireName,
         'set_count': setCount,
         'units_per_set': unitsPerSet,
         'prep_seconds': prepSeconds,
@@ -75,7 +104,9 @@ class TrainingProtocolConfig {
 
   /// Hedeflenen toplam atış — antrenör sonuç ekranındaki "kaydedilen /
   /// hedeflenen" karşılaştırmasının paydası.
-  int get plannedUnits => setCount * unitsPerSet;
+  int get plannedUnits => archetype == TrainingArchetype.lapInterval
+      ? setCount
+      : setCount * unitsPerSet;
 
   /// Bir setten alınabilecek en yüksek puan.
   num get maxSetScore => unitsPerSet * maxUnitScore;
@@ -84,7 +115,8 @@ class TrainingProtocolConfig {
   bool get hasRest => restSeconds > 0;
 
   /// Ok toplama aşaması var mı.
-  bool get hasCollect => collectSeconds > 0;
+  bool get hasCollect =>
+      archetype == TrainingArchetype.targetScore && collectSeconds > 0;
 }
 
 /// Antrenmanın amacı. Sonuç ekranı bunu okuyup uyarıları yumuşatıyor:

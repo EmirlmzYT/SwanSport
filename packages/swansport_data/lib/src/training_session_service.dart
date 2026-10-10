@@ -160,6 +160,7 @@ class TrainingSet {
     this.unitCount,
     this.locked = false,
     this.entries = const [],
+    this.metricPayload,
   });
 
   factory TrainingSet.fromMap(Map<String, dynamic> m) => TrainingSet(
@@ -168,6 +169,7 @@ class TrainingSet {
         totalScore: (m['total_score'] as num?)?.toDouble(),
         unitCount: (m['unit_count'] as num?)?.toInt(),
         locked: m['locked_at'] != null,
+        metricPayload: _metricFromRow(m),
         entries: [
           for (final e in (m['training_set_entries'] as List? ?? const []))
             (e as Map)['score'] as num?,
@@ -182,8 +184,9 @@ class TrainingSet {
   final int? unitCount;
   final bool locked;
   final List<num?> entries;
+  final DrillMetricPayload? metricPayload;
 
-  bool get isMissing => isSetMissing(totalScore);
+  bool get isMissing => metricPayload == null && isSetMissing(totalScore);
 }
 
 /// Antrenör sonuç ekranındaki bir sporcu satırı.
@@ -416,6 +419,37 @@ class SessionParticipant {
   final int? lane;
 }
 
+/// Private staff note, stored in the existing session event stream.
+class CoachDrillNote {
+  const CoachDrillNote(
+      {required this.id,
+      required this.athleteId,
+      required this.note,
+      required this.tag,
+      required this.createdAt,});
+  factory CoachDrillNote.fromMap(Map<String, dynamic> row) {
+    final value = row['new_value'];
+    final at = _time(row['created_at']);
+    if (row['id'] is! String ||
+        row['athlete_id'] != null && row['athlete_id'] is! String ||
+        value is! Map ||
+        value['note'] is! String ||
+        value['tag'] is! String ||
+        at == null) {
+      throw const FormatException('Geçersiz antrenör notu');
+    }
+    return CoachDrillNote(
+        id: row['id'] as String,
+        athleteId: row['athlete_id'] as String?,
+        note: value['note'] as String,
+        tag: value['tag'] as String,
+        createdAt: at,);
+  }
+  final String id, note, tag;
+  final String? athleteId;
+  final DateTime createdAt;
+}
+
 // ================================= Servis ==================================
 
 class TrainingSessionService {
@@ -453,6 +487,7 @@ class TrainingSessionService {
     required TrainingProtocolConfig config,
     String? description,
   }) async {
+    config.validate();
     final res = await _db.rpc<String>('create_training_protocol', params: {
       'p_club': clubId,
       'p_sport': sportCode,
@@ -470,6 +505,7 @@ class TrainingSessionService {
     String? description,
     TrainingProtocolConfig? config,
   }) async {
+    config?.validate();
     final res = await _db.rpc<String>('revise_training_protocol', params: {
       'p_protocol': protocolId,
       'p_name': name,
@@ -570,7 +606,7 @@ class TrainingSessionService {
   }) =>
       _db.rpc<void>('advance_session_phase', params: {
         'p_session': sessionId,
-        'p_phase': phase?.name,
+        'p_phase': phase?.wireName,
         'p_reason': reason,
       });
 
@@ -592,18 +628,22 @@ class TrainingSessionService {
     required int setNo,
     num? total,
     List<num?>? entries,
+    DrillMetricPayload? metricPayload,
   }) =>
       _db.rpc<void>('submit_set_score', params: {
         'p_session': sessionId,
         'p_set_no': setNo,
         'p_total': total,
         'p_entries': entries,
+        'p_metric_payload': metricPayload?.toMap() ?? const <String, Object?>{},
       });
 
   Future<List<TrainingSet>> mySets(String sessionId, String athleteId) async {
     final rows = await _db
         .from('training_sets')
-        .select('id, set_no, total_score, unit_count, locked_at, '
+        .select(
+            'id, set_no, total_score, unit_count, locked_at, metric_payload, '
+            'training_sessions(training_protocols(config)), '
             'training_set_entries(seq, score)')
         .eq('session_id', sessionId)
         .eq('athlete_id', athleteId)
@@ -646,6 +686,26 @@ class TrainingSessionService {
   }
 
   // --- Antrenör tarafı ---
+
+  Future<List<CoachDrillNote>> coachDrillNotes(String sessionId) async {
+    final rows = await _db
+        .from('training_session_events')
+        .select('id, athlete_id, new_value, created_at')
+        .eq('session_id', sessionId)
+        .eq('action', 'drill_note')
+        .order('created_at', ascending: false)
+        .limit(200);
+    return [for (final row in rows) CoachDrillNote.fromMap(row)];
+  }
+
+  Future<void> submitCoachDrillNote(
+          String sessionId, String athleteId, String note, String tag) =>
+      _db.rpc<void>('submit_coach_drill_note', params: {
+        'p_session': sessionId,
+        'p_athlete': athleteId,
+        'p_note': note,
+        'p_tag': tag,
+      });
 
   Future<List<SessionParticipant>> participants(String sessionId) async {
     final rows = await _db
@@ -701,15 +761,17 @@ class TrainingSessionService {
   /// Kilitli sonucu düzelt — gerekçe zorunlu, eski/yeni değer denetim izinde.
   Future<void> correctLockedSet({
     required String setId,
-    required num total,
+    required num? total,
     required String reason,
     List<num?>? entries,
+    DrillMetricPayload? metricPayload,
   }) =>
       _db.rpc<void>('correct_locked_set', params: {
         'p_set': setId,
         'p_total': total,
         'p_reason': reason,
         'p_entries': entries,
+        'p_metric_payload': metricPayload?.toMap(),
       });
 
   /// Yoklama ekranındaki İPUCU. Bu çağrı yoklama işaretlemiyor.
@@ -745,6 +807,18 @@ DateTime? _time(Object? raw) {
   return null;
 }
 
+DrillMetricPayload? _metricFromRow(Map<String, dynamic> row) {
+  final raw = row['metric_payload'];
+  if (raw == null || raw is Map && raw.isEmpty) return null;
+  if (raw is! Map) throw const FormatException('metric_payload nesne olmalı');
+  final session = row['training_sessions'];
+  final protocol = session is Map ? session['training_protocols'] : null;
+  final config = protocol is Map ? protocol['config'] : null;
+  final archetype =
+      TrainingArchetype.parse(config is Map ? config['archetype'] : null);
+  return DrillMetricPayload.fromMap(archetype, raw.cast<String, Object?>());
+}
+
 // =============================== Sağlayıcılar ==============================
 
 final trainingSessionServiceProvider = Provider<TrainingSessionService>((ref) {
@@ -771,6 +845,12 @@ final sessionConfigProvider = FutureProvider.autoDispose
     .family<TrainingProtocolConfig?, String>((ref, sessionId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return null;
   return ref.watch(trainingSessionServiceProvider).configOf(sessionId);
+});
+
+final sessionCoachDrillNotesProvider = FutureProvider.autoDispose
+    .family<List<CoachDrillNote>, String>((ref, sessionId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(trainingSessionServiceProvider).coachDrillNotes(sessionId);
 });
 
 final sessionParticipantsProvider = FutureProvider.autoDispose
@@ -840,4 +920,3 @@ final sessionAssessmentProvider = FutureProvider.autoDispose
       .watch(trainingSessionServiceProvider)
       .getAssessment(sessionId: sessionId, athleteId: athlete.id);
 });
-

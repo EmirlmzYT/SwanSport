@@ -4,6 +4,12 @@ Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+2026-10-10: Dört evrensel antrenman arketipi; saf Dart faz/metric motoru, mevcut protokol/set tabloları üzerinde 0105 ve veri katmanı entegrasyonu. Eski okçuluk, kilitler ve yetkiler korunacak. Yerel test kapsamı; canlı SQL/deploy/push yok. Başlangıç kullanıcı değişiklikleri korunur.
+
+Kontrol noktası: 4 tipli metrik modeli, arketipe göre sunucu/Dart fazları, mevcut training_sets.metric_payload, audit tabanlı antrenör notları, kilitli metrik düzeltmeleri ve metrik bazlı tamamlanma sayımı yerelde hazır. İlk tur 162 Dart, 387 data + 330 app + 50 console Flutter ve 15 gerçek PostgreSQL senaryosu geçti. Son rapor/analiz ve lap özetlerinin son kontrolü sürüyor; canlı değişiklik yok.
+
+Yerel antrenman arketipleri tamamlandı: 767 Flutter (387 data + 330 app + 50 console), 163 Dart, 17 PostgreSQL davranış senaryosu geçti. Son eski/yeni antrenman veri alt kümesi 40/40. Motor analizi bulgusuz; dar veri analizi 0 hata/0 uyarı/20 stil info. SQL parse, SSS 39/39 ve diff kontrolü geçti. Kanıt docs/training-archetypes-verification.md. 0105 yereldir; ekran, canlı SQL, push ve deploy yok. Başlangıç kullanıcı dosyaları commit dışında tutulur. Writer serbest.
+
 Canlı yayın tamamlandı: 2026-10-10. Kullanıcının belirttiği test kaydı kulübüne bağlandı; 0077–0104 arasındaki 28 migration ayrı transaction/15s lock_timeout ile başarıyla commit edildi. Eksik tablo yok; 26 tabloda RLS, 13 RPC ACL, mevcut üyelik okuma ve 18 gerçek anon API kontrolü geçti. App/konsol build yenilendi; swanspor Production/main af653c4 dağıtımı fb88bc82-6c94-4796-96db-ff85f8fb76c5, Functions dahil Deployment complete. Bu ağda pages.dev TLS/DNS hatası olduğundan canlı UI ve fiziksel Android FCM UAT açık; yeni APK/push yok. Kanıt docs/production-release-2026-10-10.md. Writer serbest.
 
 

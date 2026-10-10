@@ -8,6 +8,8 @@
 /// kayar ve sporcunun ekranı antrenörün ekranından farklı aşama gösterirdi.
 library;
 
+import '../protocols/drill_metric_payload.dart';
+
 enum SessionPhase {
   /// Hazırlık/bekleme — sayaç değil, "başla" kapısı.
   prep,
@@ -24,15 +26,27 @@ enum SessionPhase {
   /// Setler arası dinlenme.
   rest,
 
+  activeDrill,
+  lapActive,
+  restInterval,
+
   /// Oturum bitti.
   done;
+
+  static const completed = done;
+  String get wireName => switch (this) {
+        activeDrill => 'active_drill',
+        lapActive => 'lap_active',
+        restInterval => 'rest_interval',
+        _ => name,
+      };
 
   /// Sunucudaki metin değerinden okuma. Tanınmayan değer [done] değil
   /// [prep] veriyor: bilinmeyen bir aşamada oturumu "bitmiş" saymak,
   /// sporcunun ekranını sessizce kapatırdı.
   static SessionPhase parse(String? raw) {
     for (final p in SessionPhase.values) {
-      if (p.name == raw) return p;
+      if (p.name == raw || p.wireName == raw) return p;
     }
     return SessionPhase.prep;
   }
@@ -44,6 +58,9 @@ enum SessionPhase {
         SessionPhase.score => 'Skor girişi',
         SessionPhase.rest => 'Dinlenme',
         SessionPhase.done => 'Tamamlandı',
+        SessionPhase.activeDrill => 'Drill çalışması',
+        SessionPhase.lapActive => 'Aktif tur',
+        SessionPhase.restInterval => 'Tur arası dinlenme',
       };
 
   /// Sporcunun o an ne yapması gerektiği. Aşama adından daha yönlendirici.
@@ -54,12 +71,22 @@ enum SessionPhase {
         SessionPhase.score => 'Bu setin puanını gir',
         SessionPhase.rest => 'Dinlen, sonraki set birazdan',
         SessionPhase.done => 'Oturum tamamlandı',
+        SessionPhase.activeDrill =>
+          'Tekrarlarını tamamla ve sayaçlarını kaydet',
+        SessionPhase.lapActive => 'Turunu tamamla ve dereceni kaydet',
+        SessionPhase.restInterval => 'Dinlen, sonraki tur birazdan',
       };
 
   /// Skor girişi bu aşamada açık mı.
   bool get acceptsScore =>
-      this == SessionPhase.score || this == SessionPhase.rest;
+      this == SessionPhase.score ||
+      this == SessionPhase.rest ||
+      this == SessionPhase.activeDrill ||
+      this == SessionPhase.lapActive ||
+      this == SessionPhase.restInterval;
 }
+
+typedef TrainingPhase = SessionPhase;
 
 /// Bir aşamanın kaç saniye sürdüğü. [SessionPhase.score] ve
 /// [SessionPhase.done] için `null` — süresiz.
@@ -69,13 +96,15 @@ int? phaseSeconds(SessionPhase phase, Map<String, Object?> config) {
   final key = switch (phase) {
     SessionPhase.prep => 'prep_seconds',
     SessionPhase.shoot => 'shoot_seconds',
+    SessionPhase.activeDrill || SessionPhase.lapActive => 'shoot_seconds',
     SessionPhase.collect => 'collect_seconds',
     SessionPhase.rest => 'rest_seconds',
+    SessionPhase.restInterval => 'rest_seconds',
     SessionPhase.score || SessionPhase.done => null,
   };
   if (key == null) return null;
   final raw = config[key];
-  return raw is num ? raw.toInt() : null;
+  return raw is num && raw.isFinite ? raw.toInt() : null;
 }
 
 /// Aşama geçişinin sonucu: sıradaki aşama ve o aşamanın ait olduğu set.
@@ -108,12 +137,32 @@ PhaseStep nextPhase(
 ) {
   int intOf(String key, int fallback) {
     final v = config[key];
-    return v is num ? v.toInt() : fallback;
+    return v is num && v.isFinite ? v.toInt() : fallback;
   }
 
   final setCount = intOf('set_count', 1);
   final collect = intOf('collect_seconds', 0);
   final rest = intOf('rest_seconds', 0);
+  final archetype = TrainingArchetype.parse(config['archetype']);
+  if (archetype != TrainingArchetype.targetScore) {
+    final active = archetype == TrainingArchetype.lapInterval
+        ? SessionPhase.lapActive
+        : SessionPhase.activeDrill;
+    final resting = archetype == TrainingArchetype.lapInterval
+        ? SessionPhase.restInterval
+        : SessionPhase.rest;
+    if (phase == SessionPhase.done) return PhaseStep(phase, setNo);
+    if (phase == SessionPhase.prep) return PhaseStep(active, setNo);
+    if (phase == resting) return PhaseStep(SessionPhase.prep, setNo + 1);
+    if (phase != active) {
+      throw const FormatException('Arketip için geçersiz aşama');
+    }
+    return setNo >= setCount
+        ? PhaseStep(SessionPhase.done, setNo)
+        : rest > 0
+            ? PhaseStep(resting, setNo)
+            : PhaseStep(SessionPhase.prep, setNo + 1);
+  }
 
   return switch (phase) {
     SessionPhase.prep => PhaseStep(SessionPhase.shoot, setNo),
@@ -128,6 +177,10 @@ PhaseStep nextPhase(
             : PhaseStep(SessionPhase.prep, setNo + 1),
     SessionPhase.rest => PhaseStep(SessionPhase.prep, setNo + 1),
     SessionPhase.done => PhaseStep(SessionPhase.done, setNo),
+    SessionPhase.activeDrill ||
+    SessionPhase.lapActive ||
+    SessionPhase.restInterval =>
+      throw const FormatException('Hedef protokolünde geçersiz aşama'),
   };
 }
 
