@@ -2,7 +2,10 @@
 
 Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `complete`
+Durum: `waiting_user`
+
+Canlı yayın önkontrolü: 2026-10-10. Supabase yönetim oturumu ve Cloudflare swanspor OAuth doğrulandı. Canlıda migration ledger, federasyon/kimlik temeli ve 0086–0093 şema işaretleri yok. 0100'ı engelleyen 1 kulüpsüz sporcu hesabı var; hesabın kulüp yöneticiliği sporcu aidiyeti sayılmadı, kullanıcıya doğru durum soruldu. Yalnız SELECT; migration/deploy yapılmadı. Yerel release paketi hazırlandı. Kanıt docs/production-preflight-2026-10-10.md. Writer serbest; kullanıcı yanıtından sonra şema kapsamı incelenerek devam.
+
 
 Güncel görev tamamlandı: branşa göre 1–2 yardımcı / 3–5 başantrenör resmi kadro sınırı ve sonuç yayını → veli bildirimi/FCM → özel sonuç kartı/takvim hattı. Son doğrulama: 783 Flutter, 135 Dart; 39 temel/C1/0104 + 49 public/resmi SQL = 88 koşu, 56 farklı senaryo. Son 0104 beş senaryosu ayrıca tekrar geçti. Takvim bildirim silinmesinden bağımsız, canlı veli ilişkisine ve frozen roster'a bağlıdır. Son analiz 0 hata/5 önceki uyarı/3032 info. App ve konsol üretim build geçti. Kanıt docs/coach-guardian-result-verification.md. Fiziksel cihaz FCM teslimi/canlı SQL/push/deploy yok; başlangıç kullanıcı dosyaları korunur. Writer serbest.
 
