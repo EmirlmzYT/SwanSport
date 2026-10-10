@@ -27,3 +27,13 @@ SHA256:
 
 Bu kontrol noktasında canlı SQL veya yeni Cloudflare dağıtımı yapılmadı. Başlangıç kullanıcı dosyaları korunur.
 
+
+## Sonraki kontrol noktası — yönetim girişi sonrası
+
+Kullanıcı CLI girişini tamamladı. Doğru canlı proje `swanspor105` / `gokkimnokigqxmbppvle`, ACTIVE_HEALTHY. Önkontrolde 0105/0106/0107 işaretlerinin üçü de yoktu; C1 ve mevcut antrenman temeli vardı. Migration ledger yoktu.
+
+0105 ve 0106 ayrı işlemlerde başarıyla commit edildi. 0107 ilk denemesi SSS `audience='all'` nedeniyle `23514` ile bütünüyle rollback oldu. Canlı ve 0069 şema sözleşmesi `everyone` gerektiriyor. Kaynak 0107 bu değere düzeltildi; yeni SQL test fixture'ına gerçek `faq_audience_check` eklendi. 21/21 SQL testi tekrar geçti. Düzeltilen 0107 ayrı işlemde başarıyla commit edildi. Cron kapatılmadı; her işlem 15s lock_timeout kullandı.
+
+Sonkontrol: 17 RPC'de tek imza, security definer ve PUBLIC execute kapalı; iç yardımcılar istemcilere kapalı. 15 tabloda RLS açık; yalnız halka açık iki tesis tablosu anon SELECT alıyor, diğer 13'ü kapalı. Gerçek anonim PostgREST kontrolleri 25/25 geçti. Bir test isteğinin parametre adı p_start yerine gerçek p_starts_at olarak düzeltildi; yeniden koşu geçerli kanıttır. Mevcut doğrulanmamış bir hesabın authenticated rolü/JWT claim'leriyle yazma reddi sınandı; işlem rollback edildi, gerçek rezervasyon/ilan/bildirim oluşturulmadı. Bu bir cihazdan giriş testi değildir.
+
+107 migration parse ve SSS 39/39 başarılı. SQL/test dışındaki Dart ürün kaynakları değişmedi; hazır üretim paketinin kaynak güncelliği korunur. Cloudflare yayını bir sonraki adımdır. Önceki engel kayıtları tarihsel önkontroldür; veritabanı erişimi ve migration engeli giderildi. SMS sağlayıcısı/gerçek teslim testi hâlâ açık.

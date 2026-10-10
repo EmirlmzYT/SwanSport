@@ -27,6 +27,7 @@ async function setup(){
  const db=new PGlite();
  try {
   await db.exec(base);
+  await db.exec("alter table faq_entries add constraint faq_audience_check check (audience in ('everyone','athlete','parent','coach','club_staff','accountant'))");
   await db.exec(`
    create table auth.users(id uuid primary key,phone text,phone_confirmed_at timestamptz,is_anonymous boolean default false);
    insert into auth.users(id) select id from profiles;

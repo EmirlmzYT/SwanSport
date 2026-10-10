@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-10 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `blocked`
+Aktif Writer: Codex
+Durum: `active`
 
 2026-10-10: Dört evrensel antrenman arketipi; saf Dart faz/metric motoru, mevcut protokol/set tabloları üzerinde 0105 ve veri katmanı entegrasyonu. Eski okçuluk, kilitler ve yetkiler korunacak. Yerel test kapsamı; canlı SQL/deploy/push yok. Başlangıç kullanıcı değişiklikleri korunur.
 
@@ -205,3 +205,8 @@ Sonuç: Misafir saha/partner vitrini ve telefon/kimlik işlem kapısı tamamland
 
 
 2026-10-10 canlı 0107 önkontrol: app/konsol prod build başarılı, konsol base href doğru; paket build/rollout-0107-release-path.txt yolunda. CLI yönetim oturumu yok (AccessTokenRequiredError). Canlı Auth external.phone=false; courts yeni sütun sorgusu 42703. Migration/deploy yapılmadı. Yönetim girişi ve SMS sağlayıcı yapılandırması bekleniyor; Writer serbest. Rapor docs/production-rollout-0107.md.
+
+
+2026-10-10: Kullanıcı yönetim girişini tamamladı; CLI swanspor105/gokkimnokigqxmbppvle ACTIVE_HEALTHY doğrulandı. Canlı şema önkontrolü ve ayrı migration işlemleri devralındı.
+
+Kontrol noktası: 0105/0106 commit; 0107 SSS audience all→everyone düzeltmesi ve gerçek fixture constraint sonrası 21/21 SQL, ayrı 0107 commit başarılı. 17 RPC ACL, 15 RLS, 25/25 gerçek anon API ve rollback edilmiş authenticated doğrulamasız yazma reddi geçti. 107 parse/39 SSS. Cloudflare dağıtımı başlatılıyor; SMS yapılandırması açık.

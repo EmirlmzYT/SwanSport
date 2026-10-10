@@ -726,7 +726,7 @@ create trigger guard_venue_action_write before insert or update on public.sport_
 insert into public.faq_entries(question,answer,category,audience,sort_order,route,feature)
 select 'Saha ve partner ilanlarına hesapsız bakabilir miyim?',
  'Evet. Kortları, halı sahaları, müsait saatleri ve halka açık oyun ilanlarını misafir olarak inceleyebilirsin. Rezervasyon, bekleme listesi, kortta geldim onayı ve partner iletişimi için hesap ve SMS ile doğrulanmış telefon veya onaylı kimlik gerekir. Doğrulama ekranında telefonuna kod isteyebilirsin. Halı saha saat isteği kesin rezervasyon değildir; saha yetkilisiyle anlaşman gerekir. Partner isteğini halka açık yayımlamayı seçersen branş, şehir ve geçerlilik saati misafirlere görünür; adın, profil kimliğin ve konumun görünmez.',
- 'Sahalar','all',30,'/kortlar',null
+ 'Sahalar','everyone',30,'/kortlar',null
 where not exists(select 1 from public.faq_entries where question='Saha ve partner ilanlarına hesapsız bakabilir miyim?');
 
 
