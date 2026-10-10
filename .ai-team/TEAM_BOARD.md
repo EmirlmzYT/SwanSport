@@ -186,3 +186,10 @@ Güncel doğrulama: Misafir keşfi ve kimlik kapısı UI yerelde uygulandı. Aut
 | 2026-10-10 | Codex Writer | active | Misafir gezinti, merkezi eylem/rota kapıları ve kimlik belge ekranı bağlantısı | app/data/test | Mevcut yol haritası ve generated metadata korunur; canlı SQL/deploy yok. |
 
 | 2026-10-10 | Codex Writer | complete | Birleşik Takvim: yayımlanmış resmi faaliyet/maç ve kulüp etkinlik/oturum projeksiyonu, veli kapsamı ve ortak misafir ekranı | 0102, data/app, testler ve kanıt | 723 Flutter, 49 SQL, parse/SSS/diff başarılı. Analiz 0 hata/5 önceki uyarı. Yerel commit; kullanıcı yol haritası/generated metadata korunur. Push/deploy/canlı SQL yok. |
+
+
+2026-10-10: Codex canlı antrenman kokpitini üstlendi: dört dinamik pad, veri katmanında taslak/sayaç/karne, antrenör notları ve widget testleri. Önceki kullanıcı değişiklikleri korunur. Canlı SQL/deploy yok.
+
+Kontrol noktası: Kokpit/padler, arketip karnesi, hızlı not, gerçek paused_at ve tek kaynakta canlı yenileme bağlı. İlk 9 app + 4 veri testi geçti; analizde hata/uyarı yok, stil info var. Kilit/dar ekran/HTTP sağlayıcı testleri ve tam regresyon sürüyor.
+
+Son doğrulama: 351 app + 393 veri + 50 konsol = 794 Flutter testi, 17 gerçek SQL senaryosu geçti. Dört arketip açık/koyu/dar ekran, kilit/duraklama, hata/retry, hızlı/özel not, lap karnesi ve dispose sonrası geç cevap test edildi. Genel analiz 0 hata/5 eski uyarı; yeni altı dosya temiz; entegrasyonda 0 hata/uyarı. SQL parse, SSS 39/39, diff kontrolü ve görsel kontrol geçti. Canlı 0105/0106 uygulanmadı, deploy yok. Kanıt docs/training-cockpit-verification.md. Uygulama ve yerel doğrulama tamamlandı; Writer serbest. Kullanıcının sürekli GitHub kaydı tercihi doğrultusunda bu işin commit/push adımı uygulanır.

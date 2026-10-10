@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_branch_engine/swansport_branch_engine.dart';
@@ -88,6 +90,8 @@ class TrainingSession {
     this.joinCode,
     this.athleteId,
     this.eventId,
+    this.sportCode = '',
+    this.pausedAt,
   });
 
   factory TrainingSession.fromMap(Map<String, dynamic> m) => TrainingSession(
@@ -105,6 +109,8 @@ class TrainingSession {
         joinCode: m['join_code'] as String?,
         athleteId: m['athlete_id'] as String?,
         eventId: m['event_id'] as String?,
+        sportCode: m['sport_code'] is String ? m['sport_code'] as String : '',
+        pausedAt: _time(m['paused_at']),
       );
 
   final String id;
@@ -125,6 +131,8 @@ class TrainingSession {
   final String? joinCode;
   final String? athleteId;
   final String? eventId;
+  final String sportCode;
+  final DateTime? pausedAt;
 
   bool get isPersonal => kind == 'personal';
   bool get isLive => status == 'live';
@@ -143,7 +151,7 @@ class TrainingSession {
   Duration? remainingAt(DateTime now) => remaining(
         endsAt: phaseEndsAt,
         now: now,
-        pausedAt: paused ? phaseEndsAt : null,
+        pausedAt: paused ? pausedAt : null,
       );
 
   /// Süre doldu mu. Dolduğunda sistem **kendiliğinden ilerlemiyor**.
@@ -421,12 +429,13 @@ class SessionParticipant {
 
 /// Private staff note, stored in the existing session event stream.
 class CoachDrillNote {
-  const CoachDrillNote(
-      {required this.id,
-      required this.athleteId,
-      required this.note,
-      required this.tag,
-      required this.createdAt,});
+  const CoachDrillNote({
+    required this.id,
+    required this.athleteId,
+    required this.note,
+    required this.tag,
+    required this.createdAt,
+  });
   factory CoachDrillNote.fromMap(Map<String, dynamic> row) {
     final value = row['new_value'];
     final at = _time(row['created_at']);
@@ -439,11 +448,12 @@ class CoachDrillNote {
       throw const FormatException('Geçersiz antrenör notu');
     }
     return CoachDrillNote(
-        id: row['id'] as String,
-        athleteId: row['athlete_id'] as String?,
-        note: value['note'] as String,
-        tag: value['tag'] as String,
-        createdAt: at,);
+      id: row['id'] as String,
+      athleteId: row['athlete_id'] as String?,
+      note: value['note'] as String,
+      tag: value['tag'] as String,
+      createdAt: at,
+    );
   }
   final String id, note, tag;
   final String? athleteId;
@@ -563,7 +573,7 @@ class TrainingSessionService {
         .from('training_sessions')
         .select('id, club_id, kind, status, current_phase, current_set, '
             'rhythm, phase_ends_at, paused_at, join_code, athlete_id, '
-            'event_id, training_protocols(name, config)')
+            'event_id, training_protocols(name, config, sport_code)')
         .eq('id', sessionId)
         .limit(1);
     final list = rows as List;
@@ -577,6 +587,7 @@ class TrainingSessionService {
       ...m,
       'paused': m['paused_at'] != null,
       'protocol_name': proto?['name'],
+      'sport_code': proto?['sport_code'],
       'set_count': cfg.setCount,
     });
   }
@@ -652,6 +663,26 @@ class TrainingSessionService {
       for (final r in rows as List)
         TrainingSet.fromMap((r as Map).cast<String, dynamic>()),
     ];
+  }
+
+  /// RLS retains the existing self/staff performance visibility boundaries.
+  Future<Map<String, List<TrainingSet>>> setsByAthlete(String sessionId) async {
+    final rows = await _db
+        .from('training_sets')
+        .select(
+          'id, athlete_id, set_no, total_score, unit_count, locked_at, metric_payload, '
+          'training_sessions(training_protocols(config)), training_set_entries(seq, score)',
+        )
+        .eq('session_id', sessionId)
+        .order('set_no');
+    final result = <String, List<TrainingSet>>{};
+    for (final row in rows) {
+      final id = row['athlete_id'];
+      if (id is String) {
+        (result[id] ??= []).add(TrainingSet.fromMap(row));
+      }
+    }
+    return result;
   }
 
   /// Öz değerlendirme. Hepsi isteğe bağlı; boş bırakmak kaydı engellemiyor.
@@ -838,13 +869,38 @@ final trainingProtocolsProvider =
 final trainingSessionProvider = FutureProvider.autoDispose
     .family<TrainingSession?, String>((ref, sessionId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return null;
-  return ref.watch(trainingSessionServiceProvider).byId(sessionId);
+  var disposed = false;
+  ref.onDispose(() => disposed = true);
+  final session =
+      await ref.watch(trainingSessionServiceProvider).byId(sessionId);
+  if (!disposed &&
+      session != null &&
+      (session.isLive || session.awaitingApproval)) {
+    final timer = Timer(const Duration(seconds: 3), () {
+      ref.invalidate(mySessionSetsProvider(sessionId));
+      ref.invalidate(sessionParticipantsProvider(sessionId));
+      ref.invalidate(sessionCoachDrillNotesProvider(sessionId));
+      ref.invalidate(sessionMetricSetsProvider(sessionId));
+      ref.invalidate(sessionSummaryProvider(sessionId));
+      ref.invalidate(sessionOverviewProvider(sessionId));
+      ref.invalidateSelf();
+    });
+    ref.onDispose(timer.cancel);
+  }
+  return session;
 });
 
 final sessionConfigProvider = FutureProvider.autoDispose
     .family<TrainingProtocolConfig?, String>((ref, sessionId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return null;
   return ref.watch(trainingSessionServiceProvider).configOf(sessionId);
+});
+
+/// Only rows allowed by existing training/performance RLS reach this provider.
+final sessionMetricSetsProvider = FutureProvider.autoDispose
+    .family<Map<String, List<TrainingSet>>, String>((ref, id) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const {};
+  return ref.watch(trainingSessionServiceProvider).setsByAthlete(id);
 });
 
 final sessionCoachDrillNotesProvider = FutureProvider.autoDispose

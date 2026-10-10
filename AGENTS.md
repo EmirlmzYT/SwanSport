@@ -1663,3 +1663,12 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - `TrainingPhase`, mevcut `SessionPhase` takma adıdır. Yeni active_drill / lap_active / rest_interval değerleri `wireName` ile gönderilir; `completed` eski done fazına karşılık gelir. Sunucu otoritedir. Tur milisaniyesini puan toplamına katma; metrikli tur tamamlanmış set sayılır.
 - `submit_set_score` ve `correct_locked_set` yeni isteğe bağlı metrik parametresine sahiptir; eski imza düşürülür, overload bırakılmaz. Kilitli metrik düzeltmesi gerekçe + yeni doğrulanmış metrik ister ve mevcut audit'e eski/yeni değerleri yazar. Oturum → set kilit sırası korunur. Antrenör drill notları mevcut `training_session_events` akışındadır, ikinci not tablosu yoktur; yardımcıların yetkisi daraltılmaz.
 - Kanıt: docs/training-archetypes-verification.md. 767 Flutter, 163 saf Dart, 17 gerçek PostgreSQL fixture senaryosu geçti; motor analizi temiz, dar veri analizi 0 hata/uyarı. 0105 canlıya uygulanmadı; yeni ekran/push/deploy yok. Canlı şema önceki yayınla 0104'tedir.
+
+### 2026-10-10 — Canlı antrenman kokpiti
+
+- Tek oturum/sonuç rotası korunur. BranchDrillPad, mevcut TrainingArchetype ve tipli RPC yükünü kullanır; widget Supabase çağırmaz. Sayısal ScorePad eski hedef kayıtları için durur.
+- LapIntervalMetric bulunan setin totalScore alanı null olabilir. Sonuç satırında totalScore! kullanma; metrikten tur süresi/mesafe göster. Eksik sonuç ile ölçülmüş sıfırı ayır.
+- Bir set tek drill veya tek tur taşır. Deneme sayıldıktan sonra drill değiştirmek önceki denemeleri yanlış etiketler. Mevcut combat_rally sözleşmesinde ace winner toplamına dahildir; ayrı ace alanı uydurma.
+- Taslak sayaçlar swansport_data Riverpod içinde, oturum/set anahtarıyla tutulur. Sunucu yenilemesi taslağı sıfırlamaz; hesap değişimi yeniden kurar. Taslak kalıcı çevrimdışı kuyruk değildir; uygulama tamamen kapanmadan önce kaydet.
+- Kalan aşama süresi gerçek paused_at ile donar. Canlı/review yenilemesi veri katmanındadır; geç tamamlanan istek dispose sonrası timer açmaz.
+- 0106 yalnız mevcut sport_training_sessions SSS içeriğidir. Canlı kullanım önkoşulu 0105 ve 0106; bu görev canlı SQL/deploy yapmadı. Kanıt: docs/training-cockpit-verification.md.

@@ -8,6 +8,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_page_header.dart';
 import 'my_training_screen.dart';
+import 'widgets/drill_result_card.dart';
 
 /// Antrenör sonuç ekranı.
 ///
@@ -31,7 +32,10 @@ class SessionResultScreen extends ConsumerWidget {
     }
 
     final overview = ref.watch(sessionOverviewProvider(id));
+    ref.watch(trainingSessionProvider(id));
     final rows = ref.watch(sessionSummaryProvider(id));
+    final config = ref.watch(sessionConfigProvider(id)).valueOrNull;
+    final metrics = ref.watch(sessionMetricSetsProvider(id));
 
     return Scaffold(
       extendBody: true,
@@ -57,7 +61,8 @@ class SessionResultScreen extends ConsumerWidget {
                   error: (e, _) => Text('$e', style: SwanType.bodySm(c.danger)),
                   data: (o) => o == null
                       ? const SizedBox.shrink()
-                      : _overviewCard(context, ref, c, id, o),
+                      : _overviewCard(
+                          context, ref, c, id, o, config?.archetype),
                 ),
                 const SizedBox(height: SwanSpace.xl),
                 Text('Sporcular', style: SwanType.h3(c.ink)),
@@ -70,7 +75,21 @@ class SessionResultScreen extends ConsumerWidget {
                       ? Text('Bu oturuma kimse katılmadı.',
                           style: SwanType.bodySm(c.inkMuted))
                       : Column(
-                          children: [for (final r in list) _row(c, r)],
+                          children: [
+                            for (final r in list) ...[
+                              _row(c, r, config?.archetype),
+                              if (config != null)
+                                metrics.when(
+                                  loading: () =>
+                                      const LinearProgressIndicator(),
+                                  error: (e, _) => Text('Karne yüklenemedi: $e',
+                                      style: SwanType.bodySm(c.danger)),
+                                  data: (sets) => DrillResultCard(
+                                      archetype: config.archetype,
+                                      sets: sets[r.athleteId] ?? const []),
+                                ),
+                            ]
+                          ],
                         ),
                 ),
               ],
@@ -83,7 +102,7 @@ class SessionResultScreen extends ConsumerWidget {
   }
 
   Widget _overviewCard(BuildContext context, WidgetRef ref, SwanPalette c,
-          String id, SessionOverview o) =>
+          String id, SessionOverview o, TrainingArchetype? archetype) =>
       Container(
         padding: const EdgeInsets.all(SwanSpace.lg),
         decoration: BoxDecoration(
@@ -105,12 +124,13 @@ class SessionResultScreen extends ConsumerWidget {
             _stat(c, 'Onay bekleyen', '${o.awaitingLock}'),
           ]),
           const SizedBox(height: SwanSpace.md),
-          Wrap(spacing: SwanSpace.xl, runSpacing: SwanSpace.md, children: [
-            _stat(c, 'Takım toplamı', _num(o.teamTotal)),
-            _stat(c, 'Oturum ortalaması', _num(o.sessionAvg)),
-            // Hedeflenen ve kaydedilen atış — spec'in istediği karşılaştırma.
-            _stat(c, 'Atış', '${o.unitsRecorded}/${o.unitsExpected}'),
-          ]),
+          if (archetype == TrainingArchetype.targetScore)
+            Wrap(spacing: SwanSpace.xl, runSpacing: SwanSpace.md, children: [
+              _stat(c, 'Takım toplamı', _num(o.teamTotal)),
+              _stat(c, 'Oturum ortalaması', _num(o.sessionAvg)),
+              // Hedeflenen ve kaydedilen atış — spec'in istediği karşılaştırma.
+              _stat(c, 'Atış', '${o.unitsRecorded}/${o.unitsExpected}'),
+            ]),
           if (o.status == 'review') ...[
             const SizedBox(height: SwanSpace.lg),
             SizedBox(
@@ -164,7 +184,9 @@ class SessionResultScreen extends ConsumerWidget {
         Text(label, style: SwanType.caption(c.inkMuted)),
       ]);
 
-  Widget _row(SwanPalette c, SessionSummaryRow r) => Container(
+  Widget _row(
+          SwanPalette c, SessionSummaryRow r, TrainingArchetype? archetype) =>
+      Container(
         margin: const EdgeInsets.only(bottom: SwanSpace.sm),
         padding: const EdgeInsets.all(SwanSpace.md),
         decoration: BoxDecoration(
@@ -184,14 +206,17 @@ class SessionResultScreen extends ConsumerWidget {
           ]),
           const SizedBox(height: SwanSpace.sm),
           Wrap(spacing: SwanSpace.lg, runSpacing: SwanSpace.xs, children: [
-            _mini(c, 'Toplam', _num(r.totalScore)),
-            _mini(c, 'Set ort.', _num(r.avgSet)),
-            _mini(c, 'En iyi', _num(r.bestSet)),
+            if (archetype == TrainingArchetype.targetScore) ...[
+              _mini(c, 'Toplam', _num(r.totalScore)),
+              _mini(c, 'Set ort.', _num(r.avgSet)),
+              _mini(c, 'En iyi', _num(r.bestSet)),
+              _mini(c, 'Atış', '${r.unitsRecorded}/${r.unitsExpected}'),
+            ],
             _mini(c, 'Set', '${r.setsDone}/${r.setsExpected}'),
-            _mini(c, 'Atış', '${r.unitsRecorded}/${r.unitsExpected}'),
             if (r.rpe != null) _mini(c, 'Zorluk', '${r.rpe}/10'),
           ]),
-          if (r.progression.isNotEmpty) ...[
+          if (archetype == TrainingArchetype.targetScore &&
+              r.progression.isNotEmpty) ...[
             const SizedBox(height: SwanSpace.sm),
             Text(
               // Girilmemiş set "—" görünüyor; 0 çizmek düşüş gibi okunurdu.
@@ -199,7 +224,8 @@ class SessionResultScreen extends ConsumerWidget {
               style: SwanType.bodySm(c.ink),
             ),
           ],
-          if (r.scoreBuckets.isNotEmpty) ...[
+          if (archetype == TrainingArchetype.targetScore &&
+              r.scoreBuckets.isNotEmpty) ...[
             const SizedBox(height: SwanSpace.xs),
             Text(
               _buckets(r.scoreBuckets),

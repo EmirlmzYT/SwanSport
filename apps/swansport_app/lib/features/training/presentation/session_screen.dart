@@ -8,7 +8,9 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import 'widgets/phase_timer.dart';
-import 'widgets/score_pad.dart';
+import 'widgets/branch_drill_pad.dart';
+import 'widgets/coach_quick_notes_sheet.dart';
+import 'widgets/drill_result_card.dart';
 
 /// Canlı antrenman oturumu.
 ///
@@ -154,21 +156,19 @@ class _CoachPanel extends ConsumerWidget {
           phase: session.phase,
           endsAt: session.phaseEndsAt,
           paused: session.paused,
+          pausedAt: session.pausedAt,
           currentSet: session.currentSet,
           setCount: config?.setCount ?? session.setCount,
-          onExpiredAction: session.isLive
-              ? () => _run(context, ref, () => svc.advancePhase(session.id))
-              : null,
-          expiredActionLabel: 'Sonraki aşama',
         ),
         const SizedBox(height: SwanSpace.lg),
         if (session.isLive) _controls(context, ref, c, svc),
-        if (session.awaitingApproval) ...[
+        if (session.awaitingApproval || session.status == 'completed') ...[
           const SizedBox(height: SwanSpace.md),
           _reviewCard(context, ref, c),
         ],
         const SizedBox(height: SwanSpace.xl),
         Text('Katılanlar', style: SwanType.h3(c.ink)),
+        CoachQuickNotesSheet(sessionId: session.id),
         const SizedBox(height: SwanSpace.sm),
         people.when(
           loading: () => const Padding(
@@ -300,8 +300,9 @@ class _CoachPanel extends ConsumerWidget {
           Text('Oturum bitti', style: SwanType.h3(c.ink)),
           const SizedBox(height: SwanSpace.xs),
           Text(
-            'Sonuçları incele. Onayladıktan sonra skorlar kilitlenir ve '
-            'sporcular değiştiremez.',
+            session.status == 'completed'
+                ? 'Sonuçlar onaylandı ve kilitlendi. Branşa özel karneyi inceleyebilirsin.'
+                : 'Sonuçları incele. Onayladıktan sonra skorlar kilitlenir ve sporcular değiştiremez.',
             style: SwanType.bodySm(c.inkMuted),
           ),
           const SizedBox(height: SwanSpace.md),
@@ -432,6 +433,7 @@ class _AthleteRun extends ConsumerWidget {
           phase: session.phase,
           endsAt: session.phaseEndsAt,
           paused: session.paused,
+          pausedAt: session.pausedAt,
           currentSet: session.currentSet,
           setCount: cfg?.setCount ?? session.setCount,
           onExpiredAction: canAdvance
@@ -452,23 +454,23 @@ class _AthleteRun extends ConsumerWidget {
               if (!session.phase.acceptsScore && session.isLive) {
                 return _waiting(c, session.phase);
               }
-              final existing = list
-                  .where((s) => s.setNo == session.currentSet)
-                  .cast<TrainingSet?>()
-                  .firstWhere((_) => true, orElse: () => null);
-
-              return ScorePad(
+              return BranchDrillPad(
+                key: ValueKey('${session.id}/${session.currentSet}'),
+                session: session,
                 config: cfg,
-                setNo: session.currentSet,
-                branch: null,
-                existing: existing,
-                onSubmit: ({num? total, List<num?>? entries}) async {
+                sets: list,
+                onSubmit: (
+                    {num? total,
+                    List<num?>? entries,
+                    DrillMetricPayload? metricPayload}) async {
                   await svc.submitSet(
                     sessionId: session.id,
                     setNo: session.currentSet,
                     total: total,
                     entries: entries,
+                    metricPayload: metricPayload,
                   );
+                  if (!context.mounted) return;
                   ref.invalidate(mySessionSetsProvider(session.id));
                   ref.invalidate(trainingSessionProvider(session.id));
                 },
@@ -478,6 +480,13 @@ class _AthleteRun extends ConsumerWidget {
         ],
         const SizedBox(height: SwanSpace.xl),
         Text('Setlerim', style: SwanType.h3(c.ink)),
+        if (cfg != null)
+          sets.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (list) =>
+                DrillResultCard(archetype: cfg.archetype, sets: list),
+          ),
         const SizedBox(height: SwanSpace.sm),
         sets.when(
           loading: () => const SizedBox.shrink(),
@@ -516,7 +525,7 @@ class _AthleteRun extends ConsumerWidget {
         padding: const EdgeInsets.only(bottom: SwanSpace.sm),
         child: Row(children: [
           SizedBox(
-            width: 34,
+            width: SwanSpace.xl + SwanSpace.md,
             child: Text('${s.setNo}.', style: SwanType.bodySm(c.inkMuted)),
           ),
           Expanded(
@@ -524,11 +533,20 @@ class _AthleteRun extends ConsumerWidget {
               // EKSİK ≠ SIFIR: girilmemiş set "Eksik" yazıyor, "0" değil.
               s.isMissing
                   ? 'Eksik'
-                  : '${s.totalScore! == s.totalScore!.roundToDouble() ? s.totalScore!.toInt() : s.totalScore} puan',
+                  : switch (s.metricPayload) {
+                      final LapIntervalMetric m =>
+                        'Tur ${m.lapNumber}: ${formatLapTime(m.splitMillis)} · ${m.distanceMeters} m',
+                      final AttemptDrillMetric m =>
+                        '${m.drillName}: ${m.successful}/${m.totalAttempts}',
+                      final CombatRallyMetric m =>
+                        '${m.rallies} ralli · ${m.winners} winner',
+                      final TargetScoreMetric m => '${m.total} puan',
+                      _ => '${s.totalScore ?? '—'} puan',
+                    },
               style: SwanType.body(s.isMissing ? c.inkMuted : c.ink),
             ),
           ),
-          if (s.locked) Icon(Icons.lock_rounded, size: 14, color: c.inkMuted),
+          if (s.locked) Icon(Icons.lock_rounded, color: c.inkMuted),
         ]),
       );
 }
