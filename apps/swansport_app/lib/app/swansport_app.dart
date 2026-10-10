@@ -20,6 +20,7 @@ import '../features/auth/presentation/screens/auth_screen.dart';
 import '../features/calendar/presentation/screens/event_roster_detail_screen.dart';
 import '../features/calendar/presentation/screens/race_event_detail_screen.dart';
 import '../features/calendar/presentation/screens/schedule_calendar_screen.dart';
+import '../features/calendar/presentation/screens/guardian_official_result_screen.dart';
 import '../features/clubs/presentation/club_applications_screen.dart';
 import '../features/clubs/presentation/club_profile_detail_screen.dart';
 import '../features/communities/presentation/community_chat_screen.dart';
@@ -243,10 +244,21 @@ class SwanSportApp extends ConsumerWidget {
         '/beslenme': (context) => const NutritionTrackerScreen(),
         '/yaris-detay': (context) => const RaceEventDetailScreen(),
         '/kulup-detay': (context) => const ClubProfileDetailScreen(),
-      }.map((route, builder) => MapEntry(route, SwanAccess.isGuestRoute(route)
-          ? builder
-          : (context) => AccountRouteGate(builder: builder))),
+      }.map((route, builder) => MapEntry(
+          route,
+          SwanAccess.isGuestRoute(route)
+              ? builder
+              : (context) => AccountRouteGate(builder: builder))),
       onGenerateRoute: guardAccountRoutes((settings) {
+        final target = Uri.tryParse(settings.name ?? '');
+        if (target?.path == '/resmi-sonuc') {
+          return MaterialPageRoute<void>(
+              settings: settings,
+              builder: (_) => GuardianOfficialResultScreen(
+                  notificationId: target!.queryParameters['notification'] ?? '',
+                  matchId: target.queryParameters['match'],
+                  childId: target.queryParameters['child']));
+        }
         // These secondary design previews still use fixture repositories.
         // Preserve their URLs, but never expose fabricated records on a live backend.
         final previewRoute = settings.name;

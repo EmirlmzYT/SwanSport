@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'access.dart';
 import 'club_data.dart';
+import 'coach_guardian_results.dart';
 import 'supabase_athletes.dart';
 import 'supabase_scope.dart';
 
@@ -130,6 +131,7 @@ class UnifiedCalendarEvent {
     this.clubEvent,
     this.sessionId,
     this.clubId,
+    this.guardianResult,
   });
   final String id, title, status;
   final CalendarEventType type;
@@ -138,6 +140,7 @@ class UnifiedCalendarEvent {
   final String? place, sessionId, clubId;
   final FederationActivity? activity;
   final EventRow? clubEvent;
+  final GuardianCalendarResult? guardianResult;
   bool occursOn(DateTime day) {
     final start = calendarDayStart(day);
     final end = start.add(const Duration(days: 1));
@@ -321,6 +324,9 @@ final unifiedCalendarMonthProvider = FutureProvider.autoDispose
   final clubFuture = hasAccount
       ? ref.watch(calendarClubEntriesProvider(month).future)
       : Future.value(const <UnifiedCalendarEvent>[]);
+  final guardianFuture = hasAccount && ref.watch(swanAccessProvider).isParent
+      ? ref.watch(guardianCalendarResultsProvider(month).future)
+      : Future.value(const <GuardianCalendarResult>[]);
   var publicFailed = false, clubFailed = false;
   Future<List<FederationActivity>> official() async {
     try {
@@ -340,12 +346,41 @@ final unifiedCalendarMonthProvider = FutureProvider.autoDispose
     }
   }
 
+  Future<List<UnifiedCalendarEvent>> guardian() async {
+    try {
+      return [
+        for (final row in await guardianFuture)
+          UnifiedCalendarEvent(
+            id: 'guardian:${row.result.source.matchId}:${row.childId ?? row.notificationId}',
+            title: '${row.result.childName} · ${row.result.source.name}',
+            type: CalendarEventType.officialFederation,
+            startsAt: row.result.source.startsAt!,
+            status: 'played',
+            place: row.result.source.location,
+            guardianResult: row,
+          )
+      ];
+    } catch (_) {
+      clubFailed = true;
+      return const [];
+    }
+  }
+
   // Attach both error handlers before awaiting either source.
-  final results = await Future.wait<Object>([official(), private()]);
+  final results =
+      await Future.wait<Object>([official(), private(), guardian()]);
   return UnifiedCalendarData(
     mergeCalendarEvents(
-      results[0] as List<FederationActivity>,
-      results[1] as List<UnifiedCalendarEvent>,
+      (results[0] as List<FederationActivity>)
+          .where((a) =>
+              !a.isMatch ||
+              !(results[2] as List<UnifiedCalendarEvent>)
+                  .any((g) => g.guardianResult!.result.source.matchId == a.id))
+          .toList(),
+      [
+        ...results[1] as List<UnifiedCalendarEvent>,
+        ...results[2] as List<UnifiedCalendarEvent>
+      ],
     ),
     officialUnavailable: publicFailed,
     clubUnavailable: clubFailed,

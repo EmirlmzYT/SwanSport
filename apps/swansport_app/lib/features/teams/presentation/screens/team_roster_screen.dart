@@ -10,6 +10,7 @@ import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/widgets/swan_tabs.dart';
+import '../widgets/official_team_rosters.dart';
 import '../../../communities/presentation/community_chat_screen.dart';
 import '../../../athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 
@@ -255,6 +256,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
         padding: const EdgeInsets.fromLTRB(16, 6, 16, 130),
         children: [
           // Search Bar
+          OfficialTeamRosters(teamId: _currentTeamId),
           Container(
             height: 44,
             padding: const EdgeInsets.symmetric(horizontal: 12),

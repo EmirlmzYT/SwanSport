@@ -49,6 +49,11 @@ void main() {
   ];
 
   group('rota bütünlüğü', () {
+    test('private official result has notification and child calendar entry points', () {
+      expect(routes.contains("'/resmi-sonuc'"), isTrue);
+      expect(read('lib/features/social/presentation/notifications_screen.dart').contains('n.resultRoute'), isTrue);
+      expect(read('lib/features/calendar/presentation/screens/guardian_official_result_screen.dart').contains('/resmi-sonuc?notification='), isTrue);
+    });
     test('kaldırılan prototip menülerinin eski bağlantıları korunur', () {
       for (final route in ['/reports', '/configuration']) {
         expect(routes.contains("'$route'"), isTrue);

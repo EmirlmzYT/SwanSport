@@ -266,16 +266,16 @@ class OfficialAchievementSource {
   final List<({String label, int home, int away})> scores;
   factory OfficialAchievementSource.fromMap(Map<String, dynamic> m) =>
       OfficialAchievementSource(
-        matchId: m['match_id'] as String,
-        name: m['name'] as String,
-        sportCode: m['sport_code'] as String,
-        version: m['version'] as int,
-        currentVersion: m['current_version'] as int,
+        matchId: _requiredText(m['match_id'], 'match_id'),
+        name: _requiredText(m['name'], 'name'),
+        sportCode: _requiredText(m['sport_code'], 'sport_code'),
+        version: _requiredVersion(m['version']),
+        currentVersion: _requiredVersion(m['current_version']),
         startsAt: m['starts_at'] is String
             ? DateTime.tryParse(m['starts_at'] as String)
             : null,
-        location: m['location'] as String?,
-        result: m['result'] as String?,
+        location: m['location'] is String ? m['location'] as String : null,
+        result: m['result'] is String ? m['result'] as String : null,
         scores: [
           if (m['scores'] is List)
             for (final row in m['scores'] as List)

@@ -11,6 +11,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../widgets/unified_calendar_widgets.dart';
+import 'guardian_official_result_screen.dart';
 
 /// Published federation activities and authorized club records in one calendar.
 class ScheduleCalendarScreen extends ConsumerStatefulWidget {
@@ -60,6 +61,7 @@ class _ScheduleCalendarScreenState
   Future<void> _refreshCalendar() async {
     ref.invalidate(federationActivitiesProvider);
     ref.invalidate(calendarClubEntriesProvider);
+    ref.invalidate(guardianCalendarResultsProvider);
     ref.invalidate(unifiedCalendarMonthProvider);
     await ref.read(unifiedCalendarMonthProvider(_month).future);
   }
@@ -150,7 +152,10 @@ class _ScheduleCalendarScreenState
                       ]
                     : [
                         for (final event in events)
-                          if (event.activity != null)
+                          if (event.guardianResult != null)
+                            GuardianCalendarResultCard(
+                                entry: event.guardianResult!)
+                          else if (event.activity != null)
                             OfficialActivityCard(activity: event.activity!)
                           else if (event.clubEvent != null)
                             _buildEventCard(

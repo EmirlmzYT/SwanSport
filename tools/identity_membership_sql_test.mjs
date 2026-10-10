@@ -8,7 +8,7 @@ const sql=async n=>readFile(new URL('../supabase/migrations/'+n+'.sql',import.me
 const kind=await sql('0099_identity_credential_kind'),gate=await sql('0100_identity_membership_gate');
 const person=id(50),parent=id(51),kid=id(52),second=id(53);
 function fn(src,name){const a=src.indexOf('create or replace function public.'+name+'(');return src.slice(a,src.indexOf('end; $$;',a)+8);}
-async function c1(){const f=await setup();try{
+export async function c1(){const f=await setup();try{
  const {db}=f;
  await db.exec(await sql('0007_fix_review_credential'));
  await db.exec(await sql('0008_club_applications'));
@@ -38,14 +38,14 @@ async function c1(){const f=await setup();try{
  }catch(e){await f.db.close();throw e;}}
 async function auth(db,p){await db.exec('reset role');await actor(db,p);await db.exec('set role authenticated');}
 async function owner(db,p=officer){await db.exec('reset role');await actor(db,p);}
-async function verify(db,p,national){
+export async function verify(db,p,national){
  await auth(db,p);
  let cred=(await db.query("select id from profile_credentials where profile_id=$1 and kind='identity'",[p])).rows[0]?.id;
  if(!cred)cred=(await db.query("insert into profile_credentials(profile_id,kind) values($1,'identity') returning id",[p])).rows[0].id;
  await db.query("insert into verification_documents(owner_type,owner_id,doc_type,storage_path,uploaded_by) values('credential',$1,'kimlik',$2,$3)",[cred,p+'/kimlik.pdf',p]);
  await auth(db,admin);await call(db,'review_credential',[cred,true,null,null,null,national,null]);await owner(db);return cred;
 }
-async function sport(db,p,code='tenis',which='athlete_licensed',expiry='2090-01-01',level=null){
+export async function sport(db,p,code='tenis',which='athlete_licensed',expiry='2090-01-01',level=null){
  await auth(db,p);const cred=(await db.query("insert into profile_credentials(profile_id,kind,sport_code,expires_on,coach_level) values($1,$2,$3,$4,$5) returning id",[p,which,code,expiry,level])).rows[0].id;
  await auth(db,admin);await call(db,'review_credential',[cred,true,null,null,null,null,null]);await owner(db);return cred;
 }

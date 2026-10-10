@@ -191,7 +191,7 @@ void main() {
     ], child: const SwanSportApp()));
     await tester.pumpAndSettle();
     final nav = tester.state<NavigatorState>(find.byType(Navigator));
-    for (final route in ['/ilan-ver', '/sohbet', '/dogrulama']) {
+    for (final route in ['/ilan-ver', '/sohbet', '/dogrulama', '/resmi-sonuc?notification=private']) {
       unawaited(nav.pushNamed(route));
       await tester.pumpAndSettle();
       expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),

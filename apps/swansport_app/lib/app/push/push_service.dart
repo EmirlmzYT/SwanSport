@@ -380,6 +380,9 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   void _showForegroundMessage(PushMessage message) {
+    if (message.route?.startsWith('/resmi-sonuc') ?? false) {
+      ref.read(officialResultRefreshProvider)();
+    }
     // Zaten o sohbetin içindeysen uyarı gösterme: mesaj sohbete canlı
     // düşüyor, üstüne bir de ekranın altından şerit çıkması gürültü.
     //
@@ -401,6 +404,9 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   void _openMessage(PushMessage message) {
+    if (message.route?.startsWith('/resmi-sonuc') ?? false) {
+      ref.read(officialResultRefreshProvider)();
+    }
     final navigator = swanNavigatorKey.currentState;
     if (navigator == null) {
       WidgetsBinding.instance
@@ -423,5 +429,8 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.child;
+  Widget build(BuildContext context) {
+    ref.watch(guardianResultSyncProvider);
+    return widget.child;
+  }
 }

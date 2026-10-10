@@ -32,6 +32,10 @@ class NotificationRow {
 
   bool get isUnread => readAt == null;
 
+  String? get resultRoute => kind == 'match_result' && entityType == 'official_result'
+      ? '/resmi-sonuc?notification=${Uri.encodeQueryComponent(id)}'
+      : null;
+
   factory NotificationRow.fromMap(Map<String, dynamic> m) => NotificationRow(
         id: m['id'] as String,
         kind: (m['kind'] as String?) ?? 'review',
@@ -289,11 +293,7 @@ class NotificationService {
   Future<void> markAllRead() async {
     final uid = _uid;
     if (uid == null) return;
-    await _c
-        .from('notifications')
-        .update({'read_at': DateTime.now().toUtc().toIso8601String()})
-        .eq('profile_id', uid)
-        .isFilter('read_at', null);
+    await _c.rpc<void>('mark_notifications_read');
   }
 
   // ----------------------------- mesajlar ------------------------------

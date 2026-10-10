@@ -164,6 +164,15 @@ class SwanAccess {
   bool hasCoachLevelForSport(String sportCode, int minimum, {DateTime? at}) =>
       minimum <= 0 || coachLevelForSport(sportCode, at: at) >= minimum;
 
+  /// Club scope and active membership are checked again by the roster RPC.
+  bool isHeadCoachForSport(String sportCode, {DateTime? at}) =>
+      isClubAdmin || coachLevelForSport(sportCode, at: at) >= 3;
+
+  bool isAssistantCoachForSport(String sportCode, {DateTime? at}) {
+    final level = coachLevelForSport(sportCode, at: at);
+    return level == 1 || level == 2;
+  }
+
   bool get canPublishFederationResults => federationAppointments.any(
         (a) => canWriteFederation(
             a.sportCode, a.cityCode, FederationDuty.resultPublisher),

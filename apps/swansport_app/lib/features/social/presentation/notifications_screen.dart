@@ -324,7 +324,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
 
   Widget _tile(SwanPalette c, NotificationRow n) {
-    return Container(
+    return InkWell(
+      onTap: n.resultRoute == null ? null : () => Navigator.pushNamed(context, n.resultRoute!),
+      child: Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(SwanSpace.md),
       decoration: BoxDecoration(
@@ -371,7 +373,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           ),
         ],
       ),
-    );
+    ));
   }
 
   Future<void> _openPrefs() async {

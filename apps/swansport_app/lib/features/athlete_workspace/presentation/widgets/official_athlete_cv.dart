@@ -115,45 +115,53 @@ class _OfficialSourceSheet extends ConsumerWidget {
                         officialAchievementSourceProvider(achievementId)),
                     child: const Text('Yeniden dene')),
               ]),
-              data: (source) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(children: [
-                      Icon(Icons.verified_user_rounded, color: c.success),
-                      const SizedBox(width: SwanSpace.sm),
-                      Expanded(
-                          child: Text('Kaynak Resmi Müsabaka',
-                              style: SwanType.h3(c.ink)))
-                    ]),
-                    const SizedBox(height: SwanSpace.lg),
-                    Text(source.name, style: SwanType.h2(c.ink)),
-                    Text(_sport(source.sportCode),
-                        style: SwanType.body(c.inkMuted)),
-                    if (source.startsAt != null)
-                      Text(_date(calendarTurkeyTime(source.startsAt!)),
-                          style: SwanType.bodySm(c.ink)),
-                    if (source.location != null)
-                      Text(source.location!, style: SwanType.bodySm(c.ink)),
-                    for (final score in source.scores)
-                      Text('${score.label}: ${score.home}–${score.away}',
-                          style: SwanType.bodySm(c.ink)),
-                    if (source.result != null)
-                      Text(source.result!, style: SwanType.body(c.ink)),
-                    const SizedBox(height: SwanSpace.lg),
-                    Text(
-                        'Resmi sonuç revizyonu ${source.version}. Bu kayıt değiştirilemez.',
-                        style: SwanType.caption(c.inkMuted)),
-                    if (source.version != source.currentVersion)
-                      Text('Daha yeni bir resmi sonuç revizyonu bulunuyor.',
-                          style: SwanType.bodySm(c.inkMuted)),
-                    Align(
-                        alignment: Alignment.centerRight,
-                        child: TextButton(
-                            onPressed: () => Navigator.pop(context),
-                            child: const Text('Kapat'))),
-                  ]),
+              data: (source) => OfficialResultSourceContent(source: source),
             ));
+  }
+}
+
+class OfficialResultSourceContent extends StatelessWidget {
+  const OfficialResultSourceContent({super.key, required this.source});
+  final OfficialAchievementSource source;
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(children: [
+            Icon(Icons.verified_user_rounded, color: c.success),
+            const SizedBox(width: SwanSpace.sm),
+            Expanded(
+                child: Text('Kaynak Resmi Müsabaka', style: SwanType.h3(c.ink)))
+          ]),
+          const SizedBox(height: SwanSpace.lg),
+          Text(source.name, style: SwanType.h2(c.ink)),
+          Text(_sport(source.sportCode), style: SwanType.body(c.inkMuted)),
+          if (source.startsAt != null)
+            Text(_date(calendarTurkeyTime(source.startsAt!)),
+                style: SwanType.bodySm(c.ink)),
+          if (source.location != null)
+            Text(source.location!, style: SwanType.bodySm(c.ink)),
+          for (final score in source.scores)
+            Text('${score.label}: ${score.home}–${score.away}',
+                style: SwanType.bodySm(c.ink)),
+          if (source.result != null)
+            Text(source.result!, style: SwanType.body(c.ink)),
+          const SizedBox(height: SwanSpace.lg),
+          Text(
+              'Resmi sonuç revizyonu ${source.version}. Bu kayıt değiştirilemez.',
+              style: SwanType.caption(c.inkMuted)),
+          if (source.version != source.currentVersion)
+            Text('Daha yeni bir resmi sonuç revizyonu bulunuyor.',
+                style: SwanType.bodySm(c.inkMuted)),
+          Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Kapat'))),
+        ]);
   }
 }
 
