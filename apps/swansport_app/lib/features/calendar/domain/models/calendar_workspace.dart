@@ -1,6 +1,8 @@
+// Preview fixtures share the production event type; legacy aliases are retained.
+import 'package:swansport_data/swansport_data.dart' show CalendarEventType;
 import 'package:swansport_models/swansport_models.dart';
 
-enum CalendarEventType { training, match, meeting }
+export 'package:swansport_data/swansport_data.dart' show CalendarEventType;
 
 enum CalendarEventStatus { planned, attendancePending, cancelled }
 

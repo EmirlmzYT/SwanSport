@@ -51,7 +51,9 @@ C2 arayüz bağlantısı 2026-10-10 kullanıcı göreviyle yerelde uygulandı: m
 - Yazma arayüzü açılmadan branch-specific doğrulama ve yalnız gerekli kategorik veri erişimi değerlendirilir.
 - Yayın bayrağı gerekiyorsa beş yüzey+SSS birlikte, test edenler açılmadan yardım kapısı.
 
-## Faz E — okumalar ve ferdi kayıt (uygulanmadı)
+## Faz E — okumalar ve ferdi kayıt (takvim yerel; kalan işler uygulanmadı)
+
+2026-10-10: Birleşik Takvim okuma dilimi yerelde uygulandı. 0102 yayımlanmış resmi program/maçlar ve yetkili kulüp etkinlik/oturum projeksiyonlarını sağlar; Riverpod ay/gün/tür filtreleri, aylık işaretler, resmi detay ve ortak misafir rotası bağlıdır. Kanıt: docs/unified-calendar-verification.md. Ferdi kayıt, özgeçmiş, transfer uçtan uca akışı ve aşağıdaki kalan Faz E maddeleri tamamlanmış sayılmaz. Canlı SQL/push/deploy yok.
 
 - Takvim kulüp events ve resmi org_matches üzerinde sorgu/projeksiyon olur, resmi maç events'e çoğaltılmaz.
 - Özgeçmiş iki ayrı bölüm: federation_result resmi kayıtlar; goal/attendance_*/manual kulüp gelişimi ve resmi değil etiketi.

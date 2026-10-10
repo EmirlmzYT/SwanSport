@@ -5,6 +5,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../calendar/presentation/screens/schedule_calendar_screen.dart';
 import '../../social/presentation/widgets/feed_entry.dart';
 
 /// Public discovery constructs only providers intended for anonymous reads.
@@ -65,60 +66,10 @@ class GuestExploreScreen extends ConsumerWidget {
   }
 }
 
-class PublicSportCalendarScreen extends ConsumerWidget {
+/// Preserve the existing public deep link using the shared calendar experience.
+class PublicSportCalendarScreen extends StatelessWidget {
   const PublicSportCalendarScreen({super.key});
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final c = context.swan;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Federasyon Faaliyet Takvimi')),
-      body: ref.watch(publicSportProgramsProvider).when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => Center(
-                child: TextButton(
-              onPressed: () => ref.invalidate(publicSportProgramsProvider),
-              child: const Text('Programlar yüklenemedi. Yeniden dene'),
-            )),
-            data: (programs) => programs.isEmpty
-                ? Center(
-                    child: Text('Henüz yayımlanmış program yok.',
-                        style: SwanType.bodySm(c.inkMuted)))
-                : ListView(children: [
-                    for (final p in programs)
-                      ExpansionTile(
-                        title: Text(p.name, style: SwanType.h3(c.ink)),
-                        subtitle: Text(
-                            '${p.sportCode} · ${p.cityCode} · ${p.seasonLabel}\n${p.startsOn} – ${p.endsOn}'),
-                        children: [_PublicFixture(orgId: p.id)],
-                      )
-                  ]),
-          ),
-    );
-  }
-}
-
-class _PublicFixture extends ConsumerWidget {
-  const _PublicFixture({required this.orgId});
-  final String orgId;
-  @override
-  Widget build(BuildContext context, WidgetRef ref) =>
-      ref.watch(publicProgramFixtureProvider(orgId)).when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (_, __) => TextButton(
-              onPressed: () =>
-                  ref.invalidate(publicProgramFixtureProvider(orgId)),
-              child: const Text('Fikstür yüklenemedi. Yeniden dene'),
-            ),
-            data: (matches) => matches.isEmpty
-                ? const ListTile(title: Text('Henüz maç yok.'))
-                : Column(children: [
-                    for (final m in matches)
-                      ListTile(
-                        title: Text(
-                            '${m.homeName ?? "Kulüp"} – ${m.awayName ?? "Kulüp"}'),
-                        subtitle: Text(
-                            '${m.startsAt.toUtc().add(const Duration(hours: 3)).toString().substring(0, 16)} · ${m.location ?? "Yer belirtilmedi"}'),
-                      )
-                  ]),
-          );
+  Widget build(BuildContext context) => const ScheduleCalendarScreen(
+      initialType: CalendarEventType.officialFederation);
 }

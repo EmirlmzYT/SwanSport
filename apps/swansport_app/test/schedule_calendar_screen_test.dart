@@ -23,7 +23,8 @@ void main() {
 
     expect(find.text('Bugün'), findsWidgets);
     expect(find.text('Henüz etkinlik yok'), findsOneWidget);
-    expect(find.text('Önce Kadro’dan bir kulüp oluştur.'), findsOneWidget);
+    expect(find.text('Seçili tarih ve filtrede görüntülenebilen etkinlik yok.'),
+        findsOneWidget);
   });
 
   testWidgets('keeps calendar navigation available in the empty state',

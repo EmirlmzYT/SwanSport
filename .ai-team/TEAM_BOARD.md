@@ -4,6 +4,8 @@ Son güncelleme: 2026-10-10 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+Birleşik Takvim doğrulaması: 0102 public allowlist ve yetkili kulüp/veli okuma RPC'leri, Riverpod birleştirme, aylık gün işaretleri/filtreler/resmi detay ve ortak misafir rota ekranı tamamlandı. 360 veri + 317 uygulama (boş Supabase define) + 46 konsol = 723 Flutter ve 49 gerçek/azaltılmış fixture SQL testi geçti. Sporcu RSVP ve antrenör kulüp maç sonucu formu korunur. Genel analiz 0 hata/5 önceki kapsam dışı uyarı/2778 info; parse, SSS 39/39 ve diff-check geçti. Kanıt docs/unified-calendar-verification.md. Push/deploy/canlı SQL yok; Writer serbest.
+
 Branş motoru doğrulaması: 2026-10-10 basketbol/futbol/tenis/yüzme/kulvarlı atletizm müsabaka modelleri saf Dart içinde tamamlandı. Kontrat/okçuluk korunur; yeni bağımlılık yok. 131 VM + 130 Chrome testi, 6 ScorePad ve 28 veri regresyonu geçti. Paket analizi 0 bulgu; uygulama kapsamı 0 hata/uyarı, mevcut 7 info. ScorePad zorla okçuluk cast'i düzeltildi. Kanıt docs/branch-match-protocol-verification.md. Push/deploy/canlı SQL yok; Writer serbest.
 
 Güncel doğrulama: Misafir keşfi ve kimlik kapısı UI yerelde uygulandı. AuthGate, merkezi SwanAccess işlem kararı, özel rota koruması, mevcut kimlik/belge ekranı ve zorunlu spor belgesi expiry alanı bağlı. 698 Flutter (348 veri/304 uygulama/46 konsol), 63 SQL; değişen Dart analizi 0 hata/uyarı, 535 info. 0101 parse, SSS 39/39, diff-check ve üretim web derlemesi geçti. Derlemede CupertinoIcons font uyarısı var. Push/deploy/canlı SQL yok. Kanıt docs/guest-identity-verification.md. Writer serbest.
@@ -162,3 +164,5 @@ Güncel doğrulama: Misafir keşfi ve kimlik kapısı UI yerelde uygulandı. Aut
 | 2026-10-09 | Codex Writer | complete | Faz C1 kimlik/üyelik kapısı | 0099/0100, mevcut Dart veri API, kimlik testleri ve rapor | 34+28 SQL, 679 Flutter, dar analiz temiz. Yerel commit; push/deploy/canlı SQL yok. |
 
 | 2026-10-10 | Codex Writer | active | Misafir gezinti, merkezi eylem/rota kapıları ve kimlik belge ekranı bağlantısı | app/data/test | Mevcut yol haritası ve generated metadata korunur; canlı SQL/deploy yok. |
+
+| 2026-10-10 | Codex Writer | complete | Birleşik Takvim: yayımlanmış resmi faaliyet/maç ve kulüp etkinlik/oturum projeksiyonu, veli kapsamı ve ortak misafir ekranı | 0102, data/app, testler ve kanıt | 723 Flutter, 49 SQL, parse/SSS/diff başarılı. Analiz 0 hata/5 önceki uyarı. Yerel commit; kullanıcı yol haritası/generated metadata korunur. Push/deploy/canlı SQL yok. |

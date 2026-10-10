@@ -191,7 +191,7 @@ void main() {
     ], child: const SwanSportApp()));
     await tester.pumpAndSettle();
     final nav = tester.state<NavigatorState>(find.byType(Navigator));
-    for (final route in ['/ilan-ver', '/sohbet', '/calendar', '/dogrulama']) {
+    for (final route in ['/ilan-ver', '/sohbet', '/dogrulama']) {
       unawaited(nav.pushNamed(route));
       await tester.pumpAndSettle();
       expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),
@@ -201,7 +201,7 @@ void main() {
     }
     unawaited(nav.pushNamed('/federasyon-takvimi'));
     await tester.pumpAndSettle();
-    expect(find.text('Henüz yayımlanmış program yok.'), findsOneWidget);
+    expect(find.text('Henüz etkinlik yok'), findsOneWidget);
   });
 
   testWidgets(

@@ -54,3 +54,4 @@ export 'src/turf_service.dart';
 export 'src/vault_service.dart';
 export 'src/verification_service.dart';
 export 'src/public_program_service.dart';
+export 'src/unified_calendar.dart';

@@ -1624,3 +1624,10 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - validateMatchProtocol tipli/değişmez yerel modeli veya alan yolu içeren ProtocolValidationException verir. Eksik skor sıfır değildir; yanlış tip, negatif/kesirli sayı ve JSON tamsayı toplam taşması reddedilir.
 - JSON şemaları ve format sınırları packages/swansport_branch_engine/lib/protocols/README.md içindedir. Bu zengin model SQL public sonuç şemasının yerine geçmez; ref/id'ler public sonuçlara taşınmaz.
 - Kanıt: docs/branch-match-protocol-verification.md. 131 Dart VM/130 Chrome, 6 ScorePad/28 veri regresyonu; paket analizi 0 bulgu. Yeni runtime bağımlılığı, ekran, SQL, push/deploy yok.
+
+### 2026-10-10 — Birleşik Takvim
+
+- `/calendar` ve eski `/federasyon-takvimi` aynı üretim takvimidir; misafir yalnız public RPC okur. Veri/filtreleme `unified_calendar.dart` Riverpod sağlayıcılarındadır. Yetkiyi widget'ta yeniden hesaplama.
+- 0102 mevcut resmi program/maç ve kulüp etkinlik/oturum tablolarını projekte eder. Resmi maçları `events` içine kopyalama; bağlı `training_sessions.event_id` kayıtlarını iki kez listeleme. Veli yalnız bağlı çocuk kulübü/takımı kapsamındadır; muhasebeci/platform admin tek başına özel takvimi açmaz.
+- Türkiye takviminde çok günlük faaliyet son günü dahildir; modelde `endsAt` sonraki gün gece yarısı ve hariçtir. `DateTime.hour` cihaz saat diliminden okunmaz; `calendarTurkeyTime` kullanılır.
+- Kanıt ve test komutları: docs/unified-calendar-verification.md. 0102 canlıya uygulanmadı; push/deploy yok.

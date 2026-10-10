@@ -84,6 +84,7 @@ class SwanAccess {
         '/kortlar',
         '/halisahalar',
         '/federasyon-takvimi',
+        '/calendar',
         '/yardim',
       }.contains(route);
 
