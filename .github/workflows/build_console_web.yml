@@ -47,9 +47,9 @@ jobs:
             --dart-define=APP_ENV=production
 
       - name: Package Web Zip
-        working-directory: apps/swansport_console/build/web
         run: |
-          zip -qry ../../../swansport-console-web.zip .
+          cd apps/swansport_console/build/web
+          zip -qry "$GITHUB_WORKSPACE/swansport-console-web.zip" .
 
       - name: Upload Console Web Artifact
         uses: actions/upload-artifact@v4
@@ -60,8 +60,8 @@ jobs:
           retention-days: 30
 
       - name: Attach Console Web to GitHub Release
-        if: startsWith(github.ref, 'refs/tags/')
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'v0.5.2+20' }}
           files: swansport-console-web.zip
-          fail_on_unmatched_files: false
+          fail_on_unmatched_files: true
