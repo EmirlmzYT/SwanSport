@@ -4,6 +4,10 @@ Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+2026-10-11: SSS yönetimi tamamlandı: FaqEntry audience/sortOrder/active alanları ve varsayılanları, servis üzerinden ekleme/güncelleme/silme, konsolda Türkçe uyumlu soru/cevap/kategori araması, özellik filtresi ve onaylı silme eklendi. Düzenleme kitle/sıra/aktif bilgilerini korur; dört yeni özellik anahtarı listeye alındı. İki model testi eklendi. check_faq.py 39/39 ve git diff --check başarılı; Flutter SDK bulunmadığından Flutter testleri/analiz çalıştırılamadı. Yalnız bu görevin dört dosyası git add ile aşamalanır; commit/push/deploy yok. Writer serbest.
+
+2026-10-11: SSS yönetim modeli, servis yazma/silme, konsol arama/filtre ve onaylı silme görevi devralındı. Başlangıç ağacı temiz; yalnız görev dosyaları aşamalanacak.
+
 2026-10-11: Telefon normalizasyonu ve telefonChange OTP temizliği uygulandı; UI 60 saniye yeniden gönderim sayacı, timer dispose, gerçek yeniden gönderme, kimlik/telefon başarı kartı ve ayrıştırılmış Türkçe hata mesajları içerir. Genel OTP hatası sağlayıcı kapalı diye yorumlanmaz. Beş normalizasyon testi ve docs/sms-provider-setup.md eklendi; rehber resmi Supabase Phone/Send SMS Hook/self-hosted belgeleriyle doğrulandı, kimlik onayının diğer yetkileri kaldırmadığı açıklandı. git diff --check temiz. Flutter test komutu SDK bulunamadığı için çalışmadı; Dart/widget doğrulaması ve gerçek SMS UAT bekler. Bu görevin beş dosyası git add ile aşamalanır; canlı ayar/deploy yapılmadı. Writer serbest.
 
 2026-10-11: Telefon normalizasyonu, SMS geri sayımı/hata mesajları ve sağlayıcı kurulum rehberi devralındı. Önceki aşamalı 0108 değişiklikleri korunur. Bu görev sonunda yalnız git add; canlı yapılandırma değişmez.

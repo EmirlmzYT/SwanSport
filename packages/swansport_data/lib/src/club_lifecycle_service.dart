@@ -313,6 +313,9 @@ class FaqEntry {
     required this.category,
     this.route,
     this.feature,
+    this.audience = 'everyone',
+    this.sortOrder = 0,
+    this.active = true,
   });
 
   final String id;
@@ -328,14 +331,20 @@ class FaqEntry {
   /// özellik kullanıcıya açıkken görünüyor — kapalı bir özelliğin yardımını
   /// göstermek, olmayan bir düğmeyi tarif etmek olurdu.
   final String? feature;
+  final String audience;
+  final int sortOrder;
+  final bool active;
 
   factory FaqEntry.fromMap(Map<String, dynamic> m) => FaqEntry(
-        id: (m['id'] as String?) ?? '',
+        id: '${m['id']}',
         question: (m['question'] as String?) ?? '',
         answer: (m['answer'] as String?) ?? '',
-        category: (m['category'] as String?) ?? 'Genel',
+        category: (m['category'] as String?) ?? 'genel',
         route: m['route'] as String?,
         feature: m['feature'] as String?,
+        audience: (m['audience'] as String?) ?? 'everyone',
+        sortOrder: (m['sort_order'] as int?) ?? 0,
+        active: (m['active'] as bool?) ?? true,
       );
 }
 
@@ -591,12 +600,24 @@ class ClubLifecycleService {
   Future<List<FaqEntry>> allFaq() async {
     final rows = await _c
         .from('faq_entries')
-        .select('id, question, answer, category, route, feature')
+        .select('id, question, answer, category, audience, sort_order, active, route, feature')
         .order('category')
         .order('sort_order');
     return rows
         .map((e) => FaqEntry.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
+  }
+
+  Future<void> saveFaqEntry(Map<String, dynamic> row, {String? id}) async {
+    if (id == null) {
+      await _c.from('faq_entries').insert(row);
+    } else {
+      await _c.from('faq_entries').update(row).eq('id', id);
+    }
+  }
+
+  Future<void> deleteFaqEntry(String id) async {
+    await _c.from('faq_entries').delete().eq('id', id);
   }
 
   Future<List<SupportMessage>> ticketMessages(String ticketId) async {

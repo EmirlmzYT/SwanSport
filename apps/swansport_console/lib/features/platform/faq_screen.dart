@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/theme/console_theme.dart';
@@ -20,6 +20,16 @@ class ConsoleFaqScreen extends ConsumerStatefulWidget {
 }
 
 class _ConsoleFaqScreenState extends ConsumerState<ConsoleFaqScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
+  String? _selectedFeatureFilter;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
@@ -114,18 +124,53 @@ class _ConsoleFaqScreenState extends ConsumerState<ConsoleFaqScreen> {
 
         const SizedBox(height: ConsoleDensity.xxl),
         Text('Sorular', style: t.textTheme.titleMedium),
+        const SizedBox(height: ConsoleDensity.sm),
+        TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Soru veya cevap içinde ara…',
+            prefixIcon: const Icon(Icons.search_rounded, size: 18),
+            suffixIcon: _searchQuery.isEmpty ? null : IconButton(
+              icon: const Icon(Icons.clear_rounded, size: 16),
+              onPressed: () {
+                _searchController.clear();
+                setState(() => _searchQuery = '');
+              },
+            ),
+          ),
+          onChanged: (value) => setState(() => _searchQuery = value.trim()),
+        ),
+        const SizedBox(height: ConsoleDensity.sm),
+        DropdownButtonFormField<String>(
+          initialValue: _selectedFeatureFilter,
+          isExpanded: true,
+          decoration: const InputDecoration(labelText: 'Özellik filtresi'),
+          items: [
+            const DropdownMenuItem<String>(value: null, child: Text('Tüm özellikler')),
+            for (final key in _knownFeatures)
+              DropdownMenuItem(value: key, child: Text(key)),
+          ],
+          onChanged: (value) => setState(() => _selectedFeatureFilter = value),
+        ),
         const SizedBox(height: ConsoleDensity.md),
         AsyncSection<List<FaqEntry>>(
           value: entries,
           errorPrefix: 'Sorular alınamadı',
-          builder: (list) => list.isEmpty
-              ? Text('Henüz soru yok.', style: t.textTheme.bodySmall)
+          builder: (list) {
+            final filtered = list.where((f) =>
+              (_selectedFeatureFilter == null || f.feature == _selectedFeatureFilter) &&
+              (_searchQuery.isEmpty || trContains(f.question, _searchQuery) ||
+                trContains(f.answer, _searchQuery) || trContains(f.category, _searchQuery))
+            ).toList();
+            return filtered.isEmpty
+              ? Text('Aramaya uygun soru bulunamadı.', style: t.textTheme.bodySmall)
               : Column(
                   children: [
-                    for (final f in list)
+                    for (final f in filtered)
                       _row(context, ref, f),
                   ],
-                ),
+                );
+          },
         ),
       ],
     );
@@ -146,6 +191,8 @@ class _ConsoleFaqScreenState extends ConsumerState<ConsoleFaqScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(f.question, style: t.textTheme.titleSmall),
+              if (!f.active)
+                Text('Pasif', style: t.textTheme.labelSmall?.copyWith(color: t.colorScheme.error)),
               const SizedBox(height: 2),
               Text(f.answer,
                   maxLines: 2,
@@ -155,6 +202,7 @@ class _ConsoleFaqScreenState extends ConsumerState<ConsoleFaqScreen> {
               Text(
                 [
                   f.category,
+                  'kitle: ${f.audience}',
                   if (f.feature != null) 'özellik: ${f.feature}',
                   if (f.route != null) f.route!,
                 ].join(' · '),
@@ -166,10 +214,41 @@ class _ConsoleFaqScreenState extends ConsumerState<ConsoleFaqScreen> {
         IconButton(
           iconSize: 18,
           icon: const Icon(Icons.edit_outlined),
+          tooltip: 'Düzenle',
           onPressed: () => _edit(context, ref, f),
+        ),
+        IconButton(
+          iconSize: 18,
+          tooltip: 'Sil',
+          icon: Icon(Icons.delete_outline, color: t.colorScheme.error),
+          onPressed: () => _delete(context, ref, f),
         ),
       ]),
     );
+  }
+}
+
+Future<void> _delete(BuildContext context, WidgetRef ref, FaqEntry f) async {
+  final service = ref.read(clubLifecycleServiceProvider);
+  final ok = await showDialog<bool>(context: context, builder: (ctx) => AlertDialog(
+    title: const Text('Soruyu sil'),
+    content: Text('"${f.question}" sorusu silinecek. Emin misiniz?'),
+    actions: [
+      TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+      FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Sil')),
+    ],
+  ));
+  if (ok != true || !context.mounted) return;
+  try {
+    await service.deleteFaqEntry(f.id);
+    if (!context.mounted) return;
+    ref.invalidate(faqAdminProvider);
+    ref.invalidate(faqCoverageProvider);
+    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Soru silindi.')));
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Silme başarısız: $e')));
+    }
   }
 }
 
@@ -185,7 +264,9 @@ Future<void> _edit(
   final category =
       TextEditingController(text: existing?.category ?? 'Genel');
   final route = TextEditingController(text: existing?.route ?? '');
-  var audience = 'everyone';
+  final sortOrder = TextEditingController(text: '${existing?.sortOrder ?? 0}');
+  var audience = existing?.audience ?? 'everyone';
+  var active = existing?.active ?? true;
   var feat = feature ?? existing?.feature;
 
   final ok = await showDialog<bool>(
@@ -269,6 +350,18 @@ Future<void> _edit(
                 ],
                 onChanged: (v) => setState(() => feat = v),
               ),
+              const SizedBox(height: ConsoleDensity.md),
+              TextField(
+                controller: sortOrder,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Sıra No'),
+              ),
+              SwitchListTile(
+                title: const Text('Aktif'),
+                subtitle: const Text('Pasif sorular kullanıcılara görünmez.'),
+                value: active,
+                onChanged: (value) => setState(() => active = value),
+              ),
             ]),
           ),
         ),
@@ -284,7 +377,7 @@ Future<void> _edit(
     ),
   );
 
-  if (ok != true) return;
+  if (ok != true || !context.mounted) return;
   if (question.text.trim().isEmpty || answer.text.trim().isEmpty) return;
 
   final row = {
@@ -294,16 +387,14 @@ Future<void> _edit(
     'audience': audience,
     'route': route.text.trim().isEmpty ? null : route.text.trim(),
     'feature': feat,
+    'sort_order': int.tryParse(sortOrder.text.trim()) ?? 0,
+    'active': active,
     'updated_at': DateTime.now().toIso8601String(),
   };
 
   try {
-    final c = Supabase.instance.client;
-    if (existing == null) {
-      await c.from('faq_entries').insert(row);
-    } else {
-      await c.from('faq_entries').update(row).eq('id', existing.id);
-    }
+    await ref.read(clubLifecycleServiceProvider).saveFaqEntry(row, id: existing?.id);
+    if (!context.mounted) return;
     ref.invalidate(faqAdminProvider);
     ref.invalidate(faqCoverageProvider);
   } catch (e) {
@@ -318,6 +409,10 @@ Future<void> _edit(
 const _knownFeatures = [
   FeatureFlags.marketplace,
   FeatureFlags.courts,
+  FeatureFlags.courtWaitlist,
+  FeatureFlags.turfDelegation,
+  FeatureFlags.seasonSetup,
+  FeatureFlags.developmentReport,
   FeatureFlags.partnerSearch,
   FeatureFlags.turfFields,
   FeatureFlags.teamHub,
