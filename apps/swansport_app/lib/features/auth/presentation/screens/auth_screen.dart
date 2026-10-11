@@ -5,6 +5,7 @@ import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../application/auth_controller.dart';
 import '../../../demo/demo_role.dart';
+import '../../../onboarding/application/setup_wizard_progress.dart';
 
 class AuthScreen extends ConsumerStatefulWidget {
   const AuthScreen({super.key});
@@ -39,10 +40,17 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     if (success) {
       final isSignUp =
           ref.read(authControllerProvider).mode == AuthMode.signUp;
+      final accountId = controller.accountId;
+      final needsGuide = isSignUp ||
+          (accountId != null && await setupWizardRequired(accountId));
+      if (!mounted) return;
+      if (accountId != null) {
+        ref.invalidate(setupWizardRequiredProvider(accountId));
+      }
       // ignore: unawaited_futures
       Navigator.pushReplacementNamed(
         context,
-        isSignUp ? '/rehber' : '/akis',
+        needsGuide ? '/rehber' : '/akis',
       );
     }
   }

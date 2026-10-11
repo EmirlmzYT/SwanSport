@@ -28,6 +28,7 @@ class CredentialScreen extends ConsumerStatefulWidget {
 class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   // Kişisel başvuru durumu
   late int _mode;
+  bool _initialModeApplied = false;
   int _kademe = 2;
   String? _sportCode;
   bool _busy = false;
@@ -40,17 +41,22 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   @override
   void initState() {
     super.initState();
-    _mode = widget.initialMode ?? 2;
+    _mode = _validMode(widget.initialMode);
   }
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
+    if (_initialModeApplied) return;
+    _initialModeApplied = true;
     final args = ModalRoute.of(context)?.settings.arguments;
     if (args is int && widget.initialMode == null) {
-      _mode = args;
+      _mode = _validMode(args);
     }
   }
+
+  static int _validMode(int? mode) =>
+      mode != null && mode >= 0 && mode <= 2 ? mode : 2;
 
   @override
   Widget build(BuildContext context) {

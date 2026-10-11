@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../onboarding/presentation/onboarding_screen.dart';
+import '../../../onboarding/application/setup_wizard_progress.dart';
+import '../../../onboarding/presentation/setup_wizard_screen.dart';
 import '../../../social/presentation/feed_screen.dart';
 import '../../../network/presentation/guest_explore_screen.dart';
 
@@ -16,7 +18,8 @@ final onboardingSeenProvider = FutureProvider<bool>((ref) => onboardingSeen());
 /// Uygulama açılış kapısı — "beni hatırla" ve ilk açılış tanıtımı.
 ///
 /// Supabase oturumu tarayıcıda (localStorage) kalıcı saklanır. Açılışta aktif
-/// bir oturum varsa doğrudan ana sayfaya (akış) gider. Oturum yoksa **önce
+/// bir oturum varsa bu cihazda bekleyen yeni kayıt rehberini, yoksa akışı
+/// açar. Oturum yoksa **önce
 /// tanıtım** gösterilir (bir kez), sonra hesapsız keşif akışı.
 ///
 /// Sıra bilerek böyle: tanıtımın işi uygulamanın ne olduğunu anlatmak, o da
@@ -31,7 +34,15 @@ class AuthGate extends ConsumerWidget {
           loading: () => const _Blank(),
           error: (error, _) => const GuestExploreScreen(),
           data: (session) {
-            if (session != null) return const FeedScreen();
+            if (session != null) {
+              return ref.watch(setupWizardRequiredProvider(session.user.id)).when(
+                    loading: () => const _Blank(),
+                    error: (_, __) => const FeedScreen(),
+                    data: (needsGuide) => needsGuide
+                        ? const SetupWizardScreen()
+                        : const FeedScreen(),
+                  );
+            }
             return ref.watch(onboardingSeenProvider).when(
                   loading: () => const _Blank(),
                   error: (_, __) => const GuestExploreScreen(),

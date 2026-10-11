@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+import '../../onboarding/application/setup_wizard_progress.dart';
+
 enum AuthMode { signIn, signUp }
 
 enum AuthStatus { idle, submitting, error }
@@ -37,6 +39,8 @@ class AuthController extends StateNotifier<AuthState> {
   AuthController(this._auth) : super(const AuthState());
 
   final GoTrueClient? _auth;
+
+  String? get accountId => _auth?.currentUser?.id;
 
   void toggleMode() {
     state = state.copyWith(
@@ -89,6 +93,9 @@ class AuthController extends StateNotifier<AuthState> {
               'full_name': fullName.trim(),
           },
         );
+        if (response.user != null) {
+          await queueSetupWizard(response.user!.id);
+        }
         // When email confirmation is enabled the session is null until the
         // user confirms. Surface that clearly instead of failing silently.
         if (response.session == null) {

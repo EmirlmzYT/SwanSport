@@ -2,7 +2,11 @@
 
 Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `review_ready`
+Durum: `complete`
+
+2026-10-11: Rehber denetimindeki beş bulgu yerelde düzeltildi. Credential başlangıç sekmesi yalnız bir kez uygulanır ve 0–2 aralığı doğrulanır. SwanAccess kimlik durumu tüm rol dallarında ilk adımı belirler; onaysız veli Kimlik sekmesine gider. Başarılı kayıt hesap ID'siyle cihazda rehber kuyruğuna alınır; e-posta onayı sonrası giriş/AuthGate kuyruğu okur, mevcut hesaplar zorla rehbere sokulmaz. RSVP hukuki izin diye anlatılmaz; lisanslı saat ayrıcalığı ve SMS=kimlik iddiaları kaldırıldı. Dolu düğmeler accentFill, bilgi yüzeyleri accentSoft kullanır; boşluk/radius jetonları ve çift çıkış koruması düzeltildi. Sekme/tema, veli yönü, onaylı oturum, renk ve hesap bazlı kalıcılık için 8 regresyon testi eklendi. check_faq.py 39/39 ve git diff --check başarılı. Flutter komutu bulunamadığından test/analiz/derleme çalıştırılamadı; cihaz bazlı kayıt takibi farklı cihazda otomatik rehber garantisi vermez. Değişiklikler yalnız aşamalanır; commit/push/canlı SQL/deploy yok. Writer serbest.
+
+2026-10-11: Kullanıcı isteğiyle kurulum rehberi denetimindeki beş bulgunun düzeltmesi devralındı. Sekme başlangıcı, veli kimlik kapısı, e-posta onayı sonrası rehber, gerçek hak metinleri ve düğme kontrastı düzeltilecek. Başlangıç ağacı temiz; test/analiz sınırları ayrıca kaydedilecek.
 
 2026-10-11: Yeni kayıt olan kullanıcılar için Kurulum & Rol Rehber Sihirbazı (SetupWizardScreen, `/rehber`) uygulandı:
 - apps/swansport_app/lib/features/onboarding/presentation/setup_wizard_screen.dart: Stepper/Story tarzı 5-6 adımlı interaktif rehber.

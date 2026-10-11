@@ -1,39 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-
-const kSetupWizardSeenKey = 'setup_wizard_seen_v1';
-
-/// Kurulum rehberinin görülüp görülmediği.
-Future<bool> setupWizardSeen() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(kSetupWizardSeenKey) ?? false;
-  } catch (_) {
-    return true;
-  }
-}
-
-/// Kurulum rehberini görüldü olarak işaretle.
-Future<void> markSetupWizardSeen() async {
-  try {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(kSetupWizardSeenKey, true);
-  } catch (_) {
-    // Yazılamasa da akış devam eder.
-  }
-}
+import '../application/setup_wizard_progress.dart';
 
 /// Yeni kayıt olan ve rolünü yapılandırmak isteyen kullanıcılar için
 /// interaktif, adım adım kurulum ve rehber sihirbazı.
-class SetupWizardScreen extends StatefulWidget {
+class SetupWizardScreen extends ConsumerStatefulWidget {
   const SetupWizardScreen({super.key});
 
   @override
-  State<SetupWizardScreen> createState() => _SetupWizardScreenState();
+  ConsumerState<SetupWizardScreen> createState() => _SetupWizardScreenState();
 }
 
 enum _PrimaryRole { athlete, staff, guardian }
@@ -42,9 +22,10 @@ enum _AthleteType { licensed, individual }
 
 enum _StaffType { coach, admin }
 
-class _SetupWizardScreenState extends State<SetupWizardScreen> {
+class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
   final PageController _pageController = PageController();
   int _currentStep = 0;
+  bool _leaving = false;
 
   _PrimaryRole _selectedRole = _PrimaryRole.athlete;
   _AthleteType _athleteType = _AthleteType.licensed;
@@ -62,7 +43,9 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   }
 
   Future<void> _skip() async {
-    await markSetupWizardSeen();
+    if (_leaving) return;
+    setState(() => _leaving = true);
+    await _markSeen();
     if (!mounted) return;
     Navigator.pushReplacementNamed(context, '/akis');
   }
@@ -86,8 +69,20 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   }
 
   Future<void> _goToVerification() async {
-    await markSetupWizardSeen();
+    if (_leaving) return;
+    final access = ref.read(swanAccessProvider);
+    final accountId = ref.read(authSessionProvider).valueOrNull?.user.id;
+    setState(() => _leaving = true);
+    if (accountId != null) await markSetupWizardSeen(accountId);
     if (!mounted) return;
+    if (accountId != null) ref.invalidate(setupWizardRequiredProvider(accountId));
+
+    // Phone proof is not identity proof. Every new role starts with the
+    // server-owned identity axis before the role-specific next step.
+    if (!access.hasVerifiedIdentity) {
+      Navigator.pushReplacementNamed(context, '/dogrulama', arguments: 2);
+      return;
+    }
 
     if (_selectedRole == _PrimaryRole.guardian) {
       Navigator.pushReplacementNamed(context, '/veli-bagla');
@@ -109,9 +104,25 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
     );
   }
 
+  Future<void> _markSeen() async {
+    final accountId = ref.read(authSessionProvider).valueOrNull?.user.id;
+    if (accountId == null) return;
+    await markSetupWizardSeen(accountId);
+    if (mounted) ref.invalidate(setupWizardRequiredProvider(accountId));
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
+    final needsIdentity = !ref.watch(swanAccessProvider).hasVerifiedIdentity;
+    final actionLabel = needsIdentity
+        ? 'Kimlik Belgesi Yükle'
+        : _selectedRole == _PrimaryRole.guardian
+            ? 'Davet Kodunu Gir'
+            : _selectedRole == _PrimaryRole.staff &&
+                    _staffType == _StaffType.admin
+                ? 'Kulüpleri İncele'
+                : 'Spor Belgesi Yükle';
     final progress = (_currentStep + 1) / _totalSteps;
 
     return Scaffold(
@@ -145,7 +156,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                         ),
                         const SizedBox(height: SwanSpace.xs),
                         ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
+                          borderRadius: BorderRadius.circular(SwanRadius.sm),
                           child: LinearProgressIndicator(
                             value: progress,
                             minHeight: 4,
@@ -157,7 +168,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                     ),
                   ),
                   TextButton(
-                    onPressed: _skip,
+                    onPressed: _leaving ? null : _skip,
                     child: Text(
                       'Şimdilik Atla',
                       style: SwanType.bodySm(c.inkMuted, w: FontWeight.w600),
@@ -218,11 +229,11 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      onPressed: _currentStep == _totalSteps - 1
+                      onPressed: _leaving ? null : _currentStep == _totalSteps - 1
                           ? _goToVerification
                           : _next,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: c.accent,
+                        backgroundColor: c.accentFill,
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(
                           vertical: SwanSpace.md,
@@ -234,7 +245,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                       ),
                       child: Text(
                         _currentStep == _totalSteps - 1
-                            ? 'Belgelerimi Yükle'
+                            ? actionLabel
                             : 'Devam Et',
                         style: SwanType.body(
                           Colors.white,
@@ -267,7 +278,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: c.accentFill,
+                  color: c.accentSoft,
                   borderRadius: BorderRadius.circular(SwanRadius.md),
                 ),
                 child: Icon(Icons.sports_rounded, color: c.accent, size: 28),
@@ -278,7 +289,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('SwanSport\'a Hoş Geldin!', style: SwanType.h2(c.ink)),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: SwanSpace.xs),
                     Text(
                       'Spor kulüpleri & sporcuların dijital yönetim ağı',
                       style: SwanType.caption(c.inkMuted),
@@ -487,7 +498,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               icon: Icons.link_rounded,
               title: 'Veli Bağla Menüsünden Kodu Gir',
               body:
-                'Bu kodu Profil > Davet Kodu alanına girerek saniyeler içinde çocuğun hesabıyla bağlantı kurabilirsin.',
+                'Önce Kimlik sekmesinden belge yükle ve platform onayını bekle. Ardından Profil > Yönetim > Hesabım > Davet Kodu alanından kodu gir.',
             ),
             const SizedBox(height: SwanSpace.md),
             _infoBox(
@@ -528,13 +539,12 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ),
         (
           'Tesis & Kort Ayrıcalıkları',
-          'Anlaşmalı belediye ve kulüp tesislerinde lisanslı sporcu saatlerinden faydalanırsın.',
+          'Kort ve partner işlemleri telefon doğrulaması ister; lisans özel saat veya öncelik sağlamaz.',
         ),
       ];
       requiredDocs = [
-        'T.C. Kimlik Doğrulaması (Telefon / SMS veya Belge)',
-        if (isLic) 'Federasyon Sporcu Lisansı (PDF / Fotoğraf)',
-        'Spor Yapabilir Sağlık Raporu (varsa)',
+        'Kimlik Belgesi (platform onayı gerekir; SMS yerine geçmez)',
+        'Federasyon Sporcu Lisansı (PDF / Fotoğraf, branş ve bitiş tarihi)',
       ];
     } else if (_selectedRole == _PrimaryRole.staff) {
       if (_staffType == _StaffType.coach) {
@@ -544,11 +554,11 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         perks = [
           (
             'Yoklama & Antrenman Açma',
-            'Takım antrenmanı başlatma ve karekodlu yoklama alma yetkisi.',
+            'Aktif kulüp üyeliğin, branş belgen ve açık özellikler kapsamında antrenman ve yoklama araçları.',
           ),
           (
             '1–5. Kademe Rozeti',
-            'Federasyon onaylı kademen profilinde parlar ve antrenör bulma modülünde listelenirsin.',
+            'Onaylı kademen profilinde görünür; keşifte listelenmek için ayrıca görünür olmayı seçmelisin.',
           ),
           (
             'Performans Defteri',
@@ -557,7 +567,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ];
         requiredDocs = [
           'Federasyon Onaylı Antrenörlük Belgesi (Kademe & Vize)',
-          'T.C. Kimlik / Telefon Doğrulaması',
+          'Kimlik Belgesi (platform onayı); telefon doğrulaması ayrı bir adımdır',
         ];
       } else {
         roleTitle = 'Kulüp Yöneticisi Doğrulaması';
@@ -566,7 +576,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         perks = [
           (
             'Resmi Kulüp Paneli',
-            'Kulübünü SwanSport\'a tescil ettirip onaylı kulüp rozeti alma.',
+            'Kulüp erişimi rol seçimiyle açılmaz; aktif yönetici ataması gerekir.',
           ),
           (
             'Mali Defter & Aidat',
@@ -578,8 +588,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           ),
         ];
         requiredDocs = [
-          'Kulüp Tescil Belgesi / Dernek Karar Defteri Fotokopisi',
-          'İmza Yetki Belgesi / Kulüp Görevlendirme Yazısı',
+          'Kimlik Belgesi (platform onayı gerekir)',
+          'Kulüp yönetim erişimi için yetkili yönetici ataması gerekir; rehber belgeyle yetki vermez',
         ];
       }
     } else {
@@ -588,8 +598,8 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
           'Veli onayı 18 yaş altı sporcularımızın güvenliği için zorunludur:';
       perks = [
         (
-          'Dijital Veli İzni',
-          'Müsabaka ve seyahat izinlerini tek dokunuşla onaylayabilirsin.',
+          'Etkinlik Katılım Yanıtı',
+          'Bağlı çocuğunun etkinlikleri için katılım yanıtı (RSVP) verebilirsin; bu hukuki müsabaka veya seyahat izni değildir.',
         ),
         (
           'Sağlık & Kısıt Takibi',
@@ -597,6 +607,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         ),
       ];
       requiredDocs = [
+        'Kimlik Belgesi (davet kodunu kullanmadan önce platform onayı gerekir)',
         'Kulüpten Verilen 6 Haneli Davet Kodu',
         'Veli Telefon Numarası Doğrulaması',
       ];
@@ -613,7 +624,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               vertical: SwanSpace.xs,
             ),
             decoration: BoxDecoration(
-              color: c.accentFill,
+              color: c.accentSoft,
               borderRadius: BorderRadius.circular(SwanRadius.sm),
             ),
             child: Text(
@@ -647,7 +658,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 6),
+            const SizedBox(height: SwanSpace.sm),
           ],
           const SizedBox(height: SwanSpace.md),
           Container(
@@ -690,7 +701,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               vertical: SwanSpace.xs,
             ),
             decoration: BoxDecoration(
-              color: c.accentFill,
+              color: c.accentSoft,
               borderRadius: BorderRadius.circular(SwanRadius.sm),
             ),
             child: Text(
@@ -758,6 +769,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
   // Kart 5: Kurulum Özeti & Eyleme Geçiş
   // ---------------------------------------------------------------------------
   Widget _buildFinalActionCard(SwanPalette c) {
+    final needsIdentity = !ref.watch(swanAccessProvider).hasVerifiedIdentity;
     String selectedRoleSummary;
     if (_selectedRole == _PrimaryRole.athlete) {
       selectedRoleSummary = _athleteType == _AthleteType.licensed
@@ -804,21 +816,23 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Seçenek 1: Belgelerini Şimdi Yükle',
+                  needsIdentity ? 'Seçenek 1: Kimliğini Doğrula' : 'Seçenek 1: Rolüne Göre Devam Et',
                   style: SwanType.body(c.ink, w: FontWeight.w700),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: SwanSpace.xs),
                 Text(
-                  'Doğrulama sayfasına geçerek kimlik, antrenörlük ya da lisans evraklarını hemen yükle ve incelemeye gönder.',
+                  needsIdentity
+                      ? 'Kimlik belgeni yükle ve platform onayını bekle. Telefon onayı kimlik yerine geçmez. Onaydan sonra Profil > Yönetim > Hesabım > Kurulum Rehberi üzerinden rol adımına devam edebilirsin.'
+                      : 'Veliler davet kodunu girer, yöneticiler kulüpleri inceler; sporcu ve antrenörler branş belgelerini yükler. Rol seçmek tek başına yetki vermez.',
                   style: SwanType.bodySm(c.inkMuted),
                 ),
                 const SizedBox(height: SwanSpace.md),
                 ElevatedButton.icon(
-                  onPressed: _goToVerification,
+                  onPressed: _leaving ? null : _goToVerification,
                   icon: const Icon(Icons.file_upload_outlined, size: 18),
-                  label: const Text('Doğrulama Sayfasına Git'),
+                  label: Text(needsIdentity ? 'Kimlik Belgesi Yükle' : 'Sonraki Adıma Git'),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: c.accent,
+                    backgroundColor: c.accentFill,
                     foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(SwanRadius.md),
@@ -843,7 +857,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                   'Seçenek 2: Şimdilik Keşfet',
                   style: SwanType.body(c.ink, w: FontWeight.w700),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: SwanSpace.xs),
                 Text(
                   'Belgelerini daha sonra istediğin zaman Profil > Doğrulama adımlarından yükleyebilirsin.',
                   style: SwanType.bodySm(c.inkMuted),
@@ -884,7 +898,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            padding: const EdgeInsets.all(SwanSpace.sm),
             decoration: BoxDecoration(
               color: c.surfaceAlt,
               borderRadius: BorderRadius.circular(SwanRadius.sm),
@@ -898,7 +912,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: SwanType.body(c.ink, w: FontWeight.w600)),
-                const SizedBox(height: 2),
+                const SizedBox(height: SwanSpace.xs),
                 Text(desc, style: SwanType.caption(c.inkMuted)),
               ],
             ),
@@ -922,7 +936,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(SwanSpace.lg),
         decoration: BoxDecoration(
-          color: selected ? c.accentFill : c.surface,
+          color: selected ? c.accentSoft : c.surface,
           borderRadius: BorderRadius.circular(SwanRadius.md),
           border: Border.all(
             color: selected ? c.accent : c.line,
@@ -934,7 +948,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
             Container(
               padding: const EdgeInsets.all(SwanSpace.sm),
               decoration: BoxDecoration(
-                color: selected ? c.accent : c.surfaceAlt,
+                color: selected ? c.accentFill : c.surfaceAlt,
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -955,7 +969,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
                       w: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: SwanSpace.xs),
                   Text(
                     subtitle,
                     style: SwanType.caption(c.inkMuted),
@@ -994,7 +1008,7 @@ class _SetupWizardScreenState extends State<SetupWizardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                const SizedBox(height: 2),
+                const SizedBox(height: SwanSpace.xs),
                 Text(body, style: SwanType.caption(c.inkMuted)),
               ],
             ),
