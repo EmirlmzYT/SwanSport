@@ -37,8 +37,13 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     if (!mounted) return;
     if (success) {
+      final isSignUp =
+          ref.read(authControllerProvider).mode == AuthMode.signUp;
       // ignore: unawaited_futures
-      Navigator.pushReplacementNamed(context, '/akis');
+      Navigator.pushReplacementNamed(
+        context,
+        isSignUp ? '/rehber' : '/akis',
+      );
     }
   }
 

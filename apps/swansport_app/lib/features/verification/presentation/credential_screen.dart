@@ -17,7 +17,9 @@ import '../../../app/widgets/swan_tabs.dart';
 ///
 /// Kulüp lisans analitik paneli, öncelikli inceleme kuyruğu ve kişisel başvuru.
 class CredentialScreen extends ConsumerStatefulWidget {
-  const CredentialScreen({super.key});
+  const CredentialScreen({super.key, this.initialMode});
+
+  final int? initialMode;
 
   @override
   ConsumerState<CredentialScreen> createState() => _CredentialScreenState();
@@ -25,7 +27,7 @@ class CredentialScreen extends ConsumerStatefulWidget {
 
 class _CredentialScreenState extends ConsumerState<CredentialScreen> {
   // Kişisel başvuru durumu
-  int _mode = 2; // 0 antrenör, 1 sporcu, 2 kimlik
+  late int _mode;
   int _kademe = 2;
   String? _sportCode;
   bool _busy = false;
@@ -34,6 +36,21 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
 
   final Map<String, ({String fileName, String storagePath})> _docs = {};
   final Set<String> _uploading = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _mode = widget.initialMode ?? 2;
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final args = ModalRoute.of(context)?.settings.arguments;
+    if (args is int && widget.initialMode == null) {
+      _mode = args;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

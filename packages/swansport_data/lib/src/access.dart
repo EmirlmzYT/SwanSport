@@ -101,6 +101,7 @@ class SwanAccess {
         '/federasyon-takvimi',
         '/calendar',
         '/yardim',
+        '/rehber',
       }.contains(route);
 
   bool get isInIdentityWaitingRoom =>

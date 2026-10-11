@@ -40,7 +40,7 @@ void main() {
     '/sezon-acilisi', '/veli-izinleri', '/gelisim-raporu', '/saha-islemlerim',
     '/finans', '/gider-ekle', '/medical-center', '/facilities',
     '/onay-paneli', '/haber-kaynaklari', '/federasyon-yetkili',
-    '/bagis', '/basvurular', '/veli-bagla', '/settings',
+    '/bagis', '/basvurular', '/veli-bagla', '/rehber', '/settings',
     // Profil kısayolları
     '/aidatlarim', '/documents', '/dogrulama', '/antrenmanlarim',
     // Antrenman oturumu (0071-0073). '/antrenman-sonuc' burada YOK:

@@ -59,6 +59,7 @@ import '../features/network/presentation/discover_screen.dart';
 import '../features/network/presentation/explore_screen.dart';
 import '../features/network/presentation/listings_screen.dart';
 import '../features/network/presentation/organizations_screen.dart';
+import '../features/onboarding/presentation/setup_wizard_screen.dart';
 import '../features/performance_analytics/presentation/athlete_performance_screen.dart';
 import '../features/performance_analytics/presentation/leaderboard_screen.dart';
 import '../features/performance_analytics/presentation/performance_analytics_screen.dart';
@@ -174,6 +175,7 @@ class SwanSportApp extends ConsumerWidget {
         '/antrenmanlarim': (context) => const MyTrainingScreen(),
         '/dogrulama': (context) => const CredentialScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
+        '/rehber': (context) => const SetupWizardScreen(),
         '/onay-paneli': (context) => const AdminReviewScreen(),
         '/demo-rol': (context) =>
             ref.watch(appEnvironmentProvider).enableDebugTools

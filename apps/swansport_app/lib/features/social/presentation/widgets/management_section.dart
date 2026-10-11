@@ -130,6 +130,7 @@ class ManagementSection extends ConsumerWidget {
       const _Item(Icons.volunteer_activism_rounded, 'Bağış', '/bagis'),
       const _Item(Icons.group_add_rounded, 'Başvurular', '/basvurular'),
       const _Item(Icons.vpn_key_rounded, 'Davet Kodu', '/veli-bagla'),
+      const _Item(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
       const _Item(Icons.settings_rounded, 'Ayarlar', '/settings'),
     ];
 
