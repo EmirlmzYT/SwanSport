@@ -18,6 +18,7 @@ class MockClubOpsService extends Fake implements ClubOpsService {
     required DateTime start,
     DateTime? end,
     String? excludeEventId,
+    String? teamId,
   }) {
     lastCheckedFacilityId = facilityId;
     if (shouldThrow) {
@@ -40,6 +41,20 @@ class MockClubOpsService extends Fake implements ClubOpsService {
     String? place,
     String? teamId,
   }) async {}
+
+  @override
+  Future<String> createFacilityReservation({
+    required String clubId, required String facilityId, required String title,
+    String kind = 'rental', required DateTime startsAt, required DateTime endsAt,
+    String? reservedByName, String? reservedByPhone, double fee = 0,
+    String? notes, bool allowConflict = false,
+  }) async => 'reservation-1';
+
+  @override
+  Future<void> cancelFacilityReservation(String reservationId) async {}
+
+  @override
+  Future<List<FacilityReservation>> facilityReservations(String facilityId) async => [];
 }
 
 void main() {

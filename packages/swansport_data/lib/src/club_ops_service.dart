@@ -164,6 +164,7 @@ class FacilitySlot {
     required this.startsAt,
     required this.endsAt,
     this.teamName,
+    this.conflictSource,
   });
 
   final String id;
@@ -172,6 +173,7 @@ class FacilitySlot {
   final DateTime startsAt;
   final DateTime endsAt;
   final String? teamName;
+  final String? conflictSource;
 
   factory FacilitySlot.fromMap(Map<String, dynamic> m) => FacilitySlot(
         id: m['id'] as String,
@@ -182,7 +184,39 @@ class FacilitySlot {
         endsAt:
             DateTime.tryParse('${m['ends_at']}')?.toLocal() ?? DateTime.now(),
         teamName: m['team_name'] as String?,
+        conflictSource: m['conflict_source'] as String?,
       );
+}
+
+class FacilityReservation {
+  const FacilityReservation({required this.id, required this.clubId,
+    required this.facilityId, required this.title, required this.kind,
+    required this.startsAt, required this.endsAt, this.reservedByName,
+    this.reservedByPhone, this.reservedByProfileId, required this.status,
+    required this.fee, this.invoiceId, this.notes, this.createdAt});
+
+  final String id, clubId, facilityId, title, kind, status;
+  final DateTime startsAt, endsAt;
+  final String? reservedByName, reservedByPhone, reservedByProfileId, invoiceId, notes;
+  final double fee;
+  final DateTime? createdAt;
+
+  factory FacilityReservation.fromMap(Map<String, dynamic> m) => FacilityReservation(
+    id: m['id'] as String,
+    clubId: (m['club_id'] as String?) ?? '',
+    facilityId: (m['facility_id'] as String?) ?? '',
+    title: (m['title'] as String?) ?? '',
+    kind: (m['kind'] as String?) ?? 'rental',
+    startsAt: DateTime.tryParse('${m['starts_at']}')?.toLocal() ?? DateTime.now(),
+    endsAt: DateTime.tryParse('${m['ends_at']}')?.toLocal() ?? DateTime.now(),
+    reservedByName: m['reserved_by_name'] as String?,
+    reservedByPhone: m['reserved_by_phone'] as String?,
+    reservedByProfileId: m['reserved_by_profile_id'] as String?,
+    status: (m['status'] as String?) ?? 'confirmed',
+    fee: (m['fee'] as num?)?.toDouble() ?? 0.0,
+    invoiceId: m['invoice_id'] as String?, notes: m['notes'] as String?,
+    createdAt: m['created_at'] == null ? null : DateTime.tryParse('${m['created_at']}')?.toLocal(),
+  );
 }
 
 /// Yoklama özeti satırı.
@@ -357,22 +391,54 @@ class ClubOpsService {
     });
   }
 
-  /// Aynı salonda çakışan etkinlikler. Boş liste = çakışma yok.
+  /// Tesis veya takım ile çakışan etkinlikler ve tesis rezervasyonları.
   Future<List<FacilitySlot>> conflicts({
     required String facilityId,
     required DateTime start,
     DateTime? end,
     String? excludeEventId,
+    String? teamId,
   }) async {
     final rows = await _c.rpc<List<dynamic>>('facility_conflicts', params: {
       'p_facility': facilityId,
       'p_start': start.toUtc().toIso8601String(),
       if (end != null) 'p_end': end.toUtc().toIso8601String(),
       if (excludeEventId != null) 'p_exclude': excludeEventId,
+      if (teamId != null) 'p_team': teamId,
     });
     return rows
         .map((r) => FacilitySlot.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
+  }
+
+  /// Tesis rezervasyonu oluşturur; çakışma kararı sunucuda tekrar doğrulanır.
+  Future<String> createFacilityReservation({
+    required String clubId, required String facilityId, required String title,
+    String kind = 'rental', required DateTime startsAt, required DateTime endsAt,
+    String? reservedByName, String? reservedByPhone, double fee = 0,
+    String? notes, bool allowConflict = false,
+  }) async {
+    final res = await _c.rpc<dynamic>('create_facility_reservation', params: {
+      'p_club': clubId, 'p_facility': facilityId, 'p_title': title.trim(),
+      'p_kind': kind, 'p_starts': startsAt.toUtc().toIso8601String(),
+      'p_ends': endsAt.toUtc().toIso8601String(),
+      'p_by_name': reservedByName?.trim(), 'p_by_phone': reservedByPhone?.trim(),
+      'p_fee': fee, 'p_allow_conflict': allowConflict,
+      if (notes != null && notes.trim().isNotEmpty) 'p_notes': notes.trim(),
+    });
+    return res.toString();
+  }
+
+  Future<void> cancelFacilityReservation(String reservationId) async {
+    await _c.rpc<void>('cancel_facility_reservation', params: {
+      'p_reservation_id': reservationId,
+    });
+  }
+
+  Future<List<FacilityReservation>> facilityReservations(String facilityId) async {
+    final rows = await _c.from('facility_reservations').select('*')
+        .eq('facility_id', facilityId).order('starts_at', ascending: true);
+    return rows.map((r) => FacilityReservation.fromMap(r)).toList();
   }
 
   /// Etkinlik oluşturur. Tesis seçilirse yer adı ondan alınır.
@@ -486,4 +552,10 @@ final attendanceSummaryProvider =
   final club = await ref.watch(activeClubProvider.future);
   if (club == null) return const [];
   return ref.watch(clubOpsServiceProvider).attendanceSummary(club.id);
+});
+
+final facilityReservationsProvider = FutureProvider.autoDispose
+    .family<List<FacilityReservation>, String>((ref, facilityId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(clubOpsServiceProvider).facilityReservations(facilityId);
 });

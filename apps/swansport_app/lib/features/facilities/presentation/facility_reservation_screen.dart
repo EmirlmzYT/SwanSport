@@ -23,6 +23,20 @@ class FacilityReservationScreen extends ConsumerStatefulWidget {
 class _FacilityReservationScreenState
     extends ConsumerState<FacilityReservationScreen> {
   String? _selectedFacilityId;
+  String _selectedKind = 'training';
+  final _byNameController = TextEditingController();
+  final _byPhoneController = TextEditingController();
+  final _feeController = TextEditingController(text: '0');
+  bool _allowConflict = false;
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _byNameController.dispose();
+    _byPhoneController.dispose();
+    _feeController.dispose();
+    super.dispose();
+  }
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = const TimeOfDay(hour: 14, minute: 0);
   int _durationMinutes = 90;
@@ -54,6 +68,7 @@ class _FacilityReservationScreenState
     _checkedConflicts = false;
     _conflicts = [];
     _checkError = null;
+    _allowConflict = false;
   }
 
   Future<void> _checkConflicts(String facilityId) async {
@@ -102,7 +117,19 @@ class _FacilityReservationScreenState
     try {
       await ref.read(diagnosticsProvider).trace(
           'action:facility_reservation',
-          () => ref.read(clubOpsServiceProvider).createEvent(
+          () async {
+            if (_selectedKind != 'training') {
+              await ref.read(clubOpsServiceProvider).createFacilityReservation(
+                clubId: clubId, facilityId: facilityId, title: title,
+                kind: _selectedKind, startsAt: _startDateTime, endsAt: _endDateTime,
+                reservedByName: _byNameController.text,
+                reservedByPhone: _byPhoneController.text,
+                fee: double.tryParse(_feeController.text) ?? 0,
+                allowConflict: _allowConflict,
+              );
+              return;
+            }
+            await ref.read(clubOpsServiceProvider).createEvent(
                 clubId: clubId,
                 title: title,
                 kind: 'training',
@@ -110,9 +137,11 @@ class _FacilityReservationScreenState
                 endsAt: _endDateTime,
                 facilityId: facilityId,
                 place: facilityName,
-              ));
+              );
+          });
 
       ref.invalidate(facilityLoadProvider);
+      ref.invalidate(facilityReservationsProvider(facilityId));
       ref.invalidate(facilityScheduleProvider(facilityId));
       ref.invalidate(eventsProvider);
       ref.invalidate(clubOperationsSummaryProvider);
@@ -126,7 +155,7 @@ class _FacilityReservationScreenState
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('$facilityName için rezervasyon oluşturuldu.'),
-            backgroundColor: const Color(0xFF10B981),
+            backgroundColor: context.swan.successFill,
           ),
         );
       }
@@ -390,6 +419,33 @@ class _FacilityReservationScreenState
         children: [
           Text('Rezervasyon Detayları', style: SwanType.h3(c.ink)),
           const SizedBox(height: SwanSpace.md),
+          DropdownButtonFormField<String>(
+            initialValue: _selectedKind,
+            isExpanded: true,
+            style: SwanType.bodySm(c.ink),
+            decoration: const InputDecoration(labelText: 'Rezervasyon Türü'),
+            items: const {
+              'training': 'Antrenman', 'rental': 'Dış Kiralama',
+              'maintenance': 'Tesis Bakımı', 'private_lesson': 'Özel Ders',
+            }.entries.map((e) => DropdownMenuItem(value: e.key, child: Text(e.value))).toList(),
+            onChanged: _isSubmitting ? null : (value) {
+              if (value != null) setState(() {
+                _selectedKind = value;
+                _invalidateConflictCheck();
+              });
+            },
+          ),
+          if (_selectedKind == 'rental' || _selectedKind == 'private_lesson') ...[
+            TextField(controller: _byNameController, style: SwanType.bodySm(c.ink),
+              decoration: const InputDecoration(labelText: 'Kiralayan Kişi/Kurum')),
+            TextField(controller: _byPhoneController, style: SwanType.bodySm(c.ink),
+              keyboardType: TextInputType.phone,
+              decoration: const InputDecoration(labelText: 'Telefon')),
+            TextField(controller: _feeController, style: SwanType.bodySm(c.ink),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(labelText: 'Ücret')),
+          ],
+          const SizedBox(height: SwanSpace.md),
           TextField(
             controller: _titleController,
             decoration: InputDecoration(
@@ -534,9 +590,9 @@ class _FacilityReservationScreenState
                   child: Text(
                     _conflicts.isEmpty
                         ? 'Saha müsait'
-                        : '${_conflicts.length} çakışma var! (Uyarı: Rezervasyon engellenmez)',
+                        : '${_conflicts.length} çakışma var!',
                     style: SwanType.caption(
-                      _conflicts.isEmpty ? const Color(0xFF10B981) : c.danger,
+                      _conflicts.isEmpty ? c.success : c.danger,
                       w: FontWeight.w700,
                     ),
                   ),
@@ -585,15 +641,31 @@ class _FacilityReservationScreenState
                   ),
                   const SizedBox(height: 4),
                   ..._conflicts.map((conf) {
-                    return Text(
+                    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                      Container(
+                        padding: const EdgeInsets.all(SwanSpace.xs),
+                        decoration: BoxDecoration(color: c.danger.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(SwanRadius.sm)),
+                        child: Text(conf.conflictSource == 'reservation'
+                          ? 'Rezervasyon Çakışması' : 'Antrenman/Etkinlik Çakışması',
+                          style: SwanType.caption(c.danger)),
+                      ),
+                      Text(
                       '• ${conf.title} (${conf.startsAt.hour}:${conf.startsAt.minute.toString().padLeft(2, '0')})',
                       style: SwanType.caption(c.danger, w: FontWeight.w600),
-                    );
+                    )]);
                   }),
                 ],
               ),
             ),
           ],
+          if (_checkedConflicts && _conflicts.isNotEmpty)
+            CheckboxListTile(
+              value: _allowConflict,
+              activeColor: c.accent,
+              title: Text('Çakışmaya rağmen kaydet', style: SwanType.bodySm(c.ink)),
+              onChanged: _isSubmitting ? null : (value) => setState(() => _allowConflict = value ?? false),
+            ),
           const SizedBox(height: SwanSpace.lg),
           SizedBox(
             width: double.infinity,

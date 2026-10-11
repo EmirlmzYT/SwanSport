@@ -4,6 +4,10 @@ Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+2026-10-11: 0108 veri/UI entegrasyonu uygulandı: FacilitySlot.conflictSource, FacilityReservation JSON modeli, takım parametreli çakışma RPC'si, oluşturma/iptal/liste servisleri ve family provider. Rezervasyon ekranında dört tür, kiralayan/telefon/ücret alanları, kaynak rozetleri, açık çakışma onayı ve provider invalidation bağlı; controller dispose ve başarı renk jetonu düzeltildi. Model testleri eklendi, lifecycle mock güncellendi. SQL regresyonu 5/5 geçti; git diff --check temiz. Flutter/Dart SDK ortamda bulunamadığından iki Flutter test komutu çalıştırılamadı; Dart analizi/derleme/widget doğrulaması bekler. Kullanıcının bu görev talimatıyla değişiklikler yalnız git add ile aşamalanır; canlı yayın yok.
+
+2026-10-11: 0108 Dart veri ve rezervasyon UI entegrasyonu devralındı. Başlangıç ağacı temiz, main bir commit ileride; kullanıcı bu görev sonunda yalnız git add istiyor.
+
 2026-10-11: Tesis Rezervasyon & Çakışma Modeli (0108) tamamlandı. `facility_reservations` RLS ve zaman damgası tetikleyicisiyle eklendi; `facility_conflicts` etkinlik/rezervasyon birleşik taramasına, doğru tek imzaya ve authenticated ACL'ine taşındı. Oluşturma/iptal RPC'leri ve 7 günlük birleşik `facility_load` hazır. `tools/facility_conflicts_sql_test.mjs` 5/5 geçti (temiz rezervasyon, etkinlik çakışması, rezervasyon kaynağı, dış kulüp red, iptal/doluluk); migration tekrar uygulanabilirliği de denendi. `check_migrations.py`, `check_faq.py` ve diff whitespace denetimi başarılı. Canlı SQL/deploy yapılmadı.
 
 2026-10-11: Tesis Rezervasyon & Çakışma Modeli (0108) devralındı. `facility_reservations`, mevcut etkinliklerle birleşik `facility_conflicts`, yönetim RPC'leri ve izole SQL doğrulama betiği hazırlanacak. Başlangıç çalışma ağacı temiz; canlı SQL/deploy yapılmayacak.
