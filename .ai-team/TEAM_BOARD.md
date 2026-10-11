@@ -1,8 +1,12 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-10 Europe/Istanbul
+Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
+
+2026-10-11: Tesis Rezervasyon & Çakışma Modeli (0108) tamamlandı. `facility_reservations` RLS ve zaman damgası tetikleyicisiyle eklendi; `facility_conflicts` etkinlik/rezervasyon birleşik taramasına, doğru tek imzaya ve authenticated ACL'ine taşındı. Oluşturma/iptal RPC'leri ve 7 günlük birleşik `facility_load` hazır. `tools/facility_conflicts_sql_test.mjs` 5/5 geçti (temiz rezervasyon, etkinlik çakışması, rezervasyon kaynağı, dış kulüp red, iptal/doluluk); migration tekrar uygulanabilirliği de denendi. `check_migrations.py`, `check_faq.py` ve diff whitespace denetimi başarılı. Canlı SQL/deploy yapılmadı.
+
+2026-10-11: Tesis Rezervasyon & Çakışma Modeli (0108) devralındı. `facility_reservations`, mevcut etkinliklerle birleşik `facility_conflicts`, yönetim RPC'leri ve izole SQL doğrulama betiği hazırlanacak. Başlangıç çalışma ağacı temiz; canlı SQL/deploy yapılmayacak.
 
 2026-10-10: Dört evrensel antrenman arketipi; saf Dart faz/metric motoru, mevcut protokol/set tabloları üzerinde 0105 ve veri katmanı entegrasyonu. Eski okçuluk, kilitler ve yetkiler korunacak. Yerel test kapsamı; canlı SQL/deploy/push yok. Başlangıç kullanıcı değişiklikleri korunur.
 
