@@ -1,0 +1,59 @@
+name: Build Console Web
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/swansport_console/**'
+      - 'packages/**'
+      - '.github/workflows/build_console_web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-console:
+    name: Build Desktop Console Web
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Bootstrap Workspace
+        run: |
+          dart pub global activate melos
+          melos bootstrap
+
+      - name: Build Console Web
+        working-directory: apps/swansport_console
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://api.swansport.com.tr' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE' }}
+        run: |
+          flutter build web --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+
+      - name: Package Web Artifact
+        working-directory: apps/swansport_console/build/web
+        run: |
+          zip -qry ../../../swansport-console-web.zip .
+
+      - name: Upload Console Web Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: swansport-console-web
+          path: swansport-console-web.zip
+          if-no-files-found: error
+          retention-days: 30
