@@ -2,9 +2,24 @@
 
 Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `complete`
+Durum: `review_ready`
 
-2026-10-11: SSS yönetimi tamamlandı: FaqEntry audience/sortOrder/active alanları ve varsayılanları, servis üzerinden ekleme/güncelleme/silme, konsolda Türkçe uyumlu soru/cevap/kategori araması, özellik filtresi ve onaylı silme eklendi. Düzenleme kitle/sıra/aktif bilgilerini korur; dört yeni özellik anahtarı listeye alındı. İki model testi eklendi. check_faq.py 39/39 ve git diff --check başarılı; Flutter SDK bulunmadığından Flutter testleri/analiz çalıştırılamadı. Yalnız bu görevin dört dosyası git add ile aşamalanır; commit/push/deploy yok. Writer serbest.
+2026-10-11: Yeni kayıt olan kullanıcılar için Kurulum & Rol Rehber Sihirbazı (SetupWizardScreen, `/rehber`) uygulandı:
+- apps/swansport_app/lib/features/onboarding/presentation/setup_wizard_screen.dart: Stepper/Story tarzı 5-6 adımlı interaktif rehber.
+  * Kart 0: Hoş geldin & neyin nerede olduğu uygulama haritası (Sahalar, Partner, Kulüp, Finans, Doğrulama).
+  * Kart 1: Temel rol seçimi (Sporcu, Kulüp Yetkilisi, Veli).
+  * Kart 2: Alt rol dallanması (Lisanslı vs Ferdi Sporcu; Antrenör vs Yönetici; Veli davet kodu eşleştirme).
+  * Kart 3: "Neden kimlik & belge doğrulaması gerekli?" eğitici haklar ve yüklenecek belgeler tablosu (KVKK güvenlik notu dahil).
+  * Kart 4: Lisanslı sporcu için "Kulübün SwanSport'ta mı?" arama ve katılma kartı (/kulupler yönlendirmesi).
+  * Kart 5: Kurulum özeti ve eyleme geçiş ("Belgelerimi Yükle" -> /dogrulama sekme parametreli veya /veli-bagla; "Ana Sayfaya Geç" -> /akis).
+  * Kontroller: Her ekranda "Şimdilik Atla" butonu, ince ilerleme çubuğu, Geri/İleri butonları, SharedPreferences görüldü bayrağı.
+- apps/swansport_app/lib/features/verification/presentation/credential_screen.dart: initialMode ve ModalRoute.arguments (int 0: antrenör, 1: sporcu, 2: kimlik) desteği eklendi.
+- apps/swansport_app/lib/features/auth/presentation/screens/auth_screen.dart: Yeni kayıt (AuthMode.signUp) sonrası doğrudan /rehber rotasına yönlendirme eklendi.
+- apps/swansport_app/lib/app/swansport_app.dart: /rehber rotası tanımlandı.
+- packages/swansport_data/lib/src/access.dart: /rehber rotası SwanAccess.isGuestRoute kümesine eklendi.
+- apps/swansport_app/lib/features/social/presentation/widgets/management_section.dart: Profil > Yönetim > Hesabım altına 'Kurulum Rehberi' giriş noktası eklendi.
+- apps/swansport_app/test/navigation_test.dart: /rehber reachable listesine alındı; sözleşme doğrulandı (Missing: [], Orphans: []).
+- apps/swansport_app/pubspec.yaml: 0.5.2+18 sürümüne yükseltildi.
 
 2026-10-11: SSS yönetim modeli, servis yazma/silme, konsol arama/filtre ve onaylı silme görevi devralındı. Başlangıç ağacı temiz; yalnız görev dosyaları aşamalanacak.
 
