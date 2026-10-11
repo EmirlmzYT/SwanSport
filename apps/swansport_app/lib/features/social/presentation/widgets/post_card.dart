@@ -104,23 +104,23 @@ class _PostCardState extends ConsumerState<PostCard>
 
     await showModalBottomSheet<void>(
       context: context,
-      backgroundColor: Colors.transparent,
+      backgroundColor: surf.withValues(alpha: 0),
       builder: (ctx) => Container(
         decoration: BoxDecoration(
           color: surf,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
         ),
-        padding: const EdgeInsets.fromLTRB(12, 14, 12, 24),
+        padding: const EdgeInsets.fromLTRB(SwanSpace.md, SwanSpace.lg, SwanSpace.md, SwanSpace.xl),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF2E3B4E) : const Color(0xFFE4E9F0),
-              borderRadius: BorderRadius.circular(4),
+              color: context.swan.line,
+              borderRadius: BorderRadius.circular(SwanRadius.sm),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: SwanSpace.lg),
           if (isMine) ...[
             // Sabitleme sunucuda doğrulanıyor: yalnızca kendi ve yayındaki
             // gönderi. Taslak sabitlenirse profilde görünen ama kimsenin
@@ -163,7 +163,7 @@ class _PostCardState extends ConsumerState<PostCard>
       onTap: onTap,
       leading: Icon(icon, size: 21, color: color),
       title: Text(label, style: SwanType.bodySm(color, w: FontWeight.w700)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
     );
   }
 
@@ -175,7 +175,7 @@ class _PostCardState extends ConsumerState<PostCard>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
         title: Text('Kullanıcıyı engelle', style: SwanType.h3(ink)),
         content: Text(
             '${widget.post.displayName} artık gönderilerini göremeyecek ve '
@@ -246,7 +246,7 @@ class _PostCardState extends ConsumerState<PostCard>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
         title: Text('Gönderiyi düzenle', style: SwanType.h3(ink)),
         content: TextField(
           controller: ctrl,
@@ -266,7 +266,7 @@ class _PostCardState extends ConsumerState<PostCard>
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Kaydet',
-                style: SwanType.bodySm(kTeal, w: FontWeight.w800)),
+                style: SwanType.bodySm(context.swan.accent, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -303,7 +303,7 @@ class _PostCardState extends ConsumerState<PostCard>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
         title: Text('Gönderiyi sil', style: SwanType.h3(ink)),
         content: Text('Bu gönderi kalıcı olarak silinecek.',
             style: SwanType.bodySm(
@@ -358,38 +358,26 @@ class _PostCardState extends ConsumerState<PostCard>
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final p = widget.post;
 
-    // Stitch referansındaki bağımsız yüzey: medya kart kenarında kırpılır.
+    // Kenarlıksız yüzey; medya kartın yumuşak kenarlarında kırpılır.
     return Container(
       margin: const EdgeInsets.only(bottom: SwanSpace.lg),
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         color: context.swan.surface,
         borderRadius: BorderRadius.circular(SwanRadius.md),
-        border: Border.all(
-          color: line.withValues(alpha: isDark ? 0.35 : 0.6),
-          width: 0.8,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.22 : 0.04),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
       ),
       padding: const EdgeInsets.only(bottom: SwanSpace.sm),
       child: Material(
-        color: Colors.transparent,
+        color: context.swan.surface.withValues(alpha: 0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Başlık
             Padding(
-              padding: const EdgeInsets.fromLTRB(14, 13, 10, 10),
+              padding: const EdgeInsets.all(SwanSpace.lg),
               child: Row(children: [
                 GestureDetector(
                   onTap: _openProfile,
@@ -400,7 +388,7 @@ class _PostCardState extends ConsumerState<PostCard>
                     gradientIndex: p.displayName.length % 4,
                   ),
                 ),
-                const SizedBox(width: 11),
+                const SizedBox(width: SwanSpace.md),
                 Expanded(
                   child: GestureDetector(
                     onTap: _openProfile,
@@ -417,7 +405,7 @@ class _PostCardState extends ConsumerState<PostCard>
                                     SwanType.bodySm(ink, w: FontWeight.w800)),
                           ),
                           if (p.isClubPost) ...[
-                            const SizedBox(width: 4),
+                            const SizedBox(width: SwanSpace.xs),
                             const VerifiedBadge(size: 14),
                           ],
                         ]),
@@ -437,20 +425,20 @@ class _PostCardState extends ConsumerState<PostCard>
                 if (p.isNews)
                   Container(
                     padding:
-                        const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+                        const EdgeInsets.symmetric(horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
                     decoration: BoxDecoration(
-                      color: kCoral.withValues(alpha: .12),
-                      borderRadius: BorderRadius.circular(999),
+                      color: context.swan.surfaceAlt,
+                      borderRadius: BorderRadius.circular(SwanRadius.sm),
                     ),
                     child: Text('HABER',
-                        style: SwanType.caption(kCoral, w: FontWeight.w800)),
+                        style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w800)),
                   ),
                 // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
                 GestureDetector(
                   onTap: _openMenu,
                   behavior: HitTestBehavior.opaque,
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 6),
+                    padding: const EdgeInsets.only(left: SwanSpace.sm),
                     child: Icon(Icons.more_horiz_rounded,
                         size: 20,
                         color: (isDark ? SwanPalette.dark : SwanPalette.light)
@@ -464,20 +452,19 @@ class _PostCardState extends ConsumerState<PostCard>
             if (p.body.trim().isNotEmpty)
               Padding(
                 padding: EdgeInsets.fromLTRB(
-                    14, 0, 14, p.imageUrl == null ? 12 : 10),
+                    SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.md),
                 child: Text(p.body,
                     style: SwanType.bodySm(ink).copyWith(height: 1.45)),
               ),
 
             // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış.
-            // Kart kabuğu kalktığı için artık tam genişlik: brief §5
-            // "içeriklerin ekranı doldurması".
+            // Medya yüzeyin tamamını doldurur; metin ayrı nefes alanı taşır.
             if (p.imageUrl != null)
               RatioImage(image: NetworkImage(p.imageUrl!)),
 
             // Eylemler
             Padding(
-              padding: const EdgeInsets.fromLTRB(8, 6, 12, 8),
+              padding: const EdgeInsets.fromLTRB(SwanSpace.sm, SwanSpace.sm, SwanSpace.md, SwanSpace.sm),
               child: Row(children: [
                 _action(
                   icon: _liked
@@ -572,14 +559,14 @@ class _PostCardState extends ConsumerState<PostCard>
               onTap: onTap,
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: SwanSpace.sm),
                 child: Row(children: [
                   scale == null
                       ? Icon(icon, size: 21, color: c)
                       : ScaleTransition(
                           scale: scale, child: Icon(icon, size: 21, color: c)),
                   if (label.isNotEmpty) ...[
-                    const SizedBox(width: 6),
+                    const SizedBox(width: SwanSpace.sm),
                     Text(label, style: SwanType.caption(c, w: FontWeight.w700)),
                   ],
                 ]),

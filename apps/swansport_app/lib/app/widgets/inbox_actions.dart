@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../design/swan_palette.dart';
+import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
 
 /// Üst barın sağındaki "gelen kutusu" ikonları: bildirimler (hareketler) + mesajlar.
@@ -55,6 +56,7 @@ class InboxIconButton extends StatelessWidget {
     required this.onTap,
     this.badge = 0,
     this.tooltip,
+    this.color,
     super.key,
   });
 
@@ -64,6 +66,7 @@ class InboxIconButton extends StatelessWidget {
   /// 0 ise rozet hiç çizilmez — "0" yazan bir rozet gürültüdür.
   final int badge;
   final String? tooltip;
+  final Color? color;
 
   @override
   Widget build(BuildContext context) {
@@ -80,7 +83,7 @@ class InboxIconButton extends StatelessWidget {
           children: [
             Align(
               alignment: Alignment.center,
-              child: Icon(icon, size: 24, color: c.ink),
+              child: Icon(icon, size: 24, color: color ?? c.ink),
             ),
             if (badge > 0)
               Positioned(
@@ -88,17 +91,17 @@ class InboxIconButton extends StatelessWidget {
                 right: 2,
                 child: Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                    const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
                   constraints: const BoxConstraints(minWidth: 16),
                   decoration: BoxDecoration(
                     color: c.danger,
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.circular(SwanRadius.sm),
                     border: Border.all(color: c.bg, width: 1.5),
                   ),
                   child: Text(
                     badgeLabel(badge),
                     textAlign: TextAlign.center,
-                    style: SwanType.caption(Colors.white, w: FontWeight.w800),
+                    style: SwanType.caption(SwanPalette.light.surface, w: FontWeight.w800),
                   ),
                 ),
               ),

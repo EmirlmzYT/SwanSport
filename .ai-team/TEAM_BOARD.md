@@ -1,8 +1,12 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-11 Europe/Istanbul
+Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `ready_for_writer`
+Durum: `review_ready`
+
+2026-10-12: Mobil feed yenilemesi yerelde hazır. StoriesBar/TodayTasks/AttendanceQueueBanner akıştan kaldırıldı; var olan Profil > Yönetim rotaları korunur. SwanType.wordmark artık Sora w800/-0.5; header SwanAccess ve gerçek unread provider'larla ortak InboxIconButton kullanır, zil/mesaj inkMuted ve rozet danger. Tümü (Keşfet)/Takip Ettiklerim mevcut seçili semantiği/animasyonu koruyan, dar ekranda yatay kaydırılabilir iki pill. Haber kartı gündem/kaynak/zaman, 16:9 görüntü veya boş/hatalı resim fallback, h3/özet ve güvenli http(s) harici tarayıcı aksiyonu içerir; launch hatası yakalanır. Duyuru gerçek aktif kulüp arması provider'ı, resmi etiket/pin ve gövdeyle surface kartıdır. PostCard border/shadow kaldırıldı; beğeni pop/dispose, yorum/menü/kaydet/paylaş korunur, kalan ham hex/spacing/radius temizlendi. 6 regresyon testi eklendi. 7 Dart dosyası sözdizimi, 41 rota tanım/giriş statik eşliği, token/aksiyon kontrolü ve SSS 39/39 başarılı; git diff --check temiz. Flutter SDK yok: navigation/widget test, analyze/build ve gerçek mobil render doğrulanmadı. İlk SSS komutu yanlış çalışma dizininden başarısızdı; kökten tekrar 39/39 geçti. Yalnız görev dosyaları stage; commit/push/deploy yok. Writer serbest.
+
+2026-10-12: Mobil akış yenilemesi devralındı. Başlangıç Git ağacı temiz; master UX planı okundu. İdari banner ve yapay hikayeler kaldırılacak; gerçek inbox rozetleri, token tabanlı atletik wordmark, haber/duyuru ve kenarlıksız gönderi kartları hazırlanacak. Yalnız stage; commit/push/deploy yok.
 
 2026-10-11: GÖREV: Mobil Ana Akış & Spor Gündemi Tasarım Yenilemesi (Feed Screen, Top Bar, Sports News & Athletic Cards)
 - apps/swansport_app/lib/features/social/presentation/feed_screen.dart:

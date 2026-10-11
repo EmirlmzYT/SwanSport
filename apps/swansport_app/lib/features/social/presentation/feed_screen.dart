@@ -8,8 +8,6 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/today_tasks.dart';
-import '../../attendance/presentation/attendance_queue_banner.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/stitch_feed_widgets.dart';
@@ -70,14 +68,6 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     pinned: true,
                     delegate: _StitchHeaderDelegate(),
                   ),
-                  // Google Stitch Hikayeler Çubuğu (Stories Bar)
-                  const SliverToBoxAdapter(
-                    child: StitchStoriesBar(),
-                  ),
-                  const SliverToBoxAdapter(
-                    child: TodayTasks(title: 'Bugün'),
-                  ),
-                  const SliverToBoxAdapter(child: AttendanceQueueBanner()),
                   SliverPersistentHeader(
                     pinned: true,
                     delegate: _FeedModeDelegate(
@@ -173,7 +163,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     }
 
     // "Takip" yalnızca kişinin seçtiği hesapların gönderilerini ve kendi
-    // kulüp duyurularını taşır. Genel spor haberleri "Sizin İçin" akışında.
+    // kulüp duyurularını taşır. Genel spor haberleri "Tümü" akışında.
     if (!_followingOnly) {
       final news = ref.watch(newsProvider).valueOrNull ?? const [];
       for (final n in news.take(15)) {
@@ -206,20 +196,23 @@ class _FeedModeBar extends StatelessWidget {
         SwanSpace.lg,
         SwanSpace.xs,
       ),
-      child: Row(
-        children: [
-          StitchFilterPill(
-            label: 'Sizin İçin',
-            isSelected: !followingOnly,
-            onTap: () => onChanged(false),
-          ),
-          const SizedBox(width: SwanSpace.sm),
-          StitchFilterPill(
-            label: 'Takip',
-            isSelected: followingOnly,
-            onTap: () => onChanged(true),
-          ),
-        ],
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: [
+            StitchFilterPill(
+              label: 'Tümü (Keşfet)',
+              isSelected: !followingOnly,
+              onTap: () => onChanged(false),
+            ),
+            const SizedBox(width: SwanSpace.sm),
+            StitchFilterPill(
+              label: 'Takip Ettiklerim',
+              isSelected: followingOnly,
+              onTap: () => onChanged(true),
+            ),
+          ],
+        ),
       ),
     );
   }

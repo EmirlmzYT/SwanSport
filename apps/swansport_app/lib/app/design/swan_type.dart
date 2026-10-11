@@ -35,15 +35,9 @@ class SwanType {
         height: height,
       );
 
-  /// Ürün adı için imza hissinde logotype. Yalnız marka ismiyle kullanılır;
-  /// gövde ve başlıklarda kullanılmaz, çünkü okunabilirlik önceliklidir.
-  static TextStyle wordmark(Color c) => GoogleFonts.grandHotel(
-        fontSize: 32,
-        fontWeight: FontWeight.w600,
-        color: c,
-        letterSpacing: -0.5,
-        height: 1.1,
-      );
+  /// Atletik marka imzası; ekranlarda ham font çağrısı yapılmaz.
+  static TextStyle wordmark(Color c) =>
+      _sora(28, FontWeight.w800, c).copyWith(letterSpacing: -0.5);
 
   /// 32 — hero, performans skoru. Ekranda en fazla bir tane.
   static TextStyle display(Color c) => _sora(32, FontWeight.w800, c);

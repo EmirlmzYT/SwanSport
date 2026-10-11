@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -45,44 +46,35 @@ class FeedEntry {
 }
 
 /// Kulüp duyurusu — sosyal gönderilerle aynı ritimde, daha sakin bir yüzey.
-class AnnouncementCard extends StatelessWidget {
+class AnnouncementCard extends ConsumerWidget {
   const AnnouncementCard({super.key, required this.item, this.clubName});
 
   final AnnouncementRow item;
   final String? clubName;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
+    final club = ref.watch(activeClubProvider).valueOrNull;
+    final details = club == null ? null : ref.watch(clubDetailsProvider(club.id)).valueOrNull;
 
     return Container(
       margin: const EdgeInsets.only(bottom: SwanSpace.lg),
-      padding: const EdgeInsets.fromLTRB(
-        0,
-        SwanSpace.md,
-        0,
-        SwanSpace.lg,
-      ),
+      padding: const EdgeInsets.all(SwanSpace.lg),
       decoration: BoxDecoration(
-        border: Border(bottom: BorderSide(color: c.line)),
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: c.accent.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(SwanRadius.md),
-                ),
-                child: Icon(
-                  Icons.campaign_rounded,
-                  size: 20,
-                  color: c.accent,
-                ),
+              SocialAvatar(
+                initials: 'KL',
+                imageUrl: details?.logoUrl,
+                size: 40,
+                gradientIndex: 0,
               ),
               const SizedBox(width: SwanSpace.sm),
               Expanded(
@@ -107,6 +99,16 @@ class AnnouncementCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: SwanSpace.md),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
+            decoration: BoxDecoration(color: c.surfaceAlt, borderRadius: BorderRadius.circular(SwanRadius.sm)),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.shield_outlined, size: SwanSpace.lg, color: c.inkMuted),
+              const SizedBox(width: SwanSpace.xs),
+              Flexible(child: Text('RESMİ KULÜP DUYURUSU', style: SwanType.caption(c.inkMuted, w: FontWeight.w700))),
+            ]),
+          ),
+          const SizedBox(height: SwanSpace.sm),
           Text(item.title, style: SwanType.h3(c.ink)),
           if (item.body.trim().isNotEmpty) ...[
             const SizedBox(height: SwanSpace.xs),
@@ -127,25 +129,38 @@ class NewsCard extends StatelessWidget {
 
   final NewsItem item;
 
+  Uri? get _link {
+    final uri = Uri.tryParse(item.link ?? '');
+    return uri != null && uri.hasAuthority &&
+        ['https', 'http'].contains(uri.scheme) ? uri : null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
 
-    return Semantics(
-      button: item.link != null,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: SwanSpace.lg),
+      child: Material(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        clipBehavior: Clip.antiAlias,
+        child: Semantics(
+      button: _link != null,
       label: '${item.sourceName}: ${item.title}',
       child: InkWell(
-        onTap: () => _open(context),
+        onTap: _link == null ? null : () => _open(context),
         borderRadius: BorderRadius.circular(SwanRadius.md),
-        child: Container(
-          margin: const EdgeInsets.only(bottom: SwanSpace.lg),
-          padding: const EdgeInsets.only(bottom: SwanSpace.lg),
-          decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: c.line)),
-          ),
+        child: Padding(
+          padding: const EdgeInsets.all(SwanSpace.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
+                decoration: BoxDecoration(color: c.surfaceAlt, borderRadius: BorderRadius.circular(SwanRadius.sm)),
+                child: Text('SPOR GÜNDEMİ', style: SwanType.caption(c.inkMuted, w: FontWeight.w800)),
+              ),
               Padding(
                 padding: const EdgeInsets.only(
                   top: SwanSpace.md,
@@ -192,12 +207,13 @@ class NewsCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (item.imageUrl != null)
                 ClipRRect(
                   borderRadius: BorderRadius.circular(SwanRadius.md),
                   child: AspectRatio(
                     aspectRatio: 16 / 9,
-                    child: Image(
+                    child: item.imageUrl == null || item.imageUrl!.trim().isEmpty
+                        ? _NewsImageFallback(c: c)
+                        : Image(
                       image: NetworkImage(item.imageUrl!),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _NewsImageFallback(c: c),
@@ -229,27 +245,32 @@ class NewsCard extends StatelessWidget {
                   ],
                 ),
               ),
-              if (item.link != null)
+              if (_link != null)
                 Padding(
                   padding: const EdgeInsets.only(top: SwanSpace.sm),
-                  child: Text(
-                    'Haberi oku',
-                    style: SwanType.caption(c.accent, w: FontWeight.w800),
+                  child: TextButton(
+                    onPressed: () => _open(context),
+                    child: Text('Haberi Oku ↗', style: SwanType.bodySm(c.accent, w: FontWeight.w700)),
                   ),
                 ),
             ],
           ),
         ),
       ),
+      ),
+      ),
     );
   }
 
   Future<void> _open(BuildContext context) async {
-    final link = item.link;
-    if (link == null) return;
-    final uri = Uri.tryParse(link);
+    final uri = _link;
     if (uri == null) return;
-    final ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    var ok = false;
+    try {
+      ok = await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (_) {
+      // İşletim sistemi tarayıcıyı açamadığında da kullanıcıya bildirilir.
+    }
     if (!ok && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
