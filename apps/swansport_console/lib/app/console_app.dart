@@ -14,6 +14,7 @@ class ConsoleApp extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: ConsoleTheme.light(),
       darkTheme: ConsoleTheme.dark(),
+      themeMode: ref.watch(consoleThemeModeProvider),
       routerConfig: ref.watch(consoleRouterProvider),
     );
   }

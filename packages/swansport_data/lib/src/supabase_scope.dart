@@ -44,3 +44,18 @@ final authSessionProvider = StreamProvider<Session?>((ref) {
       .onAuthStateChange
       .map((event) => event.session);
 });
+
+/// Account operations shared by shells; widgets never query the client.
+class AccountSessionService {
+  AccountSessionService(this._auth);
+  final GoTrueClient _auth;
+
+  Future<void> signIn({required String email, required String password}) async {
+    await _auth.signInWithPassword(email: email.trim(), password: password);
+  }
+
+  Future<void> signOut() => _auth.signOut();
+}
+
+final accountSessionServiceProvider = Provider<AccountSessionService>((ref) =>
+    AccountSessionService(ref.watch(supabaseClientProvider).auth));

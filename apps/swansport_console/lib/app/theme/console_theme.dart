@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
+
+final consoleThemeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
 
 /// Konsolun görsel dili.
 ///
@@ -44,6 +47,9 @@ class ConsoleDensity {
   static const double xxl = 32;
 
   static const double radius = 10;
+  static const double loginCardWidth = 420;
+  static const double dashboardKpiMinWidth = 210;
+  static const double dashboardQueueMinWidth = 420;
 }
 
 class ConsoleTheme {
@@ -142,7 +148,7 @@ class ConsoleTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: primary,
+          backgroundColor: SwanColors.primary,
           foregroundColor: Colors.white,
           minimumSize: const Size(0, 38),
           padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),

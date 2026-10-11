@@ -20,6 +20,7 @@ export 'src/athlete_profile_service.dart';
 export 'src/club_application_service.dart';
 export 'src/club_config_service.dart';
 export 'src/club_data.dart';
+export 'src/club_dashboard.dart';
 export 'src/club_lifecycle_service.dart';
 export 'src/club_ops_service.dart';
 export 'src/club_profile_service.dart';

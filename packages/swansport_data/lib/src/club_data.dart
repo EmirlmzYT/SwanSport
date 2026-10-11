@@ -356,6 +356,19 @@ class ClubDataService {
         .toList();
   }
 
+  /// Dashboard coverage follows event IDs, not when a mark was saved.
+  /// Future/pre-entered and subsequently corrected attendance still counts.
+  Future<List<AttendanceMark>> attendanceMarksForEvents(
+      String clubId, List<String> eventIds) async {
+    if (eventIds.isEmpty) return const [];
+    final rows = await _c.from('attendance')
+        .select('event_id, athlete_id, status, taken_at')
+        .eq('club_id', clubId)
+        .inFilter('event_id', eventIds);
+    return (rows as List).map((r) =>
+        AttendanceMark.fromMap((r as Map).cast<String, dynamic>())).toList();
+  }
+
   /// Tek hücreyi yazar (ızgarada bir tıklama).
   ///
   /// `(event_id, athlete_id)` tekil olduğu için upsert; aynı sporcuyu aynı

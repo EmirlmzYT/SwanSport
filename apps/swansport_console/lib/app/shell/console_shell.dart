@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../modules/console_module.dart';
 import '../modules/module_registry.dart';
@@ -72,6 +72,7 @@ class _Sidebar extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
     final visible = kConsoleModules.where((m) => m.visibleTo(access)).toList();
+    final club = ref.watch(activeClubProvider).valueOrNull;
 
     // Kitleye göre grupla — kulüp işleri ile platform işleri karışmasın.
     //
@@ -79,12 +80,12 @@ class _Sidebar extends ConsumerWidget {
     // yetkilisine hem muhasebeciye). Başlık, kullanıcının **kendi** sahip
     // olduğu kitleden seçiliyor: dışarıdan gelen muhasebeci mali modülleri
     // "Kulüp" başlığı altında görmesin, "Muhasebe" altında görsün.
-    final groups = <ConsoleAudience, List<ConsoleModule>>{};
+    final groups = <String, List<ConsoleModule>>{};
     for (final m in visible) {
-      final group = m.audience.firstWhere(
-        access.allows,
-        orElse: () => m.audience.first,
-      );
+      final group = m.audience.contains(ConsoleAudience.accountant)
+          ? 'MALİ İŞLER'
+          : m.audience.contains(ConsoleAudience.clubStaff)
+              ? 'KULÜP YÖNETİMİ' : 'PLATFORM & FEDERASYON';
       groups.putIfAbsent(group, () => []).add(m);
     }
 
@@ -104,8 +105,13 @@ class _Sidebar extends ConsumerWidget {
                   horizontal: ConsoleDensity.md),
               child: Row(
                 children: [
-                  Icon(Icons.shield_moon_rounded,
-                      color: t.colorScheme.primary, size: 22),
+                  Container(
+                    padding: const EdgeInsets.all(ConsoleDensity.xs),
+                    decoration: BoxDecoration(
+                      color: t.colorScheme.primary.withValues(alpha: .12),
+                      borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
+                    child: Icon(Icons.shield_moon_rounded,
+                      color: t.colorScheme.primary, size: 22)),
                   if (!collapsed) ...[
                     const SizedBox(width: ConsoleDensity.sm),
                     Expanded(
@@ -119,6 +125,35 @@ class _Sidebar extends ConsumerWidget {
             ),
           ),
           Divider(height: 1, color: t.colorScheme.outline),
+          if (!collapsed) Padding(
+            padding: const EdgeInsets.all(ConsoleDensity.lg),
+            child: Row(children: [
+              Icon(Icons.shield_outlined, size: 18, color: t.colorScheme.primary),
+              const SizedBox(width: ConsoleDensity.sm),
+              Expanded(child: Text(club?.name ?? 'Kulüp seçilmedi',
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.bodySmall)),
+              if (club != null) Tooltip(message: club.isPending ? 'Onay bekliyor' : 'Aktif kulüp',
+                child: Icon(club.isPending ? Icons.hourglass_top_rounded : Icons.verified_rounded,
+                  size: 16, color: club.isPending ? SwanColors.warning : SwanColors.success)),
+            ])),
+          Padding(padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.sm),
+            child: Material(
+              color: current == '/' ? t.colorScheme.primary.withValues(alpha: .12) : t.colorScheme.surface,
+              borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+              child: Tooltip(message: 'Komuta Merkezi', child: InkWell(
+                borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+                onTap: () => context.go('/'),
+                child: Padding(padding: const EdgeInsets.all(ConsoleDensity.sm),
+                  child: Row(mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
+                    children: [
+                      Icon(Icons.space_dashboard_outlined, size: 22,
+                        color: current == '/' ? t.colorScheme.primary : null),
+                      if (!collapsed) ...[
+                        const SizedBox(width: ConsoleDensity.md),
+                        Expanded(child: Text('Komuta Merkezi', style: t.textTheme.bodyMedium)),
+                      ],
+                    ])),
+              )))),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(
@@ -132,7 +167,7 @@ class _Sidebar extends ConsumerWidget {
                           ConsoleDensity.md,
                           ConsoleDensity.lg,
                           ConsoleDensity.xs),
-                      child: Text(entry.key.label.toUpperCase(),
+                      child: Text(entry.key,
                           style: t.textTheme.labelSmall),
                     )
                   else
@@ -141,7 +176,7 @@ class _Sidebar extends ConsumerWidget {
                     _NavItem(
                       module: m,
                       collapsed: collapsed,
-                      selected: m.route == current,
+                      selected: m.route == current || current.startsWith('${m.route}/'),
                     ),
                 ],
                 if (visible.isEmpty && !collapsed)
@@ -157,6 +192,7 @@ class _Sidebar extends ConsumerWidget {
             ),
           ),
           Divider(height: 1, color: t.colorScheme.outline),
+          _AccountCard(collapsed: collapsed, access: access),
           // Ekran zaten dar olduğu için daraltılmışsa düğme işlevsiz —
           // basılabilir görünüp hiçbir şey yapmaması yanıltıcı olurdu.
           if (MediaQuery.sizeOf(context).width >=
@@ -200,7 +236,7 @@ class _NavItem extends StatelessWidget {
           horizontal: collapsed ? 0 : ConsoleDensity.md),
       decoration: BoxDecoration(
         color: selected
-            ? t.colorScheme.primary.withValues(alpha: .10)
+            ? t.colorScheme.primary.withValues(alpha: .12)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(ConsoleDensity.radius),
       ),
@@ -254,10 +290,7 @@ class _ClubSwitcher extends ConsumerWidget {
     final clubs = ref.watch(myClubsProvider).valueOrNull ?? const <ClubRef>[];
 
     if (clubs.length < 2) {
-      return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.sm),
-        child: Text(current.name, style: t.textTheme.bodySmall),
-      );
+      return _clubChip(context, current.name, canSwitch: false);
     }
 
     return PopupMenuButton<String>(
@@ -287,19 +320,28 @@ class _ClubSwitcher extends ConsumerWidget {
             ),
           ),
       ],
-      child: Padding(
-        padding: const EdgeInsets.symmetric(
-            horizontal: ConsoleDensity.sm, vertical: ConsoleDensity.xs),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(current.name, style: t.textTheme.bodySmall),
-            const SizedBox(width: ConsoleDensity.xs),
-            Icon(Icons.expand_more_rounded,
-                size: 16, color: t.colorScheme.outline),
-          ],
-        ),
-      ),
+      child: _clubChip(context, current.name, canSwitch: true),
+    );
+  }
+
+  Widget _clubChip(BuildContext context, String name, {required bool canSwitch}) {
+    final t = Theme.of(context);
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 240),
+      padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.md, vertical: ConsoleDensity.sm),
+      decoration: BoxDecoration(
+        color: t.colorScheme.primary.withValues(alpha: .06),
+        border: Border.all(color: t.colorScheme.outlineVariant),
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        Icon(Icons.shield_outlined, size: 16, color: t.colorScheme.primary),
+        const SizedBox(width: ConsoleDensity.sm),
+        Flexible(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.bodySmall)),
+        if (canSwitch) ...[
+          const SizedBox(width: ConsoleDensity.xs),
+          const Icon(Icons.expand_more_rounded, size: 16),
+        ],
+      ]),
     );
   }
 }
@@ -315,6 +357,8 @@ class _TopBar extends ConsumerWidget {
     final module = moduleForRoute(current);
     final club = ref.watch(activeClubProvider).valueOrNull;
     final profile = ref.watch(currentProfileProvider).valueOrNull;
+    final session = ref.watch(authSessionProvider);
+    final signedIn = session.valueOrNull != null;
 
     return SizedBox(
       height: ConsoleDensity.topBarHeight,
@@ -322,7 +366,13 @@ class _TopBar extends ConsumerWidget {
         padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.xl),
         child: Row(
           children: [
-            Text(module?.label ?? 'Konsol', style: t.textTheme.titleMedium),
+            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(module?.label ?? (current == '/' ? 'Komuta Merkezi' : 'Sporcu Detayı'),
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.titleMedium),
+                Text('Konsol > ${module?.label ?? (current == '/' ? 'Genel Bakış' : 'Sporcular')}',
+                  maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.labelSmall),
+              ])),
             if (club != null) ...[
               const SizedBox(width: ConsoleDensity.md),
               Container(
@@ -333,19 +383,30 @@ class _TopBar extends ConsumerWidget {
               const SizedBox(width: ConsoleDensity.sm),
               _ClubSwitcher(current: club),
             ],
-            const Spacer(),
-            if (profile != null)
-              Text(profile.fullName, style: t.textTheme.bodySmall),
             const SizedBox(width: ConsoleDensity.md),
+            Tooltip(message: signedIn ? 'Oturum açık; sunucu bağlantısı göstergesi değildir.' : 'Oturum doğrulanıyor',
+              child: Row(mainAxisSize: MainAxisSize.min, children: [
+                Container(width: 8, height: 8, decoration: BoxDecoration(
+                  shape: BoxShape.circle, color: signedIn ? SwanColors.success : t.colorScheme.outline)),
+                if (MediaQuery.sizeOf(context).width >= ConsoleDensity.autoCollapseWidth) ...[
+                  const SizedBox(width: ConsoleDensity.sm),
+                  Text(signedIn ? 'Oturum açık' : 'Oturum bekleniyor', style: t.textTheme.bodySmall),
+                ],
+              ])),
+            IconButton(tooltip: 'Temayı değiştir', icon: Icon(
+              t.brightness == Brightness.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
+              onPressed: () => ref.read(consoleThemeModeProvider.notifier).state =
+                t.brightness == Brightness.dark ? ThemeMode.light : ThemeMode.dark),
             PopupMenuButton<String>(
               tooltip: 'Hesap',
               icon: const Icon(Icons.account_circle_rounded, size: 22),
-              itemBuilder: (_) => const [
-                PopupMenuItem(value: 'signout', child: Text('Çıkış yap')),
+              itemBuilder: (_) => [
+                PopupMenuItem<String>(enabled: false, child: Text(profile?.fullName ?? 'Hesap')),
+                const PopupMenuItem(value: 'signout', child: Text('Çıkış yap')),
               ],
               onSelected: (v) async {
                 if (v == 'signout') {
-                  await Supabase.instance.client.auth.signOut();
+                  await _signOut(context, ref);
                 }
               },
             ),
@@ -353,5 +414,44 @@ class _TopBar extends ConsumerWidget {
         ),
       ),
     );
+  }
+}
+
+String _roleLabel(SwanAccess access) => access.isClubAdmin ? 'Kulüp yöneticisi'
+    : access.isClubStaff ? 'Kulüp personeli'
+    : access.isAccountant ? 'Muhasebeci'
+    : access.isPlatformAdmin ? 'Platform yöneticisi'
+    : access.canPublishFederationResults ? 'Federasyon yetkilisi' : 'Hesap';
+
+Future<void> _signOut(BuildContext context, WidgetRef ref) async {
+  try {
+    await ref.read(accountSessionServiceProvider).signOut();
+  } catch (_) {
+    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Çıkış yapılamadı. Yeniden dene.')));
+  }
+}
+
+class _AccountCard extends ConsumerWidget {
+  const _AccountCard({required this.collapsed, required this.access});
+  final bool collapsed;
+  final SwanAccess access;
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profile = ref.watch(currentProfileProvider).valueOrNull;
+    final t = Theme.of(context);
+    final avatar = Tooltip(message: profile?.fullName ?? 'Hesap', child: CircleAvatar(
+      radius: 16, backgroundColor: t.colorScheme.primary.withValues(alpha: .12),
+      child: Text(profile?.initials ?? '?', style: t.textTheme.labelSmall?.copyWith(color: t.colorScheme.primary))));
+    final exit = IconButton(tooltip: 'Çıkış yap', icon: const Icon(Icons.logout_rounded, size: 18),
+        onPressed: () => _signOut(context, ref));
+    return Padding(padding: const EdgeInsets.all(ConsoleDensity.sm),
+      child: collapsed ? Column(children: [avatar, exit]) : Row(children: [
+        avatar, const SizedBox(width: ConsoleDensity.sm),
+        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(profile?.fullName ?? 'Hesap', maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.bodyMedium),
+          Text(_roleLabel(access), style: t.textTheme.labelSmall),
+        ])), exit,
+      ]));
   }
 }

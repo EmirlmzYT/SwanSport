@@ -8,7 +8,7 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../features/athletes/athlete_detail_screen.dart';
 import '../features/auth/console_login_screen.dart';
-import '../features/finance/work_queue.dart';
+import 'console_dashboard.dart';
 import 'modules/console_module.dart';
 import 'modules/module_registry.dart';
 import 'shell/console_shell.dart';
@@ -135,94 +135,11 @@ class _GuardedChild extends ConsumerWidget {
 ///
 /// İkisi ayrı çağrı: tek fonksiyonda birleştirip alanları role göre
 /// boşaltmak, gizliliği çağıranın doğru parametre geçmesine bağlardı.
-class _ConsoleHome extends ConsumerWidget {
+class _ConsoleHome extends StatelessWidget {
   const _ConsoleHome();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final access = ref.watch(consoleAccessProvider);
-    final visible = kConsoleModules.where((m) => m.visibleTo(access)).toList();
-    final t = Theme.of(context);
-
-    if (visible.isEmpty) {
-      return Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 520),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('SwanSport Konsol', style: t.textTheme.titleLarge),
-              const SizedBox(height: ConsoleDensity.sm),
-              Text(
-                'Bu hesabın yönetebileceği bir alan görünmüyor. Kulüp '
-                'yetkilisi ya da platform yöneticisi olman gerekiyor.',
-                style: t.textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final showFinance = access.isClubStaff || access.isAccountant;
-    final showOps = access.isClubStaff;
-
-    return ListView(
-      padding: const EdgeInsets.all(ConsoleDensity.xl),
-      children: [
-        Text('Operasyon Özeti', style: t.textTheme.titleLarge),
-        const SizedBox(height: ConsoleDensity.xs),
-        Text(
-          'Bugün ilgilenilmesi gereken işler. Karta dokunmak seni süzgeci '
-          'hazır ekrana götürür.',
-          style: t.textTheme.bodySmall,
-        ),
-        const SizedBox(height: ConsoleDensity.xl),
-        if (access.canPublishFederationResults) ...[
-          Text('Federasyon', style: t.textTheme.titleMedium),
-          const SizedBox(height: ConsoleDensity.sm),
-          ListTile(
-              leading: const Icon(Icons.verified_user_rounded),
-              title: const Text('Sonuç bekleyen resmi müsabakalar'),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => context.go('/federasyon-sonuclari')),
-          const SizedBox(height: ConsoleDensity.xl),
-        ],
-        if (showFinance) ...[
-          Text('Mali', style: t.textTheme.titleMedium),
-          const SizedBox(height: ConsoleDensity.sm),
-          AsyncSection<FinanceOperationsSummary>(
-            value: ref.watch(financeOperationsSummaryProvider),
-            errorPrefix: 'Mali özet alınamadı',
-            builder: (s) => WorkQueue(
-              top: s.topItems,
-              others: s.otherItems,
-              emptyTitle: 'Şu anda mali işlem beklemiyor',
-              emptyBody: 'Taslak gider, bekleyen onay, hesabına bağlanmamış '
-                  'hareket ve gecikmiş tahsilat yok.',
-            ),
-          ),
-        ],
-        if (showOps) ...[
-          const SizedBox(height: ConsoleDensity.xxl),
-          Text('Kulüp operasyonu', style: t.textTheme.titleMedium),
-          const SizedBox(height: ConsoleDensity.sm),
-          AsyncSection<ClubOperationsSummary>(
-            value: ref.watch(clubOperationsSummaryProvider),
-            errorPrefix: 'Operasyon özeti alınamadı',
-            builder: (s) => WorkQueue(
-              top: s.items.take(5).toList(),
-              others: s.items.skip(5).toList(),
-              emptyTitle: 'Bekleyen kulüp işi yok',
-              emptyBody: 'Onay bekleyen üyelik, süresi dolan belge ve '
-                  'yoklaması alınmamış antrenman bulunmuyor.',
-            ),
-          ),
-        ],
-      ],
-    );
-  }
+  Widget build(BuildContext context) => const ConsoleDashboard();
 }
 
 class _NoAccess extends StatelessWidget {
