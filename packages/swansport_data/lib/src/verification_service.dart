@@ -5,6 +5,21 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_scope.dart';
 
+/// Yerel Türk telefon biçimlerini ve uluslararası önekleri E.164'e hazırlar.
+String normalizePhoneNumber(String input) {
+  var cleaned = input.replaceAll(RegExp(r'[\s\(\)\-\.]'), '');
+  if (cleaned.startsWith('00')) {
+    cleaned = '+${cleaned.substring(2)}';
+  } else if (cleaned.startsWith('0') && cleaned.length == 11) {
+    cleaned = '+90${cleaned.substring(1)}';
+  } else if (!cleaned.startsWith('+') && cleaned.length == 10 && cleaned.startsWith('5')) {
+    cleaned = '+90$cleaned';
+  } else if (!cleaned.startsWith('+') && cleaned.isNotEmpty) {
+    cleaned = '+$cleaned';
+  }
+  return cleaned;
+}
+
 /// ---------------------------------------------------------------------------
 /// Roller & Doğrulama veri katmanı (kişi-düzeyi kimlik + platform onay).
 /// ---------------------------------------------------------------------------
@@ -131,19 +146,22 @@ class VerificationService {
 
   Future<void> requestPhoneVerification(String phone) async {
     if (_uid == null) throw StateError('Oturum bulunamadı');
-    if (!RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(phone)) {
-      throw ArgumentError('Telefonu ülke koduyla yazın. Örnek: +905321234567');
+    final normalized = normalizePhoneNumber(phone);
+    if (!RegExp(r'^\+[1-9][0-9]{7,14}$').hasMatch(normalized)) {
+      throw ArgumentError('Geçerli bir telefon numarası yazın. Örnek: 0532 123 45 67 veya +90 532 123 45 67');
     }
-    await _c.auth.updateUser(UserAttributes(phone: phone));
+    await _c.auth.updateUser(UserAttributes(phone: normalized));
   }
 
   Future<void> confirmPhoneVerification(String phone, String code) async {
     if (_uid == null) throw StateError('Oturum bulunamadı');
-    if (!RegExp(r'^[0-9]{6}$').hasMatch(code)) {
+    final normalized = normalizePhoneNumber(phone);
+    final cleanCode = code.replaceAll(RegExp(r'\s'), '');
+    if (!RegExp(r'^[0-9]{6}$').hasMatch(cleanCode)) {
       throw ArgumentError('SMS ile gelen 6 haneli kodu yazın.');
     }
     await _c.auth
-        .verifyOTP(phone: phone, token: code, type: OtpType.phoneChange);
+        .verifyOTP(phone: normalized, token: cleanCode, type: OtpType.phoneChange);
   }
 
   Future<IdentityGateState> identityGate() async {

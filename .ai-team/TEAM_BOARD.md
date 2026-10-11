@@ -4,6 +4,10 @@ Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+2026-10-11: Telefon normalizasyonu ve telefonChange OTP temizliği uygulandı; UI 60 saniye yeniden gönderim sayacı, timer dispose, gerçek yeniden gönderme, kimlik/telefon başarı kartı ve ayrıştırılmış Türkçe hata mesajları içerir. Genel OTP hatası sağlayıcı kapalı diye yorumlanmaz. Beş normalizasyon testi ve docs/sms-provider-setup.md eklendi; rehber resmi Supabase Phone/Send SMS Hook/self-hosted belgeleriyle doğrulandı, kimlik onayının diğer yetkileri kaldırmadığı açıklandı. git diff --check temiz. Flutter test komutu SDK bulunamadığı için çalışmadı; Dart/widget doğrulaması ve gerçek SMS UAT bekler. Bu görevin beş dosyası git add ile aşamalanır; canlı ayar/deploy yapılmadı. Writer serbest.
+
+2026-10-11: Telefon normalizasyonu, SMS geri sayımı/hata mesajları ve sağlayıcı kurulum rehberi devralındı. Önceki aşamalı 0108 değişiklikleri korunur. Bu görev sonunda yalnız git add; canlı yapılandırma değişmez.
+
 2026-10-11: 0108 veri/UI entegrasyonu uygulandı: FacilitySlot.conflictSource, FacilityReservation JSON modeli, takım parametreli çakışma RPC'si, oluşturma/iptal/liste servisleri ve family provider. Rezervasyon ekranında dört tür, kiralayan/telefon/ücret alanları, kaynak rozetleri, açık çakışma onayı ve provider invalidation bağlı; controller dispose ve başarı renk jetonu düzeltildi. Model testleri eklendi, lifecycle mock güncellendi. SQL regresyonu 5/5 geçti; git diff --check temiz. Flutter/Dart SDK ortamda bulunamadığından iki Flutter test komutu çalıştırılamadı; Dart analizi/derleme/widget doğrulaması bekler. Kullanıcının bu görev talimatıyla değişiklikler yalnız git add ile aşamalanır; canlı yayın yok.
 
 2026-10-11: 0108 Dart veri ve rezervasyon UI entegrasyonu devralındı. Başlangıç ağacı temiz, main bir commit ileride; kullanıcı bu görev sonunda yalnız git add istiyor.
