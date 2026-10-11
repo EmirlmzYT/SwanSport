@@ -50,10 +50,20 @@ class ConsoleDensity {
   static const double loginCardWidth = 420;
   static const double dashboardKpiMinWidth = 210;
   static const double dashboardQueueMinWidth = 420;
+  static const double dashboardActionMinWidth = 280;
+  static const double dashboardKpiHeight = 260;
 }
 
 class ConsoleTheme {
   const ConsoleTheme._();
+
+  // Console-owned athletic palette; widgets consume ThemeData, not hex.
+  static const Color commandBackground = Color(0xFF131D2E);
+  static const Color commandSurface = Color(0xFF1E293B);
+  static const Color commandSurfaceAlt = Color(0xFF253449);
+  static const Color commandAccent = Color(0xFF00C7B1);
+  static const Color commandOutline = Color(0xFF304159);
+  static const Color commandMuted = Color(0xFF94A3B8);
 
   static ThemeData light() => _build(
         brightness: Brightness.light,
@@ -68,13 +78,13 @@ class ConsoleTheme {
 
   static ThemeData dark() => _build(
         brightness: Brightness.dark,
-        background: SwanColors.darkBackground,
-        surface: SwanColors.darkSurface,
-        surfaceAlt: SwanColors.darkSurfaceVariant,
-        outline: const Color(0xFF2A313B),
+        background: commandBackground,
+        surface: commandSurface,
+        surfaceAlt: commandSurfaceAlt,
+        outline: commandOutline,
         ink: SwanColors.darkText,
-        inkMuted: const Color(0xFF9AA4B2),
-        primary: SwanColors.darkPrimary,
+        inkMuted: commandMuted,
+        primary: commandAccent,
       );
 
   static ThemeData _build({
@@ -103,6 +113,9 @@ class ConsoleTheme {
       ).copyWith(
         primary: primary,
         surface: surface,
+        surfaceContainerHighest: surfaceAlt,
+        onSurface: ink,
+        onSurfaceVariant: inkMuted,
         outline: outline,
       ),
       textTheme: body.copyWith(
@@ -124,7 +137,7 @@ class ConsoleTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          side: BorderSide(color: outline),
+          side: BorderSide.none,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

@@ -112,7 +112,7 @@ class SwanPalette {
   /// lacivere çalan bir koyu — `#000000` bu dosyada hiç geçmiyor.
   static const dark = SwanPalette._(
     bg: Color(0xFF0A111E),
-    surface: Color(0xFF131D2E),
+    surface: Color(0xFF1B273A),
     surfaceAlt: Color(0xFF1A2537),
     line: Color(0xFF233149),
     ink: Color(0xFFFFFFFF),

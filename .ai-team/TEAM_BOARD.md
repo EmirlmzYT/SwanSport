@@ -4,6 +4,24 @@ Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `review_ready`
 
+2026-10-12: Atletik mobil kartlar/konsol komuta merkezi yerelde tamamlandı. PostRow yapılandırılmış sportif payload taşımadığından açık metin özetleri presentation-only çıkarılır: ok/puan, km/dk, açık maç skoru ve PR; hedef/olumsuzluk/soru/alıntı/tarih-saat süzülür, özgün metin ve Kullanıcı beyanı etiketi korunur. Sahte resmi rekor/galibiyet üretilmez; mevcut FeedEntry→PostCard yolu yeni şeritleri gösterir. Mobil dark surface merkezi palette 1B273A; kenarlıksız kart ve beğeni/yorum/kaydet/menü korunur. ConsoleTheme merkezi command renkleri 131D2E/1E293B/00C7B1, borderless card; büyük KPI ve gerçek aktif-kadro oranı/kayıtlı oturum/kısıt/onay durumları. Oturum kaydı tam yoklama veya Uygunluk Tam diye sunulmaz. 3 responsive aksiyon grubu, gerçek toplam/aktif dağılım dialog'u, mevcut tesis programı ve tahsilat ekranı kısayolları, iki sütun queue korunur. Muhasebeciye sportif provider aboneliği yok; registry/shell/TooNarrowNotice/module_visibility_test değişmedi. 8 mobil + 4 konsol regresyon testi eklendi, mevcut 3 genişlik testinde gerçek KPI chip beklentileri genişletildi. 9 Dart sözdizimi, çıkarılmış regex örnekleri ve statik route/privacy kontrolü başarılı; mobil muted/surface 5,08:1, konsol accent/surface 6,83:1. SSS 39/39, push 40/40 kayıpsız, diff temiz. Flutter SDK yok: gerçek Dart/widget/analiz/derleme/görsel QA çalışmadı; başarı diye raporlanmadı. Yalnız görev dosyaları stage; commit/push/deploy yok. Başlangıç kullanıcı TEAM_BOARD içeriği korundu; Writer serbest.
+
+2026-10-12: Atletik mobil kartlar ve konsol komuta merkezi devralındı. Başlangıçta yalnız kullanıcıya ait TEAM_BOARD değişikliği var, korunur. Post modelindeki gerçek alanlar ve KPI veri anlamları incelenir; metinden gelen başarılar doğrulanmış resmi sonuç diye sunulmaz. Yetki/rota/dar ekran sözleşmeleri korunur; yalnız stage, commit/push/deploy yok.
+
+2026-10-12: GÖREV: BÜYÜK UI/UX GÜNCELLEMESİ (Mobil Atletik Kartlar + Masaüstü Konsol Komuta Merkezi)
+1. Mobil (`swansport_app`):
+   - `post_card.dart` & `feed_entry.dart`:
+     * Gönderi içeriğinde antrenman/seans özeti, maç skoru veya PR/başarı tespit edildiğinde veya paylaşıldığında atletik rozetler ve istatistik şeritleri (örn. 🎯 Seans Detayları, 🏃‍♂️ Koşu/Mesafe, 🏆 Maç Skoru, 🏅 Kişisel Rekor) sunan atletik kart geliştirmesi.
+     * Kart yapısı kenarlıksız, modern lacivert surface (`0xFF1B273A`), nefes alan boşluklar ve mikro etkileşimler ile zenginleştirilecek.
+2. Masaüstü Konsol (`swansport_console`):
+   - `console_dashboard.dart` & `console_theme.dart`:
+     * Kuru gri ERP tablosu görünümünden modern, atletik koyu lacivert (`#131D2E` zemin, `#1E293B` paneller, `#00C7B1` neon teal vurgular) komuta merkezine geçiş.
+     * 4 büyük KPI kartı: Sporcu doluluğu, seans yoklama durumu, risk/uygunluk ve mali onayları atletik göstergelerle zenginleştirilecek.
+     * Hızlı aksiyonlar kategorize edilecek ("Kadro & Sporcu", "Antrenman & Takvim", "Mali Defter & Kasa").
+     * Muhasebeci / antrenör rol gizliliği ve kConsoleModules yetki sözleşmeleri aynen korunacak.
+- Referans Doküman: docs/swansport-master-ux-plan.md
+- Doğrulama: check_faq.py, sözdizimi, rota ve token kontrolleri. Yalnızca git add.
+
 2026-10-12: Mobil feed yenilemesi yerelde hazır. StoriesBar/TodayTasks/AttendanceQueueBanner akıştan kaldırıldı; var olan Profil > Yönetim rotaları korunur. SwanType.wordmark artık Sora w800/-0.5; header SwanAccess ve gerçek unread provider'larla ortak InboxIconButton kullanır, zil/mesaj inkMuted ve rozet danger. Tümü (Keşfet)/Takip Ettiklerim mevcut seçili semantiği/animasyonu koruyan, dar ekranda yatay kaydırılabilir iki pill. Haber kartı gündem/kaynak/zaman, 16:9 görüntü veya boş/hatalı resim fallback, h3/özet ve güvenli http(s) harici tarayıcı aksiyonu içerir; launch hatası yakalanır. Duyuru gerçek aktif kulüp arması provider'ı, resmi etiket/pin ve gövdeyle surface kartıdır. PostCard border/shadow kaldırıldı; beğeni pop/dispose, yorum/menü/kaydet/paylaş korunur, kalan ham hex/spacing/radius temizlendi. 6 regresyon testi eklendi. 7 Dart dosyası sözdizimi, 41 rota tanım/giriş statik eşliği, token/aksiyon kontrolü ve SSS 39/39 başarılı; git diff --check temiz. Flutter SDK yok: navigation/widget test, analyze/build ve gerçek mobil render doğrulanmadı. İlk SSS komutu yanlış çalışma dizininden başarısızdı; kökten tekrar 39/39 geçti. Yalnız görev dosyaları stage; commit/push/deploy yok. Writer serbest.
 
 2026-10-12: Mobil akış yenilemesi devralındı. Başlangıç Git ağacı temiz; master UX planı okundu. İdari banner ve yapay hikayeler kaldırılacak; gerçek inbox rozetleri, token tabanlı atletik wordmark, haber/duyuru ve kenarlıksız gönderi kartları hazırlanacak. Yalnız stage; commit/push/deploy yok.

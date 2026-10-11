@@ -7,6 +7,7 @@ import '../../../../app/widgets/premium.dart';
 import '../comments_sheet.dart';
 import 'report_sheet.dart';
 import 'social_widgets.dart';
+import 'athletic_highlights.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
@@ -448,7 +449,10 @@ class _PostCardState extends ConsumerState<PostCard>
               ]),
             ),
 
-            // Metin
+            // Yalnız açık sportif beyanlar; resmi doğrulama değildir.
+            if (!p.isNews) AthleticHighlights(body: p.body),
+
+            // Metin — bağlam ve yazarın özgün anlatımı korunur.
             if (p.body.trim().isNotEmpty)
               Padding(
                 padding: EdgeInsets.fromLTRB(

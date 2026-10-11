@@ -144,6 +144,9 @@ void main() {
       expect(find.text('Hoş Geldin, Deniz'), findsOneWidget);
       expect(find.text('37'), findsOneWidget);
       expect(find.text('30 aktif sporcu'), findsOneWidget);
+      expect(find.text('%81 Aktif Kadro'), findsOneWidget);
+      expect(find.text('2/4 oturumda kayıt'), findsOneWidget);
+      expect(find.text('5 onay bekliyor'), findsOneWidget);
       expect(find.text('2 gider onayı · 3 tahsilat onayı'), findsOneWidget);
       expect(find.text('Bugün · 2 oturumda yoklama kaydı'), findsOneWidget);
       if (width == 900) expect(find.byTooltip('Sporcular'), findsOneWidget);
