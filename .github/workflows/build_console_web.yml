@@ -45,15 +45,10 @@ jobs:
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
             --dart-define=APP_ENV=production
 
-      - name: Package Web Artifact
-        working-directory: apps/swansport_console/build/web
-        run: |
-          zip -qry ../../../swansport-console-web.zip .
-
       - name: Upload Console Web Artifact
         uses: actions/upload-artifact@v4
         with:
           name: swansport-console-web
-          path: swansport-console-web.zip
+          path: apps/swansport_console/build/web
           if-no-files-found: error
           retention-days: 30
