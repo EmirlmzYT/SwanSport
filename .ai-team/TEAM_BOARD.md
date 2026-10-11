@@ -2,9 +2,24 @@
 
 Son güncelleme: 2026-10-11 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `review_ready`
+Durum: `ready_for_writer`
 
-2026-10-11: landing/index.html hazır ve yalnız bu dosya stage edildi (33.100 bayt). Tek HTML, Tailwind CDN + kritik inline CSS fallback, Google Fonts, inline SVG, sabit cam header, klavye/Escape destekli mobil menü, hero/temsili CSS mockup/bento/roller/IPA rehberi/footer. Hukuki izin ve canlı veri iddiası yok; imzasız IPA/bilgisayarla imzalama ve dış sağlayıcı istekleri açıklanır. Chrome gerçek render 320/375/390/768/1024/1440/1920 px; CDN/font açık ve engellenmiş iki koşulda 14 layout/anchor kontrolü, mobil menü aç/kapat/Escape/genişlik geçişi ve JS hata denetimi başarılı. Masaüstü/mobil ekran görüntüleri görsel incelendi; git diff --check ve cached check temiz. 0,05 saniye garantisi, fiziksel iPhone kurulumu ve canlı domain yayını doğrulanmadı. Commit/push/deploy yok; koordinasyon defteri stage dışında.
+2026-10-11: GÖREV: Mobil Ana Akış & Spor Gündemi Tasarım Yenilemesi (Feed Screen, Top Bar, Sports News & Athletic Cards)
+- apps/swansport_app/lib/features/social/presentation/feed_screen.dart:
+  * Google Stitch cursive font ve sahte hikaye çubuğu (StitchStoriesBar) kaldırılacak.
+  * Ana sayfayı tıkayan idari görevler (TodayTasks) ve çevrimdışı yoklama banner'ı (AttendanceQueueBanner) ana akıştan temizlenecek; ana akış doğrudan günlük sportif yaşama ve spor haberlerine açılacak.
+  * Üst header (StitchFeedTopBar): Sora bold atletik marka wordmark'ı ("SwanSport" + neon teal nokta) ile güncellenecek; bildirim ve mesaj ikonları SwanPalette jetonlarına bağlanacak.
+  * _FeedModeBar: Modern, minimal hap (pill) tasarımıyla "Tümü" ve "Takip Ettiklerim" filtresi sunacak.
+- apps/swansport_app/lib/features/social/presentation/widgets/feed_entry.dart:
+  * Spor Haberleri (NewsCard): Kullanıcının talimatıyla korunacak ve üst seviyeye taşınacak. Kaynak rozeti ("Spor Gündemi"), yayın saati, 16:9 görsel ve harici link açma butonu modernleştirilecek.
+  * Kulüp Duyuruları (AnnouncementCard): Şık, rozetli ve resmi kulüp kartı görünümüne kavuşturulacak.
+- apps/swansport_app/lib/features/social/presentation/widgets/post_card.dart:
+  * Ağır border ve sert gölgeler kaldırılıp SwanPalette.surface tabanlı, nefes alan modern kart yapısına geçilecek.
+  * Mikro beğeni animasyonu, yorumlar ve menü sözleşmeleri korunacak.
+- apps/swansport_app/lib/features/social/presentation/widgets/stitch_feed_widgets.dart:
+  * Grand Hotel ve harici sert renkler (0xFFFF7A59) temizlenecek, SwanType/SwanPalette ile uyumlu hale getirilecek.
+- Mimari Referans: docs/swansport-master-ux-plan.md dokümanındaki kurallar ve ilkeler eksiksiz uygulanacak.
+- Regresyon & Sözleşme: navigation_test.dart ve check_faq.py korunacak, git diff --check temiz olacak. Canlı deploy/commit yok; yalnız git add.
 
 2026-10-11: Ana alan adı vitrini devralındı; landing/index.html tek dosya, responsive koyu marka dili, CSS ürün örnekleri, IPA bağlantısı ve kurulum rehberi hazırlanacak. Yalnız yerel doğrulama ve landing dosyasını stage; canlı yayın/commit/push yok.
 
