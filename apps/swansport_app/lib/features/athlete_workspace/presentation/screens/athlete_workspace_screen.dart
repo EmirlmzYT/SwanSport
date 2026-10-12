@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,6 +52,9 @@ class _AthleteWorkspaceScreenState
     final athletesAsync = ref.watch(clubAthletesProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Sporcular', actions: [
+        IconButton(tooltip: 'Kulüp Ayarları', icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/settings')),
+      ]),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -69,7 +73,7 @@ class _AthleteWorkspaceScreenState
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
                 children: [
                   // --- 1. Üst Bar: Geri, Başlık, Arama, Filtre, Profil ---
-                  _buildHeader(context, c, isDark, clubAsync.valueOrNull),
+
                   const SizedBox(height: 16),
 
                   _toolButton(c,
@@ -157,74 +161,7 @@ class _AthleteWorkspaceScreenState
   // ---------------------------------------------------------------------------
   // ÜST BAR
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(
-    BuildContext context,
-    SwanPalette c,
-    bool isDark,
-    ClubRef? club,
-  ) {
-    return Row(
-      children: [
-        IconButton(
-          onPressed: () => Navigator.maybePop(context),
-          icon: Icon(Icons.arrow_back, color: c.ink, size: 22),
-          style: IconButton.styleFrom(
-            backgroundColor: c.surface,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Kulüp Kadrosu',
-                style: GoogleFonts.sora(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w700,
-                  color: c.ink,
-                ),
-              ),
-              Text(
-                club?.name ?? 'Kulüp seçilmedi',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ],
-          ),
-        ),
-        IconButton(
-          onPressed: () => Navigator.pushNamed(context, '/settings'),
-          icon: Icon(Icons.tune, color: c.inkMuted, size: 20),
-          tooltip: 'Kulüp Ayarları',
-          style: IconButton.styleFrom(
-            backgroundColor: c.surface,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-          ),
-        ),
-        const SizedBox(width: 8),
-        Container(
-          width: 34,
-          height: 34,
-          decoration: BoxDecoration(
-            color: c.accent,
-            shape: BoxShape.circle,
-            boxShadow: [
-              BoxShadow(
-                color: c.accent.withValues(alpha: 0.35),
-                blurRadius: 10,
-              ),
-            ],
-          ),
-          child: const Center(
-            child: Icon(Icons.person, color: Colors.white, size: 18),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   // ---------------------------------------------------------------------------
   // CANLI HUB SATIRI

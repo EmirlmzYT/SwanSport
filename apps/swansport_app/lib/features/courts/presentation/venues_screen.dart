@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_core/swansport_core.dart';
@@ -9,7 +10,6 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_chip.dart';
 import '../../../app/widgets/swan_tabs.dart';
@@ -82,6 +82,10 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Sahalar & Kortlar', actions: [
+        IconButton(tooltip: 'Yakınımdakiler', icon: Icon(Icons.near_me_outlined, color: context.swan.inkMuted), onPressed: _locate),
+        TextButton(onPressed: () => Navigator.pushNamed(context, '/partner-ara'), child: Text('Partner Bul', style: SwanType.caption(context.swan.accent))),
+      ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -90,26 +94,10 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              SwanTopBar(
-                title: 'Sahalar & Kortlar',
-                isBrand: false,
-                showBack: true,
-                actions: [
-                  IconButton(
-                      tooltip: 'Yakınımdakiler',
-                      onPressed: _locate,
-                      icon: const Icon(Icons.near_me_outlined)),
-                  TextButton(
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/partner-ara'),
-                    child: Text('Partner bul',
-                        style: SwanType.caption(context.swan.accent)),
-                  ),
-                ],
-              ),
+
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                    SwanSpace.lg, 0, SwanSpace.lg, 12),
+                    SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.md),
                 child: SwanSegmentedTabs(
                   labels: const ['Kortlar', 'Halı Sahalar'],
                   selected: _tab,

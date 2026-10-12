@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -59,6 +60,9 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
     );
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Antrenör Bul', actions: [
+        IconButton(tooltip: 'Bildirimler', icon: Icon(Icons.notifications_none_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/bildirimler')),
+      ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -69,7 +73,7 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
               children: [
-                _buildTopBar(context, ink, surf, line),
+
                 const SizedBox(height: 14),
                 _buildHeadline(ink),
                 const SizedBox(height: 14),
@@ -142,71 +146,7 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
     );
   }
 
-  Widget _buildTopBar(
-    BuildContext context,
-    Color ink,
-    Color surf,
-    Color line,
-  ) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () => Navigator.maybePop(context),
-              child: Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: surf,
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: line),
-                ),
-                child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 16,
-                  color: ink,
-                ),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'SwanSport',
-                  style: SwanType.caption(kTeal, w: FontWeight.w700),
-                ),
-                Text('Koçluk & Özel Ders', style: SwanType.h2(ink)),
-              ],
-            ),
-          ],
-        ),
-        Row(
-          children: [
-            IconButton(
-              icon: Icon(Icons.notifications_none_rounded, color: ink),
-              onPressed: () => Navigator.pushNamed(context, '/bildirimler'),
-            ),
-            Container(
-              width: 34,
-              height: 34,
-              decoration: const BoxDecoration(
-                color: kTeal,
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.person_rounded,
-                size: 18,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+
 
   Widget _buildHeadline(Color ink) {
     return Column(

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,6 +31,9 @@ class _AttendanceHistoryScreenState
     final async = ref.watch(attendanceSummaryProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Yoklama Geçmişi', actions: [
+        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/attendance'), icon: const Icon(Icons.add_rounded), label: Text('Yoklama Al', style: SwanType.caption(context.swan.accent))),
+      ]),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -40,7 +44,7 @@ class _AttendanceHistoryScreenState
             child: Column(
               children: [
                 // Top Header
-                _buildHeader(context, c, club),
+
 
                 // Main Scrollable Area
                 Expanded(
@@ -75,74 +79,7 @@ class _AttendanceHistoryScreenState
   // ---------------------------------------------------------------------------
   // HEADER
   // ---------------------------------------------------------------------------
-  Widget _buildHeader(BuildContext context, SwanPalette c, ClubRef? club) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: c.surface.withValues(alpha: 0.8),
-        border: Border(bottom: BorderSide(color: c.line)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => Navigator.maybePop(context),
-                icon: Icon(Icons.arrow_back, color: c.ink, size: 22),
-                style: IconButton.styleFrom(
-                  backgroundColor: c.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Yoklama Geçmişi',
-                    style: GoogleFonts.sora(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: c.ink,
-                    ),
-                  ),
-                  Text(
-                    club?.name ?? 'SwanSport',
-                    style: SwanType.caption(c.inkMuted),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          InkWell(
-            onTap: () => Navigator.pushNamed(context, '/attendance'),
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: c.accent,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.add, size: 16, color: Colors.white),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Yoklama Al',
-                    style: SwanType.caption(Colors.white, w: FontWeight.w700),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // ---------------------------------------------------------------------------
   // SUBHEADER

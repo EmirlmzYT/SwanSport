@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -10,7 +11,6 @@ import '../../../../app/media/image_pick.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/widgets/swan_page_header.dart';
 
 final documentImagePickerProvider =
     Provider<Future<PickedImage?> Function()>((ref) => pickImage);
@@ -44,6 +44,9 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     final asyncDocs = ref.watch(_docsProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Belge Kasası', actions: [
+        IconButton(tooltip: 'Belge yükle', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: _add),
+      ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -53,7 +56,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
               children: [
-                _buildHeader(context, palette),
+                if (widget.child != null) Padding(
+                  padding: const EdgeInsets.all(SwanSpace.md),
+                  child: Text('${widget.child!.name} · ${widget.child!.clubName}',
+                    style: SwanType.caption(palette.inkMuted))),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -78,21 +84,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, SwanPalette palette) =>
-      SwanPageHeader(
-        title: widget.child == null
-            ? 'Belgeler & Rapor Arşivi'
-            : '${widget.child!.name} · Belgeler',
-        subtitle: widget.child?.clubName ?? 'Kulüp belge arşivi',
-        onBack: () => Navigator.maybePop(context),
-        actions: [
-          TextButton.icon(
-            onPressed: _add,
-            icon: const Icon(Icons.add_rounded),
-            label: const Text('Yükle'),
-          ),
-        ],
-      );
+
 
   Widget _buildContent(
     List<VaultDoc> allDocs,

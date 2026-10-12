@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -5,6 +6,8 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/design/swan_shape.dart';
+import '../../../app/widgets/swan_tabs.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -37,6 +40,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     final favorites = ref.watch(marketFavoritesProvider).valueOrNull ?? {};
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Pazaryeri', actions: [
+        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/ilan-ver'), icon: const Icon(Icons.add_box_outlined), label: Text('İlan Ver', style: SwanType.caption(context.swan.accent))),
+      ]),
       extendBody: true,
       backgroundColor: palette.bg,
       body: SafeArea(
@@ -50,19 +56,20 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 await ref.read(marketSearchProvider(_filter).future);
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 120),
+                padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.xl * 5),
                 children: [
-                  // 1. Top Bar with Search & Action
-                  _buildTopBar(context, palette),
-                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: SwanSpace.md),
+                    child: SwanSegmentedTabs(labels: const ['Resmi Mağaza', 'Kulüp İçi 2. El'],
+                      selected: _storeSection, onSelect: (i) => setState(() {
+                        _storeSection = i;
+                        _filter = _filter.copyWith(sellerType: i == 0 ? null : 'individual');
+                      })),
+                  ),
 
                   // 2. Search & Filter Bar
                   _buildSearchBar(palette),
                   const SizedBox(height: 12),
-
-                  // 3. Store Mode Segmented Selector
-                  _buildSectionTabs(palette),
-                  const SizedBox(height: 14),
 
                   // 4. Featured Banner based on mode
                   if (_storeSection == 0)
@@ -126,76 +133,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 
   // --- Top Bar ---
-  Widget _buildTopBar(BuildContext context, SwanPalette palette) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            if (Navigator.of(context).canPop())
-              GestureDetector(
-                onTap: () => Navigator.of(context).maybePop(),
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  margin: const EdgeInsets.only(right: 12),
-                  decoration: BoxDecoration(
-                    color: palette.surface,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: palette.line),
-                  ),
-                  child: Icon(Icons.arrow_back_ios_new_rounded,
-                      size: 16, color: palette.ink),
-                ),
-              ),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Kulüp Pazaryeri',
-                  style: SwanType.h2(palette.ink),
-                ),
-                Text(
-                  'Resmi Ürünler & Onaylı Ekipman',
-                  style: SwanType.caption(kTeal, w: FontWeight.w700),
-                ),
-              ],
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () => Navigator.pushNamed(context, '/ilan-ver'),
-          child: Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-              borderRadius: BorderRadius.circular(999),
-              boxShadow: [
-                BoxShadow(
-                  color: kTeal.withValues(alpha: 0.25),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.add_box_rounded,
-                    size: 17, color: Colors.white),
-                const SizedBox(width: 5),
-                Text(
-                  'İlan Ver',
-                  style: SwanType.caption(Colors.white, w: FontWeight.w800),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   // --- Search Bar ---
   Widget _buildSearchBar(SwanPalette palette) {
@@ -216,105 +154,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 
   // --- Section Tabs ---
-  Widget _buildSectionTabs(SwanPalette palette) {
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() {
-                _storeSection = 0;
-                _filter = _filter.copyWith(sellerType: null);
-              }),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: _storeSection == 0 ? palette.surface : Colors.transparent,
-                  borderRadius: BorderRadius.circular(11),
-                  boxShadow: _storeSection == 0
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ]
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.storefront_rounded,
-                        size: 15,
-                        color: _storeSection == 0 ? kTeal : palette.inkMuted),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Resmi Mağaza',
-                      style: SwanType.caption(
-                        _storeSection == 0 ? kTeal : palette.inkMuted,
-                        w: _storeSection == 0 ? FontWeight.w800 : FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() {
-                _storeSection = 1;
-                _filter = _filter.copyWith(sellerType: 'individual');
-              }),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 160),
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: _storeSection == 1 ? palette.surface : Colors.transparent,
-                  borderRadius: BorderRadius.circular(11),
-                  boxShadow: _storeSection == 1
-                      ? [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 4,
-                            offset: const Offset(0, 1),
-                          ),
-                        ]
-                      : null,
-                ),
-                alignment: Alignment.center,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.recycling_rounded,
-                        size: 15,
-                        color: _storeSection == 1 ? kTeal : palette.inkMuted),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Kulüp İçi 2. El',
-                      style: SwanType.caption(
-                        _storeSection == 1 ? kTeal : palette.inkMuted,
-                        w: _storeSection == 1 ? FontWeight.w800 : FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- Official Merchandise Hero Banner ---
   Widget _buildOfficialHeroBanner(SwanPalette palette, bool isDark) {
     return Container(
       height: 140,

@@ -2,7 +2,11 @@
 
 Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `review_ready`
+Durum: `complete`
+
+2026-10-12: Partner Bul header standardı 20 B/C/D ekranına uygulandı ve v0.5.5+28 olarak yayımlandı. Opt-in swanModuleAppBar gerçek Scaffold AppBar, bg/ink+h3, sıfır elevation, canPop geri, standart aksiyonlar sunar. A grubu (Feed, Profil, Dashboard) ve Partner Bul diff boş; veri/rota/yetki ve sekme anlamı korunur. Sürümler app 0.5.5+28, console 0.2.0+7; rapor docs/module-header-standardization.md. 20 header contract, 22 Dart syntax, statik 41 rota/giriş, SSS 39/39, push 40 ve SQL 5/5 geçti; diff temiz. Kullanıcı onayıyla commit, tag v0.5.5+28 ve push gerçekleştirildi; CI derlemeleri izleniyor. Writer serbest; canlı SQL/manuel deploy yok.
+
+2026-10-12: Partner Bul header standardizasyonu B/C/D ekranlarında devralındı. A grubu korunur; mevcut sekme/aksiyon/geri/rota yetkileri bozulmadan AppBar standardı uygulanır. Canlı yayın yok.
 
 2026-10-12: Resmi kuğu launcher/offline entegrasyonu hazır. Kaynak JPG repoda korunur, taşınabilir Pillow/LANCZOS generator gerçek iOS Contents.json'dan 15 dosyayı türetir; toplam 32 PNG (5 Android/15 iOS/6 app web/5 console web/1 DS). Maskable güvenli merkez alanı, RGB/no-alpha, boyut ve tam piksel doğrulaması 32/32. SwanNetworkLogo eksik/hatalı URL'de paket asset'ini, asset hatasında son fallback'i gösterir; testbeklentileri güncellendi. Sürümler app 0.5.5+27, console 0.2.0+6; rapor docs/official-launcher-brand-assets.md. SSS 39/39, push 40, SQL 5/5, dört Dart syntax ve diff temiz. Flutter SDK yok: widget/build/cihaz UAT yok. Açık kullanıcı talimatıyla commit/tag/push yapılır; CI başarısı henüz doğrulanmış değildir. Writer serbest; canlı SQL/manuel deploy yok.
 

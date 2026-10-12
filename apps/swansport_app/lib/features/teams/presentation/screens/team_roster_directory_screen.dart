@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
@@ -33,6 +34,9 @@ class _TeamRosterDirectoryScreenState
     final async = ref.watch(teamsProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Takımlar & Kadrolar', actions: [
+        if (canManage) IconButton(tooltip: 'Takım Ekle', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: () => _team(context, ref, club.id)),
+      ]),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -42,42 +46,7 @@ class _TeamRosterDirectoryScreenState
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                StitchTopBar(
-                  title: 'Takım Dizini & Kadrolar',
-                  subtitle: club?.name ?? 'Kulüp Kadroları ve Programları',
-                  actions: [
-                    if (canManage)
-                      InkWell(
-                        onTap: () => _team(context, ref, club.id),
-                        borderRadius: BorderRadius.circular(20),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF00666D),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.add,
-                                  size: 16, color: Colors.white),
-                              const SizedBox(width: 4),
-                              Text(
-                                'Takım Ekle',
-                                style: SwanType.caption(
-                                  Colors.white,
-                                  w: FontWeight.w700,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
+
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),

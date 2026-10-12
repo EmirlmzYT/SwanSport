@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -6,7 +7,6 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 
 /// Sporcunun antrenman algılanan zorluk derecesi (RPE) ve hazırbulunuşluk takibi.
 ///
@@ -72,6 +72,7 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Hazırbulunuşluk & RPE'),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -91,11 +92,7 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
                     120,
                 ),
                 children: [
-                  SwanPageHeader(
-                    title: 'Hazırbulunuşluk & RPE',
-                    subtitle: 'Antrenman zorluk ve toparlanma takibi',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
+
                   const SizedBox(height: SwanSpace.md),
                   historyAsync.when(
                     loading: () => const Center(

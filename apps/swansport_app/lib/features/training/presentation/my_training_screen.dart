@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -7,7 +8,6 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 
 /// Sporcunun antrenman geçmişi ve bireysel antrenman başlatma.
 ///
@@ -25,6 +25,7 @@ class MyTrainingScreen extends ConsumerWidget {
     final live = ref.watch(myLiveSessionProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Antrenmanlarım'),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -41,11 +42,7 @@ class MyTrainingScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(
                     SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
                 children: [
-                  SwanPageHeader(
-                    title: 'Antrenmanlarım',
-                    subtitle: 'Canlı oturumların ve antrenman geçmişin',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
+
                   const SizedBox(height: SwanSpace.lg),
 
                   // Canlı oturum varsa en üstte — sahada aranacak ilk şey bu.

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -8,7 +9,6 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 import 'report_problem_sheet.dart';
 import 'support_fix_card.dart';
 
@@ -27,6 +27,9 @@ class SupportScreen extends ConsumerWidget {
     final tickets = ref.watch(myTicketsProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Destek Talepleri', actions: [
+        IconButton(tooltip: 'Sık sorulan sorular', icon: Icon(Icons.help_outline_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/yardim')),
+      ]),
       extendBody: true,
       backgroundColor: c.bg,
       floatingActionButton: FloatingActionButton.extended(
@@ -42,22 +45,7 @@ class SupportScreen extends ConsumerWidget {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md,),
-                child: SwanPageHeader(
-                  title: 'Destek',
-                  subtitle: 'Taleplerin ve SwanSport ekibi',
-                  onBack: () => Navigator.maybePop(context),
-                  actions: [
-                    SwanHeaderAction(
-                      icon: Icons.help_outline_rounded,
-                      tooltip: 'Sık sorulan sorular',
-                      onTap: () => Navigator.pushNamed(context, '/yardim'),
-                    ),
-                  ],
-                ),
-              ),
+
               Expanded(
                 child: tickets.when(
                   loading: premiumLoading,

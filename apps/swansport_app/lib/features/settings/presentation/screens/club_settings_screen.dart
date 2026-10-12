@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -31,8 +32,9 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
     final club = ref.watch(activeClubProvider).valueOrNull;
     final access = ref.watch(swanAccessProvider);
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Kulüp Ayarları'),
         backgroundColor: c.bg,
-        appBar: AppBar(title: const Text('Ayarlar')),
+
         body: Center(
             child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),

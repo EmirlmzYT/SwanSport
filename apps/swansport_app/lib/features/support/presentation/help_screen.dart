@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -8,7 +9,6 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 
 /// Yardım — SSS ve destek talebi.
 ///
@@ -58,6 +58,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
     final faq = ref.watch(faqProvider(key));
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Yardım & SSS'),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -66,15 +67,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
-                child: SwanPageHeader(
-                  title: 'Yardım',
-                  subtitle: 'Sorular, yanıtlar ve destek',
-                  onBack: () => Navigator.maybePop(context),
-                ),
-              ),
+
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 child: StitchInlineSearchField(

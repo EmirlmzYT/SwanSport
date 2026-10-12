@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +10,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_tabs.dart';
 import 'fee_plan_status_switch.dart';
 
 /// Kulüp finansı — aidat tahakkuku, tahsilat onayı ve planlar.
@@ -54,6 +56,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final pendingCount = summary?.pendingPayments ?? 0;
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Kulüp Finansı', actions: [
+        IconButton(tooltip: 'Banka bilgileri', icon: Icon(Icons.account_balance_outlined, color: context.swan.inkMuted), onPressed: _editBank),
+        IconButton(tooltip: 'Mali iş kuyruğu', icon: Icon(Icons.notifications_active_outlined, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/mali-isler')),
+      ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -63,7 +69,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                _buildHeader(context, palette, club?.name ?? 'Kulüp'),
+                Padding(padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.md),
+                  child: _buildTabSwitcher(pendingCount)),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -73,6 +80,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
                       children: [
+                        Text(club?.name ?? 'Kulüp seçilmedi', style: SwanType.caption(palette.inkMuted)),
+                        const SizedBox(height: SwanSpace.sm),
                         // Live Projection Header Strip
                         _buildProjectionStrip(palette),
                         const SizedBox(height: 12),
@@ -104,9 +113,6 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
                         const SizedBox(height: 8),
 
-                        // Segmented Tab Switcher
-                        _buildTabSwitcher(palette, pendingCount),
-                        const SizedBox(height: 14),
 
                         // Active Tab Content
                         switch (_tab) {
@@ -127,111 +133,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     );
   }
 
-  Widget _buildHeader(
-    BuildContext context,
-    SwanPalette palette,
-    String clubName,
-  ) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      decoration: BoxDecoration(
-        color: palette.surface.withValues(alpha: 0.95),
-        border: Border(
-          bottom: BorderSide(
-            color: palette.line.withValues(alpha: 0.6),
-            width: 1,
-          ),
-        ),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Text(
-                        '$clubName • Finans',
-                        style: SwanType.caption(palette.inkMuted),
-                      ),
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 5,
-                          vertical: 1.5,
-                        ),
-                        decoration: BoxDecoration(
-                          color: palette.surfaceAlt,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          '₺ TRY',
-                          style: SwanType.caption(
-                            palette.accent,
-                            w: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    'Finans Merkezi',
-                    style: SwanType.h3(palette.ink),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              GestureDetector(
-                onTap: _editBank,
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: palette.surfaceAlt,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: palette.line),
-                  ),
-                  child: Icon(
-                    Icons.account_balance_rounded,
-                    size: 18,
-                    color: palette.ink,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/mali-isler'),
-                child: Container(
-                  width: 38,
-                  height: 38,
-                  decoration: BoxDecoration(
-                    color: palette.accent.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: palette.accent.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Icon(
-                    Icons.notifications_active_rounded,
-                    size: 18,
-                    color: palette.accent,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+
 
   Widget _buildProjectionStrip(SwanPalette palette) {
     return Row(
@@ -886,45 +788,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     );
   }
 
-  Widget _buildTabSwitcher(SwanPalette palette, int pendingCount) {
-    final tabs = [
-      ('Borçlar', 0),
-      ('Ödemeler ($pendingCount)', pendingCount),
-      ('Planlar', 0),
-    ];
-
-    return Row(
-      children: [
-        for (var i = 0; i < tabs.length; i++) ...[
-          if (i > 0) const SizedBox(width: 8),
-          Expanded(
-            child: GestureDetector(
-              onTap: () => setState(() => _tab = i),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 8),
-                decoration: BoxDecoration(
-                  color: _tab == i ? palette.accent : palette.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _tab == i ? palette.accent : palette.line,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    tabs[i].$1,
-                    style: SwanType.caption(
-                      _tab == i ? Colors.white : palette.inkMuted,
-                      w: _tab == i ? FontWeight.w700 : FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ],
-    );
-  }
+  Widget _buildTabSwitcher(int pendingCount) => SwanSegmentedTabs(
+    labels: ['Borçlar', 'Ödemeler ($pendingCount)', 'Planlar'],
+    selected: _tab,
+    onSelect: (i) => setState(() => _tab = i),
+  );
 
   // ------------------------- TAB 0: BORÇLAR -------------------------
   Widget _buildLedgerSection(SwanPalette palette) {

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -9,7 +10,6 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 import 'widgets/social_widgets.dart';
 
 /// Kaydedilen gönderiler (Stitch Calm Athletic Modernism).
@@ -92,6 +92,7 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
     final savedAsync = ref.watch(savedPostsProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Kaydedilen Gönderiler'),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -101,14 +102,7 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
-                  child: SwanPageHeader(
-                    title: 'Kaydedilenler',
-                    subtitle: 'Yalnızca senin görebildiğin kişisel arşivin',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
-                ),
+
 
                 // Top Search and New Collection Action Bar
                 Padding(

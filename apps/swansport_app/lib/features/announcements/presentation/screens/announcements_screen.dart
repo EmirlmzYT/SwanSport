@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_core/swansport_core.dart';
@@ -7,7 +8,6 @@ import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/widgets/swan_page_header.dart';
 
 class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -35,6 +35,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         club != null && ref.watch(swanAccessProvider).isClubStaff;
     final announcements = ref.watch(announcementsProvider);
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Kulüp Duyuruları'),
       backgroundColor: c.bg,
       body: SafeArea(
           child: Center(
@@ -49,9 +50,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
               children: [
-                SwanPageHeader(
-                    title: 'Duyurular',
-                    subtitle: club?.name ?? 'Kulüp duyuruları'),
+
                 const SizedBox(height: SwanSpace.md),
                 TextField(
                     key: const Key('communication-search-field'),

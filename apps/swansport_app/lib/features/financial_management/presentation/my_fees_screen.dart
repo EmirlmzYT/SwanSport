@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,6 @@ import '../../../app/media/image_pick.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -33,6 +33,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
     final fees = ref.watch(myFeesProvider);
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Aidatlarım'),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -41,14 +42,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                child: SwanPageHeader(
-                  title: 'Aidatlarım',
-                  subtitle: 'Borç, ödeme bildirimi ve dekont takibi',
-                  onBack: () => Navigator.maybePop(context),
-                ),
-              ),
+
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {

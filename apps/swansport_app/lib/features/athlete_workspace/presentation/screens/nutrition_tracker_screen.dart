@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -6,7 +7,6 @@ import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/widgets/swan_page_header.dart';
 
 /// Sporcunun günlük beslenme, kalori ve hidrasyon takibi.
 ///
@@ -105,6 +105,7 @@ class _NutritionTrackerScreenState
         ref.watch(dailyNutritionSummaryProvider(_selectedDate));
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Beslenme Günlüğü'),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -126,11 +127,7 @@ class _NutritionTrackerScreenState
                   120,
                 ),
                 children: [
-                  SwanPageHeader(
-                    title: 'Beslenme ve Hidrasyon',
-                    subtitle: 'Günlük kalori, makro ve su takibi',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
+
                   const SizedBox(height: SwanSpace.md),
                   _buildDateSelector(c),
                   const SizedBox(height: SwanSpace.lg),

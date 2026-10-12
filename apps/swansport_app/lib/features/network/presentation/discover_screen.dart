@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -41,6 +42,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final async = ref.watch(discoverClubsProvider(_filter));
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Kulüpler & Akademiler', actions: [
+        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/basvurular'), icon: const Icon(Icons.add_circle_outline), label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent))),
+      ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -52,7 +56,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
               children: [
                 // Top Header & Create Club Action
-                _buildTopSection(context, ink, surf, isDark),
+
                 const SizedBox(height: 14),
 
                 // Search & Filter Section for Registered Clubs
@@ -132,66 +136,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
-  Widget _buildTopSection(
-      BuildContext context, Color ink, Color surf, bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.hub_rounded, size: 14, color: kTeal),
-                const SizedBox(width: 4),
-                Text(
-                  'SWAN KINETIC LEAGUE',
-                  style: SwanType.caption(kTeal, w: FontWeight.w800)
-                      .copyWith(fontSize: 10),
-                ),
-              ],
-            ),
-            const SizedBox(height: 2),
-            Text(
-              'Topluluk Kulüpleri',
-              style: SwanType.h2(ink),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () {
-            Navigator.pushNamed(context, '/basvurular');
-          },
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-            decoration: BoxDecoration(
-              color: kTeal,
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: [
-                BoxShadow(
-                  color: kTeal.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2),
-                ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(Icons.add_circle_rounded,
-                    size: 16, color: Colors.white),
-                const SizedBox(width: 4),
-                Text(
-                  'Kulüp Kur',
-                  style: SwanType.caption(Colors.white, w: FontWeight.w800),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+
 
   Widget _filterBar(bool isDark, Color ink) {
     final opts = ref.watch(filterOptionsProvider).valueOrNull ?? const [];

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -7,7 +8,6 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -42,6 +42,9 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
     final async = ref.watch(organizationsProvider(_query));
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Turnuva & Organizasyonlar', actions: [
+        IconButton(tooltip: 'Organizasyon aç', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: _create),
+      ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -50,17 +53,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
-                child: SwanPageHeader(
-                  title: 'Organizasyonlar',
-                  subtitle: 'Lig, turnuva, kamp ve kupalar',
-                  onBack: () => Navigator.maybePop(context),
-                  actions: [
-                    AddButton(onTap: _create, tooltip: 'Organizasyon aç'),
-                  ],
-                ),
-              ),
+
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                 child: StitchInlineSearchField(

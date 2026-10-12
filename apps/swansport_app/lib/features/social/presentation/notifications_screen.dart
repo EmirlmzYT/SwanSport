@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -63,6 +64,10 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final async = ref.watch(categorizedNotificationsProvider(_category));
 
     return Scaffold(
+      appBar: swanModuleAppBar(context, title: 'Bildirimler', actions: [
+        IconButton(tooltip: 'Tümünü okundu işaretle', icon: Icon(Icons.done_all_rounded, color: context.swan.inkMuted), onPressed: _markAllRead),
+        IconButton(tooltip: 'Tercihler', icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted), onPressed: _openPrefs),
+      ]),
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(
@@ -72,7 +77,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                _buildHeader(c),
+
                 const _PushBanner(),
                 const _PushDiagnosticsPanel(),
                 _buildSubheader(c),
@@ -149,70 +154,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  Widget _buildHeader(SwanPalette c) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 8),
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border(bottom: BorderSide(color: c.line)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              IconButton(
-                onPressed: () => Navigator.maybePop(context),
-                icon: Icon(Icons.arrow_back_ios_new_rounded, size: 18, color: c.ink),
-                tooltip: 'Geri',
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Bildirimler',
-                    style: GoogleFonts.sora(fontSize: 17, fontWeight: FontWeight.w700, color: c.ink),
-                  ),
-                  Text('Etkinlik & Akış', style: SwanType.caption(c.inkMuted)),
-                ],
-              ),
-            ],
-          ),
-          Row(
-            children: [
-              TextButton.icon(
-                onPressed: () async {
-                  await ref.read(notificationServiceProvider).markAllRead();
-                  ref.invalidate(unreadNotificationsProvider);
-                  ref.invalidate(categorizedNotificationsProvider(_category));
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Tüm bildirimler okundu olarak işaretlendi.')),
-                    );
-                  }
-                },
-                icon: Icon(Icons.done_all_rounded, size: 16, color: c.accent),
-                label: Text('Okundu', style: TextStyle(color: c.accent, fontSize: 12, fontWeight: FontWeight.w700)),
-                style: TextButton.styleFrom(
-                  backgroundColor: c.surfaceAlt,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  minimumSize: Size.zero,
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
-                ),
-              ),
-              const SizedBox(width: 6),
-              IconButton(
-                onPressed: _openPrefs,
-                icon: Icon(Icons.tune_rounded, size: 18, color: c.inkMuted),
-                style: IconButton.styleFrom(backgroundColor: c.surfaceAlt),
-                tooltip: 'Tercihler',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+
+
+  Future<void> _markAllRead() async {
+    try {
+      await ref.read(notificationServiceProvider).markAllRead();
+      if (!mounted) return;
+      ref.invalidate(unreadNotificationsProvider);
+      ref.invalidate(categorizedNotificationsProvider(_category));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tüm bildirimler okundu olarak işaretlendi.')));
+    } catch (_) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Bildirimler işaretlenemedi. Tekrar deneyin.')));
+    }
   }
 
   Widget _buildSubheader(SwanPalette c) {
