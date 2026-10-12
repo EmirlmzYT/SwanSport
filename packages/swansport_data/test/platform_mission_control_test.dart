@@ -98,11 +98,11 @@ void main() {
       .updatePlatformSetting('maintenance', {'enabled': true}), throwsA(isA<PostgrestException>()));
     expect(writes, 0);
   });
-  test('new plan upsert uses code conflict and nullable cap without timestamp spoofing', () async {
+  test('new plan inserts without silently overwriting a duplicate code', () async {
     var writes = 0;
     final client = SupabaseClient('https://example.com', 'anon', httpClient: MockClient((request) async {
       expect(request.url.path, '/rest/v1/platform_plans');
-      expect(request.url.queryParameters['on_conflict'], 'code');
+      expect(request.url.queryParameters.containsKey('on_conflict'), isFalse);
       final body = jsonDecode(request.body) as Map<String, dynamic>;
       expect(body.containsKey('id'), isFalse);
       expect(body.containsKey('updated_at'), isFalse);

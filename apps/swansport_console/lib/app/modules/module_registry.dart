@@ -1,4 +1,5 @@
 import '../../features/platform/diagnostics_screen.dart';
+import '../../features/platform/mission_control_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/athletes/athletes_screen.dart';
@@ -34,6 +35,9 @@ import '../../features/federation/federation_results_screen.dart';
 /// Yeni modül eklemek = buraya bir satır. Yeni **kitle** eklemek de öyle:
 /// `ConsoleAudience`'ta yuvası zaten var.
 const List<ConsoleModule> kConsoleModules = [
+  ConsoleModule(id: 'mission_control', label: 'Mission Control',
+    icon: Icons.admin_panel_settings_rounded, route: '/mission-control',
+    audience: {ConsoleAudience.platformAdmin}, builder: _missionControl),
   ConsoleModule(
       id: 'federation_results',
       label: 'Resmi Sonuçlar',
@@ -314,6 +318,7 @@ Widget _courts(BuildContext _) => const ConsoleCourtsScreen();
 Widget _turfFields(BuildContext _) => const ConsoleTurfFieldsScreen();
 
 Widget _diagnostics(BuildContext _) => const DiagnosticsScreen();
+Widget _missionControl(BuildContext _) => const MissionControlScreen();
 
 Widget _federationResults(BuildContext context) =>
     const FederationResultsScreen();

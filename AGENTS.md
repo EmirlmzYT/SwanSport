@@ -19,6 +19,10 @@ Ortak modeller/servis/provider'lar `platform_mission_control.dart` içindedir.
 Admin ayar/plan yazıları trigger ile atomik denetlenir; kill-switch ve
 komisyon değerleri henüz signup/ödeme işlemlerinde uygulanmaz. Canlıya
 uygulanmadı. Doğrulama sınırları `docs/platform-mission-control-verification.md`.
+2026-10-12 UI devamı: konsol `/mission-control` yalnız platform admin için
+beş sekmeli yönetim ekranıdır. Mobil FeedScreen public config'i 30 saniyede
+bir yeniler; broadcast ve bakım görünümü Ana Akış kapsamındadır, global/server
+kill-switch değildir. Yeni plan insert, mevcut ID upsert; ayrıntılar aynı raporda.
 
 ```
 apps/swansport_app        mobil + web uygulaması (Android, Web)

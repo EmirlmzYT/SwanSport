@@ -1,4 +1,5 @@
 import '../../network/presentation/guest_explore_screen.dart';
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -11,6 +12,7 @@ import '../../../app/widgets/swan_bottom_nav.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/stitch_feed_widgets.dart';
+import 'widgets/platform_notice.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -22,6 +24,7 @@ class FeedScreen extends ConsumerStatefulWidget {
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool _followingOnly = false;
+  PlatformConfig? _lastPlatformConfig;
 
   @override
   void initState() {
@@ -35,7 +38,21 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (!ref.watch(swanAccessProvider).hasAccount) return const GuestExploreScreen();
+    final access = ref.watch(swanAccessProvider);
+    _lastPlatformConfig = ref.watch(platformConfigProvider).valueOrNull ?? _lastPlatformConfig;
+    final config = _lastPlatformConfig;
+    if (config?.maintenanceEnabled == true && !access.isPlatformAdmin) {
+      return PlatformMaintenanceNotice(
+        message: '${config!.maintenance['message'] ?? 'Kısa süreli bakım devam ediyor.'}',
+        onRetry: () => ref.invalidate(platformConfigProvider));
+    }
+    final banner = config?.broadcastEnabled == true ? PlatformBroadcastBanner(
+      key: ValueKey(jsonEncode([config!.broadcastAlert['severity'], config.broadcastAlert['title'], config.broadcastAlert['message']])),
+      alert: config.broadcastAlert) : null;
+    if (!access.hasAccount) {
+      if (banner == null) return const GuestExploreScreen();
+      return Column(children: [SafeArea(bottom: false, child: Material(color: context.swan.bg, child: banner)), const Expanded(child: GuestExploreScreen())]);
+    }
     final c = context.swan;
 
     final activeFeed = _followingOnly ? feedProvider : discoverProvider;
@@ -56,6 +73,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ref.invalidate(suggestionsProvider);
                 ref.invalidate(newsProvider);
                 ref.invalidate(announcementsProvider);
+                ref.invalidate(platformConfigProvider);
                 await ref.read(activeFeed.future);
               },
               child: CustomScrollView(
@@ -68,6 +86,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     pinned: true,
                     delegate: _StitchHeaderDelegate(),
                   ),
+                  if (banner != null) SliverToBoxAdapter(child: banner),
                   SliverPersistentHeader(
                     pinned: true,
                     delegate: _FeedModeDelegate(

@@ -12,6 +12,17 @@ import 'package:swansport_data/swansport_data.dart';
 /// RLS'in işi ve burada sınanmıyor — kenar çubuğunda modül gizlemek güvenlik
 /// değildir.
 void main() {
+  test('Mission Control is platform admin only', () {
+    final module = moduleForRoute('/mission-control')!;
+    expect(module.id, 'mission_control');
+    expect(module.audience, {ConsoleAudience.platformAdmin});
+    expect(module.visibleTo(const SwanAccess(isPlatformAdmin: true, clubRole: null, coachLevel: 0, athleteKind: null)), isTrue);
+    for (final access in [SwanAccess.none,
+      const SwanAccess(isPlatformAdmin: false, clubRole: 'club_admin', coachLevel: 0, athleteKind: null),
+      const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null, accountantClubIds: {'club'})]) {
+      expect(module.visibleTo(access), isFalse);
+    }
+  });
   const platformAdmin = SwanAccess(
     isPlatformAdmin: true,
     clubRole: 'member',

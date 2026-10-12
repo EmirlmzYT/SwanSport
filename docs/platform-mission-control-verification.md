@@ -2,6 +2,33 @@
 
 Yerel backend/veri temeli; ekran, abonelik satışı veya canlı yayın içermez.
 
+## 2026-10-12 — İstemci entegrasyonu
+
+Bu bölüm önceki backend fazının üzerine eklenen UI kapsamını anlatır.
+Konsolda `/mission-control` platform-admin modülü ve beş sekme hazır:
+marka/duyuru, komisyonlar, plan düzenleme/ekleme/aktiflik, şalterler/bayraklar,
+son 50 audit satırı ve mevcut teşhis merkezi özeti. Her ayar kartı ayrı
+kaydedilir; marka ve duyuru için atomik bir iki-ayar RPC'si yoktur.
+Formlar doğrulanır; taslaklar sekme ve config yenilemesinde korunur.
+Controller dispose, çift gönderim ve dispose sonrası async cevap koruması var.
+Yeni paket insert kullanır: aynı kodlu paketi sessizce upsert ile ezmez;
+var olan paket ID'siyle upsert edilir. Sunucu unique/RLS kuralları değişmez.
+
+Mobil FeedScreen, misafir dahil bakım görünümünü platform admin dışına
+uygular. Bu uygulama-geneli veya sunucu erişim kapısı değildir. Public config
+aktif abonelik sırasında 30 saniyede bir yenilenir, timer dispose edilir;
+pull-to-refresh de config'i yeniler. Yenileme hatasında son bilinen ayar
+korunur; ilk yükleme hatasında backend'de bakım varmış gibi iddia edilmez.
+Broadcast üç severity'yi destekler. Kapatma bu ekran oturumuna aittir; mesaj
+değişince veya bandı kapatıp yeniden açınca tekrar gösterilir.
+
+İzole SQL regresyonu yine 5/5, SSS 39/39, push 40 eşleme kayıpsız ve statik
+41 mobil rota/giriş eşliği başarılı. UI/route/provider için 9 yeni regresyon
+testi hazır; önceki new-plan HTTP sözleşmesi insert davranışına güncellendi.
+10 değişen/yeni Dart dosyası sözdizimi kontrolünden geçti. Flutter SDK yok:
+widget/module/navigation/provider testleri, analyze/build ve cihaz görsel
+UAT çalıştırılamadı. Canlı SQL/deploy/commit/push yapılmadı.
+
 - `platform_settings` tamamıyla genel veridir. Sır, token, özel iletişim veya
   kişisel veri saklanmaz. Public RPC beş bilinen anahtarı projekte eder;
   tablo SELECT izni ise kullanıcı talimatı gereği tüm satırlara açıktır.

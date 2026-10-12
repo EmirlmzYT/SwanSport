@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -130,8 +131,11 @@ class PlatformMissionControlService {
         plan.priceMonthly < 0 || plan.priceYearly < 0 || (plan.maxAthletes ?? 0) < 0) {
       throw ArgumentError('Invalid platform plan');
     }
-    final row = await _client.from('platform_plans').upsert(plan.toMap(),
-        onConflict: plan.id == null ? 'code' : 'id').select().single();
+    // A new plan must not silently overwrite another administrator's plan
+    // with the same code. Existing IDs retain explicit upsert semantics.
+    final row = plan.id == null
+        ? await _client.from('platform_plans').insert(plan.toMap()).select().single()
+        : await _client.from('platform_plans').upsert(plan.toMap(), onConflict: 'id').select().single();
     onWrite?.call();
     return PlatformPlan.fromMap(row);
   }
@@ -145,6 +149,8 @@ final platformMissionControlServiceProvider = Provider<PlatformMissionControlSer
     }));
 final platformConfigProvider = FutureProvider.autoDispose<PlatformConfig>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const PlatformConfig.empty();
+  final timer = Timer.periodic(const Duration(seconds: 30), (_) => ref.invalidateSelf());
+  ref.onDispose(timer.cancel);
   ref.watch(authSessionProvider);
   return ref.watch(platformMissionControlServiceProvider).config();
 });
@@ -155,5 +161,5 @@ final platformPlansProvider = FutureProvider.autoDispose<List<PlatformPlan>>((re
 });
 final platformAuditLogsProvider = FutureProvider.autoDispose<List<PlatformAuditLog>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider) || !ref.watch(swanAccessProvider).isPlatformAdmin) return const [];
-  return ref.watch(platformMissionControlServiceProvider).auditLogs();
+  return ref.watch(platformMissionControlServiceProvider).auditLogs(limit: 50);
 });

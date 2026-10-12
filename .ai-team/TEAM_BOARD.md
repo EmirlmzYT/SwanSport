@@ -4,6 +4,27 @@ Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `review_ready`
 
+2026-10-12: Mission Control UI/istemci yerelde hazır. Admin-only /mission-control modülü ve doğrudan ekran/dar ekran guard; 5 sekme marka/duyuru, komisyon inputları, plan kartı+fiyat/limit dialog+aktif switch, bakım/kill yapılandırması+bayraklar linki, son 50 audit old/new dialog+gerçek diagnostic open_issues özeti. Her ayar kartı ayrı yazılır; validation/busy/hata, taslakların sekme/config yenilemesinde korunması, controller dispose ve geç async cevap guard var. Yeni plan insert kullanır, aynı kodu sessizce ezmez; mevcut ID upsert. Mobil misafir dahil admin dışına bakım feed görünümü, info/warning/danger dismiss bandı; içerik değişimi veya kapat-aç reset, son bilinen config hata sırasında korunur. Config aktif abonelikte 30 saniye polling/timer dispose; pull-refresh. Yalnız FeedScreen bakımı: global/server signup/payments kill enforcement yok; UI'da açıkça belirtilir. 9 UI/route/provider regresyon testi eklendi, önceki HTTP test güncellendi. 10 Dart syntax OK, statik 41 mobil rota/giriş ve module kayıt incelemesi başarılı; SQL 5/5, SSS 39/39, push 40 kayıpsız ve diff temiz. Flutter SDK bulunamadı: iki app/console test çağrısı çalışmadı, gerçek widget/provider/navigation/module/analyze/build/görsel UAT doğrulanmadı. AGENTS ve doğrulama raporu güncellendi. Başlangıç kullanıcı pano içeriği korundu. Yalnız stage; canlı SQL/deploy/commit/push yok, Writer serbest.
+
+2026-10-12: Mission Control UI ve mobil duyuru/bakım entegrasyonu devralındı. Başlangıç yalnız kullanıcı TEAM_BOARD değişikliği var, korunur. Admin rota/ekran kapısı, 5 sekme, doğrulamalı taslaklar ve hata/busy/dispose; public config yenileme ve içerik bazlı duyuru dismiss hazırlanacak. Şalterlerin server enforcement olmadığı belirtilir. Yalnız stage; canlı SQL/deploy/commit/push yok.
+
+2026-10-12: GÖREV: Platform Mission Control Arayüzü & İstemci Entegrasyonu (Adım 2)
+1. Masaüstü Konsol (`apps/swansport_console`):
+   - `apps/swansport_console/lib/features/platform/mission_control_screen.dart`:
+     * 5 Sekmeli Süper Admin Komuta Masası:
+       1) Marka & Görünüm (Logo URL, App Adı, Slogan, İletişim E-posta/Telefon, Canlı Acil Duyuru Bandı aç/kapa/metin).
+       2) Finans & Komisyonlar (Pazaryeri komisyon %, Tesis kiralama %, Aidat işlem sabit ve yüzdelik ücreti slider/inputs).
+       3) Paketler & Fiyatlandırma (PlatformPlan listesi, aylık/yıllık fiyat, sporcu limiti, özellik maddeleri, aktif/pasif anahtarı, yeni plan modalı).
+       4) Şalterler & Kill Switches (Bakım Modu aç/kapa + mesaj, Yeni Kayıt dondurma, Ödemeleri dondurma, 39 Feature Flag tablosu bağlantısı).
+       5) Canlı Denetim İzi & Loglar (PlatformAuditLog tablosu: tarih, aktör, işlem, eski/yeni durum + Hata Teşhis ekranı kısayolu).
+   - `apps/swansport_console/lib/app/modules/module_registry.dart`:
+     * Modül kaydı: `id: 'mission_control'`, `label: 'Mission Control'`, `route: '/mission-control'`, `icon: Icons.admin_panel_settings_rounded`, `audience: {ConsoleAudience.platformAdmin}`.
+2. Mobil Uygulama (`apps/swansport_app`):
+   - `apps/swansport_app/lib/features/social/presentation/feed_screen.dart`:
+     * Eğer `platformConfigProvider` üzerinden `broadcastAlert.enabled` ise akışın en üstünde zarif, kapatılabilir duyuru bandı gösterilecek.
+     * Eğer `maintenance.enabled` ise (ve kullanıcı platform admin değilse) temiz bir bakım modu ekranı sunulacak.
+- Kurallar: Yalnızca platformAdmin yetkisi. Konsol ve mobil tasarım jetonları korunacak. SSS 39/39 ve check_push_routes bozulmayacak. Yalnızca git add.
+
 2026-10-12: 0109 Platform Mission Control yerel temeli tamamlandı. Public ayarlar, aktif/genel-pasif/admin planlar, append-only admin audit; RLS/ACL, 5 ayar/4 plan idempotent seed, güvenli anahtar projeksiyon RPC ve admin update RPC hazır. RPC/doğrudan ayar-plan yazıları trigger ile aynı transaction içinde old/new ve gerçek actor/timestamp kaydeder; fiyat/cap/target/JSON shape constraints var. PlatformConfig/Plan/AuditLog, UI-bağımsız servis, public config/plans ve admin audit provider'ları ile başarılı yazıda invalidation eklendi. Ayarlar sır içermez; kill-switch/maintenance/komisyon henüz iş akışlarını yaptırıma bağlamaz; yıllık fiyat belirtilmediği için 0 default, ticari taahhüt yok. İzole PostgreSQL 5/5, migration parse 109/109, SSS 39/39 ve diff temiz. İlk SQL koşusundaki anon UPDATE sıfır-satır beklentisi privilege reddine düzeltildi; son koşu başarılı. 10 Dart model/provider/HTTP testi hazır, iki dosya syntax OK; Flutter SDK yok, runtime/analyze/build doğrulanmadı. Rapor docs/platform-mission-control-verification.md; AGENTS güncellendi. Yalnız görev dosyaları stage; canlı SQL/commit/push/deploy/gerçek oturum yarış UAT yok. Writer serbest.
 
 2026-10-12: 0109 Platform Mission Control şema/model/provider görevi devralındı. Başlangıç Git ağacı temiz; genel ayarlar açık veri olduğundan sır içermez. Admin yazıları ve planlar sunucuda denetlenecek, audit append-only korunacak. Kill-switch/komisyon ayarlarının bu fazda kayıt altyapısı olduğu, ödeme/signup uygulaması olmadığı açık tutulur. Yalnız stage; canlı SQL/commit/push/deploy yok.
