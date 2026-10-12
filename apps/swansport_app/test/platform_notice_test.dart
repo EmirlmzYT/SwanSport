@@ -61,7 +61,8 @@ void main() {
     ], child: const MaterialApp(home: Scaffold(body: SizedBox(height: 56, child: StitchFeedTopBar())))));
     await tester.pumpAndSettle();
     expect(find.text('Özel Kulüp'), findsOneWidget);
-    expect((tester.widget<Image>(find.byType(Image)).image as NetworkImage).url, 'https://example.com/logo.png');
+    final network = find.byWidgetPredicate((w) => w is Image && w.image is NetworkImage);
+    expect((tester.widget<Image>(network).image as NetworkImage).url, 'https://example.com/logo.png');
     expect(tester.takeException(), isNull);
   });
   testWidgets('maintenance uses configured name, whitespace name falls back', (tester) async {

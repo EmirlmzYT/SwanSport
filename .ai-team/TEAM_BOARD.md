@@ -4,6 +4,10 @@ Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `review_ready`
 
+2026-10-12: Resmi kuğu launcher/offline entegrasyonu hazır. Kaynak JPG repoda korunur, taşınabilir Pillow/LANCZOS generator gerçek iOS Contents.json'dan 15 dosyayı türetir; toplam 32 PNG (5 Android/15 iOS/6 app web/5 console web/1 DS). Maskable güvenli merkez alanı, RGB/no-alpha, boyut ve tam piksel doğrulaması 32/32. SwanNetworkLogo eksik/hatalı URL'de paket asset'ini, asset hatasında son fallback'i gösterir; testbeklentileri güncellendi. Sürümler app 0.5.5+27, console 0.2.0+6; rapor docs/official-launcher-brand-assets.md. SSS 39/39, push 40, SQL 5/5, dört Dart syntax ve diff temiz. Flutter SDK yok: widget/build/cihaz UAT yok. Açık kullanıcı talimatıyla commit/tag/push yapılır; CI başarısı henüz doğrulanmış değildir. Writer serbest; canlı SQL/manuel deploy yok.
+
+2026-10-12: Resmi launcher/offline kuğu varlığı devralındı. Kaynak JPG mevcut; Android/iOS/Web/DS çıktıları üretilir. Bu görev açıkça 0.5.5+27 / 0.2.0+6 sürüm, commit/tag/push yetkilendirir. Canlı SQL veya manuel deploy yok.
+
 2026-10-12: Dinamik marka sidebar/login/mobil feed header/bakım başlığına bağlandı. Public config dinlenir; trim+boş isim SwanSport fallback. ConsoleDensity marka ölçüleri, mobil SwanSpace.xl ve mevcut SwanRadius.sm; shared UI SwanNetworkLogo raster/SVG/HTTPS/fixed-bounds ve error fallback sağlar. Daraltılmış sidebar tooltip, logo yokken kalkan/boş alan, wordmark ve inbox korunur. 8 yeni widget regresyon testi (shell/login, mobil header/bakım adı, 5 logo fallback durumu) hazır, önceki bakım retry ProviderScope'a alındı. 10 Dart syntax OK; SSS 39/39, push 40 kayıpsız, SQL 5/5 ve diff temiz. App/console Flutter test çağrıları SDK bulunamadığı için çalışmadı; pub get/lockfile yeni flutter_svg DS dependency, build/analyze/görsel UAT açık. Rapor güncellendi. Yalnız stage, canlı SQL/commit/push/deploy yok; Writer serbest.
 
 2026-10-12: Dinamik marka adı/logo sidebar, login, mobil header ve bakım başlığına bağlanıyor. Boş değer/ağ hatası fallback ve SVG destek korunur; yerel testler hazırlanır. Canlı yayın yok.

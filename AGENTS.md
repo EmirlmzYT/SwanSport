@@ -12,6 +12,12 @@ bulunamayacak** şeyleri anlatıyor.
 
 ## Yapı
 
+Resmi kuğu kaynak varlığı `assets/branding/official_swan_logo.jpg`; native/web
+ikonlarını `tools/generate_launcher_icons.py` üretir (`--check` doğrular).
+Design-system yerel logo asset'i SwanNetworkLogo'nun çevrimdışı fallback'idir.
+Launcher değişikliği yeni APK/IPA gerektirir; Mission Control URL'si yalnız
+uygulama içi marka içindir. Rapor `docs/official-launcher-brand-assets.md`.
+
 0109 Platform Mission Control yerel backend temeli:
 `platform_settings` public ayarlar (sır içermez), `platform_plans` aktif/genel
 ve pasif/admin paketler, `platform_audit_logs` admin-okunur append-only denetim.

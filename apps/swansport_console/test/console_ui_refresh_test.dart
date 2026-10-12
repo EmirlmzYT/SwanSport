@@ -48,11 +48,12 @@ void main() {
     ], child: MaterialApp(theme: ConsoleTheme.dark(), home: child));
     await tester.pumpWidget(wrap(const ConsoleShell(route: '/', child: Text('Content'))));
     await tester.pumpAndSettle(); expect(find.text('Özel Kulüp'), findsOneWidget);
-    expect(find.byType(Image), findsOneWidget);
-    expect((tester.widget<Image>(find.byType(Image)).image as NetworkImage).url, 'https://example.com/logo.png');
+    final network = find.byWidgetPredicate((w) => w is Image && w.image is NetworkImage);
+    expect(network, findsOneWidget);
+    expect((tester.widget<Image>(network).image as NetworkImage).url, 'https://example.com/logo.png');
     await tester.pumpWidget(wrap(const ConsoleLoginScreen())); await tester.pumpAndSettle();
     expect(find.text('Özel Kulüp Konsol'), findsOneWidget);
-    expect(find.byType(Image), findsOneWidget);
+    expect(network, findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   setUp(() => GoogleFonts.config.allowRuntimeFetching = false);

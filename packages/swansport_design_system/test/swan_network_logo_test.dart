@@ -8,7 +8,10 @@ void main() {
       await tester.pumpWidget(MaterialApp(home: SwanNetworkLogo(url: url, size: 24,
         fallback: const Icon(Icons.shield_moon_rounded))));
       await tester.pumpAndSettle();
-      expect(find.byIcon(Icons.shield_moon_rounded), findsOneWidget);
+      final local = find.byWidgetPredicate((widget) => widget is Image && widget.image is AssetImage);
+      expect(local, findsOneWidget);
+      expect((tester.widget<Image>(local).image as AssetImage).assetName,
+          'packages/swansport_design_system/assets/images/swan_logo.png');
       expect(tester.takeException(), isNull);
     });
   }
