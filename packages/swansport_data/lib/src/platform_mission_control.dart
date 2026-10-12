@@ -141,25 +141,25 @@ class PlatformMissionControlService {
   }
 }
 
-final platformMissionControlServiceProvider = Provider<PlatformMissionControlService>((ref) =>
-    PlatformMissionControlService(ref.watch(supabaseClientProvider), onWrite: () {
-      ref.invalidate(platformConfigProvider);
-      ref.invalidate(platformPlansProvider);
-      ref.invalidate(platformAuditLogsProvider);
-    }));
-final platformConfigProvider = FutureProvider.autoDispose<PlatformConfig>((ref) async {
+final Provider<PlatformMissionControlService> platformMissionControlServiceProvider =
+    Provider<PlatformMissionControlService>((ref) =>
+        PlatformMissionControlService(ref.watch(supabaseClientProvider)));
+final AutoDisposeFutureProvider<PlatformConfig> platformConfigProvider =
+    FutureProvider.autoDispose<PlatformConfig>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const PlatformConfig.empty();
   final timer = Timer.periodic(const Duration(seconds: 30), (_) => ref.invalidateSelf());
   ref.onDispose(timer.cancel);
   ref.watch(authSessionProvider);
   return ref.watch(platformMissionControlServiceProvider).config();
 });
-final platformPlansProvider = FutureProvider.autoDispose<List<PlatformPlan>>((ref) async {
+final AutoDisposeFutureProvider<List<PlatformPlan>> platformPlansProvider =
+    FutureProvider.autoDispose<List<PlatformPlan>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   ref.watch(swanAccessProvider); // Re-fetch active/admin visibility on account changes.
   return ref.watch(platformMissionControlServiceProvider).plans();
 });
-final platformAuditLogsProvider = FutureProvider.autoDispose<List<PlatformAuditLog>>((ref) async {
+final AutoDisposeFutureProvider<List<PlatformAuditLog>> platformAuditLogsProvider =
+    FutureProvider.autoDispose<List<PlatformAuditLog>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider) || !ref.watch(swanAccessProvider).isPlatformAdmin) return const [];
   return ref.watch(platformMissionControlServiceProvider).auditLogs(limit: 50);
 });
