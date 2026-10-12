@@ -10,6 +10,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import 'widgets/social_widgets.dart';
 
 /// Bildirimler & Etkinlik Akışı (Google Stitch Screen 24).
 ///

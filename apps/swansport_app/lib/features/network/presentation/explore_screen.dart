@@ -13,6 +13,7 @@ import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_skeleton.dart';
 import '../../social/presentation/widgets/feed_entry.dart';
 import '../../social/presentation/widgets/follow_suggestions.dart';
+import '../../social/presentation/widgets/social_widgets.dart';
 
 /// Keşfet & Arama — Google Stitch Calm Athletic Modernism (Screen 25 & 18).
 ///
