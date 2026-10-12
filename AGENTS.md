@@ -12,6 +12,14 @@ bulunamayacak** şeyleri anlatıyor.
 
 ## Yapı
 
+0109 Platform Mission Control yerel backend temeli:
+`platform_settings` public ayarlar (sır içermez), `platform_plans` aktif/genel
+ve pasif/admin paketler, `platform_audit_logs` admin-okunur append-only denetim.
+Ortak modeller/servis/provider'lar `platform_mission_control.dart` içindedir.
+Admin ayar/plan yazıları trigger ile atomik denetlenir; kill-switch ve
+komisyon değerleri henüz signup/ödeme işlemlerinde uygulanmaz. Canlıya
+uygulanmadı. Doğrulama sınırları `docs/platform-mission-control-verification.md`.
+
 ```
 apps/swansport_app        mobil + web uygulaması (Android, Web)
 apps/swansport_console    masaüstü yönetim konsolu (yalnızca Web, ≥900px)

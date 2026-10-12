@@ -43,6 +43,7 @@ export 'src/notification_service.dart';
 export 'src/nutrition_service.dart';
 export 'src/offline_attendance.dart';
 export 'src/parent_actions.dart';
+export 'src/platform_mission_control.dart';
 export 'src/performance_service.dart';
 export 'src/saha_operations.dart';
 export 'src/season_setup.dart';
