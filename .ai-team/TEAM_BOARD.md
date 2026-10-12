@@ -4,7 +4,7 @@ Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
-2026-10-12: Partner Bul header standardı 20 B/C/D ekranına uygulandı ve v0.5.5+28 olarak yayımlandı. Opt-in swanModuleAppBar gerçek Scaffold AppBar, bg/ink+h3, sıfır elevation, canPop geri, standart aksiyonlar sunar. A grubu (Feed, Profil, Dashboard) ve Partner Bul diff boş; veri/rota/yetki ve sekme anlamı korunur. Sürümler app 0.5.5+28, console 0.2.0+7; rapor docs/module-header-standardization.md. 20 header contract, 22 Dart syntax, statik 41 rota/giriş, SSS 39/39, push 40 ve SQL 5/5 geçti; diff temiz. Kullanıcı onayıyla commit, tag v0.5.5+28 ve push gerçekleştirildi; CI derlemeleri izleniyor. Writer serbest; canlı SQL/manuel deploy yok.
+2026-10-12: document_vault_screen içindeki eksik swan_shape.dart importu giderildi (CI derleme hatası: Not a constant expression SwanSpace.md). v0.5.5+29 ve konsol 0.2.0+8 olarak yayımlandı. 21 ekranda token importları doğrulandı. SSS 39/39, push 40/40 ve SQL 5/5 geçti. Tag v0.5.5+29 gönderildi; APK/IPA derlemeleri izleniyor. Writer serbest; canlı SQL/manuel deploy yok.
 
 2026-10-12: Partner Bul header standardizasyonu B/C/D ekranlarında devralındı. A grubu korunur; mevcut sekme/aksiyon/geri/rota yetkileri bozulmadan AppBar standardı uygulanır. Canlı yayın yok.
 
