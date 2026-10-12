@@ -6,7 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Sporcunun ekipman, kalibrasyon (tuning) ve malzeme bakım takip ekranı.
 ///
@@ -46,6 +46,7 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Ekipman ve Kalibrasyon'),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -63,12 +64,6 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
                   120,
                 ),
                 children: [
-                  SwanPageHeader(
-                    title: 'Ekipman ve Kalibrasyon',
-                    subtitle: 'Malzeme ayarları ve bakım takibi',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
-                  const SizedBox(height: SwanSpace.md),
                   equipmentAsync.when(
                     loading: () => const Center(
                       child: Padding(

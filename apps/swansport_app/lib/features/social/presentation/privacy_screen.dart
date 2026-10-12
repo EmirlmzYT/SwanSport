@@ -10,7 +10,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../auth/application/auth_controller.dart';
 
 /// Profil Güvenlik Merkezi — rol tabanlı yetkiler, kimlik doğrulama, gizlilik ve hesap (Stitch Calm Athletic Modernism).
@@ -28,6 +28,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
     final blocks = ref.watch(myBlocksProvider);
     return Scaffold(
         backgroundColor: c.bg,
+        appBar: swanModuleAppBar(context, title: 'Gizlilik ve Güvenlik'),
         body: SafeArea(
             child: Center(
                 child: ConstrainedBox(
@@ -36,10 +37,6 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
                         padding: const EdgeInsets.fromLTRB(
                             SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 132),
                         children: [
-                          SwanPageHeader(
-                              title: 'Gizlilik ve güvenlik',
-                              onBack: () => Navigator.maybePop(context)),
-                          const SizedBox(height: SwanSpace.lg),
                           const DiagnosticPreferencesTile(),
                           const Divider(),
                           Text('Etiketlenme', style: SwanType.h3(c.ink)),

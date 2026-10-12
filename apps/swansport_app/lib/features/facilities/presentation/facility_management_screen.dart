@@ -6,7 +6,8 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -38,6 +39,17 @@ class _FacilityManagementScreenState
     return Scaffold(
       extendBody: true,
       backgroundColor: bg,
+      appBar: swanModuleAppBar(
+        context,
+        title: 'Tesisler',
+        actions: [
+          IconButton(
+            tooltip: 'Tesis ekle',
+            icon: Icon(Icons.add_rounded, color: context.swan.inkMuted),
+            onPressed: _add,
+          ),
+        ],
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -51,13 +63,6 @@ class _FacilityManagementScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  SwanPageHeader(
-                    title: 'Tesisler',
-                    subtitle: 'Kulüp sahaları ve haftalık kullanım',
-                    actions: [
-                      AddButton(onTap: _add, tooltip: 'Tesis ekle'),
-                    ],
-                  ),
                   const SizedBox(height: 6),
                   Text('Doluluk, önümüzdeki 7 günün takviminden hesaplanır.',
                       style: SwanType.caption(SwanColors.textSecondary)),

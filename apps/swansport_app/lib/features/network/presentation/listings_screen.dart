@@ -9,7 +9,8 @@ import '../../../app/widgets/quick_form.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -48,21 +49,19 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: bg,
+      appBar: swanModuleAppBar(context, title: 'İlanlar', actions: [
+        IconButton(
+          tooltip: 'İlan ver',
+          icon: Icon(Icons.add_rounded, color: context.swan.inkMuted),
+          onPressed: _create,
+        ),
+      ]),
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-                child: SwanPageHeader(
-                  title: 'İlanlar',
-                  subtitle: 'Sporcu, antrenör ve seçme ilanları',
-                  onBack: () => Navigator.maybePop(context),
-                  actions: [AddButton(onTap: _create, tooltip: 'İlan ver')],
-                ),
-              ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
                 child: StitchInlineSearchField(

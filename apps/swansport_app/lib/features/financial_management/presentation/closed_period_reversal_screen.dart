@@ -6,7 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Kapanmış dönem ters işlem ve mali düzeltme yönetim ekranı.
 ///
@@ -33,6 +33,7 @@ class _ClosedPeriodReversalScreenState
     return Scaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Ters İşlem ve Düzeltme'),
       bottomNavigationBar: const SwanBottomNav(),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 70),
@@ -61,12 +62,6 @@ class _ClosedPeriodReversalScreenState
               120,
             ),
             children: [
-              SwanPageHeader(
-                title: 'Ters İşlem ve Düzeltme',
-                subtitle: 'Kapanmış dönem denetim düzeltmeleri',
-                onBack: () => Navigator.maybePop(context),
-              ),
-              const SizedBox(height: SwanSpace.md),
               _buildExplanationCard(c),
               const SizedBox(height: SwanSpace.md),
               _buildFilterTabs(c),

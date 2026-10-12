@@ -6,7 +6,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 class MedicalCenterScreen extends ConsumerWidget {
   const MedicalCenterScreen({super.key});
@@ -17,6 +17,7 @@ class MedicalCenterScreen extends ConsumerWidget {
     final board = ref.watch(eligibilityBoardProvider);
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Medikal & Sağlık Merkezi'),
       body: SafeArea(
           child: Center(
               child: ConstrainedBox(
@@ -30,10 +31,6 @@ class MedicalCenterScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(
                 SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
             children: [
-              SwanPageHeader(
-                  title: 'Medikal & Sağlık Merkezi',
-                  subtitle: 'Sporcu uygunluk durumu'),
-              const SizedBox(height: SwanSpace.md),
               board.when(
                 loading: premiumLoading,
                 error: (e, _) => premiumError(context, '$e'),

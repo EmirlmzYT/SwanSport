@@ -6,7 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import 'my_training_screen.dart';
 import 'widgets/drill_result_card.dart';
 
@@ -40,6 +40,7 @@ class SessionResultScreen extends ConsumerWidget {
     return Scaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Oturum Sonucu'),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -49,12 +50,6 @@ class SessionResultScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
               children: [
-                SwanPageHeader(
-                  title: 'Oturum sonucu',
-                  subtitle: 'Katılım, skorlar ve antrenör incelemesi',
-                  onBack: () => Navigator.maybePop(context),
-                ),
-                const SizedBox(height: SwanSpace.lg),
                 overview.when(
                   loading: () =>
                       const Center(child: CircularProgressIndicator()),

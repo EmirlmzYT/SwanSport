@@ -9,7 +9,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Finans ve Muhasebe — Bağış ve Dayanışma Kampanyaları (Stitch Calm Athletic Modernism).
 class CampaignsScreen extends ConsumerStatefulWidget {
@@ -31,6 +31,18 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(
+        context,
+        title: 'Dayanışma & Fon',
+        actions: [
+          if (club != null)
+            IconButton(
+              tooltip: 'Kampanya aç',
+              icon: Icon(Icons.add_rounded, color: c.inkMuted),
+              onPressed: _create,
+            ),
+        ],
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -38,19 +50,6 @@ class _CampaignsScreenState extends ConsumerState<CampaignsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
-                  child: SwanPageHeader(
-                    title: 'Dayanışma & Fon',
-                    subtitle: 'Kulüp bağış ve gelişim havuzları',
-                    onBack: () => Navigator.maybePop(context),
-                    actions: [
-                      if (club != null)
-                        AddButton(onTap: _create, tooltip: 'Kampanya aç'),
-                    ],
-                  ),
-                ),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {

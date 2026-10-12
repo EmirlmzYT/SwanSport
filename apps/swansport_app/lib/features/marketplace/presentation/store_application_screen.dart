@@ -5,7 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Mağaza başvurusu ve durumu.
 ///
@@ -47,6 +47,7 @@ class _StoreApplicationScreenState
 
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Mağaza Başvurusu'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -54,13 +55,6 @@ class _StoreApplicationScreenState
             child: ListView(
               padding: const EdgeInsets.all(SwanSpace.lg),
               children: [
-                SwanPageHeader(
-                  title: 'Mağaza',
-                  subtitle: 'Sıfır ürün satışı için mağaza başvurusu',
-                  onBack: () => Navigator.maybePop(context),
-                ),
-                const SizedBox(height: SwanSpace.xl),
-
                 // Mevcut başvurular önce: kullanıcı ikinci kez başvurmadan
                 // önce ilkinin ne durumda olduğunu görsün.
                 if (stores.isNotEmpty) ...[

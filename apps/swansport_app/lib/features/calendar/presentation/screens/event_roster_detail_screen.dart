@@ -6,7 +6,7 @@ import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/widgets/swan_page_header.dart';
+import '../../../../app/widgets/swan_module_app_bar.dart';
 
 class EventRosterDetailScreen extends ConsumerWidget {
   const EventRosterDetailScreen(
@@ -28,6 +28,7 @@ class EventRosterDetailScreen extends ConsumerWidget {
     final isStaff = ref.watch(swanAccessProvider).isClubStaff;
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Etkinlik Detayı'),
       body: SafeArea(
           child: Center(
               child: ConstrainedBox(
@@ -42,8 +43,6 @@ class EventRosterDetailScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(
                 SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
             children: [
-              const SwanPageHeader(title: 'Etkinlik Detayı'),
-              const SizedBox(height: SwanSpace.md),
               events.when(
                 loading: premiumLoading,
                 error: (e, _) => premiumError(context, '$e'),

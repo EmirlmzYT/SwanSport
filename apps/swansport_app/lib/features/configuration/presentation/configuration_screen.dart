@@ -7,7 +7,8 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import 'configuration_module_args.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -37,6 +38,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: bg,
+      appBar: swanModuleAppBar(context, title: 'Yapılandırma'),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -61,11 +63,6 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                       children: [
-                        SwanPageHeader(
-                          title: 'Yapılandırma',
-                          subtitle: identity?.name ?? club.name,
-                        ),
-                        const SizedBox(height: 18),
                         _identityCard(isDark, ink, identity),
                         const SizedBox(height: 22),
                         _membersSection(isDark, ink),

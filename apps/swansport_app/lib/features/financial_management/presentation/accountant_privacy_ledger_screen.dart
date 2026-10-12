@@ -6,7 +6,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Reads exclusively through acc_ledger; athlete names are never requested.
 class AccountantPrivacyLedgerScreen extends ConsumerStatefulWidget {
@@ -30,6 +30,7 @@ class _LedgerState extends ConsumerState<AccountantPrivacyLedgerScreen> {
     final page = ref.watch(clubLedgerPageProvider(_offset));
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Muhasebeci Defteri'),
       body: SafeArea(
           child: Center(
               child: ConstrainedBox(
@@ -43,10 +44,6 @@ class _LedgerState extends ConsumerState<AccountantPrivacyLedgerScreen> {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
               children: [
-                SwanPageHeader(
-                    title: 'Muhasebeci defteri',
-                    subtitle: club?.name ?? 'Kulüp seçilmedi'),
-                const SizedBox(height: SwanSpace.md),
                 Text('Sporcu kimlikleri sunucuda maskelenir.',
                     style: SwanType.bodySm(c.inkMuted)),
                 const SizedBox(height: SwanSpace.md),

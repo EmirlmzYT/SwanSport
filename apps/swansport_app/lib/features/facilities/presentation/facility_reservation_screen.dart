@@ -6,7 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Kulüp tesisleri ve sahalar için rezervasyon & takvim tahsisi ekranı.
 ///
@@ -181,6 +181,7 @@ class _FacilityReservationScreenState
     return Scaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Tesis Rezervasyonu'),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -203,12 +204,6 @@ class _FacilityReservationScreenState
                   120,
                 ),
                 children: [
-                  SwanPageHeader(
-                    title: 'Tesis Rezervasyonu',
-                    subtitle: 'Saha, kort ve antrenman alanı tahsisi',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
-                  const SizedBox(height: SwanSpace.md),
                   clubAsync.when(
                     loading: () => const Center(
                       child: Padding(

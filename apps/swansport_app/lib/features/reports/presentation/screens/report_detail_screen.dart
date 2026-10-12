@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
-import '../../../../app/widgets/swan_page_header.dart';
+import '../../../../app/widgets/swan_module_app_bar.dart';
 import '../../application/reports_controller.dart';
 import '../routing/report_detail_args.dart';
 
@@ -26,17 +26,12 @@ class ReportDetailScreen extends ConsumerWidget {
     final c = context.swan;
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Rapor Ayrıntısı'),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(
               SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xl),
           children: [
-            SwanPageHeader(
-              title: 'Rapor ayrıntısı',
-              subtitle: report.category.displayName,
-              onBack: () => Navigator.maybePop(context),
-            ),
-            const SizedBox(height: SwanSpace.lg),
             Text(
               report.title,
               key: const Key('report-detail-title'),

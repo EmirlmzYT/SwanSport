@@ -4,7 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
-import '../../../../app/widgets/swan_page_header.dart';
+import '../../../../app/widgets/swan_module_app_bar.dart';
 import '../widgets/development_report_export.dart';
 
 class DevelopmentReportScreen extends ConsumerStatefulWidget {
@@ -46,16 +46,13 @@ class _DevelopmentReportScreenState
         ref.watch(featureEnabledProvider(FeatureFlags.developmentReport));
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Dönem Gelişim Raporu'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                SwanPageHeader(
-                  title: 'Dönem Gelişim Raporu',
-                  onBack: () => Navigator.maybePop(context),
-                ),
                 Expanded(
                   child: !enabled
                       ? Center(

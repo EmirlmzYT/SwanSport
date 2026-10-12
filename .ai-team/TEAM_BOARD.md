@@ -4,6 +4,8 @@ Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
+2026-10-12: İlanlar (/ilanlar), İlan Ver (/ilan-ver), Mağaza Başvurusu (/magaza-basvuru), Dayanışma & Fon (/bagis), Tesisler (/facilities), Tesis Rezervasyonu (/rezervasyon), Saha İşlemlerim (/saha-islemlerim), Bağlantılar (/baglantilar), Gizlilik (/gizlilik), Veli İşlem Merkezi (/veli-izinleri), Davet Kodu (/veli-bagla), Medikal Merkez (/medical-center), Ekipman Tuning (/ekipman-tuning), Ters İşlem (/ters-islem), Muhasebeci Defteri (/muhasebeci-defter), Oturum Sonucu (/antrenman-sonuc), İleti Ayrıntısı, Etkinlik Detayı (/etkinlik-detay), Raporlar (/reports), Rapor Ayrıntısı, Dönem Gelişim Raporu, Kullanıcı Ayrıntısı ve Yapılandırma (/configuration) dahil tüm ikincil ekranlar Partner Bul tarzı swanModuleAppBar standardına geçirildi. Uygulama genelinde SwanPageHeader kullanımı sıfırlandı. 42 ekran regresyon testi eklendi. SSS 39/39, push 40/40 ve SQL 5/5 geçti. v0.5.5+30 ve konsol 0.2.0+9 hazırlandı.
+
 2026-10-12: document_vault_screen içindeki eksik swan_shape.dart importu giderildi (CI derleme hatası: Not a constant expression SwanSpace.md). v0.5.5+29 ve konsol 0.2.0+8 olarak yayımlandı. 21 ekranda token importları doğrulandı. SSS 39/39, push 40/40 ve SQL 5/5 geçti. Tag v0.5.5+29 gönderildi; APK/IPA derlemeleri izleniyor. Writer serbest; canlı SQL/manuel deploy yok.
 
 2026-10-12: Partner Bul header standardizasyonu B/C/D ekranlarında devralındı. A grubu korunur; mevcut sekme/aksiyon/geri/rota yetkileri bozulmadan AppBar standardı uygulanır. Canlı yayın yok.

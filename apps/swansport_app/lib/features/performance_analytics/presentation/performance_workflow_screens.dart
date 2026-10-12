@@ -4,7 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../application/performance_controller.dart';
 import '../domain/performance_analytics.dart';
 import 'performance_route_args.dart';
@@ -319,6 +319,7 @@ class _Workspace extends StatelessWidget {
     final c = context.swan;
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: title),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -332,12 +333,6 @@ class _Workspace extends StatelessWidget {
                 SwanSpace.xl,
               ),
               children: [
-                SwanPageHeader(
-                  title: title,
-                  subtitle: 'Performans ve gelişim ayrıntıları',
-                  onBack: () => Navigator.maybePop(context),
-                ),
-                const SizedBox(height: SwanSpace.md),
                 for (final section in sections.entries)
                   Container(
                     margin: const EdgeInsets.only(bottom: SwanSpace.md),

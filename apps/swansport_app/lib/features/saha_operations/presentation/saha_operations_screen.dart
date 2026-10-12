@@ -6,7 +6,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../courts/presentation/claim_sheet.dart';
 import '../../turf/presentation/turf_field_detail_screen.dart';
 
@@ -139,16 +139,13 @@ class _SahaOperationsScreenState extends ConsumerState<SahaOperationsScreen> {
     });
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Saha İşlemlerim'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                SwanPageHeader(
-                  title: 'Saha İşlemlerim',
-                  onBack: () => Navigator.maybePop(context),
-                ),
                 Expanded(
                   child: (!queue && !duty) || _sessionChanged
                       ? Center(

@@ -8,7 +8,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Davet kodu girişi.
 ///
@@ -43,6 +43,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
 
     return Scaffold(
       backgroundColor: bg,
+      appBar: swanModuleAppBar(context, title: 'Davet Kodu'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -50,12 +51,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
               children: [
-                SwanPageHeader(
-                  title: 'Davet kodu',
-                  subtitle: 'Sporcu veya kulüp tarafından verilen kodu gir',
-                  onBack: () => Navigator.maybePop(context),
-                ),
-                const SizedBox(height: 22),
+                const SizedBox(height: 10),
                 TextField(
                   controller: _ctrl,
                   textCapitalization: TextCapitalization.characters,

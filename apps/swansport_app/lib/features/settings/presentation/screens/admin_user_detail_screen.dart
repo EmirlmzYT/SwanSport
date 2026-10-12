@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
-import '../../../../app/widgets/swan_page_header.dart';
+import '../../../../app/widgets/swan_module_app_bar.dart';
 import '../../application/administration_controller.dart';
 import '../../domain/administration.dart';
 import '../routing/admin_user_detail_args.dart';
@@ -30,17 +30,12 @@ class AdminUserDetailScreen extends ConsumerWidget {
     final c = context.swan;
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Kullanıcı Ayrıntısı'),
       body: SafeArea(
           child: ListView(
         padding: const EdgeInsets.fromLTRB(
             SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xl),
         children: [
-          SwanPageHeader(
-            title: 'Kullanıcı ayrıntısı',
-            subtitle: user.role.name,
-            onBack: () => Navigator.maybePop(context),
-          ),
-          const SizedBox(height: SwanSpace.lg),
           Text(
             user.name,
             key: const Key('admin-user-detail-name'),

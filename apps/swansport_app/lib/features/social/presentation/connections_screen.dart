@@ -9,7 +9,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import 'widgets/social_widgets.dart';
 
 /// Takipçiler / takip edilenler / kulüp üyeleri listesi (Stitch Calm Athletic Modernism).
@@ -85,6 +85,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
     return Scaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: widget.title ?? 'Bağlantılar'),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -92,16 +93,6 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xs),
-                  child: SwanPageHeader(
-                    title: widget.title ?? 'Bağlantılar',
-                    subtitle: 'Takipçileri ve spor ağını yönet',
-                    onBack: () => Navigator.maybePop(context),
-                  ),
-                ),
-
                 // Search Bar
                 Padding(
                   padding: const EdgeInsets.symmetric(

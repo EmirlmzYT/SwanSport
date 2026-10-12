@@ -5,7 +5,8 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
-import '../../../../app/widgets/swan_page_header.dart';
+import '../../../../app/widgets/swan_module_app_bar.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
 
@@ -31,6 +32,7 @@ class ReportsScreen extends ConsumerWidget {
     return Scaffold(
       extendBody: true,
       backgroundColor: bg,
+      appBar: swanModuleAppBar(context, title: 'Raporlar'),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -53,12 +55,6 @@ class ReportsScreen extends ConsumerWidget {
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                       children: [
-                        SwanPageHeader(
-                          title: 'Raporlar',
-                          subtitle: '${club.name} · Kulüp görünümü',
-                        ),
-                        const SizedBox(height: 18),
-
                         // ---------------------------------------- kadro
                         _section(ink, 'KADRO'),
                         _statCard(isDark, ink, [

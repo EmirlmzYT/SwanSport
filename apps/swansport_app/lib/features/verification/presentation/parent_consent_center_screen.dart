@@ -5,7 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../documents/presentation/screens/document_vault_screen.dart';
 import '../../support/presentation/support_screen.dart';
 
@@ -34,16 +34,13 @@ class _ParentConsentCenterScreenState
     final enabled = ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'Veli İşlem Merkezi'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                SwanPageHeader(
-                  title: 'Veli İşlem Merkezi',
-                  onBack: () => Navigator.maybePop(context),
-                ),
                 Expanded(
                   child: !enabled
                       ? Center(

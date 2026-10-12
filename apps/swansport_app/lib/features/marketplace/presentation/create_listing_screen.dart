@@ -7,7 +7,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_chip.dart';
-import '../../../app/widgets/swan_page_header.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 
 /// Pazaryeri ilanı oluşturma.
 ///
@@ -70,16 +70,16 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
 
     return Scaffold(
       backgroundColor: c.bg,
+      appBar: swanModuleAppBar(context, title: 'İlan Ver'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              _header(),
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.xl),
+                      SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xl),
                   children: [
                     _sellerSection(c, approved),
                     _section(c, 'Ürün'),
@@ -151,16 +151,6 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
   }
 
   // ------------------------------------------------------------- parçalar
-
-  Widget _header() => Padding(
-        padding: const EdgeInsets.fromLTRB(
-            SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.md),
-        child: SwanPageHeader(
-          title: 'İlan ver',
-          subtitle: 'Ürün bilgilerini eksiksiz ve doğru gir',
-          onBack: () => Navigator.maybePop(context),
-        ),
-      );
 
   Widget _sellerSection(SwanPalette c, List<StoreRow> approved) {
     if (approved.isEmpty) {

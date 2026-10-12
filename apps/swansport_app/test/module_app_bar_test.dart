@@ -6,7 +6,7 @@ import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
-  test('all 20 opted-in screens use the standard Scaffold AppBar', () {
+  test('all 42 opted-in screens use the standard Scaffold AppBar', () {
     const titles = {
       'venues': 'Sahalar & Kortlar', 'marketplace': 'Pazaryeri',
       'discover': 'Kulüpler & Akademiler', 'coach_discovery': 'Antrenör Bul',
@@ -18,6 +18,17 @@ void main() {
       'nutrition_tracker': 'Beslenme Günlüğü', 'readiness_rpe': 'Hazırbulunuşluk & RPE',
       'help': 'Yardım & SSS', 'support': 'Destek Talepleri',
       'notifications': 'Bildirimler', 'saved_posts': 'Kaydedilen Gönderiler',
+      'listings': 'İlanlar', 'create_listing': 'İlan Ver',
+      'store_application': 'Mağaza Başvurusu', 'campaigns': 'Dayanışma & Fon',
+      'facility_management': 'Tesisler', 'facility_reservation': 'Tesis Rezervasyonu',
+      'saha_operations': 'Saha İşlemlerim', 'privacy': 'Gizlilik ve Güvenlik',
+      'parent_consent_center': 'Veli İşlem Merkezi', 'guardian_link': 'Davet Kodu',
+      'medical_center': 'Medikal & Sağlık Merkezi', 'equipment_tuning': 'Ekipman ve Kalibrasyon',
+      'closed_period_reversal': 'Ters İşlem ve Düzeltme', 'accountant_privacy_ledger': 'Muhasebeci Defteri',
+      'session_result': 'Oturum Sonucu', 'communication_detail': 'İleti Ayrıntısı',
+      'event_roster_detail': 'Etkinlik Detayı', 'reports': 'Raporlar',
+      'report_detail': 'Rapor Ayrıntısı', 'development_report': 'Dönem Gelişim Raporu',
+      'admin_user_detail': 'Kullanıcı Ayrıntısı', 'configuration': 'Yapılandırma',
     };
     final files = Directory('lib/features').listSync(recursive: true).whereType<File>().toList();
     for (final entry in titles.entries) {
