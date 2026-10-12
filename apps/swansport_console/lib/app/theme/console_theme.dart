@@ -52,6 +52,7 @@ class ConsoleDensity {
   static const double dashboardQueueMinWidth = 420;
   static const double dashboardActionMinWidth = 280;
   static const double dashboardKpiHeight = 260;
+  static const double logoPreviewSize = 80;
 }
 
 class ConsoleTheme {

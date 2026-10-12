@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -108,6 +109,22 @@ class PlatformMissionControlService {
   PlatformMissionControlService(this._client, {this.onWrite});
   final SupabaseClient _client;
   final void Function()? onWrite;
+  /// Public asset upload only. Publishing the URL remains a separate,
+  /// audited branding save; abandoning a draft does not overwrite branding.
+  Future<String> uploadBrandLogo({required Uint8List bytes, required String name, required String mimeType}) async {
+    final uid = _client.auth.currentUser?.id;
+    if (uid == null) throw StateError('Logo yüklemek için giriş gerekli');
+    final ext = name.split('.').last.toLowerCase();
+    const types = {'png': 'image/png', 'jpg': 'image/jpeg', 'jpeg': 'image/jpeg', 'webp': 'image/webp', 'svg': 'image/svg+xml'};
+    final type = types[ext];
+    if (type == null || (mimeType.isNotEmpty && mimeType != type) || bytes.isEmpty || bytes.length > 5 * 1024 * 1024) {
+      throw ArgumentError('PNG, JPG, WebP veya SVG; en fazla 5 MB seçin');
+    }
+    final path = '$uid/branding/logo_${DateTime.now().microsecondsSinceEpoch}.$ext';
+    await _client.storage.from('post-media').uploadBinary(path, bytes,
+      fileOptions: FileOptions(contentType: type, upsert: false));
+    return _client.storage.from('post-media').getPublicUrl(path);
+  }
   Future<PlatformConfig> config() async => PlatformConfig.fromMap(
       Map<String, dynamic>.from(await _client.rpc('get_public_platform_config') as Map));
   Future<List<PlatformPlan>> plans() async {

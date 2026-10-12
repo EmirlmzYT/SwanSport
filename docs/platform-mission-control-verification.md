@@ -4,6 +4,17 @@ Yerel backend/veri temeli; ekran, abonelik satışı veya canlı yayın içermez
 
 ## 2026-10-12 — İstemci entegrasyonu
 
+Logo devamı: console-owned 80x80 preview, PNG/JPG/WebP/SVG cihaz seçici ve
+opsiyonel HTTPS alanı. `dart.library.js_interop` VM stub/web ayrımı kullanılır;
+web FileReader/cancel/focus listener ve timer'ları bitişte temizlenir.
+Storage yüklemesi ortak veri servisindedir: gerçek uid klasörü, en fazla 5 MB,
+bilinen uzantı/MIME ve çakışmada ezmeyen benzersiz dosya yolu. Yüklenen logo
+önce taslaktır; Kaydet branding'i yayımlar. Kaldırma Storage dosyasını silmez.
+SVG preview için `flutter_svg` konsol bağımlılığı eklendi; SDK yokken pub get
+ve lockfile çözümlemesi yapılamadı. Dört yeni picker/logo testi hazır; VM/web
+derleme, widget runtime ve gerçek Storage upload/cihaz file-dialog UAT açık.
+İstenen SSS/push ve `node tools/platform_mission_control_sql_test.mjs` 5/5 geçti.
+
 Bu bölüm önceki backend fazının üzerine eklenen UI kapsamını anlatır.
 Konsolda `/mission-control` platform-admin modülü ve beş sekme hazır:
 marka/duyuru, komisyonlar, plan düzenleme/ekleme/aktiflik, şalterler/bayraklar,

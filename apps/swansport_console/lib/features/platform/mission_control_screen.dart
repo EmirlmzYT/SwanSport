@@ -3,11 +3,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app/modules/console_module.dart';
 import '../../app/shell/too_narrow_notice.dart';
 import '../../app/theme/console_theme.dart';
+import '../../app/media/image_picker.dart';
 import 'diagnostics_screen.dart';
+
+final missionLogoPickerProvider = Provider<Future<PickedImageFile?> Function()>((_) => pickImageFile);
 
 class MissionControlScreen extends ConsumerStatefulWidget {
   const MissionControlScreen({super.key});
@@ -138,7 +142,24 @@ class _SettingFormState extends ConsumerState<_SettingForm> with AutomaticKeepAl
   late final Map<String, bool> _switches = {for (final key in widget.switches.keys) key: widget.value[key] == true};
   late String _severity = ['info', 'warning', 'danger'].contains(widget.value['severity']) ? widget.value['severity'] as String : 'info';
   bool _busy = false;
+  bool _logoBusy = false;
   String? _status;
+  Future<void> _uploadLogo() async {
+    if (_busy || _logoBusy || !ref.read(consoleAccessProvider).isPlatformAdmin) return;
+    setState(() { _logoBusy = true; _status = null; });
+    try {
+      final file = await ref.read(missionLogoPickerProvider)();
+      if (file == null || !mounted) return;
+      if (!ref.read(consoleAccessProvider).isPlatformAdmin) return;
+      final url = await ref.read(platformMissionControlServiceProvider)
+        .uploadBrandLogo(bytes: file.bytes, name: file.name, mimeType: file.mimeType);
+      if (!mounted) return;
+      _controllers['logo_url']!.text = url;
+      setState(() => _status = 'Logo yüklendi. Yayımlamak için Kaydet’e bas.');
+    } catch (_) {
+      if (mounted) setState(() => _status = 'Logo yüklenemedi. PNG/JPG/WebP/SVG ve en fazla 5 MB seçin; erişiminizi kontrol edin.');
+    } finally { if (mounted) setState(() => _logoBusy = false); }
+  }
   @override
   bool get wantKeepAlive => true;
   @override
@@ -159,7 +180,11 @@ class _SettingFormState extends ConsumerState<_SettingForm> with AutomaticKeepAl
     return null;
   }
   Future<void> _save() async {
-    if (_busy || !_form.currentState!.validate()) return;
+    if (_busy || _logoBusy || !_form.currentState!.validate()) return;
+    final logo = _controllers['logo_url'];
+    if (logo != null && _validate(const _Field('logo_url', 'Logo URL', kind: 'url'), logo.text) != null) {
+      setState(() => _status = 'Geçerli HTTPS logo adresi gir'); return;
+    }
     if (!ref.read(consoleAccessProvider).isPlatformAdmin) return;
     final data = <String, dynamic>{...widget.value, ..._switches};
     for (final field in widget.fields) {
@@ -190,17 +215,62 @@ class _SettingFormState extends ConsumerState<_SettingForm> with AutomaticKeepAl
           items: [for (final value in ['info', 'warning', 'danger']) DropdownMenuItem(value: value, child: Text(value))],
           onChanged: _busy ? null : (v) => setState(() => _severity = v!)),
         for (final field in widget.fields) Padding(padding: const EdgeInsets.only(top: ConsoleDensity.md),
-          child: TextFormField(controller: _controllers[field.key], enabled: !_busy,
+          child: field.key == 'logo_url' ? _LogoField(controller: _controllers[field.key]!,
+            enabled: !_busy && !_logoBusy, loading: _logoBusy, onUpload: _uploadLogo,
+            validator: (value) => _validate(field, value)) : TextFormField(controller: _controllers[field.key], enabled: !_busy && !_logoBusy,
             minLines: field.kind == 'message' ? 2 : 1, maxLines: field.kind == 'message' ? 4 : 1,
             keyboardType: ['money', 'rate'].contains(field.kind) ? const TextInputType.numberWithOptions(decimal: true) : TextInputType.text,
             decoration: InputDecoration(labelText: field.label), validator: (value) => _validate(field, value))),
         const SizedBox(height: ConsoleDensity.lg),
         if (_status != null) Semantics(liveRegion: true, child: Text(_status!)),
-        FilledButton.icon(onPressed: _busy ? null : _save,
+        FilledButton.icon(onPressed: _busy || _logoBusy ? null : _save,
           icon: _busy ? const SizedBox(width: ConsoleDensity.lg, height: ConsoleDensity.lg, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save_outlined),
           label: Text(widget.section == 'commissions' ? 'Komisyonları Güncelle' : 'Kaydet')),
       ]))));
   }
+}
+
+class _LogoField extends StatelessWidget {
+  const _LogoField({required this.controller, required this.enabled,
+    required this.loading, required this.onUpload, required this.validator});
+  final TextEditingController controller;
+  final bool enabled, loading;
+  final VoidCallback onUpload;
+  final String? Function(String?) validator;
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<TextEditingValue>(
+    valueListenable: controller, builder: (context, value, _) {
+      final url = value.text.trim();
+      final uri = Uri.tryParse(url);
+      final valid = uri != null && uri.scheme == 'https' && uri.hasAuthority;
+      Widget placeholder() => Icon(Icons.image_outlined, color: Theme.of(context).colorScheme.outline);
+      return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        const Text('Marka Logosu'),
+        const SizedBox(height: ConsoleDensity.sm),
+        Wrap(spacing: ConsoleDensity.lg, runSpacing: ConsoleDensity.sm, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          Container(key: const ValueKey('brand-logo-preview'),
+            width: ConsoleDensity.logoPreviewSize, height: ConsoleDensity.logoPreviewSize,
+            decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
+            clipBehavior: Clip.antiAlias,
+            child: !valid ? placeholder() : uri!.path.toLowerCase().endsWith('.svg')
+              ? SvgPicture.network(url, fit: BoxFit.contain, semanticsLabel: 'Marka logosu',
+                  placeholderBuilder: (_) => placeholder())
+              : Image.network(url, fit: BoxFit.contain, semanticLabel: 'Marka logosu',
+                  errorBuilder: (_, __, ___) => placeholder())),
+          FilledButton.tonalIcon(onPressed: enabled ? onUpload : null,
+            icon: loading ? const SizedBox(width: ConsoleDensity.lg, height: ConsoleDensity.lg,
+              child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.upload_rounded),
+            label: Text(loading ? 'Logo yükleniyor…' : 'Logo Yükle')),
+          if (url.isNotEmpty) TextButton.icon(onPressed: enabled ? controller.clear : null,
+            icon: const Icon(Icons.delete_outline), label: const Text('Logoyu Kaldır')),
+        ]),
+        Text('PNG, JPG, WebP veya SVG · En fazla 5 MB · Kaldırma Kaydet ile uygulanır.', style: Theme.of(context).textTheme.bodySmall),
+        ExpansionTile(tilePadding: EdgeInsets.zero, title: const Text('Manuel Logo URL (opsiyonel)'),
+          children: [TextFormField(key: const ValueKey('brand-logo-url'), controller: controller,
+            enabled: enabled, decoration: const InputDecoration(labelText: 'Logo URL'), validator: validator)]),
+      ]);
+    });
 }
 
 class _PlansPage extends ConsumerStatefulWidget {
