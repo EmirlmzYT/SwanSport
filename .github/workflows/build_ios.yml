@@ -62,6 +62,15 @@ jobs:
             echo 'available=false' >> "$GITHUB_OUTPUT"
             echo 'Apple signing bilgileri eksik; Sideloadly için unsigned IPA üretilecek.'
           fi
+      - name: Configure unsigned build signing
+        working-directory: apps/swansport_app
+        run: |
+          cat > ios/Flutter/Signing.xcconfig <<EOF
+          DEVELOPMENT_TEAM = 0000000000
+          CODE_SIGN_IDENTITY =
+          CODE_SIGNING_REQUIRED = NO
+          CODE_SIGNING_ALLOWED = NO
+          EOF
       - name: Build iOS without codesigning
         working-directory: apps/swansport_app
         env:
