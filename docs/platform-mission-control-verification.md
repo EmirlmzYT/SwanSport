@@ -4,6 +4,17 @@ Yerel backend/veri temeli; ekran, abonelik satışı veya canlı yayın içermez
 
 ## 2026-10-12 — İstemci entegrasyonu
 
+Dinamik marka devamı: konsol sidebar/login, mobil feed header ve bakım başlığı
+public config'i dinler. İsim trim edilir; boş ayarda SwanSport korunur.
+Ortak `SwanNetworkLogo` sabit, uygulama-token ölçülü raster/SVG alanı sağlar;
+HTTPS dışı/eksik URL ve yükleme/decode hatasında fallback gösterilir. Mobilde
+SwanRadius.xs bulunmadığı için mevcut sm jetonu kullanıldı. Kalkan/header
+eylemleri ve genişlik/rol kuralları değiştirilmedi. 8 yeni marka/logo testi
+hazır; SSS 39/39, push 40 ve SQL 5/5 geçti. 10 Dart syntax OK, diff temiz.
+flutter_svg 2.3 errorBuilder API'si ortak tasarım sistemine eklendi; SDK yokken
+pub get/lockfile, widget/derleme ve görsel QA yapılmadı. Bu sürümde yeni
+bağımlılıklar çözülmeden build başarı iddiası yoktur.
+
 Logo devamı: console-owned 80x80 preview, PNG/JPG/WebP/SVG cihaz seçici ve
 opsiyonel HTTPS alanı. `dart.library.js_interop` VM stub/web ayrımı kullanılır;
 web FileReader/cancel/focus listener ve timer'ları bitişte temizlenir.

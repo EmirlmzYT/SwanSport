@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_design_system/swansport_design_system.dart' show SwanNetworkLogo;
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
@@ -14,6 +15,10 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
+    final config = ref.watch(platformConfigProvider).valueOrNull;
+    final name = config?.appName?.trim();
+    final appName = name == null || name.isEmpty ? 'SwanSport' : name;
+    final logoUrl = config?.logoUrl?.trim();
     final hasAccount = ref.watch(swanAccessProvider).hasAccount;
     final notifications = hasAccount ? ref.watch(unreadNotificationsProvider).valueOrNull ?? 0 : 0;
     final messages = hasAccount ? ref.watch(unreadMessagesProvider).valueOrNull ?? 0 : 0;
@@ -23,7 +28,12 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
         padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
         child: Row(children: [
           Expanded(child: Row(mainAxisSize: MainAxisSize.min, children: [
-            Flexible(child: Text('SwanSport', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.wordmark(c.ink))),
+            if (logoUrl != null && logoUrl.isNotEmpty)
+              Padding(padding: const EdgeInsets.only(right: SwanSpace.sm),
+                child: ClipRRect(borderRadius: BorderRadius.circular(SwanRadius.sm),
+                  child: SwanNetworkLogo(url: logoUrl, size: SwanSpace.xl,
+                    semanticLabel: appName, fallback: const SizedBox.shrink()))),
+            Flexible(child: Text(appName, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.wordmark(c.ink))),
             const SizedBox(width: SwanSpace.xs),
             ExcludeSemantics(child: Icon(Icons.circle, size: SwanSpace.sm, color: c.accent)),
           ])),

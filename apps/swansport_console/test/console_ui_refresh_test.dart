@@ -34,6 +34,27 @@ class _AccountFake extends Fake implements AccountSessionService {
 }
 
 void main() {
+  testWidgets('shell and login consume configured branding', (tester) async {
+    tester.view.physicalSize = const Size(1400, 1000); tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
+    Widget wrap(Widget child) => ProviderScope(overrides: [
+      platformConfigProvider.overrideWith((_) async => PlatformConfig.fromMap({'branding': {
+        'app_name': 'Özel Kulüp', 'logo_url': 'https://example.com/logo.png'}})),
+      consoleAccessProvider.overrideWithValue(_accountant),
+      activeClubProvider.overrideWith((_) async => _club),
+      myClubsProvider.overrideWith((_) async => [_club]),
+      currentProfileProvider.overrideWith((_) async => const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
+      authSessionProvider.overrideWith((_) => Stream.value(null)),
+    ], child: MaterialApp(theme: ConsoleTheme.dark(), home: child));
+    await tester.pumpWidget(wrap(const ConsoleShell(route: '/', child: Text('Content'))));
+    await tester.pumpAndSettle(); expect(find.text('Özel Kulüp'), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+    expect((tester.widget<Image>(find.byType(Image)).image as NetworkImage).url, 'https://example.com/logo.png');
+    await tester.pumpWidget(wrap(const ConsoleLoginScreen())); await tester.pumpAndSettle();
+    expect(find.text('Özel Kulüp Konsol'), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
   setUp(() => GoogleFonts.config.allowRuntimeFetching = false);
 
   void size(WidgetTester tester, double width) {

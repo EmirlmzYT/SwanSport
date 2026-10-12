@@ -73,6 +73,9 @@ class _Sidebar extends ConsumerWidget {
     final t = Theme.of(context);
     final visible = kConsoleModules.where((m) => m.visibleTo(access)).toList();
     final club = ref.watch(activeClubProvider).valueOrNull;
+    final config = ref.watch(platformConfigProvider).valueOrNull;
+    final name = config?.appName?.trim();
+    final appName = name == null || name.isEmpty ? 'SwanSport' : name;
 
     // Kitleye göre grupla — kulüp işleri ile platform işleri karışmasın.
     //
@@ -110,12 +113,14 @@ class _Sidebar extends ConsumerWidget {
                     decoration: BoxDecoration(
                       color: t.colorScheme.primary.withValues(alpha: .12),
                       borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
-                    child: Icon(Icons.shield_moon_rounded,
-                      color: t.colorScheme.primary, size: 22)),
+                    child: Tooltip(message: appName, child: SwanNetworkLogo(
+                      url: config?.logoUrl, size: ConsoleDensity.brandMarkSize, semanticLabel: appName,
+                      fallback: Icon(Icons.shield_moon_rounded,
+                        color: t.colorScheme.primary, size: ConsoleDensity.brandMarkSize)))),
                   if (!collapsed) ...[
                     const SizedBox(width: ConsoleDensity.sm),
                     Expanded(
-                      child: Text('SwanSport',
+                      child: Text(appName,
                           style: t.textTheme.titleMedium,
                           overflow: TextOverflow.ellipsis),
                     ),

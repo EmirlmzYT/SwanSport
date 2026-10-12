@@ -5,6 +5,7 @@ import 'package:swansport_app/features/social/presentation/widgets/platform_noti
 import 'package:swansport_app/features/social/presentation/feed_screen.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_app/features/social/presentation/widgets/stitch_feed_widgets.dart';
 
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
@@ -35,7 +36,7 @@ void main() {
     tester.view.physicalSize = const Size(320, 700); tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
     var retries = 0;
-    await tester.pumpWidget(MaterialApp(home: PlatformMaintenanceNotice(message: 'Planlı bakım', onRetry: () => retries++)));
+    await tester.pumpWidget(ProviderScope(child: MaterialApp(home: PlatformMaintenanceNotice(message: 'Planlı bakım', onRetry: () => retries++))));
     await tester.tap(find.text('Durumu yeniden kontrol et'));
     expect(retries, 1); expect(tester.takeException(), isNull);
   });
@@ -50,6 +51,28 @@ void main() {
     await tester.pump(); await tester.pump();
     expect(find.text('SwanSport Bakımda'), findsNothing);
     expect(find.text('Tümü (Keşfet)'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('feed header renders configured name and logo', (tester) async {
+    await tester.pumpWidget(ProviderScope(overrides: [
+      swanAccessProvider.overrideWithValue(SwanAccess.none),
+      platformConfigProvider.overrideWith((_) async => PlatformConfig.fromMap({'branding': {
+        'app_name': 'Özel Kulüp', 'logo_url': 'https://example.com/logo.png'}})),
+    ], child: const MaterialApp(home: Scaffold(body: SizedBox(height: 56, child: StitchFeedTopBar())))));
+    await tester.pumpAndSettle();
+    expect(find.text('Özel Kulüp'), findsOneWidget);
+    expect((tester.widget<Image>(find.byType(Image)).image as NetworkImage).url, 'https://example.com/logo.png');
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('maintenance uses configured name, whitespace name falls back', (tester) async {
+    Future<void> render(String name) async {
+      await tester.pumpWidget(ProviderScope(key: ValueKey(name), overrides: [
+        platformConfigProvider.overrideWith((_) async => PlatformConfig.fromMap({'branding': {'app_name': name}})),
+      ], child: MaterialApp(home: PlatformMaintenanceNotice(message: 'Bakım', onRetry: () {}))));
+      await tester.pumpAndSettle();
+    }
+    await render('Özel Kulüp'); expect(find.text('Özel Kulüp Bakımda'), findsOneWidget);
+    await render('   '); expect(find.text('SwanSport Bakımda'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

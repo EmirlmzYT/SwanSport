@@ -48,6 +48,9 @@ class _ConsoleLoginScreenState extends ConsumerState<ConsoleLoginScreen> {
     if (MediaQuery.sizeOf(context).width < ConsoleDensity.minSupportedWidth) {
       return const TooNarrowNotice();
     }
+    final config = ref.watch(platformConfigProvider).valueOrNull;
+    final name = config?.appName?.trim();
+    final appName = name == null || name.isEmpty ? 'SwanSport' : name;
     return Scaffold(body: Row(children: [
       Expanded(flex: 45, child: Container(
         height: double.infinity,
@@ -58,9 +61,11 @@ class _ConsoleLoginScreenState extends ConsumerState<ConsoleLoginScreen> {
         child: Center(child: SingleChildScrollView(
           padding: const EdgeInsets.all(ConsoleDensity.xxl),
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Icon(Icons.shield_moon_rounded, color: SwanColors.darkPrimary, size: 48),
+            SwanNetworkLogo(url: config?.logoUrl, size: ConsoleDensity.loginBrandMarkSize,
+              semanticLabel: appName, fallback: const Icon(Icons.shield_moon_rounded,
+                color: SwanColors.darkPrimary, size: ConsoleDensity.loginBrandMarkSize)),
             const SizedBox(height: ConsoleDensity.xl),
-            Text('SwanSport Konsol', style: t.textTheme.headlineMedium?.copyWith(
+            Text('$appName Konsol', style: t.textTheme.headlineMedium?.copyWith(
                 color: SwanColors.darkText, fontWeight: FontWeight.w700)),
             const SizedBox(height: ConsoleDensity.lg),
             Text('Spor Kulüpleri ve Tesisler İçin Dijital Yönetim Masası',

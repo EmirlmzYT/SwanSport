@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
@@ -37,19 +39,21 @@ class _PlatformBroadcastBannerState extends State<PlatformBroadcastBanner> {
   }
 }
 
-class PlatformMaintenanceNotice extends StatelessWidget {
+class PlatformMaintenanceNotice extends ConsumerWidget {
   const PlatformMaintenanceNotice({super.key, required this.message, required this.onRetry});
   final String message;
   final VoidCallback onRetry;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
+    final name = ref.watch(platformConfigProvider).valueOrNull?.appName?.trim();
+    final appName = name == null || name.isEmpty ? 'SwanSport' : name;
     return Scaffold(backgroundColor: c.bg, body: SafeArea(child: Center(
       child: Padding(padding: const EdgeInsets.all(SwanSpace.xl),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.build_circle_outlined, color: c.accent, size: SwanSpace.xl * 2),
           const SizedBox(height: SwanSpace.lg),
-          Text('SwanSport Bakımda', style: SwanType.h2(c.ink), textAlign: TextAlign.center),
+          Text('$appName Bakımda', style: SwanType.h2(c.ink), textAlign: TextAlign.center),
           const SizedBox(height: SwanSpace.md),
           Text(message, style: SwanType.body(c.inkMuted), textAlign: TextAlign.center),
           const SizedBox(height: SwanSpace.xl),
