@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_models/swansport_models.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/widgets/swan_tabs.dart';
@@ -163,9 +163,9 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
               alignment: Alignment.center,
               decoration: BoxDecoration(
-                color: isSel ? c.accent : c.surface,
+                color: isSel ? c.accentFill : c.surface,
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: isSel ? c.accent : c.line),
+                border: Border.all(color: isSel ? c.accentFill : c.line),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -174,20 +174,20 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                     Container(
                       width: 6,
                       height: 6,
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: context.swan.onAccent,
                         shape: BoxShape.circle,
                       ),
                     ),
                     const SizedBox(width: 6),
                   ],
-                  Text(
+                  Flexible(child: Text(
                     t.name,
-                    style: SwanType.caption(
-                      isSel ? Colors.white : c.inkMuted,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                      isSel ? context.swan.onAccent : c.inkMuted,
                       w: FontWeight.w700,
                     ),
-                  ),
+                  )),
                 ],
               ),
             ),
@@ -253,7 +253,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
         await ref.read(teamRosterProvider(_currentTeamId).future);
       },
       child: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 6, 16, 130),
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, SwanSpace.xl * 5),
         children: [
           // Search Bar
           OfficialTeamRosters(teamId: _currentTeamId),
@@ -334,11 +334,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
             const SizedBox(height: 24),
             Text(
               'Kulüp Sporcuları',
-              style: GoogleFonts.sora(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: c.ink,
-              ),
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 4),
             Text(
@@ -422,7 +418,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                       content: Text('Eklenemedi: $e'),
-                      backgroundColor: Colors.red),
+                      backgroundColor: context.swan.danger),
                 );
               }
             }
@@ -475,12 +471,11 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
 
     return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 130),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
       children: [
         if (upcoming.isNotEmpty) ...[
           Text('Sıradaki Etkinlik',
-              style: GoogleFonts.sora(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: c.ink)),
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           _eventTile(c, upcoming.first),
           const SizedBox(height: 16),
@@ -499,8 +494,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
         if (anns.isNotEmpty) ...[
           const SizedBox(height: 20),
           Text('Duyurular',
-              style: GoogleFonts.sora(
-                  fontSize: 15, fontWeight: FontWeight.w700, color: c.ink)),
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           for (final a in anns.take(2))
             Container(
@@ -545,7 +539,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
           );
         }
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 130),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
           itemCount: mine.length,
           itemBuilder: (_, i) => _eventTile(c, mine[i]),
         );
@@ -576,7 +570,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
         }
 
         return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 130),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
           itemCount: mine.length,
           itemBuilder: (_, i) {
             final r = mine[i];
@@ -601,14 +595,10 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                       ],
                     ),
                   ),
-                  Text(
+                  Flexible(child: Text(
                     '%${r.progress}',
-                    style: GoogleFonts.sora(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: r.progress >= 50 ? c.accent : c.inkMuted,
-                    ),
-                  ),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(r.progress >= 50 ? c.accent : c.inkMuted, w: FontWeight.w800),
+                  )),
                 ],
               ),
             );
@@ -629,8 +619,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: GoogleFonts.sora(
-                    fontSize: 20, fontWeight: FontWeight.w800, color: c.ink)),
+                style: SwanType.h2(c.ink).copyWith(fontWeight: FontWeight.w800)),
             Text(label, style: SwanType.caption(c.inkMuted)),
           ],
         ),

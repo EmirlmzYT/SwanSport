@@ -2,7 +2,6 @@ import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
@@ -41,7 +40,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
     return Scaffold(
       appBar: swanModuleAppBar(context, title: 'Pazaryeri', actions: [
-        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/ilan-ver'), icon: const Icon(Icons.add_box_outlined), label: Text('İlan Ver', style: SwanType.caption(context.swan.accent))),
+        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/ilan-ver'), icon: Icon(Icons.add_box_outlined), label: Text('İlan Ver', style: SwanType.caption(context.swan.accent))),
       ]),
       extendBody: true,
       backgroundColor: palette.bg,
@@ -79,8 +78,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   const SizedBox(height: 14),
 
                   // 5. Club Delivery Info Strip
-                  _buildLockerDeliveryStrip(palette, isDark),
-                  const SizedBox(height: 14),
 
                   // 6. Category Filter Pills
                   _buildCategoryPills(palette),
@@ -154,224 +151,33 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 
   // --- Section Tabs ---
-  Widget _buildOfficialHeroBanner(SwanPalette palette, bool isDark) {
-    return Container(
-      height: 140,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [const Color(0xFF131D2E), const Color(0xFF0C2428)]
-              : [const Color(0xFF004F54), const Color(0xFF00757E)],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: kTeal.withValues(alpha: 0.2),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            right: -15,
-            bottom: -20,
-            child: Icon(
-              Icons.shield_outlined,
-              size: 150,
-              color: Colors.white.withValues(alpha: 0.08),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 5,
-                            height: 5,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Text(
-                            'Yeni Sezon Koleksiyonu',
-                            style: SwanType.caption(Colors.white,
-                                w: FontWeight.w700),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: kTealBright,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: Text(
-                        'Üyelere %20',
-                        style: SwanType.caption(Colors.white,
-                            w: FontWeight.w800),
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Resmi Kulüp Forması ve Rüzgarlık',
-                      style: SwanType.h3(Colors.white),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      'Müsabaka standartlarında nefes alan dry-fit kumaş.',
-                      style: SwanType.caption(
-                          Colors.white.withValues(alpha: 0.85)),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildOfficialHeroBanner(SwanPalette palette, bool isDark) => Container(
+    padding: const EdgeInsets.all(SwanSpace.lg),
+    decoration: BoxDecoration(color: palette.surfaceAlt,
+        borderRadius: BorderRadius.circular(SwanRadius.md)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Mağaza ilanları', style: SwanType.h3(palette.ink)),
+      const SizedBox(height: SwanSpace.sm),
+      Text('Ürün, fiyat ve teslimat bilgilerini ilanın ayrıntılarında incele.',
+          style: SwanType.bodySm(palette.inkMuted)),
+    ]),
+  );
 
   // --- Coach Guarantee Banner for Used Market ---
-  Widget _buildCoachGuaranteeBanner(SwanPalette palette, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: kTeal.withValues(alpha: isDark ? 0.15 : 0.08),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: kTeal.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 38,
-            height: 38,
-            decoration: BoxDecoration(
-              color: kTeal,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.verified_user_rounded,
-                size: 20, color: Colors.white),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      'Başantrenör Doğrulama Garantisi',
-                      style: SwanType.caption(kTeal, w: FontWeight.w800),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      width: 5,
-                      height: 5,
-                      decoration: const BoxDecoration(
-                          color: kTeal, shape: BoxShape.circle),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 3),
-                Text(
-                  'Tüm ikinci el malzemeler tiller dengesi, mikroskobik çatlak ve tork toleransı testinden geçirilerek listelenir.',
-                  style: SwanType.caption(palette.inkMuted),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildCoachGuaranteeBanner(SwanPalette palette, bool isDark) => Container(
+    padding: const EdgeInsets.all(SwanSpace.lg),
+    decoration: BoxDecoration(color: palette.surfaceAlt,
+        borderRadius: BorderRadius.circular(SwanRadius.md)),
+    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('İkinci el ekipmanlar', style: SwanType.h3(palette.ink)),
+      const SizedBox(height: SwanSpace.sm),
+      Text('Ürünün durumunu ve teslimat koşullarını satıcıyla görüşerek doğrula.',
+          style: SwanType.bodySm(palette.inkMuted)),
+    ]),
+  );
 
   // --- Locker Delivery Strip ---
-  Widget _buildLockerDeliveryStrip(SwanPalette palette, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: palette.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: palette.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: palette.surfaceAlt,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: const Icon(Icons.lock_clock_rounded,
-                size: 16, color: kTeal),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Text('Kulüp İçi Doğrudan Teslimat',
-                        style: SwanType.caption(palette.ink,
-                            w: FontWeight.w700)),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 5, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: kTeal.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(4),
-                      ),
-                      child: Text('ÜCRETSİZ',
-                          style:
-                              SwanType.caption(kTeal, w: FontWeight.w800)),
-                    ),
-                  ],
-                ),
-                Text(
-                  'Siparişiniz poligon dolabınıza veya antrenör masasına teslim edilir.',
-                  style: SwanType.caption(palette.inkMuted),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+
 
   // --- Category Filter Pills ---
   Widget _buildCategoryPills(SwanPalette palette) {
@@ -454,10 +260,10 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
         margin: const EdgeInsets.only(right: 8),
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
         decoration: BoxDecoration(
-          color: isSelected ? kTeal : palette.surface,
+          color: isSelected ? context.swan.accentFill : palette.surface,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? kTeal : palette.line,
+            color: isSelected ? context.swan.accentFill : palette.line,
           ),
         ),
         child: Row(
@@ -465,16 +271,16 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           children: [
             if (icon != null) ...[
               Icon(icon,
-                  size: 14, color: isSelected ? Colors.white : palette.inkMuted),
+                  size: 14, color: isSelected ? context.swan.onAccent : palette.inkMuted),
               const SizedBox(width: 4),
             ],
-            Text(
+            Flexible(child: Text(
               label,
-              style: SwanType.caption(
-                isSelected ? Colors.white : palette.inkMuted,
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                isSelected ? context.swan.onAccent : palette.inkMuted,
                 w: isSelected ? FontWeight.w700 : FontWeight.w600,
               ),
-            ),
+            )),
           ],
         ),
       ),
@@ -482,30 +288,11 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 
   // --- Products Header ---
-  Widget _buildProductsHeader(SwanPalette palette) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _storeSection == 0 ? 'Resmi ve Onaylı Ürünler' : 'İkinci El Ekipmanlar',
-              style: SwanType.bodySm(palette.ink, w: FontWeight.w800),
-            ),
-            Text(
-              'Poligon onaylı ve müsabaka standartlarında',
-              style: SwanType.caption(palette.inkMuted),
-            ),
-          ],
-        ),
-        Text(
-          'Tümü',
-          style: SwanType.caption(kTeal, w: FontWeight.w700),
-        ),
-      ],
-    );
-  }
+  Widget _buildProductsHeader(SwanPalette palette) => Text(
+    _storeSection == 0 ? 'Mağaza & Bireysel İlanlar' : 'İkinci El Ekipmanlar',
+    maxLines: 1, overflow: TextOverflow.ellipsis,
+    style: SwanType.h3(palette.ink),
+  );
 
   // --- Product Card ---
   Widget _buildProductCard(
@@ -527,7 +314,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           border: Border.all(color: palette.line),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? 0.15 : 0.02),
+              color: palette.shadow,
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
@@ -555,24 +342,25 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   Positioned(
                     top: 8,
                     left: 8,
+                    right: SwanSpace.xl * 2,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                           horizontal: 6, vertical: 2),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.55),
+                        color: palette.surface.withValues(alpha: .96),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.verified_rounded,
-                              size: 11, color: kTealBright),
+                          Icon(it.isStore ? Icons.storefront_outlined : Icons.person_outline_rounded,
+                              size: 11, color: context.swan.accent),
                           const SizedBox(width: 3),
-                          Text(
-                            it.isStore ? 'Mağaza' : 'Onaylı',
-                            style: SwanType.caption(Colors.white,
+                          Flexible(child: Text(
+                            it.isStore ? 'Mağaza' : 'Bireysel',
+                            maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.ink,
                                 w: FontWeight.w700),
-                          ),
+                          )),
                         ],
                       ),
                     ),
@@ -585,12 +373,12 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                       right: 0,
                       bottom: 0,
                       child: Container(
-                        color: Colors.black.withValues(alpha: .65),
+                        color: palette.surface.withValues(alpha: .96),
                         padding: const EdgeInsets.symmetric(vertical: 4),
                         alignment: Alignment.center,
                         child: Text(
                           it.status.label,
-                          style: SwanType.caption(Colors.white,
+                          style: SwanType.caption(palette.ink,
                               w: FontWeight.w800),
                         ),
                       ),
@@ -608,7 +396,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                       child: Container(
                         padding: const EdgeInsets.all(6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: .45),
+                          color: palette.surface.withValues(alpha: .96),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -616,7 +404,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                               ? Icons.favorite_rounded
                               : Icons.favorite_border_rounded,
                           size: 14,
-                          color: isFav ? SwanPalette.light.danger : Colors.white,
+                          color: isFav ? palette.danger : palette.ink,
                         ),
                       ),
                     ),
@@ -641,19 +429,18 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        it.price == null ? 'Fiyat yok' : money(it.price!),
-                        style: SwanType.bodySm(kTeal, w: FontWeight.w800),
-                      ),
+                      Expanded(child: Text(
+                        it.price == null ? 'Fiyat yok' : money(it.price!), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(context.swan.accent, w: FontWeight.w800),
+                      )),
                       Container(
                         width: 28,
                         height: 28,
                         decoration: BoxDecoration(
-                          color: kTeal.withValues(alpha: 0.12),
+                          color: context.swan.accent.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(8),
                         ),
-                        child: const Icon(Icons.arrow_forward_rounded,
-                            size: 14, color: kTeal),
+                        child: Icon(Icons.arrow_forward_rounded,
+                            size: 14, color: context.swan.accent),
                       ),
                     ],
                   ),

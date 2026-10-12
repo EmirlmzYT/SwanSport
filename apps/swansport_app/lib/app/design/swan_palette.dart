@@ -70,6 +70,14 @@ class SwanPalette {
   /// `swan_contrast_test.dart` bunu yakaladı.
   final Color accentFill;
 
+  /// Dolu aksiyon zemininde kontrastlı metin/ikon.
+  Color get onAccent => light.surface;
+
+  /// Koyu temada gölge yerine yüzey hiyerarşisi kullanılır.
+  Color get shadow => isDark
+      ? bg.withValues(alpha: 0)
+      : light.ink.withValues(alpha: .06);
+
   /// Onay düğmesi zemini — üstünde beyaz metin durur.
   ///
   /// `success` ikon ve etiket rengi; bu onun koyu karşılığı. Beyaz metin
@@ -98,7 +106,8 @@ class SwanPalette {
     inkMuted: Color(0xFF636B77),
     accent: Color(0xFF008C95),
     accentSoft: Color(0x1A008C95),
-    accentFill: Color(0xFF008C95),
+    // Caption boyutundaki beyaz etiketlerde de AA kontrastı (5.39:1).
+    accentFill: Color(0xFF00767E),
     successFill: Color(0xFF047857),
     success: Color(0xFF10B981),
     warning: Color(0xFFD9860B),

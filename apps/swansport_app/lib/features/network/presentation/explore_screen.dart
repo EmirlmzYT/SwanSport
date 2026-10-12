@@ -1,9 +1,7 @@
 import 'guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
@@ -15,7 +13,6 @@ import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_skeleton.dart';
 import '../../social/presentation/widgets/feed_entry.dart';
 import '../../social/presentation/widgets/follow_suggestions.dart';
-import '../../social/presentation/widgets/social_widgets.dart';
 
 /// Keşfet & Arama — Google Stitch Calm Athletic Modernism (Screen 25 & 18).
 ///
@@ -44,7 +41,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(0, 0, 0, 132),
+              padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
               children: [
                 // 1. Üst Bar: Başlık & Bildirim/Mesaj Rozetleri
                 const _StitchExploreHeader(),
@@ -156,7 +153,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.stadium_rounded,
                               title: 'Kortlar & Sahalar',
                               subtitle: 'Sahaları ve müsait saatleri keşfet',
-                              iconColor: kTeal,
+                              iconColor: context.swan.accent,
                               badge: 'Rezervasyon',
                               onTap: () =>
                                   Navigator.pushNamed(context, '/kortlar'),
@@ -168,7 +165,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.handshake_rounded,
                               title: 'Partner bul',
                               subtitle: 'Birlikte oynayacak biri',
-                              iconColor: const Color(0xFF38BDF8),
+                              iconColor: context.swan.accent,
                               badge: 'Eşleş',
                               onTap: () =>
                                   Navigator.pushNamed(context, '/partner-ara'),
@@ -180,7 +177,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.emoji_events_rounded,
                               title: 'Organizasyonlar',
                               subtitle: 'Turnuva, kamp & etkinlik',
-                              iconColor: const Color(0xFFF59E0B),
+                              iconColor: context.swan.warning,
                               badge: 'Turnuva',
                               onTap: () => Navigator.pushNamed(
                                   context, '/organizasyonlar'),
@@ -192,7 +189,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.military_tech_rounded,
                               title: 'Antrenmanlarım',
                               subtitle: 'Kendi antrenman geçmişin',
-                              iconColor: const Color(0xFFEC4899),
+                              iconColor: context.swan.accent,
                               badge: 'Geçmiş',
                               onTap: () => Navigator.pushNamed(
                                   context, '/antrenmanlarim'),
@@ -227,7 +224,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.travel_explore_rounded,
                               title: 'Kulüpler',
                               subtitle: 'İl, ilçe ve branşa göre',
-                              iconColor: const Color(0xFF8B5CF6),
+                              iconColor: context.swan.accent,
                               badge: 'Keşfet',
                               onTap: () =>
                                   Navigator.pushNamed(context, '/kulupler'),
@@ -239,7 +236,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.forum_rounded,
                               title: 'Topluluklar',
                               subtitle: 'Antrenör ve sporcu odaları',
-                              iconColor: const Color(0xFF6366F1),
+                              iconColor: context.swan.accent,
                               badge: 'Sohbet',
                               onTap: () =>
                                   Navigator.pushNamed(context, '/topluluklar'),
@@ -252,7 +249,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 icon: Icons.shield_rounded,
                                 title: 'Takımlar',
                                 subtitle: 'Kadrolar ve takım sayfaları',
-                                iconColor: kTeal,
+                                iconColor: context.swan.accent,
                                 badge: 'Kulüp',
                                 onTap: () =>
                                     Navigator.pushNamed(context, '/teams'),
@@ -289,7 +286,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 icon: Icons.storefront_rounded,
                                 title: 'Pazaryeri',
                                 subtitle: 'Sıfır ve 2. el ekipman',
-                                iconColor: const Color(0xFFF97316),
+                                iconColor: context.swan.warning,
                                 badge: 'Pazar',
                                 onTap: () =>
                                     Navigator.pushNamed(context, '/pazaryeri'),
@@ -303,7 +300,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 icon: Icons.sports_rounded,
                                 title: 'Antrenör bul',
                                 subtitle: 'Onaylı antrenör kadrosu',
-                                iconColor: const Color(0xFF06B6D4),
+                                iconColor: context.swan.accent,
                                 badge: 'Eğitmen',
                                 onTap: () => Navigator.pushNamed(
                                     context, '/antrenor-bul'),
@@ -315,7 +312,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               icon: Icons.campaign_rounded,
                               title: 'İlanlar',
                               subtitle: 'Sporcu, antrenör, seçme',
-                              iconColor: const Color(0xFFEC4899),
+                              iconColor: context.swan.accent,
                               badge: 'Duyuru',
                               onTap: () =>
                                   Navigator.pushNamed(context, '/ilanlar'),
@@ -335,10 +332,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.filter_list_rounded,
-                          size: 17, color: c.inkMuted),
-                      const SizedBox(width: 4),
-                      Text('En yeniler', style: SwanType.caption(c.inkMuted)),
+                      Flexible(child: Text('En yeniler', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.inkMuted))),
                     ],
                   ),
                 ),
@@ -420,11 +414,8 @@ class _ModuleGridCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary =
-        isDark ? const Color(0xFFD6E3FA) : SwanPalette.light.ink;
-    final textMuted =
-        isDark ? const Color(0xFF869491) : SwanColors.textSecondary;
+    final textPrimary = c.ink;
+    final textMuted = c.inkMuted;
     final icCol = iconColor ?? c.accent;
 
     return Semantics(
@@ -443,7 +434,7 @@ class _ModuleGridCard extends StatelessWidget {
               border: Border.all(color: c.line.withValues(alpha: 0.8)),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+                  color: context.swan.shadow,
                   blurRadius: 8,
                   offset: const Offset(0, 2),
                 ),
@@ -478,11 +469,7 @@ class _ModuleGridCard extends StatelessWidget {
                             badge!,
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 9,
-                              fontWeight: FontWeight.w800,
-                              color: icCol,
-                            ),
+                            style: SwanType.caption(icCol, w: FontWeight.w800),
                           ),
                         ),
                       )
@@ -499,21 +486,14 @@ class _ModuleGridCard extends StatelessWidget {
                       title,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.sora(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: textPrimary,
-                      ),
+                      style: SwanType.caption(textPrimary, w: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 10,
-                        color: textMuted,
-                      ),
+                      style: SwanType.caption(textMuted),
                     ),
                   ],
                 ),

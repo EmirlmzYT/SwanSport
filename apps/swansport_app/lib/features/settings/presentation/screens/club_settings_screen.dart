@@ -1,9 +1,7 @@
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/push/push.dart';
@@ -16,7 +14,7 @@ import '../../../demo/demo_role.dart';
 import '../../../auth/application/auth_controller.dart';
 
 import '../../../../app/design/swan_type.dart';
-import '../../../../app/widgets/premium.dart';
+import '../../../../app/design/swan_shape.dart';
 
 /// Persisted settings and shortcuts to existing services.
 class ClubSettingsScreen extends ConsumerStatefulWidget {
@@ -39,7 +37,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
             child: ConstrainedBox(
                 constraints: const BoxConstraints(maxWidth: 640),
                 child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
                     children: [
                       for (final action in [
                         ('Profilim', '/profil', Icons.person_outline),
@@ -103,11 +101,11 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                         const Divider(),
                         Text('Kulüp yönetimi', style: SwanType.h3(c.ink)),
                         ListTile(
-                            leading: const Icon(Icons.edit_outlined),
+                            leading: Icon(Icons.edit_outlined),
                             title: const Text('Kulüp profilini düzenle'),
                             onTap: () => showClubEditSheet(context, club.id)),
                         ListTile(
-                            leading: const Icon(Icons.groups_outlined),
+                            leading: Icon(Icons.groups_outlined),
                             title: Text(club.name),
                             onTap: () => Navigator.pushNamed(
                                 context, '/kulup-profil',
@@ -138,7 +136,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
   Widget _shortcut(String title, String route, IconData icon) => ListTile(
       title: Text(title),
       leading: Icon(icon),
-      trailing: const Icon(Icons.chevron_right),
+      trailing: Icon(Icons.chevron_right),
       onTap: () => Navigator.pushNamed(context, route));
 
   Future<void> _signOut() async {
@@ -185,10 +183,10 @@ class _PushToggleRow extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textPrimary =
-        isDark ? const Color(0xFFD6E3FA) : SwanPalette.light.ink;
+        isDark ? context.swan.ink : SwanPalette.light.ink;
     final textMuted =
-        isDark ? const Color(0xFF869491) : SwanColors.textSecondary;
-    final surfHigh = isDark ? const Color(0xFF1E2B3C) : const Color(0xFFEAEFF8);
+        isDark ? context.swan.inkMuted : context.swan.inkMuted;
+    final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
 
     return Padding(
@@ -207,7 +205,7 @@ class _PushToggleRow extends ConsumerWidget {
                   ? Icons.notifications_active_rounded
                   : Icons.notifications_rounded,
               size: 20,
-              color: kTeal,
+              color: context.swan.accent,
             ),
           ),
           const SizedBox(width: 14),
@@ -217,20 +215,13 @@ class _PushToggleRow extends ConsumerWidget {
               children: [
                 Text(
                   'Telefon Bildirimleri',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: textPrimary,
-                  ),
+                  style: SwanType.bodySm(textPrimary, w: FontWeight.w600),
                 ),
                 Text(
                   on
                       ? 'Uygulama kapalıyken de anlık bildirim'
                       : 'Mesaj ve antrenman çağrıları telefonuna düşsün',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    color: textMuted,
-                  ),
+                  style: SwanType.caption(textMuted),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -239,8 +230,8 @@ class _PushToggleRow extends ConsumerWidget {
           ),
           Switch(
             value: on,
-            activeTrackColor: kTeal,
-            activeThumbColor: const Color(0xFF003734),
+            activeTrackColor: context.swan.accent,
+            activeThumbColor: context.swan.onAccent,
             onChanged: !pushSupported
                 ? null
                 : (v) async {
@@ -249,17 +240,17 @@ class _PushToggleRow extends ConsumerWidget {
                       if (v) {
                         await enablePush(ref);
                         messenger.showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Bildirimler açıldı'),
-                            backgroundColor: kTeal,
+                            backgroundColor: context.swan.accent,
                           ),
                         );
                       } else {
                         await disablePush(ref);
                         messenger.showSnackBar(
-                          const SnackBar(
+                          SnackBar(
                             content: Text('Bildirimler kapatıldı'),
-                            backgroundColor: SwanColors.textSecondary,
+                            backgroundColor: context.swan.inkMuted,
                           ),
                         );
                       }

@@ -2,9 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
@@ -132,12 +130,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF061424) : SwanPalette.light.surface;
+    final surf = isDark ? context.swan.bg : SwanPalette.light.surface;
     final surfContainer =
-        isDark ? const Color(0xFF132031) : const Color(0xFFF1F5F9);
-    final surfHigh = isDark ? const Color(0xFF1E2B3C) : const Color(0xFFE2E8F0);
+        isDark ? context.swan.surface : context.swan.surface;
+    final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final line = isDark ? const Color(0xFF293547) : SwanPalette.light.line;
+    final line = isDark ? context.swan.line : SwanPalette.light.line;
 
     final hasQuery = _query.trim().isNotEmpty;
     final list = _visible;
@@ -171,11 +169,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             color: surfContainer.withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(999),
                             border: Border.all(
-                              color: kTeal.withValues(alpha: 0.2),
+                              color: context.swan.accent.withValues(alpha: 0.2),
                             ),
-                            boxShadow: const [
+                            boxShadow: [
                               BoxShadow(
-                                color: Colors.black26,
+                                color: context.swan.shadow,
                                 blurRadius: 16,
                                 offset: Offset(0, 4),
                               ),
@@ -184,26 +182,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: Row(
                             children: [
-                              const Icon(Icons.search_rounded,
-                                  color: kTeal, size: 22),
+                              Icon(Icons.search_rounded,
+                                  color: context.swan.accent, size: 22),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: TextField(
                                   controller: _ctrl,
                                   onChanged: _onChanged,
                                   onSubmitted: _run,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    color: ink,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
+                                  style: SwanType.bodySm(ink, w: FontWeight.w600),
                                   decoration: InputDecoration(
                                     hintText:
                                         'Sporcu, hareket, antrenman ara...',
-                                    hintStyle: GoogleFonts.plusJakartaSans(
-                                      color: SwanColors.textSecondary,
-                                      fontSize: 13,
-                                    ),
+                                    hintStyle: SwanType.bodySm(context.swan.inkMuted),
                                     border: InputBorder.none,
                                     isDense: true,
                                     contentPadding: EdgeInsets.zero,
@@ -228,51 +219,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 ),
                             ],
                           ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      // Camera / QR Scanner action
-                      GestureDetector(
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Barkod / QR Tarayıcı açılıyor...'),
-                            backgroundColor: kTeal,
-                          ),
-                        ),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: surfContainer.withValues(alpha: 0.85),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: kTeal.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Icon(Icons.photo_camera_rounded,
-                              size: 20, color: ink),
-                        ),
-                      ),
-                      const SizedBox(width: 6),
-                      // Filter action
-                      GestureDetector(
-                        onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Arama filtreleri aktif'),
-                            backgroundColor: kTeal,
-                          ),
-                        ),
-                        child: Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            color: surfContainer.withValues(alpha: 0.85),
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: kTeal.withValues(alpha: 0.2),
-                            ),
-                          ),
-                          child: Icon(Icons.tune_rounded, size: 20, color: ink),
                         ),
                       ),
                     ],
@@ -306,12 +252,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 14, vertical: 8),
                           decoration: BoxDecoration(
-                            color: on ? kTeal : surfContainer,
+                            color: on ? context.swan.accentFill : surfContainer,
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: on
                                 ? [
                                     BoxShadow(
-                                      color: kTeal.withValues(alpha: 0.35),
+                                      color: context.swan.accent.withValues(alpha: 0.35),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -325,18 +271,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 cat.$2,
                                 size: 15,
                                 color: on
-                                    ? const Color(0xFF003734)
-                                    : SwanColors.textSecondary,
+                                    ? context.swan.onAccent
+                                    : context.swan.inkMuted,
                               ),
                               const SizedBox(width: 6),
-                              Text(
+                              Flexible(child: Text(
                                 cat.$1,
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: on ? const Color(0xFF003734) : ink,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
+                                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(on ? context.swan.onAccent : ink, w: FontWeight.w700),
+                              )),
                             ],
                           ),
                         ),
@@ -409,19 +351,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: on ? kTeal : surfContainer,
+                    color: on ? context.swan.accentFill : surfContainer,
                     borderRadius: BorderRadius.circular(999),
                   ),
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      Flexible(child: Text(
                         item.$1,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: on ? const Color(0xFF003734) : ink,
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(on ? context.swan.onAccent : ink, w: FontWeight.w700),
+                      )),
                       if (item.$2 > 0) ...[
                         const SizedBox(width: 5),
                         Container(
@@ -429,17 +368,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                               horizontal: 6, vertical: 2),
                           decoration: BoxDecoration(
                             color: on
-                                ? Colors.black.withValues(alpha: 0.15)
+                                ? context.swan.onAccent.withValues(alpha: .12)
                                 : surfHigh,
                             borderRadius: BorderRadius.circular(999),
                           ),
                           child: Text(
                             '${item.$2}',
-                            style: GoogleFonts.sora(
-                              color: on ? const Color(0xFF003734) : kTeal,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                            ),
+                            style: SwanType.caption(on ? context.swan.onAccent : context.swan.accent, w: FontWeight.w800),
                           ),
                         ),
                       ],
@@ -464,24 +399,17 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(Icons.search_off_rounded,
-                            color: SwanColors.textSecondary, size: 40),
+                            color: context.swan.inkMuted, size: 40),
                         const SizedBox(height: 12),
                         Text(
                           'Sonuç bulunamadı',
-                          style: GoogleFonts.sora(
-                            color: ink,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 6),
                         Text(
                           '“$_query” için eşleşen sporcu, kulüp veya antrenör bulunamadı.',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: SwanColors.textSecondary,
-                            fontSize: 12,
-                          ),
+                          style: SwanType.caption(context.swan.inkMuted),
                         ),
                       ],
                     ),
@@ -489,7 +417,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 );
               }
               return ListView.separated(
-                padding: const EdgeInsets.fromLTRB(16, 6, 16, 120),
+                padding: const EdgeInsets.fromLTRB(16, 6, 16, SwanSpace.xl * 5),
                 itemCount: list.length,
                 separatorBuilder: (_, __) => const SizedBox(height: 8),
                 itemBuilder: (_, i) => _buildResultCard(c, list[i]),
@@ -513,7 +441,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final clubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -521,18 +449,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Önerilen Sporcular & Antrenörler',
-                style: GoogleFonts.sora(
-                  color: ink,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-              Text(
+              Expanded(child: Text(
+                'Önerilen Sporcular & Antrenörler', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
+              )),
+              Flexible(child: Text(
                 '${suggestions.length} Öneri',
-                style: SwanType.caption(kTeal, w: FontWeight.w700),
-              ),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
+              )),
             ],
           ),
           const SizedBox(height: 12),
@@ -546,7 +469,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               child: Text(
                 'Şimdilik önerilecek hesap bulunamadı.',
-                style: SwanType.bodySm(SwanColors.textSecondary),
+                style: SwanType.bodySm(context.swan.inkMuted),
               ),
             )
           else
@@ -576,7 +499,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                 errorBuilder: (_, __, ___) => Center(
                                   child: Text(
                                     s.initials,
-                                    style: SwanType.bodySm(kTeal,
+                                    style: SwanType.bodySm(context.swan.accent,
                                         w: FontWeight.w800),
                                   ),
                                 ),
@@ -584,7 +507,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             : Center(
                                 child: Text(
                                   s.initials,
-                                  style: SwanType.bodySm(kTeal,
+                                  style: SwanType.bodySm(context.swan.accent,
                                       w: FontWeight.w800),
                                 ),
                               ),
@@ -597,14 +520,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         children: [
                           Row(
                             children: [
-                              Text(
+                              Flexible(child: Text(
                                 s.name,
-                                style: SwanType.bodySm(ink, w: FontWeight.w700),
-                              ),
+                                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(ink, w: FontWeight.w700),
+                              )),
                               if (s.kind == 'club') ...[
                                 const SizedBox(width: 4),
-                                const Icon(Icons.shield_rounded,
-                                    size: 14, color: kTeal),
+                                Icon(Icons.shield_rounded,
+                                    size: 14, color: context.swan.accent),
                               ],
                             ],
                           ),
@@ -612,7 +535,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             const SizedBox(height: 2),
                             Text(
                               s.subtitle!,
-                              style: SwanType.caption(SwanColors.textSecondary),
+                              style: SwanType.caption(context.swan.inkMuted),
                             ),
                           ],
                         ],
@@ -631,16 +554,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: kTeal,
+                          color: context.swan.accentFill,
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
                           'Görüntüle',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: const Color(0xFF003734),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: SwanType.caption(context.swan.onAccent, w: FontWeight.w800),
                         ),
                       ),
                     ),
@@ -654,19 +573,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                'Kulüp Ağlarım',
-                style: GoogleFonts.sora(
-                  color: ink,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+              Expanded(child: Text(
+                'Kulüp Ağlarım', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
+              )),
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/kulupler'),
                 child: Text(
                   'Tüm Kulüpler',
-                  style: SwanType.caption(kTeal, w: FontWeight.w700),
+                  style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
                 ),
               ),
             ],
@@ -682,7 +596,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.shield_outlined, color: kTeal, size: 28),
+                  Icon(Icons.shield_outlined, color: context.swan.accent, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -695,7 +609,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         const SizedBox(height: 2),
                         Text(
                           'SwanSport ağındaki doğrulanmış kulüpleri inceleyin.',
-                          style: SwanType.caption(SwanColors.textSecondary),
+                          style: SwanType.caption(context.swan.inkMuted),
                         ),
                       ],
                     ),
@@ -719,12 +633,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: kTeal.withValues(alpha: 0.15),
+                        color: context.swan.accent.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
                         child:
-                            Icon(Icons.shield_rounded, color: kTeal, size: 22),
+                            Icon(Icons.shield_rounded, color: context.swan.accent, size: 22),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -736,12 +650,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                               style: SwanType.bodySm(ink, w: FontWeight.w700)),
                           Text(c.role ?? 'Üye',
                               style:
-                                  SwanType.caption(SwanColors.textSecondary)),
+                                  SwanType.caption(context.swan.inkMuted)),
                         ],
                       ),
                     ),
                     Icon(Icons.chevron_right_rounded,
-                        color: SwanColors.textSecondary),
+                        color: context.swan.inkMuted),
                   ],
                 ),
               ),
@@ -850,8 +764,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               children: [
                 Icon(Icons.groups_rounded, size: 16, color: c.accent),
                 const SizedBox(width: 4),
-                Text('Kadro & Tesisler',
-                    style: SwanType.caption(c.ink, w: FontWeight.w600)),
+                Flexible(child: Text('Kadro & Tesisler',
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.ink, w: FontWeight.w600))),
                 const Spacer(),
                 InkWell(
                   onTap: () => Navigator.pushNamed(context, '/kulup-detay',
@@ -866,7 +780,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                     child: Text(
                       'İncele',
-                      style: SwanType.caption(Colors.white, w: FontWeight.w700),
+                      style: SwanType.caption(context.swan.onAccent, w: FontWeight.w700),
                     ),
                   ),
                 ),
@@ -1001,7 +915,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: Text(
                 isFollowing ? 'Takipte' : 'Takip Et',
                 style: SwanType.caption(
-                  isFollowing ? Colors.white : c.ink,
+                  isFollowing ? context.swan.onAccent : c.ink,
                   w: FontWeight.w700,
                 ),
               ),

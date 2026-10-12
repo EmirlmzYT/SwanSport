@@ -2,13 +2,13 @@ import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_models/swansport_models.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../routing/athlete_detail_route_args.dart';
@@ -70,7 +70,7 @@ class _AthleteWorkspaceScreenState
                 await ref.read(clubAthletesProvider.future);
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 140),
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
                 children: [
                   // --- 1. Üst Bar: Geri, Başlık, Arama, Filtre, Profil ---
 
@@ -143,14 +143,14 @@ class _AthleteWorkspaceScreenState
           ? Container(
               margin: const EdgeInsets.only(bottom: 70),
               child: FloatingActionButton.extended(
-                backgroundColor: c.accent,
+                backgroundColor: c.accentFill,
                 elevation: 4,
                 onPressed: () => _showAddAthlete(clubAsync.valueOrNull!),
                 icon:
-                    const Icon(Icons.add_circle, color: Colors.white, size: 20),
+                    Icon(Icons.add_circle, color: context.swan.onAccent, size: 20),
                 label: Text(
                   'Yeni Sporcu Ekle',
-                  style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
+                  style: SwanType.bodySm(context.swan.onAccent, w: FontWeight.w700),
                 ),
               ),
             )
@@ -224,23 +224,19 @@ class _AthleteWorkspaceScreenState
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Kulüp Kadrosu · $count',
-              style: GoogleFonts.sora(
-                fontSize: 16,
-                fontWeight: FontWeight.w700,
-                color: c.ink,
-              ),
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
             ),
             Text(
               'Sporcu listesi ve hesap bağlantıları',
               style: SwanType.caption(c.inkMuted),
             ),
           ],
-        ),
+        )),
         if (club != null && ref.watch(swanAccessProvider).isClubStaff)
           IconButton(
             onPressed: () => _showAddAthlete(club),
@@ -301,14 +297,14 @@ class _AthleteWorkspaceScreenState
                   padding: const EdgeInsets.symmetric(horizontal: 14),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
-                    color: active ? c.accent : c.surface,
+                    color: active ? c.accentFill : c.surface,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: active ? c.accent : c.line),
+                    border: Border.all(color: active ? c.accentFill : c.line),
                   ),
                   child: Text(
                     _filters[i],
                     style: SwanType.caption(
-                      active ? Colors.white : c.inkMuted,
+                      active ? context.swan.onAccent : c.inkMuted,
                       w: FontWeight.w700,
                     ),
                   ),
@@ -372,7 +368,7 @@ class _AthleteWorkspaceScreenState
               decoration: BoxDecoration(
                 color: ok
                     ? c.accent.withValues(alpha: 0.15)
-                    : const Color(0xFFFFB6A4).withValues(alpha: 0.2),
+                    : context.swan.warning.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
@@ -381,16 +377,16 @@ class _AthleteWorkspaceScreenState
                   Icon(
                     ok ? Icons.check_circle : Icons.pause_circle_filled,
                     size: 14,
-                    color: ok ? c.accent : const Color(0xFFFFB6A4),
+                    color: ok ? c.accent : context.swan.warning,
                   ),
                   const SizedBox(width: 4),
-                  Text(
+                  Flexible(child: Text(
                     ok ? 'Aktif' : 'Pasif',
-                    style: SwanType.caption(
-                      ok ? c.accent : const Color(0xFFFFB6A4),
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                      ok ? c.accent : context.swan.warning,
                       w: FontWeight.w700,
                     ),
-                  ),
+                  )),
                 ],
               ),
             ),
@@ -419,12 +415,12 @@ class _AthleteWorkspaceScreenState
           decoration: BoxDecoration(
             color: c.surface,
             borderRadius: BorderRadius.circular(14),
-            border: Border.all(color: const Color(0xFFFFB6A4)),
+            border: Border.all(color: context.swan.warning),
           ),
           child: Row(
             children: [
-              const Icon(Icons.link_off_rounded,
-                  size: 20, color: Color(0xFFFFB6A4)),
+              Icon(Icons.link_off_rounded,
+                  size: 20, color: context.swan.warning),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -432,10 +428,10 @@ class _AthleteWorkspaceScreenState
                   style: SwanType.bodySm(c.ink),
                 ),
               ),
-              Text(
+              Flexible(child: Text(
                 'Eşleştir',
-                style: SwanType.bodySm(c.accent, w: FontWeight.w700),
-              ),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(c.accent, w: FontWeight.w700),
+              )),
             ],
           ),
         ),
@@ -452,7 +448,7 @@ class _AthleteWorkspaceScreenState
       child: Center(
         child: Column(
           children: [
-            const Icon(Icons.cloud_off, size: 36, color: Colors.red),
+            Icon(Icons.cloud_off, size: 36, color: context.swan.danger),
             const SizedBox(height: 8),
             Text('Veri yüklenemedi',
                 style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
@@ -472,8 +468,7 @@ class _AthleteWorkspaceScreenState
             Icon(Icons.add_business_rounded, color: c.accent, size: 36),
             const SizedBox(height: 12),
             Text('Henüz bir kulübün yok',
-                style: GoogleFonts.sora(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: c.ink)),
+                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text('Başlamak için bir kulüp oluştur.',
                 style: SwanType.caption(c.inkMuted)),
@@ -492,8 +487,7 @@ class _AthleteWorkspaceScreenState
             Icon(Icons.groups_rounded, color: c.accent, size: 36),
             const SizedBox(height: 12),
             Text('Kadro boş',
-                style: GoogleFonts.sora(
-                    fontSize: 16, fontWeight: FontWeight.w700, color: c.ink)),
+                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text('İlk sporcunu ekleyerek başla.',
                 style: SwanType.caption(c.inkMuted)),
@@ -591,7 +585,7 @@ class _AthleteWorkspaceScreenState
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Hata: $e'), backgroundColor: context.swan.danger),
       );
     }
   }
@@ -609,8 +603,7 @@ class _AthleteWorkspaceScreenState
         backgroundColor: c.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(title,
-            style: GoogleFonts.sora(
-                fontSize: 18, fontWeight: FontWeight.w700, color: c.ink)),
+            style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -719,8 +712,7 @@ class _StopwatchSheetState extends State<_StopwatchSheet> {
             const SizedBox(height: 16),
             Text(
               'Saha Kronometresi',
-              style: GoogleFonts.sora(
-                  fontSize: 18, fontWeight: FontWeight.w700, color: c.ink),
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 24),
             Container(
@@ -732,12 +724,7 @@ class _StopwatchSheetState extends State<_StopwatchSheet> {
               ),
               child: Text(
                 '$min:$sec.$ms',
-                style: GoogleFonts.sora(
-                  fontSize: 44,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2,
-                  color: c.accent,
-                ),
+                style: SwanType.stopwatch(c.accent).copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             const SizedBox(height: 24),
@@ -746,7 +733,7 @@ class _StopwatchSheetState extends State<_StopwatchSheet> {
               children: [
                 OutlinedButton.icon(
                   onPressed: _reset,
-                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  icon: Icon(Icons.refresh_rounded, size: 18),
                   label: const Text('Sıfırla'),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: c.ink,
@@ -765,8 +752,8 @@ class _StopwatchSheetState extends State<_StopwatchSheet> {
                       size: 20),
                   label: Text(_isRunning ? 'Durdur' : 'Başlat'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: c.accent,
-                    foregroundColor: Colors.black,
+                    backgroundColor: c.accentFill,
+                    foregroundColor: context.swan.shadow,
                     padding: const EdgeInsets.symmetric(
                         horizontal: 28, vertical: 12),
                   ),

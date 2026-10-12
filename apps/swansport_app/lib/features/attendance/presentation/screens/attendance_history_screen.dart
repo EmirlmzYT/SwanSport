@@ -1,11 +1,11 @@
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 
@@ -32,7 +32,7 @@ class _AttendanceHistoryScreenState
 
     return Scaffold(
       appBar: swanModuleAppBar(context, title: 'Yoklama Geçmişi', actions: [
-        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/attendance'), icon: const Icon(Icons.add_rounded), label: Text('Yoklama Al', style: SwanType.caption(context.swan.accent))),
+        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/attendance'), icon: Icon(Icons.add_rounded), label: Text('Yoklama Al', style: SwanType.caption(context.swan.accent))),
       ]),
       extendBody: true,
       backgroundColor: c.bg,
@@ -55,7 +55,7 @@ class _AttendanceHistoryScreenState
                       await ref.read(attendanceSummaryProvider.future);
                     },
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 130),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
                       children: [
                         // 1. Subheader
                         _buildSubheader(c, club),
@@ -88,7 +88,7 @@ class _AttendanceHistoryScreenState
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Column(
+        Expanded(child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -101,7 +101,7 @@ class _AttendanceHistoryScreenState
               style: SwanType.bodySm(c.ink, w: FontWeight.w600),
             ),
           ],
-        ),
+        )),
         IconButton(
           onPressed: () => Navigator.pushNamed(context, '/calendar'),
           tooltip: 'Takvimi aç',
@@ -130,15 +130,10 @@ class _AttendanceHistoryScreenState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Sporcu Devam Tablosu',
-              style: GoogleFonts.sora(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: c.ink,
-              ),
-            ),
-            SingleChildScrollView(
+            Flexible(child: Text(
+              'Sporcu Devam Tablosu', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
+            )),
+            Expanded(child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [
@@ -152,7 +147,7 @@ class _AttendanceHistoryScreenState
                       () => setState(() => _selectedFilter = 'risk')),
                 ],
               ),
-            ),
+            )),
           ],
         ),
         const SizedBox(height: 12),
@@ -198,14 +193,14 @@ class _AttendanceHistoryScreenState
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
         decoration: BoxDecoration(
-          color: active ? c.accent : c.surface,
+          color: active ? c.accentFill : c.surface,
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: active ? c.accent : c.line),
+          border: Border.all(color: active ? c.accentFill : c.line),
         ),
         child: Text(
           label,
           style: SwanType.caption(
-            active ? Colors.white : c.inkMuted,
+            active ? context.swan.onAccent : c.inkMuted,
             w: FontWeight.w700,
           ),
         ),
@@ -218,7 +213,7 @@ class _AttendanceHistoryScreenState
     final initials = _initials(r.name);
     final statusColor = rate >= 80
         ? c.accent
-        : (rate >= 60 ? const Color(0xFFFFB6A4) : const Color(0xFFFFB4AB));
+        : (rate >= 60 ? context.swan.warning : context.swan.danger);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -241,11 +236,7 @@ class _AttendanceHistoryScreenState
             alignment: Alignment.center,
             child: Text(
               initials,
-              style: GoogleFonts.sora(
-                fontSize: 13,
-                fontWeight: FontWeight.w700,
-                color: c.accent,
-              ),
+              style: SwanType.caption(c.accent, w: FontWeight.w700),
             ),
           ),
           const SizedBox(width: 12),

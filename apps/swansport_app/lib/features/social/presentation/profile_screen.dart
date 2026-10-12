@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
@@ -42,12 +40,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bg = isDark ? const Color(0xFF061424) : SwanPalette.light.bg;
+    final bg = isDark ? context.swan.bg : SwanPalette.light.bg;
     final surfContainer =
-        isDark ? const Color(0xFF132031) : const Color(0xFFF1F5F9);
-    final surfHigh = isDark ? const Color(0xFF1E2B3C) : const Color(0xFFE2E8F0);
+        isDark ? context.swan.surface : context.swan.surface;
+    final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final line = isDark ? const Color(0xFF293547) : SwanPalette.light.line;
+    final line = isDark ? context.swan.line : SwanPalette.light.line;
 
     final myId = Supabase.instance.client.auth.currentUser?.id;
     final targetId = widget.id ?? myId;
@@ -104,33 +102,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }
                   },
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, 130),
+                    padding: const EdgeInsets.fromLTRB(16, 10, 16, SwanSpace.xl * 5),
                     children: [
                       // Top Navigation Bar (Stitch Screen 26)
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Row(
+                          Expanded(child: Row(
                             children: [
-                              Text(
+                              Flexible(child: Text(
                                 p.username ??
-                                    p.name.toLowerCase().replaceAll(' ', ''),
-                                style: GoogleFonts.sora(
-                                  color: ink,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w800,
-                                ),
-                              ),
+                                    p.name.toLowerCase().replaceAll(' ', ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w800),
+                              )),
                               if (p.isVerified) ...[
                                 const SizedBox(width: 4),
-                                const Icon(Icons.verified_rounded,
-                                    size: 17, color: kTeal),
+                                Icon(Icons.verified_rounded,
+                                    size: 17, color: context.swan.accent),
                               ],
-                              const SizedBox(width: 2),
-                              Icon(Icons.expand_more_rounded,
-                                  size: 18, color: SwanColors.textSecondary),
                             ],
-                          ),
+                          )),
                           Row(
                             children: [
                               _headerCircleBtn(
@@ -174,12 +164,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 padding: const EdgeInsets.all(3),
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
-                                  gradient: const LinearGradient(
-                                    colors: [kTealBright, kTeal],
+                                  gradient: LinearGradient(
+                                    colors: [context.swan.accent, context.swan.accent],
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: kTeal.withValues(alpha: 0.35),
+                                      color: context.swan.accent.withValues(alpha: 0.35),
                                       blurRadius: 18,
                                       offset: const Offset(0, 4),
                                     ),
@@ -197,11 +187,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           alignment: Alignment.center,
                                           child: Text(
                                             p.initials,
-                                            style: GoogleFonts.sora(
-                                              color: kTeal,
-                                              fontSize: 24,
-                                              fontWeight: FontWeight.w800,
-                                            ),
+                                            style: SwanType.h1(context.swan.accent).copyWith(fontWeight: FontWeight.w800),
                                           ),
                                         ),
                                 ),
@@ -214,12 +200,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     width: 24,
                                     height: 24,
                                     decoration: BoxDecoration(
-                                      color: kTeal,
+                                      color: context.swan.accent,
                                       shape: BoxShape.circle,
                                       border: Border.all(color: bg, width: 2),
                                     ),
-                                    child: const Icon(Icons.check_rounded,
-                                        size: 14, color: Color(0xFF003734)),
+                                    child: Icon(Icons.check_rounded,
+                                        size: 14, color: context.swan.onAccent),
                                   ),
                                 ),
                             ],
@@ -240,13 +226,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  _statColumn(
+                                  Expanded(child: _statColumn(
                                     label: 'Gönderi',
                                     value: '${p.postCount}',
                                     ink: ink,
                                     isHighlight: false,
-                                  ),
-                                  GestureDetector(
+                                  )),
+                                  Expanded(child: GestureDetector(
                                     onTap: () => Navigator.pushNamed(
                                       context,
                                       '/baglantilar',
@@ -262,8 +248,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       ink: ink,
                                       isHighlight: true,
                                     ),
-                                  ),
-                                  GestureDetector(
+                                  )),
+                                  Expanded(child: GestureDetector(
                                     onTap: () => Navigator.pushNamed(
                                       context,
                                       '/baglantilar',
@@ -279,7 +265,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       ink: ink,
                                       isHighlight: false,
                                     ),
-                                  ),
+                                  )),
                                 ],
                               ),
                             ),
@@ -297,11 +283,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               p.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.sora(
-                                color: ink,
-                                fontSize: 20,
-                                fontWeight: FontWeight.w800,
-                              ),
+                              style: SwanType.h2(ink).copyWith(fontWeight: FontWeight.w800),
                             ),
                           ),
                         ],
@@ -309,22 +291,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: 3),
                       Text(
                         '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'Üye'}',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: kTeal,
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: SwanType.caption(context.swan.accent, w: FontWeight.w600),
                       ),
                       const SizedBox(height: 6),
                       Text(
                         p.bio != null && p.bio!.trim().isNotEmpty
                             ? p.bio!
                             : 'Henüz bir biyografi eklenmedi.',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: SwanColors.textSecondary,
-                          fontSize: 13,
-                          height: 1.45,
-                        ),
+                        style: SwanType.bodySm(context.swan.inkMuted),
                       ),
 
                       const SizedBox(height: 14),
@@ -360,9 +334,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               color: surfContainer.withValues(alpha: 0.8),
                               borderRadius: BorderRadius.circular(18),
                               border: Border.all(color: line),
-                              boxShadow: const [
+                              boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black26,
+                                  color: context.swan.shadow,
                                   blurRadius: 16,
                                   offset: Offset(0, 4),
                                 ),
@@ -374,29 +348,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Row(
+                                    Expanded(child: Row(
                                       children: [
-                                        const Icon(Icons.bolt_rounded,
-                                            size: 18, color: kTeal),
+                                        Icon(Icons.bolt_rounded,
+                                            size: 18, color: context.swan.accent),
                                         const SizedBox(width: 6),
-                                        Text(
-                                          'HAFTALIK PERFORMANS HUD',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            color: kTeal,
-                                            fontSize: 10,
-                                            fontWeight: FontWeight.w800,
-                                            letterSpacing: 1.2,
-                                          ),
-                                        ),
+                                        Flexible(child: Text(
+                                          'HAFTALIK PERFORMANS HUD', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.accent, w: FontWeight.w800),
+                                        )),
                                       ],
-                                    ),
-                                    Text(
+                                    )),
+                                    Flexible(child: Text(
                                       'Son 7 Gün',
-                                      style: GoogleFonts.plusJakartaSans(
-                                        color: SwanColors.textSecondary,
-                                        fontSize: 10,
-                                      ),
-                                    ),
+                                      maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.inkMuted),
+                                    )),
                                   ],
                                 ),
                                 const SizedBox(height: 12),
@@ -404,16 +369,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   children: [
                                     _hudMetricCard(
                                       icon: Icons.fitness_center_rounded,
-                                      iconColor: kTeal,
+                                      iconColor: context.swan.accent,
                                       value: '$count',
                                       label: 'Antrenman',
                                       surf: surfHigh,
-                                      ink: kTeal,
+                                      ink: context.swan.accent,
                                     ),
                                     const SizedBox(width: 8),
                                     _hudMetricCard(
                                       icon: Icons.repeat_rounded,
-                                      iconColor: const Color(0xFFFF8C6F),
+                                      iconColor: context.swan.warning,
                                       value: '$sets',
                                       label: 'Tamamlanan Set',
                                       surf: surfHigh,
@@ -422,7 +387,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     const SizedBox(width: 8),
                                     _hudMetricCard(
                                       icon: Icons.emoji_events_rounded,
-                                      iconColor: const Color(0xFFFFD166),
+                                      iconColor: context.swan.warning,
                                       value: totalScore > 0
                                           ? totalScore.toStringAsFixed(0)
                                           : '-',
@@ -436,69 +401,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             ),
                           );
                         },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // Story Highlights Carousel (Stitch Screen 26)
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(left: 2, bottom: 8),
-                            child: Text(
-                              'ÖNE ÇIKANLAR',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: SwanColors.textSecondary,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: 1.1,
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            height: 84,
-                            child: ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: [
-                                _highlightItem(
-                                  title: "PR'lar 🏋️‍♂️",
-                                  icon: Icons.fitness_center_rounded,
-                                  surfHigh: surfHigh,
-                                  ink: ink,
-                                ),
-                                const SizedBox(width: 12),
-                                _highlightItem(
-                                  title: 'Yarışlar 🏁',
-                                  icon: Icons.flag_rounded,
-                                  surfHigh: surfHigh,
-                                  ink: ink,
-                                ),
-                                const SizedBox(width: 12),
-                                _highlightItem(
-                                  title: 'Beslenme 🥑',
-                                  icon: Icons.restaurant_rounded,
-                                  surfHigh: surfHigh,
-                                  ink: ink,
-                                ),
-                                const SizedBox(width: 12),
-                                _highlightItem(
-                                  title: 'Ekipman 👟',
-                                  icon: Icons.checkroom_rounded,
-                                  surfHigh: surfHigh,
-                                  ink: ink,
-                                ),
-                                const SizedBox(width: 12),
-                                _highlightItem(
-                                  title: 'Q&A 💬',
-                                  icon: Icons.chat_rounded,
-                                  surfHigh: surfHigh,
-                                  ink: ink,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
                       ),
 
                       const SizedBox(height: 16),
@@ -631,21 +533,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Text(
           value,
-          style: GoogleFonts.sora(
-            color: isHighlight ? kTeal : ink,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
-          ),
+          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(isHighlight ? context.swan.accent : ink).copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 2),
         Text(
           label.toUpperCase(),
-          style: GoogleFonts.plusJakartaSans(
-            color: SwanColors.textSecondary,
-            fontSize: 9,
-            fontWeight: FontWeight.w700,
-            letterSpacing: 0.8,
-          ),
+          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w700),
         ),
       ],
     );
@@ -673,62 +566,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             const SizedBox(height: 8),
             Text(
               value,
-              style: GoogleFonts.sora(
-                color: ink,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
+              style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w800),
             ),
             Text(
               label,
-              style: GoogleFonts.plusJakartaSans(
-                color: SwanColors.textSecondary,
-                fontSize: 9,
-                fontWeight: FontWeight.w600,
-              ),
+              style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w600),
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _highlightItem({
-    required String title,
-    required IconData icon,
-    required Color surfHigh,
-    required Color ink,
-  }) {
-    return Column(
-      children: [
-        Container(
-          width: 58,
-          height: 58,
-          padding: const EdgeInsets.all(2),
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: LinearGradient(
-              colors: [kTeal, Color(0xFF293547)],
-            ),
-          ),
-          child: Container(
-            decoration: BoxDecoration(
-              color: surfHigh,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 22, color: kTeal),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          title,
-          style: GoogleFonts.plusJakartaSans(
-            color: ink,
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-      ],
     );
   }
 
@@ -750,8 +596,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             borderRadius: BorderRadius.circular(10),
             boxShadow: on
                 ? [
-                    const BoxShadow(
-                      color: Colors.black26,
+                    BoxShadow(
+                      color: context.swan.shadow,
                       blurRadius: 8,
                       offset: Offset(0, 2),
                     ),
@@ -762,16 +608,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon,
-                  size: 17, color: on ? kTeal : SwanColors.textSecondary),
+                  size: 17, color: on ? context.swan.accentFill : context.swan.inkMuted),
               const SizedBox(width: 6),
-              Text(
+              Flexible(child: Text(
                 label,
-                style: GoogleFonts.plusJakartaSans(
-                  color: on ? Colors.white : SwanColors.textSecondary,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(on ? context.swan.ink : context.swan.inkMuted, w: FontWeight.w700),
+              )),
             ],
           ),
         ),
@@ -784,7 +626,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return postsAsync.when(
       loading: premiumCardLoading,
       error: (e, _) => Text('Yüklenemedi: $e',
-          style: SwanType.caption(SwanColors.textSecondary)),
+          style: SwanType.caption(context.swan.inkMuted)),
       data: (posts) {
         if (posts.isNotEmpty) {
           return Column(
@@ -798,35 +640,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             children: [
               Icon(Icons.feed_outlined,
                   size: 44,
-                  color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+                  color: context.swan.inkMuted.withValues(alpha: 0.5)),
               const SizedBox(height: 12),
               Text(
                 'Henüz paylaşım yok',
-                style: GoogleFonts.plusJakartaSans(
-                  color: ink,
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: SwanType.bodySm(ink, w: FontWeight.w700),
               ),
               const SizedBox(height: 6),
               Text(
                 'Antrenmanlarını, derecelerini ve spor anlarını toplulukla paylaş.',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.plusJakartaSans(
-                  color: SwanColors.textSecondary,
-                  fontSize: 12,
-                ),
+                style: SwanType.caption(context.swan.inkMuted),
               ),
               const SizedBox(height: 14),
               OutlinedButton.icon(
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: kTeal,
-                  side: const BorderSide(color: kTeal),
+                  foregroundColor: context.swan.accent,
+                  side: BorderSide(color: context.swan.accent),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10)),
                 ),
                 onPressed: () => showPostComposer(context),
-                icon: const Icon(Icons.add, size: 16),
+                icon: Icon(Icons.add, size: 16),
                 label: const Text('İlk Gönderini Paylaş'),
               ),
             ],
@@ -843,24 +678,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       child: Column(
         children: [
           Icon(Icons.video_library_outlined,
-              size: 44, color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+              size: 44, color: context.swan.inkMuted.withValues(alpha: 0.5)),
           const SizedBox(height: 12),
           Text(
             'Henüz video veya klip yok',
-            style: GoogleFonts.plusJakartaSans(
-              color: ink,
-              fontSize: 15,
-              fontWeight: FontWeight.w700,
-            ),
+            style: SwanType.bodySm(ink, w: FontWeight.w700),
           ),
           const SizedBox(height: 6),
           Text(
             'Önemli antrenman anlarını ve hareket tekrarlarını video olarak kaydedebilirsin.',
             textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              color: SwanColors.textSecondary,
-              fontSize: 12,
-            ),
+            style: SwanType.caption(context.swan.inkMuted),
           ),
         ],
       ),
@@ -881,36 +709,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 Icon(Icons.bookmark_border_rounded,
                     size: 44,
-                    color: SwanColors.textSecondary.withValues(alpha: 0.5)),
+                    color: context.swan.inkMuted.withValues(alpha: 0.5)),
                 const SizedBox(height: 12),
                 Text(
                   'Kayıtlı rutin bulunamadı',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: ink,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: SwanType.bodySm(ink, w: FontWeight.w700),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   'Antrenman protokolleri ve egzersiz rutinlerini buradan takip edebilirsin.',
                   textAlign: TextAlign.center,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: SwanColors.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: SwanType.caption(context.swan.inkMuted),
                 ),
                 const SizedBox(height: 14),
                 OutlinedButton.icon(
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: kTeal,
-                    side: const BorderSide(color: kTeal),
+                    foregroundColor: context.swan.accent,
+                    side: BorderSide(color: context.swan.accent),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: () =>
                       Navigator.pushNamed(context, '/antrenman-sablonlari'),
-                  icon: const Icon(Icons.explore_outlined, size: 16),
+                  icon: Icon(Icons.explore_outlined, size: 16),
                   label: const Text('Programları Keşfet'),
                 ),
               ],
@@ -965,7 +786,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               color: surfHigh,
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: kTeal),
+            child: Icon(icon, size: 20, color: context.swan.accent),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -974,23 +795,16 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.sora(
-                    color: ink,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                  ),
+                  style: SwanType.caption(ink, w: FontWeight.w700),
                 ),
                 Text(
                   sub,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: SwanColors.textSecondary,
-                    fontSize: 11,
-                  ),
+                  style: SwanType.caption(context.swan.inkMuted),
                 ),
               ],
             ),
           ),
-          const Icon(Icons.arrow_forward_rounded, size: 18, color: kTeal),
+          Icon(Icons.arrow_forward_rounded, size: 18, color: context.swan.accent),
         ],
       ),
     );
@@ -1013,11 +827,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [kTealBright, kTeal]),
+                  gradient: LinearGradient(colors: [context.swan.accentFill, context.swan.accentFill]),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
-                      color: kTeal.withValues(alpha: 0.35),
+                      color: context.swan.accent.withValues(alpha: 0.35),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -1026,17 +840,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.edit_rounded,
-                        size: 16, color: Color(0xFF003734)),
+                    Icon(Icons.edit_rounded,
+                        size: 16, color: context.swan.onAccent),
                     const SizedBox(width: 6),
-                    Text(
+                    Flexible(child: Text(
                       'Profili Düzenle',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: const Color(0xFF003734),
-                        fontSize: 13,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(context.swan.onAccent, w: FontWeight.w800),
+                    )),
                   ],
                 ),
               ),
@@ -1060,8 +870,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: line),
               ),
-              child: const Icon(Icons.share_rounded,
-                  size: 18, color: Colors.white70),
+              child: Icon(Icons.share_rounded,
+                  size: 18, color: context.swan.inkMuted),
             ),
           ),
           const SizedBox(width: 8),
@@ -1075,8 +885,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: line),
               ),
-              child: const Icon(Icons.insights_rounded,
-                  size: 18, color: Colors.white70),
+              child: Icon(Icons.insights_rounded,
+                  size: 18, color: context.swan.inkMuted),
             ),
           ),
         ],
@@ -1105,10 +915,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.edit_rounded, size: 18, color: kTeal),
+                    Icon(Icons.edit_rounded, size: 18, color: context.swan.accent),
                     const SizedBox(width: 8),
-                    Text('Kulüp Profilini Düzenle',
-                        style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                    Flexible(child: Text('Kulüp Profilini Düzenle',
+                        maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(ink, w: FontWeight.w800))),
                   ],
                 ),
               ),
@@ -1145,8 +955,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Icon(Icons.chat_bubble_outline_rounded,
                           size: 18, color: c.ink),
                       const SizedBox(width: 7),
-                      Text('Mesaj',
-                          style: SwanType.bodySm(c.ink, w: FontWeight.w800)),
+                      Flexible(child: Text('Mesaj',
+                          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(c.ink, w: FontWeight.w800))),
                     ],
                   ),
                 ),
@@ -1232,7 +1042,7 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
         decoration: BoxDecoration(
           gradient: _following
               ? null
-              : const LinearGradient(colors: [kTealBright, kTeal]),
+              : LinearGradient(colors: [context.swan.accent, context.swan.accent]),
           color: _following ? surf : null,
           borderRadius: BorderRadius.circular(SwanRadius.md),
           border:
@@ -1241,7 +1051,7 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
               ? null
               : [
                   BoxShadow(
-                    color: kTeal.withValues(alpha: .3),
+                    color: context.swan.accent.withValues(alpha: .3),
                     blurRadius: 14,
                     offset: const Offset(0, 6),
                   ),
@@ -1251,11 +1061,11 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(_following ? Icons.check_rounded : Icons.add_rounded,
-                size: 18, color: _following ? ink : Colors.white),
+                size: 18, color: _following ? ink : context.swan.onAccent),
             const SizedBox(width: 7),
-            Text(_following ? 'Takiptesin' : 'Takip Et',
-                style: SwanType.bodySm(_following ? ink : Colors.white,
-                    w: FontWeight.w800)),
+            Flexible(child: Text(_following ? 'Takiptesin' : 'Takip Et',
+                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(_following ? ink : context.swan.onAccent,
+                    w: FontWeight.w800))),
           ],
         ),
       ),

@@ -2,7 +2,11 @@
 
 Son güncelleme: 2026-10-12 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `complete`
+Durum: `review_ready`
+
+2026-10-12: Mobil UI temizliği yerelde hazır: 11 ekran, 76 ham GoogleFonts ve kalan ham TextStyle → SwanType; tabular stopwatch; palet/onAccent/saydam dark shadow, küçük beyaz aksiyonlarda 5.39:1 accentFill. Profil username/social sayaçları/HUD ve mesaj/arama/fiyat/finans satırları flex/ellipsis; yoklama filtre SCroll Expanded; finans fixed-height grid yerine responsive Wrap. Bildirim gerçek unread sayacı, tek AppBar okundu aksiyonu, açılış-okundu davranışı korunur/async hata yakalanır. Ölü profil ok/hikâye, sahte arama QR/filtre Snackbar aksiyonları ve verisiz pazaryeri indirim/garanti/ücretsiz teslimat vaatleri kaldırıldı; gerçek eylemler/rota/RLS değişmedi. Ana listelerde token 120px bottom padding. 19 regresyon senaryosu hazır; SSS 39/39, push 40, SQL 5/5, 11/11 scoped token sözleşmesi, 537 Dart parse ve statik 41 rota/giriş kontrolü temiz. Flutter test/analyze SDK yokluğundan çalışmadı; format/build/render taşma/görsel QA açık. Rapor docs/mobile-ui-cleanup-verification.md. Yalnız görev dosyaları stage; başlangıç kullanıcı tarama aracı/cache korunur; commit/push/deploy/canlı SQL yok. Writer serbest.
+
+2026-10-12: Mobil UI temizliği devralındı: belirtilen 11 ekranın tipografi/palet/taşma ve gerçek bildirim sayacı sözleşmeleri incelenir. Başlangıç tools/scan_ui_code_smells.py ve __pycache__ kullanıcı dosyaları korunur. Yalnız stage; commit/push/deploy yok.
 
 2026-10-12: İlanlar (/ilanlar), İlan Ver (/ilan-ver), Mağaza Başvurusu (/magaza-basvuru), Dayanışma & Fon (/bagis), Tesisler (/facilities), Tesis Rezervasyonu (/rezervasyon), Saha İşlemlerim (/saha-islemlerim), Bağlantılar (/baglantilar), Gizlilik (/gizlilik), Veli İşlem Merkezi (/veli-izinleri), Davet Kodu (/veli-bagla), Medikal Merkez (/medical-center), Ekipman Tuning (/ekipman-tuning), Ters İşlem (/ters-islem), Muhasebeci Defteri (/muhasebeci-defter), Oturum Sonucu (/antrenman-sonuc), İleti Ayrıntısı, Etkinlik Detayı (/etkinlik-detay), Raporlar (/reports), Rapor Ayrıntısı, Dönem Gelişim Raporu, Kullanıcı Ayrıntısı ve Yapılandırma (/configuration) dahil tüm ikincil ekranlar Partner Bul tarzı swanModuleAppBar standardına geçirildi. Uygulama genelinde SwanPageHeader kullanımı sıfırlandı. 42 ekran regresyon testi eklendi. SSS 39/39, push 40/40 ve SQL 5/5 geçti. v0.5.5+30 ve konsol 0.2.0+9 hazırlandı.
 

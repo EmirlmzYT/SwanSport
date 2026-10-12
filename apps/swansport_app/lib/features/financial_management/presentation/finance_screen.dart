@@ -1,7 +1,6 @@
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
@@ -78,7 +77,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       await ref.read(financeSummaryProvider.future);
                     },
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+                      padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
                       children: [
                         Text(club?.name ?? 'Kulüp seçilmedi', style: SwanType.caption(palette.inkMuted)),
                         const SizedBox(height: SwanSpace.sm),
@@ -135,62 +134,17 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
 
 
-  Widget _buildProjectionStrip(SwanPalette palette) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Row(
-          children: [
-            Container(
-              width: 8,
-              height: 8,
-              decoration: BoxDecoration(
-                color: palette.accent,
-                shape: BoxShape.circle,
-              ),
-            ),
-            const SizedBox(width: 6),
-            Text(
-              'Aidat ve tahsilat özeti',
-              style: SwanType.caption(palette.inkMuted, w: FontWeight.w600),
-            ),
-          ],
-        ),
-        GestureDetector(
-          onTap: () =>
-              setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: palette.surface,
-              borderRadius: BorderRadius.circular(SwanRadius.lg),
-              border: Border.all(color: palette.line),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.calendar_month_rounded,
-                  size: 14,
-                  color: palette.accent,
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  _period.isEmpty ? 'Tüm Dönemler' : _period,
-                  style: SwanType.caption(palette.ink, w: FontWeight.w700),
-                ),
-                const SizedBox(width: 2),
-                Icon(
-                  Icons.expand_more_rounded,
-                  size: 14,
-                  color: palette.inkMuted,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
+  Widget _buildProjectionStrip(SwanPalette palette) => Row(children: [
+    Expanded(child: Text('Aidat ve tahsilat özeti', maxLines: 1,
+        overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.inkMuted))),
+    const SizedBox(width: SwanSpace.sm),
+    Flexible(child: TextButton.icon(
+      onPressed: () => setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
+      icon: Icon(Icons.calendar_month_rounded, color: palette.accent),
+      label: Text(_period.isEmpty ? 'Tüm Dönemler' : _period, maxLines: 1,
+          overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.ink)),
+    )),
+  ]);
 
   Widget _buildCashflowCard(
     FinanceSummary? summary,
@@ -205,12 +159,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF132031),
+        color: context.swan.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: kTeal.withValues(alpha: 0.2)),
+        border: Border.all(color: context.swan.accent.withValues(alpha: 0.2)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.35),
+            color: context.swan.shadow,
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -231,47 +185,34 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                         Container(
                           width: 8,
                           height: 8,
-                          decoration: const BoxDecoration(
-                            color: kTeal,
+                          decoration: BoxDecoration(
+                            color: context.swan.accent,
                             shape: BoxShape.circle,
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Text(
-                          'KULÜP FİNANS ÖZETİ',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 10,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: 0.6,
-                            color: kTeal,
-                          ),
-                        ),
+                        Flexible(child: Text(
+                          'KULÜP FİNANS ÖZETİ', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
+                        )),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Tüm dönemlerin aidatları',
-                      style: GoogleFonts.sora(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w700,
-                        color: Colors.white,
-                      ),
+                      style: SwanType.h3(context.swan.ink).copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
                     Text(
                       'Kulüp aidat tahsilat takibi',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11,
-                        color: const Color(0xFFBBC9C7),
-                      ),
+                      style: SwanType.caption(context.swan.inkMuted),
                     ),
                   ],
                 ),
               ),
               SwanRing(
                 value: rate,
-                track: const Color(0xFF1E2B3C),
-                progress: kTeal,
+                track: context.swan.surfaceAlt,
+                progress: context.swan.accent,
                 size: 64,
                 stroke: 7,
                 center: Column(
@@ -279,19 +220,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   children: [
                     Text(
                       '%${(rate * 100).round()}',
-                      style: GoogleFonts.sora(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                        height: 1,
-                      ),
+                      style: SwanType.h3(context.swan.ink).copyWith(fontWeight: FontWeight.w800),
                     ),
                     Text(
                       'oran',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 8,
-                        color: const Color(0xFFBBC9C7),
-                      ),
+                      style: SwanType.caption(context.swan.inkMuted),
                     ),
                   ],
                 ),
@@ -301,45 +234,38 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           const SizedBox(height: 16),
 
           // 2x2 Snapshot KPIs
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: 8,
-            crossAxisSpacing: 8,
-            childAspectRatio: 1.55,
-            children: [
+          _responsiveCards([
               _snapshotTile(
                 title: 'Toplam Tahsilat',
                 icon: Icons.account_balance_wallet_rounded,
-                iconColor: kTeal,
+                iconColor: context.swan.accent,
                 amount: money(collected),
                 subtext: 'Onaylı tahsilatlar',
-                subColor: kTeal,
+                subColor: context.swan.accent,
               ),
               _snapshotTile(
                 title: 'Toplam Tahakkuk',
                 icon: Icons.payments_rounded,
-                iconColor: const Color(0xFF54DAD1),
+                iconColor: context.swan.accent,
                 amount: money(billed),
                 subtext: 'Tanımlanmış aidatlar',
-                subColor: const Color(0xFFBBC9C7),
+                subColor: context.swan.inkMuted,
               ),
               _snapshotTile(
                 title: 'Bekleyen Aidat',
                 icon: Icons.schedule_rounded,
-                iconColor: const Color(0xFFFF8C6F),
+                iconColor: context.swan.warning,
                 amount: money(summary?.outstanding ?? 0),
                 subtext: 'Ödenmemiş aidatlar',
-                subColor: const Color(0xFFFF8C6F),
+                subColor: context.swan.warning,
               ),
               _snapshotTile(
                 title: 'Geciken Ödeme',
                 icon: Icons.warning_rounded,
-                iconColor: const Color(0xFFFF5252),
+                iconColor: context.swan.danger,
                 amount: money(overdue),
                 subtext: 'Vadesi geçmiş aidatlar',
-                subColor: const Color(0xFFFF5252),
+                subColor: context.swan.danger,
               ),
             ],
           ),
@@ -359,9 +285,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     return Container(
       padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F1C2D),
+        color: context.swan.surfaceAlt,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.06)),
+        border: Border.all(color: context.swan.line),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,14 +296,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFFBBC9C7),
-                ),
-              ),
+              Expanded(child: Text(
+                title, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w600),
+              )),
               Icon(icon, size: 14, color: iconColor),
             ],
           ),
@@ -386,20 +307,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             children: [
               Text(
                 amount,
-                style: GoogleFonts.sora(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w700,
-                  color: Colors.white,
-                ),
+                style: SwanType.h3(context.swan.ink).copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 2),
               Text(
                 subtext,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 9,
-                  fontWeight: FontWeight.w600,
-                  color: subColor,
-                ),
+                style: SwanType.caption(subColor, w: FontWeight.w600),
               ),
             ],
           ),
@@ -411,10 +324,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   Widget _buildMetricsGrid(FinanceSummary? summary, SwanPalette palette) {
     final rate = summary?.rate ?? 0.0;
 
-    return Row(
-      children: [
-        Expanded(
-          child: _buildMetricCard(
+    return _responsiveCards([
+        _buildMetricCard(
             icon: Icons.pie_chart_rounded,
             iconColor: palette.accent,
             badge: '%${(rate * 100).round()}',
@@ -423,22 +334,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             subtext: 'Bütçelenen',
             palette: palette,
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildMetricCard(
+        _buildMetricCard(
             icon: Icons.account_balance_rounded,
-            iconColor: Colors.blue,
+            iconColor: context.swan.accent,
             badge: 'Aylık',
             title: 'Toplam Tahakkuk',
             value: money(summary?.billed ?? 0),
             subtext: 'Genel Borç',
             palette: palette,
           ),
-        ),
-        const SizedBox(width: 8),
-        Expanded(
-          child: _buildMetricCard(
+        _buildMetricCard(
             icon: Icons.shield_rounded,
             iconColor: palette.warning,
             badge: 'Kalan',
@@ -447,10 +352,18 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             subtext: '${summary?.overdueCount ?? 0} Sporcu',
             palette: palette,
           ),
-        ),
-      ],
+      ], maxColumns: 3,
     );
   }
+
+  Widget _responsiveCards(List<Widget> cards, {int maxColumns = 2}) =>
+      LayoutBuilder(builder: (context, constraints) {
+        final columns = (constraints.maxWidth / (SwanSpace.xl * 6))
+            .floor().clamp(1, maxColumns);
+        final width = (constraints.maxWidth - SwanSpace.sm * (columns - 1)) / columns;
+        return Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm,
+          children: [for (final card in cards) SizedBox(width: width, child: card)]);
+      });
 
   Widget _buildMetricCard({
     required IconData icon,
@@ -577,10 +490,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
-          color: isPrimary ? palette.accent : palette.surface,
+          color: isPrimary ? palette.accentFill : palette.surface,
           borderRadius: BorderRadius.circular(SwanRadius.lg),
           border: Border.all(
-            color: isPrimary ? palette.accent : palette.line,
+            color: isPrimary ? palette.accentFill : palette.line,
           ),
         ),
         child: Row(
@@ -589,16 +502,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             Icon(
               icon,
               size: 16,
-              color: isPrimary ? Colors.white : palette.ink,
+              color: isPrimary ? context.swan.onAccent : palette.ink,
             ),
             const SizedBox(width: 6),
-            Text(
+            Flexible(child: Text(
               label,
-              style: SwanType.caption(
-                isPrimary ? Colors.white : palette.ink,
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                isPrimary ? context.swan.onAccent : palette.ink,
                 w: FontWeight.w700,
               ),
-            ),
+            )),
           ],
         ),
       ),
@@ -624,12 +537,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
+              Expanded(child: Row(
                 children: [
-                  Text(
-                    'İşlem Bekleyenler',
-                    style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-                  ),
+                  Flexible(child: Text(
+                    'İşlem Bekleyenler', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+                  )),
                   const SizedBox(width: 6),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -637,16 +549,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       vertical: 2,
                     ),
                     decoration: BoxDecoration(
-                      color: palette.accent,
+                      color: palette.accentFill,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Text(
                       '${pendingCount + (summary?.overdueCount ?? 0)}',
-                      style: SwanType.caption(Colors.white, w: FontWeight.w700),
+                      style: SwanType.caption(context.swan.onAccent, w: FontWeight.w700),
                     ),
                   ),
                 ],
-              ),
+              )),
               GestureDetector(
                 onTap: () => Navigator.pushNamed(context, '/mali-isler'),
                 child: Text(
@@ -707,13 +619,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                         vertical: 5,
                       ),
                       decoration: BoxDecoration(
-                        color: palette.accent,
+                        color: palette.accentFill,
                         borderRadius: BorderRadius.circular(SwanRadius.md),
                       ),
                       child: Text(
                         'Hatırlat',
                         style:
-                            SwanType.caption(Colors.white, w: FontWeight.w700),
+                            SwanType.caption(context.swan.onAccent, w: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -804,14 +716,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Borç Listesi',
-              style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-            ),
-            Text(
+            Expanded(child: Text(
+              'Borç Listesi', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+            )),
+            Flexible(child: Text(
               _period.isEmpty ? 'Tüm Kayıtlar' : _period,
-              style: SwanType.caption(palette.accent, w: FontWeight.w600),
-            ),
+              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.accent, w: FontWeight.w600),
+            )),
           ],
         ),
         const SizedBox(height: 8),
@@ -884,7 +795,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Column(
+          Flexible(child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
@@ -897,7 +808,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 style: SwanType.caption(color, w: FontWeight.w700),
               ),
             ],
-          ),
+          )),
           if (!f.isPaid) ...[
             const SizedBox(width: 10),
             GestureDetector(
@@ -1016,7 +927,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   ],
                 ),
               ),
-              Text(money(p.amount), style: SwanType.h3(palette.accent)),
+              Flexible(child: Text(money(p.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(palette.accent))),
             ],
           ),
           if (p.note != null && p.note!.trim().isNotEmpty) ...[
@@ -1083,7 +994,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     child: Text(
                       'Onayla ve Kapat',
                       style: SwanType.caption(
-                        Colors.white,
+                        context.swan.onAccent,
                         w: FontWeight.w700,
                       ),
                     ),
@@ -1109,10 +1020,9 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(
-              'Aidat Planları',
-              style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
-            ),
+            Expanded(child: Text(
+              'Aidat Planları', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+            )),
             GestureDetector(
               onTap: _addPlan,
               child: Container(
@@ -1124,19 +1034,19 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.add_rounded,
                       size: 14,
-                      color: Colors.white,
+                      color: context.swan.onAccent,
                     ),
                     const SizedBox(width: 4),
-                    Text(
+                    Flexible(child: Text(
                       'Plan Ekle',
-                      style: SwanType.caption(
-                        Colors.white,
+                      maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                        context.swan.onAccent,
                         w: FontWeight.w700,
                       ),
-                    ),
+                    )),
                   ],
                 ),
               ),
@@ -1183,13 +1093,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                 ],
                               ),
                             ),
-                            Text(
+                            Flexible(child: Text(
                               money(p.amount),
-                              style: SwanType.bodySm(
+                              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(
                                 palette.accent,
                                 w: FontWeight.w700,
                               ),
-                            ),
+                            )),
                             FeePlanStatusSwitch(plan: p),
                           ],
                         ),
@@ -1295,7 +1205,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
       _refresh();
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(ok), backgroundColor: kTeal),
+          SnackBar(content: Text(ok), backgroundColor: context.swan.accent),
         );
       }
     } catch (e) {
@@ -1324,7 +1234,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   ? 'Yeni borç oluşmadı — bu ay zaten tahakkuk etmiş'
                   : '$n sporcuya borç yazıldı',
             ),
-            backgroundColor: kTeal,
+            backgroundColor: context.swan.accent,
           ),
         );
       }
@@ -1414,7 +1324,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 ),
                 subtitle: Text(
                   money(p.amount),
-                  style: SwanType.caption(kTeal, w: FontWeight.w600),
+                  style: SwanType.caption(context.swan.accent, w: FontWeight.w600),
                 ),
                 onTap: () => Navigator.pop(ctx, p.id),
               ),
