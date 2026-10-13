@@ -1,4 +1,7 @@
 import 'widgets/action_gate.dart';
+import 'router.dart';
+import '../features/club_staff/club_staff_operations_screen.dart';
+import '../features/referee/referee_duty_list_screen.dart';
 import '../features/network/presentation/guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -148,6 +151,10 @@ class SwanSportApp extends ConsumerWidget {
           AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: '/',
       routes: <String, WidgetBuilder>{
+        '/hakem/gorevler': (context) => const RefereeDutyListScreen(),
+        '/kulup/malzeme-zimmet': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
+        '/kulup/saglik-takibi': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
+        '/kulup/kadro-planlama': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
         '/': (context) => const AuthGate(),
         '/auth': (context) => const AuthScreen(),
         '/home-command': (context) => const HomeCommandCenterScreen(),
@@ -252,6 +259,8 @@ class SwanSportApp extends ConsumerWidget {
               ? builder
               : (context) => AccountRouteGate(builder: builder))),
       onGenerateRoute: guardAccountRoutes((settings) {
+        final referee = refereeRoute(settings);
+        if (referee != null) return referee;
         final target = Uri.tryParse(settings.name ?? '');
         if (target?.path == '/resmi-sonuc') {
           return MaterialPageRoute<void>(

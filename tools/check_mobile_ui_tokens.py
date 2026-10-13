@@ -12,6 +12,11 @@ SCREENS = (
     'team_roster_screen', 'athlete_workspace_screen', 'explore_screen',
     'club_settings_screen',
 )
+REFEREE_SCREENS = (
+    'referee_widgets', 'referee_duty_list_screen', 'referee_lineup_approval_screen',
+    'referee_live_cockpit_screen', 'referee_match_report_screen',
+    'club_staff_operations_screen',
+)
 
 
 def main():
@@ -20,7 +25,7 @@ def main():
     options = args.parse_args()
     failures = []
     sources = {}
-    for name in SCREENS:
+    for name in SCREENS + REFEREE_SCREENS:
         paths = list(FEATURES.rglob(name + '.dart'))
         if len(paths) != 1:
             failures.append(f'{name}: expected exactly one source')
@@ -33,8 +38,10 @@ def main():
                         r'\bkTeal(?:Bright|Deep)?\b'):
             if re.search(pattern, source):
                 failures.append(f'{name}: token violation {pattern}')
-        if 'SwanSpace.xl * 5' not in source:
+        if name in SCREENS and 'SwanSpace.xl * 5' not in source:
             failures.append(f'{name}: floating navigation clearance missing')
+        if name in REFEREE_SCREENS and ('Supabase.instance' in source or '.from(' in source or '.rpc(' in source):
+            failures.append(f'{name}: direct backend query in widget')
     notice = sources.get('notifications_screen', '')
     for required in ('ref.watch(unreadNotificationsProvider)', 'unreadCount > 0',
                      "'$unreadCount Yeni'", 'c.accentFill', 'c.onAccent'):
@@ -69,7 +76,7 @@ def main():
         print(f'Dart syntax: {len(paths)} files, {sum(x.startswith("Dart syntax:") for x in failures)} errors')
     for failure in failures:
         print('FAIL:', failure)
-    print(f'Mobile UI contracts: {len(sources)}/{len(SCREENS)} screens; {len(failures)} errors')
+    print(f'Mobile UI contracts: {len(sources)}/{len(SCREENS) + len(REFEREE_SCREENS)} sources; {len(failures)} errors')
     return bool(failures)
 
 

@@ -1,10 +1,13 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'club_data.dart';
+import 'club_staff_operations.dart';
 import 'expense_service.dart';
 import 'federation_records.dart';
 import 'parent_actions.dart';
 import 'saha_operations.dart';
+import 'sports_roles_models.dart';
+import 'sports_roles_service.dart';
 import 'supabase_scope.dart';
 import 'turf_service.dart';
 import 'verification_service.dart';
@@ -56,6 +59,12 @@ class SwanAccess {
     this.delegatedTurfFieldIds = const {},
     this.sportCredentials = const [],
     this.federationAppointments = const [],
+    this.federationRoles = const [],
+    this.refereeProfile,
+    this.clubStaffRoles = const [],
+    this.medicalAuthorityClubIds = const {},
+    this.administrativeStatusClubIds = const {},
+    this.clubOperationsAuthority = const [],
     this.hasAccount = true,
     this.hasVerifiedIdentity = false,
     this.legacyIdentityClubIds = const {},
@@ -162,6 +171,61 @@ class SwanAccess {
 
   final List<CredentialRow> sportCredentials;
   final List<FederationAppointment> federationAppointments;
+
+  final List<FederationRole> federationRoles;
+  final RefereeProfile? refereeProfile;
+  final List<ClubStaffRole> clubStaffRoles;
+  final Set<String> medicalAuthorityClubIds;
+  final Set<String> administrativeStatusClubIds;
+  final List<ClubOperationsAuthority> clubOperationsAuthority;
+  bool canReadClubInventory(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.inventoryRead);
+  bool canManageClubInventory(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.inventoryWrite);
+  bool canReadClubHealth(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.healthRead);
+  bool canReadClubPlanning(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.planningRead);
+  bool get hasOperationalClubRole => clubOperationsAuthority.any((a)=>a.inventoryRead||a.healthRead||a.planningRead);
+  bool get canOpenClubInventory => clubOperationsAuthority.any((a)=>a.inventoryWrite);
+  bool get canOpenClubInventoryRead => clubOperationsAuthority.any((a)=>a.inventoryRead);
+  bool get canOpenClubHealth => clubOperationsAuthority.any((a)=>a.healthRead);
+  bool get canOpenClubPlanning => clubOperationsAuthority.any((a)=>a.planningRead);
+
+  /// Aggregate visibility only. Scoped queries must supply their federation ID;
+  /// these role labels never grant the legacy official result-write duties.
+  bool get isFederationPresident => federationRoles.any(
+      (r) => r.role == FederationRoleKind.president && r.isActive);
+  bool get hasActiveFederationRole => federationRoles.any((r) => r.isActive);
+  bool get canViewRefereeAssignments => isRefereeCommitteeMember || federationRoles.any(
+      (r) => r.role == FederationRoleKind.provincialRep && r.isActive);
+  bool get canViewProvincialLeagues => isFederationPresident || federationRoles.any(
+      (r) => r.role == FederationRoleKind.provincialRep && r.isActive);
+  bool canAssignOfficialsForFederation(String federationId) => federationRoles.any((r) =>
+      r.federationId == federationId && r.isActive &&
+      (r.role == FederationRoleKind.president || r.role == FederationRoleKind.refereeCommittee));
+  bool isProvincialRep(String cityCode, {String? federationId, DateTime? at}) =>
+      federationRoles.any((r) =>
+        (federationId == null || r.federationId == federationId) &&
+        r.isActiveOn(at ?? DateTime.now()) &&
+        (r.role == FederationRoleKind.president ||
+          (r.role == FederationRoleKind.provincialRep && r.cityCode == cityCode)));
+  bool get isRefereeCommitteeMember => isFederationPresident || federationRoles.any(
+      (r) => r.role == FederationRoleKind.refereeCommittee && r.isActive);
+  bool get isDisciplinaryBoardMember => isFederationPresident || federationRoles.any(
+      (r) => r.role == FederationRoleKind.disciplinaryBoard && r.isActive);
+  bool get isReferee => refereeProfile?.isActive ?? false;
+  bool _hasClubStaffRole(String clubId, ClubStaffRoleKind role) =>
+      clubStaffRoles.any((r) => r.clubId == clubId && r.role == role);
+  bool isClubPresident(String clubId) => _hasClubStaffRole(clubId, ClubStaffRoleKind.president);
+  bool isClubSportingDirector(String clubId) => _hasClubStaffRole(clubId, ClubStaffRoleKind.sportingDirector);
+  bool isClubDoctor(String clubId) => isClubMedicalStaff(clubId);
+  bool isClubMedicalStaff(String clubId) =>
+      _hasClubStaffRole(clubId, ClubStaffRoleKind.doctor) ||
+      _hasClubStaffRole(clubId, ClubStaffRoleKind.physiotherapist);
+  bool isClubKitManager(String clubId) => _hasClubStaffRole(clubId, ClubStaffRoleKind.kitManager);
+  bool get hasMedicalAuthority => medicalAuthorityClubIds.isNotEmpty;
+  bool hasMedicalAuthorityForClub(String clubId) => medicalAuthorityClubIds.contains(clubId);
+  /// Administrative rest is independent of a physician being present; medical
+  /// or disciplinary locks can still only be cleared by the authoritative RPC.
+  bool canManageAdministrativeStatus(String clubId) =>
+      administrativeStatusClubIds.contains(clubId) || clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.administrativeWrite);
 
   /// Sport credentials never inherit the club-admin or platform-admin shortcut.
   int coachLevelForSport(String sportCode, {DateTime? at}) {
@@ -332,6 +396,14 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     sportCredentials: creds,
     federationAppointments:
         ref.watch(myFederationAppointmentsProvider).valueOrNull ?? const [],
+    federationRoles: ref.watch(myFederationRolesProvider).asData?.value ?? const [],
+    refereeProfile: ref.watch(myRefereeProfileProvider).asData?.value,
+    clubStaffRoles: ref.watch(myClubStaffRolesProvider).asData?.value ?? const [],
+    medicalAuthorityClubIds:
+        ref.watch(mySportsClubAuthorityProvider).asData?.value.medicalClubIds ?? const {},
+    administrativeStatusClubIds:
+        ref.watch(mySportsClubAuthorityProvider).asData?.value.administrativeClubIds ?? const {},
+    clubOperationsAuthority: ref.watch(myClubOperationsAuthorityProvider).asData?.value ?? const [],
     athleteKind: athleteKind,
     accountantClubIds: accountantClubs,
     guardianAthleteIds:

@@ -18,6 +18,59 @@ Design-system yerel logo asset'i SwanNetworkLogo'nun çevrimdışı fallback'idi
 Launcher değişikliği yeni APK/IPA gerektirir; Mission Control URL'si yalnız
 uygulama içi marka içindir. Rapor `docs/official-launcher-brand-assets.md`.
 
+0110 spor rolleri/hakemlik Faz 1 yerel temeli altı yeni tablo içerir.
+`match_lineup_approvals` maç/katılımcı bazlı immutable snapshot'tır; turnuva
+`org_roster_revisions` ve eski resmi sonuç yazıcıları değiştirilmez. Özel
+atama/ret notları RLS ile kapsamlıdır; tek genel projeksiyon yayımlanmış
+maçların kabul edilmiş hakem adı/görevidir. Doktor ihtisas etiketi sağlık
+izni değildir; mevcut `is_authorized_health_officer` otoritesi korunur.
+Henüz canlıya uygulanmadı; mobil devamı aşağıdaki 0112 notundadır.
+Kanıt ve sınırlar `docs/sports-role-hierarchy-phase-1-verification.md`.
+
+0111 `match_approved_lineups(uuid)` ev/deplasman bilgisini kapalı resmi maç
+tablosundan sunucuda projekte eder; 0110 katılımcı başına esame kapsamını
+korur, hakem yolunda kabul/aktif branş şartı arar. Faz 2 saf modeller ve
+servis/provider'lar `sports_roles_models.dart` / `sports_roles_service.dart`
+içindedir. Gerçek approval ID mevcut RLS'li dar sorgudan gelir; side tahmin
+edilmez. SwanAccess ihtisas etiketleri eski resmi yazma görevlerini açmaz;
+tıbbi yetki mevcut `is_authorized_health_officer` RPC'sinden, idari dinlenme
+aktif coach/admin üyeliğinden gelir. Doktor etiketi veya muhasebecilik yetki
+değildir. Yerel test sınırları `docs/sports-roles-phase-2-verification.md`.
+
+0112 Mobil Hakem Kokpiti yerel temeli `/hakem/gorevler`, `/hakem/esame/<id>`,
+`/hakem/canli/<id>`, `/hakem/rapor/<id>` rotalarını bağlar. `referee_cockpit`
+admins başlar; lisans/rol ve bayrak ayrı kapılardır. Aday UUID/uygunluk kartı,
+kalıcı append-only `match_live_events`, immutable `referee_match_reports`
+ve yalnız kabul edilmiş aktif branş başhakem/masa görevlisinin rapor RPC'si
+vardır. Genel federasyon yazma izni açılmaz: yalnız işlem içindeki private
+`_referee_write_context` satırı guard/CV yolunu ilgili maç/revizyona bağlar;
+caller GUC'si kullanılmaz. Esame, CV ve veli hattında dondurulmuş kalır.
+İlk canlı protokoller futbol/basketbol/tenistir; bireysel derece branşlarında
+sahte takım skoru üretilmez. Bu bir çevrimiçi motor; belirsiz operation ID
+retry taslağı RAM'dedir, sunucu olayları kalıcıdır. Doğrulama/sınırlar
+`docs/referee-cockpit-phase-3-verification.md`; canlı uygulanmadı.
+
+0113 federasyon konsolu yerel motoru `/mhk-atamalar`, `/il-ligleri` ve
+`/disiplin-kurulu` modüllerini saf `federation_console.dart` verisiyle bağlar.
+Başkan/MHK atar; il temsilcisi özel ret notunu ham RLS'den de okuyamaz.
+İmzalı rapor Başkan/MHK/Disiplin Kuruluna özeldir; immutable idempotent
+disiplin kararı yeni esame validasyonunda sunucuda denetlenir. Rol etiketi
+eski resultPublisher yetkisini açmaz. Resmi tesis bağlantısı ayrı
+`official_match_facilities` tahsisidir; resmi maç events'e kopyalanmaz.
+Kesin tahsis/süre yoksa çakışma null'dır, sahte sıfır değildir. Tesis sahibi
+kulüp personeli tahsis RPC'sini çağırabilir; bu fazda UI yazma aksiyonu ve
+tipli antrenör sevki/itiraz tamamlanmadı. Canlı uygulanmadı; Flutter SDK
+olmadığından typecheck/widget/build kabulü yok. Sınırlar ve kanıtlar:
+`docs/federation-console-phase-4-verification.md`.
+
+0114 kulüp ihtisas operasyonları aktif üyelik + dar RPC yetkisiyle envanter,
+zimmet, idari dinlenme ve sportif planlamayı bağlar. Muhasebecilik bu veriyi
+açmaz; doktor etiketi gerçek sağlık izni yerine geçmez. İdari kaldırma tıbbi
+kilidi kaldıramaz. `club_staff_operations` admins başlar; mobil Yönetim ve
+konsol modülleri aynı SwanAccess kaynağını kullanır. Transfer talebi motoru
+yoktur, yalnız mevcut tamamlanmış transferler özetlenir. Canlı uygulanmadı;
+SDK/üretim sınırları `docs/club-staff-operations-phase-5-verification.md`.
+
 0109 Platform Mission Control yerel backend temeli:
 `platform_settings` public ayarlar (sır içermez), `platform_plans` aktif/genel
 ve pasif/admin paketler, `platform_audit_logs` admin-okunur append-only denetim.

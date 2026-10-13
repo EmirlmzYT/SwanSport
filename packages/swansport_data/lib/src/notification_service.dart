@@ -31,6 +31,8 @@ class NotificationRow {
   final DateTime? readAt;
 
   bool get isUnread => readAt == null;
+  String? get refereeRoute => kind == 'referee_assignment' && entityType == 'match'
+      ? '/hakem/gorevler' : null;
 
   String? get resultRoute => kind == 'match_result' && entityType == 'official_result'
       ? '/resmi-sonuc?notification=${Uri.encodeQueryComponent(id)}'

@@ -34,6 +34,8 @@ class FeatureFlags {
   /// Bilinen bayraklar. Sabit olarak burada duruyorlar ki yazım hatası
   /// derleme zamanında yakalansın; `has('marketpalce')` sessizce false döner.
   static const marketplace = 'marketplace';
+  static const refereeCockpit = 'referee_cockpit';
+  static const clubStaffOperations = 'club_staff_operations';
   static const courts = 'courts';
   static const courtWaitlist = 'court_waitlist';
   static const turfDelegation = 'turf_delegation';
@@ -99,6 +101,7 @@ class FeatureFlags {
 /// tutuluyor. Her ekranda yeniden sormak, açılışı ekran sayısı kadar
 /// yavaşlatırdı.
 final featureFlagsProvider = FutureProvider<FeatureFlags>((ref) async {
+  ref.watch(authSessionProvider.select((session) => session.valueOrNull?.user.id));
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return const FeatureFlags.none();
   }

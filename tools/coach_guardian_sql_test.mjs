@@ -5,7 +5,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 const sql=async n=>readFile(new URL('../supabase/migrations/'+n+'.sql',import.meta.url),'utf8');
 const migration=await sql('0104_coach_guardian_results');
-async function fixture(){const f=await c1();try{
+export async function fixture(){const f=await c1();try{
  const {db}=f;
  await apply(db,await sql('0103_official_result_cv'));
  await db.exec(`alter table notifications add column id uuid primary key default gen_random_uuid(),add column read_at timestamptz,add column created_at timestamptz default now();

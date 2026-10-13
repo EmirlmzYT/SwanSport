@@ -38,11 +38,11 @@ extension ConsoleAudienceX on ConsoleAudience {
 /// unutulabilirdi.
 extension ConsoleAudienceAccess on SwanAccess {
   bool allows(ConsoleAudience a) => switch (a) {
-        ConsoleAudience.clubStaff => isClubStaff,
+        ConsoleAudience.clubStaff => isClubStaff || hasOperationalClubRole,
         ConsoleAudience.platformAdmin => isPlatformAdmin,
         ConsoleAudience.accountant => isAccountant,
         // Henüz kimseye açılmadı — modül yazıldığında burası dolacak.
-        ConsoleAudience.federation => canPublishFederationResults,
+        ConsoleAudience.federation => canPublishFederationResults || hasActiveFederationRole,
         ConsoleAudience.marketplace => false,
       };
 
@@ -73,6 +73,7 @@ class ConsoleModule {
     required this.audience,
     required this.builder,
     this.minCoachLevel = 0,
+    this.accessCheck,
   });
 
   final String id;
@@ -89,9 +90,14 @@ class ConsoleModule {
   final int minCoachLevel;
 
   final WidgetBuilder builder;
+  final bool Function(SwanAccess)? accessCheck;
 
   bool visibleTo(SwanAccess a) {
     if (!a.allowsAny(audience)) return false;
+    // Specialist visibility is not a grant to every legacy staff module.
+    if (audience.contains(ConsoleAudience.clubStaff) && !a.isClubStaff &&
+        !(a.isAccountant && audience.contains(ConsoleAudience.accountant)) && accessCheck == null) return false;
+    if (accessCheck != null && !accessCheck!(a)) return false;
 
     // Kademe eşiği yalnızca kulüp yetkilisi ekseninde anlamlı. Muhasebecinin
     // antrenör kademesi yok ve olması da beklenmiyor; eşik ona uygulanırsa

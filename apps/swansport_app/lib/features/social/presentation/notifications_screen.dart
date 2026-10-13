@@ -237,7 +237,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Widget _tile(SwanPalette c, NotificationRow n) {
     return InkWell(
-      onTap: n.resultRoute == null ? null : () => Navigator.pushNamed(context, n.resultRoute!),
+      onTap: (n.resultRoute ?? n.refereeRoute) == null ? null : () => Navigator.pushNamed(context, (n.resultRoute ?? n.refereeRoute)!),
       child: Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(SwanSpace.md),

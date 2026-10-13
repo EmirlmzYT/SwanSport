@@ -312,6 +312,9 @@ final realRoleRoutesProvider = Provider<Set<String>?>((ref) {
   }
 
   // Platform yöneticisi kendi rolüne ek olarak yönetim ekranlarını da görür.
+  if (access.canOpenClubInventory) routes.add('/kulup/malzeme-zimmet');
+  if (access.canOpenClubHealth) routes.add('/kulup/saglik-takibi');
+  if (access.canOpenClubPlanning) routes.addAll({'/kulup/kadro-planlama', '/gelisim-raporu'});
   if (access.isPlatformAdmin) {
     routes.addAll(DemoRole.platformAdmin.allowedRoutes);
   }

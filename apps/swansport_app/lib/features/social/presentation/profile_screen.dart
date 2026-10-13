@@ -20,6 +20,7 @@ import 'post_composer_sheet.dart';
 import 'widgets/management_section.dart';
 import 'widgets/post_card.dart';
 import 'widgets/profile_sections.dart';
+import '../../referee/referee_widgets.dart';
 
 /// Detaylı profil sayfası — Stitch Calm Athletic Modernism.
 ///
@@ -491,6 +492,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
 
                       if (p.isMe) const ManagementSection(),
+                      if (p.isMe && !p.isClub &&
+                          ref.watch(swanAccessProvider).isReferee &&
+                          ref.watch(featureEnabledProvider(FeatureFlags.refereeCockpit)))
+                        const RefereeEntryCard(route: '/hakem/gorevler'),
                     ],
                   ),
                 );

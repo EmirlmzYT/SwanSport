@@ -13,6 +13,7 @@ import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
 import 'widgets/stitch_feed_widgets.dart';
 import 'widgets/platform_notice.dart';
+import '../../referee/referee_widgets.dart';
 
 /// Ana Akış — kulüp gönderileri, duyurular ve haberler tek yerde (Instagram gibi).
 class FeedScreen extends ConsumerStatefulWidget {
@@ -74,6 +75,8 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ref.invalidate(newsProvider);
                 ref.invalidate(announcementsProvider);
                 ref.invalidate(platformConfigProvider);
+                ref.invalidate(myRefereeMatchesProvider);
+                ref.invalidate(refereeTodayMatchesProvider);
                 await ref.read(activeFeed.future);
               },
               child: CustomScrollView(
@@ -87,6 +90,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                     delegate: _StitchHeaderDelegate(),
                   ),
                   if (banner != null) SliverToBoxAdapter(child: banner),
+                  const SliverToBoxAdapter(child: RefereeEntryCard(today: true)),
                   SliverPersistentHeader(
                     pinned: true,
                     delegate: _FeedModeDelegate(

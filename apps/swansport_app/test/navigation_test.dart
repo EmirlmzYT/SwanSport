@@ -43,12 +43,23 @@ void main() {
     '/bagis', '/basvurular', '/veli-bagla', '/rehber', '/settings',
     // Profil kısayolları
     '/aidatlarim', '/documents', '/dogrulama', '/antrenmanlarim',
+    '/hakem/gorevler',
+    '/kulup/malzeme-zimmet', '/kulup/saglik-takibi', '/kulup/kadro-planlama',
     // Antrenman oturumu (0071-0073). '/antrenman-sonuc' burada YOK:
     // oturum ekranindan acilan bir alt sayfa, girisi kendi baglaminda.
     '/antrenman-oturumu', '/antrenman-sablonlari',
   ];
 
   group('rota bütünlüğü', () {
+    test('referee deep routes retain validated match IDs and account guard', () {
+      final router = read('lib/app/router.dart');
+      for (final route in ['/hakem/esame', '/hakem/canli', '/hakem/rapor']) {
+        expect(router.contains("'$route'"), isTrue);
+      }
+      expect(routes.contains('refereeRoute(settings)'), isTrue);
+      expect(routes.contains('guardAccountRoutes'), isTrue);
+      expect(router.contains('hasMatch(matchId)'), isTrue);
+    });
     test('private official result has notification and child calendar entry points', () {
       expect(routes.contains("'/resmi-sonuc'"), isTrue);
       expect(read('lib/features/social/presentation/notifications_screen.dart').contains('n.resultRoute'), isTrue);

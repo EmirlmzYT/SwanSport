@@ -26,6 +26,11 @@ import '../../features/platform/platform_screens.dart';
 import '../../features/schedule/schedule_screen.dart';
 import 'console_module.dart';
 import '../../features/federation/federation_results_screen.dart';
+import '../../features/club_staff/club_staff_operations_screen.dart';
+import '../../features/federation/referee_assignments_screen.dart';
+import '../../features/federation/provincial_leagues_screen.dart';
+import '../../features/federation/disciplinary_board_screen.dart';
+import 'package:swansport_data/swansport_data.dart';
 
 /// Konsolun tüm modülleri — tek liste.
 ///
@@ -35,6 +40,18 @@ import '../../features/federation/federation_results_screen.dart';
 /// Yeni modül eklemek = buraya bir satır. Yeni **kitle** eklemek de öyle:
 /// `ConsoleAudience`'ta yuvası zaten var.
 const List<ConsoleModule> kConsoleModules = [
+  ConsoleModule(id:'club_inventory',label:'Malzeme & Zimmet',icon:Icons.inventory_2_outlined,route:'/malzeme-takibi',
+    audience:{ConsoleAudience.clubStaff},builder:_clubInventory,accessCheck:_inventoryAccess),
+  ConsoleModule(id:'club_health_operations',label:'Sağlık & Dinlendirme',icon:Icons.health_and_safety_outlined,route:'/saglik-takibi',
+    audience:{ConsoleAudience.clubStaff},builder:_clubHealth,accessCheck:_clubHealthAccess),
+  ConsoleModule(id:'club_sporting',label:'Sportif Kadro Planlama',icon:Icons.groups_outlined,route:'/kadro-planlama',
+    audience:{ConsoleAudience.clubStaff},builder:_clubSporting,accessCheck:_clubSportingAccess),
+  ConsoleModule(id: 'referee_assignments', label: 'MHK Hakem Atama', icon: Icons.sports_rounded,
+    route: '/mhk-atamalar', audience: {ConsoleAudience.federation}, builder: _refereeAssignments, accessCheck: _assignmentsAccess),
+  ConsoleModule(id: 'provincial_leagues', label: 'İl Lig & Müsabaka', icon: Icons.event_note_rounded,
+    route: '/il-ligleri', audience: {ConsoleAudience.federation}, builder: _provincialLeagues, accessCheck: _leaguesAccess),
+  ConsoleModule(id: 'disciplinary_board', label: 'Disiplin Kurulu', icon: Icons.gavel_rounded,
+    route: '/disiplin-kurulu', audience: {ConsoleAudience.federation}, builder: _disciplinaryBoard, accessCheck: _disciplineAccess),
   ConsoleModule(id: 'mission_control', label: 'Mission Control',
     icon: Icons.admin_panel_settings_rounded, route: '/mission-control',
     audience: {ConsoleAudience.platformAdmin}, builder: _missionControl),
@@ -44,7 +61,7 @@ const List<ConsoleModule> kConsoleModules = [
       icon: Icons.verified_user_rounded,
       route: '/federasyon-sonuclari',
       audience: {ConsoleAudience.federation},
-      builder: _federationResults),
+      builder: _federationResults, accessCheck: _resultsAccess),
   // ----------------------------------------------------------- kulüp
   ConsoleModule(
     id: 'athletes',
@@ -322,3 +339,16 @@ Widget _missionControl(BuildContext _) => const MissionControlScreen();
 
 Widget _federationResults(BuildContext context) =>
     const FederationResultsScreen();
+Widget _refereeAssignments(BuildContext _) => const RefereeAssignmentsScreen();
+Widget _provincialLeagues(BuildContext _) => const ProvincialLeaguesScreen();
+Widget _disciplinaryBoard(BuildContext _) => const DisciplinaryBoardScreen();
+bool _assignmentsAccess(SwanAccess a) => a.canViewRefereeAssignments;
+bool _leaguesAccess(SwanAccess a) => a.canViewProvincialLeagues;
+bool _disciplineAccess(SwanAccess a) => a.isDisciplinaryBoardMember;
+bool _resultsAccess(SwanAccess a) => a.canPublishFederationResults;
+Widget _clubInventory(BuildContext _) => const ConsoleClubStaffOperationsScreen(mode:ConsoleClubStaffMode.inventory);
+Widget _clubHealth(BuildContext _) => const ConsoleClubStaffOperationsScreen(mode:ConsoleClubStaffMode.health);
+Widget _clubSporting(BuildContext _) => const ConsoleClubStaffOperationsScreen(mode:ConsoleClubStaffMode.sporting);
+bool _inventoryAccess(SwanAccess a) => a.canOpenClubInventoryRead;
+bool _clubHealthAccess(SwanAccess a) => a.canOpenClubHealth;
+bool _clubSportingAccess(SwanAccess a) => a.canOpenClubPlanning;

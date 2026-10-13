@@ -68,6 +68,11 @@ class ManagementSection extends ConsumerWidget {
     ];
 
     final ops = <_Item>[
+      if (ref.watch(featureEnabledProvider(FeatureFlags.clubStaffOperations))) ...[
+        if (access.canOpenClubInventory) const _Item(Icons.inventory_2_outlined, 'Malzeme & Zimmet', '/kulup/malzeme-zimmet'),
+        if (access.canOpenClubHealth) const _Item(Icons.health_and_safety_outlined, 'Sağlık & İdari Dinlendirme', '/kulup/saglik-takibi'),
+        if (access.canOpenClubPlanning) const _Item(Icons.groups_outlined, 'Sportif Kadro Planlama', '/kulup/kadro-planlama'),
+      ],
       if (access.isClubStaff || access.isAccountant) ...[
         const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
         const _Item(
