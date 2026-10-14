@@ -190,7 +190,21 @@ async function fcmAccessToken(env) {
   return { token: (await res.json()).access_token, projectId: sa.project_id };
 }
 
-/** Tek bir Android cihazına bildirim gönderir. */
+/** Android/iOS FCM mesajı; foreground görünümü istemcide tek yerde sunulur. */
+export function fcmMessage(sub, job) {
+  const notification = {title: job.title || 'SwanSport', body: job.body || ''};
+  const live = typeof job.url === 'string' && job.url.startsWith('/canli-mac/');
+  return {
+    token: sub.endpoint, notification,
+    data: {url: job.url || '/bildirimler'},
+    android: {priority: 'high', notification: {channel_id: 'swansport_default'}, ...(live ? {ttl: '60s'} : {})},
+    apns: {
+      headers: {'apns-push-type': 'alert', 'apns-priority': '10',
+        ...(live ? {'apns-expiration': String(Math.floor(Date.now() / 1000) + 60)} : {})},
+      payload: {aps: {alert: notification, sound: 'default', badge: 1}},
+    },
+  };
+}
 async function sendFcm(token, projectId, sub, job) {
   const res = await fetch(
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
@@ -201,20 +215,7 @@ async function sendFcm(token, projectId, sub, job) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        message: {
-          token: sub.endpoint,
-          notification: {
-            title: job.title || 'SwanSport',
-            body: job.body || '',
-          },
-          // Uygulama açıkken hangi sayfaya gidileceği; bildirim gövdesi
-          // değil veri alanı taşır, çünkü ikisi farklı işleniyor.
-          data: { url: job.url || '/bildirimler' },
-          android: {
-            priority: 'high',
-            notification: { channel_id: 'swansport_default' },
-          },
-        },
+        message: fcmMessage(sub, job),
       }),
     },
   );
@@ -224,7 +225,7 @@ async function sendFcm(token, projectId, sub, job) {
 
 // ------------------------------------------------------------------ handler
 export async function onRequestPost({ request, env }) {
-  if (!env.VAPID_PRIVATE || !env.PUSH_SECRET) {
+  if (!env.PUSH_SECRET) {
     return new Response('yapılandırma eksik', { status: 500 });
   }
   if (request.headers.get('x-push-secret') !== env.PUSH_SECRET) {
@@ -236,6 +237,9 @@ export async function onRequestPost({ request, env }) {
     job = await request.json();
   } catch {
     return new Response('geçersiz gövde', { status: 400 });
+  }
+  if (!job || typeof job !== 'object' || Array.isArray(job)) {
+    return new Response('geçersiz gövde', {status: 400});
   }
 
   const subs = Array.isArray(job.subs) ? job.subs : [];
@@ -270,6 +274,10 @@ export async function onRequestPost({ request, env }) {
         return await sendFcm(fcm.token, fcm.projectId, s, job);
       }
 
+      if (!env.VAPID_PRIVATE || !env.VAPID_PUBLIC) {
+        return {endpoint: s.endpoint, status: 0, error: 'Web push yapılandırılmamış'};
+      }
+
       const body = await encryptPayload(payload, s.p256dh, s.auth);
       const res = await fetch(s.endpoint, {
         method: 'POST',
@@ -277,7 +285,7 @@ export async function onRequestPost({ request, env }) {
           Authorization: await vapidHeader(s.endpoint, env),
           'Content-Encoding': 'aes128gcm',
           'Content-Type': 'application/octet-stream',
-          TTL: '86400',
+          TTL: typeof job.url === 'string' && job.url.startsWith('/canli-mac/') ? '60' : '86400',
           Urgency: 'normal',
         },
         body,

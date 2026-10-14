@@ -4,6 +4,7 @@ import 'club_data.dart';
 import 'club_staff_operations.dart';
 import 'expense_service.dart';
 import 'federation_records.dart';
+import 'live_match_models.dart';
 import 'parent_actions.dart';
 import 'saha_operations.dart';
 import 'sports_roles_models.dart';
@@ -13,6 +14,7 @@ import 'turf_service.dart';
 import 'verification_service.dart';
 
 enum SwanAction {
+  matchFollow,
   clubApplication,
   rsvp,
   message,
@@ -97,7 +99,11 @@ class SwanAccess {
   }
 
   /// Only these named routes may construct screens without an account.
-  static bool isGuestRoute(String? route) => const {
+  static bool isGuestRoute(String? route) {
+    final target=Uri.tryParse(route??'');
+    if(target!=null && !target.hasScheme && !target.hasAuthority && target.pathSegments.length==2
+      && target.pathSegments.first=='canli-mac' && isPublicMatchId(target.pathSegments.last))return true;
+    return const {
         '/',
         '/auth',
         '/landing',
@@ -111,7 +117,9 @@ class SwanAccess {
         '/calendar',
         '/yardim',
         '/rehber',
+        '/canli-skor',
       }.contains(route);
+  }
 
   bool get isInIdentityWaitingRoom =>
       hasAccount && !hasVerifiedIdentity && legacyIdentityClubIds.isEmpty;

@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:swansport_data/swansport_data.dart';
+import '../features/live_match/presentation/live_match_detail_screen.dart';
 import '../features/referee/referee_lineup_approval_screen.dart';
 import '../features/referee/referee_live_cockpit_screen.dart';
 import '../features/referee/referee_match_report_screen.dart';
@@ -19,4 +21,11 @@ Route<void>? refereeRoute(RouteSettings settings) {
     default:return null;
   }
   return MaterialPageRoute<void>(settings:settings,builder:(_)=>screen);
+}
+
+Route<void>? liveMatchRoute(RouteSettings settings) {
+  final target=Uri.tryParse(settings.name??'');
+  if(target==null||target.hasScheme||target.hasAuthority||target.pathSegments.length!=2
+    ||target.pathSegments.first!='canli-mac'||!isPublicMatchId(target.pathSegments.last))return null;
+  return MaterialPageRoute<void>(settings:settings,builder:(_)=>LiveMatchDetailScreen(matchId:target.pathSegments.last));
 }

@@ -27,7 +27,7 @@ class PushSub {
     required String this.auth,
   }) : kind = 'web';
 
-  /// Android cihaz token'ı.
+  /// Android/iOS FCM cihaz token'ı.
   const PushSub.fcm(this.endpoint)
       : kind = 'fcm',
         p256dh = null,
@@ -57,6 +57,8 @@ class PushMessage {
 
 /// Push aboneliğinin alınamama nedeni — kullanıcıya doğru cümleyi kurmak için.
 enum PushFailure {
+  /// iOS izin verdi ancak APNs kaydı oluşmadı (imza/capability/ağ kontrolü).
+  apnsUnavailable,
   /// Platform push desteklemiyor (ör. iOS'ta ana ekrana eklenmemiş Safari).
   unsupported,
 
@@ -70,6 +72,9 @@ enum PushFailure {
 class PushException implements Exception {
   const PushException(this.reason);
   final PushFailure reason;
+  @override String toString()=>reason==PushFailure.apnsUnavailable
+    ? 'iOS APNs cihaz kaydı hazır değil. Uygulama imzası, Push Notifications yetkisi ve Firebase APNs yapılandırması kontrol edilmeli.'
+    : 'Bildirim aboneliği kurulamadı (${reason.name}).';
 }
 
 /// Bu platformda push bildirimi kurulabilir mi?

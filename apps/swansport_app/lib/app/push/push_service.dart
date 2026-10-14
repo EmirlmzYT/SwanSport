@@ -220,8 +220,8 @@ class PushDiagnostics {
           'Bildirimler bölümünden izin ver, sonra anahtarı aç.';
     }
     if (token == null) {
-      return 'İzin var ama cihaz adresi alınamıyor. Genellikle Google Play '
-          'Servisleri eksik ya da ağ FCM\'e ulaşamıyor.';
+      return 'İzin var ama cihaz adresi alınamıyor. iOS için APNs imza/yetki '
+          've Firebase yapılandırmasını; Android için Google Play Servislerini ve ağı kontrol et.';
     }
     if (state == PushSubState.otherAccount) {
       // 0043 öncesinin asıl hatası. `endpoint` globalde tekil ve RLS
@@ -323,29 +323,23 @@ Future<void> refreshPushSilently(WidgetRef ref) async {
 /// kullanıcı sessizce bildirim almaz hale gelir — en sinsi bildirim hatası
 /// budur, çünkü hiçbir yerde hata görünmez.
 ///
-/// Uygulama ömrü boyunca dinlenir; abonelik iptal edilmez.
-///
-/// Birden fazla kez çağrılması zararsız — ana ekran her açıldığında
-/// çağrıldığı için tekrar tekrar dinleyici eklememesi gerekiyor.
-StreamSubscription<String>? _tokenSub;
-
-void listenPushTokenChanges(WidgetRef ref) {
-  if (_tokenSub != null) return;
+/// Root lifecycle observer bir kez bağlar ve dispose sırasında iptal eder.
+StreamSubscription<String>? listenPushTokenChanges(WidgetRef ref) {
   try {
-    _tokenSub = pushTokenChanges().listen(
+    return pushTokenChanges().listen(
       (token) {
+        if(!pushPermissionGranted||!ref.read(isSupabaseEnabledProvider))return;
         unawaited(
           ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
-                (Object e) =>
-                    debugPrint('SwanSport: yeni push token kaydedilemedi — $e'),
+                (Object e) {lastPushError = '$e';},
               ),
         );
       },
-      onError: (Object error, StackTrace stackTrace) => debugPrint(
-          'SwanSport: push token dinleyicisi başlatılamadı — $error'),
+      onError: (Object error, StackTrace stackTrace) {lastPushError='$error';},
     );
   } catch (error) {
     debugPrint('SwanSport: push token dinleyicisi başlatılamadı — $error');
+    return null;
   }
 }
 
@@ -363,23 +357,35 @@ class PushLifecycleObserver extends ConsumerStatefulWidget {
 }
 
 class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
+  StreamSubscription<String>? _tokenSub;
   StreamSubscription<PushMessage>? _foregroundSub;
   StreamSubscription<PushMessage>? _openedSub;
 
   @override
   void initState() {
     super.initState();
-    listenPushTokenChanges(ref);
-    _foregroundSub = pushForegroundMessages().listen(_showForegroundMessage);
-    _openedSub = pushOpenedMessages().listen(_openMessage);
+    _tokenSub=listenPushTokenChanges(ref);
+    _foregroundSub = pushForegroundMessages().listen(_showForegroundMessage,onError:_pushError);
+    _openedSub = pushOpenedMessages().listen(_openMessage,onError:_pushError);
     Future.microtask(() async {
-      await refreshPushSilently(ref);
-      final initial = await pushInitialMessage();
-      if (initial != null) _openMessage(initial);
+      try{
+        if(!mounted||!ref.read(isSupabaseEnabledProvider))return;
+        await refreshPushSilently(ref);
+        if(!mounted)return;
+        final initial = await pushInitialMessage();
+        if (mounted&&initial != null) _openMessage(initial);
+      }catch(error){_pushError(error);}
     });
   }
 
+  void _pushError(Object error){lastPushError='$error';}
+
   void _showForegroundMessage(PushMessage message) {
+    if(!mounted)return;
+    if(message.route?.startsWith('/canli-mac/')??false){
+      ref.invalidate(publicLiveMatchesProvider);ref.invalidate(publicLiveMatchesForSportProvider);
+      ref.invalidate(publicMatchLiveStateProvider);ref.invalidate(leagueStandingsProvider);
+    }
     if (message.route?.startsWith('/resmi-sonuc') ?? false) {
       ref.read(officialResultRefreshProvider)();
     }
@@ -404,6 +410,7 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   void _openMessage(PushMessage message) {
+    if(!mounted)return;
     if (message.route?.startsWith('/resmi-sonuc') ?? false) {
       ref.read(officialResultRefreshProvider)();
     }
@@ -423,6 +430,7 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
 
   @override
   void dispose() {
+    _tokenSub?.cancel();
     _foregroundSub?.cancel();
     _openedSub?.cancel();
     super.dispose();

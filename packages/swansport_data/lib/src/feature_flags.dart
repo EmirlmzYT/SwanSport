@@ -36,6 +36,9 @@ class FeatureFlags {
   static const marketplace = 'marketplace';
   static const refereeCockpit = 'referee_cockpit';
   static const clubStaffOperations = 'club_staff_operations';
+  static const liveMatchHub = 'live_match_hub';
+  static const leagueStandings = 'league_standings';
+  static const liveMatchNotifications = 'live_match_notifications';
   static const courts = 'courts';
   static const courtWaitlist = 'court_waitlist';
   static const turfDelegation = 'turf_delegation';

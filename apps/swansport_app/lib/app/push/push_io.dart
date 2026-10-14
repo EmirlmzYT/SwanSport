@@ -3,30 +3,46 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import 'push.dart';
+import 'push_token_gate.dart';
 
-/// Web dışı platformlarda (Android) bildirim — Firebase Cloud Messaging.
+/// Android/iOS bildirim taşıyıcısı — Firebase Cloud Messaging.
 ///
 /// Tarayıcı sürümünden farkı yalnızca taşıyıcı: orada abonelik üç parçalıydı
 /// (adres + iki anahtar) ve yükü biz şifreliyorduk, burada tek bir cihaz
 /// token'ı var ve şifrelemeyi Google yapıyor. Kayıt, tazeleme ve silme akışı
 /// aynı arayüzün arkasında duruyor.
 ///
-/// iOS bu dosyayı da kullanır ama APNs anahtarı Firebase'e tanımlanmadan
-/// çalışmaz; şu an yalnızca Android hedefleniyor.
+/// iOS için geçerli APNs imzası/capability ve Firebase APNs anahtarı gerekir.
 
 /// Firebase yalnızca bir kez başlatılabilir; ikinci çağrı hata verir.
 bool _initialized = false;
+Future<void>? _initializing;
 
 Future<void> _ensureInitialized() async {
   if (_initialized) return;
-  // Yapılandırma android/app/google-services.json dosyasından okunuyor;
-  // Dart tarafında anahtar tutulmuyor.
-  await Firebase.initializeApp();
-  _initialized = true;
+  final work=_initializing??=_initializeNative();
+  try{await work;}finally{if(identical(_initializing,work))_initializing=null;}
 }
 
-/// Android'de bildirim kurulabilir.
-bool get pushSupported => defaultTargetPlatform == TargetPlatform.android;
+Future<void> _initializeNative() async {
+  if(Firebase.apps.isEmpty)await Firebase.initializeApp();
+  if(defaultTargetPlatform==TargetPlatform.iOS){
+    // The existing foreground snackbar is the single visible UI. Do not
+    // duplicate it with an iOS system banner/sound in the foreground.
+    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert:false,badge:false,sound:false);
+  }
+  _initialized=true;
+}
+
+bool get pushSupported => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+
+Future<String?> _fcmToken(FirebaseMessaging messaging) async {
+  if(defaultTargetPlatform==TargetPlatform.iOS){
+    final apns=await waitForApnsToken(read:messaging.getAPNSToken);
+    if(apns==null)throw const PushException(PushFailure.apnsUnavailable);
+  }
+  return messaging.getToken();
+}
 
 /// İzin daha önce verilmiş mi?
 ///
@@ -44,7 +60,7 @@ Future<PushSub> pushSubscribe() async {
   await _ensureInitialized();
 
   final messaging = FirebaseMessaging.instance;
-  final settings = await messaging.requestPermission();
+  final settings = await messaging.requestPermission(alert:true,badge:true,sound:true,provisional:false);
 
   final granted =
       settings.authorizationStatus == AuthorizationStatus.authorized ||
@@ -55,7 +71,7 @@ Future<PushSub> pushSubscribe() async {
     throw const PushException(PushFailure.denied);
   }
 
-  final token = await messaging.getToken();
+  final token = await _fcmToken(messaging);
   if (token == null || token.isEmpty) {
     // İzin var ama token yok: genellikle Google Play Services eksik ya da
     // cihazın ağı FCM'e ulaşamıyor.
@@ -80,7 +96,7 @@ Future<PushSub?> pushCurrent() async {
   _permissionGranted = granted;
   if (!granted) return null;
 
-  final token = await messaging.getToken();
+  final token = await _fcmToken(messaging);
   if (token == null || token.isEmpty) return null;
   return PushSub.fcm(token);
 }
@@ -91,7 +107,7 @@ Future<String?> pushUnsubscribe() async {
   await _ensureInitialized();
 
   final messaging = FirebaseMessaging.instance;
-  final token = await messaging.getToken();
+  final token = await _fcmToken(messaging);
   if (token == null) return null;
 
   // Token'ı sunucu tarafında da silebilmek için önce değerini alıp sonra
@@ -105,9 +121,10 @@ Future<String?> pushUnsubscribe() async {
 ///
 /// Yenilendiğinde eski token ölür; dinlemezsek kullanıcı bir gün sessizce
 /// bildirim almaz hale gelir. Uygulama açılışında bir kez bağlanır.
-Stream<String> pushTokenChanges() {
-  if (!pushSupported) return const Stream<String>.empty();
-  return FirebaseMessaging.instance.onTokenRefresh;
+Stream<String> pushTokenChanges() async* {
+  if (!pushSupported) return;
+  await _ensureInitialized();
+  yield* FirebaseMessaging.instance.onTokenRefresh;
 }
 
 PushMessage _message(RemoteMessage value) => PushMessage(

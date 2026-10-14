@@ -237,7 +237,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Widget _tile(SwanPalette c, NotificationRow n) {
     return InkWell(
-      onTap: (n.resultRoute ?? n.refereeRoute) == null ? null : () => Navigator.pushNamed(context, (n.resultRoute ?? n.refereeRoute)!),
+      onTap: (n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute) == null ? null : () => Navigator.pushNamed(context, (n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute)!),
       child: Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.all(SwanSpace.md),
@@ -428,6 +428,7 @@ class _PushBanner extends ConsumerWidget {
           PushFailure.unsupported =>
             'Bu tarayıcı bildirim desteklemiyor. iPhone kullanıyorsan uygulamayı ana ekrana ekleyip oradan aç.',
           PushFailure.failed => 'Bildirim açılamadı, tekrar dener misin?',
+          PushFailure.apnsUnavailable => 'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırması kontrol edilmeli.',
         }),
         backgroundColor: SwanPalette.light.danger,
       ));

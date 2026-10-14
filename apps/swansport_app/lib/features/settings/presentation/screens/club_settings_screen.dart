@@ -264,6 +264,7 @@ class _PushToggleRow extends ConsumerWidget {
                               PushFailure.unsupported =>
                                 'Bu tarayıcı bildirim desteklemiyor.',
                               PushFailure.failed => 'Açılamadı, tekrar dene.',
+                              PushFailure.apnsUnavailable => 'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırmasını kontrol et.',
                             },
                           ),
                           backgroundColor: SwanPalette.light.danger,

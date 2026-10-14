@@ -1,5 +1,6 @@
 import 'widgets/action_gate.dart';
 import 'router.dart';
+import '../features/live_match/presentation/live_match_hub_screen.dart';
 import '../features/club_staff/club_staff_operations_screen.dart';
 import '../features/referee/referee_duty_list_screen.dart';
 import '../features/network/presentation/guest_explore_screen.dart';
@@ -181,6 +182,7 @@ class SwanSportApp extends ConsumerWidget {
         '/antrenman-olustur': (context) => const WorkoutProtocolBuilderScreen(),
         '/antrenmanlarim': (context) => const MyTrainingScreen(),
         '/dogrulama': (context) => const CredentialScreen(),
+        '/canli-skor': (context) => const LiveMatchHubScreen(),
         '/veli-bagla': (context) => const GuardianLinkScreen(),
         '/rehber': (context) => const SetupWizardScreen(),
         '/onay-paneli': (context) => const AdminReviewScreen(),
@@ -259,6 +261,8 @@ class SwanSportApp extends ConsumerWidget {
               ? builder
               : (context) => AccountRouteGate(builder: builder))),
       onGenerateRoute: guardAccountRoutes((settings) {
+        final liveMatch=liveMatchRoute(settings);
+        if(liveMatch!=null)return liveMatch;
         final referee = refereeRoute(settings);
         if (referee != null) return referee;
         final target = Uri.tryParse(settings.name ?? '');

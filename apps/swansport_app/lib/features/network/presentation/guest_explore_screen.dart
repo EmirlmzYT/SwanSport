@@ -7,6 +7,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../calendar/presentation/screens/schedule_calendar_screen.dart';
 import '../../social/presentation/widgets/feed_entry.dart';
+import '../../live_match/presentation/live_match_widgets.dart';
 
 /// Public discovery constructs only providers intended for anonymous reads.
 class GuestExploreScreen extends ConsumerWidget {
@@ -28,6 +29,12 @@ class GuestExploreScreen extends ConsumerWidget {
               'Haberleri, tesisleri ve yayımlanmış federasyon programlarını hesapsız inceleyebilirsin.',
               style: SwanType.bodySm(c.inkMuted)),
           const SizedBox(height: SwanSpace.lg),
+          const LiveMatchStrip(),
+          if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub))) ListTile(
+            leading:Icon(Icons.scoreboard_outlined,color:c.ink),
+            title:Text('Canlı Skor Merkezi',style:SwanType.body(c.ink)),
+            onTap:()=>Navigator.pushNamed(context,'/canli-skor'),
+          ),
           FilledButton(
             onPressed: () => Navigator.pushNamed(context, '/auth'),
             child: const Text('Giriş Yap / Kayıt Ol'),

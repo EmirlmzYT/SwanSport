@@ -17,6 +17,9 @@ REFEREE_SCREENS = (
     'referee_live_cockpit_screen', 'referee_match_report_screen',
     'club_staff_operations_screen',
     'mernis_verification_section',
+    'live_match_widgets', 'live_match_hub_screen', 'live_match_detail_screen',
+    'league_standings_view',
+    'match_follow_button',
 )
 
 

@@ -293,6 +293,12 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                     Navigator.pushNamed(context, '/pazaryeri'),
                               ),
                             ),
+                          if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub)))
+                            SizedBox(width:itemWidth,child:_ModuleGridCard(
+                              icon:Icons.scoreboard_outlined,title:'Canlı Skor',subtitle:'Resmi maçları takip et',
+                              iconColor:context.swan.ink,badge:'Müsabaka',
+                              onTap:()=>Navigator.pushNamed(context,'/canli-skor'),
+                            )),
                           if (ref
                               .watch(featureEnabledProvider('coach_discovery')))
                             SizedBox(

@@ -2,7 +2,102 @@
 
 Son güncelleme: 2026-10-14 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `review_ready`
+Durum: `release_ready`
+
+2026-10-14: SwanSport v0.5.8+34 ve konsol 0.2.1+10 sürümü hazırlandı. Kapsam: 0116 Canlı Maç & Seyirci Skor Merkezi (/canli-skor, /canli-mac/:id, public maç projeksiyonları, çocuk gizliliği maskesi, kilitli esame, hakem notu gizliliği, canlı akış şeridi), 0117 Canlı Puan Durumu & Lig Tablosu Motoru (resmi/kamu ligleri, 3/1/0 puanlama, son 5 form rozeti, canlı skor birleştirme, konsol fikstür/puan durumu sekmesi), 0118 Maç/Kulüp Canlı Takip Bildirim Motoru & iOS/IPA Push Altyapısı (takip butonu, anlık kickoff/gol/set/final bildirim tetikleyicisi, teslim defteri, iOS remote-notification, APNs payload ve entitlements). SQL testleri 80/80; push gönderici 5/5, iOS config 3/3; 118 migration parse, SSS 44/44, push 42 kayıpsız, token 23/23 temiz. Sürüm yayın commit ve tagleme aşamasına geçiliyor.
+
+2026-10-14: 0118 + iOS push kaynak hazırlığı yerelde tamamlandı. Own RLS/public maç ve iki feature kapısı; club+match dedup, gerçek mute, private teslim ledger, effective event/undo/set/final/correction ve güvenli 42 push rotası. Explicit-state retry/haptic, kart zili ve ayrı cihaz izin açıklaması; iOS destek/APNs gate, entitlement/Xcode resource/CI Firebase doğrulama ve APNs payload/60s canlı TTL bağlandı. Son tam SQL 80/80 (7 yeni), gönderici 5/5, iOS config 3/3; 118 parse, SSS 44/44, push 42 kayıpsız, 587 Dart syntax ve 23/23 token kaynağı temiz. 13 Dart/widget senaryosu hazır; Flutter test/analyze/format SDK yokluğundan çalışmadı. macOS build/imza/CI secret/APNs key/gerçek cihaz teslimi ayrı kabul kapısıdır; unsigned IPA için push çalıştı denmedi. Rapor docs/match-following-ios-push-verification.md. Önceki stage/üç kullanıcı planı korunur; yalnız görev stage, sır veya canlı SQL/deploy/sürüm/commit/push yok. Writer serbest.
+
+2026-10-14: 0118 ilk kaynak grubu hazır. iOS destek/APNs ön koşulu ve tek foreground görünümü; Debug development / Release-Profile production entitlement, Xcode Firebase resource ve CI config doğrulaması bağlandı. Saf takip modelleri/provider, hesap kapılı explicit-state retry ve kart zili; public match motoru kulüp+maç dedup, mute override, private teslim tekilliği ve rol/bayrak/public kontrolü içerir. SQL odaklı 6/6, gönderici 4/4, iOS config 3/3; 118 parse, SSS 44/44, push 42 kayıpsız, 584 Dart syntax/23 token kaynağı temiz. Tam SQL regresyonu ve Dart/widget senaryoları sürüyor; SDK/macOS/sertifika/gerçek APNs kabulü açık. Hiçbir sır/yayın/commit/push yok.
+
+2026-10-14: 0118 ve iOS push hazırlığı devralındı. Önceki 0116/0117 stage ve kullanıcı planları korunur. Gerçek org_matches / clock_start-score-period_end / result_version sözleşmesi, public yayın kapısı, alıcı bayrak kontrolü, mükerrer bildirim ve kulüp takibinden gelen bildirimlere maç bazlı sessize alma hazırlanır. APNs entitlements/config kod desteğidir; sertifika/anahtar tanımlama, canlı gönderim/deploy/sürüm/commit/push yok.
+
+2026-10-14: GÖREV: iOS/IPA Push Bildirim Onarımı & 0118 Maç/Takım Canlı Bildirim Motoru
+Plan: docs/mac-ve-takim-bildirim-motoru-codex-plan.md
+1. iOS/IPA Bildirim Hattı Onarımı:
+   - `apps/swansport_app/lib/app/push/push_io.dart`: `pushSupported` içine `TargetPlatform.iOS` eklenmesi; iOS izin ve APNs/FCM token akışı.
+   - `apps/swansport_app/ios/Runner/Info.plist`: `UIBackgroundModes` (`remote-notification`, `fetch`) eklenmesi.
+   - `apps/swansport_app/ios/Runner/Runner.entitlements`: `aps-environment` yetkisi oluşturulması.
+   - `apps/swansport_app/functions/api/push.js`: FCM v1 `sendFcm` içine APNs (`alert`, `sound: 'default'`, `badge: 1`) payload eklenmesi.
+   - `.github/workflows/build_ios.yml`: `GOOGLESERVICE_INFO_PLIST_BASE64` secret kontrolü ve `GoogleService-Info.plist` açılması.
+2. Migration 0118 (`supabase/migrations/0118_match_following_notifications.sql`):
+   - `match_followers` tablosu (`match_id, profile_id, notify_kickoff, notify_score, notify_final, created_at`).
+   - RLS: Yalnızca kendi takip kayıtlarını okuma ve yazma (`profile_id = auth.uid()`).
+   - RPC'ler: `toggle_match_follow(p_match_id uuid)`, `get_match_follow_status(p_match_id uuid)`.
+   - Tetikleyici `trg_notify_match_followers`: Hakem olayları (`match_live_events`) veya maç durumu değişiminde (maç başlangıcı, gol, set, maç sonu) maç takipçilerine ve takım takipçilerine `notifications` tablosuna `kind = 'match_live'` satırı yazar.
+   - `push_route`: `'match_live'` türü için `/canli-mac/` rota eşlemesi (mevcut 41 eşleme kayıpsız korunur).
+   - Feature flag `live_match_notifications` ('admins') ve SSS 118 kaydı.
+3. Ortak Veri Katmanı (`packages/swansport_data`):
+   - `match_following_models.dart`: Saf model `MatchFollowState`.
+   - `match_following_service.dart`: Servis ve açık tipli Riverpod sağlayıcıları (`Provider<MatchFollowingService>`, `AutoDisposeFutureProviderFamily<bool, String> isMatchFollowedProvider`).
+   - `swansport_data.dart` exportları.
+4. Mobil Arayüz (`apps/swansport_app`):
+   - `live_match_detail_screen.dart`: AppBar veya skor başlığında `🔔 Bildirimleri Aç` ikonu/butonu (tıklanınca haptic + accent renk).
+   - `live_match_widgets.dart` / `feed_screen.dart`: Maç kartında takip zili göstergesi.
+5. Testler & Doğrulama:
+   - `tools/match_following_sql_test.mjs` ile takip RLS, tetikleyici bildirim üretimi ve gizlilik testi.
+   - `python tools/check_migrations.py`, `python tools/check_faq.py`, `python tools/check_push_routes.py`, `python tools/check_mobile_ui_tokens.py`.
+Kurallar: Canlıya deploy/push veya sürüm çıkarma yok; yalnız git add/stage; AGENTS.md kurallarına tam uyum.
+
+2026-10-14: 0117 Canlı Puan Durumu yerel teslimi hazır. Public/official league-tournament projeksiyonu, güncel resmi revizyon + geçici undo-aware canlı skor/set, mevcut organizasyon puan kuralları, kararlı sıralama ve son 5 form; saf explicit model/provider'lar ve mobil hub/detail/konsol il kapsamlı sekmeler bağlandı. Yeni flag admins, SSS ve gerçek UI kapıları birlikte. Tam SQL 73/73 (6 yeni), 117 migration parse, SSS 43/43, push 41 kayıpsız, 580 Dart syntax ve 22/22 token kaynağı temiz. 15 Dart/widget senaryosu hazır; data/app/console test, analyze ve format SDK yokluğundan çalışmadı, runtime/build/görsel kabulü açık. Rapor docs/league-standings-verification.md. Amatör/private/cup, grup/eleme/bonus/ikili averaj açılmaz. Önceki 0116 stage ve kullanıcı planları korunur; görev değişiklikleri yalnız stage, canlı SQL/deploy/commit/push yok. Writer serbest.
+
+2026-10-14: 0117 ilk entegrasyon hazır. Public lig listesi ve maç-lig UUID bağlamı, tüm sezon güncel resmi sonuç + opsiyonel undo-aware canlı tablo; mevcut puan kuralları ve set galibiyeti korunur. Altı odaklı SQL testi geçti; averaj önceliği ayrıca güçlendiriliyor. Saf explicit provider'lar, mobil tablo/lig seçici/hub-detail sekmeleri ve konsol 900px/aktif rol/federasyon-il kapsamı bağlandı. 577 Dart syntax ve 22/22 token kaynakları temiz; Flutter SDK hâlâ bulunmuyor, runtime/build kabulü açık. Önceki stage korunur; yayın/commit/push yok.
+
+2026-10-14: 0117 Canlı Puan Durumu görevi devralındı. Önceki 0116 stage ve kullanıcı planları korunur. Public okuma yalnız official AND is_public; amatör/private kaynaklar açılmaz. Mevcut organizasyon win/draw/loss kuralı (varsayılan 3/1/0), güncel resmi sonuç ve mevcut undo-aware canlı motor kullanılır. Mobil/consol ayrı token dili, beş alt sekme ve il kapsamı korunur; canlı SQL/deploy/commit/push yok.
+
+2026-10-14: GÖREV: Canlı Puan Durumu & Lig Tablosu Motoru (Live Standings & League Table Engine)
+Plan: docs/puan-durumu-lig-tablosu-codex-plan.md
+1. Migration 0117 (`supabase/migrations/0117_league_standings_engine.sql`):
+   - `public_league_standings(p_org_id uuid, p_include_live boolean default false)`: Resmi ligler (`organizations.official = true` ve `is_public = true`) ve kamuya açık turnuvalar için sıralama tablosu döner.
+   - Sütunlar: `rank, participant_id, participant_name, club_id, club_name, club_logo, played, won, drawn, lost, goals_for, goals_against, goal_diff, points, form` (jsonb array son 5 maç).
+   - Resmi sonuç protokolünden (`org_result_revisions`) hesaplar; `p_include_live = true` ise devam eden `match_live_events` skorlarını sanal olarak katar.
+   - Idempotent, `set local lock_timeout = '15s'`, `security definer`, `set search_path = public, pg_temp`, grant to `anon, authenticated`.
+   - Feature flag `league_standings` ('admins') ve SSS 117 kaydı.
+2. Ortak Veri Katmanı (`packages/swansport_data`):
+   - `lib/src/league_standings_models.dart`: Saf modeller (`LeagueStandingsRow`, `LeagueStandingsTable`).
+   - `lib/src/league_standings_service.dart`: Servis ve açık tipli Riverpod sağlayıcıları (`Provider<LeagueStandingsService>`, `AutoDisposeFutureProviderFamily<List<LeagueStandingsRow>, ...>`). Circular type inference hatasını önlemek için explicit types şarttır.
+   - `lib/swansport_data.dart` exportları.
+3. Mobil & Masaüstü Konsol:
+   - `apps/swansport_app`:
+     * `lib/features/live_match/presentation/league_standings_view.dart`: Atletik puan tablosu widget'ı (#, Takım, O, G, B, M, AV, P, Form rozetleri, maç takımı vurgulama, canlı puan toggle).
+     * `lib/features/live_match/presentation/live_match_detail_screen.dart`: 3. sekme olarak 'Puan Durumu' eklenmesi.
+     * `lib/features/live_match/presentation/live_match_hub_screen.dart`: Üst sekmelere 'Puan Durumu' ve lig seçici dropdown eklenmesi.
+   - `apps/swansport_console`:
+     * `lib/features/provincial/presentation/provincial_leagues_screen.dart`: `[ Fikstür & Maçlar | Puan Durumu ]` sekmesi.
+4. Testler & Doğrulama:
+   - `tools/league_standings_sql_test.mjs` ile anon/auth erişim, 3/1/0 puanlama, averaj/gol eşitlik sıralaması ve canlı skor entegrasyon testi.
+   - `python tools/check_migrations.py`, `python tools/check_faq.py`, `python tools/check_push_routes.py`, `python tools/check_mobile_ui_tokens.py`.
+   - `packages/swansport_data/test/feature_flag_sync_test.dart`.
+Kurallar: Canlıya deploy/push veya sürüm çıkarma yok; yalnız git add/stage; AGENTS.md ve mimari kısıtlara tam uyum.
+
+2026-10-14: Canlı Maç & Skor Takip Merkezi yerel teslimi hazır. 0116 public resmi maç whitelist RPC'leri, C1 çocuk adı izni, kilitli kadro ve özel rapor/ret alanlarının gizliliği korunur. Güncel resmi sonuç ve tenis set skoru, saf modeller/servisler, istek tamamlandıktan sonra 30s/10s polling, monotonic saat ve mobil hub/detail/feed/Keşfet girişleri bağlandı. Son tam SQL regresyonu 67/67; 116 migration parse, SSS 42/42, push 41 kayıpsız, 573 Dart syntax ve 21/21 scoped token kaynağı temiz. 13 yeni Dart/widget/navigation senaryosu hazır; Flutter/Dart/Melos SDK olmadığı için runtime test/analyze/build/format kabulü açık. Rapor docs/live-match-spectator-verification.md. Yalnız görev dosyaları stage edilir; başlangıç kullanıcı planı/pano geçmişi korunur. Canlı SQL/deploy/commit/push yok; Writer serbest.
+
+2026-10-14: Canlı merkez ilk entegrasyon hazır. 0116 yayımlanmış/public resmi maçlar, effective undo timeline, private rapor/ret/disiplin alanları olmayan whitelist, mevcut veli ad izni/adult kuralı ve yalnız kilitli esame; final skor güncel resmi revizyon, tenis set galibiyeti (oyun toplamı değil). Son odaklı SQL 4/4; 116 parse, SSS 42/42, push 41 kayıpsız, 571 Dart syntax ve 21/21 token kaynakları temiz. Açık tipli saf modeller/provider, 30s liste/10s canlı detay, monotonic saat ve dispose/lifecycle ticker; mobil iki ekran, feed/misafir/Keşfet ve UUID guest route bağlandı. SDK testi ve geniş regresyon henüz açık. Ham kaynak RLS/ACL ve beş alt sekme değişmedi.
+
+2026-10-14: Canlı Maç & Skor Takip Merkezi devralındı. 0116 yalnız yayımlanmış/public resmi maç projeksiyonları, mevcut 0112 journal ve 0098 çocuk ad izni sözleşmesi; özel rapor/disiplin/mazeret verileri açılmaz. Saf açık tipli data/provider'lar ve mobil hub/detail/feed girişleri hazırlanır. Başlangıç kullanıcı pano ve stage edilmiş plan korunur; canlı SQL/deploy/commit/push yok.
+
+2026-10-14: GÖREV: Canlı Maç & Skor Takip Merkezi (Live Match & Score Hub)
+Plan: docs/canli-mac-skor-takip-codex-plan.md
+1. Migration 0116 (`supabase/migrations/0116_live_match_spectator_hub.sql`):
+   - `public_live_matches(p_sport text, p_city text)`: Resmi maçların canlı, bugünkü ve son 48 saatlik özetini döner (skor, kulüp adları, armalar, canlı durumu, geçen saniye).
+   - `match_public_live_state(p_match_id uuid)`: Seyirciye güvenli canlı skor, tenis ise setler, akan kronometre ve filtrelenmiş olay akışı projeksiyonu.
+   - `match_public_roster(p_match_id uuid)`: Hakemin onayladığı kadrolar (çocuk gizliliği maskesiyle).
+   - **Kritik Gizlilik Güvencesi:** Hakem özel rapor notları (`report_notes`) ve disiplin sevkleri kesinlikle seyirciye sızdırılmaz.
+   - Idempotent, `set local lock_timeout = '15s'`, security definer, `set search_path = public, pg_temp`, grant to authenticated ve anon.
+2. Ortak Veri Katmanı (`packages/swansport_data`):
+   - `lib/src/live_match_models.dart`: Saf modeller (PublicLiveMatchSummary, PublicLiveMatchDetail, PublicLiveMatchEvent, PublicMatchRoster).
+   - `lib/src/live_match_service.dart`: Servis ve açık tipli Riverpod sağlayıcıları (type inference circularity kuralına uyumlu: Provider<T>, AutoDisposeFutureProvider<T>, FutureProviderFamily<T, A>). Canlı maçta 8-10 saniyelik otomatik timer self-invalidation.
+   - `lib/swansport_data.dart` exportları.
+3. Mobil Uygulama (`apps/swansport_app`):
+   - `lib/features/social/presentation/feed_screen.dart`: Aktif resmi canlı maç olduğunda en üstte atletik canlı maç şeridi/kartı (`[ 🔴 CANLI · 64' ] Galatasaray 2 - 1 Fenerbahçe`).
+   - `lib/features/live_match/presentation/live_match_hub_screen.dart` (`/canli-skor`): Segmented tabs (Canlı 🔴, Günün Maçları, Bitenler) ve branş filtreleri.
+   - `lib/features/live_match/presentation/live_match_detail_screen.dart` (`/canli-mac/:id`): Canlı skor tabelası, running stopwatch, timeline olay akışı (gol, kart, değişiklik, periyot), kadrolar sekmesi.
+   - Router & Deep Link kayıtları (`swansport_app.dart` ve `router.dart`).
+   - Yalnız SwanType, SwanPalette, SwanShape jetonları.
+4. Testler & Doğrulama:
+   - `tools/live_match_spectator_sql_test.mjs` ile anonim/kullanıcı erişimi, gizlilik sızıntısı yokluğu testi.
+   - `python tools/check_migrations.py`, `python tools/check_faq.py`, `python tools/check_push_routes.py`, `python tools/check_mobile_ui_tokens.py`.
+Kurallar: Canlıya deploy/push yok; yalnız git add/stage; AGENTS.md ve mimari kısıtlara tam uyum.
 
 2026-10-14: MERNİS/KPS kapalı yerel altyapı teslimi hazır. 0115 service_role-only hedef profilli tamamlama, C1 dar capability ve mevcut unique index, private kimliksiz audit, HMAC kullanıcı/IP rolling 5/60s limiti; yapay tarih/profil TCKN yazımı yok, verified credential sütunu client SELECT'e kapalı. Auth-bound proxy, no-store/redaksiyon/timeout/CORS, üretimde kapalı provider, test-only injection; manuel belge yolu ve GET availability/checksum/hesap değişimi korumalı mobil kart/servis bağlandı. Son SQL 38/38 (4 yeni), proxy 7/7; 115 migration parse, SSS 41/41, push 41, 566 Dart syntax ve 18/18 token kaynağı temiz. 11 Dart/widget senaryosu hazır fakat iki Flutter test çağrısı SDK yokluğundan çalışmadı; typecheck/build/görsel/Cloudflare/iki gerçek oturum UAT açık. KPS adaptörü/WSDL/sertifika yetkisi ve hukuki değerlendirme olmadan servis açılamaz; endpoint/credentials tek başına etkinleştirmez. Yalnız görev dosyaları stage, kullanıcı şartnamesi korunur; commit/push/deploy/canlı SQL veya sır tanımlama yok. Rapor docs/mernis-identity-verification.md. Writer serbest.
 

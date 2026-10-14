@@ -34,6 +34,7 @@ void main() {
     // Keşfet
     '/kortlar', '/partner-ara', '/ilanlar', '/kulupler', '/topluluklar',
     '/organizasyonlar',
+    '/canli-skor',
     // Profil > Yönetim
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
     '/announcements', '/performance-analytics', '/home-command',
@@ -51,6 +52,14 @@ void main() {
   ];
 
   group('rota bütünlüğü', () {
+    test('public live match UUID route has hub/strip entrances and guest-safe parsing', () {
+      final router=read('lib/app/router.dart');
+      expect(router.contains("'canli-mac'"),isTrue);
+      expect(router.contains('isPublicMatchId(target.pathSegments.last)'),isTrue);
+      expect(routes.contains('liveMatchRoute(settings)'),isTrue);
+      expect(read('lib/features/live_match/presentation/live_match_widgets.dart').contains('/canli-mac/'),isTrue);
+      expect(read('lib/features/social/presentation/feed_screen.dart').contains('LiveMatchStrip()'),isTrue);
+    });
     test('referee deep routes retain validated match IDs and account guard', () {
       final router = read('lib/app/router.dart');
       for (final route in ['/hakem/esame', '/hakem/canli', '/hakem/rapor']) {

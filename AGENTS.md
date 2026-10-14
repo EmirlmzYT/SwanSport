@@ -79,6 +79,31 @@ mevcut indexlerden, rolling limit private HMAC anahtarlarından gelir. Doğum
 tarihi/yapay 1 Ocak yazılmaz; doğrulanmış TCKN client SELECT'e kapalıdır.
 Canlı uygulanmadı. Kanıt ve sınırlar `docs/mernis-identity-verification.md`.
 
+0116 seyirci canlı skor merkezi salt public/official projeksiyondur; 0112
+hakem motoru veya kaynak RLS açılmaz. Private rapor/sevk/mazeret/athlete UUID
+dönmez; çocuk adları mevcut athlete_publicity izinleriyle maskelenir. Final
+skor güncel resmi revizyon, tenis ana skoru set galibiyetidir. `/canli-skor` ve
+UUID doğrulanan `/canli-mac/<id>` misafire açıktır; live_match_hub admins başlar.
+Polling liste 30s/canlı detay 10s, saat monotonic; beş alt sekme korunur.
+Canlı uygulanmadı; SDK/üretim sınırları `docs/live-match-spectator-verification.md`.
+
+0117 lig tablosu yalnız public/official league-tournament takım projeksiyonudur;
+amatör/private/cup ve time-rank skoru uydurulmaz. Varsayılan 3/1/0 yerine
+organizasyonun mevcut win/draw/loss puanları okunur; güncel resmi sonuç veya
+opsiyonel undo-aware canlı skor/set galibiyeti kullanılır. Mobil hub/detail
+ve konsol il kapsamlı sekmeler league_standings admins kapısına bağlıdır;
+mobil ayrıca live_match_hub ister. Grup/eleme/bonus/ikili averaj motoru değildir.
+Canlı uygulanmadı; SDK/üretim sınırları `docs/league-standings-verification.md`.
+
+0118 maç/kulüp bildirimleri yalnız public/official maç içindir; gerçek follows
+club hedefleri, match mute override ve private teslim ledger'ı tekilliği korur.
+UI belirsiz yanıtı explicit set_match_follow ile yeniden dener; oyuncu/çocuk/
+hakem özel bilgisi push metnine girmez. Recipient iki canlı maç bayrağını
+karşılar, eski kategori/veli bildirimi kapıları korunur. iOS/APNs kaynak desteği
+ve CI Google plist doğrulaması hazır; uygun imza/APNs key/Firebase config olmadan
+unsigned IPA fiziksel teslim kanıtı değildir. CI eksik config'te açıkça durur.
+Canlı uygulanmadı; SDK/cihaz sınırları `docs/match-following-ios-push-verification.md`.
+
 0109 Platform Mission Control yerel backend temeli:
 `platform_settings` public ayarlar (sır içermez), `platform_plans` aktif/genel
 ve pasif/admin paketler, `platform_audit_logs` admin-okunur append-only denetim.

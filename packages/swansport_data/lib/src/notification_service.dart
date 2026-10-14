@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_scope.dart';
+import 'live_match_models.dart';
 
 /// ---------------------------------------------------------------------------
 /// Bildirimler ve birebir mesajlaşma.
@@ -33,6 +34,8 @@ class NotificationRow {
   bool get isUnread => readAt == null;
   String? get refereeRoute => kind == 'referee_assignment' && entityType == 'match'
       ? '/hakem/gorevler' : null;
+  String? get liveMatchRoute => kind=='match_live' && entityType=='match' && entityId!=null && isPublicMatchId(entityId!)
+    ? '/canli-mac/$entityId' : null;
 
   String? get resultRoute => kind == 'match_result' && entityType == 'official_result'
       ? '/resmi-sonuc?notification=${Uri.encodeQueryComponent(id)}'
