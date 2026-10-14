@@ -38,8 +38,8 @@ jobs:
       - name: Build Console Web
         working-directory: apps/swansport_console
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://api.swansport.com.tr' }}
-          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE' }}
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL || 'https://gokkimnokigqxmbppvle.supabase.co' }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY || 'sb_publishable_G5WQXM4DMmpnwPN9V9srFQ_JZZ2_Yje' }}
         run: |
           flutter build web --release -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \

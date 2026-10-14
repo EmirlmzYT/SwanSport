@@ -16,30 +16,54 @@ import 'push_token_gate.dart';
 
 /// Firebase yalnızca bir kez başlatılabilir; ikinci çağrı hata verir.
 bool _initialized = false;
+bool _firebaseAvailable = false;
 Future<void>? _initializing;
 
 Future<void> _ensureInitialized() async {
   if (_initialized) return;
-  final work=_initializing??=_initializeNative();
-  try{await work;}finally{if(identical(_initializing,work))_initializing=null;}
+  final work = _initializing ??= _initializeNative();
+  try {
+    await work;
+  } finally {
+    if (identical(_initializing, work)) _initializing = null;
+  }
 }
 
 Future<void> _initializeNative() async {
-  if(Firebase.apps.isEmpty)await Firebase.initializeApp();
-  if(defaultTargetPlatform==TargetPlatform.iOS){
-    // The existing foreground snackbar is the single visible UI. Do not
-    // duplicate it with an iOS system banner/sound in the foreground.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert:false,badge:false,sound:false);
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp();
+    }
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      // The existing foreground snackbar is the single visible UI. Do not
+      // duplicate it with an iOS system banner/sound in the foreground.
+      try {
+        await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+          alert: false,
+          badge: false,
+          sound: false,
+        );
+      } catch (e) {
+        debugPrint('SwanSport Push: iOS foreground presentation options skipped: $e');
+      }
+    }
+    _firebaseAvailable = true;
+  } catch (e, st) {
+    debugPrint('SwanSport Push: Firebase.initializeApp failed or unavailable: $e\n$st');
+    _firebaseAvailable = false;
   }
-  _initialized=true;
+  _initialized = true;
 }
 
-bool get pushSupported => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+bool get pushSupported =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    defaultTargetPlatform == TargetPlatform.iOS;
 
 Future<String?> _fcmToken(FirebaseMessaging messaging) async {
-  if(defaultTargetPlatform==TargetPlatform.iOS){
-    final apns=await waitForApnsToken(read:messaging.getAPNSToken);
-    if(apns==null)throw const PushException(PushFailure.apnsUnavailable);
+  if (!_firebaseAvailable) return null;
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    final apns = await waitForApnsToken(read: messaging.getAPNSToken);
+    if (apns == null) throw const PushException(PushFailure.apnsUnavailable);
   }
   return messaging.getToken();
 }
@@ -58,6 +82,9 @@ Future<PushSub> pushSubscribe() async {
     throw const PushException(PushFailure.unsupported);
   }
   await _ensureInitialized();
+  if (!_firebaseAvailable) {
+    throw const PushException(PushFailure.failed);
+  }
 
   final messaging = FirebaseMessaging.instance;
   final settings = await messaging.requestPermission(alert:true,badge:true,sound:true,provisional:false);
@@ -87,6 +114,7 @@ Future<PushSub> pushSubscribe() async {
 Future<PushSub?> pushCurrent() async {
   if (!pushSupported) return null;
   await _ensureInitialized();
+  if (!_firebaseAvailable) return null;
 
   final messaging = FirebaseMessaging.instance;
   final settings = await messaging.getNotificationSettings();
@@ -105,6 +133,7 @@ Future<PushSub?> pushCurrent() async {
 Future<String?> pushUnsubscribe() async {
   if (!pushSupported) return null;
   await _ensureInitialized();
+  if (!_firebaseAvailable) return null;
 
   final messaging = FirebaseMessaging.instance;
   final token = await _fcmToken(messaging);
@@ -124,6 +153,7 @@ Future<String?> pushUnsubscribe() async {
 Stream<String> pushTokenChanges() async* {
   if (!pushSupported) return;
   await _ensureInitialized();
+  if (!_firebaseAvailable) return;
   yield* FirebaseMessaging.instance.onTokenRefresh;
 }
 
@@ -138,6 +168,7 @@ PushMessage _message(RemoteMessage value) => PushMessage(
 Stream<PushMessage> pushForegroundMessages() async* {
   if (!pushSupported) return;
   await _ensureInitialized();
+  if (!_firebaseAvailable) return;
   yield* FirebaseMessaging.onMessage.map(_message);
 }
 
@@ -145,6 +176,7 @@ Stream<PushMessage> pushForegroundMessages() async* {
 Stream<PushMessage> pushOpenedMessages() async* {
   if (!pushSupported) return;
   await _ensureInitialized();
+  if (!_firebaseAvailable) return;
   yield* FirebaseMessaging.onMessageOpenedApp.map(_message);
 }
 
@@ -152,6 +184,11 @@ Stream<PushMessage> pushOpenedMessages() async* {
 Future<PushMessage?> pushInitialMessage() async {
   if (!pushSupported) return null;
   await _ensureInitialized();
-  final message = await FirebaseMessaging.instance.getInitialMessage();
-  return message == null ? null : _message(message);
+  if (!_firebaseAvailable) return null;
+  try {
+    final message = await FirebaseMessaging.instance.getInitialMessage();
+    return message == null ? null : _message(message);
+  } catch (_) {
+    return null;
+  }
 }
