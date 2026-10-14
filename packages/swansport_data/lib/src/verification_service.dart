@@ -503,7 +503,8 @@ class VerificationService {
 }
 
 // =============================== Provider'lar ==============================
-final verificationServiceProvider = Provider<VerificationService>((ref) {
+final Provider<VerificationService> verificationServiceProvider =
+    Provider<VerificationService>((ref) {
   var disposed = false;
   ref.onDispose(() => disposed = true);
   return VerificationService(ref.watch(supabaseClientProvider), onIdentityVerified: () {
@@ -514,7 +515,8 @@ final verificationServiceProvider = Provider<VerificationService>((ref) {
   });
 });
 
-final mernisAvailabilityProvider = FutureProvider.autoDispose<bool>((ref) {
+final AutoDisposeFutureProvider<bool> mernisAvailabilityProvider =
+    FutureProvider.autoDispose<bool>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return false;
   if (ref.watch(authSessionProvider).valueOrNull == null) return false;
   return ref.watch(verificationServiceProvider).mernisAvailable();
@@ -525,7 +527,7 @@ final mernisAvailabilityProvider = FutureProvider.autoDispose<bool>((ref) {
 /// Yalnızca doğrulama ekranı değil, menü görünürlüğü de buna bakıyor
 /// (`realRoleRoutesProvider`), o yüzden backend kapalıyken boş dönmeli —
 /// aksi halde her ekranda gereksiz bir hata üretirdi.
-final myCredentialsProvider =
+final AutoDisposeFutureProvider<List<CredentialRow>> myCredentialsProvider =
     FutureProvider.autoDispose<List<CredentialRow>>((ref) {
   ref.watch(authSessionProvider);
   if (!ref.watch(isSupabaseEnabledProvider)) {
@@ -534,23 +536,25 @@ final myCredentialsProvider =
   return ref.watch(verificationServiceProvider).myCredentials();
 });
 
-final isPlatformAdminProvider = FutureProvider<bool>((ref) {
+final FutureProvider<bool> isPlatformAdminProvider =
+    FutureProvider<bool>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(false);
   return ref.watch(verificationServiceProvider).isPlatformAdmin();
 });
 
-final pendingCredentialsProvider =
+final AutoDisposeFutureProvider<List<CredentialRow>> pendingCredentialsProvider =
     FutureProvider.autoDispose<List<CredentialRow>>((ref) {
   return ref.watch(verificationServiceProvider).pendingCredentials();
 });
 
-final pendingClubsProvider =
+final AutoDisposeFutureProvider<List<PendingClub>> pendingClubsProvider =
     FutureProvider.autoDispose<List<PendingClub>>((ref) {
   return ref.watch(verificationServiceProvider).pendingClubs();
 });
 
 /// Guest/fixture mode is closed without constructing a live Supabase client.
-final myIdentityGateProvider = FutureProvider.autoDispose<IdentityGateState>(
+final AutoDisposeFutureProvider<IdentityGateState> myIdentityGateProvider =
+    FutureProvider.autoDispose<IdentityGateState>(
   (ref) {
     if (!ref.watch(isSupabaseEnabledProvider)) {
       return const IdentityGateState();
@@ -562,7 +566,7 @@ final myIdentityGateProvider = FutureProvider.autoDispose<IdentityGateState>(
 );
 
 /// Fail closed while loading/error; re-read when authentication changes.
-final myVenueVerificationTierProvider =
+final AutoDisposeFutureProvider<String> myVenueVerificationTierProvider =
     FutureProvider.autoDispose<String>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return 'none';
   if (ref.watch(authSessionProvider).valueOrNull == null) return 'none';

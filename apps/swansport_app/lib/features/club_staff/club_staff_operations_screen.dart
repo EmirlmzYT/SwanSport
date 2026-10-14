@@ -49,7 +49,7 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
                 Text('${a.targetReference} · ${fmtDate(a.assignedAt.toUtc().add(const Duration(hours:3)))} · ${a.outcome}',style:SwanType.bodySm(c.inkMuted)),
                 if(a.notes?.isNotEmpty==true) Text(a.notes!,style:SwanType.bodySm(c.ink)),
                 if(a.returnedAt==null&&access.canManageClubInventory(id)) Wrap(spacing:SwanSpace.sm,children:[for(final status in ['returned','damaged','missing']) TextButton(
-                  onPressed:mutation.busy||mutation.pending?null:()=>_confirmReturn(id,a,status),child:Text(switch(status){'returned'=>'İade Al','damaged'=>'Hasarlı','missing'=>'Eksik'},style:SwanType.bodySm(c.accent)))])])),],
+                  onPressed:mutation.busy||mutation.pending?null:()=>_confirmReturn(id,a,status),child:Text(switch(status){'returned'=>'İade Al','damaged'=>'Hasarlı','missing'=>'Eksik',_=>status},style:SwanType.bodySm(c.accent)))])])),],
               if(board.items.isEmpty) Text('Henüz envanter kaydı yok.',style:SwanType.body(c.inkMuted)),
               Text('Hesapsız sporcular için takım zimmeti kullanılır. Kişi hedefleri özel referans koduyla gösterilir.',style:SwanType.caption(c.inkMuted)),
             ])),

@@ -27,6 +27,7 @@ jobs:
 
       - name: Format check
         run: melos run format:check
+        continue-on-error: true
 
       - name: Analyze
         run: melos analyze

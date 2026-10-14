@@ -122,7 +122,8 @@ class SportsRolesService {
     List.unmodifiable((rows as List).map((row) => parse(Map<String, dynamic>.from(row as Map))));
 }
 
-final sportsRolesServiceProvider = Provider<SportsRolesService?>((ref) {
+final Provider<SportsRolesService?> sportsRolesServiceProvider =
+    Provider<SportsRolesService?>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return null;
   var disposed = false;
   ref.onDispose(() => disposed = true);
@@ -135,37 +136,44 @@ final sportsRolesServiceProvider = Provider<SportsRolesService?>((ref) {
 });
 
 // All private providers re-evaluate on account changes; no fabricated fixture roles.
-final myFederationRolesProvider = FutureProvider<List<FederationRole>>((ref) async {
+final FutureProvider<List<FederationRole>> myFederationRolesProvider =
+    FutureProvider<List<FederationRole>>((ref) async {
   final session = ref.watch(authSessionProvider).valueOrNull;
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyFederationRoles() ?? const [];
 });
-final myRefereeProfileProvider = FutureProvider<RefereeProfile?>((ref) async {
+final FutureProvider<RefereeProfile?> myRefereeProfileProvider =
+    FutureProvider<RefereeProfile?>((ref) async {
   final session = ref.watch(authSessionProvider).valueOrNull;
   if (session == null) return null;
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyRefereeProfile();
 });
-final myClubStaffRolesProvider = FutureProvider<List<ClubStaffRole>>((ref) async {
+final FutureProvider<List<ClubStaffRole>> myClubStaffRolesProvider =
+    FutureProvider<List<ClubStaffRole>>((ref) async {
   final session = ref.watch(authSessionProvider).valueOrNull;
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyClubStaffRoles() ?? const [];
 });
-final mySportsClubAuthorityProvider = FutureProvider<SportsClubAuthority>((ref) async {
+final FutureProvider<SportsClubAuthority> mySportsClubAuthorityProvider =
+    FutureProvider<SportsClubAuthority>((ref) async {
   final session = ref.watch(authSessionProvider).valueOrNull;
   if (session == null) return SportsClubAuthority();
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyClubAuthority() ?? SportsClubAuthority();
 });
-final myRefereeMatchesProvider = FutureProvider.family<List<RefereeMatchSummary>, String?>((ref, status) async {
+final FutureProviderFamily<List<RefereeMatchSummary>, String?> myRefereeMatchesProvider =
+    FutureProvider.family<List<RefereeMatchSummary>, String?>((ref, status) async {
   final session = ref.watch(authSessionProvider).valueOrNull;
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyRefereeMatches(status: status) ?? const [];
 });
-final matchLineupApprovalsProvider = FutureProvider.family<List<MatchLineupApproval>, String>((ref, matchId) async {
+final FutureProviderFamily<List<MatchLineupApproval>, String> matchLineupApprovalsProvider =
+    FutureProvider.family<List<MatchLineupApproval>, String>((ref, matchId) async {
   final session = ref.watch(authSessionProvider).valueOrNull;
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMatchLineupApprovals(matchId) ?? const [];
 });
-final acceptedMatchOfficialsProvider = FutureProvider.family<List<AcceptedMatchOfficial>, String>((ref, matchId) async {
+final FutureProviderFamily<List<AcceptedMatchOfficial>, String> acceptedMatchOfficialsProvider =
+    FutureProvider.family<List<AcceptedMatchOfficial>, String>((ref, matchId) async {
   ref.watch(authSessionProvider);
   return await ref.watch(sportsRolesServiceProvider)?.fetchAcceptedMatchOfficials(matchId) ?? const [];
 });
