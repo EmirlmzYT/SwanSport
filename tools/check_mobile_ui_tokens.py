@@ -16,6 +16,7 @@ REFEREE_SCREENS = (
     'referee_widgets', 'referee_duty_list_screen', 'referee_lineup_approval_screen',
     'referee_live_cockpit_screen', 'referee_match_report_screen',
     'club_staff_operations_screen',
+    'mernis_verification_section',
 )
 
 

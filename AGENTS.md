@@ -71,6 +71,14 @@ konsol modülleri aynı SwanAccess kaynağını kullanır. Transfer talebi motor
 yoktur, yalnız mevcut tamamlanmış transferler özetlenir. Canlı uygulanmadı;
 SDK/üretim sınırları `docs/club-staff-operations-phase-5-verification.md`.
 
+0115 otomatik kimlik doğrulama altyapısı üretimde kapalıdır: kurumsal KPS
+adaptörü/yetkisi yok; eski public SOAP endpoint kullanılmaz. Test mock'u kimlik
+onayı değildir. Tamamlama RPC'si yalnız service_role, hedef profil doğrulanmış
+Auth yanıtından gelir; 0100 manuel belge incelemesi korunur. Numara tekilliği
+mevcut indexlerden, rolling limit private HMAC anahtarlarından gelir. Doğum
+tarihi/yapay 1 Ocak yazılmaz; doğrulanmış TCKN client SELECT'e kapalıdır.
+Canlı uygulanmadı. Kanıt ve sınırlar `docs/mernis-identity-verification.md`.
+
 0109 Platform Mission Control yerel backend temeli:
 `platform_settings` public ayarlar (sır içermez), `platform_plans` aktif/genel
 ve pasif/admin paketler, `platform_audit_logs` admin-okunur append-only denetim.
@@ -1451,7 +1459,10 @@ Depoda sır **yoktur ve olmamalıdır**. `env/` gitignore'da.
 - `google-services.json` — gitignore'da, ama zaten her APK'nın içinde dağıtılır
 - Firebase servis hesabı anahtarı, `PUSH_SECRET`, VAPID anahtarları →
   **Cloudflare Pages secret'ları**; `PUSH_SECRET` ayrıca Supabase Vault'ta
-- `service_role` anahtarı hiçbir yerde kullanılmaz
+- 0115 otomatik kimlik tamamlama için `SUPABASE_SERVICE_ROLE_KEY` ve
+  `IDENTITY_RATE_HMAC_SECRET` ileride yalnız Cloudflare secret'larında gerekir.
+  Kurumsal `KPS_CREDENTIALS`/sertifikalar da yalnız backend'dedir. Yerelde veya
+  Flutter paketinde kullanılmaz; bu görev anahtar tanımlamadı/servisi açmadı.
 
 Sır gerektiren bir adıma gelirsen dur ve kullanıcıya ne gerektiğini söyle.
 Anahtar üretip sohbete yazma — kullanıcı kendi terminalinde üretsin, doğrudan

@@ -1,9 +1,23 @@
+import 'dart:convert';
 import 'dart:typed_data';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_scope.dart';
+
+/// Syntax/checksum only. This is NEVER proof of identity or age.
+bool isValidNationalId(String value) {
+  if (!RegExp(r'^[1-9][0-9]{10}$').hasMatch(value)) return false;
+  final d = value.split('').map(int.parse).toList();
+  final odd = d[0] + d[2] + d[4] + d[6] + d[8];
+  final even = d[1] + d[3] + d[5] + d[7];
+  return (odd * 7 - even) % 10 == d[9] &&
+      (odd + even + d[9]) % 10 == d[10];
+}
+
+const _identityEndpoint = 'https://swansport.pages.dev/api/verify-tckn';
 
 /// Yerel Türk telefon biçimlerini ve uluslararası önekleri E.164'e hazırlar.
 String normalizePhoneNumber(String input) {
@@ -129,8 +143,65 @@ class PendingClub {
 }
 
 class VerificationService {
-  VerificationService(this._c);
+  VerificationService(this._c, {http.Client? httpClient, Uri? identityEndpoint,
+    void Function()? onIdentityVerified})
+      : _httpClient = httpClient,
+        _identityUri = identityEndpoint ?? Uri.parse(_identityEndpoint),
+        _onIdentityVerified = onIdentityVerified;
   final SupabaseClient _c;
+  final http.Client? _httpClient;
+  final Uri _identityUri;
+  final void Function()? _onIdentityVerified;
+
+  Future<bool> mernisAvailable() async {
+    final token = _c.auth.currentSession?.accessToken;
+    if (token == null || _uid == null) return false;
+    try {
+      final res = await (_httpClient?.get(_identityUri,
+        headers: {'Authorization': 'Bearer $token'}) ?? http.get(_identityUri,
+        headers: {'Authorization': 'Bearer $token'})).timeout(const Duration(seconds: 12));
+      return res.statusCode == 200 && (jsonDecode(res.body) as Map)['available'] == true;
+    } catch (_) { return false; }
+  }
+
+  Future<({bool success, String? error})> verifyWithMernis({
+    required String nationalId, required String firstName, required String lastName,
+    required int birthYear,
+  }) async {
+    if (!isValidNationalId(nationalId) || firstName.trim().isEmpty || lastName.trim().isEmpty
+        || firstName.length > 100 || lastName.length > 100 || birthYear < 1900
+        || birthYear > DateTime.now().toUtc().year) {
+      return (success: false, error: 'Kimlik bilgilerinizi kontrol edin.');
+    }
+    final uid = _uid;
+    final token = _c.auth.currentSession?.accessToken;
+    if (uid == null || token == null) return (success: false, error: 'Lütfen giriş yapın.');
+    try {
+      final headers = {'Authorization': 'Bearer $token', 'Content-Type': 'application/json'};
+      final body = jsonEncode({'national_id': nationalId, 'first_name': firstName.trim(),
+        'last_name': lastName.trim(), 'birth_year': birthYear});
+      final res = await (_httpClient?.post(_identityUri, headers: headers, body: body)
+        ?? http.post(_identityUri, headers: headers, body: body)).timeout(const Duration(seconds: 50));
+      if (_uid != uid || _c.auth.currentSession?.accessToken != token)
+        return (success: false, error: 'Oturum değişti. Lütfen tekrar deneyin.');
+      final data = jsonDecode(res.body);
+      if (res.statusCode == 200 && data is Map && data['success'] == true) {
+        _onIdentityVerified?.call();
+        return (success: true, error: null);
+      }
+      // Never render an arbitrary upstream body that could echo private data.
+      return (success: false, error: switch (res.statusCode) {
+        401 => 'Lütfen yeniden giriş yapın.',
+        400 => 'Kimlik bilgilerinizi kontrol edin.',
+        422 => 'Girilen bilgiler nüfus kütüğüyle uyuşmuyor.',
+        429 => 'Çok fazla deneme yaptınız. Bir dakika sonra tekrar deneyin.',
+        409 => 'Kimlik bu hesapta doğrulanamıyor. Belge incelemesini kullanın.',
+        _ => 'Otomatik doğrulama kullanılamıyor. Belgenizi incelemeye gönderebilirsiniz.',
+      });
+    } catch (_) {
+      return (success: false, error: 'Doğrulama tamamlanamadı. Belge incelemesini kullanabilir veya tekrar deneyebilirsiniz.');
+    }
+  }
 
   String? get _uid => _c.auth.currentUser?.id;
 
@@ -433,7 +504,20 @@ class VerificationService {
 
 // =============================== Provider'lar ==============================
 final verificationServiceProvider = Provider<VerificationService>((ref) {
-  return VerificationService(ref.watch(supabaseClientProvider));
+  var disposed = false;
+  ref.onDispose(() => disposed = true);
+  return VerificationService(ref.watch(supabaseClientProvider), onIdentityVerified: () {
+    if (disposed) return;
+    ref.invalidate(myCredentialsProvider);
+    ref.invalidate(myIdentityGateProvider);
+    ref.invalidate(myVenueVerificationTierProvider);
+  });
+});
+
+final mernisAvailabilityProvider = FutureProvider.autoDispose<bool>((ref) {
+  if (!ref.watch(isSupabaseEnabledProvider)) return false;
+  if (ref.watch(authSessionProvider).valueOrNull == null) return false;
+  return ref.watch(verificationServiceProvider).mernisAvailable();
 });
 
 /// Kişinin kendi kimlik başvuruları.
@@ -443,6 +527,7 @@ final verificationServiceProvider = Provider<VerificationService>((ref) {
 /// aksi halde her ekranda gereksiz bir hata üretirdi.
 final myCredentialsProvider =
     FutureProvider.autoDispose<List<CredentialRow>>((ref) {
+  ref.watch(authSessionProvider);
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <CredentialRow>[]);
   }

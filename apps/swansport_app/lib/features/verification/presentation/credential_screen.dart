@@ -1,4 +1,5 @@
 import 'phone_verification_section.dart';
+import 'mernis_verification_section.dart';
 import '../../../app/widgets/action_gate.dart';
 import '../../../app/design/swan_shape.dart';
 import 'package:file_picker/file_picker.dart';
@@ -190,6 +191,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                   ),
                   const SizedBox(height: SwanSpace.lg),
                 ] else ...[
+                  const MernisVerificationSection(),
+                  const SizedBox(height: SwanSpace.lg),
                   Text(
                       'Kimlik belgen platform yöneticisi tarafından incelenir. Kimlik onayı branş lisansı yerine geçmez.',
                       style: SwanType.bodySm(ink)),
