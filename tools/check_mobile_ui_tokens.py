@@ -20,6 +20,7 @@ REFEREE_SCREENS = (
     'live_match_widgets', 'live_match_hub_screen', 'live_match_detail_screen',
     'league_standings_view',
     'match_follow_button',
+    'test_center_screen',
 )
 
 

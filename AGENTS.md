@@ -12,6 +12,16 @@ bulunamayacak** şeyleri anlatıyor.
 
 ## Yapı
 
+Yerel Test Merkezi ayrı `main_test_center.dart` giriş noktasıdır; production
+rotasına/rol yetkisine çevrilmez. `tools/start_local_test_center.mjs` yalnız
+yerel Docker context ve `supabase_db_swansport-test-center` konteynerinde
+migration/5 hesap fixture'ı kurar; API 127.0.0.1:55421, web 55430. Sentetik
+kimlik/belge yalnız marker kontrollü yerel fixture'dadır, canlı seed'e taşınmaz.
+Gerçek Auth/SwanAccess/RLS kullanılır; rol değişimi ebeveynsiz ProviderScope'u
+yenileyerek önceki hesabın önbelleğini atar. Flutter/Docker yoksa kurulum
+durur; syntax/SQL fixture testi gerçek GoTrue/widget/build kabulü değildir.
+Kullanım ve sınırlar `docs/local-test-center.md`; canlıya deploy edilmez.
+
 Resmi kuğu kaynak varlığı `assets/branding/official_swan_logo.jpg`; native/web
 ikonlarını `tools/generate_launcher_icons.py` üretir (`--check` doğrular).
 Design-system yerel logo asset'i SwanNetworkLogo'nun çevrimdışı fallback'idir.

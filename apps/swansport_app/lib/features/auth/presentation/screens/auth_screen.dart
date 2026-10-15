@@ -342,7 +342,20 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                     const EdgeInsets.symmetric(vertical: 13),
                               ),
                             ),
-                            if (ref.watch(debugToolsEnabledProvider))
+                            if (!isSignUp) ...[
+                              const SizedBox(height: 6),
+                              TextButton.icon(
+                                onPressed: () => _showTestAccountsSheet(context, c),
+                                icon: Icon(Icons.key_rounded,
+                                    size: 17, color: c.accent),
+                                label: Text(
+                                  'Test Hesapları (Hızlı Giriş)',
+                                  style: SwanType.caption(c.accent,
+                                      w: FontWeight.w700),
+                                ),
+                              ),
+                            ],
+                            if (ref.watch(debugToolsEnabledProvider)) ...[
                               TextButton.icon(
                                 onPressed: () {
                                   Navigator.pushNamed(context, '/demo-rol');
@@ -355,6 +368,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                                       w: FontWeight.w700),
                                 ),
                               ),
+                            ],
                           ],
                         ),
                       ),
@@ -485,4 +499,96 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
       ),
     );
   }
+
+  void _showTestAccountsSheet(BuildContext context, SwanPalette c) {
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Test Hesapları (Hızlı Giriş)', style: SwanType.h3(c.ink)),
+                  IconButton(
+                    onPressed: () => Navigator.pop(ctx),
+                    icon: Icon(Icons.close_rounded, color: c.inkMuted),
+                  ),
+                ],
+              ),
+              Text(
+                'Şifre: Test1234! (Tek tıkla otomatik doldurur ve giriş yapar)',
+                style: SwanType.caption(c.inkMuted),
+              ),
+              const SizedBox(height: 12),
+              Flexible(
+                child: ListView.separated(
+                  shrinkWrap: true,
+                  itemCount: _kQuickTestAccounts.length,
+                  separatorBuilder: (_, __) => Divider(height: 1, color: c.line),
+                  itemBuilder: (_, index) {
+                    final item = _kQuickTestAccounts[index];
+                    return ListTile(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      leading: CircleAvatar(
+                        backgroundColor: c.accent.withValues(alpha: 0.12),
+                        child: Icon(item.icon, color: c.accent, size: 20),
+                      ),
+                      title: Text(item.title, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                      subtitle: Text(item.subtitle, style: SwanType.caption(c.inkMuted)),
+                      onTap: () {
+                        setState(() {
+                          _emailController.text = item.email;
+                          _passwordController.text = 'Test1234!';
+                        });
+                        Navigator.pop(ctx);
+                        _submit();
+                      },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+
+class _TestAccountItem {
+  const _TestAccountItem({
+    required this.title,
+    required this.email,
+    required this.icon,
+    required this.subtitle,
+  });
+  final String title;
+  final String email;
+  final IconData icon;
+  final String subtitle;
+}
+
+const _kQuickTestAccounts = <_TestAccountItem>[
+  _TestAccountItem(title: 'Kulüp Başkanı', email: 'baskan@kadikoysk.com', icon: Icons.account_balance_rounded, subtitle: 'Kadıköy SK Başkanı · Takım ve yönetim'),
+  _TestAccountItem(title: 'Başantrenör (3. Kademe)', email: 'antrenor@kadikoysk.com', icon: Icons.sports_rounded, subtitle: 'Kadıköy SK Antrenörü · Yoklama ve antrenman'),
+  _TestAccountItem(title: 'Lisanslı Sporcu', email: 'sporcu@kadikoysk.com', icon: Icons.person_rounded, subtitle: 'Can Yılmaz #10 · Kart, aidat ve yoklama'),
+  _TestAccountItem(title: 'Kulüp Doktoru', email: 'doktor@kadikoysk.com', icon: Icons.medical_services_rounded, subtitle: 'Dr. Deniz · Sağlık ve tıbbi dinlenme'),
+  _TestAccountItem(title: 'Kulüp Muhasebecisi', email: 'muhasebe@kadikoysk.com', icon: Icons.account_balance_wallet_rounded, subtitle: 'Murat Muhasebe · Kasa/aidat (anonim sporcu)'),
+  _TestAccountItem(title: 'Resmi Hakem', email: 'hakem@swansport.com', icon: Icons.sports_score_rounded, subtitle: 'Halil Hakem · Esame onayı ve canlı kokpit'),
+  _TestAccountItem(title: 'Federasyon Başkanı', email: 'federasyon@swansport.com', icon: Icons.shield_rounded, subtitle: 'Faruk Federasyon · İl ligi ve fikstür'),
+  _TestAccountItem(title: 'Halı Saha Sorumlusu', email: 'halisaha@swansport.com', icon: Icons.stadium_rounded, subtitle: 'Moda Sahil Tesisleri · Slot ve görev devri'),
+  _TestAccountItem(title: 'Sporcu Velisi', email: 'veli@kadikoysk.com', icon: Icons.family_restroom_rounded, subtitle: 'Kemal Yılmaz · Veli onayı ve devam grafiği'),
+  _TestAccountItem(title: 'Pazaryeri Satıcısı', email: 'magaza@swansport.com', icon: Icons.storefront_rounded, subtitle: 'Mert Mağaza · İlanlar ve spor ekipmanı'),
+  _TestAccountItem(title: 'Taraftar / Seyirci', email: 'taraftar@gmail.com', icon: Icons.campaign_rounded, subtitle: 'Tolga Taraftar · Canlı maç ve lig takibi'),
+  _TestAccountItem(title: 'Platform Super Admin', email: 'admin@swansport.com', icon: Icons.admin_panel_settings_rounded, subtitle: 'Ahmet Admin · Mission Control ve sistem'),
+];
