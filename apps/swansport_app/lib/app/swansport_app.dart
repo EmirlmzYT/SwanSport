@@ -1,4 +1,5 @@
 import 'widgets/action_gate.dart';
+import '../features/test_center/test_center_screen.dart';
 import 'router.dart';
 import '../features/live_match/presentation/live_match_hub_screen.dart';
 import '../features/club_staff/club_staff_operations_screen.dart';
@@ -118,6 +119,7 @@ class SwanSportApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final environment = ref.watch(appEnvironmentProvider);
+    final testCenter = ref.watch(localTestCenterEnabledProvider);
 
     return MaterialApp(
       scrollBehavior: const MaterialScrollBehavior().copyWith(
@@ -148,10 +150,13 @@ class SwanSportApp extends ConsumerWidget {
         GlobalCupertinoLocalizations.delegate,
         SwanLocalizations.delegate,
       ],
-      builder: (context, child) =>
-          AppUpdateGate(child: child ?? const SizedBox()),
-      initialRoute: '/',
+      builder: (context, child) => testCenter
+          ? LocalTestCenterFrame(child: child ?? const SizedBox(),
+              onOpen: () => swanNavigatorKey.currentState?.pushNamed(testCenterRoute))
+          : AppUpdateGate(child: child ?? const SizedBox()),
+      initialRoute: testCenter ? ref.watch(localTestInitialRouteProvider) : '/',
       routes: <String, WidgetBuilder>{
+        if (testCenter) testCenterRoute: (_) => const TestCenterScreen(),
         '/hakem/gorevler': (context) => const RefereeDutyListScreen(),
         '/kulup/malzeme-zimmet': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
         '/kulup/saglik-takibi': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
@@ -257,7 +262,7 @@ class SwanSportApp extends ConsumerWidget {
         '/kulup-detay': (context) => const ClubProfileDetailScreen(),
       }.map((route, builder) => MapEntry(
           route,
-          SwanAccess.isGuestRoute(route)
+          (route == testCenterRoute && testCenter) || SwanAccess.isGuestRoute(route)
               ? builder
               : (context) => AccountRouteGate(builder: builder))),
       onGenerateRoute: guardAccountRoutes((settings) {

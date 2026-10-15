@@ -11,6 +11,8 @@ import '../config/app_environment.dart';
 import '../diagnostics/diagnostic_runtime.dart';
 import '../push/push_service.dart';
 import '../swansport_app.dart';
+import '../../features/test_center/test_center_screen.dart';
+import '../../features/test_center/local_test_center_root.dart';
 import 'startup_failure_app.dart';
 
 /// Uygulamayı başlatır.
@@ -29,8 +31,14 @@ import 'startup_failure_app.dart';
 Future<void> bootstrap(
   AppEnvironment environment, {
   SupabaseConfig supabaseConfig = SupabaseConfig.empty,
+  bool localTestCenter = false,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (localTestCenter && (!environment.isDevelopment ||
+      !environment.enableDebugTools || !isLocalTestBackend(supabaseConfig.url) ||
+      !supabaseConfig.isConfigured)) {
+    throw StateError('Test Merkezi yalnız yapılandırılmış yerel test backend ile açılır.');
+  }
   unawaited(initializeAppDiagnostics());
 
   var effectiveConfig = supabaseConfig;
@@ -69,12 +77,13 @@ Future<void> bootstrap(
       debugPrint('SwanSport: Supabase.initialize FAILED: $error');
       debugPrint('$stackTrace');
 
-      if (environment.isProduction) {
+      if (environment.isProduction || localTestCenter) {
         // Üretimde sahte veri gösterme — hatayı açıkça bildir.
         runApp(StartupFailureApp(
           environment: environment,
           error: error,
-          onRetry: () => bootstrap(environment, supabaseConfig: supabaseConfig),
+          onRetry: () => bootstrap(environment, supabaseConfig: supabaseConfig,
+              localTestCenter: localTestCenter),
         ));
         return;
       }
@@ -98,12 +107,17 @@ Future<void> bootstrap(
     debugPrint('SwanSport: fixture moduna geçildi (geliştirme ortamı).');
   }
 
+  if (localTestCenter) {
+    runApp(LocalTestCenterRoot(environment: environment, config: effectiveConfig));
+    return;
+  }
   runApp(
     ProviderScope(
       observers: [DiagnosticProviderObserver()],
       overrides: <Override>[
         appEnvironmentProvider.overrideWithValue(environment),
         supabaseConfigProvider.overrideWithValue(effectiveConfig),
+        localTestCenterRequestedProvider.overrideWithValue(localTestCenter),
       ],
       child: const PushLifecycleObserver(child: SwanSportApp()),
     ),

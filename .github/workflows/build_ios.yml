@@ -80,6 +80,8 @@ jobs:
           CODE_SIGN_IDENTITY =
           CODE_SIGNING_REQUIRED = NO
           CODE_SIGNING_ALLOWED = NO
+          CODE_SIGN_ENTITLEMENTS =
+          APS_ENVIRONMENT =
           EOF
       - name: Build iOS without codesigning
         working-directory: apps/swansport_app
@@ -90,7 +92,8 @@ jobs:
           flutter build ios --release --no-codesign -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
-            --dart-define=APP_ENV=production
+            --dart-define=APP_ENV=production \
+            --dart-define=ENABLE_DEBUG_TOOLS=true
       - name: Package unsigned IPA for Sideloadly
         working-directory: apps/swansport_app
         run: |

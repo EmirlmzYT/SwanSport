@@ -25,13 +25,21 @@ Future<void> _ensureInitialized() async {
 }
 
 Future<void> _initializeNative() async {
-  if(Firebase.apps.isEmpty)await Firebase.initializeApp();
-  if(defaultTargetPlatform==TargetPlatform.iOS){
-    // The existing foreground snackbar is the single visible UI. Do not
-    // duplicate it with an iOS system banner/sound in the foreground.
-    await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(alert:false,badge:false,sound:false);
+  try {
+    if (Firebase.apps.isEmpty) await Firebase.initializeApp();
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      await FirebaseMessaging.instance.setForegroundNotificationPresentationOptions(
+        alert: false,
+        badge: false,
+        sound: false,
+      );
+    }
+    _initialized = true;
+  } catch (error) {
+    debugPrint('SwanSport: native push initialization skipped or failed: $error');
+    lastPushError = '$error';
+    _initialized = false;
   }
-  _initialized=true;
 }
 
 bool get pushSupported => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;

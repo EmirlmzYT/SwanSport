@@ -27,7 +27,6 @@ def generate_stub_plist(bundle_id: str = 'com.swansport.app') -> bytes:
         'API_KEY': 'AIzaSyPlaceholderKeyForBuild',
         'GCM_SENDER_ID': '000000000000',
         'PLIST_VERSION': '1',
-        'BUNDLE_ID': bundle_id,
         'PROJECT_ID': 'swanspor',
         'STORAGE_BUCKET': 'swanspor.appspot.com',
         'IS_ADS_ENABLED': False,
