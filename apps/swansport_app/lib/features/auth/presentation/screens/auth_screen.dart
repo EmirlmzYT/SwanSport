@@ -525,7 +525,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 ],
               ),
               Text(
-                'Şifre: Test1234! (Tek tıkla otomatik doldurur ve giriş yapar)',
+                'Şifre: test1234 (Tek tıkla otomatik doldurur ve giriş yapar)',
                 style: SwanType.caption(c.inkMuted),
               ),
               const SizedBox(height: 12),
@@ -548,7 +548,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                       onTap: () {
                         setState(() {
                           _emailController.text = item.email;
-                          _passwordController.text = 'Test1234!';
+                          _passwordController.text = 'test1234';
                         });
                         Navigator.pop(ctx);
                         _submit();
@@ -579,16 +579,66 @@ class _TestAccountItem {
 }
 
 const _kQuickTestAccounts = <_TestAccountItem>[
-  _TestAccountItem(title: 'Kulüp Başkanı', email: 'baskan@kadikoysk.com', icon: Icons.account_balance_rounded, subtitle: 'Kadıköy SK Başkanı · Takım ve yönetim'),
-  _TestAccountItem(title: 'Başantrenör (3. Kademe)', email: 'antrenor@kadikoysk.com', icon: Icons.sports_rounded, subtitle: 'Kadıköy SK Antrenörü · Yoklama ve antrenman'),
-  _TestAccountItem(title: 'Lisanslı Sporcu', email: 'sporcu@kadikoysk.com', icon: Icons.person_rounded, subtitle: 'Can Yılmaz #10 · Kart, aidat ve yoklama'),
-  _TestAccountItem(title: 'Kulüp Doktoru', email: 'doktor@kadikoysk.com', icon: Icons.medical_services_rounded, subtitle: 'Dr. Deniz · Sağlık ve tıbbi dinlenme'),
-  _TestAccountItem(title: 'Kulüp Muhasebecisi', email: 'muhasebe@kadikoysk.com', icon: Icons.account_balance_wallet_rounded, subtitle: 'Murat Muhasebe · Kasa/aidat (anonim sporcu)'),
-  _TestAccountItem(title: 'Resmi Hakem', email: 'hakem@swansport.com', icon: Icons.sports_score_rounded, subtitle: 'Halil Hakem · Esame onayı ve canlı kokpit'),
-  _TestAccountItem(title: 'Federasyon Başkanı', email: 'federasyon@swansport.com', icon: Icons.shield_rounded, subtitle: 'Faruk Federasyon · İl ligi ve fikstür'),
-  _TestAccountItem(title: 'Halı Saha Sorumlusu', email: 'halisaha@swansport.com', icon: Icons.stadium_rounded, subtitle: 'Moda Sahil Tesisleri · Slot ve görev devri'),
-  _TestAccountItem(title: 'Sporcu Velisi', email: 'veli@kadikoysk.com', icon: Icons.family_restroom_rounded, subtitle: 'Kemal Yılmaz · Veli onayı ve devam grafiği'),
-  _TestAccountItem(title: 'Pazaryeri Satıcısı', email: 'magaza@swansport.com', icon: Icons.storefront_rounded, subtitle: 'Mert Mağaza · İlanlar ve spor ekipmanı'),
-  _TestAccountItem(title: 'Taraftar / Seyirci', email: 'taraftar@gmail.com', icon: Icons.campaign_rounded, subtitle: 'Tolga Taraftar · Canlı maç ve lig takibi'),
-  _TestAccountItem(title: 'Platform Super Admin', email: 'admin@swansport.com', icon: Icons.admin_panel_settings_rounded, subtitle: 'Ahmet Admin · Mission Control ve sistem'),
+  // Codex Test Merkezi 5 Temel Rolü
+  _TestAccountItem(
+    title: 'Taraftar',
+    email: 'taraftar@test.swansport.invalid',
+    icon: Icons.campaign_rounded,
+    subtitle: 'Akış ve keşfet · Kulüp yönetimi kapalı',
+  ),
+  _TestAccountItem(
+    title: 'Kulüp Yöneticisi',
+    email: 'kulup-yoneticisi@test.swansport.invalid',
+    icon: Icons.admin_panel_settings_rounded,
+    subtitle: 'Kadro, takvim ve kulüp operasyonları',
+  ),
+  _TestAccountItem(
+    title: 'Antrenör (3. Kademe)',
+    email: 'antrenor-3@test.swansport.invalid',
+    icon: Icons.sports_rounded,
+    subtitle: 'Yoklama ve antrenman yönetimi',
+  ),
+  _TestAccountItem(
+    title: 'Lisanslı Sporcu',
+    email: 'lisansli-sporcu@test.swansport.invalid',
+    icon: Icons.person_rounded,
+    subtitle: 'Sporcu kartı ve aidat · Yönetim yetkisi yok',
+  ),
+  _TestAccountItem(
+    title: 'Kulüp Muhasebecisi',
+    email: 'muhasebeci@test.swansport.invalid',
+    icon: Icons.account_balance_wallet_rounded,
+    subtitle: 'Mali defter · Sporcu adı gizli (#A3F91C)',
+  ),
+  // Ek Ayrılmış Roller
+  _TestAccountItem(
+    title: 'Halı Saha Yöneticisi',
+    email: 'saha-yoneticisi@test.swansport.invalid',
+    icon: Icons.stadium_rounded,
+    subtitle: 'Tesis slotları ve saha nöbet devri',
+  ),
+  _TestAccountItem(
+    title: 'Başhakem',
+    email: 'bashakem@test.swansport.invalid',
+    icon: Icons.sports_score_rounded,
+    subtitle: 'Esame onay ve canlı maç kokpiti',
+  ),
+  _TestAccountItem(
+    title: 'Federasyon Başkanı',
+    email: 'federasyon-baskani@test.swansport.invalid',
+    icon: Icons.shield_rounded,
+    subtitle: 'İl ligleri ve hakem atamaları',
+  ),
+  _TestAccountItem(
+    title: 'Kulüp Doktoru',
+    email: 'doktor@test.swansport.invalid',
+    icon: Icons.medical_services_rounded,
+    subtitle: 'Sağlık takibi ve tıbbi dinlenme',
+  ),
+  _TestAccountItem(
+    title: 'Sporcu Velisi',
+    email: 'veli@test.swansport.invalid',
+    icon: Icons.family_restroom_rounded,
+    subtitle: 'Veli onayları ve devam geçmişi',
+  ),
 ];

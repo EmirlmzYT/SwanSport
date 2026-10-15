@@ -1,7 +1,7 @@
 name: swansport_app
 description: SwanSport MVP Flutter application shell.
 publish_to: none
-version: 0.5.9+37
+version: 0.5.9+38
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
