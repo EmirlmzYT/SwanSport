@@ -71,3 +71,21 @@ update public.feature_flags set audience='everyone' where audience='admins' and 
  'referee_cockpit','club_staff_operations','live_match_hub','league_standings',
  'live_match_notifications','parent_hub'
 );
+
+do $rss$
+begin
+ if to_regclass('public.rss_sources') is not null then
+  update public.rss_sources
+     set active = false
+   where url = 'https://www.aa.com.tr/tr/rss/default?cat=spor';
+
+  insert into public.rss_sources (name, url, active)
+  values
+    ('Hürriyet Spor', 'https://www.hurriyet.com.tr/rss/spor', true),
+    ('CNN Türk Spor', 'https://www.cnnturk.com/feed/rss/spor/news', true),
+    ('Sabah Spor',    'https://www.sabah.com.tr/rss/spor.xml', true)
+  on conflict (url) do update set active = true, name = excluded.name;
+ end if;
+end
+$rss$;
+

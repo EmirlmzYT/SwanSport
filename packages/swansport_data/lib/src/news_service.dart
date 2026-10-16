@@ -63,18 +63,69 @@ class NewsService {
   NewsService(this._c);
   final SupabaseClient _c;
 
+  /// Veritabanı boşsa veya erişilemezse devreye giren canlı Türkiye spor RSS kaynakları.
+  static const List<RssSource> defaultSources = [
+    RssSource(
+      id: 'default-hurriyet-spor',
+      name: 'Hürriyet Spor',
+      url: 'https://www.hurriyet.com.tr/rss/spor',
+      active: true,
+    ),
+    RssSource(
+      id: 'default-cnnturk-spor',
+      name: 'CNN Türk Spor',
+      url: 'https://www.cnnturk.com/feed/rss/spor/news',
+      active: true,
+    ),
+    RssSource(
+      id: 'default-sabah-spor',
+      name: 'Sabah Spor',
+      url: 'https://www.sabah.com.tr/rss/spor.xml',
+      active: true,
+    ),
+  ];
+
   // ----------------------------- kaynaklar -----------------------------
   Future<List<RssSource>> sources({bool onlyActive = true}) async {
-    if (onlyActive && _c.auth.currentUser == null) {
-      final rows = await _c.rpc<List<dynamic>>('public_news_sources');
-      return rows.map((r) => RssSource.fromMap(Map<String, dynamic>.from(r as Map))).toList();
+    try {
+      List<RssSource> loaded;
+      if (onlyActive) {
+        try {
+          final rows = await _c.rpc<List<dynamic>>('public_news_sources');
+          loaded = rows
+              .map((r) => RssSource.fromMap(Map<String, dynamic>.from(r as Map)))
+              .toList();
+        } catch (_) {
+          final rows = await _c
+              .from('rss_sources')
+              .select('id, name, url, active')
+              .eq('active', true)
+              .order('name');
+          loaded = (rows as List)
+              .map((r) => RssSource.fromMap((r as Map).cast<String, dynamic>()))
+              .toList();
+        }
+        // Yanıt vermeyen eski AA RSS adresini filtrele ve canlı yedek kaynaklarla tamamla.
+        final filtered = loaded
+            .where((s) => !s.url.contains('aa.com.tr/tr/rss/default'))
+            .toList();
+        final urls = filtered.map((s) => s.url).toSet();
+        for (final fallback in defaultSources) {
+          if (!urls.contains(fallback.url)) {
+            filtered.add(fallback);
+          }
+        }
+        return filtered.isEmpty ? defaultSources : filtered;
+      }
+
+      var q = _c.from('rss_sources').select('id, name, url, active');
+      final rows = await q.order('name');
+      return (rows as List)
+          .map((r) => RssSource.fromMap((r as Map).cast<String, dynamic>()))
+          .toList();
+    } catch (_) {
+      return onlyActive ? defaultSources : const [];
     }
-    var q = _c.from('rss_sources').select('id, name, url, active');
-    if (onlyActive) q = q.eq('active', true);
-    final rows = await q.order('name');
-    return (rows as List)
-        .map((r) => RssSource.fromMap((r as Map).cast<String, dynamic>()))
-        .toList();
   }
 
   Future<void> addSource(String name, String url) async {
@@ -114,14 +165,49 @@ class NewsService {
   }
 
   Future<List<NewsItem>> _fetch(RssSource source, int limit) async {
+    // Mobil (iOS/Android) ortamda CORS engeli yoktur ve *.pages.dev bazı
+    // operatörlerde zaman aşımına uğrayabilir; bu yüzden önce doğrudan XML çekilir.
+    if (!kIsWeb) {
+      final direct = await _fetchDirectXml(source, limit);
+      if (direct.isNotEmpty) return direct;
+      return _fetchViaBridge(source, limit);
+    }
+    final bridged = await _fetchViaBridge(source, limit);
+    if (bridged.isNotEmpty) return bridged;
+    return _fetchDirectXml(source, limit);
+  }
+
+  Future<List<NewsItem>> _fetchDirectXml(RssSource source, int limit) async {
+    try {
+      final uri = Uri.tryParse(source.url.trim());
+      if (uri == null || (!uri.isScheme('https') && !uri.isScheme('http'))) {
+        return const [];
+      }
+      final res = await http.get(
+        uri,
+        headers: const {
+          'User-Agent': 'Mozilla/5.0 (compatible; SwanSport/1.0)',
+          'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+        },
+      ).timeout(const Duration(seconds: 6));
+      if (res.statusCode != 200) return const [];
+      final xml = utf8.decode(res.bodyBytes, allowMalformed: true);
+      return parseRssFeedXml(xml, source, limit: limit);
+    } catch (error) {
+      debugPrint('SwanSport: doğrudan RSS okunamadı (${source.name}) — $error');
+      return const [];
+    }
+  }
+
+  Future<List<NewsItem>> _fetchViaBridge(RssSource source, int limit) async {
     try {
       final uri = Uri.parse(
         '$kRssBridge?v=4&url=${Uri.encodeComponent(source.url)}',
       );
-      final res = await http.get(uri).timeout(const Duration(seconds: 12));
+      final res = await http.get(uri).timeout(const Duration(seconds: 5));
       if (res.statusCode != 200) return const [];
 
-      final body = jsonDecode(utf8.decode(res.bodyBytes));
+      final body = jsonDecode(utf8.decode(res.bodyBytes, allowMalformed: true));
       if (body is! Map || body['items'] is! List) return const [];
 
       final out = <NewsItem>[];
@@ -137,8 +223,6 @@ class NewsService {
             summary: (raw['summary'] as String?)?.trim(),
             link: link,
             imageUrl: _imageProxy(raw['image'] as String?),
-            // RSS adresi bazen ayrı bir dağıtım alan adı olur. Profil görseli
-            // okuyucunun gideceği haber sitesinin favicon'u olmalı.
             sourceIconUrl: _sourceIcon(link ?? source.url),
             publishedAt: _parseDate(raw['published'] as String?),
           ),
@@ -146,22 +230,229 @@ class NewsService {
       }
       return out;
     } catch (error) {
-      // Tek kaynak düşerse akışın tamamı bozulmasın.
-      debugPrint('SwanSport: haber kaynağı okunamadı — $error');
+      debugPrint('SwanSport: haber köprüsü okunamadı (${source.name}) — $error');
       return const [];
+    }
+  }
+
+  /// RSS 2.0 ve Atom XML akışlarını doğrudan Dart içinde ayrıştırır.
+  static List<NewsItem> parseRssFeedXml(
+    String xml,
+    RssSource source, {
+    int limit = 6,
+  }) {
+    final itemMatches = RegExp(
+      r'<(?:item|entry)[\s>][\s\S]*?<\/(?:item|entry)>',
+      caseSensitive: false,
+    ).allMatches(xml);
+
+    final out = <NewsItem>[];
+    for (final match in itemMatches) {
+      if (out.length >= limit) break;
+      final block = match.group(0) ?? '';
+      final title = _cleanXmlText(_extractTag(block, 'title'));
+      if (title.isEmpty) continue;
+
+      var link = _cleanXmlText(_extractTag(block, 'link'));
+      if (link.isEmpty) {
+        for (final el in RegExp(r'<link\b[^>]*>', caseSensitive: false)
+            .allMatches(block)) {
+          final attrs = _parseAttrs(el.group(0) ?? '');
+          final href = attrs['href'];
+          final rel = attrs['rel'];
+          if (href != null &&
+              href.isNotEmpty &&
+              (rel == null || rel == 'alternate')) {
+            link = href;
+            break;
+          }
+        }
+      }
+      final resolvedLink = _resolveHttpUrl(link, source.url);
+
+      var summary = _cleanXmlText(
+        _firstNonEmpty([
+          _extractTag(block, 'description'),
+          _extractTag(block, 'summary'),
+          _extractTag(block, 'content:encoded'),
+          _extractTag(block, 'content'),
+        ]),
+      );
+      summary = summary
+          .replaceAll(
+            RegExp(r'\s*Devamı için tıklayınız\.?\s*$', caseSensitive: false),
+            '',
+          )
+          .trim();
+      if (summary.length > 320) {
+        summary = '${summary.substring(0, 317).trimRight()}...';
+      }
+
+      final published = _firstNonEmpty([
+        _extractTag(block, 'pubDate'),
+        _extractTag(block, 'published'),
+        _extractTag(block, 'updated'),
+        _extractTag(block, 'dc:date'),
+      ]);
+
+      String? imageUrl;
+      for (final el in RegExp(
+        r'<(?:enclosure|media:content|media:thumbnail|link)\b[^>]*>',
+        caseSensitive: false,
+      ).allMatches(block)) {
+        final rawEl = el.group(0) ?? '';
+        final attrs = _parseAttrs(rawEl);
+        final candidate = attrs['url'] ?? attrs['href'];
+        final type = (attrs['type'] ?? '').toLowerCase();
+        final medium = (attrs['medium'] ?? '').toLowerCase();
+        final lowerEl = rawEl.toLowerCase();
+        final isImage = lowerEl.startsWith('<media:thumbnail') ||
+            (lowerEl.startsWith('<media:content') &&
+                type.isEmpty &&
+                medium.isEmpty) ||
+            medium == 'image' ||
+            type.startsWith('image/') ||
+            (type.isEmpty &&
+                candidate != null &&
+                RegExp(
+                  r'\.(?:jpe?g|png|webp|gif|avif)(?:[?#]|$)',
+                  caseSensitive: false,
+                ).hasMatch(candidate));
+        if (isImage) {
+          imageUrl = _resolveHttpUrl(candidate, resolvedLink ?? source.url);
+          if (imageUrl != null) break;
+        }
+      }
+
+      if (imageUrl == null) {
+        final decodedBlock = _decodeHtmlEntities(block);
+        for (final el
+            in RegExp(r'<img\b[^>]*>', caseSensitive: false).allMatches(
+          decodedBlock,
+        )) {
+          final attrs = _parseAttrs(el.group(0) ?? '');
+          final src =
+              attrs['data-src'] ?? attrs['data-original'] ?? attrs['src'];
+          imageUrl = _resolveHttpUrl(src, resolvedLink ?? source.url);
+          if (imageUrl != null) break;
+        }
+      }
+
+      imageUrl ??= _resolveHttpUrl(
+        _cleanXmlText(_extractTag(block, 'image')),
+        resolvedLink ?? source.url,
+      );
+      imageUrl ??= _resolveHttpUrl(
+        _cleanXmlText(_extractTag(block, 'url')),
+        resolvedLink ?? source.url,
+      );
+
+      out.add(
+        NewsItem(
+          title: title,
+          sourceName: source.name,
+          summary: summary.isEmpty ? null : summary,
+          link: resolvedLink,
+          imageUrl: _imageProxy(imageUrl),
+          sourceIconUrl: _sourceIcon(resolvedLink ?? source.url),
+          publishedAt: _parseDate(published),
+        ),
+      );
+    }
+    return out;
+  }
+
+  static String _firstNonEmpty(List<String> values) {
+    for (final v in values) {
+      if (v.trim().isNotEmpty) return v;
+    }
+    return '';
+  }
+
+  static String _extractTag(String block, String name) {
+    final escaped = RegExp.escape(name);
+    final m = RegExp(
+      '<$escaped(?:\\s[^>]*)?>([\\s\\S]*?)<\\/$escaped>',
+      caseSensitive: false,
+    ).firstMatch(block);
+    return m?.group(1) ?? '';
+  }
+
+  static Map<String, String> _parseAttrs(String element) {
+    final out = <String, String>{};
+    for (final m in RegExp(r'''([\w:-]+)\s*=\s*(["'])([\s\S]*?)\2''')
+        .allMatches(element)) {
+      final key = m.group(1)?.toLowerCase();
+      final val = m.group(3);
+      if (key != null && val != null) {
+        out[key] = val;
+      }
+    }
+    return out;
+  }
+
+  static String _cleanXmlText(String value) {
+    if (value.isEmpty) return '';
+    final withoutCdata = value.replaceAllMapped(
+      RegExp(r'<!\[CDATA\[([\s\S]*?)\]\]>'),
+      (m) => m.group(1) ?? '',
+    );
+    return _decodeHtmlEntities(withoutCdata)
+        .replaceAll(RegExp(r'<[^>]+>'), ' ')
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+  }
+
+  static String _decodeHtmlEntities(String value) {
+    return value
+        .replaceAll(RegExp(r'&nbsp;', caseSensitive: false), ' ')
+        .replaceAll(RegExp(r'&amp;', caseSensitive: false), '&')
+        .replaceAll(RegExp(r'&lt;', caseSensitive: false), '<')
+        .replaceAll(RegExp(r'&gt;', caseSensitive: false), '>')
+        .replaceAll(RegExp(r'&quot;', caseSensitive: false), '"')
+        .replaceAll(RegExp(r'&apos;|&#39;', caseSensitive: false), "'")
+        .replaceAllMapped(
+          RegExp(r'&#(x[0-9a-f]+|\d+);', caseSensitive: false),
+          (m) {
+            final raw = m.group(1) ?? '';
+            final code = raw.toLowerCase().startsWith('x')
+                ? int.tryParse(raw.substring(1), radix: 16)
+                : int.tryParse(raw);
+            if (code != null && code > 0 && code <= 0x10ffff) {
+              return String.fromCharCode(code);
+            }
+            return m.group(0) ?? '';
+          },
+        );
+  }
+
+  static String? _resolveHttpUrl(String? raw, String base) {
+    if (raw == null || raw.trim().isEmpty) return null;
+    try {
+      final baseUri = Uri.parse(base);
+      final resolved = baseUri.resolve(_decodeHtmlEntities(raw).trim());
+      if (resolved.isScheme('https') || resolved.isScheme('http')) {
+        return resolved.toString();
+      }
+      return null;
+    } catch (_) {
+      return null;
     }
   }
 
   static String? _imageProxy(String? value) {
     if (value == null || value.trim().isEmpty) return null;
-    return '$kRssBridge-image?url=${Uri.encodeComponent(value.trim())}';
+    final trimmed = value.trim();
+    if (!kIsWeb) return trimmed;
+    return '$kRssBridge-image?url=${Uri.encodeComponent(trimmed)}';
   }
 
   static String? _sourceIcon(String sourceUrl) {
     final uri = Uri.tryParse(sourceUrl);
     if (uri == null || uri.host.isEmpty) return null;
-    // Köprü, sitenin ilan ettiği favicon/manifest/Apple icon yolunu keşfeder;
-    // düz `/favicon.ico` varsayımı farklı RSS sağlayıcılarında sık boşa düşer.
+    if (!kIsWeb) {
+      return '${uri.scheme}://${uri.host}/favicon.ico';
+    }
     return '$kRssIconBridge?url=${Uri.encodeComponent(uri.toString())}';
   }
 

@@ -153,6 +153,12 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       ];
     }
 
+    if (!_followingOnly && ref.watch(newsProvider).isLoading) {
+      return [
+        SliverToBoxAdapter(child: premiumCardLoading()),
+      ];
+    }
+
     return [
       SliverPadding(
         padding: const EdgeInsets.fromLTRB(
