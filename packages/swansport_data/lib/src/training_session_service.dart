@@ -930,6 +930,7 @@ final sessionOverviewProvider = FutureProvider.autoDispose
 /// Sporcunun kendi geçmişi — kulüp ve bireysel oturumlar bir arada.
 final myTrainingHistoryProvider =
     FutureProvider.autoDispose<List<TrainingHistoryEntry>>((ref) async {
+  ref.watch(authSessionProvider.select((session) => session.valueOrNull?.user.id));
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(trainingSessionServiceProvider).history();
 });

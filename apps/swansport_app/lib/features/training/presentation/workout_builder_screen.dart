@@ -30,6 +30,7 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
     'max_unit_score': TextEditingController(text: '10'),
   };
   String? _sport;
+  TrainingArchetype _archetype = TrainingArchetype.targetScore;
   TrainingMode _mode = TrainingMode.technique;
   ScoreEntryMode _entry = ScoreEntryMode.flexible;
   bool _saving = false;
@@ -56,6 +57,11 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
     final c = context.swan;
     final club = ref.watch(activeClubProvider);
     final access = ref.watch(swanAccessProvider);
+    final sportContext = ref.watch(effectiveSportContextProvider);
+    final preferredSports = ref.watch(sportContextOptionsProvider).valueOrNull?.map((s) => s.code).toSet() ?? const <String>{};
+    final selectedSport = _sport ?? sportContext;
+    final profile = selectedSport == null ? null : branchTrainingProfileFor(selectedSport);
+    final archetype = _sport == null ? profile?.defaultArchetype ?? _archetype : _archetype;
     return Scaffold(
       backgroundColor: c.bg,
       appBar: AppBar(title: const Text('Antrenman şablonu oluştur')),
@@ -101,23 +107,38 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
                           error: (e, _) => Text('Branşlar yüklenemedi: $e',
                               style: SwanType.bodySm(c.danger)),
                           data: (sports) => DropdownButtonFormField<String>(
-                            initialValue: _sport,
+                            key: ValueKey(selectedSport),
+                            initialValue: selectedSport,
                             isExpanded: true,
                             decoration:
                                 const InputDecoration(labelText: 'Branş'),
                             items: [
-                              for (final sport in sports)
+                              for (final sport in [
+                                ...sports.where((s) => preferredSports.contains(s.code)),
+                                ...sports.where((s) => !preferredSports.contains(s.code)),
+                              ])
                                 DropdownMenuItem(
                                     value: sport.code, child: Text(sport.name))
                             ],
                             onChanged: _saving
                                 ? null
-                                : (v) => setState(() => _sport = v),
+                                : (v) => setState(() {
+                                  _sport = v;
+                                  if (v != null) _archetype = branchTrainingProfileFor(v).defaultArchetype;
+                                }),
                             validator: (v) =>
                                 v == null ? 'Bir branş seç.' : null,
                           ),
                         ),
                     const SizedBox(height: SwanSpace.md),
+                    if (profile != null) DropdownButtonFormField<TrainingArchetype>(
+                      key: ValueKey((selectedSport, archetype)), initialValue: archetype,
+                      decoration: const InputDecoration(labelText: 'Ölçüm arketipi'),
+                      items: [for (final a in profile.supportedArchetypes)
+                        DropdownMenuItem(value: a, child: Text(a.label))],
+                      onChanged: _saving ? null : (value) => setState(() {
+                        _sport = selectedSport; _archetype = value!;
+                      })),
                     DropdownButtonFormField<TrainingMode>(
                         initialValue: _mode,
                         decoration:
@@ -161,13 +182,18 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
                         1,
                         1000
                       ),
-                    ]) ...[
+                    ].where((field) => field.$1 != 'collect_seconds' || archetype == TrainingArchetype.targetScore)) ...[
                       const SizedBox(height: SwanSpace.md),
                       TextFormField(
                           controller: _numbers[field.$1],
                           enabled: !_saving,
                           keyboardType: TextInputType.number,
-                          decoration: InputDecoration(labelText: field.$2),
+                          decoration: InputDecoration(labelText: switch (field.$1) {
+                            'set_count' => '${profile?.setLabel ?? 'Set'} sayısı',
+                            'units_per_set' => '${profile?.setLabel ?? 'Set'} başına ${profile?.unitLabel ?? 'tekrar'}',
+                            'shoot_seconds' => '${profile?.workPhaseLabel ?? 'Çalışma'} süresi (saniye)',
+                            _ => field.$2,
+                          }),
                           validator: (v) {
                             final n = int.tryParse(v?.trim() ?? '');
                             return n == null || n < field.$3 || n > field.$4
@@ -193,7 +219,9 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
   }
 
   Future<void> _save() async {
-    if (_saving || !_form.currentState!.validate() || _sport == null) return;
+    final sport = _sport ?? ref.read(effectiveSportContextProvider);
+    if (_saving || !_form.currentState!.validate() || sport == null) return;
+    final archetype = _sport == null ? branchTrainingProfileFor(sport).defaultArchetype : _archetype;
     final club = ref.read(activeClubProvider).valueOrNull;
     if (club == null || !ref.read(swanAccessProvider).isClubStaff) return;
     setState(() {
@@ -204,7 +232,7 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
       int n(String key) => int.parse(_numbers[key]!.text.trim());
       await ref.read(trainingSessionServiceProvider).createProtocol(
             clubId: club.id,
-            sportCode: _sport!,
+            sportCode: sport,
             name: _name.text.trim(),
             description: _description.text.trim(),
             config: TrainingProtocolConfig(
@@ -212,7 +240,8 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
               unitsPerSet: n('units_per_set'),
               prepSeconds: n('prep_seconds'),
               shootSeconds: n('shoot_seconds'),
-              collectSeconds: n('collect_seconds'),
+              collectSeconds: archetype == TrainingArchetype.targetScore ? n('collect_seconds') : 0,
+              archetype: archetype,
               restSeconds: n('rest_seconds'),
               maxUnitScore: n('max_unit_score'),
               entryMode: _entry,

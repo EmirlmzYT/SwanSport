@@ -104,9 +104,11 @@ class TrainingProtocolConfig {
 
   /// Hedeflenen toplam atış — antrenör sonuç ekranındaki "kaydedilen /
   /// hedeflenen" karşılaştırmasının paydası.
-  int get plannedUnits => archetype == TrainingArchetype.lapInterval
-      ? setCount
-      : setCount * unitsPerSet;
+  int get plannedUnits => switch (archetype) {
+    TrainingArchetype.targetScore || TrainingArchetype.attemptDrill ||
+    TrainingArchetype.combatRally => setCount * unitsPerSet,
+    _ => setCount,
+  };
 
   /// Bir setten alınabilecek en yüksek puan.
   num get maxSetScore => unitsPerSet * maxUnitScore;

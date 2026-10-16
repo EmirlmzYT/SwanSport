@@ -41,6 +41,15 @@ class DrillResultCard extends StatelessWidget {
         'Toplam puan: ${s.totalScore}',
         'Ortalama ok puanı: ${s.averageUnitScore?.toStringAsFixed(2) ?? '—'}',
       ],
+      TrainingArchetype.strengthSet => [for (final set in sets)
+        if (set.metricPayload case final StrengthSetMetric m)
+          '${m.exerciseName}: ${m.weightKg} kg × ${m.reps} · ${m.goodLift ? 'Geçerli' : 'Geçersiz'}${m.rpe == null ? '' : ' · RPE ${m.rpe}'}'],
+      TrainingArchetype.routineJudge => [for (final set in sets)
+        if (set.metricPayload case final RoutineJudgeMetric m)
+          '${m.routineName}: ${m.netScore} (D ${m.difficultyScore} + E ${m.executionScore} − ${m.deductions})'],
+      TrainingArchetype.mindTactical => [for (final set in sets)
+        if (set.metricPayload case final MindTacticalMetric m)
+          '${m.taskName}: ${m.solvedCount} çözüm · ${m.failedCount} hata · %${(100 * m.accuracyRate).round()} · ${m.durationSeconds} sn'],
     };
     return Container(
       padding: const EdgeInsets.all(SwanSpace.lg),

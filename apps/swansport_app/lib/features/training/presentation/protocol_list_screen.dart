@@ -8,6 +8,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import 'widgets/smart_sport_scope_bar.dart';
 
 /// Şablonları mevcut kayıtlardan okur ve gerçek oturum başlatır.
 class ProtocolListScreen extends ConsumerStatefulWidget {
@@ -46,6 +47,7 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final protocolsAsync = ref.watch(trainingProtocolsProvider);
+    final sportContext = ref.watch(effectiveSportContextProvider);
 
     return Scaffold(
       extendBody: true,
@@ -65,6 +67,7 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
               children: [
                 // Top bar
                 _buildHeader(c),
+                const SmartSportScopeBar(),
                 const SizedBox(height: SwanSpace.md),
 
                 // 4. Search Bar
@@ -105,6 +108,7 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
                   data: (list) {
                     final query = _searchController.text.trim();
                     final filtered = list.where((p) {
+                      if (!matchesTrainingSportContext(p.sportCode, sportContext)) return false;
                       if (_selectedCategory != 'Tümü' &&
                           p.config.mode.label != _selectedCategory)
                         return false;

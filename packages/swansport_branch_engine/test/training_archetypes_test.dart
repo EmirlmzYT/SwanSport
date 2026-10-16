@@ -31,6 +31,9 @@ void main() {
       strokeRate: 34,
     ),
     CombatRallyMetric(rallies: 20, winners: 8, unforcedErrors: 4),
+    StrengthSetMetric(exerciseName: 'Koparma', weightKg: 82.5, reps: 3, rpe: 8),
+    RoutineJudgeMetric(routineName: 'Yer serisi', difficultyScore: 5, executionScore: 8, deductions: 1),
+    MindTacticalMetric(taskName: 'Mat', solvedCount: 3, failedCount: 1, durationSeconds: 120),
   ];
   for (final a in TrainingArchetype.values) {
     test('${a.name} config roundtrip and phase durations', () {
@@ -39,7 +42,8 @@ void main() {
       expect(c.archetype, a);
       expect(c.toMap(), config(a));
       expect(c.hasCollect, a == TrainingArchetype.targetScore);
-      expect(c.plannedUnits, a == TrainingArchetype.lapInterval ? 2 : 40);
+      expect(c.plannedUnits, const {TrainingArchetype.targetScore,
+        TrainingArchetype.attemptDrill, TrainingArchetype.combatRally}.contains(a) ? 40 : 2);
       expect(phaseSeconds(SessionPhase.activeDrill, c.toMap()), 60);
       expect(phaseSeconds(SessionPhase.lapActive, c.toMap()), 60);
       expect(phaseSeconds(SessionPhase.restInterval, c.toMap()), 15);
@@ -58,7 +62,7 @@ void main() {
       test('${a.name} validates $key types/missing/null', () {
         final raw = metric.toMap();
         final missing = {...raw}..remove(key);
-        if (key != 'stroke_rate') {
+        if (!const {'stroke_rate', 'rpe', 'good_lift'}.contains(key)) {
           expect(
             () => DrillMetricPayload.fromMap(a, missing),
             throwsFormatException,
@@ -66,7 +70,7 @@ void main() {
         }
         for (final invalid in [
           null,
-          true,
+          if (key != 'good_lift') true,
           <String, Object?>{},
           <Object?>[],
           double.nan,

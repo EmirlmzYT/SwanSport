@@ -3,10 +3,20 @@ enum TrainingArchetype {
   targetScore('target_score'),
   attemptDrill('attempt_drill'),
   lapInterval('lap_interval'),
-  combatRally('combat_rally');
+  combatRally('combat_rally'),
+  strengthSet('strength_set'),
+  routineJudge('routine_judge'),
+  mindTactical('mind_tactical');
 
   const TrainingArchetype(this.wireName);
   final String wireName;
+
+  String get label => switch (this) {
+    targetScore => 'Hedef puanı', attemptDrill => 'Deneme / teknik',
+    lapInterval => 'Tur / interval', combatRally => 'Raund / ralli',
+    strengthSet => 'Kuvvet / kaldırış', routineJudge => 'Seri / jüri puanı',
+    mindTactical => 'Zihinsel / taktik',
+  };
 
   static TrainingArchetype parse(Object? raw) {
     if (raw == null) return targetScore;
@@ -64,12 +74,124 @@ sealed class DrillMetricPayload {
           winners: _integer(raw, 'winners'),
           unforcedErrors: _integer(raw, 'unforced_errors'),
         );
+      case TrainingArchetype.strengthSet:
+        final goodLift = raw.containsKey('good_lift') ? raw['good_lift'] : true;
+        if (goodLift is! bool) throw const FormatException('good_lift boolean olmalı');
+        value = StrengthSetMetric(
+          exerciseName: _text(raw, 'exercise_name'),
+          weightKg: _number(raw, 'weight_kg'),
+          reps: _integer(raw, 'reps'),
+          rpe: raw.containsKey('rpe') ? _integer(raw, 'rpe') : null,
+          goodLift: goodLift,
+        );
+      case TrainingArchetype.routineJudge:
+        value = RoutineJudgeMetric(
+          routineName: _text(raw, 'routine_name'),
+          difficultyScore: _number(raw, 'difficulty_score'),
+          executionScore: _number(raw, 'execution_score'),
+          deductions: _number(raw, 'deductions'),
+        );
+        final net = _number(raw, 'net_score');
+        if (net < -100 || net > 200 || (net - (value as RoutineJudgeMetric).netScore).abs() > 0.000001) {
+          throw const FormatException('net_score puanlarla uyuşmuyor');
+        }
+      case TrainingArchetype.mindTactical:
+        value = MindTacticalMetric(
+          taskName: _text(raw, 'task_name'),
+          solvedCount: _integer(raw, 'solved_count'),
+          failedCount: _integer(raw, 'failed_count'),
+          durationSeconds: _integer(raw, 'duration_seconds'),
+        );
+        final accuracy = _number(raw, 'accuracy_rate');
+        if (accuracy < 0 || accuracy > 1 || (accuracy - (value as MindTacticalMetric).accuracyRate).abs() > 0.000001) {
+          throw const FormatException('accuracy_rate sayaçlarla uyuşmuyor');
+        }
     }
     if (raw.keys.any((k) => !value.toMap().containsKey(k))) {
       throw const FormatException('Bilinmeyen metrik alanı');
     }
     return value;
   }
+}
+
+final class StrengthSetMetric extends DrillMetricPayload {
+  StrengthSetMetric({required this.exerciseName, required this.weightKg,
+    required this.reps, this.rpe, this.goodLift = true}) {
+    _validateName(exerciseName);
+    if (!weightKg.isFinite || weightKg < 0 || weightKg > 1000 ||
+        (weightKg * 2) % 1 != 0 || reps < 1 || reps > 1000 ||
+        (rpe != null && (rpe! < 1 || rpe! > 10))) {
+      throw const FormatException('Kaldırış metriği geçersiz');
+    }
+  }
+  final String exerciseName;
+  final num weightKg;
+  final int reps;
+  final int? rpe;
+  final bool goodLift;
+  @override
+  TrainingArchetype get archetype => TrainingArchetype.strengthSet;
+  @override
+  Map<String, Object?> toMap() => {
+    'exercise_name': exerciseName, 'weight_kg': weightKg, 'reps': reps,
+    if (rpe != null) 'rpe': rpe, 'good_lift': goodLift,
+  };
+}
+
+final class RoutineJudgeMetric extends DrillMetricPayload {
+  RoutineJudgeMetric({required this.routineName, required this.difficultyScore,
+    required this.executionScore, required this.deductions}) {
+    _validateName(routineName);
+    for (final score in [difficultyScore, executionScore, deductions]) {
+      if (!score.isFinite || score < 0 || score > 100) {
+        throw const FormatException('Seri puanı geçersiz');
+      }
+    }
+  }
+  final String routineName;
+  final num difficultyScore, executionScore, deductions;
+  num get netScore => difficultyScore + executionScore - deductions;
+  @override
+  TrainingArchetype get archetype => TrainingArchetype.routineJudge;
+  @override
+  Map<String, Object?> toMap() => {
+    'routine_name': routineName, 'difficulty_score': difficultyScore,
+    'execution_score': executionScore, 'deductions': deductions, 'net_score': netScore,
+  };
+}
+
+final class MindTacticalMetric extends DrillMetricPayload {
+  MindTacticalMetric({required this.taskName, required this.solvedCount,
+    required this.failedCount, required this.durationSeconds}) {
+    _validateName(taskName);
+    if (solvedCount < 0 || solvedCount > 10000 || failedCount < 0 ||
+        failedCount > 10000 || durationSeconds < 1 || durationSeconds > 86400) {
+      throw const FormatException('Zihinsel çalışma metriği geçersiz');
+    }
+  }
+  final String taskName;
+  final int solvedCount, failedCount, durationSeconds;
+  double get accuracyRate => solvedCount + failedCount == 0
+      ? 0 : solvedCount / (solvedCount + failedCount);
+  @override
+  TrainingArchetype get archetype => TrainingArchetype.mindTactical;
+  @override
+  Map<String, Object?> toMap() => {
+    'task_name': taskName, 'solved_count': solvedCount, 'failed_count': failedCount,
+    'duration_seconds': durationSeconds, 'accuracy_rate': accuracyRate,
+  };
+}
+
+void _validateName(String value) {
+  if (value.trim().isEmpty || value.trim().length > 120) {
+    throw const FormatException('Ad 1–120 karakter olmalı');
+  }
+}
+
+num _number(Map<String, Object?> raw, String key) {
+  final value = raw[key];
+  if (value is! num || !value.isFinite) throw FormatException('$key sonlu sayı olmalı');
+  return value;
 }
 
 final class AttemptDrillMetric extends DrillMetricPayload {

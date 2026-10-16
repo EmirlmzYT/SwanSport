@@ -9,6 +9,7 @@ import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/swan_tabs.dart';
 import 'score_pad.dart';
+import 'structured_metric_pad.dart';
 
 typedef SubmitDrill =
     Future<void> Function({
@@ -17,7 +18,7 @@ typedef SubmitDrill =
       DrillMetricPayload? metricPayload,
     });
 
-class BranchDrillPad extends StatelessWidget {
+class BranchDrillPad extends ConsumerWidget {
   const BranchDrillPad({
     required this.session,
     required this.config,
@@ -31,33 +32,51 @@ class BranchDrillPad extends StatelessWidget {
   final SubmitDrill onSubmit;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final matches = sets.where((s) => s.setNo == session.currentSet);
     final existing = matches.isEmpty ? null : matches.first;
+    final scopeKey = ValueKey((session.id, session.currentSet,
+      ref.watch(authSessionProvider).valueOrNull?.user.id));
     return switch (config.archetype) {
       TrainingArchetype.targetScore => TargetScorePad(
+        key: scopeKey,
         session: session,
         config: config,
         existing: existing,
         onSubmit: onSubmit,
       ),
       TrainingArchetype.attemptDrill => AttemptDrillPad(
+        key: scopeKey,
         session: session,
         config: config,
         existing: existing,
         onSubmit: onSubmit,
       ),
       TrainingArchetype.lapInterval => LapIntervalPad(
+        key: scopeKey,
         session: session,
         config: config,
         existing: existing,
         onSubmit: onSubmit,
       ),
       TrainingArchetype.combatRally => CombatRallyPad(
+        key: scopeKey,
         session: session,
         config: config,
         existing: existing,
         onSubmit: onSubmit,
+      ),
+      TrainingArchetype.strengthSet => StrengthSetPad(
+        key: ValueKey((scopeKey, config.archetype)),
+        session: session, config: config, existing: existing, onSubmit: onSubmit,
+      ),
+      TrainingArchetype.routineJudge => RoutineJudgePad(
+        key: ValueKey((scopeKey, config.archetype)),
+        session: session, config: config, existing: existing, onSubmit: onSubmit,
+      ),
+      TrainingArchetype.mindTactical => MindTacticalPad(
+        key: ValueKey((scopeKey, config.archetype)),
+        session: session, config: config, existing: existing, onSubmit: onSubmit,
       ),
     };
   }
@@ -173,6 +192,7 @@ class _MetricPad extends ConsumerStatefulWidget {
 
 class _MetricPadState extends ConsumerState<_MetricPad> {
   final _distance = TextEditingController();
+  final _rate = TextEditingController();
   Timer? _tick;
   bool _busy = false;
   String? _error;
@@ -191,8 +211,12 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
     super.initState();
     if (widget.config.archetype == TrainingArchetype.lapInterval) {
       final metric = widget.existing?.metricPayload;
+      final draft = ref.read(structuredDrillDraftProvider(_key));
+      _distance.text = draft['distance_meters'] ?? '${_profile.defaultDistances.firstOrNull ?? 50}';
+      _rate.text = draft['stroke_rate'] ?? '';
       if (metric is LapIntervalMetric) {
-        _distance.text = '${metric.distanceMeters}';
+        _distance.text = draft['distance_meters'] ?? '${metric.distanceMeters}';
+        _rate.text = draft['stroke_rate'] ?? '${metric.strokeRate ?? ''}';
       }
       _tick = Timer.periodic(const Duration(milliseconds: 50), (_) {
         if (mounted) setState(() {});
@@ -224,6 +248,7 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
   void dispose() {
     _tick?.cancel();
     _distance.dispose();
+    _rate.dispose();
     super.dispose();
   }
 
@@ -250,12 +275,14 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
           lapNumber: widget.session.currentSet,
           splitMillis: d.elapsedMillis,
           distanceMeters: int.tryParse(_distance.text.trim()) ?? 0,
+          strokeRate: _rate.text.trim().isEmpty ? null : int.parse(_rate.text.trim()),
         ),
         TrainingArchetype.combatRally => CombatRallyMetric(
           rallies: d.rallies,
           winners: d.winners,
           unforcedErrors: d.errors,
         ),
+        _ => throw StateError('Yapılandırılmış metrik pedi gerekli'),
       };
       await widget.onSubmit(metricPayload: payload);
       if (mounted) {
@@ -270,11 +297,10 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
     }
   }
 
-  List<String> get _drills => switch (widget.session.sportCode) {
-    'volleyball' => ['Servis', 'Smaç', 'Manşet'],
-    'basketball' => ['Şut', 'Serbest atış', 'Pas'],
-    'football' => ['Şut', 'Pas', 'Top kontrolü'],
-    _ => ['Deneme', 'Teknik', 'İstasyon'],
+  BranchTrainingProfile get _profile => branchTrainingProfileFor(widget.session.sportCode);
+  List<String> get _drills => _profile.presetDrills;
+  void _rememberLap() => ref.read(structuredDrillDraftProvider(_key).notifier).state = {
+    'distance_meters': _distance.text, 'stroke_rate': _rate.text,
   };
 
   Widget _action(String label, VoidCallback action, {bool error = false}) =>
@@ -311,7 +337,7 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('${widget.session.currentSet}. set', style: SwanType.h3(c.ink)),
+          Text('${widget.session.currentSet}. ${_profile.setLabel}', style: SwanType.h3(c.ink)),
           if (widget.existing?.locked == true)
             Text('Sonuç kilitli', style: SwanType.caption(c.inkMuted)),
           const SizedBox(height: SwanSpace.md),
@@ -358,14 +384,14 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
                 ],
               ),
               Text(
-                '${d.marks.length}/${widget.config.unitsPerSet} ok',
+                '${d.marks.length}/${widget.config.unitsPerSet} ${_profile.unitLabel.toLowerCase()}',
                 style: SwanType.caption(c.inkMuted),
               ),
             ],
             TrainingArchetype.attemptDrill => [
               AbsorbPointer(
                 absorbing: !_enabled || d.successful + d.faults > 0,
-                child: SwanSegmentedTabs(
+                child: SwanPillTabs(
                   labels: _drills,
                   selected: _drills
                       .indexOf(d.drillName)
@@ -387,10 +413,10 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
                 style: SwanType.display(c.ink),
               ),
               const SizedBox(height: SwanSpace.lg),
-              _action('+ BAŞARILI', () => _controller.attempt(true)),
+              _action('+ ${_profile.successLabel}', () => _controller.attempt(true)),
               const SizedBox(height: SwanSpace.sm),
               _action(
-                '− HATA/AUT',
+                '+ ${_profile.faultLabel}',
                 () => _controller.attempt(false),
                 error: true,
               ),
@@ -400,6 +426,12 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
               ),
             ],
             TrainingArchetype.lapInterval => [
+              Wrap(
+                spacing: SwanSpace.sm,
+                children: [for (final distance in _profile.defaultDistances)
+                  ActionChip(label: Text('$distance m'), onPressed: _enabled && !lapSaved
+                    ? () { _distance.text = '$distance'; _rememberLap(); } : null)],
+              ),
               Text(
                 formatLapTime(d.elapsedAt(DateTime.now())),
                 textAlign: TextAlign.center,
@@ -407,6 +439,7 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
               ),
               TextField(
                 controller: _distance,
+                onChanged: (_) => _rememberLap(),
                 enabled: _enabled && !lapSaved,
                 keyboardType: TextInputType.number,
                 decoration: const InputDecoration(
@@ -414,6 +447,11 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
                 ),
               ),
               const SizedBox(height: SwanSpace.md),
+              if (_profile.rateLabel != null) TextField(
+                controller: _rate, enabled: _enabled && !lapSaved,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: '${_profile.rateLabel} (isteğe bağlı · 0–300)'),
+                onChanged: (_) => _rememberLap()),
               OutlinedButton(
                 onPressed:
                     _enabled &&
@@ -447,20 +485,22 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
                 style: SwanType.h3(c.ink),
               ),
               const SizedBox(height: SwanSpace.lg),
-              _action('Winner (+)', () => _controller.rally(winner: true)),
+              _action('+ ${_profile.successLabel}', () => _controller.rally(winner: true)),
               const SizedBox(height: SwanSpace.sm),
               _action(
-                'Basit Hata (−)',
+                '+ ${_profile.faultLabel}',
                 () => _controller.rally(winner: false),
                 error: true,
               ),
               const SizedBox(height: SwanSpace.sm),
-              _action('Ace', () => _controller.rally(winner: true)),
-              Text(
+              if (const {'tenis', 'badminton', 'masa-tenisi'}.contains(_profile.sportCode))
+                _action('Ace', () => _controller.rally(winner: true)),
+              if (const {'tenis', 'badminton', 'masa-tenisi'}.contains(_profile.sportCode)) Text(
                 'Ace, winner toplamına dahildir.',
                 style: SwanType.caption(c.inkMuted),
               ),
             ],
+            _ => <Widget>[],
           },
           if (_error != null) Text(_error!, style: SwanType.bodySm(c.danger)),
           const SizedBox(height: SwanSpace.lg),

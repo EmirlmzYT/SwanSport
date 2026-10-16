@@ -44,7 +44,15 @@ TrainingSession session(
   setCount: 3,
   rhythm: SessionRhythm.individual,
   protocolName: 'Canlı antrenman',
-  sportCode: a == TrainingArchetype.attemptDrill ? 'volleyball' : 'archery',
+  sportCode: switch (a) {
+    TrainingArchetype.attemptDrill => 'volleyball',
+    TrainingArchetype.combatRally => 'tenis',
+    TrainingArchetype.lapInterval => 'yuzme',
+    TrainingArchetype.strengthSet => 'halter',
+    TrainingArchetype.routineJudge => 'cimnastik',
+    TrainingArchetype.mindTactical => 'satranc',
+    _ => 'archery',
+  },
   paused: paused,
 );
 const staff = SwanAccess(
@@ -147,6 +155,33 @@ Future<void> screen(
 }
 
 void main() {
+  for (final scenario in [
+    (TrainingArchetype.strengthSet, ['Koparma', '82.5', '3', '8']),
+    (TrainingArchetype.routineJudge, ['Yer serisi', '5.5', '8.5', '1']),
+    (TrainingArchetype.mindTactical, ['Mat problemi', '3', '1', '120']),
+  ]) {
+    testWidgets('${scenario.$1.wireName} saves typed metrics and preserves failed draft', (tester) async {
+      final service = RecordingService()..fail = true;
+      await screen(tester, scenario.$1, service);
+      for (var index = 0; index < scenario.$2.length; index++) {
+        final field = find.byType(TextField).at(index);
+        await tester.ensureVisible(field);
+        await tester.enterText(field, scenario.$2[index]);
+      }
+      await tester.ensureVisible(find.text('Seti kaydet'));
+      await tester.tap(find.text('Seti kaydet'));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('Kaydedilemedi:'), findsOneWidget);
+      expect(service.payloads.single?.archetype, scenario.$1);
+      expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, scenario.$2.first);
+      service.fail = false;
+      await tester.ensureVisible(find.text('Seti kaydet'));
+      await tester.tap(find.text('Seti kaydet'));
+      await tester.pumpAndSettle();
+      expect(service.payloads.last!.toMap(), service.payloads.first!.toMap());
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
   testWidgets('completed coach session keeps result entry, closes notes', (
     tester,
   ) async {
@@ -292,7 +327,7 @@ void main() {
     expect(find.text('16 / 20'), findsOneWidget);
     expect(
       tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, '+ BAŞARILI'))
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '+ Ace / Sayı'))
           .onPressed,
       isNull,
     );
@@ -310,7 +345,7 @@ void main() {
     await screen(tester, TrainingArchetype.attemptDrill, svc, paused: true);
     expect(
       tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, '+ BAŞARILI'))
+          .widget<FilledButton>(find.widgetWithText(FilledButton, '+ Ace / Sayı'))
           .onPressed,
       isNull,
     );
@@ -346,9 +381,9 @@ void main() {
         ..pending = Completer<void>()
         ..fail = true;
       await screen(tester, TrainingArchetype.attemptDrill, svc);
-      await tester.tap(find.text('+ BAŞARILI'));
-      await tester.tap(find.text('+ BAŞARILI'));
-      await tester.tap(find.text('− HATA/AUT'));
+      await tester.tap(find.text('+ Ace / Sayı'));
+      await tester.tap(find.text('+ Ace / Sayı'));
+      await tester.tap(find.text('+ File / Aut'));
       await tester.pump();
       expect(find.text('2 / 3'), findsOneWidget);
       await tester.ensureVisible(find.text('Seti kaydet'));

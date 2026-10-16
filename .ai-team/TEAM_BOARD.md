@@ -2,7 +2,37 @@
 
 Son güncelleme: 2026-10-16 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `review_ready`
+Durum: `ready_for_review`
+
+2026-10-16: Codex 0120 çoklu branş görevini devraldı. Başlangıçtaki stage edilmiş plan/pano korunur. Saf motor katalog bağımlılığı almaz; kod eşliği testte denetlenir. Yeni metrikler/SQL aynı sayısal sınırları paylaşır; boş zihin denemesinde oran 0, rutin net puanı formülle doğrulanır. Bağlam yalnız gerçek RLS kapsamlı üyelik/belge/tescil verisinden gelir; muhasebeciye sportif sorgu açılmaz. Yalnız yerel test ve stage; canlı SQL/deploy/commit/push yok.
+
+2026-10-16: 0120 uygulama kontrol noktası: 7 arketip, 60 saf branş profili, 120 idempotent şablon, aktif üyelik kontrollü dar branş RPC'si, hesap/kulüp sıfırlanan ortak bağlam ve mobil ped/filtre/oluşturucu bağlandı. Özel tescil SELECT'i açılmadı; yeni metrikler eski hedef puanına katılmaz, açık faz atlama kısıtları genişletildi. SQL fixture 23/23, katalog 3/3, migration 120 dosya temiz, SSS 44/44, push 42 kayıpsız, mobil sözleşme 24/24 ve 601 Dart söz dizimi temiz. Dart/Flutter SDK yok: eklenen motor/veri/widget testleri çalıştırılmadı; analyze/build/cihaz kabulü yok. Kanıt/sınırlar: docs/multi-branch-training-verification.md. Yalnız stage; canlı SQL/deploy/commit/push yok. Writer serbest; SDK doğrulaması inceleme önkoşulu.
+
+2026-10-16: GÖREV: 60 Branş Antrenman Kokpiti & Çok Branşlı Kulüp/Sporcu Akıllı Bağlam Motoru
+Plan: docs/coklu-brans-antrenman-kokpiti-codex-plan.md
+1. Saf Branş Antrenman Motoru (`packages/swansport_branch_engine`):
+   - `lib/protocols/drill_metric_payload.dart`: Mevcut 4 arketipe (`target_score`, `attempt_drill`, `lap_interval`, `combat_rally`) ek olarak 3 yeni arketip:
+     * `strengthSet('strength_set')` -> `StrengthSetMetric` (`exercise_name`, `weight_kg`, `reps`, `rpe`, `good_lift`) — Halter, Fitness, Bedensel Engelliler.
+     * `routineJudge('routine_judge')` -> `RoutineJudgeMetric` (`routine_name`, `difficulty_score`, `execution_score`, `deductions`, `net_score`) — Cimnastik, Dans Sporları, Halk Oyunları, Buz Pateni, Binicilik, Kaykay.
+     * `mindTactical('mind_tactical')` -> `MindTacticalMetric` (`task_name`, `solved_count`, `failed_count`, `duration_seconds`, `accuracy_rate`) — Satranç, Briç, E-Spor, İzcilik, Dağcılık, Hava Sporları.
+   - `lib/definitions/branch_training_profile.dart`: 60 resmi branşın (`SportsCatalog.all`) tamamı için `BranchTrainingProfile` sözlüğü (`defaultArchetype`, `supportedArchetypes`, `setLabel`, `unitLabel`, `workPhaseLabel`, `successLabel`, `faultLabel`, `rateLabel`, `presetDrills`, `defaultDistances`) ve `branchTrainingProfileFor(String sportCode)`.
+2. Migration 0120 (`supabase/migrations/0120_multi_branch_training_engine.sql`):
+   - `valid_training_config(jsonb)` ve `valid_drill_metric(text, jsonb)` içine 3 yeni arketipin şema ve matematiksel eşitlik doğrulamalarının eklenmesi.
+   - `training_next_phase` & `training_phase_seconds` aşama geçiş uyumu.
+   - 60 branşın tamamı için kendi `defaultArchetype` yapılandırmasında idempotent başlangıç platform şablonları (`club_id is null`).
+3. Ortak Veri Katmanı — Akıllı Branş Bağlamı (`packages/swansport_data`):
+   - `lib/src/sport_context_service.dart`: Açık tipli sağlayıcılar (`activeClubSportsProvider` -> kulübün tescilli/takımı olan 1–10 branşı; `myActiveSportsProvider` -> sporcunun/antrenörün onaylı belgesi ve takımlarındaki 1–3 branşı; `selectedSportContextProvider`; `effectiveSportContextProvider` -> tek branş varsa otomatik seçim).
+   - `lib/swansport_data.dart` exportları.
+4. Mobil Arayüz (`apps/swansport_app`):
+   - `lib/features/training/presentation/widgets/smart_sport_scope_bar.dart`: 1 branşta sıfır seçim (sabit rozet), 2–4 branşta (3 branşlı sporcu) `SwanSegmentedTabs`/`SwanPillTabs`, 5+ branşta (10 branşlı kulüp) yatay `SwanPillTabs` + `+ Tüm Branşlar (60)` seçici.
+   - `branch_drill_pad.dart`: `StrengthSetPad`, `RoutineJudgePad`, `MindTacticalPad` eklenmesi; mevcut pedlerin `branchTrainingProfileFor(sportCode)` ile branşa özgü terim, dril çipi ve hızlı mesafe butonlarıyla çalışması.
+   - `workout_builder_screen.dart`: Seçilen branşa göre otomatik arketip, dinamik alan etiketleri (`Raund sayısı`, `Kaldırış` vb.) ve `target_score` dışı branşlarda `collect_seconds` gizlenmesi.
+   - `protocol_list_screen.dart` ve `my_training_screen.dart`: `SmartSportScopeBar` entegrasyonu ile çok branşlı sporcu ve çok şubeli kulüp filtrelemesi.
+5. Testler & Doğrulama:
+   - `packages/swansport_branch_engine/test/branch_training_profile_test.dart`
+   - `tools/training_archetypes_sql_test.mjs`
+   - `python tools/check_migrations.py`, `python tools/check_faq.py`, `python tools/check_push_routes.py`, `python tools/check_mobile_ui_tokens.py`, `node tools/sports_federations_catalog_test.mjs`.
+Kurallar: Canlıya deploy/push veya sürüm çıkarma yok; yalnız git add/stage; AGENTS.md kurallarına tam uyum.
 
 2026-10-16: Yerel Test Merkezi kaynak teslimi hazır. Ayrı main_test_center, development/debug/opt-in/tam loopback kapısı, 5 gerçek Auth persona düğmesi ve doğrudan kadro/yoklama/aidat/finans/akış; her hesap değişiminde yeni ebeveynsiz ProviderScope, hata/busy/mounted ve kalıcı test şeridi. Node/Windows tek tık launcher sabit yerel Docker socket/konteyner/proje/port doğrular; shell argümanları korunur, service-role yazdırılmaz. 118 migration dosya başına işlem/hash; yalnız yerel sentetik kimlik/belgeyi normal review RPC'siyle bağlayan fixture, 1 takım/sezon/sporcu/antrenman/fatura; geçici admin commit öncesi kaldırılır. Uzak DB/link/push/reset/volume delete yok. Son 14 JS/izole SQL kontrolü geçti; gerçek temel RLS altında muhasebeci 0, antrenör 1 sporcu okudu. 593 Dart syntax, token 24/24, SSS 44/44, push 42 ve migration parse temiz. 2 Dart + 3 widget testi hazır ama SDK yokluğundan çalışmadı; Docker/Flutter önkoşul denemesi açık hata/exit 1 verdi, gerçek GoTrue/tüm migration/Chrome UAT kabulü açık. Rehber docs/local-test-center.md ve tools/Test-Merkezini-Ac.cmd hazır. Önceki stage korunur; yalnız görev stage, canlı SQL/deploy/commit/push yok. Writer serbest; makinedeki iki araç kurulduktan sonra çalışma zamanı kabulü yapılmalı.
 

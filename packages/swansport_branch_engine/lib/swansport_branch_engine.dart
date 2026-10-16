@@ -9,6 +9,7 @@ export 'definitions/archery_definition.dart';
 export 'definitions/athletics_swimming_definition.dart';
 export 'definitions/basketball_definition.dart';
 export 'definitions/branch_definition_contract.dart';
+export 'definitions/branch_training_profile.dart';
 export 'definitions/football_definition.dart';
 export 'definitions/tennis_definition.dart';
 export 'protocols/drill_metric_payload.dart';

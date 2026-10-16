@@ -1,11 +1,18 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_branch_engine/swansport_branch_engine.dart';
 
-import 'club_data.dart';
+import 'supabase_scope.dart';
 import 'training_session_service.dart';
 
 /// Drafts survive refreshes of the server session; a new set gets a new key.
 typedef DrillDraftKey = ({String sessionId, int setNo});
+
+/// RAM-only structured drafts; polling does not overwrite an unfinished entry.
+final StateProviderFamily<Map<String, String>, DrillDraftKey>
+    structuredDrillDraftProvider = StateProvider.family<Map<String, String>, DrillDraftKey>((ref, key) {
+  ref.watch(authSessionProvider.select((s) => s.valueOrNull?.user.id));
+  return const {};
+});
 
 final drillDraftProvider =
     StateNotifierProvider.family<
@@ -14,7 +21,7 @@ final drillDraftProvider =
       DrillDraftKey
     >((ref, key) {
       ref.watch(
-        currentProfileProvider.select((profile) => profile.valueOrNull?.id),
+        authSessionProvider.select((session) => session.valueOrNull?.user.id),
       );
       final sets =
           ref.read(mySessionSetsProvider(key.sessionId)).valueOrNull ?? [];
@@ -156,6 +163,11 @@ class DrillSessionSummary {
         case final TargetScoreMetric m:
           totalScore += m.total;
           recordedUnits += m.marks.length;
+        case StrengthSetMetric():
+        case RoutineJudgeMetric():
+        case MindTacticalMetric():
+          // Kilograms, judge scores and accuracy are not legacy target points.
+          break;
         case null:
           totalScore += set.totalScore ?? 0;
           recordedUnits += set.unitCount ?? set.entries.whereType<num>().length;

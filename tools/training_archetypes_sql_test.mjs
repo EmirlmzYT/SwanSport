@@ -12,6 +12,100 @@ const lap={lap_number:3,split_millis:29400,distance_meters:50,stroke_rate:34};
 const rally={rallies:20,winners:8,unforced_errors:4};
 const target={marks:['X','10','9','M']};
 const metrics={target_score:target,attempt_drill:attempt,lap_interval:lap,combat_rally:rally};
+const multiBranchMigration=await sql('0120_multi_branch_training_engine');
+test('0120 club sport projection preserves private registry ACL and denies outsider/inactive/anon',async()=>{
+ const db=await setup();try{
+ await db.query("update clubs set sport_code='okculuk' where id=$1",[club]);
+ await db.query("insert into club_sport_registrations values($1,'yuzme'),($1,'okculuk')",[club]);
+ await db.query("insert into teams(club_id,name,sport_code) values($1,'Kadro','basketbol')",[club]);
+ await actor(db,coach);await db.exec('set role authenticated');
+ assert.deepEqual((await db.query('select * from my_training_club_sports($1) order by 1',[club])).rows.map(r=>r.sport_code),['basketbol','okculuk','yuzme']);
+ await assert.rejects(db.query('select * from club_sport_registrations'),/permission/);
+ await db.exec('reset role');await actor(db,outsider);await db.exec('set role authenticated');
+ await assert.rejects(db.query('select * from my_training_club_sports($1)',[club]),/üyeliği/);
+ await db.exec('reset role');await actor(db,coach);
+ await db.query("update club_memberships set status='suspended' where profile_id=$1",[coach]);
+ await assert.rejects(db.query('select * from my_training_club_sports($1)',[club]),/üyeliği/);
+ assert.equal((await db.query("select has_function_privilege('anon','my_training_club_sports(uuid)','execute') v")).rows[0].v,false);
+ }finally{await db.close();}
+});
+const newMetrics={
+ strength_set:{exercise_name:'Koparma',weight_kg:82.5,reps:3,rpe:8,good_lift:true},
+ routine_judge:{routine_name:'Yer serisi',difficulty_score:5.5,execution_score:8.5,deductions:1,net_score:13},
+ mind_tactical:{task_name:'Mat problemi',solved_count:3,failed_count:1,duration_seconds:120,accuracy_rate:0.75},
+};
+
+test('0120: 60 catalog profiles, 120 idempotent platform templates and matching defaults',async()=>{
+ const db=await setup();try {
+ assert.equal(catalogCodes.length,60);
+ await apply(db,multiBranchMigration);
+ const templates=(await db.query("select sport_code,config from training_protocols where club_id is null")).rows;
+ assert.equal(templates.length,120);
+ assert.equal(new Set(templates.map(t=>t.sport_code)).size,60);
+ const engine=await readFile(new URL('../packages/swansport_branch_engine/lib/definitions/branch_training_profile.dart',import.meta.url),'utf8');
+ const wires={targetScore:'target_score',attemptDrill:'attempt_drill',lapInterval:'lap_interval',combatRally:'combat_rally',strengthSet:'strength_set',routineJudge:'routine_judge',mindTactical:'mind_tactical'};
+ for(const row of templates){
+   const match=engine.match(new RegExp("sportCode: '"+row.sport_code+"', defaultArchetype: TrainingArchetype\\.(\\w+)"));
+   assert.ok(match,row.sport_code);
+   assert.equal(row.config.archetype,wires[match[1]],row.sport_code);
+   assert.equal(await call(db,'valid_training_config',[row.config]),true);
+ }
+ }finally{await db.close();}
+});
+for(const [archetype,metric] of Object.entries(newMetrics)){
+ test('0120 '+archetype+': validators, real submission, locked correction, audit and generic phases',async()=>{
+ const db=await setup();try{
+  assert.equal(await call(db,'valid_training_config',[{...config(archetype),collect_seconds:0}]),true);
+  assert.equal(await call(db,'valid_drill_metric',[archetype,metric]),true);
+  for(const key of Object.keys(metric)){
+   for(const bad of [null,{},[], typeof metric[key]==='string' ? '' : 'bad']) assert.equal(await call(db,'valid_drill_metric',[archetype,{...metric,[key]:bad}]),false,key);
+   const missing={...metric};delete missing[key];
+   assert.equal(await call(db,'valid_drill_metric',[archetype,missing]),['rpe','good_lift'].includes(key),key);
+  }
+  assert.equal(await call(db,'valid_drill_metric',[archetype,{...metric,private_note:'no'}]),false);
+  const protocol=id(800),match=id(801);
+  await db.query("insert into training_protocols(id,club_id,sport_code,name,config) values($1,$2,'halter','New archetype',$3)",[protocol,club,{...config(archetype),collect_seconds:0}]);
+  await db.query('insert into training_sessions(id,club_id,protocol_id) values($1,$2,$3)',[match,club,protocol]);
+  await db.query('insert into training_session_participants(session_id,athlete_id) values($1,$2)',[match,athlete]);
+  await actor(db,coach);await call(db,'advance_session_phase',[match]);
+  for(const phase of ['shoot','collect','score','lap_active','rest_interval'])
+    await assert.rejects(call(db,'advance_session_phase',[match,phase,'Invalid override']),/Arketip/);
+  assert.equal((await db.query('select current_phase from training_sessions where id=$1',[match])).rows[0].current_phase,'active_drill');
+  await actor(db,player);await db.exec('set role authenticated');
+  const result=await call(db,'submit_set_score',[match,1,null,null,metric]);
+  assert.deepEqual((await db.query('select metric_payload from training_sets where id=$1',[result.set_id])).rows[0].metric_payload,metric);
+  await db.exec('reset role');await actor(db,coach);
+  const summary=(await db.query('select * from session_summary($1)',[match])).rows[0];
+  assert.equal(summary.units_expected,2);
+  assert.equal(summary.sets_done,1);
+  const overview=(await db.query('select * from session_overview($1)',[match])).rows[0];
+  assert.equal(overview.units_expected,2);
+  assert.equal(overview.team_total,null);
+  await call(db,'advance_session_phase',[match]);
+  assert.equal((await db.query('select current_phase from training_sessions where id=$1',[match])).rows[0].current_phase,'rest');
+  await call(db,'lock_session_results',[match]);
+  await actor(db,player);await assert.rejects(call(db,'submit_set_score',[match,1,null,null,metric]),/kapanmış|onaylanmış/);
+  await actor(db,coach);await call(db,'correct_locked_set',[result.set_id,null,'Metrik teyidi',null,metric]);
+  assert.equal((await db.query("select count(*)::int n from training_session_events where action='correct'")).rows[0].n,1);
+ }finally{await db.close();}
+ });
+}
+test('0120 metric boundaries: half kg, finite/type safety, net range and zero-attempt accuracy',async()=>{
+ const db=await setup();try{
+ for(const weight of [-0.5,1000.5,0.25])assert.equal(await call(db,'valid_drill_metric',['strength_set',{...newMetrics.strength_set,weight_kg:weight}]),false);
+ for(const weight of [0,1000])assert.equal(await call(db,'valid_drill_metric',['strength_set',{...newMetrics.strength_set,weight_kg:weight}]),true);
+ for(const [d,e,ded,net] of [[0,0,100,-100],[100,100,0,200],[0.1,0.2,0,0.3]])
+ assert.equal(await call(db,'valid_drill_metric',['routine_judge',{routine_name:'Seri',difficulty_score:d,execution_score:e,deductions:ded,net_score:net}]),true);
+ assert.equal(await call(db,'valid_drill_metric',['routine_judge',{...newMetrics.routine_judge,net_score:14}]),false);
+ const zero={...newMetrics.mind_tactical,solved_count:0,failed_count:0,accuracy_rate:0};
+ assert.equal(await call(db,'valid_drill_metric',['mind_tactical',zero]),true);
+ assert.equal(await call(db,'valid_drill_metric',['mind_tactical',{...zero,accuracy_rate:1}]),false);
+ for(const a of Object.keys(newMetrics)) assert.equal((await db.query("select has_function_privilege('anon','valid_drill_metric(text,jsonb)','execute') v")).rows[0].v,false);
+ }finally{await db.close();}
+});
+
+const catalogSource=await readFile(new URL('../packages/swansport_data/lib/src/sports_catalog.dart',import.meta.url),'utf8');
+const catalogCodes=[...catalogSource.matchAll(/code: '([^']+)'/g)].map(m=>m[1]);
 async function call(db,name,args=[]){
  const jsonArgs={valid_training_config:[0],valid_drill_metric:[1],submit_set_score:[3,4],correct_locked_set:[3,4]};
  const params=args.map((a,i)=>jsonArgs[name]?.includes(i)&&a!==null?JSON.stringify(a):a);
@@ -37,7 +131,14 @@ async function setup(){const db=new PGlite();try{
  insert into clubs(id,name,status) values('${club}','Training Club','active');
  insert into club_memberships(club_id,profile_id,role) values('${club}','${coach}','coach'),('${club}','${player}','athlete');
  insert into athletes(id,club_id,profile_id,first_name,last_name) values('${athlete}','${club}','${player}','Test','Athlete');`);
- await apply(db,migration);await actor(db,player);return db;
+ await apply(db,migration);
+ await db.exec(`alter table clubs add column sport_code text;
+ alter table teams add column sport_code text;
+ create table club_sport_registrations(club_id uuid,sport_code text);
+ create table faq_entries(question text,answer text,category text,audience text,feature text,route text,sort_order int);
+ revoke all on club_sport_registrations from public,anon,authenticated;`);
+ for(const code of catalogCodes) await db.query('insert into sports(code,name) values($1,$1) on conflict do nothing',[code]);
+ await apply(db,multiBranchMigration);await actor(db,player);return db;
  }catch(e){await db.close();throw e;}}
 async function session(db,a='target_score',cfg={}){
  const p=id(100+Object.keys(metrics).indexOf(a));const s=id(200+Object.keys(metrics).indexOf(a));

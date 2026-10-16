@@ -7,6 +7,7 @@
 /// Bu paket **arayüze bağlanmaz**. `IconData`, `Color`, widget ve tema burada
 /// yer almaz; onlar tüketen uygulamanın sunum katmanına aittir.
 library;
+export 'src/sport_context_service.dart';
 export 'src/club_staff_operations.dart';
 export 'src/federation_console.dart';
 

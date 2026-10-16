@@ -8,6 +8,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import 'widgets/smart_sport_scope_bar.dart';
 
 /// Sporcunun antrenman geçmişi ve bireysel antrenman başlatma.
 ///
@@ -22,6 +23,7 @@ class MyTrainingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
     final history = ref.watch(myTrainingHistoryProvider);
+    final sportContext = ref.watch(effectiveSportContextProvider);
     final live = ref.watch(myLiveSessionProvider);
 
     return Scaffold(
@@ -42,6 +44,7 @@ class MyTrainingScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(
                     SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
                 children: [
+                  const SmartSportScopeBar(),
 
                   const SizedBox(height: SwanSpace.lg),
 
@@ -64,14 +67,14 @@ class MyTrainingScreen extends ConsumerWidget {
                         const Center(child: CircularProgressIndicator()),
                     error: (e, _) =>
                         Text('$e', style: SwanType.bodySm(c.danger)),
-                    data: (list) => list.isEmpty
+                    data: (list) => list.where((h) => matchesTrainingSportContext(h.sportCode, sportContext)).isEmpty
                         ? Text(
-                            'Henüz antrenman kaydın yok. Antrenörün bir oturum '
+                            'Bu branşta henüz antrenman kaydın yok. Antrenörün bir oturum '
                             'başlattığında ya da kendi başına antrenman '
                             'yaptığında burada görünecek.',
                             style: SwanType.bodySm(c.inkMuted))
                         : Column(children: [
-                            for (final h in list) _row(context, c, h),
+                            for (final h in list.where((h) => matchesTrainingSportContext(h.sportCode, sportContext))) _row(context, c, h),
                           ]),
                   ),
                 ],
@@ -190,7 +193,9 @@ class MyTrainingScreen extends ConsumerWidget {
   }
 
   Future<void> _startPersonal(BuildContext context, WidgetRef ref) async {
-    final protocols = await ref.read(trainingProtocolsProvider.future);
+    final sport = ref.read(effectiveSportContextProvider);
+    final protocols = (await ref.read(trainingProtocolsProvider.future))
+        .where((p) => matchesTrainingSportContext(p.sportCode, sport)).toList();
     if (!context.mounted) return;
     if (protocols.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

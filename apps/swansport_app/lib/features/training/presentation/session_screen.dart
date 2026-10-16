@@ -541,6 +541,9 @@ class _AthleteRun extends ConsumerWidget {
                       final CombatRallyMetric m =>
                         '${m.rallies} ralli · ${m.winners} winner',
                       final TargetScoreMetric m => '${m.total} puan',
+                      final StrengthSetMetric m => '${m.exerciseName}: ${m.weightKg} kg × ${m.reps}',
+                      final RoutineJudgeMetric m => '${m.routineName}: ${m.netScore} net',
+                      final MindTacticalMetric m => '${m.taskName}: ${m.solvedCount} çözüm · %${(100 * m.accuracyRate).round()}',
                       _ => '${s.totalScore ?? '—'} puan',
                     },
               style: SwanType.body(s.isMissing ? c.inkMuted : c.ink),
