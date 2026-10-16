@@ -1,3 +1,5 @@
+import '../../../../app/widgets/swan_surface.dart';
+import 'club_training_sports_sheet.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,113 +33,72 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
     final access = ref.watch(swanAccessProvider);
     return Scaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüp Ayarları'),
-        backgroundColor: c.bg,
-
-        body: Center(
-            child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 640),
-                child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
-                    children: [
-                      for (final action in [
-                        ('Profilim', '/profil', Icons.person_outline),
-                        (
-                          'Lisans ve kimlik doğrulama',
-                          '/dogrulama',
-                          Icons.badge_outlined
-                        ),
-                        (
-                          'Veli bağlantısı',
-                          '/veli-bagla',
-                          Icons.family_restroom
-                        ),
-                        (
-                          'Gizlilik ve engellenenler',
-                          '/gizlilik',
-                          Icons.shield_outlined
-                        ),
-                      ])
-                        _shortcut(action.$1, action.$2, action.$3),
-                      const Divider(),
-                      Text('Görünüm ve dil', style: SwanType.h3(c.ink)),
-                      DropdownButtonFormField<ThemeMode>(
-                          initialValue: ref.watch(themeModeProvider),
-                          decoration: const InputDecoration(labelText: 'Tema'),
-                          items: [
-                            for (final mode in ThemeMode.values)
-                              DropdownMenuItem(
-                                  value: mode,
-                                  child: Text(switch (mode) {
-                                    ThemeMode.system => 'Sistem',
-                                    ThemeMode.light => 'Açık',
-                                    ThemeMode.dark => 'Koyu'
-                                  }))
-                          ],
-                          onChanged: (mode) {
-                            if (mode != null)
-                              ref.read(themeModeProvider.notifier).set(mode);
-                          }),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<AppLanguage>(
-                          initialValue: ref.watch(appLocaleProvider),
-                          decoration: const InputDecoration(labelText: 'Dil'),
-                          items: [
-                            for (final language in AppLanguage.values)
-                              DropdownMenuItem(
-                                  value: language,
-                                  child: Text(language.nativeName))
-                          ],
-                          onChanged: (language) {
-                            if (language != null)
-                              ref
-                                  .read(appLocaleProvider.notifier)
-                                  .setLanguage(language);
-                          }),
-                      const SizedBox(height: 16),
-                      const _PushToggleRow(),
-                      _shortcut('Bildirimler', '/bildirimler',
-                          Icons.notifications_outlined),
-                      if (club != null && access.isClubStaff) ...[
-                        const Divider(),
-                        Text('Kulüp yönetimi', style: SwanType.h3(c.ink)),
-                        ListTile(
-                            leading: Icon(Icons.edit_outlined),
-                            title: const Text('Kulüp profilini düzenle'),
-                            onTap: () => showClubEditSheet(context, club.id)),
-                        ListTile(
-                            leading: Icon(Icons.groups_outlined),
-                            title: Text(club.name),
-                            onTap: () => Navigator.pushNamed(
-                                context, '/kulup-profil',
-                                arguments: club.id)),
-                        _shortcut('Aidat ve tahsilat', '/finans',
-                            Icons.payments_outlined),
-                      ],
-                      if (access.isPlatformAdmin) ...[
-                        _shortcut('Onay paneli', '/onay-paneli',
-                            Icons.admin_panel_settings_outlined),
-                        _shortcut('Haber kaynakları', '/haber-kaynaklari',
-                            Icons.rss_feed),
-                      ],
-                      const Divider(),
-                      _shortcut('Yardım', '/yardim', Icons.help_outline),
-                      _shortcut('Destek', '/destek', Icons.support_agent),
-                      if (ref.watch(debugToolsEnabledProvider))
-                        _shortcut('Demo rolleri', '/demo-rol',
-                            Icons.science_outlined),
-                      ListTile(
-                          leading: Icon(Icons.logout, color: c.danger),
-                          title: const Text('Hesaptan Çıkış Yap'),
-                          onTap: _signOut),
-                    ]))),
-        bottomNavigationBar: const SwanBottomNav());
+      backgroundColor: c.bg,
+      body: Center(child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 640),
+        child: ListView(padding: const EdgeInsets.fromLTRB(
+          SwanSpace.lg, SwanSpace.md, SwanSpace.lg, SwanSpace.xl * 5),
+          children: [
+            _group('Hesap & Güvenlik', [
+              for (final action in [
+                ('Profilim', '/profil', Icons.person_outline),
+                ('Lisans ve kimlik doğrulama', '/dogrulama', Icons.badge_outlined),
+                ('Veli bağlantısı', '/veli-bagla', Icons.family_restroom),
+                ('Gizlilik ve engellenenler', '/gizlilik', Icons.shield_outlined),
+              ]) _shortcut(action.$1, action.$2, action.$3),
+            ]),
+            _group('Görünüm, Dil ve Bildirimler', [
+              DropdownButtonFormField<ThemeMode>(
+                initialValue: ref.watch(themeModeProvider),
+                decoration: const InputDecoration(labelText: 'Tema'),
+                items: [for (final mode in ThemeMode.values) DropdownMenuItem(value: mode,
+                  child: Text(switch (mode) { ThemeMode.system => 'Sistem', ThemeMode.light => 'Açık', ThemeMode.dark => 'Koyu' }))],
+                onChanged: (mode) { if (mode != null) ref.read(themeModeProvider.notifier).set(mode); }),
+              const SizedBox(height: SwanSpace.md),
+              DropdownButtonFormField<AppLanguage>(
+                initialValue: ref.watch(appLocaleProvider),
+                decoration: const InputDecoration(labelText: 'Dil'),
+                items: [for (final language in AppLanguage.values)
+                  DropdownMenuItem(value: language, child: Text(language.nativeName))],
+                onChanged: (language) { if (language != null) ref.read(appLocaleProvider.notifier).setLanguage(language); }),
+              const _PushToggleRow(),
+              _shortcut('Bildirimler', '/bildirimler', Icons.notifications_outlined),
+            ]),
+            if (club != null && access.isClubStaff) _group('Kulüp Yönetimi', [
+              SwanActionCard(title: 'Kulüp profilini düzenle', icon: Icons.edit_outlined,
+                onTap: () => showClubEditSheet(context, club.id)),
+              SwanActionCard(title: 'Kulüp branşlarını yönet', icon: Icons.sports_rounded,
+                onTap: () => showModalBottomSheet<void>(context: context, isScrollControlled: true,
+                  useSafeArea: true, backgroundColor: c.bg,
+                  builder: (_) => FractionallySizedBox(heightFactor: .9,
+                    child: ClubTrainingSportsSheet(clubId: club.id)))),
+              SwanActionCard(title: club.name, icon: Icons.groups_outlined,
+                onTap: () => Navigator.pushNamed(context, '/kulup-profil', arguments: club.id)),
+              _shortcut('Aidat ve tahsilat', '/finans', Icons.payments_outlined),
+            ]),
+            _group('Destek ve Oturum', [
+              if (access.isPlatformAdmin) ...[
+                _shortcut('Onay paneli', '/onay-paneli', Icons.admin_panel_settings_outlined),
+                _shortcut('Haber kaynakları', '/haber-kaynaklari', Icons.rss_feed),
+              ],
+              _shortcut('Yardım', '/yardim', Icons.help_outline),
+              _shortcut('Destek', '/destek', Icons.support_agent),
+              if (ref.watch(debugToolsEnabledProvider))
+                _shortcut('Demo rolleri', '/demo-rol', Icons.science_outlined),
+              SwanActionCard(title: 'Hesaptan Çıkış Yap', icon: Icons.logout, onTap: _signOut),
+            ]),
+          ]))),
+      bottomNavigationBar: const SwanBottomNav(),
+    );
   }
 
-  Widget _shortcut(String title, String route, IconData icon) => ListTile(
-      title: Text(title),
-      leading: Icon(icon),
-      trailing: Icon(Icons.chevron_right),
-      onTap: () => Navigator.pushNamed(context, route));
+  Widget _group(String title, List<Widget> children) => SwanSurface(child: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(title, style: SwanType.h3(context.swan.ink)),
+      const SizedBox(height: SwanSpace.md), ...children,
+    ]));
+  Widget _shortcut(String title, String route, IconData icon) => SwanActionCard(
+    title: title, icon: icon, onTap: () => Navigator.pushNamed(context, route));
 
   Future<void> _signOut() async {
     final ok = await showDialog<bool>(
@@ -190,25 +151,25 @@ class _PushToggleRow extends ConsumerWidget {
     final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
 
     return Padding(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(SwanSpace.md),
       child: Row(
         children: [
           Container(
-            width: 40,
-            height: 40,
+            width: SwanSpace.xl + SwanSpace.md,
+            height: SwanSpace.xl + SwanSpace.md,
             decoration: BoxDecoration(
               color: surfHigh,
-              borderRadius: BorderRadius.circular(10),
+              borderRadius: BorderRadius.circular(SwanRadius.sm),
             ),
             child: Icon(
               on
                   ? Icons.notifications_active_rounded
                   : Icons.notifications_rounded,
-              size: 20,
+              size: SwanSpace.lg + SwanSpace.xs,
               color: context.swan.accent,
             ),
           ),
-          const SizedBox(width: 14),
+          const SizedBox(width: SwanSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

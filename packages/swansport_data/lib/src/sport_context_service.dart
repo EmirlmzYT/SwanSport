@@ -8,6 +8,41 @@ import 'supabase_scope.dart';
 import 'training_session_service.dart';
 import 'verification_service.dart';
 
+class ClubTrainingSportsService {
+  ClubTrainingSportsService(this._save, this._changed);
+  final Future<int> Function(String, List<String>) _save;
+  final void Function() _changed;
+  Future<int> setClubTrainingSports({required String clubId, required List<String> sportCodes}) async {
+    final count = await _save(clubId, List.unmodifiable(sportCodes));
+    _changed();
+    return count;
+  }
+}
+
+final Provider<ClubTrainingSportsService> clubTrainingSportsServiceProvider = Provider<ClubTrainingSportsService>((ref) {
+  final client = ref.watch(supabaseClientProvider);
+  var disposed = false;
+  ref.onDispose(() => disposed = true);
+  return ClubTrainingSportsService((clubId, codes) => client.rpc<int>('set_club_training_sports',
+    params: {'p_club_id': clubId, 'p_sport_codes': codes}), () {
+      if (disposed) return;
+      ref.invalidate(activeClubSportsProvider);
+      ref.invalidate(sportContextOptionsProvider);
+      ref.invalidate(clubTrainingSportsProvider);
+    });
+});
+
+/// Editable selection is distinct from the effective union (registry/main/team sports).
+final AutoDisposeFutureProviderFamily<List<String>, String> clubTrainingSportsProvider =
+    FutureProvider.autoDispose.family<List<String>, String>((ref, clubId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final uid = ref.watch(authSessionProvider).valueOrNull?.user.id;
+  if (uid == null) return const [];
+  final rows = await ref.watch(supabaseClientProvider).from('club_training_sports')
+      .select('sport_code').eq('club_id', clubId);
+  return List.unmodifiable(rows.map((r) => r['sport_code'] as String));
+});
+
 List<SportItem> catalogSportsFor(Iterable<String?> codes) {
   final unique = codes.whereType<String>().map(_canonicalSport).toSet();
   return List.unmodifiable(SportsCatalog.all.where((s) => unique.contains(s.code)));

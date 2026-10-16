@@ -1,3 +1,4 @@
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import '../../../app/design/swan_shape.dart';
@@ -51,11 +52,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: bg,
-        elevation: 0,
-        title: Text('Partner Bul', style: SwanType.h3(ink)),
-      ),
+      appBar: swanModuleAppBar(context, title: 'Partner Bul'),
       body: Column(children: [
         Padding(
           padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 4, SwanSpace.lg, 12),
@@ -191,7 +188,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                 Text([s.ownerName, if (where.isNotEmpty) where].join(' · '),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary,
+                    style: SwanType.caption(context.swan.inkMuted,
                         w: FontWeight.w600)),
               ],
             ),
@@ -218,7 +215,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(text,
             style:
-                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                SwanType.caption(context.swan.inkMuted, w: FontWeight.w600)),
       );
 
   Widget _verifyBanner(bool isDark, Color ink) => Container(
@@ -236,7 +233,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           Text(
               'İlan açmak ve partner iletişimi için doğrulanmış telefon veya '
               'onaylı kimlik gereklidir.',
-              style: SwanType.caption(SwanColors.textSecondary,
+              style: SwanType.caption(context.swan.inkMuted,
                   w: FontWeight.w600)),
         ]),
       );
@@ -292,7 +289,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                   overflow: TextOverflow.ellipsis,
                   style: SwanType.bodySm(ink, w: FontWeight.w800)),
               Text('Müsait misin, gitmek ister misin?',
-                  style: SwanType.caption(SwanColors.textSecondary,
+                  style: SwanType.caption(context.swan.inkMuted,
                       w: FontWeight.w600)),
             ],
           ),
@@ -331,7 +328,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
             return Text(
                 'Henüz hiçbir kortta branş tanımlı değil — partner arama '
                 'yakında burada olacak.',
-                style: SwanType.caption(SwanColors.textSecondary,
+                style: SwanType.caption(context.swan.inkMuted,
                     w: FontWeight.w600));
           }
 
@@ -347,7 +344,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                 const SizedBox(height: 4),
                 Text(
                     'Seçtiğin branşlarda başkası partner arayınca haber verilir.',
-                    style: SwanType.caption(SwanColors.textSecondary,
+                    style: SwanType.caption(context.swan.inkMuted,
                         w: FontWeight.w600)),
                 const SizedBox(height: 10),
                 Wrap(
@@ -418,7 +415,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 4),
           Text('${req.acceptedByName} müsait olduğunu söyledi.',
-              style: SwanType.caption(SwanColors.textSecondary,
+              style: SwanType.caption(context.swan.inkMuted,
                   w: FontWeight.w600)),
           const SizedBox(height: 12),
           GestureDetector(
@@ -457,7 +454,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
                   style: SwanType.bodySm(ink, w: FontWeight.w800)),
               const SizedBox(height: 3),
               Text('Yanıt gelene kadar bekleniyor.',
-                  style: SwanType.caption(SwanColors.textSecondary,
+                  style: SwanType.caption(context.swan.inkMuted,
                       w: FontWeight.w600)),
             ],
           ),

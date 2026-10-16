@@ -1,3 +1,6 @@
+import '../../../app/widgets/swan_surface.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/widgets/premium.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
@@ -207,10 +210,10 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
     final backend = ref.watch(isSupabaseEnabledProvider);
     if (!permitted || !enabled || !backend) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Sezon Açılışı')),
-        body: const Center(
-          child: Text('Sezon açılışı şu anda hesabına açık değil.'),
-        ),
+        backgroundColor: context.swan.bg,
+        appBar: swanModuleAppBar(context, title: 'Sezon Açılışı'),
+        body: premiumEmpty(context, icon: Icons.lock_outline_rounded,
+          title: 'Sezon açılışı şu anda hesabına açık değil.', subtitle: 'Yetkini ve etkin özellikleri kontrol et.'),
       );
     }
     final club = ref.watch(activeClubProvider);
@@ -218,25 +221,20 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
     return PopScope(
       canPop: !_busy && _pending == null,
       child: Scaffold(
-        appBar: AppBar(title: const Text('Sezon Açılışı')),
+        backgroundColor: context.swan.bg,
+        appBar: swanModuleAppBar(context, title: 'Sezon Açılışı'),
         body: club.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => const Center(
-            child: Text('Kulüp yüklenemedi. Sayfayı yeniden aç.'),
-          ),
+          error: (_, __) => premiumEmpty(context, icon: Icons.error_outline_rounded,
+            title: 'Kulüp yüklenemedi. Sayfayı yeniden aç.', subtitle: 'Bağlantını kontrol edip yeniden dene.'),
           data: (value) {
             if (value == null || !value.isActive) {
-              return const Center(
-                child: Text('Aktif bir kulüp seçmelisin.'),
-              );
+              return premiumEmpty(context, icon: Icons.groups_outlined, title: 'Aktif bir kulüp seçmelisin.', subtitle: 'Kulüp seçiminin ardından tekrar aç.');
             }
             _clubId ??= value.id;
             if (value.id != _clubId) {
-              return const Center(
-                child: Text(
-                  'Aktif kulüp değişti. Hazırlık için sayfayı yeniden aç.',
-                ),
-              );
+              return premiumEmpty(context, icon: Icons.sync_rounded,
+                title: 'Aktif kulüp değişti. Hazırlık için sayfayı yeniden aç.', subtitle: 'Kaydedilmemiş sezon taslağı başka kulübe uygulanmaz.');
             }
             if (_result != null) return _success();
             return Column(
@@ -345,12 +343,12 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
   List<Widget> _body(AsyncValue<List<AthleteRow>> athletes) => switch (_step) {
         0 => [
             _field(_label, 'Sezon adı'),
-            ListTile(
+            SwanInfoRow(
               title: const Text('Başlangıç'),
               subtitle: Text(SeasonSetupDraft.dateText(_start)),
               onTap: () => _date(0),
             ),
-            ListTile(
+            SwanInfoRow(
               title: const Text('Bitiş'),
               subtitle: Text(SeasonSetupDraft.dateText(_end)),
               onTap: () => _date(1),
@@ -406,7 +404,7 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
               const Text(
                 'Sezon başlangıcından itibaren en fazla 91 gün. Saatler Türkiye saatidir.',
               ),
-              ListTile(
+              SwanInfoRow(
                 title: const Text('Programın son günü'),
                 subtitle: Text(SeasonSetupDraft.dateText(_until)),
                 onTap: () => _date(2),
@@ -438,7 +436,7 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
                     ),
                 ],
               ),
-              ListTile(
+              SwanInfoRow(
                 title: const Text('Başlangıç saati'),
                 subtitle: Text(_time.format(context)),
                 onTap: () async {
@@ -493,11 +491,11 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
                   ? 'Aktif sezon değiştirilecek.'
                   : 'Sezon pasif hazırlanacak.',
             ),
-            ListTile(
+            SwanInfoRow(
               title: Text(_team.text.trim()),
               subtitle: Text('${_selected.length} sporcu · yeni takım'),
             ),
-            ListTile(
+            SwanInfoRow(
               title: Text(
                 _program
                     ? '${_draft().eventCount} antrenman'
@@ -509,7 +507,7 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
                     )
                   : null,
             ),
-            ListTile(
+            SwanInfoRow(
               title: Text(
                 _fees
                     ? '${_fee.text.trim()} · ${_amount.text.trim()} TL'

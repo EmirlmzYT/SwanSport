@@ -1,3 +1,5 @@
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/widgets/swan_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -16,9 +18,8 @@ class GuestExploreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('SwanSport · Keşfet'),
-      ),
+      backgroundColor: context.swan.bg,
+      appBar: swanModuleAppBar(context, title: 'SwanSport · Keşfet'),
       bottomNavigationBar: const SwanBottomNav(),
       body: ListView(
         padding: const EdgeInsets.all(SwanSpace.lg),
@@ -30,9 +31,9 @@ class GuestExploreScreen extends ConsumerWidget {
               style: SwanType.bodySm(c.inkMuted)),
           const SizedBox(height: SwanSpace.lg),
           const LiveMatchStrip(),
-          if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub))) ListTile(
-            leading:Icon(Icons.scoreboard_outlined,color:c.ink),
-            title:Text('Canlı Skor Merkezi',style:SwanType.body(c.ink)),
+          if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub))) SwanActionCard(
+            icon: Icons.scoreboard_outlined,
+            title: 'Canlı Skor Merkezi',
             onTap:()=>Navigator.pushNamed(context,'/canli-skor'),
           ),
           FilledButton(
@@ -40,21 +41,21 @@ class GuestExploreScreen extends ConsumerWidget {
             child: const Text('Giriş Yap / Kayıt Ol'),
           ),
           const SizedBox(height: SwanSpace.lg),
-          ListTile(
-            leading: const Icon(Icons.stadium_outlined),
-            title: const Text('Kortlar ve sahalar'),
-            subtitle: const Text('Tesisleri ve müsait saatleri incele'),
+          SwanActionCard(
+            icon: Icons.stadium_outlined,
+            title: 'Kortlar ve sahalar',
+            subtitle: 'Tesisleri ve müsait saatleri incele',
             onTap: () => Navigator.pushNamed(context, '/kortlar'),
           ),
-          ListTile(
-            leading: const Icon(Icons.event_outlined),
-            title: const Text('Federasyon Faaliyet Takvimi'),
+          SwanActionCard(
+            icon: Icons.event_outlined,
+            title: 'Federasyon Faaliyet Takvimi',
             onTap: () => Navigator.pushNamed(context, '/federasyon-takvimi'),
           ),
-          ListTile(
-            leading: const Icon(Icons.sports_tennis_outlined),
-            title: const Text('Partner Bul'),
-            subtitle: const Text('Halka açık oyun ilanlarına göz at'),
+          SwanActionCard(
+            icon: Icons.sports_tennis_outlined,
+            title: 'Partner Bul',
+            subtitle: 'Halka açık oyun ilanlarına göz at',
             onTap: () => Navigator.pushNamed(context, '/partner-ara'),
           ),
           const SizedBox(height: SwanSpace.xl),

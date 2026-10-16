@@ -1,3 +1,5 @@
+import '../../../../app/widgets/swan_surface.dart';
+import '../../../../app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -33,7 +35,7 @@ class GuardianOfficialResultScreen extends ConsumerWidget {
     final c = context.swan;
     return Scaffold(
       backgroundColor: c.bg,
-      appBar: AppBar(title: const Text('Resmi Müsabaka Karnesi')),
+      appBar: swanModuleAppBar(context, title: 'Resmi Müsabaka Karnesi'),
       body: (matchId != null && childId != null
               ? ref.watch(guardianMatchResultProvider(
                   (matchId: matchId!, childId: childId!)))
@@ -74,7 +76,7 @@ class GuardianCalendarResultCard extends StatelessWidget {
   const GuardianCalendarResultCard({super.key, required this.entry});
   final GuardianCalendarResult entry;
   @override
-  Widget build(BuildContext context) => ListTile(
+  Widget build(BuildContext context) => SwanInfoRow(
         leading: Icon(Icons.verified_user_rounded, color: context.swan.success),
         title: Text('${entry.result.childName} · ${entry.result.source.name}',
             style: SwanType.bodySm(context.swan.ink)),

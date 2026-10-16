@@ -1,3 +1,5 @@
+import '../../../../app/widgets/swan_module_app_bar.dart';
+import '../../../../app/widgets/swan_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -18,7 +20,7 @@ class DocumentDetailScreen extends ConsumerWidget {
     final c = context.swan;
     return Scaffold(
       backgroundColor: c.bg,
-      appBar: AppBar(title: const Text('Belge Ayrıntısı')),
+      appBar: swanModuleAppBar(context, title: 'Belge Ayrıntısı'),
       body: args == null
           ? const Center(
               child: Text('Geçersiz belge bağlantısı.',
@@ -43,6 +45,7 @@ class DocumentDetailScreen extends ConsumerWidget {
                             key: const Key('document-detail-title'),
                             style: SwanType.h2(c.ink)),
                         const SizedBox(height: SwanSpace.md),
+                        SwanSurface(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
                         Text(d.typeLabel, style: SwanType.body(c.ink)),
                         Text('Sahip: ${d.ownerLabel}',
                             style: SwanType.bodySm(c.inkMuted)),
@@ -50,6 +53,7 @@ class DocumentDetailScreen extends ConsumerWidget {
                             style: SwanType.bodySm(c.inkMuted)),
                         Text(d.verified ? 'Doğrulanmış' : 'Doğrulanmamış',
                             style: SwanType.bodySm(c.inkMuted)),
+                        ])),
                         if (d.storagePath != null) ...[
                           const SizedBox(height: SwanSpace.lg),
                           FilledButton.icon(

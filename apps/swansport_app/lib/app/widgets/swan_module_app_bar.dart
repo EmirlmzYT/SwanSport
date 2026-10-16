@@ -6,7 +6,7 @@ import '../design/swan_type.dart';
 /// Partner Bul contract for secondary module screens. Main social surfaces
 /// keep their own headers; this factory is deliberately opt-in.
 AppBar swanModuleAppBar(BuildContext context, {
-  required String title, List<Widget> actions = const [],
+  required String title, String? subtitle, List<Widget> actions = const [],
 }) {
   final c = context.swan;
   return AppBar(
@@ -21,8 +21,13 @@ AppBar swanModuleAppBar(BuildContext context, {
         size: SwanSpace.lg + SwanSpace.xs, color: c.ink),
       onPressed: () => Navigator.maybePop(context),
     ) : null,
-    title: Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
-      style: SwanType.h3(c.ink)),
+    title: subtitle == null ? Text(title, maxLines: 1, overflow: TextOverflow.ellipsis,
+      style: SwanType.h3(c.ink)) : Column(mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(c.ink)),
+      if (subtitle != null) Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis,
+        style: SwanType.caption(c.inkMuted)),
+    ]),
     actions: actions,
   );
 }

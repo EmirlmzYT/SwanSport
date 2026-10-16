@@ -1,3 +1,5 @@
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/widgets/swan_surface.dart';
 import 'venue_overview.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
@@ -43,23 +45,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: bg,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_court.name, style: SwanType.h3(ink)),
-            Text(
-              '${_court.opensAt} – ${_court.closesAt}',
-              style: SwanType.caption(
-                SwanColors.textSecondary,
-                w: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: swanModuleAppBar(context, title: _court.name, subtitle: '${_court.opensAt} – ${_court.closesAt}'),
       body: async.when(
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
@@ -78,10 +64,10 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               if (!verified) _verifyBanner(isDark, ink),
               const SizedBox(height: 4),
               if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)))
-                TextButton(
-                  onPressed: () =>
+                SwanActionCard(
+                  title: 'Bekleme listem', icon: Icons.schedule_rounded,
+                  onTap: () =>
                       Navigator.pushNamed(context, '/saha-islemlerim'),
-                  child: const Text('Bekleme listem'),
                 ),
               for (final s in slots) ...[
                 _slotRow(isDark, ink, s, verified),
@@ -101,7 +87,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
                 'En fazla 3 saat ilerisi alınabilir. Sıranı aldıktan sonra '
                 'korta varınca uygulamadan onaylaman gerekiyor.',
                 style: SwanType.caption(
-                  SwanColors.textSecondary,
+                  context.swan.inkMuted,
                   w: FontWeight.w600,
                 ),
               ),
@@ -136,7 +122,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               'Saatleri serbestçe inceleyebilirsin. Sıra ve rezervasyon için '
               'telefon veya kimlik doğrulaması gereklidir.',
               style: SwanType.caption(
-                SwanColors.textSecondary,
+                context.swan.inkMuted,
                 w: FontWeight.w600,
               ),
             ),

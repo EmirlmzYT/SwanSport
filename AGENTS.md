@@ -12,6 +12,17 @@ bulunamayacak** şeyleri anlatıyor.
 
 ## Yapı
 
+0121 kulüp antrenman branşları resmi `club_sport_registrations` değildir.
+`club_training_sports` yalnız aktif kulüpte aktif `club_admin`/`coach` üyeliğiyle
+dar RPC üzerinden değiştirilir; tabloya doğrudan istemci yazısı yoktur.
+`my_training_club_sports` ana/tescil/takım/antrenman branşlarını birleştirir;
+seçim federasyon yetkisi veya tescil vermez. 11 bayrak yalnız mevcut kademe
+admins ise everyone yapılır; off/testers ezilmez, SSS kapısı korunur.
+Henüz canlı uygulanmadı. Hedef mobil modüllerde ortak header/surface kullanılır;
+mevcut mobil paletin ayırıcı jetonu `line`, ikincil metni `inkMuted`'dır.
+Kanıt/sınırlar `docs/general-revision-verification.md`: yerel SQL/JS geçer;
+SDK olmadığından Flutter typecheck/widget/build ve görsel kabul ayrıca gerekir.
+
 Yerel Test Merkezi ayrı `main_test_center.dart` giriş noktasıdır; production
 rotasına/rol yetkisine çevrilmez. `tools/start_local_test_center.mjs` yalnız
 yerel Docker context ve `supabase_db_swansport-test-center` konteynerinde

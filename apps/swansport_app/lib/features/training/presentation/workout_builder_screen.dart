@@ -1,3 +1,5 @@
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/widgets/swan_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -64,7 +66,7 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
     final archetype = _sport == null ? profile?.defaultArchetype ?? _archetype : _archetype;
     return Scaffold(
       backgroundColor: c.bg,
-      appBar: AppBar(title: const Text('Antrenman şablonu oluştur')),
+      appBar: swanModuleAppBar(context, title: 'Antrenman Şablonu Oluştur'),
       body: club.when(
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
@@ -84,6 +86,7 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(SwanSpace.lg),
                   children: [
+                    SwanSurface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
                     Text(club.name, style: SwanType.h3(c.ink)),
                     const SizedBox(height: SwanSpace.md),
                     TextFormField(
@@ -210,6 +213,7 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
                         onPressed: _saving ? null : _save,
                         child:
                             Text(_saving ? 'Kaydediliyor…' : 'Şablonu kaydet')),
+                    ])),
                   ],
                 )),
           ));

@@ -4,6 +4,12 @@ Son güncelleme: 2026-10-16 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `ready_for_review`
 
+2026-10-16: Codex genel revizyon/piksel planını devraldı. 0121 ile görünürlük ve ayrı kulüp antrenman branşları, ortak servis ve hedef ekran standardizasyonu uygulanır. Eski migration/testler korunur; canlı SQL/deploy/commit/push yok. Başlangıçta yalnız yeni plan untracked idi.
+
+0121 kontrol noktası: Yeni RPC/RLS ve koşullu 11 bayrak yayını 4/4 izole PostgreSQL testinde geçti. Şemadaki gerçek yönetici rolü club_admin (planda admin yazıyordu); mevcut c.line/c.inkMuted jetonları kullanılır. Ortak servis, branş sheet'i, 11 hedef ekran ve kart grupları bağlı; source/senkronizasyon 5/5. Tam eski SQL/JS regresyon koşusu sürüyor. Flutter/Dart SDK PATH'te yok; widget/build/piksel kabulü henüz yok.
+
+0121 son doğrulama: Tam tools/*_test.mjs koşusu 861/861, sıfır hata/skip (importla yinelenen senaryolar dahil); yeni SQL son hali ayrıca 4/4, source/senkronizasyon 5/5, katalog 3/3. Migration parse 121/121, SSS 44/44, push 42 kayıpsız; mobil sözleşme 24/24 ve 605 Dart syntax temiz. Eski migration/bağımsız SQL testleri değişmedi. İki veri + üç widget testi eklendi fakat SDK olmadığı için çalıştırılmadı; analyze/build/görsel piksel kabulü açık. Kanıt: docs/general-revision-verification.md. Yalnız stage; commit/push/canlı SQL/deploy yok. Writer serbest.
+
 2026-10-16: Codex 0120 çoklu branş görevini devraldı. Başlangıçtaki stage edilmiş plan/pano korunur. Saf motor katalog bağımlılığı almaz; kod eşliği testte denetlenir. Yeni metrikler/SQL aynı sayısal sınırları paylaşır; boş zihin denemesinde oran 0, rutin net puanı formülle doğrulanır. Bağlam yalnız gerçek RLS kapsamlı üyelik/belge/tescil verisinden gelir; muhasebeciye sportif sorgu açılmaz. Yalnız yerel test ve stage; canlı SQL/deploy/commit/push yok.
 
 2026-10-16: 0120 uygulama kontrol noktası: 7 arketip, 60 saf branş profili, 120 idempotent şablon, aktif üyelik kontrollü dar branş RPC'si, hesap/kulüp sıfırlanan ortak bağlam ve mobil ped/filtre/oluşturucu bağlandı. Özel tescil SELECT'i açılmadı; yeni metrikler eski hedef puanına katılmaz, açık faz atlama kısıtları genişletildi. SQL fixture 23/23, katalog 3/3, migration 120 dosya temiz, SSS 44/44, push 42 kayıpsız, mobil sözleşme 24/24 ve 601 Dart söz dizimi temiz. Dart/Flutter SDK yok: eklenen motor/veri/widget testleri çalıştırılmadı; analyze/build/cihaz kabulü yok. Kanıt/sınırlar: docs/multi-branch-training-verification.md. Yalnız stage; canlı SQL/deploy/commit/push yok. Writer serbest; SDK doğrulaması inceleme önkoşulu.

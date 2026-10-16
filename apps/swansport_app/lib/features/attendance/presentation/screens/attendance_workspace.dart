@@ -1,3 +1,4 @@
+import '../../../../app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
@@ -188,22 +189,17 @@ class _AttendanceState extends ConsumerState<LiveAttendanceScreen> {
     return PopScope(
       canPop: !_busy && (_marks.isEmpty || offline),
       child: Scaffold(
-        appBar: AppBar(title: const Text('Yoklama')),
+        backgroundColor: context.swan.bg,
+      appBar: swanModuleAppBar(context, title: 'Yoklama'),
         body: ListView(
           padding: const EdgeInsets.all(SwanSpace.lg),
           children: [
             if (_event != null && !eventVisible)
-              const Text(
-                'Etkinlik mevcut kulüp listesinde yok. İşaretleri kontrol et veya bırakıp yeni etkinliği seç.',
-              ),
+              Text('Etkinlik mevcut kulüp listesinde yok. İşaretleri kontrol et veya bırakıp yeni etkinliği seç.', style: SwanType.bodySm(c.inkMuted)),
             if (localAsync.hasError)
-              const Text(
-                'Cihaz deposu açılamadı. Çevrimdışı kayıt kullanılamıyor.',
-              ),
+              Text('Cihaz deposu açılamadı. Çevrimdışı kayıt kullanılamıyor.', style: SwanType.bodySm(c.inkMuted)),
             if (events.isEmpty) ...[
-              const Text(
-                'Etkinlik yüklenemedi veya hazırlanmış kadro yok. İnternet varken etkinliği seçip kadroyu hazırla.',
-              ),
+              Text('Etkinlik yüklenemedi veya hazırlanmış kadro yok. İnternet varken etkinliği seçip kadroyu hazırla.', style: SwanType.bodySm(c.inkMuted)),
               TextButton(
                 onPressed: () => ref.invalidate(eventsProvider),
                 child: const Text('Etkinlikleri yeniden yükle'),
@@ -273,16 +269,12 @@ class _AttendanceState extends ConsumerState<LiveAttendanceScreen> {
                 child: const Text('Cihazdan hazırlanmış kadroyu kaldır'),
               ),
             if (snapshot != null && !usable)
-              const Text(
-                'Kadronun yedi günlük süresi doldu. Yeniden hazırla; bekleyen kayıtlar silinmedi.',
-              ),
+              Text('Kadronun yedi günlük süresi doldu. Yeniden hazırla; bekleyen kayıtlar silinmedi.', style: SwanType.bodySm(c.inkMuted)),
             if (denied)
-              const Text(
-                'Sunucu bu kadroya erişimi reddetti. Yetkini kontrol et.',
-              ),
+              Text('Sunucu bu kadroya erişimi reddetti. Yetkini kontrol et.', style: SwanType.bodySm(c.inkMuted)),
             if (!offline && roster.isLoading) const LinearProgressIndicator(),
             if (!offline && roster.hasError && !denied)
-              const Text('Kadro yüklenemedi. Bağlantını kontrol et.'),
+              Text('Kadro yüklenemedi. Bağlantını kontrol et.', style: SwanType.bodySm(c.inkMuted)),
             if (_message != null)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),

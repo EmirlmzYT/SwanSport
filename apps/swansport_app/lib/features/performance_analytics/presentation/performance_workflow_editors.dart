@@ -1,3 +1,7 @@
+import '../../../app/widgets/swan_surface.dart';
+import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_models/swansport_models.dart';
@@ -140,29 +144,38 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.swan;
     final state = ref.watch(performanceControllerProvider);
     if (state.loading) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: c.bg,
+        appBar: swanModuleAppBar(context, title: _title),
         body: Center(child: CircularProgressIndicator()),
       );
     }
     if (widget.recordId != null && !_recordExists(state)) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: c.bg,
+        appBar: swanModuleAppBar(context, title: _title),
         body: Center(
           child: Text(
             'Düzenlenecek kayıt bulunamadı.',
             key: Key('workflow-missing-record'),
+            style: SwanType.bodySm(c.inkMuted),
           ),
         ),
       );
     }
     _initialize(state);
     if (!_canEdit(state)) {
-      return const Scaffold(
+      return Scaffold(
+        backgroundColor: c.bg,
+        appBar: swanModuleAppBar(context, title: _title),
         body: Center(
           child: Text(
             'Bu iş akışını düzenleme yetkiniz yok.',
             key: Key('workflow-permission-denied'),
+            style: SwanType.bodySm(c.inkMuted),
           ),
         ),
       );
@@ -173,7 +186,8 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
         if (!didPop && _dirty) await _confirmCancel();
       },
       child: Scaffold(
-        appBar: AppBar(title: Text(_title)),
+        backgroundColor: c.bg,
+        appBar: swanModuleAppBar(context, title: _title),
         body: Form(
           key: _formKey,
           onChanged: () => setState(() => _dirty = true),
@@ -185,7 +199,7 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
                 header: true,
                 child: Text(
                   widget.recordId == null ? 'Yeni Kayıt' : 'Kaydı Düzenle',
-                  style: Theme.of(context).textTheme.headlineSmall,
+                  style: SwanType.h2(c.ink),
                 ),
               ),
               const SizedBox(height: 12),
@@ -288,7 +302,7 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
               label: 'Öz değerlendirme $_rating / 5',
               onChanged: (value) => setState(() => _rating = value.round()),
             ),
-            const ListTile(
+            const SwanInfoRow(
               title: Text('İnceleme durumu'),
               subtitle: Text('Taslak • henüz koç incelemesine gönderilmedi'),
             ),
@@ -298,7 +312,7 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
             _field(_secondary, 'İnsan kararları (virgülle ayırın)'),
             _field(_third, 'Takip eylemleri (virgülle ayırın)'),
             _field(_fourth, 'Eylem sahipleri (virgülle ayırın)'),
-            const ListTile(
+            const SwanInfoRow(
               title: Text('Takip tarihi'),
               subtitle: Text('Bir sonraki ay • kullanıcı tarafından planlandı'),
             ),

@@ -1,3 +1,5 @@
+import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../../app/design/swan_shape.dart';
 import '../../courts/presentation/venue_overview.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
@@ -41,23 +43,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
 
     return Scaffold(
       backgroundColor: bg,
-      appBar: AppBar(
-        backgroundColor: bg,
-        elevation: 0,
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(_field.name, style: SwanType.h3(ink)),
-            Text(
-              '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}',
-              style: SwanType.caption(
-                SwanColors.textSecondary,
-                w: FontWeight.w600,
-              ),
-            ),
-          ],
-        ),
-      ),
+      appBar: swanModuleAppBar(context, title: _field.name, subtitle: '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}'),
       body: async.when(
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
@@ -85,18 +71,23 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                   Text('Bu saha için müsait saat bulunmuyor.',
                       style: SwanType.bodySm(ink)),
                 if (isManager) _managerBanner(isDark, ink),
+                Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm, children: [
                 if (ref
                     .watch(featureEnabledProvider(FeatureFlags.turfDelegation)))
-                  TextButton(
+                  ActionChip(
+                    backgroundColor: context.swan.surface,
+                    avatar: Icon(Icons.schedule_rounded, color: context.swan.inkMuted),
                     onPressed: () =>
                         Navigator.pushNamed(context, '/saha-islemlerim'),
-                    child: const Text('Saha görevlerim'),
+                    label: const Text('Saha görevlerim'),
                   ),
                 if (ref.watch(
                       featureEnabledProvider(FeatureFlags.turfDelegation),
                     ) &&
                     ref.watch(swanAccessProvider).isTurfManagerOf(_field.id))
-                  TextButton(
+                  ActionChip(
+                    backgroundColor: context.swan.surface,
+                    avatar: Icon(Icons.person_add_outlined, color: context.swan.inkMuted),
                     onPressed: _busy
                         ? null
                         : () => showDialog<void>(
@@ -104,8 +95,9 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                               builder: (_) =>
                                   TurfDutyInviteDialog(fieldId: _field.id),
                             ),
-                    child: const Text('Görev devret'),
+                    label: const Text('Görev devret'),
                   ),
+                ]),
                 for (final day in byDay.entries) ...[
                   _dayHeader(ink, day.value.first.startsAt),
                   const SizedBox(height: 8),
@@ -123,7 +115,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                   Text(
                     'Rezervasyon için ara: ${_field.phone}',
                     style: SwanType.caption(
-                      SwanColors.textSecondary,
+                      context.swan.inkMuted,
                       w: FontWeight.w600,
                     ),
                   ),
