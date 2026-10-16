@@ -51,6 +51,7 @@ export 'src/saha_operations.dart';
 export 'src/season_setup.dart';
 export 'src/social_service.dart';
 export 'src/social_share_service.dart';
+export 'src/sports_catalog.dart';
 export 'src/sports_roles_models.dart';
 export 'src/sports_roles_service.dart';
 export 'src/referee_cockpit.dart';
