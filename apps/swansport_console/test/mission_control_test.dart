@@ -13,9 +13,15 @@ import 'package:swansport_console/app/media/image_picker.dart';
 
 class _Service extends Fake implements PlatformMissionControlService {
   final writes = <String>[];
+  final notifiedEmails = <String>[];
   int uploads = 0;
   @override
   Future<void> updatePlatformSetting(String key, Map<String, dynamic> value) async => writes.add(key);
+  @override
+  Future<int> markWaitlistNotified({List<String>? emails}) async {
+    notifiedEmails.addAll(emails ?? const []);
+    return emails?.length ?? 0;
+  }
   @override
   Future<String> uploadBrandLogo({required Uint8List bytes, required String name, required String mimeType}) async {
     uploads++;
@@ -129,6 +135,28 @@ void main() {
     expect(find.text('Logoyu Kaldır'), findsOneWidget);
     final image = tester.widget<Image>(find.descendant(of: find.byKey(const ValueKey('brand-logo-preview')), matching: find.byType(Image)));
     expect((image.image as NetworkImage).url, 'https://example.com/uploaded-logo.png');
+    expect(tester.takeException(), isNull);
+  });
+  testWidgets('waitlist entries render in Denetim & Sistem tab and mark notified', (tester) async {
+    size(tester, 1200); final service = _Service();
+    await tester.pumpWidget(ProviderScope(overrides: [
+      consoleAccessProvider.overrideWithValue(const SwanAccess(isPlatformAdmin: true, clubRole: null, coachLevel: 0, athleteKind: null)),
+      platformConfigProvider.overrideWith((_) async => PlatformConfig.fromMap({'branding': {'app_name': 'SwanSport'}})),
+      platformMissionControlServiceProvider.overrideWithValue(service),
+      platformPlansProvider.overrideWith((_) async => []),
+      platformAuditLogsProvider.overrideWith((_) async => []),
+      diagnosticOverviewProvider.overrideWith((_) async => {}),
+      launchWaitlistEntriesProvider.overrideWith((_) async => const [
+        LaunchWaitlistEntry(id: '1', email: 'sporcu@swansport.com.tr', role: 'athlete', sportCode: 'tenis', clubOrCity: 'Konya'),
+      ]),
+    ], child: MaterialApp(theme: ConsoleTheme.dark(), home: const Scaffold(body: MissionControlScreen()))));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Denetim & Sistem'));
+    await tester.pumpAndSettle();
+    expect(find.text('sporcu@swansport.com.tr'), findsOneWidget);
+    await tester.tap(find.text('Bekleyenleri Bildirildi İşaretle'));
+    await tester.pumpAndSettle();
+    expect(service.notifiedEmails, ['sporcu@swansport.com.tr']);
     expect(tester.takeException(), isNull);
   });
 }

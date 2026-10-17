@@ -26,15 +26,17 @@ class PlatformConfig {
         commissions = _object(map['commissions']),
         maintenance = _object(map['maintenance']),
         broadcastAlert = _object(map['broadcast_alert']),
-        killSwitches = _object(map['kill_switches']);
+        killSwitches = _object(map['kill_switches']),
+        launchRelease = _object(map['launch_release']);
   const PlatformConfig.empty()
       : branding = const {}, commissions = const {}, maintenance = const {},
-        broadcastAlert = const {}, killSwitches = const {};
+        broadcastAlert = const {}, killSwitches = const {}, launchRelease = const {};
   final Map<String, dynamic> branding;
   final Map<String, dynamic> commissions;
   final Map<String, dynamic> maintenance;
   final Map<String, dynamic> broadcastAlert;
   final Map<String, dynamic> killSwitches;
+  final Map<String, dynamic> launchRelease;
   String? get appName => branding['app_name'] as String?;
   String? get logoUrl => branding['logo_url'] as String?;
   String? get tagline => branding['tagline'] as String?;
@@ -44,6 +46,12 @@ class PlatformConfig {
   bool get disableSignups => killSwitches['disable_signups'] == true;
   bool get disablePayments => killSwitches['disable_payments'] == true;
   bool get disableMarketplace => killSwitches['disable_marketplace'] == true;
+  String get launchStatus => (launchRelease['status'] as String?) ?? 'coming_soon';
+  bool get isLaunchLive => launchStatus == 'live';
+  bool get waitlistEnabled => launchRelease['waitlist_enabled'] != false;
+  String? get launchEtaLabel => launchRelease['eta_label'] as String?;
+  String? get playStoreUrl => launchRelease['play_store_url'] as String?;
+  String? get appStoreUrl => launchRelease['app_store_url'] as String?;
 }
 
 class PlatformPlan {
@@ -105,6 +113,68 @@ class PlatformAuditLog {
     newState: map['new_state'] as Map<String, dynamic>?, createdAt: _date(map['created_at']));
 }
 
+class LaunchWaitlistSummary {
+  const LaunchWaitlistSummary({
+    this.totalCount = 0,
+    this.athleteCount = 0,
+    this.coachCount = 0,
+    this.clubCount = 0,
+    this.guardianCount = 0,
+    this.refereeCount = 0,
+  });
+  final int totalCount;
+  final int athleteCount;
+  final int coachCount;
+  final int clubCount;
+  final int guardianCount;
+  final int refereeCount;
+
+  factory LaunchWaitlistSummary.fromMap(Map<String, dynamic> map) => LaunchWaitlistSummary(
+    totalCount: (map['total_count'] as num?)?.toInt() ?? 0,
+    athleteCount: (map['athlete_count'] as num?)?.toInt() ?? 0,
+    coachCount: (map['coach_count'] as num?)?.toInt() ?? 0,
+    clubCount: (map['club_count'] as num?)?.toInt() ?? 0,
+    guardianCount: (map['guardian_count'] as num?)?.toInt() ?? 0,
+    refereeCount: (map['referee_count'] as num?)?.toInt() ?? 0,
+  );
+}
+
+class LaunchWaitlistEntry {
+  const LaunchWaitlistEntry({
+    required this.id,
+    required this.email,
+    required this.role,
+    this.sportCode,
+    this.clubOrCity,
+    this.source = 'swansport.com.tr',
+    this.notifiedAt,
+    this.createdAt,
+    this.updatedAt,
+  });
+  final String id;
+  final String email;
+  final String role;
+  final String? sportCode;
+  final String? clubOrCity;
+  final String source;
+  final DateTime? notifiedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+  bool get isNotified => notifiedAt != null;
+
+  factory LaunchWaitlistEntry.fromMap(Map<String, dynamic> map) => LaunchWaitlistEntry(
+    id: map['id'] as String,
+    email: map['email'] as String,
+    role: (map['role'] as String?) ?? 'athlete',
+    sportCode: map['sport_code'] as String?,
+    clubOrCity: map['club_or_city'] as String?,
+    source: (map['source'] as String?) ?? 'swansport.com.tr',
+    notifiedAt: _date(map['notified_at']),
+    createdAt: _date(map['created_at']),
+    updatedAt: _date(map['updated_at']),
+  );
+}
+
 class PlatformMissionControlService {
   PlatformMissionControlService(this._client, {this.onWrite});
   final SupabaseClient _client;
@@ -137,6 +207,22 @@ class PlatformMissionControlService {
         .order('created_at', ascending: false).order('id', ascending: false)
         .range(offset, offset + limit - 1);
     return rows.map((row) => PlatformAuditLog.fromMap(row)).toList();
+  }
+  Future<LaunchWaitlistSummary> waitlistSummary() async => LaunchWaitlistSummary.fromMap(
+      Map<String, dynamic>.from(await _client.rpc('public_waitlist_summary') as Map));
+  Future<List<LaunchWaitlistEntry>> waitlistEntries({int limit = 100, int offset = 0}) async {
+    if (limit < 1 || limit > 500 || offset < 0) throw ArgumentError('Invalid waitlist page');
+    final rows = await _client.from('launch_waitlist').select()
+        .order('created_at', ascending: false).order('id', ascending: false)
+        .range(offset, offset + limit - 1);
+    return rows.map((row) => LaunchWaitlistEntry.fromMap(row)).toList();
+  }
+  Future<int> markWaitlistNotified({List<String>? emails}) async {
+    final res = await _client.rpc('mark_launch_waitlist_notified', params: {
+      'p_emails': emails,
+    });
+    onWrite?.call();
+    return (res as num?)?.toInt() ?? 0;
   }
   Future<void> updatePlatformSetting(String key, Map<String, dynamic> value) async {
     await _client.rpc('update_platform_setting', params: {'p_key': key, 'p_value': value});
@@ -179,4 +265,14 @@ final AutoDisposeFutureProvider<List<PlatformAuditLog>> platformAuditLogsProvide
     FutureProvider.autoDispose<List<PlatformAuditLog>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider) || !ref.watch(swanAccessProvider).isPlatformAdmin) return const [];
   return ref.watch(platformMissionControlServiceProvider).auditLogs(limit: 50);
+});
+final AutoDisposeFutureProvider<LaunchWaitlistSummary> launchWaitlistSummaryProvider =
+    FutureProvider.autoDispose<LaunchWaitlistSummary>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const LaunchWaitlistSummary();
+  return ref.watch(platformMissionControlServiceProvider).waitlistSummary();
+});
+final AutoDisposeFutureProvider<List<LaunchWaitlistEntry>> launchWaitlistEntriesProvider =
+    FutureProvider.autoDispose<List<LaunchWaitlistEntry>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider) || !ref.watch(swanAccessProvider).isPlatformAdmin) return const [];
+  return ref.watch(platformMissionControlServiceProvider).waitlistEntries(limit: 100);
 });

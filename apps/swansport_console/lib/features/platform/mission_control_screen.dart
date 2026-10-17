@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -42,6 +43,7 @@ class _MissionControlScreenState extends ConsumerState<MissionControlScreen> {
         IconButton(tooltip: 'Platform verilerini yenile', onPressed: () {
           ref.invalidate(platformConfigProvider); ref.invalidate(platformPlansProvider);
           ref.invalidate(platformAuditLogsProvider); ref.invalidate(diagnosticOverviewProvider);
+          ref.invalidate(launchWaitlistEntriesProvider); ref.invalidate(launchWaitlistSummaryProvider);
         }, icon: const Icon(Icons.refresh_rounded)),
       ])),
       if (config.hasError) const Text('Yenileme başarısız; önceki ayarlar ve taslaklar korunuyor.'),
@@ -82,6 +84,13 @@ class _MissionControlScreenState extends ConsumerState<MissionControlScreen> {
             switches: const {'disable_signups': 'Yeni Kayıtları Dondur (yapılandırma)',
               'disable_payments': 'Ödemeleri Dondur (yapılandırma)',
               'disable_marketplace': 'Pazaryerini Dondur (yapılandırma)'}, fields: const []),
+          _SettingForm(key: const ValueKey('launch_release'), section: 'launch_release', title: 'Lansman & Mağaza Durumu (swansport.com.tr)', value: value.launchRelease,
+            switches: const {'waitlist_enabled': 'Erken erişim (Bana Haber Ver) kayıtlarını açık tut'},
+            fields: const [
+              _Field('eta_label', 'Lansman Durum Etiketi'),
+              _Field('app_store_url', 'App Store URL', kind: 'url'),
+              _Field('play_store_url', 'Google Play URL', kind: 'url'),
+            ]),
           OutlinedButton.icon(onPressed: () => context.go('/bayraklar'), icon: const Icon(Icons.flag_outlined), label: const Text('Özellik Bayraklarını Aç')),
         ]),
         const _AuditPage(),
@@ -390,6 +399,7 @@ class _AuditPage extends ConsumerWidget {
     return _Page(children: [
       OutlinedButton.icon(onPressed: () => context.go('/hata-merkezi'), icon: const Icon(Icons.bug_report_outlined),
         label: Text(overview.isLoading ? 'Hata Teşhis Merkezi · Yükleniyor…' : overview.hasError ? 'Hata Teşhis Merkezi · Özet alınamadı' : 'Hata Teşhis Merkezi · ${overview.valueOrNull?['open_issues'] ?? '—'} açık hata')),
+      const _WaitlistSection(),
       Text('Son 50 Yönetici Eylemi', style: Theme.of(context).textTheme.titleLarge),
       audit.when(loading: () => const Center(child: CircularProgressIndicator()),
         error: (_, __) => TextButton(onPressed: () => ref.invalidate(platformAuditLogsProvider), child: const Text('Denetim izi alınamadı · Tekrar dene')),
@@ -410,3 +420,97 @@ class _AuditPage extends ConsumerWidget {
     ]);
   }
 }
+
+class _WaitlistSection extends ConsumerStatefulWidget {
+  const _WaitlistSection();
+  @override
+  ConsumerState<_WaitlistSection> createState() => _WaitlistSectionState();
+}
+class _WaitlistSectionState extends ConsumerState<_WaitlistSection> {
+  bool _busy = false;
+  String? _status;
+  static const _roleLabels = {
+    'athlete': 'Sporcu',
+    'coach': 'Antrenör',
+    'club_admin': 'Kulüp Yöneticisi',
+    'guardian': 'Veli',
+    'referee': 'Hakem',
+  };
+  Future<void> _markNotified(List<LaunchWaitlistEntry> pending) async {
+    if (_busy || pending.isEmpty || !ref.read(consoleAccessProvider).isPlatformAdmin) return;
+    setState(() { _busy = true; _status = null; });
+    try {
+      final count = await ref.read(platformMissionControlServiceProvider)
+        .markWaitlistNotified(emails: pending.map((e) => e.email).toList());
+      if (!mounted) return;
+      ref.invalidate(launchWaitlistEntriesProvider);
+      ref.invalidate(launchWaitlistSummaryProvider);
+      ref.invalidate(platformAuditLogsProvider);
+      setState(() => _status = '$count kayıt lansman bildirimi gönderildi olarak işaretlendi.');
+    } catch (_) {
+      if (mounted) setState(() => _status = 'İşaretleme başarısız oldu; yetki ve bağlantıyı kontrol edin.');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+  @override
+  Widget build(BuildContext context) {
+    final entries = ref.watch(launchWaitlistEntriesProvider);
+    return Card(child: Padding(padding: const EdgeInsets.all(ConsoleDensity.xl), child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Erken Erişim & Lansman Bekleme Listesi (swansport.com.tr)', style: Theme.of(context).textTheme.titleLarge),
+        const SizedBox(height: ConsoleDensity.sm),
+        Text('Vitrin sayfasındaki "Uygulama Yayınlanınca Bana Haber Ver" formuyla bırakılan kayıtlar.', style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: ConsoleDensity.lg),
+        if (_status != null) Padding(padding: const EdgeInsets.only(bottom: ConsoleDensity.md), child: Text(_status!)),
+        entries.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => TextButton(onPressed: () => ref.invalidate(launchWaitlistEntriesProvider), child: const Text('Bekleme listesi alınamadı · Tekrar dene')),
+          data: (rows) {
+            if (rows.isEmpty) return const Text('Henüz erken erişim kaydı yok.');
+            final pending = rows.where((r) => !r.isNotified).toList();
+            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Wrap(spacing: ConsoleDensity.md, runSpacing: ConsoleDensity.sm, children: [
+                Chip(label: Text('Toplam: ${rows.length}')),
+                Chip(label: Text('Bildirim Bekleyen: ${pending.length}')),
+                OutlinedButton.icon(
+                  onPressed: () async {
+                    final csv = pending.isEmpty ? rows.map((r) => r.email).join(', ') : pending.map((r) => r.email).join(', ');
+                    await Clipboard.setData(ClipboardData(text: csv));
+                    if (mounted) setState(() => _status = 'E-posta listesi panoya kopyalandı.');
+                  },
+                  icon: const Icon(Icons.copy_all_outlined),
+                  label: const Text('E-postaları Kopyala'),
+                ),
+                if (pending.isNotEmpty) FilledButton.tonalIcon(
+                  onPressed: _busy ? null : () => _markNotified(pending),
+                  icon: const Icon(Icons.mark_email_read_outlined),
+                  label: const Text('Bekleyenleri Bildirildi İşaretle'),
+                ),
+              ]),
+              const SizedBox(height: ConsoleDensity.md),
+              SingleChildScrollView(scrollDirection: Axis.horizontal, child: DataTable(
+                columns: const [
+                  DataColumn(label: Text('E-posta')),
+                  DataColumn(label: Text('Rol')),
+                  DataColumn(label: Text('Branş / Şehir')),
+                  DataColumn(label: Text('Durum')),
+                ],
+                rows: [
+                  for (final row in rows.take(25)) DataRow(cells: [
+                    DataCell(SelectableText(row.email)),
+                    DataCell(Text(_roleLabels[row.role] ?? row.role)),
+                    DataCell(Text([if (row.sportCode != null) row.sportCode, if (row.clubOrCity != null) row.clubOrCity].join(' · '))),
+                    DataCell(Text(row.isNotified ? 'Bildirildi' : 'Bekliyor')),
+                  ]),
+                ],
+              )),
+            ]);
+          },
+        ),
+      ],
+    )));
+  }
+}
+

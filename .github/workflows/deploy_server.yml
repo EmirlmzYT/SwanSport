@@ -1,0 +1,47 @@
+name: Deploy Landing & Migrations to Server
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'landing/**'
+      - 'supabase/migrations/**'
+      - 'tools/deploy_server.sh'
+      - '.github/workflows/deploy_server.yml'
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Update Self-Hosted Server (SSH)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check SSH Secrets
+        id: check_secrets
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+        run: |
+          if [[ -n "$SERVER_HOST" && -n "$SERVER_USER" && -n "$SERVER_SSH_KEY" ]]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "ℹ️ SERVER_HOST / SERVER_USER / SERVER_SSH_KEY tanımlı değil; sunucu tarafındaki auto-pull cron kullanılacak."
+          fi
+
+      - name: Trigger Server Deploy via SSH
+        if: steps.check_secrets.outputs.configured == 'true'
+        env:
+          SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          SERVER_USER: ${{ secrets.SERVER_USER }}
+          SERVER_PORT: ${{ secrets.SERVER_PORT || '22' }}
+          SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          SERVER_REPO_DIR: ${{ secrets.SERVER_REPO_DIR || '/root/swansport' }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SERVER_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "$SERVER_PORT" -H "$SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+          ssh -i ~/.ssh/id_deploy -p "$SERVER_PORT" -o StrictHostKeyChecking=accept-new \
+            "${SERVER_USER}@${SERVER_HOST}" \
+            "cd ${SERVER_REPO_DIR} && bash tools/deploy_server.sh"
