@@ -1,10 +1,12 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-17 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `in_progress`
+Aktif Writer: Yok
+Durum: `ready_for_review`
 
 2026-10-17: Kullanıcı son düzeltmelerle denemelik IPA istedi. 0.5.13+42 önizlemesi ayrı codex dalında commit/push ve macOS workflow_dispatch ile derlenecek; main/tag/web/canlı SQL/TestFlight değişmez. Önceki stage bu kullanıcı çalışmasının derleme kaynağıdır. Windows kaynak/test doğrulamaları geçer; gerçek IPA kabulü CI sonucuna bağlı.
+
+2026-10-17 IPA sonucu: codex/ios-preview-0.5.13-42 dalındaki 87c81a1 kaynağı macOS Actions 39059075399 koşusunda başarıyla derlendi. Preview-only dispatch Apple dağıtım imzasını kapattı; unsigned artifact 12110462108 indirildi. IPA içi plist 0.5.13/42, com.swansport.app; executable ve ZIP CRC sağlam, app signature yok. İndirilenler'e SwanSport-0.5.13+42-unsigned.ipa bırakıldı (13,511,266 byte). Main/tag/web/SQL/TestFlight değişmedi; gerçek cihaz/görsel/APNs kabulü yapılmadı. Kanıt docs/ios-preview-0.5.13-42.md. Writer serbest.
 
 2026-10-17: Flutter 3.47.7 ile ortaya çıkan gerçek test/derleme sorunlarını temizleme devralındı. Önceki stage ve SDK bağımlılık çözümü korunur; canlı SQL/yayın/IPA/commit/push yok. Başlangıç: konsol 82, core 26, motor 197 ve açılış/duyuru 7 geçer; mobil/veri koşuları hatalı ve bazı async testler takılır.
 
