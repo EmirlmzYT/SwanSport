@@ -63,6 +63,7 @@ class SwanGlassSurface extends StatelessWidget {
   final bool floating;
   @override
   Widget build(BuildContext context) {
+    if (!floating) return _SwanHeaderSurface(child: child);
     final c = context.swan;
     final opaque = MediaQuery.highContrastOf(context) ||
         MediaQuery.disableAnimationsOf(context);
@@ -94,28 +95,6 @@ class SwanGlassSurface extends StatelessWidget {
             child: DecoratedBox(
               decoration: BoxDecoration(
                   color: fill,
-                  gradient: !floating && !opaque
-                      ? LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          stops: const [
-                              0,
-                              .75,
-                              1
-                            ],
-                          colors: [
-                              c.surface.withValues(
-                                  alpha: c.isDark
-                                      ? SwanChrome.headerDarkTintTop
-                                      : SwanChrome.headerTintTop),
-                              c.surface.withValues(
-                                  alpha: c.isDark
-                                      ? SwanChrome.headerDarkTintMiddle
-                                      : SwanChrome.headerTintMiddle),
-                              c.surface.withValues(
-                                  alpha: SwanChrome.headerTintBottom),
-                            ])
-                      : null,
                   borderRadius: radius,
                   border: floating
                       ? Border.all(
@@ -128,5 +107,34 @@ class SwanGlassSurface extends StatelessWidget {
             ),
           )),
     );
+  }
+}
+
+/// Narrow non-overlapping strips approximate the reference's progressive
+/// scroll-edge diffusion. No shader-mask/saveLayer enclosing a backdrop filter,
+/// no full-screen blur and no tinted rectangular toolbar sheet.
+class _SwanHeaderSurface extends StatelessWidget {
+  const _SwanHeaderSurface({required this.child});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final opaque = MediaQuery.highContrastOf(context) ||
+        MediaQuery.disableAnimationsOf(context);
+    if (opaque) return Material(color: context.swan.surface, child: child);
+    return Stack(fit: StackFit.passthrough, children: [
+      Positioned.fill(
+          child: IgnorePointer(
+              child: Column(children: [
+        for (final sigma in SwanChrome.headerEdgeBlurs)
+          Expanded(
+              child: ClipRect(
+                  child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: sigma, sigmaY: sigma),
+            child: const SizedBox.expand(),
+          ))),
+      ]))),
+      Material(type: MaterialType.transparency, child: child),
+    ]);
   }
 }

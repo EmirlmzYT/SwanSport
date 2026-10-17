@@ -14,6 +14,7 @@ import 'package:swansport_app/app/design/swan_type.dart';
 import 'package:swansport_app/app/widgets/swan_bottom_nav.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/scroll_chrome.dart';
+import 'package:swansport_app/features/social/presentation/widgets/stitch_feed_widgets.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 Widget host(
@@ -22,12 +23,15 @@ Widget host(
         bool reducedMotion = false,
         bool highContrast = false,
         Widget? body,
+        PreferredSizeWidget? header,
         VoidCallback? action,
         double textScale = 1}) =>
     ProviderScope(
         overrides: [
           currentProfileProvider.overrideWith((ref) async => null),
           swanAccessProvider.overrideWithValue(SwanAccess.none),
+          platformConfigProvider
+              .overrideWith((ref) async => PlatformConfig.fromMap({})),
         ],
         child: MaterialApp(
           debugShowCheckedModeBanner: false,
@@ -45,21 +49,22 @@ Widget host(
                 ? SwanPalette.dark.bg
                 : SwanPalette.light.bg,
             extendBody: true,
-            appBar: AppBar(
-                title: Text('SwanSport',
-                    style: SwanType.wordmark(brightness == Brightness.dark
-                        ? SwanPalette.dark.ink
-                        : SwanPalette.light.ink)),
-                actions: [
-                  IconButton(
-                      tooltip: 'Bildirimler',
-                      icon: const Icon(Icons.notifications_none_rounded),
-                      onPressed: action),
-                  IconButton(
-                      tooltip: 'Mesaj kutusu',
-                      icon: const Icon(Icons.send_outlined),
-                      onPressed: action),
-                ]),
+            appBar: header ??
+                AppBar(
+                    title: Text('SwanSport',
+                        style: SwanType.wordmark(brightness == Brightness.dark
+                            ? SwanPalette.dark.ink
+                            : SwanPalette.light.ink)),
+                    actions: [
+                      IconButton(
+                          tooltip: 'Bildirimler',
+                          icon: const Icon(Icons.notifications_none_rounded),
+                          onPressed: action),
+                      IconButton(
+                          tooltip: 'Mesaj kutusu',
+                          icon: const Icon(Icons.send_outlined),
+                          onPressed: action),
+                    ]),
             body: body ??
                 ListView.builder(
                     key: const Key('chrome-list'),
@@ -96,11 +101,10 @@ void main() {
     }
   });
 
-  test('header text retains contrast over opposite-luminance content', () {
+  test('header controls retain contrast over opposite-luminance content', () {
     for (final palette in [SwanPalette.light, SwanPalette.dark]) {
       final background = Color.alphaBlend(
-        palette.surface.withValues(alpha: palette.isDark
-            ? SwanChrome.headerDarkTintMiddle : SwanChrome.headerTintMiddle),
+        palette.surface.withValues(alpha: SwanChrome.headerControlTint),
         palette.isDark ? Colors.white : Colors.black,
       ).computeLuminance();
       final text = palette.ink.computeLuminance();
@@ -202,15 +206,15 @@ void main() {
       (tester) async {
     await tester.pumpWidget(host());
     await tester.pumpAndSettle();
-    final header = tester
-        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
-        .map((w) => w.decoration)
-        .whereType<BoxDecoration>()
-        .where((d) => d.gradient is LinearGradient)
-        .single;
-    final tint = (header.gradient! as LinearGradient).colors;
-    expect(tint.first.a, closeTo(SwanChrome.headerTintTop, .01));
-    expect(tint.last.a, closeTo(SwanChrome.headerTintBottom, .01));
+    expect(
+        tester
+            .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+            .map((w) => w.decoration)
+            .whereType<BoxDecoration>()
+            .where((d) => d.gradient != null),
+        isEmpty);
+    expect(find.byType(BackdropFilter),
+        findsNWidgets(SwanChrome.headerEdgeBlurs.length + 1));
     final floating =
         find.byWidgetPredicate((w) => w is SwanGlassSurface && w.floating);
     expect(floating, findsOneWidget);
@@ -365,6 +369,7 @@ void main() {
           child: host(
             brightness: brightness,
             action: () {},
+            header: StitchFeedTopBar(onFeedChanged: (_) {}),
             body: Builder(builder: (context) {
               final c = context.swan;
               return ListView(

@@ -41,6 +41,10 @@ class SwanType {
   static TextStyle wordmark(Color c) =>
       _sora(28, FontWeight.w800, c).copyWith(letterSpacing: -0.5);
 
+  /// Compact navigation brand; reuses the existing 22-point type scale.
+  static TextStyle navigationWordmark(Color c) =>
+      h2(c).copyWith(fontWeight: FontWeight.w600);
+
   /// 32 — hero, performans skoru. Ekranda en fazla bir tane.
   static TextStyle display(Color c) => _sora(32, FontWeight.w800, c);
 

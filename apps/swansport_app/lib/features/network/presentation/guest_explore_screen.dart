@@ -1,5 +1,5 @@
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
-import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../social/presentation/widgets/stitch_feed_widgets.dart';
 import '../../../app/widgets/swan_surface.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -21,7 +21,7 @@ class GuestExploreScreen extends ConsumerWidget {
     return SwanScaffold(
       scrollUnderHeader: true,
       backgroundColor: context.swan.bg,
-      appBar: swanModuleAppBar(context, title: 'SwanSport · Keşfet'),
+      appBar: const StitchFeedTopBar(),
       bottomNavigationBar: const SwanBottomNav(),
       body: ListView(
         padding: const EdgeInsets.all(SwanSpace.lg),

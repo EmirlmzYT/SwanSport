@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import '../design/swan_shape.dart';
+import '../design/swan_palette.dart';
 
 import '../design/swan_chrome.dart';
 import 'scroll_chrome.dart';
@@ -227,41 +228,54 @@ class _SwanScaffoldState extends State<SwanScaffold> {
       return SwanGlassSurface(child: SafeArea(bottom: false, child: bar));
     // Preserve every functional AppBar slot (tabs, search, back, save, drawer).
     return SwanGlassSurface(
-        child: AppBar(
-      key: bar.key,
-      leading: bar.leading,
-      automaticallyImplyLeading: bar.automaticallyImplyLeading,
-      title: bar.title,
-      actions: bar.actions,
-      automaticallyImplyActions: bar.automaticallyImplyActions,
-      flexibleSpace: bar.flexibleSpace,
-      bottom: bar.bottom,
-      elevation: 0,
-      scrolledUnderElevation: 0,
-      notificationPredicate: bar.notificationPredicate,
-      shadowColor: bar.shadowColor,
-      surfaceTintColor: Colors.transparent,
-      shape: bar.shape,
-      backgroundColor: Colors.transparent,
-      foregroundColor: bar.foregroundColor,
-      iconTheme: bar.iconTheme,
-      actionsIconTheme: bar.actionsIconTheme,
-      primary: bar.primary,
-      centerTitle: bar.centerTitle,
-      excludeHeaderSemantics: bar.excludeHeaderSemantics,
-      titleSpacing: bar.titleSpacing,
-      toolbarOpacity: bar.toolbarOpacity,
-      bottomOpacity: bar.bottomOpacity,
-      toolbarHeight: bar.toolbarHeight,
-      leadingWidth: bar.leadingWidth,
-      toolbarTextStyle: bar.toolbarTextStyle,
-      titleTextStyle: bar.titleTextStyle,
-      systemOverlayStyle: bar.systemOverlayStyle,
-      forceMaterialTransparency: true,
-      useDefaultSemanticsOrder: bar.useDefaultSemanticsOrder,
-      clipBehavior: bar.clipBehavior,
-      actionsPadding: bar.actionsPadding,
-    ));
+        child: IconButtonTheme(
+            data: IconButtonThemeData(
+                style: IconButton.styleFrom(
+              backgroundColor: context.swan.surface.withValues(
+                  alpha: MediaQuery.highContrastOf(context)
+                      ? 1
+                      : SwanChrome.headerControlTint),
+              padding: EdgeInsets.zero,
+              minimumSize: const Size.square(SwanChrome.headerControlDiameter),
+              fixedSize: const Size.square(SwanChrome.headerControlDiameter),
+              tapTargetSize: MaterialTapTargetSize.padded,
+              shape: const CircleBorder(),
+            )),
+            child: AppBar(
+              key: bar.key,
+              leading: bar.leading,
+              automaticallyImplyLeading: bar.automaticallyImplyLeading,
+              title: bar.title,
+              actions: bar.actions,
+              automaticallyImplyActions: bar.automaticallyImplyActions,
+              flexibleSpace: bar.flexibleSpace,
+              bottom: bar.bottom,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              notificationPredicate: bar.notificationPredicate,
+              shadowColor: bar.shadowColor,
+              surfaceTintColor: Colors.transparent,
+              shape: bar.shape,
+              backgroundColor: Colors.transparent,
+              foregroundColor: bar.foregroundColor,
+              iconTheme: bar.iconTheme,
+              actionsIconTheme: bar.actionsIconTheme,
+              primary: bar.primary,
+              centerTitle: bar.centerTitle ?? true,
+              excludeHeaderSemantics: bar.excludeHeaderSemantics,
+              titleSpacing: bar.titleSpacing,
+              toolbarOpacity: bar.toolbarOpacity,
+              bottomOpacity: bar.bottomOpacity,
+              toolbarHeight: bar.toolbarHeight,
+              leadingWidth: bar.leadingWidth,
+              toolbarTextStyle: bar.toolbarTextStyle,
+              titleTextStyle: bar.titleTextStyle,
+              systemOverlayStyle: bar.systemOverlayStyle,
+              forceMaterialTransparency: true,
+              useDefaultSemanticsOrder: bar.useDefaultSemanticsOrder,
+              clipBehavior: bar.clipBehavior,
+              actionsPadding: bar.actionsPadding,
+            )));
   }
 }
 

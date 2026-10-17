@@ -13,6 +13,7 @@ import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_floating_header.dart';
 
 /// Gruplar ve birebir sohbetler; katılım ve mesajlar gerçek kayıtlardan okunur.
 class MessagesScreen extends ConsumerStatefulWidget {
@@ -135,51 +136,24 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  Widget _buildHeader(SwanPalette c) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          SwanSpace.md, SwanSpace.sm, SwanSpace.md, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-              child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'İLETİŞİM & KOÇLUK',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.caption(c.accent, w: FontWeight.w800),
-              ),
-              Text(
-                'Mesajlar',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.h1(c.ink).copyWith(fontWeight: FontWeight.w800),
-              ),
-            ],
-          )),
-          Flexible(
-              child: FilledButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/ara'),
-            icon: Icon(Icons.edit_square, size: 16, color: c.onAccent),
-            label: Text('Yeni Sohbet',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.caption(c.onAccent)),
-            style: FilledButton.styleFrom(
-              backgroundColor: c.accentFill,
-              foregroundColor: c.onAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(SwanRadius.md)),
-            ),
-          )),
+  Widget _buildHeader(SwanPalette c) => SwanFloatingHeader(
+        leading: Navigator.canPop(context)
+            ? SwanHeaderIconButton(
+                icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Geri dön',
+                onPressed: () => Navigator.maybePop(context))
+            : null,
+        title: Text('Mesajlar',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.h2(c.ink)),
+        actions: [
+          SwanHeaderIconButton(
+              icon: Icons.edit_square,
+              tooltip: 'Yeni Sohbet',
+              onPressed: () => Navigator.pushNamed(context, '/ara'))
         ],
-      ),
-    );
-  }
+      );
 
   Widget _buildSearchField(SwanPalette c) {
     return Padding(

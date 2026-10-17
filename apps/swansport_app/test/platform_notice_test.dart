@@ -50,7 +50,10 @@ void main() {
     ], child: const MaterialApp(home: FeedScreen())));
     await tester.pump(); await tester.pump();
     expect(find.text('SwanSport Bakımda'), findsNothing);
+    await tester.tap(find.byTooltip('Akış seçimi'));
+    await tester.pumpAndSettle();
     expect(find.text('Tümü (Keşfet)'), findsOneWidget);
+    expect(find.text('Takip Ettiklerim'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
   testWidgets('feed header renders configured name and logo', (tester) async {

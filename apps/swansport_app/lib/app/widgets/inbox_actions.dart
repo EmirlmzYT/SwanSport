@@ -5,6 +5,9 @@ import 'package:swansport_data/swansport_data.dart';
 import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
+import '../design/swan_chrome.dart';
+import 'scroll_chrome.dart';
+import 'swan_floating_header.dart';
 
 /// Üst barın sağındaki "gelen kutusu" ikonları: bildirimler (hareketler) + mesajlar.
 ///
@@ -71,27 +74,33 @@ class InboxIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
+    final glass = ScrollChromeScope.maybeOf(context) != null;
 
     final button = GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: SizedBox(
-        width: 44,
-        height: 44,
+        width: SwanChrome.touchTarget,
+        height: SwanChrome.touchTarget,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
             Align(
               alignment: Alignment.center,
-              child: Icon(icon, size: 24, color: color ?? c.ink),
+              child: glass
+                  ? SwanHeaderControl(
+                      child: Icon(icon,
+                          size: SwanChrome.headerIconSize,
+                          color: color ?? c.ink))
+                  : Icon(icon,
+                      size: SwanChrome.headerIconSize, color: color ?? c.ink),
             ),
             if (badge > 0)
               Positioned(
                 top: 4,
                 right: 2,
                 child: Container(
-                  padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
                   constraints: const BoxConstraints(minWidth: 16),
                   decoration: BoxDecoration(
                     color: c.danger,
@@ -101,7 +110,8 @@ class InboxIconButton extends StatelessWidget {
                   child: Text(
                     badgeLabel(badge),
                     textAlign: TextAlign.center,
-                    style: SwanType.caption(SwanPalette.light.surface, w: FontWeight.w800),
+                    style: SwanType.caption(SwanPalette.light.surface,
+                        w: FontWeight.w800),
                   ),
                 ),
               ),

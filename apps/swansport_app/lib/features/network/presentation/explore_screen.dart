@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_floating_header.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'guest_explore_screen.dart';
 import 'package:flutter/material.dart';
@@ -404,14 +405,12 @@ class _StitchExploreHeader extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const SwanTopBar(
-      title: 'Keşfet',
-      subtitle: 'Kulüpler, sahalar ve topluluk',
-      showBrandBadge: false,
-      showBack: false,
-      actions: [
-        InboxActions(),
-      ],
+    return SwanFloatingHeader(
+      title: Text('Keşfet',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: SwanType.h2(context.swan.ink)),
+      actions: const [InboxActions(spacing: 0)],
     );
   }
 }

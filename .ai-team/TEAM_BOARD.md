@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `complete`
+Aktif Writer: Codex
+Durum: `active`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
@@ -557,3 +557,7 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 2026-10-18 üst cam kontrolü: 20/20 odaklı, analiz 0 error/warning (3673 info); ilk tam tur 496/497, eski offline yoklama tekrarında 6/6. Son tam düşük paralellik koşusu sürüyor. Ortak üst materyal şeffaflaştı; 5 ana akış paint-only header ve scroll içinde spacer kullanır. Alt bar kaynağı değişmedi. +45 preview kaynak kaydı hazırlanıyor.
 
 2026-10-18 üst cam teslimi: +45 ürün kaynağı 480c6c4. Daha şeffaf üst materyal, ana 5 akışta paint-only header/sabit viewport; alt nav kaynağı değişmedi. Son tam mobil 498/498, odaklı 20/20, tam analiz 0 error/warning (3673 info). Eski offline yoklama testinin DB/snapshot bekleme yarışı testte gerçek UI beklenerek düzeltildi; ürün yolu değişmedi. macOS 39076241788 success; artifact 12116668530 indirildi. IPA 0.5.16/45, ZIP/executable/unsigned/Firebase config yokluğu doğrulandı; masaüstü aynı SHA256. Kanıt docs/mobile-glass-header-45.md. Genel stil CI fatal-infos nedeniyle kırmızı; fiziksel iPhone FPS/görsel kabulü ayrı. Main/canlı SQL/Cloudflare/TestFlight yok. Writer serbest.
+
+2026-10-18: Kullanıcı 8.52 saniyelik Instagram iOS ekran kaydı verdi. Codex referansa göre üst header devraldı: panel yok, ortalı kompakt başlık, ayrı yuvarlak cam kontroller ve yumuşak üst difüzyon. Alt nav korunur. Video/kişisel içerik GitHub'a kopyalanmaz; yalnız sentetik önizleme. +46 preview hazırlanır; canlı SQL/main/üretim yok.
+
+2026-10-18 video referansı kontrolü: tam genişlik tint kaldırıldı; şeffaf ortalı başlık/ayrı cam daireler, mevcut kapılı + ve gerçek inbox sayaçları. Akış modu artık başlık menüsünde; diğer 3 ana header eşitlendi. 30 son odaklı ve 54 önceki kontrol geçti, 7 yeni referans/piksel testi var. Tam regresyon/son analiz sürüyor. Video/kareler yalnız ignored build içinde; GitHub'a sentetik Flutter PNG'leri gider. Alt nav kaynağı değişmedi.

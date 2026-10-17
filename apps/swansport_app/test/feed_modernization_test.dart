@@ -22,7 +22,7 @@ void main() {
     expect(header.contains('Color(0x'), isFalse);
     expect(header.contains('unreadNotificationsProvider'), isTrue);
     expect(header.contains('unreadMessagesProvider'), isTrue);
-    expect(header.contains('SwanType.wordmark(c.ink)'), isTrue);
+    expect(header.contains('SwanType.navigationWordmark(c.ink)'), isTrue);
     final type = File('lib/app/design/swan_type.dart').readAsStringSync();
     expect(type.contains('grandHotel'), isFalse);
   });

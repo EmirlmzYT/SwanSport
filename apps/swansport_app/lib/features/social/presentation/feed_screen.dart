@@ -7,9 +7,7 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
-import '../../../app/design/swan_chrome.dart';
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
@@ -94,28 +92,18 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     final activeFeed = _followingOnly ? feedProvider : discoverProvider;
     final async = ref.watch(activeFeed);
-    final modeExtent = SwanChrome.filterBaseHeight +
-        MediaQuery.textScalerOf(context).scale(SwanSpace.md);
-
     return SwanScaffold(
       extendBody: true,
       scrollUnderHeader: true,
       backgroundColor: c.bg,
-      appBar: PreferredSize(
+      appBar: StitchFeedTopBar(
         key: const Key('feed-floating-header'),
-        preferredSize: Size.fromHeight(SwanChrome.headerHeight + modeExtent),
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const SizedBox(
-              height: SwanChrome.headerHeight, child: StitchFeedTopBar()),
-          SizedBox(
-              height: modeExtent,
-              child: _FeedModeBar(
-                  followingOnly: _followingOnly,
-                  onChanged: (value) {
-                    if (value != _followingOnly)
-                      setState(() => _followingOnly = value);
-                  })),
-        ]),
+        followingOnly: _followingOnly,
+        allLabel: 'Tümü (Keşfet)',
+        followingLabel: 'Takip Ettiklerim',
+        onFeedChanged: (value) {
+          if (value != _followingOnly) setState(() => _followingOnly = value);
+        },
       ),
       body: SafeArea(
         bottom: false,
@@ -241,47 +229,5 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     entries.sort((a, b) => b.sortDate.compareTo(a.sortDate));
     return entries;
-  }
-}
-
-/// Ana akış içindeki iki içerik modu. Keşfet sekmesinin yerine geçmez:
-/// Keşfet spor modüllerini açar, burası yalnızca sosyal akışı süzer.
-class _FeedModeBar extends StatelessWidget {
-  const _FeedModeBar({
-    required this.followingOnly,
-    required this.onChanged,
-  });
-
-  final bool followingOnly;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        SwanSpace.lg,
-        SwanSpace.sm,
-        SwanSpace.lg,
-        SwanSpace.xs,
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            StitchFilterPill(
-              label: 'Tümü (Keşfet)',
-              isSelected: !followingOnly,
-              onTap: () => onChanged(false),
-            ),
-            const SizedBox(width: SwanSpace.sm),
-            StitchFilterPill(
-              label: 'Takip Ettiklerim',
-              isSelected: followingOnly,
-              onTap: () => onChanged(true),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

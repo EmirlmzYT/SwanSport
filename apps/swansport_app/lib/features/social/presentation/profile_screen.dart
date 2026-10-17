@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_floating_header.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,50 +41,40 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _selectedTab = 0; // 0: Grid, 1: Reels, 2: Saved
 
-  Widget _profileTopBar(SocialProfile p, Color surfContainer, Color ink) => Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-              child: Row(
-            children: [
-              Flexible(
-                  child: Text(
-                p.username ?? p.name.toLowerCase().replaceAll(' ', ''),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w800),
-              )),
-              if (p.isVerified) ...[
-                const SizedBox(width: 4),
-                Icon(Icons.verified_rounded,
-                    size: 17, color: context.swan.accent),
-              ],
-            ],
-          )),
-          Row(
-            children: [
-              _headerCircleBtn(
-                icon: Icons.qr_code_2_rounded,
-                onTap: () => showSwanCard(
-                  context,
+  Widget _profileTopBar(SocialProfile p, Color ink) => SwanFloatingHeader(
+        leading: Navigator.canPop(context)
+            ? SwanHeaderIconButton(
+                icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Geri dön',
+                onPressed: () => Navigator.maybePop(context))
+            : null,
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Flexible(
+              child: Text(
+                  p.username ?? p.name.toLowerCase().replaceAll(' ', ''),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.h3(ink))),
+          if (p.isVerified) ...[
+            const SizedBox(width: SwanSpace.xs),
+            Icon(Icons.verified_rounded,
+                size: SwanSpace.lg, color: context.swan.accent),
+          ],
+        ]),
+        actions: [
+          SwanHeaderIconButton(
+              icon: Icons.qr_code_2_rounded,
+              tooltip: 'Sporcu kartı',
+              onPressed: () => showSwanCard(context,
                   id: p.id,
                   name: p.name,
                   isClub: widget.isClub,
                   subtitle: p.roleLabel,
-                  avatarUrl: p.avatarUrl,
-                ),
-                surfContainer: surfContainer,
-                ink: ink,
-              ),
-              const SizedBox(width: 8),
-              _headerCircleBtn(
-                icon: Icons.settings_rounded,
-                onTap: () => Navigator.pushNamed(context, '/settings'),
-                surfContainer: surfContainer,
-                ink: ink,
-              ),
-            ],
-          ),
+                  avatarUrl: p.avatarUrl)),
+          SwanHeaderIconButton(
+              icon: Icons.settings_rounded,
+              tooltip: 'Ayarlar',
+              onPressed: () => Navigator.pushNamed(context, '/settings')),
         ],
       );
 
@@ -128,10 +119,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ? null
           : PreferredSize(
               preferredSize: const Size.fromHeight(SwanChrome.headerHeight),
-              child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-                  child:
-                      _profileTopBar(async.valueOrNull!, surfContainer, ink))),
+              child: _profileTopBar(async.valueOrNull!, ink)),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -546,26 +534,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
-    );
-  }
-
-  Widget _headerCircleBtn({
-    required IconData icon,
-    required VoidCallback onTap,
-    required Color surfContainer,
-    required Color ink,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: surfContainer,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 20, color: ink),
-      ),
     );
   }
 
