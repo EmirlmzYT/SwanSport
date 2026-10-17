@@ -16,6 +16,12 @@ abstract final class SwanChrome {
   static const headerHeight = 56.0;
   static const filterBaseHeight = 42.0;
   static const blur = 20.0;
+  static const headerBlur = 12.0;
+  static const headerTintTop = .60;
+  static const headerTintMiddle = .52;
+  static const headerDarkTintTop = .74;
+  static const headerDarkTintMiddle = .68;
+  static const headerTintBottom = .06;
   static const hideTravel = 32.0;
   static const revealTravel = 16.0;
   static const duration = Duration(milliseconds: 240);

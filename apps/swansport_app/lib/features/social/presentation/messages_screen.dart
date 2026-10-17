@@ -79,6 +79,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: c.bg,
       header: _buildHeader(c),
       body: SafeArea(
@@ -97,6 +98,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
                 children: [
+                  const SwanHeaderSpacer(),
                   const SizedBox(height: SwanSpace.sm),
 
                   _buildSearchField(c),

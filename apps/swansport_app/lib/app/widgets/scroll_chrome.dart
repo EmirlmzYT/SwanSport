@@ -68,8 +68,11 @@ class SwanGlassSurface extends StatelessWidget {
         MediaQuery.disableAnimationsOf(context);
     final radius =
         BorderRadius.circular(floating ? SwanChrome.capsuleRadius : 0);
-    final fill =
-        opaque ? c.surface : c.surface.withValues(alpha: c.isDark ? .88 : .84);
+    final fill = opaque
+        ? c.surface
+        : floating
+            ? c.surface.withValues(alpha: c.isDark ? .88 : .84)
+            : null;
     return DecoratedBox(
       decoration: BoxDecoration(
           borderRadius: radius,
@@ -86,10 +89,33 @@ class SwanGlassSurface extends StatelessWidget {
           child: BackdropFilter(
             enabled: !opaque,
             filter: ImageFilter.blur(
-                sigmaX: SwanChrome.blur, sigmaY: SwanChrome.blur),
+                sigmaX: floating ? SwanChrome.blur : SwanChrome.headerBlur,
+                sigmaY: floating ? SwanChrome.blur : SwanChrome.headerBlur),
             child: DecoratedBox(
               decoration: BoxDecoration(
                   color: fill,
+                  gradient: !floating && !opaque
+                      ? LinearGradient(
+                          begin: Alignment.topCenter,
+                          end: Alignment.bottomCenter,
+                          stops: const [
+                              0,
+                              .75,
+                              1
+                            ],
+                          colors: [
+                              c.surface.withValues(
+                                  alpha: c.isDark
+                                      ? SwanChrome.headerDarkTintTop
+                                      : SwanChrome.headerTintTop),
+                              c.surface.withValues(
+                                  alpha: c.isDark
+                                      ? SwanChrome.headerDarkTintMiddle
+                                      : SwanChrome.headerTintMiddle),
+                              c.surface.withValues(
+                                  alpha: SwanChrome.headerTintBottom),
+                            ])
+                      : null,
                   borderRadius: radius,
                   border: floating
                       ? Border.all(

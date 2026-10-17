@@ -37,6 +37,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
 
     return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: c.bg,
       appBar: const PreferredSize(
           preferredSize: Size.fromHeight(SwanChrome.headerHeight),
@@ -49,6 +50,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
               children: [
+                const SwanHeaderSpacer(),
                 // 1. Üst Bar: Başlık & Bildirim/Mesaj Rozetleri
 
                 const SizedBox(height: SwanSpace.md),

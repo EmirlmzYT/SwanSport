@@ -14,6 +14,7 @@ class SwanScaffold extends StatefulWidget {
       {super.key,
       this.appBar,
       this.header,
+      this.scrollUnderHeader = false,
       this.body,
       this.bottomNavigationBar,
       this.backgroundColor,
@@ -42,6 +43,10 @@ class SwanScaffold extends StatefulWidget {
 
   /// Existing bespoke headers keep their natural, text-scaled height.
   final Widget? header;
+
+  /// Scrollable feeds opt in and put [SwanHeaderSpacer] inside their list.
+  /// The viewport then stays fixed while only the header's paint moves.
+  final bool scrollUnderHeader;
   final Widget? body,
       bottomNavigationBar,
       floatingActionButton,
@@ -105,9 +110,18 @@ class _SwanScaffoldState extends State<SwanScaffold> {
           // The full-height hit/viewport reservation is stable while the capsule
           // animates, so list extent and forms cannot jump under the user's finger.
           final bottom = widget.bottomNavigationBar;
+          final underlap = widget.scrollUnderHeader && bar != null;
+          final topInset =
+              widget.primary ? MediaQuery.paddingOf(context).top : 0.0;
           return TweenAnimationBuilder<double>(
-            tween: Tween(end: hidden ? 0 : 1),
-            duration: reducedMotion ? Duration.zero : SwanChrome.duration,
+            tween: Tween(
+                end: underlap
+                    ? 1
+                    : hidden
+                        ? 0
+                        : 1),
+            duration:
+                underlap || reducedMotion ? Duration.zero : SwanChrome.duration,
             curve: Curves.easeOutCubic,
             builder: (context, reveal, _) => Scaffold(
               appBar: bar == null
@@ -134,17 +148,42 @@ class _SwanScaffoldState extends State<SwanScaffold> {
                               ignoring: hidden,
                               child: ExcludeSemantics(
                                   excluding: hidden,
-                                  child: Transform.translate(
-                                    offset: Offset(
-                                        0, -preferredHeight * (1 - reveal)),
-                                    child: _glassAppBar(bar),
-                                  ))),
+                                  child: underlap
+                                      ? TweenAnimationBuilder<double>(
+                                          tween: Tween(end: hidden ? 0 : 1),
+                                          duration: reducedMotion
+                                              ? Duration.zero
+                                              : SwanChrome.duration,
+                                          curve: Curves.easeOutCubic,
+                                          child: _glassAppBar(bar),
+                                          builder: (_, visible, child) =>
+                                              Transform.translate(
+                                            offset: Offset(
+                                                0,
+                                                -(preferredHeight + topInset) *
+                                                    (1 - visible)),
+                                            child: child,
+                                          ),
+                                        )
+                                      : Transform.translate(
+                                          offset: Offset(0,
+                                              -preferredHeight * (1 - reveal)),
+                                          child: _glassAppBar(bar),
+                                        ))),
                         )),
                       ),
                     ),
               body: NotificationListener<ScrollNotification>(
                   onNotification: _chrome.onScroll,
-                  child: widget.body ?? const SizedBox.shrink()),
+                  child: _HeaderInset(
+                    extent: underlap ? preferredHeight + topInset : 0,
+                    child: underlap
+                        ? MediaQuery.removePadding(
+                            context: context,
+                            removeTop: true,
+                            child: widget.body ?? const SizedBox.shrink())
+                        : widget.body ?? const SizedBox.shrink(),
+                  )),
               bottomNavigationBar: bottom is SwanBottomNav
                   ? keyboard
                       ? null
@@ -171,7 +210,7 @@ class _SwanScaffoldState extends State<SwanScaffold> {
               primary: widget.primary,
               drawerDragStartBehavior: widget.drawerDragStartBehavior,
               extendBody: widget.extendBody,
-              extendBodyBehindAppBar: widget.extendBodyBehindAppBar,
+              extendBodyBehindAppBar: underlap || widget.extendBodyBehindAppBar,
               drawerScrimColor: widget.drawerScrimColor,
               drawerEdgeDragWidth: widget.drawerEdgeDragWidth,
               drawerEnableOpenDragGesture: widget.drawerEnableOpenDragGesture,
@@ -224,6 +263,24 @@ class _SwanScaffoldState extends State<SwanScaffold> {
       actionsPadding: bar.actionsPadding,
     ));
   }
+}
+
+/// Place at the beginning of a scroll-under list (or a SliverToBoxAdapter).
+/// This spacing scrolls away with content; it never changes during animation.
+class SwanHeaderSpacer extends StatelessWidget {
+  const SwanHeaderSpacer({super.key});
+  @override
+  Widget build(BuildContext context) => SizedBox(
+      height:
+          context.dependOnInheritedWidgetOfExactType<_HeaderInset>()?.extent ??
+              0);
+}
+
+class _HeaderInset extends InheritedWidget {
+  const _HeaderInset({required this.extent, required super.child});
+  final double extent;
+  @override
+  bool updateShouldNotify(_HeaderInset oldWidget) => extent != oldWidget.extent;
 }
 
 class _MeasuredHeader extends SingleChildRenderObjectWidget {

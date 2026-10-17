@@ -122,6 +122,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: bg,
       appBar: async.valueOrNull == null
           ? null
@@ -162,6 +163,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     padding:
                         const EdgeInsets.fromLTRB(16, 10, 16, SwanSpace.xl * 5),
                     children: [
+                      const SwanHeaderSpacer(),
                       const SizedBox(height: 16),
 
                       // Identity & Social Stats Row (Stitch Screen 26)

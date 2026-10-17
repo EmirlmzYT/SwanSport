@@ -19,12 +19,14 @@ class GuestExploreScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
     return SwanScaffold(
+      scrollUnderHeader: true,
       backgroundColor: context.swan.bg,
       appBar: swanModuleAppBar(context, title: 'SwanSport · Keşfet'),
       bottomNavigationBar: const SwanBottomNav(),
       body: ListView(
         padding: const EdgeInsets.all(SwanSpace.lg),
         children: [
+          const SwanHeaderSpacer(),
           Text('Misafir olarak keşfet', style: SwanType.h2(c.ink)),
           const SizedBox(height: SwanSpace.sm),
           Text(

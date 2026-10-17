@@ -99,6 +99,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
 
     return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: c.bg,
       appBar: PreferredSize(
         key: const Key('feed-floating-header'),
@@ -139,6 +140,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
+                  const SliverToBoxAdapter(child: SwanHeaderSpacer()),
                   if (banner != null) SliverToBoxAdapter(child: banner),
                   const SliverToBoxAdapter(child: LiveMatchStrip()),
                   const SliverToBoxAdapter(

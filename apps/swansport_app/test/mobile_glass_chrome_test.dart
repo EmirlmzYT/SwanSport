@@ -13,6 +13,7 @@ import 'package:swansport_app/app/design/swan_shape.dart';
 import 'package:swansport_app/app/design/swan_type.dart';
 import 'package:swansport_app/app/widgets/swan_bottom_nav.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
+import 'package:swansport_app/app/widgets/scroll_chrome.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 Widget host(
@@ -39,6 +40,7 @@ Widget host(
                   textScaler: TextScaler.linear(textScale)),
               child: child!),
           home: SwanScaffold(
+            scrollUnderHeader: true,
             backgroundColor: brightness == Brightness.dark
                 ? SwanPalette.dark.bg
                 : SwanPalette.light.bg,
@@ -63,8 +65,9 @@ Widget host(
                     key: const Key('chrome-list'),
                     padding: const EdgeInsets.only(bottom: 120),
                     itemCount: 50,
-                    itemBuilder: (context, index) =>
-                        ListTile(title: Text('Satır $index'))),
+                    itemBuilder: (context, index) => index == 0
+                        ? const SwanHeaderSpacer()
+                        : ListTile(title: Text('Satır $index'))),
             bottomNavigationBar: const SwanBottomNav(),
           ),
         ));
@@ -90,6 +93,21 @@ void main() {
         .where((f) => f.path.endsWith('.dart'))) {
       expect(RegExp(r'\bScaffold\(').hasMatch(f.readAsStringSync()), false,
           reason: f.path);
+    }
+  });
+
+  test('header text retains contrast over opposite-luminance content', () {
+    for (final palette in [SwanPalette.light, SwanPalette.dark]) {
+      final background = Color.alphaBlend(
+        palette.surface.withValues(alpha: palette.isDark
+            ? SwanChrome.headerDarkTintMiddle : SwanChrome.headerTintMiddle),
+        palette.isDark ? Colors.white : Colors.black,
+      ).computeLuminance();
+      final text = palette.ink.computeLuminance();
+      final ratio = text > background
+          ? (text + .05) / (background + .05)
+          : (background + .05) / (text + .05);
+      expect(ratio, greaterThanOrEqualTo(4.5));
     }
   });
 
@@ -140,6 +158,72 @@ void main() {
     await tester.tap(find.byTooltip('Bildirimler'));
     await tester.tap(find.byTooltip('Mesaj kutusu'));
     expect(taps, 2);
+  });
+
+  testWidgets(
+      'scroll-under header never resizes or moves the list during reveal',
+      (tester) async {
+    final scroll = ScrollController();
+    addTearDown(scroll.dispose);
+    await tester.pumpWidget(host(
+        body: ListView(
+      key: const Key('chrome-list'),
+      controller: scroll,
+      padding: EdgeInsets.zero,
+      children: [
+        const SwanHeaderSpacer(),
+        for (var i = 0; i < 40; i++) ListTile(title: Text('Stable $i')),
+      ],
+    )));
+    await tester.pumpAndSettle();
+    expect(tester.getTopLeft(find.text('Stable 0')).dy,
+        greaterThan(SwanChrome.headerHeight));
+    scroll.jumpTo(160);
+    await tester.pumpAndSettle();
+    final list = find.byKey(const Key('chrome-list'));
+    final viewport = tester.getRect(list);
+    final row = tester.getTopLeft(find.text('Stable 5'));
+    final chrome = ScrollChromeScope.maybeOf(tester.element(list))!;
+    for (final delta in [SwanChrome.hideTravel, -SwanChrome.revealTravel]) {
+      chrome.travel(delta);
+      for (var frame = 0; frame < 20; frame++) {
+        await tester.pump(const Duration(milliseconds: 16));
+        expect(tester.getRect(list), viewport);
+        expect(tester.getTopLeft(find.text('Stable 5')), row);
+        expect(scroll.offset, 160);
+        expect(tester.takeException(), isNull);
+      }
+    }
+    expect(find.text('SwanSport').hitTestable(), findsOneWidget);
+  });
+
+  testWidgets(
+      'header is translucent; approved floating navigation is unchanged',
+      (tester) async {
+    await tester.pumpWidget(host());
+    await tester.pumpAndSettle();
+    final header = tester
+        .widgetList<DecoratedBox>(find.byType(DecoratedBox))
+        .map((w) => w.decoration)
+        .whereType<BoxDecoration>()
+        .where((d) => d.gradient is LinearGradient)
+        .single;
+    final tint = (header.gradient! as LinearGradient).colors;
+    expect(tint.first.a, closeTo(SwanChrome.headerTintTop, .01));
+    expect(tint.last.a, closeTo(SwanChrome.headerTintBottom, .01));
+    final floating =
+        find.byWidgetPredicate((w) => w is SwanGlassSurface && w.floating);
+    expect(floating, findsOneWidget);
+    final surface =
+        find.descendant(of: floating, matching: find.byType(DecoratedBox));
+    expect(
+        tester.widgetList<DecoratedBox>(surface).any((w) =>
+            w.decoration is BoxDecoration &&
+            ((w.decoration as BoxDecoration).color?.a ?? 0) > .8),
+        isTrue);
+    expect(
+        tester.getSize(find.byKey(const Key('swan-bottom-nav-surface'))).height,
+        SwanChrome.expandedHeight);
   });
 
   testWidgets('keyboard hides navigation without resetting form or list',
@@ -249,12 +333,18 @@ void main() {
                   viewPadding: const EdgeInsets.only(top: 59, bottom: 34)),
               child: child!),
           home: SwanScaffold(
+              scrollUnderHeader: true,
               appBar: AppBar(title: const Text('Başlık')),
-              body: const Text('İçerik'),
+              body: ListView(padding: EdgeInsets.zero, children: const [
+                SwanHeaderSpacer(),
+                Text('İçerik'),
+              ]),
               bottomNavigationBar: const SwanBottomNav()),
         )));
     await tester.pumpAndSettle();
     expect(tester.getTopLeft(find.text('Başlık')).dy, greaterThanOrEqualTo(59));
+    expect(tester.getTopLeft(find.text('İçerik')).dy,
+        59 + SwanChrome.headerHeight);
     final bottom = tester
         .getBottomLeft(find.byKey(const Key('swan-bottom-nav-surface')))
         .dy;
@@ -274,12 +364,14 @@ void main() {
           key: boundary,
           child: host(
             brightness: brightness,
+            action: () {},
             body: Builder(builder: (context) {
               final c = context.swan;
               return ListView(
                   key: const Key('chrome-list'),
                   padding: const EdgeInsets.all(SwanSpace.lg),
                   children: [
+                    const SwanHeaderSpacer(),
                     Text('Bugünün ritmi', style: SwanType.h1(c.ink)),
                     const SizedBox(height: SwanSpace.sm),
                     Text('Antrenman, kulübün ve spor gündemi.',
@@ -312,16 +404,22 @@ void main() {
       await tester.pumpAndSettle();
       await tester.runAsync(() async => GoogleFonts.pendingFonts());
       await tester.pumpAndSettle();
-      for (final compact in [false, true]) {
-        if (compact) await collapse(tester);
+      for (final state in ['expanded', 'compact', 'scroll-under']) {
+        if (state == 'compact') await collapse(tester);
+        if (state == 'scroll-under') {
+          ScrollChromeScope.maybeOf(
+                  tester.element(find.byKey(const Key('chrome-list'))))!
+              .travel(-SwanChrome.revealTravel);
+          await tester.pumpAndSettle();
+        }
         await tester.runAsync(() async {
           final image = await (boundary.currentContext!.findRenderObject()!
                   as RenderRepaintBoundary)
               .toImage(pixelRatio: 2);
           final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
           image.dispose();
-          final file = File(
-              '../../build/glass-previews/${brightness.name}-${compact ? 'compact' : 'expanded'}.png');
+          final file =
+              File('../../build/glass-previews/${brightness.name}-$state.png');
           await file.parent.create(recursive: true);
           await file.writeAsBytes(bytes!.buffer.asUint8List());
         });
