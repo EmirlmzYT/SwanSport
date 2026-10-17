@@ -92,6 +92,7 @@ jobs:
           flutter build ios --release --no-codesign -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define="IOS_FIREBASE_ENABLED=$IOS_FIREBASE_ENABLED" \
             --dart-define=APP_ENV=production
       - name: Package unsigned IPA for Sideloadly
         working-directory: apps/swansport_app
@@ -99,6 +100,12 @@ jobs:
           rm -rf build/ios/unsigned-payload
           mkdir -p build/ios/unsigned-payload/Payload build/ios/release
           cp -R build/ios/iphoneos/Runner.app build/ios/unsigned-payload/Payload/
+          # FlutterFire configures Firebase during native plugin registration,
+          # before Dart can catch errors. Never ship an invalid placeholder.
+          if [[ "$IOS_FIREBASE_ENABLED" == "false" ]]; then
+            rm build/ios/unsigned-payload/Payload/Runner.app/GoogleService-Info.plist
+          fi
+          python ../../tools/verify_ios_preview_bundle.py build/ios/unsigned-payload/Payload/Runner.app --firebase-enabled "$IOS_FIREBASE_ENABLED"
           # Free Apple hesapları ile sideloading (Sideloadly / AltStore) yapıldığında
           # aps-environment içeren xcent entitlement profili uyuşmazlığından iOS uygulamayı başlatmaz.
           # Unsigned IPA içindeki xcent dosyalarını temizle:
@@ -155,6 +162,7 @@ jobs:
           flutter build ipa --release -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define="IOS_FIREBASE_ENABLED=$IOS_FIREBASE_ENABLED" \
             --dart-define=APP_ENV=production
       - name: Upload signed IPA artifact
         if: steps.signing.outputs.available == 'true'

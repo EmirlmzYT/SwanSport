@@ -27,8 +27,12 @@ Future<void> _ensureInitialized() async {
 }
 
 /// APNs/Firebase yapılandırması teslim için ayrıca gereklidir.
-bool get pushSupported => defaultTargetPlatform == TargetPlatform.android ||
-    defaultTargetPlatform == TargetPlatform.iOS;
+const _iosFirebaseEnabled =
+    bool.fromEnvironment('IOS_FIREBASE_ENABLED', defaultValue: true);
+
+bool get pushSupported =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    (defaultTargetPlatform == TargetPlatform.iOS && _iosFirebaseEnabled);
 
 Future<void> _requireApns(FirebaseMessaging messaging) async {
   if (defaultTargetPlatform != TargetPlatform.iOS) return;

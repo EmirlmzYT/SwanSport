@@ -202,6 +202,14 @@ kardeşlerine sporcu adı ekleyen bir değişiklik bu güvenceyi kırar.
 
 ## Bilinen tuzaklar
 
+- **iOS Firebase yer tutucusu açılışı native seviyede çökertir.** FlutterFire
+  eklenti kaydı Dart başlamadan `FirebaseApp.configure()` çağırabilir;
+  sahte API anahtarı `FIRInstallations validateAPIKey` içinde SIGABRT üretir.
+  Dart try/catch bunu kurtaramaz. Gerçek config olmayan önizlemede
+  `IOS_FIREBASE_ENABLED=false` ve son app bundle'da GoogleService-Info.plist
+  yokluğu birlikte zorunludur; `verify_ios_preview_bundle.py` paket kapısıdır.
+  İmzalı dağıtım gerçek config ister. Derleme başarısı cihaz açılışı kanıtı değildir.
+
 - **`athletes.profile_id` bir sütun değil, bir SÖZLEŞMEYDİ — ve yazılmıyordu.**
   Dört yerde okunuyordu (`athleteByProfileProvider`, `join_training_session`,
   `my_training_history`, 0075 bildirimleri) ama kod tabanında hiçbir yer

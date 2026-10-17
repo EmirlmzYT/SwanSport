@@ -1,8 +1,12 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-17 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `ready_for_review`
+Son güncelleme: 2026-10-18 Europe/Istanbul
+Aktif Writer: Codex
+Durum: `in_progress`
+
+2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
+
+Kontrol noktası: 0.5.14+43 kaynak düzeltmesi; sahte config kaldırıldı, disabled resource son paketten çıkarılır ve paket doğrulayıcı yokluğunu zorlar. API anahtarı/app ID biçimi kontrolü ve tüm Dart push girişleri için disabled regresyon eklendi. Python 6/6, gönderici 5/5, SSS 44/44, push 42 ve diff temiz; Flutter testi sürüyor. Gerçek cihaz tekrar kabulü yeni IPA kurulumuna bağlı.
 
 2026-10-17: Kullanıcı son düzeltmelerle denemelik IPA istedi. 0.5.13+42 önizlemesi ayrı codex dalında commit/push ve macOS workflow_dispatch ile derlenecek; main/tag/web/canlı SQL/TestFlight değişmez. Önceki stage bu kullanıcı çalışmasının derleme kaynağıdır. Windows kaynak/test doğrulamaları geçer; gerçek IPA kabulü CI sonucuna bağlı.
 
