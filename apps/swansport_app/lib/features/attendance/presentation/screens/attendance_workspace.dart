@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -188,7 +189,7 @@ class _AttendanceState extends ConsumerState<LiveAttendanceScreen> {
         .toList();
     return PopScope(
       canPop: !_busy && (_marks.isEmpty || offline),
-      child: Scaffold(
+      child: SwanScaffold(
         backgroundColor: context.swan.bg,
       appBar: swanModuleAppBar(context, title: 'Yoklama'),
         body: ListView(

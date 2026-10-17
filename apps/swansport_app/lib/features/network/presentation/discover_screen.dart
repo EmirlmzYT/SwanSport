@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
     final async = ref.watch(discoverClubsProvider(_filter));
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüpler & Akademiler', actions: [
         TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/basvurular'), icon: const Icon(Icons.add_circle_outline), label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent))),
       ]),

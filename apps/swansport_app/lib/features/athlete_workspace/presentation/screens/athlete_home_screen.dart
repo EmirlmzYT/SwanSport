@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -50,7 +51,7 @@ class AthleteHomeScreen extends ConsumerWidget {
     final name = profile?.firstName ?? 'Sporcu';
     final initials = profile?.initials ?? 'S';
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(

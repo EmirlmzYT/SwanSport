@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,21 +15,21 @@ class AdminUserDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (args == null) {
-      return const Scaffold(
+      return const SwanScaffold(
         body: Center(child: Text('Geçersiz kullanıcı bağlantısı.')),
       );
     }
     final state = ref.watch(administrationControllerProvider);
     final users = state.users.where((u) => u.id.value == args!.userId.value);
     if (state.loading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return const SwanScaffold(body: Center(child: CircularProgressIndicator()));
     }
     if (users.isEmpty) {
-      return const Scaffold(body: Center(child: Text('Kullanıcı bulunamadı.')));
+      return const SwanScaffold(body: Center(child: Text('Kullanıcı bulunamadı.')));
     }
     final user = users.single;
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Kullanıcı Ayrıntısı'),
       body: SafeArea(

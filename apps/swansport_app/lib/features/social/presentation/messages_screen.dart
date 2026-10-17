@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -12,6 +13,7 @@ import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_floating_header.dart';
 
 /// Gruplar ve birebir sohbetler; katılım ve mesajlar gerçek kayıtlardan okunur.
 class MessagesScreen extends ConsumerStatefulWidget {
@@ -76,9 +78,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     final dms = ref.watch(conversationsProvider);
     final groups = ref.watch(communityListProvider).valueOrNull ?? const [];
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: c.bg,
+      header: _buildHeader(c),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -95,7 +99,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
                 children: [
-                  _buildHeader(c),
+                  const SwanHeaderSpacer(),
                   const SizedBox(height: SwanSpace.sm),
 
                   _buildSearchField(c),
@@ -132,42 +136,24 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  Widget _buildHeader(SwanPalette c) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-          SwanSpace.md, SwanSpace.sm, SwanSpace.md, 0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'İLETİŞİM & KOÇLUK',
-                style: SwanType.caption(c.accent, w: FontWeight.w800),
-              ),
-              Text(
-                'Mesajlar',
-                style: SwanType.h1(c.ink).copyWith(fontWeight: FontWeight.w800),
-              ),
-            ],
-          )),
-          Flexible(child: FilledButton.icon(
-            onPressed: () => Navigator.pushNamed(context, '/ara'),
-            icon: Icon(Icons.edit_square, size: 16, color: c.onAccent),
-            label: Text('Yeni Sohbet', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.onAccent)),
-            style: FilledButton.styleFrom(
-              backgroundColor: c.accentFill,
-              foregroundColor: c.onAccent,
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(SwanRadius.md)),
-            ),
-          )),
+  Widget _buildHeader(SwanPalette c) => SwanFloatingHeader(
+        leading: Navigator.canPop(context)
+            ? SwanHeaderIconButton(
+                icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Geri dön',
+                onPressed: () => Navigator.maybePop(context))
+            : null,
+        title: Text('Mesajlar',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.h2(c.ink)),
+        actions: [
+          SwanHeaderIconButton(
+              icon: Icons.edit_square,
+              tooltip: 'Yeni Sohbet',
+              onPressed: () => Navigator.pushNamed(context, '/ara'))
         ],
-      ),
-    );
-  }
+      );
 
   Widget _buildSearchField(SwanPalette c) {
     return Padding(
@@ -216,7 +202,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Row(
+              Expanded(
+                  child: Row(
                 children: [
                   Container(
                     width: 6,
@@ -225,15 +212,21 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                         BoxDecoration(color: c.accent, shape: BoxShape.circle),
                   ),
                   const SizedBox(width: 6),
-                  Flexible(child: Text(
-                    'Kişi önerileri (${suggestions.length})', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.ink, w: FontWeight.w700),
+                  Flexible(
+                      child: Text(
+                    'Kişi önerileri (${suggestions.length})',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(c.ink, w: FontWeight.w700),
                   )),
                 ],
               )),
-              TextButton(onPressed: () => Navigator.pushNamed(context, '/ara'), child: Text(
-                'Tümü',
-                style: SwanType.caption(c.accent, w: FontWeight.w700),
-              )),
+              TextButton(
+                  onPressed: () => Navigator.pushNamed(context, '/ara'),
+                  child: Text(
+                    'Tümü',
+                    style: SwanType.caption(c.accent, w: FontWeight.w700),
+                  )),
             ],
           ),
         ),
@@ -286,7 +279,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                                   ),
                           ),
                         ),
-
                       ],
                     ),
                     const SizedBox(height: 4),
@@ -347,7 +339,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   child: Center(
                     child: Text(
                       label,
-                      style: SwanType.caption(isSelected ? c.onAccent : c.inkMuted, w: isSelected ? FontWeight.w800 : FontWeight.w500),
+                      style: SwanType.caption(
+                          isSelected ? c.onAccent : c.inkMuted,
+                          w: isSelected ? FontWeight.w800 : FontWeight.w500),
                     ),
                   ),
                 ),
@@ -396,8 +390,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: () => Navigator.pushNamed(context, '/ara'),
-                icon: Icon(Icons.search_rounded,
-                    size: 16, color: c.onAccent),
+                icon: Icon(Icons.search_rounded, size: 16, color: c.onAccent),
                 label: const Text('Kullanıcı Ara & Sohbet Başlat'),
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accentFill,
@@ -466,7 +459,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(g.name, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.body(c.ink, w: FontWeight.w700))),
+                      Expanded(
+                          child: Text(g.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: SwanType.body(c.ink, w: FontWeight.w700))),
                       if (g.lastAt != null)
                         Text(shortAgo(g.lastAt!),
                             style: SwanType.caption(c.inkMuted)),
@@ -520,9 +517,16 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(dm.otherName, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.body(c.ink, w: FontWeight.w700))),
-                      Flexible(child: Text(shortAgo(dm.lastAt),
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.inkMuted))),
+                      Expanded(
+                          child: Text(dm.otherName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: SwanType.body(c.ink, w: FontWeight.w700))),
+                      Flexible(
+                          child: Text(shortAgo(dm.lastAt),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: SwanType.caption(c.inkMuted))),
                     ],
                   ),
                   const SizedBox(height: 3),
@@ -540,7 +544,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 margin: const EdgeInsets.only(left: 8),
                 padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
                 decoration: BoxDecoration(
-                    color: c.accentFill, borderRadius: BorderRadius.circular(999)),
+                    color: c.accentFill,
+                    borderRadius: BorderRadius.circular(999)),
                 child: Text('${dm.unread}',
                     style: SwanType.caption(c.onAccent, w: FontWeight.w700)),
               ),
@@ -616,7 +621,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _send() async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
+      return;
     final text = _ctrl.text.trim();
     if (text.isEmpty) return;
     _ctrl.clear();
@@ -624,7 +630,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _deliver(String text, {String? retryId}) async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
+      return;
     final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
     setState(() {
       _pending
@@ -670,15 +677,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final c = context.swan;
     final async = ref.watch(chatProvider(widget.otherId));
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
+      header: _buildChatHeader(c),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 680),
             child: Column(
               children: [
-                _buildChatHeader(c),
                 Expanded(
                   child: async.when(
                     loading: () =>
@@ -708,7 +715,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                                 const SizedBox(height: 14),
                                 Text(
                                   'Henüz Mesaj Yok',
-                                  style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
+                                  style: SwanType.h3(c.ink)
+                                      .copyWith(fontWeight: FontWeight.w700),
                                 ),
                                 const SizedBox(height: 6),
                                 Text(
@@ -757,7 +765,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Expanded(child: Row(
+          Expanded(
+              child: Row(
             children: [
               IconButton(
                 onPressed: () => Navigator.maybePop(context),
@@ -776,7 +785,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 ),
               ),
               const SizedBox(width: 10),
-              Expanded(child: Column(
+              Expanded(
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.otherName,
@@ -853,18 +863,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               if (m.body.isNotEmpty) ...[
                 Text(
                   m.body,
-                  style: SwanType.bodySm(m.isMine ? context.swan.onAccent : c.ink)
-                      .copyWith(height: 1.35),
+                  style:
+                      SwanType.bodySm(m.isMine ? context.swan.onAccent : c.ink)
+                          .copyWith(height: 1.35),
                 ),
               ],
               const SizedBox(height: 3),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Flexible(child: Text(
+                  Flexible(
+                      child: Text(
                     m.status == MessageStatus.failed
                         ? 'Gönderilemedi · dokun, tekrar dene'
-                        : shortAgo(m.createdAt), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                        : shortAgo(m.createdAt),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(
                         m.isMine ? context.swan.onAccent : c.inkMuted,
                         w: FontWeight.w600),
                   )),
@@ -893,7 +908,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         MessageStatus.sent => Icon(
             m.isRead ? Icons.done_all_rounded : Icons.done_rounded,
             size: 13,
-            color: m.isRead ? context.swan.onAccent : context.swan.onAccent.withValues(alpha: .6),
+            color: m.isRead
+                ? context.swan.onAccent
+                : context.swan.onAccent.withValues(alpha: .6),
           ),
       };
 }

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -41,7 +42,7 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
 
     final async = ref.watch(organizationsProvider(_query));
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Turnuva & Organizasyonlar', actions: [
         IconButton(tooltip: 'Organizasyon aç', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: _create),
       ]),

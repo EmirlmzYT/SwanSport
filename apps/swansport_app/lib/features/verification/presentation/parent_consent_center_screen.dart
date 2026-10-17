@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -32,7 +33,7 @@ class _ParentConsentCenterScreenState
   Widget build(BuildContext context) {
     final c = context.swan;
     final enabled = ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Veli İşlem Merkezi'),
       body: SafeArea(

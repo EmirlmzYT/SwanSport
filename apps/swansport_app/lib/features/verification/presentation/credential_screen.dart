@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'phone_verification_section.dart';
 import 'mernis_verification_section.dart';
 import '../../../app/widgets/action_gate.dart';
@@ -68,7 +69,7 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     final line = context.swan.line;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final async = ref.watch(myCredentialsProvider);
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       body: SafeArea(
         child: Center(

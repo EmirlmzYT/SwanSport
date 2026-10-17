@@ -68,7 +68,7 @@ void main() {
       expect(tapped, 1);
     });
 
-    testWidgets('çerçevesiz minimalist boyut 44x44 dokunma alanını korur',
+    testWidgets('küçük ikon 48x48 erişilebilir dokunma alanını korur',
         (tester) async {
       await tester.pumpWidget(wrap(InboxIconButton(
         icon: Icons.favorite_border_rounded,
@@ -76,8 +76,8 @@ void main() {
       )));
 
       final box = tester.renderObject<RenderBox>(find.byType(SizedBox).first);
-      expect(box.size.width, 44);
-      expect(box.size.height, 44);
+      expect(box.size.width, 48);
+      expect(box.size.height, 48);
     });
   });
 }

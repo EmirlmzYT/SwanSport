@@ -79,7 +79,7 @@ void main() {
         communityListProvider.overrideWith((_) async => []),
         suggestionsProvider.overrideWith((_) async => []),
       ]);
-      expect(find.text('Yeni Sohbet'), findsOneWidget);
+      expect(find.byTooltip('Yeni Sohbet'), findsOneWidget);
       expect(find.text('Çok Uzun Adlı Antrenör ve Takım Arkadaşı'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

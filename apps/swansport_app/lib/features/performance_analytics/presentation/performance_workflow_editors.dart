@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_surface.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
@@ -147,14 +148,14 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
     final c = context.swan;
     final state = ref.watch(performanceControllerProvider);
     if (state.loading) {
-      return Scaffold(
+      return SwanScaffold(
         backgroundColor: c.bg,
         appBar: swanModuleAppBar(context, title: _title),
         body: Center(child: CircularProgressIndicator()),
       );
     }
     if (widget.recordId != null && !_recordExists(state)) {
-      return Scaffold(
+      return SwanScaffold(
         backgroundColor: c.bg,
         appBar: swanModuleAppBar(context, title: _title),
         body: Center(
@@ -168,7 +169,7 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
     }
     _initialize(state);
     if (!_canEdit(state)) {
-      return Scaffold(
+      return SwanScaffold(
         backgroundColor: c.bg,
         appBar: swanModuleAppBar(context, title: _title),
         body: Center(
@@ -185,7 +186,7 @@ class _WorkflowEditorState extends ConsumerState<_WorkflowEditor> {
       onPopInvokedWithResult: (didPop, _) async {
         if (!didPop && _dirty) await _confirmCancel();
       },
-      child: Scaffold(
+      child: SwanScaffold(
         backgroundColor: c.bg,
         appBar: swanModuleAppBar(context, title: _title),
         body: Form(

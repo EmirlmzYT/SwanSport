@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -51,7 +52,7 @@ class _AthleteWorkspaceScreenState
     final clubAsync = ref.watch(activeClubProvider);
     final athletesAsync = ref.watch(clubAthletesProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Sporcular', actions: [
         IconButton(tooltip: 'Kulüp Ayarları', icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/settings')),
       ]),

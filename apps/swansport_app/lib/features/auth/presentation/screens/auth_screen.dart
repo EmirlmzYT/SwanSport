@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -61,7 +62,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
     final authState = ref.watch(authControllerProvider);
     final isSignUp = authState.mode == AuthMode.signUp;
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       body: Stack(
         children: [

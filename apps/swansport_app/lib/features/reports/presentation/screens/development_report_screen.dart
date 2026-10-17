@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -44,7 +45,7 @@ class _DevelopmentReportScreenState
     final c = context.swan;
     final enabled =
         ref.watch(featureEnabledProvider(FeatureFlags.developmentReport));
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Dönem Gelişim Raporu'),
       body: SafeArea(

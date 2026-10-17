@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -26,7 +27,7 @@ class EventRosterDetailScreen extends ConsumerWidget {
                 : null);
     final events = ref.watch(eventsProvider);
     final isStaff = ref.watch(swanAccessProvider).isClubStaff;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Etkinlik Detayı'),
       body: SafeArea(

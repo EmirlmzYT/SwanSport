@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -46,7 +47,7 @@ class TrainingSessionScreen extends ConsumerWidget {
     );
   }
 
-  static Widget _shell(SwanPalette c, Widget child) => Scaffold(
+  static Widget _shell(SwanPalette c, Widget child) => SwanScaffold(
         backgroundColor: c.bg,
         body: SafeArea(child: child),
         bottomNavigationBar: const SwanBottomNav(),
@@ -78,7 +79,7 @@ class _SessionBody extends ConsumerWidget {
     final session = ref.watch(trainingSessionProvider(sessionId));
     final config = ref.watch(sessionConfigProvider(sessionId));
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
       body: SafeArea(

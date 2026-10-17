@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -76,7 +77,7 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
         }),
       ]);
     }
-    return Scaffold(backgroundColor:c.bg,appBar:swanModuleAppBar(context,title:title),bottomNavigationBar:const SwanBottomNav(),
+    return SwanScaffold(backgroundColor:c.bg,appBar:swanModuleAppBar(context,title:title),bottomNavigationBar:const SwanBottomNav(),
       body:SafeArea(child:Padding(padding:const EdgeInsets.all(SwanSpace.lg),child:body)));
   }
   Widget _card(Widget child)=>Container(margin:const EdgeInsets.only(top:SwanSpace.md),padding:const EdgeInsets.all(SwanSpace.lg),

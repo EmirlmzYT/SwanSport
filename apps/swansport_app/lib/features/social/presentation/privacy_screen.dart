@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/diagnostics/diagnostic_preferences_tile.dart';
 import 'dart:async';
 
@@ -26,7 +27,7 @@ class _PrivacyScreenState extends ConsumerState<PrivacyScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final blocks = ref.watch(myBlocksProvider);
-    return Scaffold(
+    return SwanScaffold(
         backgroundColor: c.bg,
         appBar: swanModuleAppBar(context, title: 'Gizlilik ve Güvenlik'),
         body: SafeArea(

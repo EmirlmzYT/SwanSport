@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
@@ -26,7 +27,7 @@ class MyTrainingScreen extends ConsumerWidget {
     final sportContext = ref.watch(effectiveSportContextProvider);
     final live = ref.watch(myLiveSessionProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Antrenmanlarım'),
       extendBody: true,
       backgroundColor: c.bg,

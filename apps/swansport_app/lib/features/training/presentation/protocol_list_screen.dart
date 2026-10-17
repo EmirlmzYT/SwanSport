@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -49,9 +50,10 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
     final protocolsAsync = ref.watch(trainingProtocolsProvider);
     final sportContext = ref.watch(effectiveSportContextProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      header: _buildHeader(c),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -66,7 +68,7 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
               ),
               children: [
                 // Top bar
-                _buildHeader(c),
+
                 const SmartSportScopeBar(),
                 const SizedBox(height: SwanSpace.md),
 

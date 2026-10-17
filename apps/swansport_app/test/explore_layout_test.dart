@@ -69,6 +69,7 @@ void main() {
         child: RepaintBoundary(
           key: boundary,
           child: MaterialApp(
+            debugShowCheckedModeBanner: false,
             theme: AppTheme.light(),
             home: const ExploreScreen(),
           ),

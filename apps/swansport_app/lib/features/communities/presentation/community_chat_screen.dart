@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:file_picker/file_picker.dart';
@@ -310,7 +311,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
         ref.watch(communityMembersProvider(widget.communityId)).valueOrNull ??
             const <String, CommunityMember>{};
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       body: SafeArea(
         child: Center(

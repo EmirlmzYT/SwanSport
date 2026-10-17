@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,8 +41,9 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
     final favorites = ref.watch(marketFavoritesProvider).valueOrNull ?? {};
     final isFav = favorites.contains(widget.listingId);
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
+      header: detail.valueOrNull == null ? null : _buildTopBar(c, isFav),
       body: detail.when(
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
@@ -71,7 +73,7 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
-                          _buildTopBar(c, isFav),
+
                           _gallery(c, images),
                           Padding(
                             padding: const EdgeInsets.all(SwanSpace.md),

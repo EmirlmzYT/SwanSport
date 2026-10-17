@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,7 +69,7 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
         ref.watch(myStoresProvider).valueOrNull ?? const <StoreRow>[];
     final approved = stores.where((s) => s.isApproved).toList();
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'İlan Ver'),
       body: SafeArea(

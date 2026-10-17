@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -37,7 +38,7 @@ class SessionResultScreen extends ConsumerWidget {
     final config = ref.watch(sessionConfigProvider(id)).valueOrNull;
     final metrics = ref.watch(sessionMetricSetsProvider(id));
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Oturum Sonucu'),

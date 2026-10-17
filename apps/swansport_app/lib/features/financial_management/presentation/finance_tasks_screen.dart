@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -50,9 +51,10 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
       (sum, item) => sum + item.amount,
     );
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
+      header: _buildHeader(context, palette),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -60,7 +62,7 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
               children: [
-                _buildHeader(context, palette),
+
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {

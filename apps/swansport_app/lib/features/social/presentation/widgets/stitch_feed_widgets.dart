@@ -1,18 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart' show SwanNetworkLogo;
+import 'package:swansport_design_system/swansport_design_system.dart'
+    show SwanNetworkLogo;
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
+import '../../../../app/design/swan_chrome.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/inbox_actions.dart';
-import '../../../../app/widgets/scroll_chrome.dart';
+import '../../../../app/widgets/swan_floating_header.dart';
+import '../../../../app/widgets/action_gate.dart';
+import '../../../../app/widgets/create_sheet.dart';
 
-/// Atletik marka ve gerçek okunmamış sayaçları; hikaye sistemi değildir.
+/// Reference-video layout: creation left, compact brand center, inbox right.
 class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
-  const StitchFeedTopBar({super.key});
+  const StitchFeedTopBar(
+      {super.key,
+      this.followingOnly = false,
+      this.onFeedChanged,
+      this.allLabel = 'Tümü (Keşfet)',
+      this.followingLabel = 'Takip Ettiklerim'});
+  final bool followingOnly;
+  final ValueChanged<bool>? onFeedChanged;
+  final String allLabel, followingLabel;
   @override
-  Size get preferredSize => const Size.fromHeight(56);
+  Size get preferredSize => const Size.fromHeight(SwanChrome.headerHeight);
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
@@ -21,28 +33,76 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final appName = name == null || name.isEmpty ? 'SwanSport' : name;
     final logoUrl = config?.logoUrl?.trim();
     final hasAccount = ref.watch(swanAccessProvider).hasAccount;
-    final notifications = hasAccount ? ref.watch(unreadNotificationsProvider).valueOrNull ?? 0 : 0;
-    final messages = hasAccount ? ref.watch(unreadMessagesProvider).valueOrNull ?? 0 : 0;
-    return Material(
-      color: ScrollChromeScope.maybeOf(context) == null ? c.surface : Colors.transparent,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
-        child: Row(children: [
-          Expanded(child: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (logoUrl != null && logoUrl.isNotEmpty)
-              Padding(padding: const EdgeInsets.only(right: SwanSpace.sm),
-                child: ClipRRect(borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  child: SwanNetworkLogo(url: logoUrl, size: SwanSpace.xl,
-                    semanticLabel: appName, fallback: const SizedBox.shrink()))),
-            Flexible(child: Text(appName, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.wordmark(c.ink))),
+    final notifications = hasAccount
+        ? ref.watch(unreadNotificationsProvider).valueOrNull ?? 0
+        : 0;
+    final messages =
+        hasAccount ? ref.watch(unreadMessagesProvider).valueOrNull ?? 0 : 0;
+    final brand = Padding(
+        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
+        child: Row(mainAxisSize: MainAxisSize.min, children: [
+          if (logoUrl != null && logoUrl.isNotEmpty)
+            Padding(
+                padding: const EdgeInsets.only(right: SwanSpace.xs),
+                child: ClipRRect(
+                    borderRadius: BorderRadius.circular(SwanRadius.sm),
+                    child: SwanNetworkLogo(
+                        url: logoUrl,
+                        size: SwanSpace.lg,
+                        semanticLabel: appName,
+                        fallback: const SizedBox.shrink()))),
+          Flexible(
+              child: Text(appName,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.navigationWordmark(c.ink))),
+          if (onFeedChanged != null) ...[
             const SizedBox(width: SwanSpace.xs),
-            ExcludeSemantics(child: Icon(Icons.circle, size: SwanSpace.sm, color: c.accent)),
-          ])),
-          InboxIconButton(icon: Icons.notifications_none_rounded, color: c.inkMuted, badge: notifications, tooltip: 'Bildirimler', onTap: () => Navigator.pushNamed(context, '/bildirimler')),
-          InboxIconButton(icon: Icons.send_outlined, color: c.inkMuted, badge: messages, tooltip: 'Mesajlar', onTap: () => Navigator.pushNamed(context, '/mesajlar')),
-          if (!hasAccount) TextButton(onPressed: () => Navigator.pushNamed(context, '/auth'), child: Text('Giriş Yap', style: SwanType.caption(c.accent, w: FontWeight.w700))),
-        ]),
-      ),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                size: SwanSpace.lg, color: c.ink),
+          ],
+        ]));
+    return SwanFloatingHeader(
+      leading: SwanHeaderIconButton(
+          icon: Icons.add_rounded,
+          tooltip: 'İçerik oluştur',
+          onPressed: () async {
+            if (await requireSwanAction(context, ref, SwanAction.publish) &&
+                context.mounted) {
+              await showCreateSheet(context);
+            }
+          }),
+      title: onFeedChanged == null
+          ? brand
+          : PopupMenuButton<bool>(
+              tooltip: 'Akış seçimi',
+              initialValue: followingOnly,
+              onSelected: onFeedChanged,
+              itemBuilder: (_) => [
+                CheckedPopupMenuItem(
+                    value: false,
+                    checked: !followingOnly,
+                    child: Text(allLabel)),
+                CheckedPopupMenuItem(
+                    value: true,
+                    checked: followingOnly,
+                    child: Text(followingLabel)),
+              ],
+              child: SizedBox(
+                  height: SwanChrome.touchTarget, child: Center(child: brand)),
+            ),
+      actions: [
+        InboxIconButton(
+            icon: Icons.notifications_none_rounded,
+            badge: notifications,
+            tooltip: 'Bildirimler',
+            onTap: () => Navigator.pushNamed(context, '/bildirimler')),
+        InboxIconButton(
+            icon: Icons.send_outlined,
+            badge: messages,
+            tooltip: 'Mesajlar',
+            onTap: () => Navigator.pushNamed(context, '/mesajlar')),
+      ],
     );
   }
 }

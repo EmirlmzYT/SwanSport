@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -36,9 +37,12 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
         ? const AsyncValue<AthleteFull?>.data(null)
         : ref.watch(athleteByIdProvider(id));
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      header: async.valueOrNull == null ? null : SwanTopBar(
+        title: 'Sporcu Detayı', subtitle: async.valueOrNull!.position ?? 'Sporcu',
+        showBack: true, onBack: () => Navigator.maybePop(context)),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -63,12 +67,7 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                 return Column(
                   children: [
                     // Stitch Top Bar
-                    SwanTopBar(
-                      title: 'Sporcu Detayı',
-                      subtitle: a.position ?? 'Sporcu',
-                      showBack: true,
-                      onBack: () => Navigator.maybePop(context),
-                    ),
+
 
                     Expanded(
                       child: ListView(

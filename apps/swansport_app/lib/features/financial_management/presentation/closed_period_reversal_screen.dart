@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -30,7 +31,7 @@ class _ClosedPeriodReversalScreenState
     final c = context.swan;
     final adjustmentsAsync = ref.watch(financeAdjustmentsProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Ters İşlem ve Düzeltme'),

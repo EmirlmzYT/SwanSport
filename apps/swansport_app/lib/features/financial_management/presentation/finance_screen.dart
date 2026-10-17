@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -54,7 +55,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     final summary = summaryAsync.valueOrNull;
     final pendingCount = summary?.pendingPayments ?? 0;
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüp Finansı', actions: [
         IconButton(tooltip: 'Banka bilgileri', icon: Icon(Icons.account_balance_outlined, color: context.swan.inkMuted), onPressed: _editBank),
         IconButton(tooltip: 'Mali iş kuyruğu', icon: Icon(Icons.notifications_active_outlined, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/mali-isler')),

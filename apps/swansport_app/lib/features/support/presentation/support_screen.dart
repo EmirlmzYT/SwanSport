@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -26,7 +27,7 @@ class SupportScreen extends ConsumerWidget {
     final c = context.swan;
     final tickets = ref.watch(myTicketsProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Destek Talepleri', actions: [
         IconButton(tooltip: 'Sık sorulan sorular', icon: Icon(Icons.help_outline_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/yardim')),
       ]),
@@ -194,7 +195,7 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
             ticket.status) ==
         'closed';
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       // Klavye dolgusu Scaffold'a bırakılıyor; `viewInsets` eklemek aynı
       // boşluğu iki kez sayardı (AGENTS.md'deki sohbet tuzağı).

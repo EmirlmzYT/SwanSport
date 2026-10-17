@@ -2,7 +2,7 @@
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `ready_for_review`
+Durum: `complete`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
@@ -543,3 +543,25 @@ Kontrol noktası: 0105/0106 commit; 0107 SSS audience all→everyone düzeltmesi
 
 
 Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da5493-378c-449f-b950-6707e1b2ff28 Functions dahil Deployment complete ve liste doğrulandı. 21 SQL, 25 gerçek anon API, 17 ACL/15 RLS ve canlı dört arketip doğrulaması geçti. Kullanıcı SMS sağlayıcı hesabı olmadığını söyledi; gerçek SMS/UAT açık. pages.dev HTTP testleri ERR_SSL_WRONG_VERSION_NUMBER; koruma aşılmadı, UI/hash doğrulanamadı. Rapor docs/production-rollout-0107.md; Writer serbest. Görev yayın kısmı tamamlandı; cihaz/SMS dış bağımlılıkları raporda.
+
+
+2026-10-18: Kullanıcı tüm mobil ekranlarda Instagram düzeni/hafif cam, ikon-only yüzen kapsül, cam +, aşağıda gizlenen üst/küçülen alt, klavyede gizlenen alt bar istedi. +43 tabanında ayrı mobile-glass-chrome worktree devralındı. Eski checkout dosyaları korunur. Graph araçları Transport closed; doğrudan güncel kaynak/test fallback. Canlı SQL yok.
+
+2026-10-18 cam gezinme kontrolü: ortak 95 feature ekran kabuğu ve tüm mevcut alt barlar bağlı; doğal yükseklikli özel header desteği, klavye/form/48dp/çentik testleri. İlk tam mobil 492/492, analiz 0 hata/uyarı; son özel başlık ve hareket rötuşu için final regresyon/build sürüyor. +43 Firebase koruması değişmez. +44 iOS deneme paketi hazırlanır.
+
+
+2026-10-18 cam gezinme teslimi: +43 tabanındaki codex/mobile-glass-chrome, PR #1. İkon-only yüzen cam kapsül/nötr cam +, tüm feature kabukları, doğal yükseklikli özel başlıklar, yukarı kaydırmada açılma ve klavye/form korunumu tamamlandı. 495/495 mobil, analiz 0 error/warning (3626 info), üretim web build geçti. iOS +44 CI 39074187665 success; IPA version/build/CRC/executable/Firebase config yokluğu/unsigned doğrulandı. Fiziksel iPhone estetik/performance kabulü açık. Genel PR CI fatal-infos nedeniyle kırmızı; raporda açık. Üretim/main/SQL/TestFlight değişmez. Başlangıç root checkout'u korunur; Writer serbest.
+
+2026-10-18: Kullanıcı alt barı onayladı; üstte daha şeffaf cam ve akıcı scroll istedi. Codex ortak üst materyali ve ana akışlarda sabit viewport/paint-only header devraldı. Alt kapsül ve +43 native koruma korunur. Graph ana checkout indeksinde yeni kabuk dosyaları eksik; doğrudan kaynak doğrulandı. Canlı SQL/üretim yayını yok.
+
+2026-10-18 üst cam kontrolü: 20/20 odaklı, analiz 0 error/warning (3673 info); ilk tam tur 496/497, eski offline yoklama tekrarında 6/6. Son tam düşük paralellik koşusu sürüyor. Ortak üst materyal şeffaflaştı; 5 ana akış paint-only header ve scroll içinde spacer kullanır. Alt bar kaynağı değişmedi. +45 preview kaynak kaydı hazırlanıyor.
+
+2026-10-18 üst cam teslimi: +45 ürün kaynağı 480c6c4. Daha şeffaf üst materyal, ana 5 akışta paint-only header/sabit viewport; alt nav kaynağı değişmedi. Son tam mobil 498/498, odaklı 20/20, tam analiz 0 error/warning (3673 info). Eski offline yoklama testinin DB/snapshot bekleme yarışı testte gerçek UI beklenerek düzeltildi; ürün yolu değişmedi. macOS 39076241788 success; artifact 12116668530 indirildi. IPA 0.5.16/45, ZIP/executable/unsigned/Firebase config yokluğu doğrulandı; masaüstü aynı SHA256. Kanıt docs/mobile-glass-header-45.md. Genel stil CI fatal-infos nedeniyle kırmızı; fiziksel iPhone FPS/görsel kabulü ayrı. Main/canlı SQL/Cloudflare/TestFlight yok. Writer serbest.
+
+2026-10-18: Kullanıcı 8.52 saniyelik Instagram iOS ekran kaydı verdi. Codex referansa göre üst header devraldı: panel yok, ortalı kompakt başlık, ayrı yuvarlak cam kontroller ve yumuşak üst difüzyon. Alt nav korunur. Video/kişisel içerik GitHub'a kopyalanmaz; yalnız sentetik önizleme. +46 preview hazırlanır; canlı SQL/main/üretim yok.
+
+2026-10-18 video referansı kontrolü: tam genişlik tint kaldırıldı; şeffaf ortalı başlık/ayrı cam daireler, mevcut kapılı + ve gerçek inbox sayaçları. Akış modu artık başlık menüsünde; diğer 3 ana header eşitlendi. 30 son odaklı ve 54 önceki kontrol geçti, 7 yeni referans/piksel testi var. Tam regresyon/son analiz sürüyor. Video/kareler yalnız ignored build içinde; GitHub'a sentetik Flutter PNG'leri gider. Alt nav kaynağı değişmedi.
+
+2026-10-18 son kontrol: ilk tam tur 504/505; tek fark eski testin 44 hedef beklemesi. Yeni 36 görünüm/48 dokunma sözleşmesine testte kesin 48 beklentisi güncellendi; eylem/badge testleri korunur. Son tam tur yeniden çalışıyor. Analiz 0 error/warning (3708 info). +46 macOS 39077803292 derleniyor; ürün e987ed5.
+
+2026-10-18 video referanslı +46 teslimi: ürün e987ed5, ortalı düz başlık ve ayrı yuvarlak cam kontroller; tam genişlik tint/panel kaldırıldı, akış filtresi gerçek başlık menüsüne bağlandı. Alt nav kaynağı değişmedi. Son mobil 505/505; analiz 0 error/warning (3708 info), odaklı 30/30 ve 7 yeni referans/piksel testi. macOS 39077803292 success; artifact 12117837572, IPA 0.5.17/46 ZIP/executable/unsigned/Firebase config yokluğu doğrulandı ve masaüstüne aynı hash ile kopyalandı. Genel fatal-infos CI kırmızı; fiziksel cihaz FPS/optik kabulü açık. Video/kişisel kareler yalnız ignored build içinde; repo sentetik Flutter PNG'leri içerir. Kanıt docs/instagram-reference-header-46.md. Main/SQL/Cloudflare/TestFlight değişmedi; Writer serbest.
