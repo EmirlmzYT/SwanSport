@@ -65,3 +65,22 @@ Gerçek iPhone kaydırma hissi, blur GPU maliyeti, VoiceOver ve klavye/çentik
 cihaz kabulü ayrı testtir. Widget render'ı fiziksel cihaz kabulü değildir.
 Bu tasarım denemesi main'e merge, canlı SQL, üretim web yayını veya
 TestFlight yüklemesi yapmaz. Önizleme IPA kullanıcı tarafından imzalanır.
+
+## Son yerel doğrulama
+
+- Nihai mobil tam koşu: **495/495**, çıkış 0; `glass-app-verified.log`.
+- Ana/özel başlık, takvim, sporcu detayı ve UI alt kümesi 44/44 geçti.
+- Analiz: **0 error, 0 warning**, 3626 mevcut info; `--no-fatal-infos`
+  ile çıkış 0 (`glass-analyze-verified.log`). Info'lar bastırılmadı.
+- Yeni 14 chrome senaryosu, 320/393 genişlik, açık/koyu/büyük yazı, 48dp,
+  form+klavye durumu, doğal başlık ölçümü/ara animasyon kareleri, uzun
+  kaydet barı, çentik/home indicator ve yüksek kontrastı kapsar.
+- PNG önizlemeleri gerçek widget render'ıdır:
+  [açık](design/mobile-glass/light-expanded.png),
+  [koyu](design/mobile-glass/dark-expanded.png),
+  [küçülmüş açık](design/mobile-glass/light-compact.png),
+  [küçülmüş koyu](design/mobile-glass/dark-compact.png).
+  Arka plan sunumu yalnız test örneğidir; üretim içerik tasarımı değişmez.
+- iOS önizleme CI: https://github.com/EmirlmzYT/SwanSport/actions/runs/39074187665
+  Kaynak `d1bf27f`, sürüm `0.5.15+44`, preview_only=true. Bu kontrol
+  noktasında derleme sürüyor; başarısı ve IPA doğrulaması ayrıca kaydedilir.
