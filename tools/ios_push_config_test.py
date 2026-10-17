@@ -8,11 +8,28 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from configure_ios_firebase import generate_disabled_plist, validate_config
 from verify_ios_preview_bundle import verify_bundle
+from guard_ios_firebase_registration import guarded_source
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 class IosPushConfigTest(unittest.TestCase):
+    def test_native_guard_preserves_other_plugins_and_is_idempotent(self):
+        source = '''@implementation GeneratedPluginRegistrant
+  [FLTFirebaseCorePlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseCorePlugin"]];
+  [FLTFirebaseMessagingPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseMessagingPlugin"]];
+  [SharedPreferencesPlugin registerWithRegistrar:[registry registrarForPlugin:@"SharedPreferencesPlugin"]];
+'''
+        result = guarded_source(source)
+        self.assertEqual(result.count('if (SwanFirebaseConfigured())'), 2)
+        self.assertIn('if (path == nil) return NO;', result)
+        self.assertIn('  [SharedPreferencesPlugin registerWithRegistrar:', result)
+        self.assertEqual(guarded_source(result), result)
+        with self.assertRaises(ValueError):
+            guarded_source(source.replace('FLTFirebaseMessagingPlugin', 'UnexpectedPlugin'))
+        project = (ROOT / 'apps/swansport_app/ios/Runner.xcodeproj/project.pbxproj').read_text()
+        self.assertIn('guard_ios_firebase_registration.py', project)
+
     def test_disabled_resource_cannot_be_used_as_firebase_configuration(self):
         stub = plistlib.loads(generate_disabled_plist('com.swansport.fixture'))
         self.assertEqual(stub['BUNDLE_ID'], 'com.swansport.fixture')
