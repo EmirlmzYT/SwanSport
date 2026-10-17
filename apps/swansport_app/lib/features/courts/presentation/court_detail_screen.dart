@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/swan_surface.dart';
 import 'venue_overview.dart';
@@ -42,7 +43,7 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
     final access = ref.watch(swanAccessProvider);
     final verified = access.hasVerificationTier('phone');
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       appBar: swanModuleAppBar(context, title: _court.name, subtitle: '${_court.opensAt} – ${_court.closesAt}'),
       body: async.when(

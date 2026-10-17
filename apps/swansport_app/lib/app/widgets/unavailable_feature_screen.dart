@@ -1,3 +1,4 @@
+import 'swan_scaffold.dart';
 import 'package:flutter/material.dart';
 
 import '../design/swan_palette.dart';
@@ -23,7 +24,7 @@ class UnavailableFeatureScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: AppBar(title: Text(title, style: SwanType.h3(c.ink))),
       body: Center(

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/swan_surface.dart';
 import 'package:flutter/material.dart';
@@ -64,7 +65,7 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
     final selectedSport = _sport ?? sportContext;
     final profile = selectedSport == null ? null : branchTrainingProfileFor(selectedSport);
     final archetype = _sport == null ? profile?.defaultArchetype ?? _archetype : _archetype;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Antrenman Şablonu Oluştur'),
       body: club.when(

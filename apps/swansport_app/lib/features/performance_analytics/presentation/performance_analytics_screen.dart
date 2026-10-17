@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -40,9 +41,10 @@ class _PerformanceAnalyticsScreenState
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(performanceOverviewProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
+      header: _buildHeader(context, ink, surf, line, club?.name),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -56,7 +58,7 @@ class _PerformanceAnalyticsScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
                 children: [
-                  _buildHeader(context, ink, surf, line, club?.name),
+
                   const SizedBox(height: 14),
 
                   // Search Field

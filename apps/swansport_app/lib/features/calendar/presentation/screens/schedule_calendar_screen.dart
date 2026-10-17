@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -89,15 +90,16 @@ class _ScheduleCalendarScreenState
       ),
     );
     final types = ref.watch(calendarDayTypesProvider(_month));
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: palette.bg,
+      header: _buildTopBar(context, palette, club, canManage),
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _refreshCalendar,
           child: ListView(
             padding: const EdgeInsets.all(SwanSpace.lg),
             children: [
-              _buildTopBar(context, palette, club, canManage),
+
               const SizedBox(height: SwanSpace.md),
               UnifiedCalendarFilters(
                 selected: _selectedType,

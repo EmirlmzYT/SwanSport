@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/swan_surface.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +18,7 @@ class GuestExploreScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: context.swan.bg,
       appBar: swanModuleAppBar(context, title: 'SwanSport · Keşfet'),
       bottomNavigationBar: const SwanBottomNav(),

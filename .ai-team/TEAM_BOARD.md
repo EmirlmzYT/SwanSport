@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `ready_for_review`
+Aktif Writer: Codex
+Durum: `active`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
@@ -543,3 +543,8 @@ Kontrol noktası: 0105/0106 commit; 0107 SSS audience all→everyone düzeltmesi
 
 
 Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da5493-378c-449f-b950-6707e1b2ff28 Functions dahil Deployment complete ve liste doğrulandı. 21 SQL, 25 gerçek anon API, 17 ACL/15 RLS ve canlı dört arketip doğrulaması geçti. Kullanıcı SMS sağlayıcı hesabı olmadığını söyledi; gerçek SMS/UAT açık. pages.dev HTTP testleri ERR_SSL_WRONG_VERSION_NUMBER; koruma aşılmadı, UI/hash doğrulanamadı. Rapor docs/production-rollout-0107.md; Writer serbest. Görev yayın kısmı tamamlandı; cihaz/SMS dış bağımlılıkları raporda.
+
+
+2026-10-18: Kullanıcı tüm mobil ekranlarda Instagram düzeni/hafif cam, ikon-only yüzen kapsül, cam +, aşağıda gizlenen üst/küçülen alt, klavyede gizlenen alt bar istedi. +43 tabanında ayrı mobile-glass-chrome worktree devralındı. Eski checkout dosyaları korunur. Graph araçları Transport closed; doğrudan güncel kaynak/test fallback. Canlı SQL yok.
+
+2026-10-18 cam gezinme kontrolü: ortak 95 feature ekran kabuğu ve tüm mevcut alt barlar bağlı; doğal yükseklikli özel header desteği, klavye/form/48dp/çentik testleri. İlk tam mobil 492/492, analiz 0 hata/uyarı; son özel başlık ve hareket rötuşu için final regresyon/build sürüyor. +43 Firebase koruması değişmez. +44 iOS deneme paketi hazırlanır.

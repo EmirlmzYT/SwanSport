@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -81,7 +82,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Sahalar & Kortlar', actions: [
         IconButton(tooltip: 'Yakınımdakiler', icon: Icon(Icons.near_me_outlined, color: context.swan.inkMuted), onPressed: _locate),
         TextButton(onPressed: () => Navigator.pushNamed(context, '/partner-ara'), child: Text('Partner Bul', style: SwanType.caption(context.swan.accent))),

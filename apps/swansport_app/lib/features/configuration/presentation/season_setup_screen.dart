@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_surface.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/premium.dart';
@@ -209,7 +210,7 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
     final enabled = ref.watch(featureEnabledProvider(FeatureFlags.seasonSetup));
     final backend = ref.watch(isSupabaseEnabledProvider);
     if (!permitted || !enabled || !backend) {
-      return Scaffold(
+      return SwanScaffold(
         backgroundColor: context.swan.bg,
         appBar: swanModuleAppBar(context, title: 'Sezon Açılışı'),
         body: premiumEmpty(context, icon: Icons.lock_outline_rounded,
@@ -220,7 +221,7 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
     final athletes = ref.watch(clubAthletesProvider);
     return PopScope(
       canPop: !_busy && _pending == null,
-      child: Scaffold(
+      child: SwanScaffold(
         backgroundColor: context.swan.bg,
         appBar: swanModuleAppBar(context, title: 'Sezon Açılışı'),
         body: club.when(

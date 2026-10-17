@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -82,7 +83,7 @@ class _ConnectionsScreenState extends ConsumerState<ConnectionsScreen> {
     final followersCount = followersAsync.valueOrNull?.length ?? 0;
     final followingCount = followingAsync.valueOrNull?.length ?? 0;
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: widget.title ?? 'Bağlantılar'),

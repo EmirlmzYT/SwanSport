@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -22,7 +23,7 @@ class _LiveMatchDetailScreenState extends ConsumerState<LiveMatchDetailScreen> {
     final enabled=ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub));
     final standings=ref.watch(featureEnabledProvider(FeatureFlags.leagueStandings));
     final tab=_tab==2&&!standings?0:_tab;
-    return Scaffold(backgroundColor:c.bg,appBar:swanModuleAppBar(context,title:'Canlı Müsabaka'),bottomNavigationBar:const SwanBottomNav(),
+    return SwanScaffold(backgroundColor:c.bg,appBar:swanModuleAppBar(context,title:'Canlı Müsabaka'),bottomNavigationBar:const SwanBottomNav(),
       body:!enabled?Center(child:Text('Canlı skor merkezi henüz kullanıma açılmadı.',style:SwanType.body(c.inkMuted)))
       :ref.watch(publicMatchLiveStateProvider(widget.matchId)).when(
         loading:()=>const Center(child:CircularProgressIndicator()),

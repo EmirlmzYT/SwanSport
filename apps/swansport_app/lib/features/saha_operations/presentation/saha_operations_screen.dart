@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -137,7 +138,7 @@ class _SahaOperationsScreenState extends ConsumerState<SahaOperationsScreen> {
         _code.clear();
       }
     });
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Saha İşlemlerim'),
       body: SafeArea(

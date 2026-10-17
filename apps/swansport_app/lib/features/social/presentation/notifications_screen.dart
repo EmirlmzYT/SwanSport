@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,7 +66,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     final c = context.swan;
     final async = ref.watch(categorizedNotificationsProvider(_category));
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Bildirimler', actions: [
         IconButton(tooltip: 'Tümünü okundu işaretle', icon: Icon(Icons.done_all_rounded, color: context.swan.inkMuted), onPressed: _markAllRead),
         IconButton(tooltip: 'Tercihler', icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted), onPressed: _openPrefs),

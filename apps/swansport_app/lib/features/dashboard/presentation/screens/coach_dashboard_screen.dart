@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -29,7 +30,7 @@ class CoachDashboardScreen extends ConsumerWidget {
 
     // Rol henüz yüklenmediyse bekle
     if (demoRole == null && profileAsync.isLoading) {
-      return Scaffold(backgroundColor: c.bg, body: premiumLoading());
+      return SwanScaffold(backgroundColor: c.bg, body: premiumLoading());
     }
 
     // Role göre yönlendirme (Sözleşme korunur)
@@ -57,7 +58,7 @@ class CoachDashboardScreen extends ConsumerWidget {
     final events = ref.watch(eventsProvider);
 
     final clubName = club?.name ?? 'Kulüp seçilmedi';
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       body: SafeArea(
           child: Center(

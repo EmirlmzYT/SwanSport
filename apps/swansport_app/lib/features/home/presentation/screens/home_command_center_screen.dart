@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -35,7 +36,7 @@ class HomeCommandCenterScreen extends ConsumerWidget {
     int n(AsyncValue<List<dynamic>> v) =>
         v.maybeWhen(data: (l) => l.length, orElse: () => 0);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(

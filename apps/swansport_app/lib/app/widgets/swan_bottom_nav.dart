@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +6,6 @@ import 'action_gate.dart';
 
 import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
-import '../design/swan_type.dart';
 import 'create_sheet.dart';
 import 'scroll_chrome.dart';
 import '../design/swan_chrome.dart';
@@ -80,7 +77,6 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.swan;
     final current = ModalRoute.of(context)?.settings.name;
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
@@ -88,9 +84,9 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
     final chrome = ScrollChromeScope.maybeOf(context);
     final compact = chrome?.compact == true && _scrub == null;
-    final glass = chrome != null || isIos;
-    final accessible = MediaQuery.highContrastOf(context) || MediaQuery.disableAnimationsOf(context);
-    final motion = MediaQuery.disableAnimationsOf(context) ? Duration.zero : SwanChrome.duration;
+    final motion = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : SwanChrome.duration;
 
     // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
     final targets = <_NavTarget>[
@@ -120,6 +116,9 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
       ),
     ];
 
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
+      return const SizedBox.shrink();
+    }
     return SafeArea(
       top: false,
       child: GestureDetector(
@@ -157,42 +156,26 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
         onHorizontalDragCancel:
             isIos ? () => setState(() => _scrub = null) : null,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(SwanRadius.lg),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: glass && !accessible ? SwanChrome.blur : 0,
-                sigmaY: glass && !accessible ? SwanChrome.blur : 0,
-              ),
-              child: AnimatedContainer(
-                key: const Key('swan-bottom-nav-surface'),
-                duration: motion,
-                curve: Curves.easeOutCubic,
-                height: compact ? SwanChrome.compactHeight : SwanChrome.expandedHeight,
-                decoration: BoxDecoration(
-                  color: glass && !accessible
-                      ? c.surface.withValues(alpha: c.isDark ? .76 : .68)
-                      : c.surface,
-                  borderRadius: BorderRadius.circular(SwanRadius.lg),
-                  border: glass
-                      ? Border.all(color: c.line)
-                      : null,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Colors.black.withValues(alpha: c.isDark ? .45 : .10),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+          padding: const EdgeInsets.fromLTRB(SwanChrome.horizontalInset,
+              SwanSpace.xs, SwanChrome.horizontalInset, SwanChrome.bottomGap),
+          child: Align(
+            heightFactor: 1,
+            alignment: Alignment.bottomCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: SwanChrome.maxWidth),
+              child: SwanGlassSurface(
+                floating: true,
+                child: AnimatedContainer(
+                  key: const Key('swan-bottom-nav-surface'),
+                  duration: motion,
+                  curve: Curves.easeOutCubic,
+                  height: compact
+                      ? SwanChrome.compactHeight
+                      : SwanChrome.expandedHeight,
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
+                  child: Row(children: [
                     for (var i = 0; i < targets.length; i++) ...[
-                      if (i == 2) const _CreateButton(),
+                      if (i == 2) const Expanded(child: _CreateButton()),
                       Expanded(
                           child: _Tab(
                         key: _keys[i],
@@ -206,13 +189,11 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                             ? route == targets[i].route
                             : _scrub == i,
                         scrubbing: _scrub == i,
-                        compact: compact,
-                        onTap: () {
-                          _go(context, targets[i].route, profileId: myId);
-                        },
+                        onTap: () =>
+                            _go(context, targets[i].route, profileId: myId),
                       )),
                     ],
-                  ],
+                  ]),
                 ),
               ),
             ),
@@ -249,99 +230,113 @@ class _NavTarget {
 }
 
 class _Tab extends StatelessWidget {
-  const _Tab({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.onTap,
-    this.scrubbing = false,
-    this.compact = false,
-  });
-
+  const _Tab(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.active,
+      required this.onTap,
+      this.scrubbing = false});
   final IconData icon;
   final String label;
   final bool active;
-  final VoidCallback? onTap;
-
-  /// Parmak şu an bu sekmenin üstünde. Görsel olarak öne çıkıyor ki
-  /// kullanıcı bırakmadan önce nereye gideceğini görsün.
+  final VoidCallback onTap;
   final bool scrubbing;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    // Aktif durum teal — brief'in kuralı: teal yalnızca önemli aksiyon ve
-    // aktif durum için.
-    final color = active ? c.accent : c.inkMuted;
-
-    return Semantics(label: label, button: true, selected: active, onTap: onTap,
-      excludeSemantics: true, child: Tooltip(message: label,
-      triggerMode: TooltipTriggerMode.manual, child: GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    final motion = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : SwanChrome.duration;
+    return Semantics(
+      label: label,
+      button: true,
+      selected: active,
       onTap: onTap,
-      child: AnimatedScale(
-        // Kısa ve az: 1.08 fark edilir ama zıplamıyor.
-        scale: scrubbing && !MediaQuery.disableAnimationsOf(context) ? 1.08 : 1,
-        duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : SwanChrome.duration,
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : SwanChrome.duration,
-          width: 60,
-          decoration: BoxDecoration(
-            // Yalnızca kaydırma sırasında zemin: parmağın altındaki sekme
-            // bırakmadan önce belli olsun. Normal durumda çubuk sade kalıyor.
-            color: active ? c.accentSoft : Colors.transparent,
-            borderRadius: BorderRadius.circular(SwanRadius.md),
-          ),
-          constraints: const BoxConstraints(minHeight: SwanChrome.compactHeight),
-          padding: EdgeInsets.symmetric(vertical: compact ? SwanSpace.xs : SwanSpace.xs + SwanSpace.xs / 2),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 22, color: color),
-              if (!compact) const SizedBox(height: 3),
-              if (!compact)
-              Flexible(child: Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(color,
-                      w: active ? FontWeight.w800 : FontWeight.w600))),
-            ],
-          ),
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        triggerMode: TooltipTriggerMode.manual,
+        child: InkResponse(
+          onTap: onTap,
+          containedInkWell: true,
+          highlightShape: BoxShape.circle,
+          radius: SwanChrome.touchTarget,
+          child: SizedBox(
+              height: SwanChrome.touchTarget,
+              child: Center(
+                child: AnimatedScale(
+                  scale: scrubbing && motion != Duration.zero ? 1.06 : 1,
+                  duration: motion,
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedContainer(
+                    duration: motion,
+                    curve: Curves.easeOutCubic,
+                    width: SwanChrome.selectedSize,
+                    height: SwanChrome.selectedSize,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: active
+                            ? c.accentSoft
+                            : c.surface.withValues(alpha: 0)),
+                    child: Icon(icon,
+                        size: SwanChrome.iconSize,
+                        color: active ? c.accent : c.ink),
+                  ),
+                ),
+              )),
         ),
       ),
-    )));
+    );
   }
 }
 
-/// Ortadaki "+" — bağlama göre oluşturma eylemleri.
+/// Account gates and creation destinations are unchanged; only the surface changes.
 class _CreateButton extends ConsumerWidget {
   const _CreateButton();
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        if (await requireSwanAction(context, ref, SwanAction.publish) &&
-            context.mounted) {
-          await showCreateSheet(context);
-        }
-      },
-      child: Container(
-        width: SwanChrome.compactHeight,
-        height: SwanChrome.compactHeight,
-        decoration: BoxDecoration(
-          // `accent` değil `accentFill`: üstünde beyaz ikon var. Koyu temada
-          // parlak teal + beyaz 2.27:1 veriyordu, eşik 3:1.
-          color: c.accentFill,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
+    Future<void> create() async {
+      if (await requireSwanAction(context, ref, SwanAction.publish) &&
+          context.mounted) {
+        await showCreateSheet(context);
+      }
+    }
+
+    return Semantics(
+      label: 'Oluştur',
+      button: true,
+      onTap: create,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: 'Oluştur',
+        triggerMode: TooltipTriggerMode.manual,
+        child: InkResponse(
+          onTap: create,
+          containedInkWell: true,
+          highlightShape: BoxShape.circle,
+          radius: SwanChrome.touchTarget,
+          child: SizedBox(
+              height: SwanChrome.touchTarget,
+              child: Center(
+                child: Container(
+                  width: SwanChrome.createSize,
+                  height: SwanChrome.createSize,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c.isDark
+                          ? c.ink.withValues(alpha: .07)
+                          : c.surface.withValues(alpha: .72),
+                      border: Border.all(
+                          width: SwanChrome.rimWidth,
+                          color: c.ink.withValues(alpha: .10))),
+                  child: Icon(Icons.add_rounded,
+                      color: c.ink, size: SwanChrome.iconSize),
+                ),
+              )),
         ),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
       ),
     );
   }

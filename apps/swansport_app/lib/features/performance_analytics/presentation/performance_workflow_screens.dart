@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -317,7 +318,7 @@ class _Workspace extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: title),
       body: SafeArea(
@@ -371,7 +372,7 @@ class _SafeState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       body: SafeArea(
         child: Center(

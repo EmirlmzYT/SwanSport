@@ -15,9 +15,15 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 void main() {
   /// Gezinilen son rotayı yakalayan bir kabuk.
   Widget host(List<String> log, {bool signedIn = true}) => ProviderScope(
-        overrides: [swanAccessProvider.overrideWithValue(signedIn
-          ? const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null)
-          : SwanAccess.none)],
+        overrides: [
+          swanAccessProvider.overrideWithValue(signedIn
+              ? const SwanAccess(
+                  isPlatformAdmin: false,
+                  clubRole: null,
+                  coachLevel: 0,
+                  athleteKind: null)
+              : SwanAccess.none)
+        ],
         child: MaterialApp(
           theme: SwanTheme.light(),
           onGenerateRoute: (settings) {
@@ -36,14 +42,14 @@ void main() {
 
   /// Ekrandaki bir sekmenin merkezi.
   Offset centerOf(WidgetTester tester, String label) =>
-      tester.getCenter(find.text(label));
+      tester.getCenter(find.byTooltip(label));
 
   testWidgets('normal dokunuş doğrudan gidiyor', (tester) async {
     final log = <String>[];
     await tester.pumpWidget(host(log));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('Keşfet'));
+    await tester.tap(find.byTooltip('Keşfet'));
     await tester.pumpAndSettle();
 
     expect(log, contains('/kesfet'));
@@ -107,7 +113,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(log, isEmpty);
-    expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'), findsOneWidget);
+    expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),
+        findsOneWidget);
   });
 
   testWidgets('kaydırmadan bırakmak basılı tutulan sekmeyi açıyor',
@@ -129,7 +136,7 @@ void main() {
     await tester.pumpAndSettle();
 
     for (final t in ['Ana Sayfa', 'Keşfet', 'Mesajlar', 'Profil']) {
-      expect(find.text(t), findsOneWidget, reason: '$t sekmesi kayboldu');
+      expect(find.byTooltip(t), findsOneWidget, reason: '$t sekmesi kayboldu');
     }
     // Ortadaki "+" eylem düğmesi.
     expect(find.byIcon(Icons.add_rounded), findsOneWidget);

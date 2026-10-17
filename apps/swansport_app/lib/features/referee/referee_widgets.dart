@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -18,7 +19,7 @@ class RefereePage extends StatelessWidget {
   const RefereePage({super.key,required this.title,required this.child});
   final String title;
   final Widget child;
-  @override Widget build(BuildContext context) => Scaffold(
+  @override Widget build(BuildContext context) => SwanScaffold(
     backgroundColor:context.swan.bg,appBar:swanModuleAppBar(context,title:title),
     bottomNavigationBar:const SwanBottomNav(),
     body:SafeArea(child:Padding(padding:const EdgeInsets.all(SwanSpace.lg),child:child)));

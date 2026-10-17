@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -15,7 +16,7 @@ class RoleSelectScreen extends StatelessWidget {
     final bg = (isDark ? SwanPalette.dark : SwanPalette.light).bg;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       body: SafeArea(
         child: Center(

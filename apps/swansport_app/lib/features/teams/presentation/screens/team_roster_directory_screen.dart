@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -33,7 +34,7 @@ class _TeamRosterDirectoryScreenState
         club != null && (club.role == 'club_admin' || club.role == 'coach');
     final async = ref.watch(teamsProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Takımlar & Kadrolar', actions: [
         if (canManage) IconButton(tooltip: 'Takım Ekle', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: () => _team(context, ref, club.id)),
       ]),

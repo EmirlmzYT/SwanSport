@@ -4,6 +4,8 @@ import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
 import 'premium.dart';
+import 'scroll_chrome.dart';
+import '../design/swan_chrome.dart';
 
 typedef SwanTopBar = StitchTopBar;
 
@@ -30,7 +32,7 @@ class StitchTopBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
 
   @override
-  Size get preferredSize => const Size.fromHeight(48);
+  Size get preferredSize => const Size.fromHeight(SwanChrome.headerHeight);
 
   @override
   Widget build(BuildContext context) {
@@ -43,8 +45,9 @@ class StitchTopBar extends StatelessWidget implements PreferredSizeWidget {
         horizontal: SwanSpace.lg,
       ),
       decoration: BoxDecoration(
-        color: c.surface.withValues(alpha: c.isDark ? .92 : .98),
-        border: Border(bottom: BorderSide(color: c.line.withValues(alpha: .5))),
+        color: ScrollChromeScope.maybeOf(context) == null
+            ? c.surface
+            : Colors.transparent,
       ),
       child: SafeArea(
         bottom: false,

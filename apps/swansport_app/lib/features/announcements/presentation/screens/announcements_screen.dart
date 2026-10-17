@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,7 +35,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     final canCompose =
         club != null && ref.watch(swanAccessProvider).isClubStaff;
     final announcements = ref.watch(announcementsProvider);
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüp Duyuruları'),
       backgroundColor: c.bg,
       body: SafeArea(

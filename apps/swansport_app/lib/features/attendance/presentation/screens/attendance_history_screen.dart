@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -30,7 +31,7 @@ class _AttendanceHistoryScreenState
     final club = ref.watch(activeClubProvider).valueOrNull;
     final async = ref.watch(attendanceSummaryProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Yoklama Geçmişi', actions: [
         TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/attendance'), icon: Icon(Icons.add_rounded), label: Text('Yoklama Al', style: SwanType.caption(context.swan.accent))),
       ]),

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../network/presentation/guest_explore_screen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_chrome.dart';
-import '../../../app/widgets/scroll_chrome.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -28,13 +28,7 @@ class FeedScreen extends ConsumerStatefulWidget {
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool _followingOnly = false;
-  final _chrome = ScrollChromeController();
 
-  @override
-  void dispose() {
-    _chrome.dispose();
-    super.dispose();
-  }
   PlatformConfig? _lastPlatformConfig;
 
   @override
@@ -55,50 +49,79 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     final liveBackend = ref.watch(isSupabaseEnabledProvider);
     final session = liveBackend ? ref.watch(authSessionProvider) : null;
     if (session != null && session.hasError && !session.hasValue) {
-      return Scaffold(
+      return SwanScaffold(
         backgroundColor: context.swan.bg,
-        body: Center(child: TextButton(
+        body: Center(
+            child: TextButton(
           onPressed: () => ref.invalidate(authSessionProvider),
           child: const Text('Oturumu yeniden kontrol et'),
         )),
       );
     }
     if (session != null && !session.hasValue) {
-      return Scaffold(backgroundColor: context.swan.bg);
+      return SwanScaffold(backgroundColor: context.swan.bg);
     }
-    final isGuest = session != null
-        ? session.valueOrNull == null
-        : !access.hasAccount;
-    _lastPlatformConfig = ref.watch(platformConfigProvider).valueOrNull ?? _lastPlatformConfig;
+    final isGuest =
+        session != null ? session.valueOrNull == null : !access.hasAccount;
+    _lastPlatformConfig =
+        ref.watch(platformConfigProvider).valueOrNull ?? _lastPlatformConfig;
     final config = _lastPlatformConfig;
     if (config?.maintenanceEnabled == true && !access.isPlatformAdmin) {
       return PlatformMaintenanceNotice(
-        message: '${config!.maintenance['message'] ?? 'Kısa süreli bakım devam ediyor.'}',
-        onRetry: () => ref.invalidate(platformConfigProvider));
+          message:
+              '${config!.maintenance['message'] ?? 'Kısa süreli bakım devam ediyor.'}',
+          onRetry: () => ref.invalidate(platformConfigProvider));
     }
-    final banner = config?.broadcastEnabled == true ? PlatformBroadcastBanner(
-      key: ValueKey(jsonEncode([config!.broadcastAlert['severity'], config.broadcastAlert['title'], config.broadcastAlert['message']])),
-      alert: config.broadcastAlert) : null;
+    final banner = config?.broadcastEnabled == true
+        ? PlatformBroadcastBanner(
+            key: ValueKey(jsonEncode([
+              config!.broadcastAlert['severity'],
+              config.broadcastAlert['title'],
+              config.broadcastAlert['message']
+            ])),
+            alert: config.broadcastAlert)
+        : null;
     if (isGuest) {
       if (banner == null) return const GuestExploreScreen();
-      return Column(children: [SafeArea(bottom: false, child: Material(color: context.swan.bg, child: banner)), const Expanded(child: GuestExploreScreen())]);
+      return Column(children: [
+        SafeArea(
+            bottom: false,
+            child: Material(color: context.swan.bg, child: banner)),
+        const Expanded(child: GuestExploreScreen())
+      ]);
     }
     final c = context.swan;
 
     final activeFeed = _followingOnly ? feedProvider : discoverProvider;
     final async = ref.watch(activeFeed);
-    final modeExtent = SwanChrome.filterBaseHeight + MediaQuery.textScalerOf(context).scale(SwanSpace.md);
+    final modeExtent = SwanChrome.filterBaseHeight +
+        MediaQuery.textScalerOf(context).scale(SwanSpace.md);
 
-    return ScrollChromeScope(controller: _chrome, child: Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: PreferredSize(
+        key: const Key('feed-floating-header'),
+        preferredSize: Size.fromHeight(SwanChrome.headerHeight + modeExtent),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const SizedBox(
+              height: SwanChrome.headerHeight, child: StitchFeedTopBar()),
+          SizedBox(
+              height: modeExtent,
+              child: _FeedModeBar(
+                  followingOnly: _followingOnly,
+                  onChanged: (value) {
+                    if (value != _followingOnly)
+                      setState(() => _followingOnly = value);
+                  })),
+        ]),
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
-            child: NotificationListener<ScrollNotification>(onNotification: _chrome.onScroll,
-              child: RefreshIndicator(
+            child: RefreshIndicator(
               onRefresh: () async {
                 ref.invalidate(feedProvider);
                 ref.invalidate(discoverProvider);
@@ -116,35 +139,10 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
-                  SliverAppBar(
-                    key: const Key('feed-floating-header'),
-                    floating: true,
-                    snap: !MediaQuery.disableAnimationsOf(context),
-                    pinned: false,
-                    primary: false,
-                    automaticallyImplyLeading: false,
-                    toolbarHeight: SwanChrome.headerHeight,
-                    backgroundColor: Colors.transparent,
-                    surfaceTintColor: Colors.transparent,
-                    elevation: 0,
-                    scrolledUnderElevation: 0,
-                    flexibleSpace: const SwanGlassSurface(child: Align(
-                      alignment: Alignment.topCenter,
-                      child: SizedBox(height: SwanChrome.headerHeight, child: StitchFeedTopBar()))),
-                    bottom: PreferredSize(
-                      preferredSize: Size.fromHeight(modeExtent),
-                      child: SizedBox(
-                        height: modeExtent,
-                        child: _FeedModeBar(followingOnly: _followingOnly, onChanged: (value) {
-                          if (value != _followingOnly) setState(() => _followingOnly = value);
-                        }),
-                      ),
-                    ),
-                  ),
                   if (banner != null) SliverToBoxAdapter(child: banner),
                   const SliverToBoxAdapter(child: LiveMatchStrip()),
-                  const SliverToBoxAdapter(child: RefereeEntryCard(today: true)),
-
+                  const SliverToBoxAdapter(
+                      child: RefereeEntryCard(today: true)),
                   ...async.when(
                     loading: () => [
                       SliverToBoxAdapter(child: premiumCardLoading()),
@@ -158,12 +156,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 ],
               ),
             ),
-            ),
           ),
         ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
-    ));
+    );
   }
 
   List<Widget> _contentSlivers(
@@ -244,6 +241,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     return entries;
   }
 }
+
 /// Ana akış içindeki iki içerik modu. Keşfet sekmesinin yerine geçmez:
 /// Keşfet spor modüllerini açar, burası yalnızca sosyal akışı süzer.
 class _FeedModeBar extends StatelessWidget {

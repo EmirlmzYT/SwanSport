@@ -1817,3 +1817,15 @@ Kullanıcı her iş sonunda değişikliklerin commit edilip GitHub origin deposu
 - Partner istekleri eski kayıtlarda özel kalır; is_public yalnız açık tercihle yazılır. Public projeksiyon kişi adı/UUID/telefon/koordinat içermez. Oynayalım mevcut eşleşmeyi atomik kabul eder. Açık ilan id'si ile başkasının pinglerini iptal etmek ve NULL yanıtla kabul kapısını geçmek engellendi.
 - Mevcut courts/turf_fields isteğe bağlı zemin ve public post-media fotoğraf yolları taşır; veri yoksa örnek gösterilmez. Metadata düzenleme ekranı bu kapsamda yoktur. Konum yalnız Yakınımdakiler eyleminde istenir; detay haritası tesis koordinatını kullanır.
 - Kanıt docs/venue-guest-action-gate-verification.md: 820 Flutter, 21 SQL; 107 parse, SSS 39/39, analiz 0 hata/5 önceki uyarı. Canlı SQL/deploy ve gerçek SMS/cihaz UAT yapılmadı. Yeni istemci 0107 sonrası yayımlanır; önceki bekleyen 0105/0106 sırası korunur.
+
+### 2026-10-18 — Mobil cam gezinme, +44 önizleme
+
+Mobil feature ekranlarında `SwanScaffold` ortak kabuğunu kullan. AppBar slotları
+korunur; özel başlıklar `header:` ile doğal/text-scale yüksekliğinde ölçülür.
+Küçülen başlığa yeni dar constraint uygulama: animasyonda metin taşar; tam
+boy yerleşim + translate/clip gerekir. SwanBottomNav ikon-only'dir; testlerde
+görünür yazı yerine Tooltip/Semantics kullan. + cam dairedir; hesap/oluşturma
+kapıları değişmez. Navigation dışındaki kaydet bottom barlarını küçültme veya
+klavyede gizleme. `SwanChrome` yeni ölçülerin tek kaynağıdır. Kaynak +43
+Firebase korumasını içerir; iOS fiziksel görsel/performance kabulü ayrıdır.
+Kanıt/sınırlar `docs/mobile-glass-chrome-44.md`. Canlı SQL/üretim yayını yok.

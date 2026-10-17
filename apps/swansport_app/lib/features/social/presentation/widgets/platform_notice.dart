@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -48,7 +49,7 @@ class PlatformMaintenanceNotice extends ConsumerWidget {
     final c = context.swan;
     final name = ref.watch(platformConfigProvider).valueOrNull?.appName?.trim();
     final appName = name == null || name.isEmpty ? 'SwanSport' : name;
-    return Scaffold(backgroundColor: c.bg, body: SafeArea(child: Center(
+    return SwanScaffold(backgroundColor: c.bg, body: SafeArea(child: Center(
       child: Padding(padding: const EdgeInsets.all(SwanSpace.xl),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Icon(Icons.build_circle_outlined, color: c.accent, size: SwanSpace.xl * 2),

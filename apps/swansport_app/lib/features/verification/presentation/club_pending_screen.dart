@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -40,7 +41,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
     final club = ref.watch(activeClubProvider).valueOrNull;
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       body: SafeArea(
         child: Center(

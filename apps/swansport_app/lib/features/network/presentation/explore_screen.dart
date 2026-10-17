@@ -1,9 +1,11 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_chrome.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/inbox_actions.dart';
@@ -28,13 +30,17 @@ class ExploreScreen extends ConsumerStatefulWidget {
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   @override
   Widget build(BuildContext context) {
-    if (!ref.watch(swanAccessProvider).hasAccount) return const GuestExploreScreen();
+    if (!ref.watch(swanAccessProvider).hasAccount)
+      return const GuestExploreScreen();
     final c = context.swan;
     final access = ref.watch(swanAccessProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(SwanChrome.headerHeight),
+          child: _StitchExploreHeader()),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -44,7 +50,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
               padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
               children: [
                 // 1. Üst Bar: Başlık & Bildirim/Mesaj Rozetleri
-                const _StitchExploreHeader(),
 
                 const SizedBox(height: SwanSpace.md),
 
@@ -292,12 +297,19 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                     Navigator.pushNamed(context, '/pazaryeri'),
                               ),
                             ),
-                          if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub)))
-                            SizedBox(width:itemWidth,child:_ModuleGridCard(
-                              icon:Icons.scoreboard_outlined,title:'Canlı Skor',subtitle:'Resmi maçları takip et',
-                              iconColor:context.swan.ink,badge:'Müsabaka',
-                              onTap:()=>Navigator.pushNamed(context,'/canli-skor'),
-                            )),
+                          if (ref.watch(featureEnabledProvider(
+                              FeatureFlags.liveMatchHub)))
+                            SizedBox(
+                                width: itemWidth,
+                                child: _ModuleGridCard(
+                                  icon: Icons.scoreboard_outlined,
+                                  title: 'Canlı Skor',
+                                  subtitle: 'Resmi maçları takip et',
+                                  iconColor: context.swan.ink,
+                                  badge: 'Müsabaka',
+                                  onTap: () => Navigator.pushNamed(
+                                      context, '/canli-skor'),
+                                )),
                           if (ref
                               .watch(featureEnabledProvider('coach_discovery')))
                             SizedBox(
@@ -338,7 +350,11 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   trailing: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(child: Text('En yeniler', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.inkMuted))),
+                      Flexible(
+                          child: Text('En yeniler',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: SwanType.caption(c.inkMuted))),
                     ],
                   ),
                 ),

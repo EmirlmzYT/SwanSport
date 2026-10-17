@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -85,12 +86,12 @@ class _TestCenterScreenState extends ConsumerState<TestCenterScreen> {
   Widget build(BuildContext context) {
     final c = context.swan;
     if (!ref.watch(localTestCenterEnabledProvider)) {
-      return Scaffold(body: Center(child: Text('Test Merkezi bu ortamda kapalı.',
+      return SwanScaffold(body: Center(child: Text('Test Merkezi bu ortamda kapalı.',
           style: SwanType.body(c.ink))));
     }
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final error = _error ?? ref.watch(localTestErrorProvider);
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: AppBar(title: Text('Yerel Test Merkezi', style: SwanType.h3(c.ink))),
       body: ListView(padding: const EdgeInsets.all(SwanSpace.lg), children: [

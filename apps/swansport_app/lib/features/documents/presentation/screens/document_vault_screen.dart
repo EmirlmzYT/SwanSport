@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -44,7 +45,7 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
     final asyncDocs = ref.watch(_docsProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Belge Kasası', actions: [
         IconButton(tooltip: 'Belge yükle', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: _add),
       ]),
