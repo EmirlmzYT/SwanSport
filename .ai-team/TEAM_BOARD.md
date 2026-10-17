@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `active`
+Aktif Writer: Yok
+Durum: `complete`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
@@ -548,3 +548,6 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 2026-10-18: Kullanıcı tüm mobil ekranlarda Instagram düzeni/hafif cam, ikon-only yüzen kapsül, cam +, aşağıda gizlenen üst/küçülen alt, klavyede gizlenen alt bar istedi. +43 tabanında ayrı mobile-glass-chrome worktree devralındı. Eski checkout dosyaları korunur. Graph araçları Transport closed; doğrudan güncel kaynak/test fallback. Canlı SQL yok.
 
 2026-10-18 cam gezinme kontrolü: ortak 95 feature ekran kabuğu ve tüm mevcut alt barlar bağlı; doğal yükseklikli özel header desteği, klavye/form/48dp/çentik testleri. İlk tam mobil 492/492, analiz 0 hata/uyarı; son özel başlık ve hareket rötuşu için final regresyon/build sürüyor. +43 Firebase koruması değişmez. +44 iOS deneme paketi hazırlanır.
+
+
+2026-10-18 cam gezinme teslimi: +43 tabanındaki codex/mobile-glass-chrome, PR #1. İkon-only yüzen cam kapsül/nötr cam +, tüm feature kabukları, doğal yükseklikli özel başlıklar, yukarı kaydırmada açılma ve klavye/form korunumu tamamlandı. 495/495 mobil, analiz 0 error/warning (3626 info), üretim web build geçti. iOS +44 CI 39074187665 success; IPA version/build/CRC/executable/Firebase config yokluğu/unsigned doğrulandı. Fiziksel iPhone estetik/performance kabulü açık. Genel PR CI fatal-infos nedeniyle kırmızı; raporda açık. Üretim/main/SQL/TestFlight değişmez. Başlangıç root checkout'u korunur; Writer serbest.

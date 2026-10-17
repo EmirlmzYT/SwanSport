@@ -84,3 +84,41 @@ TestFlight yüklemesi yapmaz. Önizleme IPA kullanıcı tarafından imzalanır.
 - iOS önizleme CI: https://github.com/EmirlmzYT/SwanSport/actions/runs/39074187665
   Kaynak `d1bf27f`, sürüm `0.5.15+44`, preview_only=true. Bu kontrol
   noktasında derleme sürüyor; başarısı ve IPA doğrulaması ayrıca kaydedilir.
+
+Üretim web build son kaynakla başarılı (exit 0; `--no-wasm-dry-run`),
+main.dart.js SHA256:
+`900613d545755fb891b9cf4b952f86b33a782bf5830b433629f828c87ba913b0`.
+Mevcut CupertinoIcons font uyarısı sürer; yeni nav MaterialIcons kullanır.
+İlk web koşusu son başlık rötuşlarından önce başladığından iptal edilip son
+kaynak yeniden derlendi. Son koşunun kanıtı `build/glass-web-final.log`.
+Nihai 495/495 test ve analiz günlükleri de `build/` altındadır. Üretim web
+paketi yayımlanmadı. İnceleme PR'ı: https://github.com/EmirlmzYT/SwanSport/pull/1
+
+PR'ın genel `CI/validate` koşusu 39074276073 kırmızı: Melos'un varsayılan
+`dart analyze --fatal-infos` kapısı beş paketteki stil/info önerilerinde duruyor.
+İlgili logda Dart error/warning bulunmadı; mobil CI analizi 3613 info bildirdi.
+Yereldeki 495 test ve `--no-fatal-infos` analizi ayrı kanıttır; PR bütün CI
+kapılarını geçmiş gibi sunulmaz. Stil önerilerini bastırmak veya bütün repo
+formatını değiştirmek bu tasarım görevinin kapsamına alınmadı.
+
+## iOS +44 teslimi
+
+macOS CI **success**, https://github.com/EmirlmzYT/SwanSport/actions/runs/39074187665
+Ürün kaynağı `d1bf27f4e744129866b89110064890597451037b`; sonraki commit'ler
+yalnız önizleme/kanıt/koordinasyon belgeleridir. Artifact:
+`SwanSport-iOS-0.5.15+44-unsigned`, ID `12116541960`.
+
+İndirilen `SwanSport-0.5.15+44-unsigned.ipa` paketinde:
+
+- Sürüm 0.5.15, build 44, bundle com.swansport.app.
+- Runner executable mevcut; ZIP CRC temiz.
+- Firebase-disabled önizlemede GoogleService-Info.plist yok.
+- xcent ve CodeResources imzası yok; kullanıcı tarafından imzalanacak IPA.
+- IPA 13,479,166 byte; SHA256:
+  `6071f3421ca51dd6bb809b2f2338a0d3fb07f557702bdd4012ea58917c7bc7e0`.
+- Yerel teslim `build/ios-preview/0.5.15+44/`; paket doğrulama günlüğü
+  `build/glass-ipa-verification.log`.
+
+iOS CI Apple dağıtım imzası/TestFlight adımlarını çalıştırmadı. Cihazda
+kurulum, görsel beğeni, akıcılık, GPU/VoiceOver ve fiziksel klavye kabulü
+bu paketle ayrıca yapılmalı. Genel stil CI sınırı yukarıdaki gibi sürer.
