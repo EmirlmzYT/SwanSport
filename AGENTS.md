@@ -1829,3 +1829,11 @@ kapıları değişmez. Navigation dışındaki kaydet bottom barlarını küçü
 klavyede gizleme. `SwanChrome` yeni ölçülerin tek kaynağıdır. Kaynak +43
 Firebase korumasını içerir; iOS fiziksel görsel/performance kabulü ayrıdır.
 Kanıt/sınırlar `docs/mobile-glass-chrome-44.md`. Canlı SQL/üretim yayını yok.
+
+### 2026-10-18 — Şeffaf üst cam, +45
+
+Ana akışlardaki `scrollUnderHeader: true`, listenin başlangıcında
+`SwanHeaderSpacer` gerektirir (sliver için SliverToBoxAdapter içinde).
+Spacer ekranın dışına padding olarak eklenmez; içerikle kaybolur. Bu modda
+üst bar yalnız paint transform ile gizlenir, viewport yeniden boyutlanmaz.
+Alt kapsül +44 görünümünü korur. Kanıt: docs/mobile-glass-header-45.md.

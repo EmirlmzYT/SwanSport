@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `active`
+Aktif Writer: Yok
+Durum: `complete`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
@@ -555,3 +555,5 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 2026-10-18: Kullanıcı alt barı onayladı; üstte daha şeffaf cam ve akıcı scroll istedi. Codex ortak üst materyali ve ana akışlarda sabit viewport/paint-only header devraldı. Alt kapsül ve +43 native koruma korunur. Graph ana checkout indeksinde yeni kabuk dosyaları eksik; doğrudan kaynak doğrulandı. Canlı SQL/üretim yayını yok.
 
 2026-10-18 üst cam kontrolü: 20/20 odaklı, analiz 0 error/warning (3673 info); ilk tam tur 496/497, eski offline yoklama tekrarında 6/6. Son tam düşük paralellik koşusu sürüyor. Ortak üst materyal şeffaflaştı; 5 ana akış paint-only header ve scroll içinde spacer kullanır. Alt bar kaynağı değişmedi. +45 preview kaynak kaydı hazırlanıyor.
+
+2026-10-18 üst cam teslimi: +45 ürün kaynağı 480c6c4. Daha şeffaf üst materyal, ana 5 akışta paint-only header/sabit viewport; alt nav kaynağı değişmedi. Son tam mobil 498/498, odaklı 20/20, tam analiz 0 error/warning (3673 info). Eski offline yoklama testinin DB/snapshot bekleme yarışı testte gerçek UI beklenerek düzeltildi; ürün yolu değişmedi. macOS 39076241788 success; artifact 12116668530 indirildi. IPA 0.5.16/45, ZIP/executable/unsigned/Firebase config yokluğu doğrulandı; masaüstü aynı SHA256. Kanıt docs/mobile-glass-header-45.md. Genel stil CI fatal-infos nedeniyle kırmızı; fiziksel iPhone FPS/görsel kabulü ayrı. Main/canlı SQL/Cloudflare/TestFlight yok. Writer serbest.
