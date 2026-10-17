@@ -1,12 +1,16 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `in_progress`
+Aktif Writer: Yok
+Durum: `ready_for_review`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
 Kontrol noktası: 0.5.14+43 kaynak düzeltmesi; sahte config kaldırıldı, disabled resource son paketten çıkarılır ve paket doğrulayıcı yokluğunu zorlar. API anahtarı/app ID biçimi kontrolü ve tüm Dart push girişleri için disabled regresyon eklendi. Python 6/6, gönderici 5/5, SSS 44/44, push 42 ve diff temiz; Flutter testi sürüyor. Gerçek cihaz tekrar kabulü yeni IPA kurulumuna bağlı.
+
+Son yerel doğrulama: Messaging eklentisinin native lifecycle erişimi de guarded registration ile kapatıldı. Python 7/7, mobil tam regresyon 481/481, disabled push 4/4, hesaplı açılış/gezinme 10/10 geçti. Değişen Dart analizi 0 hata/uyarı (7 stil info). Kaynak db26aab, macOS koşusu 39070009001 derleniyor; önceki 39069899161 native koruma eklemek için iptal edildi. Main/SQL/web/TestFlight yok; cihaz tekrar kabulü bekleniyor.
+
+2026-10-18 sonuç: macOS 39070009001 başarılı; 0.5.14+43 unsigned artifact 12115320206 indirildi ve İndirilenler'e kopyalandı. IPA içi sürüm/build/executable/CRC ve Firebase config dosyasının yokluğu doğrulandı, kopyalar SHA-256 eş. 13,488,233 byte. Kanıt docs/ios-preview-0.5.14-43.md. Önizleme push kapalı; gerçek cihazda yeni kurulum açılışı henüz doğrulanmadı. Main/tag/SQL/web/TestFlight değişmedi. Writer serbest.
 
 2026-10-17: Kullanıcı son düzeltmelerle denemelik IPA istedi. 0.5.13+42 önizlemesi ayrı codex dalında commit/push ve macOS workflow_dispatch ile derlenecek; main/tag/web/canlı SQL/TestFlight değişmez. Önceki stage bu kullanıcı çalışmasının derleme kaynağıdır. Windows kaynak/test doğrulamaları geçer; gerçek IPA kabulü CI sonucuna bağlı.
 
