@@ -39,8 +39,33 @@ olmadığından mevcut Flutter/tasarım jetonları kullanıldı.
   misafir oluşturma kapısı ve piksel düzeyinde tam genişlik dolgu yokluğu.
 - Gerçek Flutter üst barı ve örnek arka planla PNG'ler
   `docs/design/mobile-header-46/` altındadır. Üretim verisi içermez.
-- Tam mobil regresyon ve son analiz sürüyor; +46 macOS preview hazırlanıyor.
+- Son tam mobil regresyon **505/505** geçti; log
+  `build/header46-full-tests-verified.log`. İlk turdaki tek fark, eski bir
+  testin 44 hedef beklemesiydi; yeni 36 görünüm/48 dokunma sözleşmesine
+  kesin 48 beklentisiyle güncellendi. Test kaldırılmadı.
+- Son mobil analiz `--no-fatal-infos` ile exit 0: 0 error, 0 warning,
+  3708 info. Log `build/header46-final-analyze.log`.
+- Genel CI/validate 39077807453 halen beş paketteki fatal-infos/stil
+  kapısında kırmızıdır; bütün CI yeşil değildir.
 
 Canlı SQL, Cloudflare/main veya TestFlight yayını yok. +43 native Firebase
 açılış koruması ve unsigned önizlemede push kapalı olma sözleşmesi korunur.
 Gerçek iPhone'da estetik/FPS kabulü yapılmış sayılmaz.
+
+## iOS +46 teslimi
+
+macOS CI success: https://github.com/EmirlmzYT/SwanSport/actions/runs/39077803292
+Ürün kaynağı `e987ed5642dc7ad1dea34c7826ed9d81f4371227`.
+Sonraki commit yalnız eski test ölçüsü, yorum ve doğrulama belgeleridir.
+Artifact `SwanSport-iOS-0.5.17+46-unsigned`, ID `12117837572`.
+
+- IPA sürüm/build 0.5.17/46; bundle `com.swansport.app`.
+- ZIP CRC temiz; Runner executable var.
+- Firebase config, xcent ve Runner imzası yok. Kullanıcı Sideloadly ile imzalar.
+- Boyut: 13503803 byte.
+- SHA256: `8c97b6f4be376eb4d73ec14d08030fa711b271a8221eb8f770cda35eb26c1fe6`.
+- Aynı hash ile masaüstüne kopyalandı: `SwanSport-0.5.17+46-unsigned.ipa`.
+- Yerel doğrulama: `build/header46-ipa-verification.json`.
+
+Fiziksel iPhone'da FPS, optik cam hissi ve tam görsel eşleşme ayrıca
+kontrol edilmelidir; bu paket gerçek cihazda denenmiş gibi sunulmaz.

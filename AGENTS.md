@@ -1837,3 +1837,12 @@ Ana akışlardaki `scrollUnderHeader: true`, listenin başlangıcında
 Spacer ekranın dışına padding olarak eklenmez; içerikle kaybolur. Bu modda
 üst bar yalnız paint transform ile gizlenir, viewport yeniden boyutlanmaz.
 Alt kapsül +44 görünümünü korur. Kanıt: docs/mobile-glass-header-45.md.
+
+### 2026-10-18 — Kullanıcı videosuna göre üst header, +46
+
+Ortak üst yüzeyde boydan boya tintli panel yoktur; beş dar blur bandı
+üst difüzyonu azaltır. SwanFloatingHeader ortalı başlık ve SwanHeaderControl
+36 görünen daire/48 hedefi taşır. Sosyal akış modu başlıktaki gerçek menüye
+bağlıdır; ikinci filtre satırı ekleme. + mevcut publish kapısından geçer.
+Alt kapsül korunur. Kullanıcı videosu/kareleri repoya girmez; yalnız koddan
+üretilen sentetik PNG. Kanıt: docs/instagram-reference-header-46.md.

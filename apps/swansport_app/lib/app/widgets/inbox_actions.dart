@@ -15,7 +15,7 @@ import 'swan_floating_header.dart';
 /// gezinme, header'daki avatar = yalnızca kimlik göstergesi (Profil zaten
 /// alt barda, iki yerde olmasın).
 ///
-/// Minimalist Instagram tarzı: çerçevesiz 44x44 dokunma alanı, kalp ve gönder ikonları.
+/// Ortak kabukta ayrı cam daireler; 48x48 dokunma alanı, gerçek inbox aksiyonları.
 class InboxActions extends ConsumerWidget {
   const InboxActions({super.key, this.spacing = 4});
 
@@ -51,7 +51,7 @@ class InboxActions extends ConsumerWidget {
 
 /// Rozetli, tıklanabilir üst bar ikonu.
 ///
-/// Minimalist ve çerçevesiz: 44x44 dokunma alanı, ortalanmış 24px ikon,
+/// Ortak kabukta 36 cam daire, 48 dokunma alanı ve 22 ikon; inline kullanım çerçevesizdir,
 /// yalnızca okunmamış > 0 olduğunda sağ üstte minik kırmızı rozet.
 class InboxIconButton extends StatelessWidget {
   const InboxIconButton({

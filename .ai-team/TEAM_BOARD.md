@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `active`
+Aktif Writer: Yok
+Durum: `complete`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
@@ -561,3 +561,7 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 2026-10-18: Kullanıcı 8.52 saniyelik Instagram iOS ekran kaydı verdi. Codex referansa göre üst header devraldı: panel yok, ortalı kompakt başlık, ayrı yuvarlak cam kontroller ve yumuşak üst difüzyon. Alt nav korunur. Video/kişisel içerik GitHub'a kopyalanmaz; yalnız sentetik önizleme. +46 preview hazırlanır; canlı SQL/main/üretim yok.
 
 2026-10-18 video referansı kontrolü: tam genişlik tint kaldırıldı; şeffaf ortalı başlık/ayrı cam daireler, mevcut kapılı + ve gerçek inbox sayaçları. Akış modu artık başlık menüsünde; diğer 3 ana header eşitlendi. 30 son odaklı ve 54 önceki kontrol geçti, 7 yeni referans/piksel testi var. Tam regresyon/son analiz sürüyor. Video/kareler yalnız ignored build içinde; GitHub'a sentetik Flutter PNG'leri gider. Alt nav kaynağı değişmedi.
+
+2026-10-18 son kontrol: ilk tam tur 504/505; tek fark eski testin 44 hedef beklemesi. Yeni 36 görünüm/48 dokunma sözleşmesine testte kesin 48 beklentisi güncellendi; eylem/badge testleri korunur. Son tam tur yeniden çalışıyor. Analiz 0 error/warning (3708 info). +46 macOS 39077803292 derleniyor; ürün e987ed5.
+
+2026-10-18 video referanslı +46 teslimi: ürün e987ed5, ortalı düz başlık ve ayrı yuvarlak cam kontroller; tam genişlik tint/panel kaldırıldı, akış filtresi gerçek başlık menüsüne bağlandı. Alt nav kaynağı değişmedi. Son mobil 505/505; analiz 0 error/warning (3708 info), odaklı 30/30 ve 7 yeni referans/piksel testi. macOS 39077803292 success; artifact 12117837572, IPA 0.5.17/46 ZIP/executable/unsigned/Firebase config yokluğu doğrulandı ve masaüstüne aynı hash ile kopyalandı. Genel fatal-infos CI kırmızı; fiziksel cihaz FPS/optik kabulü açık. Video/kişisel kareler yalnız ignored build içinde; repo sentetik Flutter PNG'leri içerir. Kanıt docs/instagram-reference-header-46.md. Main/SQL/Cloudflare/TestFlight değişmedi; Writer serbest.
