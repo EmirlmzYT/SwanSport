@@ -49,8 +49,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   void initState() {
     super.initState();
     Future.microtask(() async {
-      await ref.read(communityServiceProvider).ensureMine();
-      if (mounted) ref.invalidate(communityListProvider);
+      if (!mounted || !ref.read(isSupabaseEnabledProvider)) return;
+      try {
+        await ref.read(communityServiceProvider).ensureMine();
+        if (mounted) ref.invalidate(communityListProvider);
+      } catch (_) {
+        // Existing conversations remain readable when channel enrollment fails.
+      }
     });
   }
 

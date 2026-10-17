@@ -38,7 +38,7 @@ void main() {
   for (final scheme in ['https://example.com/news', 'javascript:alert(1)', '']) {
     testWidgets('news editorial label and safe link: $scheme', (tester) async {
       final item = NewsItem(title: 'Günün spor haberi', sourceName: 'Spor Kaynağı', publishedAt: DateTime(2026, 10, 12), summary: 'Haber özeti', link: scheme);
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: NewsCard(item: item))));
+      await tester.pumpWidget(MaterialApp(home: Scaffold(body: ListView(children: [NewsCard(item: item)]))));
       expect(find.text('SPOR GÜNDEMİ'), findsOneWidget);
       expect(find.text('Günün spor haberi'), findsOneWidget);
       expect(find.text('Haber özeti'), findsOneWidget);

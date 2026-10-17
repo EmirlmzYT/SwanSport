@@ -86,13 +86,13 @@ class ClubPlanningLicense {
 class ClubStaffOperationsService {
   ClubStaffOperationsService(this.client);
   final SupabaseClient client;
-  Future<List<ClubOperationsAuthority>> authority() async=>List.unmodifiable(_rows(await client.rpc('my_club_operations_authority')).map(ClubOperationsAuthority.fromMap));
-  Future<ClubInventoryBoard> inventory(String clubId) async=>ClubInventoryBoard.fromMap(Map<String,dynamic>.from(await client.rpc('club_inventory_board',params:{'p_club':clubId}) as Map));
-  Future<List<ClubHealthOperation>> health(String clubId) async=>List.unmodifiable(_rows(await client.rpc('club_health_operations',params:{'p_club':clubId})).map(ClubHealthOperation.fromMap));
-  Future<ClubSportingOverview> sporting(String clubId) async=>ClubSportingOverview.fromMap(Map<String,dynamic>.from(await client.rpc('club_sporting_overview',params:{'p_club':clubId}) as Map));
+  Future<List<ClubOperationsAuthority>> authority() async=>List.unmodifiable(_rows(await client.rpc<dynamic>('my_club_operations_authority')).map(ClubOperationsAuthority.fromMap));
+  Future<ClubInventoryBoard> inventory(String clubId) async=>ClubInventoryBoard.fromMap(Map<String,dynamic>.from(await client.rpc<dynamic>('club_inventory_board',params:{'p_club':clubId}) as Map));
+  Future<List<ClubHealthOperation>> health(String clubId) async=>List.unmodifiable(_rows(await client.rpc<dynamic>('club_health_operations',params:{'p_club':clubId})).map(ClubHealthOperation.fromMap));
+  Future<ClubSportingOverview> sporting(String clubId) async=>ClubSportingOverview.fromMap(Map<String,dynamic>.from(await client.rpc<dynamic>('club_sporting_overview',params:{'p_club':clubId}) as Map));
   Future<void> write(String rpc,Map<String,dynamic> payload) async {
     if(!const {'inventory_add_item','inventory_assign','inventory_return','set_club_athlete_rest','open_health_restriction','clear_health_restriction'}.contains(rpc))throw ArgumentError('Unsupported club operation');
-    await client.rpc(rpc,params:payload);
+    await client.rpc<dynamic>(rpc,params:payload);
   }
 }
 final clubStaffOperationsServiceProvider=Provider<ClubStaffOperationsService?>((ref)=>ref.watch(isSupabaseEnabledProvider)?ClubStaffOperationsService(ref.watch(supabaseClientProvider)):null);

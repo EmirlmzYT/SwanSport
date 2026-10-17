@@ -10,7 +10,6 @@ import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
-import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 

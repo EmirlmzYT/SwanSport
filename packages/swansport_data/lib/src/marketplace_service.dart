@@ -509,7 +509,7 @@ class MarketplaceService {
         .eq('profile_id', uid);
     return (rows as List)
         .map((r) => (r as Map)['stores'])
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map((m) => StoreRow.fromMap(Map<String, dynamic>.from(m)))
         .toList();
   }

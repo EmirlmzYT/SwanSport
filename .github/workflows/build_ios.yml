@@ -9,6 +9,11 @@ on:
       - 'packages/**'
       - '.github/workflows/build_ios.yml'
   workflow_dispatch:
+    inputs:
+      preview_only:
+        description: 'Only build an unsigned preview; never configure Apple distribution signing'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -30,6 +35,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       - name: Bootstrap workspace
@@ -56,12 +62,17 @@ jobs:
           API_KEY_ID: ${{ vars.APPSTORE_API_KEY_ID }}
           TEAM_ID: ${{ vars.IOS_TEAM_ID }}
         run: |
-          if [[ -n "$CERTIFICATE" && -n "$CERTIFICATE_PASSWORD" && -n "$API_PRIVATE_KEY" && -n "$ISSUER_ID" && -n "$API_KEY_ID" && -n "$TEAM_ID" ]]; then
+          if [[ "${{ inputs.preview_only }}" != "true" && -n "$CERTIFICATE" && -n "$CERTIFICATE_PASSWORD" && -n "$API_PRIVATE_KEY" && -n "$ISSUER_ID" && -n "$API_KEY_ID" && -n "$TEAM_ID" ]]; then
             echo 'available=true' >> "$GITHUB_OUTPUT"
           else
             echo 'available=false' >> "$GITHUB_OUTPUT"
             echo 'Apple signing bilgileri eksik; Sideloadly için unsigned IPA üretilecek.'
           fi
+      - name: Configure iOS Firebase resource
+        env:
+          GOOGLESERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLESERVICE_INFO_PLIST_BASE64 }}
+          REQUIRE_IOS_FIREBASE_CONFIG: ${{ steps.signing.outputs.available }}
+        run: python tools/configure_ios_firebase.py
       - name: Configure unsigned build signing
         working-directory: apps/swansport_app
         run: |

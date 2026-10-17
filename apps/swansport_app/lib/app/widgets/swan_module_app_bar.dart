@@ -25,7 +25,7 @@ AppBar swanModuleAppBar(BuildContext context, {
       style: SwanType.h3(c.ink)) : Column(mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text(title, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(c.ink)),
-      if (subtitle != null) Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis,
+      Text(subtitle, maxLines: 1, overflow: TextOverflow.ellipsis,
         style: SwanType.caption(c.inkMuted)),
     ]),
     actions: actions,

@@ -24,6 +24,7 @@ def validate_config(encoded: str, bundle_id: str = 'com.swansport.app') -> bytes
 
 def generate_stub_plist(bundle_id: str = 'com.swansport.app') -> bytes:
     stub = {
+        'BUNDLE_ID': bundle_id,
         'API_KEY': 'AIzaSyPlaceholderKeyForBuild',
         'GCM_SENDER_ID': '000000000000',
         'PLIST_VERSION': '1',
@@ -43,6 +44,8 @@ if __name__ == '__main__':
     encoded = os.environ.get('GOOGLESERVICE_INFO_PLIST_BASE64', '')
     target = Path(__file__).resolve().parent.parent / 'apps/swansport_app/ios/Runner/GoogleService-Info.plist'
     if not encoded.strip():
+        if os.environ.get('REQUIRE_IOS_FIREBASE_CONFIG') == 'true':
+            raise SystemExit('İmzalı iOS derlemesi için GOOGLESERVICE_INFO_PLIST_BASE64 secret gerekli.')
         print('[UYARI] GOOGLESERVICE_INFO_PLIST_BASE64 secret bulunamadı; unsigned IPA derlemesi için yer tutucu plist üretildi.')
         print('[UYARI] Canlı cihazda push bildirimi almak için GitHub secret olarak GoogleService-Info.plist base64 eklenmelidir.')
         target.write_bytes(generate_stub_plist(os.environ.get('IOS_BUNDLE_ID', 'com.swansport.app')))

@@ -1,8 +1,24 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-16 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `ready_for_review`
+Son güncelleme: 2026-10-17 Europe/Istanbul
+Aktif Writer: Codex
+Durum: `in_progress`
+
+2026-10-17: Kullanıcı son düzeltmelerle denemelik IPA istedi. 0.5.13+42 önizlemesi ayrı codex dalında commit/push ve macOS workflow_dispatch ile derlenecek; main/tag/web/canlı SQL/TestFlight değişmez. Önceki stage bu kullanıcı çalışmasının derleme kaynağıdır. Windows kaynak/test doğrulamaları geçer; gerçek IPA kabulü CI sonucuna bağlı.
+
+2026-10-17: Flutter 3.47.7 ile ortaya çıkan gerçek test/derleme sorunlarını temizleme devralındı. Önceki stage ve SDK bağımlılık çözümü korunur; canlı SQL/yayın/IPA/commit/push yok. Başlangıç: konsol 82, core 26, motor 197 ve açılış/duyuru 7 geçer; mobil/veri koşuları hatalı ve bazı async testler takılır.
+
+2026-10-17 kontrol noktası: Gerçek SDK altında mobil 480/480, veri 504/504 ve konsol 82/82 geçti. Auth null yüklenme geçişi seçimi, popup arkasındaki spinner, opsiyonel haptic beklemesi, tooltip/uzun basış çakışması, Material ink, lig anahtarları ve sheet pop düzeltildi. Testlerde gerçek isolate kurulumu/disposal runAsync içinde; Auth otomatik timerları kapalı, test saatleri açıkça ilerletilir. Canlı varsayılan bootstrap yerine fixture/boş config test edilir. Analiz uyarıları mekanik olarak temizleniyor; nihai tekrar koşuları ve stage sürüyor.
+
+2026-10-17 sonuç: Son kaynakta mobil 480/480, data 504/504, konsol 82/82; son Session seçimi ayrıca rol/erişim/takip 24/24. SDK ile motor 197 ve core 26 da geçti (bu paketler değişmedi). Analiz --no-fatal-infos ile exit 0: 0 error/0 warning, 4213 info/stil önerisi korunur. SSS 44/44, push 42 kayıpsız, 609 Dart syntax/24 kaynak, senkronizasyon 5/5; iOS config 5/5 ve gönderici 5/5. iOS arka plan/entitlement/resource ve CI Firebase hazırlığı bağlı; unsigned stub korunur, imzalı build gerçek config ister. Android SDK/Xcode ve cihaz/IPA kabulü yok; Developer Mode plugin symlink uyarısı sürer. Kanıt docs/flutter-sdk-test-cleanup.md. Yalnız görev değişiklikleri/SDK lock stage; commit/push/deploy/canlı SQL/IPA yok. Writer serbest.
+
+2026-10-17: Oturumlu açılışta profil beklenirken görünen misafir ekranı devralındı. Oturum/görünüm ayrımı düzeltilecek; SwanAccess yetkileri ve önceki stage korunur. IPA/yayın yok.
+
+2026-10-17 sonuç: Feed misafir kararı canlıda Auth oturumuna bağlandı; profil/kulüp beklerken ana akış kabuğu korunur, SwanAccess yetkileri değişmez. Auth belirsizliğinde nötr zemin, hatasında tekrar deneme; hata misafir sayılmaz. Regresyon widget testi eklendi; Flutter/Dart SDK yok, çalıştırılamadı. 609 Dart syntax ve 24/24 token sözleşmesi, SSS 44/44, push 42 ve diff temiz. Yalnız stage; IPA/yayın yok. Writer serbest.
+
+2026-10-17: Codex akışta kaydırmaya duyarlı cam üst/alt gezinmeyi üstlendi. Beş sekme, giriş kapıları, rozetler ve SwanBottomNav parametresiz sözleşmesi korunur; kapsam ilk olarak Ana Akış. Diğer ekranlar sabit kalır. Canlı yayın/commit/push yok.
+
+2026-10-17 sonuç: Route-local scroll controller, 62/48 dp kompakt alt gezinme, tek floating cam marka/filtre başlığı ve erişilebilirlik fallback'i bağlı. Üç Flutter test kaynağı eklendi; SDK olmadığından çalıştırılmadı. 608 Dart syntax/24 kaynak sözleşmesi temiz; mevcut senkronizasyon 5/5, SSS 44/44 ve push 42 kayıpsız. Kanıt/sınırlar docs/feed-scroll-chrome.md. Yalnız stage, yeni IPA/APK veya yayın yok. Writer serbest; gerçek cihaz/typecheck kabulü açık.
 
 2026-10-16: Codex genel revizyon/piksel planını devraldı. 0121 ile görünürlük ve ayrı kulüp antrenman branşları, ortak servis ve hedef ekran standardizasyonu uygulanır. Eski migration/testler korunur; canlı SQL/deploy/commit/push yok. Başlangıçta yalnız yeni plan untracked idi.
 

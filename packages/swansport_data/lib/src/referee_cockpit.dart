@@ -111,17 +111,17 @@ class RefereeCockpitService {
   RefereeCockpitService(this._client);
   final SupabaseClient _client;
   Future<List<RefereeLineupCandidate>> candidates(String matchId) async {
-    final rows = await _client.rpc('referee_lineup_candidates',params:{'p_match_id':matchId});
+    final rows = await _client.rpc<dynamic>('referee_lineup_candidates',params:{'p_match_id':matchId});
     return List.unmodifiable([for(final row in rows as List)
       RefereeLineupCandidate.fromMap(Map<String,dynamic>.from(row as Map))]);
   }
   Future<RefereeLiveState> state(String matchId) async => RefereeLiveState.fromMap(
-    Map<String,dynamic>.from(await _client.rpc('referee_match_state',params:{'p_match_id':matchId}) as Map));
+    Map<String,dynamic>.from(await _client.rpc<dynamic>('referee_match_state',params:{'p_match_id':matchId}) as Map));
   Future<void> send(String rpc, Map<String,dynamic> params) async {
     if(!const {'referee_append_match_event','referee_submit_match_report'}.contains(rpc)) {
       throw ArgumentError.value(rpc,'rpc','Hakem yazma servisi yalnız maç olayı ve rapor kabul eder');
     }
-    await _client.rpc(rpc,params:params);
+    await _client.rpc<dynamic>(rpc,params:params);
   }
 }
 final refereeCockpitServiceProvider = Provider<RefereeCockpitService?>((ref) =>

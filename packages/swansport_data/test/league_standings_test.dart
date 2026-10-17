@@ -33,7 +33,7 @@ void main(){
   });
   test('service uses exact public RPC parameters, empty/null and safe logo conversion',()async{
     final requests=<http.Request>[];
-    final client=SupabaseClient('https://example.supabase.co','test',httpClient:MockClient((r)async{
+    final client=SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false),httpClient:MockClient((r)async{
       requests.add(r);final path=r.url.path;
       return http.Response(path.endsWith('public_league_standings')?jsonEncode([{..._row(),'club_logo':'club/logo.png'}])
         :path.endsWith('match_public_standings_context')?'null':'[]',200,headers:{'content-type':'application/json'},request:r);
@@ -53,19 +53,19 @@ void main(){
     expect(await c.read(matchStandingsContextProvider(_id).future),isNull);
   });
   testWidgets('live 10s and official 30s polling stop after last subscription',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_Service(client);final c=ProviderContainer(overrides:[isSupabaseEnabledProvider.overrideWithValue(true),
       featureEnabledProvider(FeatureFlags.leagueStandings).overrideWithValue(true),leagueStandingsServiceProvider.overrideWithValue(service)]);
     addTearDown(c.dispose);
     final live=c.listen(leagueStandingsProvider((orgId:_id,includeLive:true)),(_,__){});
     final official=c.listen(leagueStandingsProvider((orgId:_id,includeLive:false)),(_,__){});
     await tester.pump();expect(service.calls,2);await tester.pump(const Duration(seconds:11));await tester.pump();expect(service.calls,3);
-    await tester.pump(const Duration(seconds:20));await tester.pump();expect(service.calls,5);
-    live.close();official.close();await tester.pump();await tester.pump();final count=service.calls;
+    await tester.pump(const Duration(seconds:20));await tester.pump();expect(service.calls,6);
+    live.close();official.close();await tester.pump(Duration.zero);await tester.pump(Duration.zero);final count=service.calls;
     await tester.pump(const Duration(seconds:60));expect(service.calls,count);
   });
   testWidgets('slow request has no overlapping timer and late completion after disposal is safe',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_Service(client)..pending=Completer<List<LeagueStandingsRow>>();
     final c=ProviderContainer(overrides:[isSupabaseEnabledProvider.overrideWithValue(true),
       featureEnabledProvider(FeatureFlags.leagueStandings).overrideWithValue(true),leagueStandingsServiceProvider.overrideWithValue(service)]);
@@ -75,11 +75,12 @@ void main(){
     await tester.pump(const Duration(seconds:60));expect(service.calls,1);expect(tester.takeException(),isNull);
   });
   testWidgets('failed polling exposes error then retries without stale table',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_Service(client)..fail=true;final c=ProviderContainer(overrides:[isSupabaseEnabledProvider.overrideWithValue(true),
       featureEnabledProvider(FeatureFlags.leagueStandings).overrideWithValue(true),leagueStandingsServiceProvider.overrideWithValue(service)]);
     addTearDown(c.dispose);final p=leagueStandingsProvider((orgId:_id,includeLive:true));
     final sub=c.listen(p,(_,__){});addTearDown(sub.close);await tester.pump();expect(c.read(p).hasError,isTrue);
     service.fail=false;await tester.pump(const Duration(seconds:11));await tester.pump();expect(c.read(p).asData?.value.length,1);
+    sub.close();c.dispose();await tester.pump(Duration.zero);
   });
 }

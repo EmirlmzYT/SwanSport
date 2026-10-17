@@ -134,31 +134,31 @@ class FederationConsoleService {
   FederationConsoleService(this.client);
   final SupabaseClient client;
   Future<List<FederationConsoleScope>> scopes() async => List.unmodifiable(
-    _rows(await client.rpc('federation_console_scopes')).map(FederationConsoleScope.fromMap));
+    _rows(await client.rpc<dynamic>('federation_console_scopes')).map(FederationConsoleScope.fromMap));
   Future<FederationConsolePage<FederationConsoleMatch>> matches(FederationMatchQuery q) async {
-    final m = Map<String, dynamic>.from(await client.rpc('federation_console_matches', params: {
+    final m = Map<String, dynamic>.from(await client.rpc<dynamic>('federation_console_matches', params: {
       'p_city': q.cityCode, 'p_offset': q.offset, 'p_search': q.search,
       'p_from': q.from?.toUtc().toIso8601String(), 'p_until': q.until?.toUtc().toIso8601String()}) as Map);
     return FederationConsolePage(total: (m['total'] as num).toInt(), rows: _rows(m['rows']).map(FederationConsoleMatch.fromMap).toList());
   }
   Future<List<AvailableReferee>> referees(String matchId) async => List.unmodifiable(
-    _rows(await client.rpc('federation_available_referees', params: {'p_match_id': matchId, 'p_city': null})).map(AvailableReferee.fromMap));
+    _rows(await client.rpc<dynamic>('federation_available_referees', params: {'p_match_id': matchId, 'p_city': null})).map(AvailableReferee.fromMap));
   Future<void> assignMatchOfficial(String matchId, String profileId, MatchOfficialDuty duty) async {
-    await client.rpc('assign_match_official', params: {'p_match_id': matchId, 'p_profile_id': profileId, 'p_duty': duty.wireName});
+    await client.rpc<dynamic>('assign_match_official', params: {'p_match_id': matchId, 'p_profile_id': profileId, 'p_duty': duty.wireName});
   }
   Future<void> allocateOfficialMatchFacility(String matchId, String facilityId, DateTime endsAt) async {
-    await client.rpc('allocate_official_match_facility', params: {
+    await client.rpc<dynamic>('allocate_official_match_facility', params: {
       'p_match_id': matchId, 'p_facility_id': facilityId, 'p_ends_at': endsAt.toUtc().toIso8601String()});
   }
   Future<FederationConsolePage<FederationDisciplinaryReport>> reports(int offset) async {
-    final m = Map<String, dynamic>.from(await client.rpc('federation_disciplinary_reports', params: {'p_offset': offset}) as Map);
+    final m = Map<String, dynamic>.from(await client.rpc<dynamic>('federation_disciplinary_reports', params: {'p_offset': offset}) as Map);
     return FederationConsolePage(total: (m['total'] as num).toInt(), rows: _rows(m['rows']).map(FederationDisciplinaryReport.fromMap).toList());
   }
   Future<void> recordDecision(Map<String, dynamic> payload) async {
-    await client.rpc('record_disciplinary_decision', params: payload);
+    await client.rpc<dynamic>('record_disciplinary_decision', params: payload);
   }
   Future<LockedRefereeReport?> lockedReport(String matchId) async {
-    final row = await client.rpc('federation_locked_match_report', params: {'p_match_id': matchId});
+    final row = await client.rpc<dynamic>('federation_locked_match_report', params: {'p_match_id': matchId});
     return row == null ? null : LockedRefereeReport.fromMap(Map<String, dynamic>.from(row as Map));
   }
 }

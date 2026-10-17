@@ -34,7 +34,7 @@ void main() {
     for (final entry in titles.entries) {
       final file = files.singleWhere((f) => f.path.replaceAll('\\', '/').endsWith('/${entry.key}_screen.dart'));
       final source = file.readAsStringSync();
-      expect(source.contains("appBar: swanModuleAppBar(context, title: '${entry.value}'"), isTrue, reason: file.path);
+      expect(RegExp("appBar:\\s*swanModuleAppBar\\(\\s*context,\\s*title:\\s*'${RegExp.escape(entry.value)}'").hasMatch(source), isTrue, reason: file.path);
       expect(source.contains('SwanPageHeader('), isFalse, reason: file.path);
     }
   });

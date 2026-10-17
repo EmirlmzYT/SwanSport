@@ -32,7 +32,11 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(authSessionProvider).when(
           loading: () => const _Blank(),
-          error: (error, _) => const GuestExploreScreen(),
+          // An Auth failure is not evidence of a signed-out session.
+          error: (error, _) => Scaffold(body: Center(child: TextButton(
+            onPressed: () => ref.invalidate(authSessionProvider),
+            child: const Text('Oturumu yeniden kontrol et'),
+          ))),
           data: (session) {
             if (session != null) {
               return ref.watch(setupWizardRequiredProvider(session.user.id)).when(

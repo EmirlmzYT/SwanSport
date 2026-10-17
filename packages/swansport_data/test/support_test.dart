@@ -26,9 +26,9 @@ void main() {
       expect(f.route, isNull);
     });
 
-    test('kategori eksikse Genel', () {
+    test('kategori eksikse canonical genel anahtarı', () {
       final f = FaqEntry.fromMap({'id': 'f', 'question': 'q', 'answer': 'a'});
-      expect(f.category, 'Genel');
+      expect(f.category, 'genel');
     });
   });
 

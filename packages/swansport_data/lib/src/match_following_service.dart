@@ -33,4 +33,7 @@ final AutoDisposeFutureProviderFamily<MatchFollowState?,String> matchFollowState
     finally{if(!disposed){final timer=Timer(const Duration(seconds:30),ref.invalidateSelf);ref.onDispose(timer.cancel);}}
   });
 final AutoDisposeFutureProviderFamily<bool,String> isMatchFollowedProvider=FutureProvider.autoDispose.family<bool,String>(
-  (ref,id) async =>(await ref.watch(matchFollowStateProvider(id).future))?.isFollowed??false);
+  (ref,id) async {
+    if (ref.watch(authSessionProvider.select((s) => s.valueOrNull?.user.id)) == null) return false;
+    return (await ref.watch(matchFollowStateProvider(id).future))?.isFollowed ?? false;
+  });

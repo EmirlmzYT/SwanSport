@@ -655,12 +655,12 @@ class _FacilityReservationScreenState
             ),
           ],
           if (_checkedConflicts && _conflicts.isNotEmpty)
-            CheckboxListTile(
+            Material(type: MaterialType.transparency, child: CheckboxListTile(
               value: _allowConflict,
               activeColor: c.accent,
               title: Text('Çakışmaya rağmen kaydet', style: SwanType.bodySm(c.ink)),
               onChanged: _isSubmitting ? null : (value) => setState(() => _allowConflict = value ?? false),
-            ),
+            )),
           const SizedBox(height: SwanSpace.lg),
           SizedBox(
             width: double.infinity,

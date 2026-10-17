@@ -342,13 +342,6 @@ final marketSummaryProvider =
   if (!ref.watch(isSupabaseEnabledProvider)) return const {};
   final c = Supabase.instance.client;
 
-  Future<int> count(String table, void Function(dynamic q) apply) async {
-    var q = c.from(table).select('id');
-    apply(q);
-    final rows = await q;
-    return (rows as List).length;
-  }
-
   final active = await c
       .from('listings')
       .select('id, item_condition, market_status')

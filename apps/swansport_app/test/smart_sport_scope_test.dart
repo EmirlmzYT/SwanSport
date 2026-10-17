@@ -34,8 +34,8 @@ void main() {
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Satranç');
     await tester.pumpAndSettle();
-    expect(find.text('Satranç'), findsOneWidget);
-    await tester.tap(find.text('Satranç'));
+    expect(find.widgetWithText(ListTile, 'Satranç'), findsOneWidget);
+    await tester.tap(find.widgetWithText(ListTile, 'Satranç'));
     await tester.pumpAndSettle();
     final container = ProviderScope.containerOf(tester.element(find.byType(SmartSportScopeBar)));
     expect(container.read(effectiveSportContextProvider), 'satranc');

@@ -8,7 +8,7 @@ import 'supabase_scope.dart';
 class LiveMatchService {
   LiveMatchService(this.client);
   final SupabaseClient client;
-  Map<String,dynamic> _map(Map row) {
+  Map<String,dynamic> _map(Map<dynamic,dynamic> row) {
     final m=Map<String,dynamic>.from(row);
     for(final key in ['home_club_logo','away_club_logo']) {
       final value=m[key];
@@ -22,15 +22,15 @@ class LiveMatchService {
   }
   static void _id(String id) {if(!isPublicMatchId(id))throw ArgumentError('Geçersiz maç kimliği');}
   Future<List<PublicLiveMatchSummary>> fetchLiveMatches({String? sport,String? city}) async {
-    final rows=await client.rpc('public_live_matches',params:{'p_sport':sport,'p_city':city});
+    final rows=await client.rpc<dynamic>('public_live_matches',params:{'p_sport':sport,'p_city':city});
     return List.unmodifiable([for(final row in rows as List)PublicLiveMatchSummary.fromMap(_map(row as Map))]);
   }
   Future<PublicLiveMatchDetail?> fetchPublicMatchState(String matchId) async {
-    _id(matchId);final row=await client.rpc('match_public_live_state',params:{'p_match_id':matchId});
+    _id(matchId);final row=await client.rpc<dynamic>('match_public_live_state',params:{'p_match_id':matchId});
     return row==null ? null : PublicLiveMatchDetail.fromMap(_map(row as Map));
   }
   Future<PublicMatchRoster?> fetchPublicMatchRoster(String matchId) async {
-    _id(matchId);final row=await client.rpc('match_public_roster',params:{'p_match_id':matchId});
+    _id(matchId);final row=await client.rpc<dynamic>('match_public_roster',params:{'p_match_id':matchId});
     return row==null ? null : PublicMatchRoster.fromMap(Map<String,dynamic>.from(row as Map));
   }
 }

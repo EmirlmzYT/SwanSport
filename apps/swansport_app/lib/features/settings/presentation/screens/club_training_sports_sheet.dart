@@ -31,7 +31,11 @@ class _ClubTrainingSportsSheetState extends ConsumerState<ClubTrainingSportsShee
         clubId: widget.clubId, sportCodes: _selected.toList()..sort());
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Kulüp antrenman branşları kaydedildi.')));
-      Navigator.pop(context);
+      setState(() => _busy = false);
+      // PopScope must rebuild before the successful programmatic pop.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.pop(context);
+      });
     } catch (e) {
       if (mounted) setState(() => _error = 'Kaydedilemedi: $e');
     } finally { if (mounted) setState(() => _busy = false); }
@@ -40,6 +44,7 @@ class _ClubTrainingSportsSheetState extends ConsumerState<ClubTrainingSportsShee
   Widget build(BuildContext context) {
     final c = context.swan;
     final sports = ref.watch(activeClubSportsProvider);
+    final activeClub = ref.watch(activeClubProvider);
     return PopScope(canPop: !_busy, child: SafeArea(child: Padding(
       padding: EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.lg, SwanSpace.lg,
         MediaQuery.viewInsetsOf(context).bottom + SwanSpace.lg),
@@ -66,7 +71,7 @@ class _ClubTrainingSportsSheetState extends ConsumerState<ClubTrainingSportsShee
           },
         )),
         if (_error != null) Text(_error!, style: SwanType.bodySm(c.danger)),
-        FilledButton(onPressed: !_busy && _initialized && sports.hasValue && !sports.isLoading && !sports.hasError ? _save : null,
+        FilledButton(onPressed: !_busy && _initialized && activeClub.valueOrNull?.id == widget.clubId && sports.hasValue && !sports.isLoading && !sports.hasError ? _save : null,
           child: Text(_busy ? 'Kaydediliyor…' : 'Kaydet')),
       ]),
     )));

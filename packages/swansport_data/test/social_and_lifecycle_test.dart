@@ -194,7 +194,7 @@ void main() {
 
     test('tekrar gönderim işaretli dönüyor', () {
       final res = AttendanceOpResult.fromMap(
-          {'applied': 12, 'conflicts': [], 'replayed': true});
+          {'applied': 12, 'conflicts': <Map<String,dynamic>>[], 'replayed': true});
       expect(res.replayed, isTrue);
       expect(res.hasConflicts, isFalse);
       // Uygulanan sayı ilk seferin sonucundan geliyor; sıfır değil.

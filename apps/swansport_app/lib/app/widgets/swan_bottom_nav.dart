@@ -10,6 +10,8 @@ import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
 import 'create_sheet.dart';
+import 'scroll_chrome.dart';
+import '../design/swan_chrome.dart';
 
 /// Sabit beş öğeli alt gezinme.
 ///
@@ -84,6 +86,11 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     final route = current == '/' ? '/akis' : current;
     final myId = ref.watch(currentProfileProvider).valueOrNull?.id;
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
+    final chrome = ScrollChromeScope.maybeOf(context);
+    final compact = chrome?.compact == true && _scrub == null;
+    final glass = chrome != null || isIos;
+    final accessible = MediaQuery.highContrastOf(context) || MediaQuery.disableAnimationsOf(context);
+    final motion = MediaQuery.disableAnimationsOf(context) ? Duration.zero : SwanChrome.duration;
 
     // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
     final targets = <_NavTarget>[
@@ -155,18 +162,21 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
             borderRadius: BorderRadius.circular(SwanRadius.lg),
             child: BackdropFilter(
               filter: ImageFilter.blur(
-                sigmaX: isIos ? 18 : 0,
-                sigmaY: isIos ? 18 : 0,
+                sigmaX: glass && !accessible ? SwanChrome.blur : 0,
+                sigmaY: glass && !accessible ? SwanChrome.blur : 0,
               ),
-              child: Container(
-                height: 62,
+              child: AnimatedContainer(
+                key: const Key('swan-bottom-nav-surface'),
+                duration: motion,
+                curve: Curves.easeOutCubic,
+                height: compact ? SwanChrome.compactHeight : SwanChrome.expandedHeight,
                 decoration: BoxDecoration(
-                  color: isIos
+                  color: glass && !accessible
                       ? c.surface.withValues(alpha: c.isDark ? .76 : .68)
                       : c.surface,
                   borderRadius: BorderRadius.circular(SwanRadius.lg),
-                  border: isIos
-                      ? Border.all(color: Colors.white.withValues(alpha: .22))
+                  border: glass
+                      ? Border.all(color: c.line)
                       : null,
                   boxShadow: [
                     BoxShadow(
@@ -196,6 +206,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                             ? route == targets[i].route
                             : _scrub == i,
                         scrubbing: _scrub == i,
+                        compact: compact,
                         onTap: () {
                           _go(context, targets[i].route, profileId: myId);
                         },
@@ -245,6 +256,7 @@ class _Tab extends StatelessWidget {
     required this.active,
     required this.onTap,
     this.scrubbing = false,
+    this.compact = false,
   });
 
   final IconData icon;
@@ -255,6 +267,7 @@ class _Tab extends StatelessWidget {
   /// Parmak şu an bu sekmenin üstünde. Görsel olarak öne çıkıyor ki
   /// kullanıcı bırakmadan önce nereye gideceğini görsün.
   final bool scrubbing;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -263,16 +276,18 @@ class _Tab extends StatelessWidget {
     // aktif durum için.
     final color = active ? c.accent : c.inkMuted;
 
-    return GestureDetector(
+    return Semantics(label: label, button: true, selected: active, onTap: onTap,
+      excludeSemantics: true, child: Tooltip(message: label,
+      triggerMode: TooltipTriggerMode.manual, child: GestureDetector(
       behavior: HitTestBehavior.opaque,
       onTap: onTap,
       child: AnimatedScale(
         // Kısa ve az: 1.08 fark edilir ama zıplamıyor.
-        scale: scrubbing ? 1.08 : 1,
-        duration: const Duration(milliseconds: 120),
+        scale: scrubbing && !MediaQuery.disableAnimationsOf(context) ? 1.08 : 1,
+        duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : SwanChrome.duration,
         curve: Curves.easeOut,
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
+          duration: MediaQuery.disableAnimationsOf(context) ? Duration.zero : SwanChrome.duration,
           width: 60,
           decoration: BoxDecoration(
             // Yalnızca kaydırma sırasında zemin: parmağın altındaki sekme
@@ -280,23 +295,25 @@ class _Tab extends StatelessWidget {
             color: active ? c.accentSoft : Colors.transparent,
             borderRadius: BorderRadius.circular(SwanRadius.md),
           ),
-          padding: const EdgeInsets.symmetric(vertical: 6),
+          constraints: const BoxConstraints(minHeight: SwanChrome.compactHeight),
+          padding: EdgeInsets.symmetric(vertical: compact ? SwanSpace.xs : SwanSpace.xs + SwanSpace.xs / 2),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(icon, size: 22, color: color),
-              const SizedBox(height: 3),
-              Text(label,
+              if (!compact) const SizedBox(height: 3),
+              if (!compact)
+              Flexible(child: Text(label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: SwanType.caption(color,
-                      w: active ? FontWeight.w800 : FontWeight.w600)),
+                      w: active ? FontWeight.w800 : FontWeight.w600))),
             ],
           ),
         ),
       ),
-    );
+    )));
   }
 }
 
@@ -316,8 +333,8 @@ class _CreateButton extends ConsumerWidget {
         }
       },
       child: Container(
-        width: 46,
-        height: 46,
+        width: SwanChrome.compactHeight,
+        height: SwanChrome.compactHeight,
         decoration: BoxDecoration(
           // `accent` değil `accentFill`: üstünde beyaz ikon var. Koyu temada
           // parlak teal + beyaz 2.27:1 veriyordu, eşik 3:1.

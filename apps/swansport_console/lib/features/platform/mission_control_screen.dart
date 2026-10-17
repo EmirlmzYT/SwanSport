@@ -253,7 +253,7 @@ class _LogoField extends StatelessWidget {
             decoration: BoxDecoration(color: Theme.of(context).colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
             clipBehavior: Clip.antiAlias,
-            child: !valid ? placeholder() : uri!.path.toLowerCase().endsWith('.svg')
+            child: !valid ? placeholder() : uri.path.toLowerCase().endsWith('.svg')
               ? SvgPicture.network(url, fit: BoxFit.contain, semanticsLabel: 'Marka logosu',
                   placeholderBuilder: (_) => placeholder())
               : Image.network(url, fit: BoxFit.contain, semanticLabel: 'Marka logosu',

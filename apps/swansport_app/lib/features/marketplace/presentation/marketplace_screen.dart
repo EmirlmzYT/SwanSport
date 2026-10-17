@@ -302,8 +302,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     MarketItem it,
     bool isFav,
   ) {
-    final svc = ref.read(marketplaceServiceProvider);
-
     return GestureDetector(
       onTap: () =>
           Navigator.pushNamed(context, '/urun', arguments: {'id': it.id}),
@@ -331,7 +329,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 children: [
                   if (it.imagePath != null)
                     Image.network(
-                      svc.imageUrl(it.imagePath!),
+                      ref.read(marketplaceServiceProvider).imageUrl(it.imagePath!),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _noImage(palette),
                     )
@@ -390,7 +388,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                     right: 6,
                     child: GestureDetector(
                       onTap: () async {
-                        await svc.setFavorite(it.id, !isFav);
+                        await ref.read(marketplaceServiceProvider).setFavorite(it.id, !isFav);
                         ref.invalidate(marketFavoritesProvider);
                       },
                       child: Container(

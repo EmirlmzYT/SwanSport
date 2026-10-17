@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import '../../../app/design/swan_shape.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';

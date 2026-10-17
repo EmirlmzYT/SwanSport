@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/design/swan_palette.dart';
-import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/swan_module_app_bar.dart';
 import '../../../athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 import '../../application/communication_center_state.dart';

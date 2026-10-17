@@ -1,13 +1,29 @@
 import base64
 import plistlib
+import os
+import runpy
 import unittest
+from unittest.mock import patch
 from pathlib import Path
-from configure_ios_firebase import validate_config
+from configure_ios_firebase import generate_stub_plist, validate_config
 
 ROOT = Path(__file__).resolve().parent.parent
 
 
 class IosPushConfigTest(unittest.TestCase):
+    def test_unsigned_stub_retains_bundle_but_is_not_real_push_configuration(self):
+        stub = plistlib.loads(generate_stub_plist('com.swansport.fixture'))
+        self.assertEqual(stub['BUNDLE_ID'], 'com.swansport.fixture')
+        self.assertIn('Placeholder', stub['API_KEY'])
+
+    def test_signed_build_without_real_config_stops_before_materializing(self):
+        with patch.dict(os.environ, {'GOOGLESERVICE_INFO_PLIST_BASE64': '',
+                                     'REQUIRE_IOS_FIREBASE_CONFIG': 'true'}):
+            with patch.object(Path, 'write_bytes') as write:
+                with self.assertRaisesRegex(SystemExit, 'secret gerekli'):
+                    runpy.run_path(str(ROOT / 'tools/configure_ios_firebase.py'), run_name='__main__')
+                write.assert_not_called()
+
     def test_background_entitlement_and_xcode_bundle_contract(self):
         ios = ROOT / 'apps/swansport_app/ios'
         info = plistlib.loads((ios / 'Runner/Info.plist').read_bytes())

@@ -30,7 +30,7 @@ void main(){
     expect(NotificationRow(id:'n',kind:'match_live',title:'Skor',createdAt:DateTime.utc(2026),entityType:'match',entityId:'../../auth').liveMatchRoute,isNull);
   });
   test('service exact RPC args, explicit desired-state retry and hidden result',()async{
-    final requests=<http.Request>[];final client=SupabaseClient('https://example.supabase.co','test',httpClient:MockClient((r)async{
+    final requests=<http.Request>[];final client=SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false),httpClient:MockClient((r)async{
       requests.add(r);return http.Response(r.url.path.endsWith('get_match_follow_status')?'null':'true',200,headers:{'content-type':'application/json'},request:r);
     }));addTearDown(client.dispose);final service=MatchFollowingService(client);
     expect(await service.fetchState(_id),isNull);expect(await service.toggleFollow(_id),isTrue);
@@ -45,19 +45,20 @@ void main(){
     expect(await c.read(matchFollowStateProvider(_id).future),isNull);expect(await c.read(isMatchFollowedProvider(_id).future),isFalse);
   });
   testWidgets('status polling is session-scoped and cancelled when no observer remains',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);final service=_Service(client);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));final service=_Service(client);
     final sessions=StreamController<Session?>();addTearDown(sessions.close);
     final c=ProviderContainer(overrides:[isSupabaseEnabledProvider.overrideWithValue(true),
       featureEnabledProvider(FeatureFlags.liveMatchNotifications).overrideWithValue(true),
       authSessionProvider.overrideWith((_)=>sessions.stream),matchFollowingServiceProvider.overrideWithValue(service)]);addTearDown(c.dispose);
-    final sub=c.listen(isMatchFollowedProvider(_id),(_,__){});sessions.add(_session('first'));await tester.pump();await tester.pump();
+    final sub=c.listen(isMatchFollowedProvider(_id),(_,__){});sessions.add(_session('first'));await tester.pump(Duration.zero);await tester.pump(Duration.zero);
     expect(service.calls,1);expect(c.read(isMatchFollowedProvider(_id)).valueOrNull,isTrue);
     await tester.pump(const Duration(seconds:31));await tester.pump();expect(service.calls,2);
-    sessions.add(null);await tester.pump();await tester.pump();expect(c.read(isMatchFollowedProvider(_id)).valueOrNull,isFalse);
+    sessions.add(null);await tester.pump(Duration.zero);await tester.pump(Duration.zero);expect(c.read(isMatchFollowedProvider(_id)).valueOrNull,isFalse);
     final count=service.calls;await tester.pump(const Duration(seconds:60));expect(service.calls,count);sub.close();
+    c.dispose();await tester.pump(Duration.zero);
   });
   testWidgets('late status completion after disposal cannot start another poll',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_Service(client)..pending=Completer<MatchFollowState?>();
     final c=ProviderContainer(overrides:[isSupabaseEnabledProvider.overrideWithValue(true),
       featureEnabledProvider(FeatureFlags.liveMatchNotifications).overrideWithValue(true),authSessionProvider.overrideWith((_)=>Stream.value(_session('first'))),

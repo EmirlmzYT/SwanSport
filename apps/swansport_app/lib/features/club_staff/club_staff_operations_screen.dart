@@ -24,7 +24,7 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
     Widget body=Text('Aktif kulüp ve ihtisas yetkisi gerekli.',style:SwanType.body(c.ink));
     final allowed=club!=null&&switch(widget.mode){ClubStaffMode.inventory=>access.canReadClubInventory(club.id),ClubStaffMode.health=>access.canReadClubHealth(club.id),ClubStaffMode.sporting=>access.canReadClubPlanning(club.id)};
     if(allowed&&ref.watch(featureEnabledProvider(FeatureFlags.clubStaffOperations))){
-      final activeClub=club!;
+      final activeClub=club;
       final id=activeClub.id;
       final mutation=ref.watch(clubOperationControllerProvider(id));
       body=Column(crossAxisAlignment:CrossAxisAlignment.start,children:[

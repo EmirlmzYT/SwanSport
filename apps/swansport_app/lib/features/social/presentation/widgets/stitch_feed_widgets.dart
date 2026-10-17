@@ -6,6 +6,7 @@ import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/inbox_actions.dart';
+import '../../../../app/widgets/scroll_chrome.dart';
 
 /// Atletik marka ve gerçek okunmamış sayaçları; hikaye sistemi değildir.
 class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
@@ -23,7 +24,7 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final notifications = hasAccount ? ref.watch(unreadNotificationsProvider).valueOrNull ?? 0 : 0;
     final messages = hasAccount ? ref.watch(unreadMessagesProvider).valueOrNull ?? 0 : 0;
     return Material(
-      color: c.surface,
+      color: ScrollChromeScope.maybeOf(context) == null ? c.surface : Colors.transparent,
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
         child: Row(children: [
