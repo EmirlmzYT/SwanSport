@@ -29,7 +29,7 @@ void main() {
 
   testWidgets('settings account shortcuts render', (tester) async {
     await pump(tester, 600, ThemeMode.light);
-    expect(find.text('Ayarlar'), findsOneWidget);
+    expect(find.text('Kulüp Ayarları'), findsOneWidget);
     expect(find.text('Profilim'), findsOneWidget);
     expect(find.text('Veli bağlantısı'), findsOneWidget);
     expect(find.text('Gizlilik ve engellenenler'), findsOneWidget);

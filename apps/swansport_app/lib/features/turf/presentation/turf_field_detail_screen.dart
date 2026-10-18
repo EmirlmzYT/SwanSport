@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../courts/presentation/venue_overview.dart';
@@ -5,7 +6,6 @@ import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
@@ -41,7 +41,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
     final isManager =
         ref.watch(swanAccessProvider).canEditTurfOccupancy(_field.id);
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       appBar: swanModuleAppBar(context, title: _field.name, subtitle: '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}'),
       body: async.when(

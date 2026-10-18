@@ -273,7 +273,7 @@ void main() {
     );
     await t.pumpAndSettle();
     expect(t.takeException(), isNull);
-    await t.tap(find.text('Yükle'));
+    await t.tap(find.byTooltip('Belge yükle'));
     await t.pumpAndSettle();
     await t.tap(find.text('Sporcu lisansı'));
     await t.pumpAndSettle();

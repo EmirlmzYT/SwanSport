@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -10,7 +11,6 @@ import '../../social/presentation/widgets/social_widgets.dart';
 import 'equipment_listing_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
-import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -46,7 +46,7 @@ class _ListingsScreenState extends ConsumerState<ListingsScreen> {
 
     final async = ref.watch(listingsProvider(_filter));
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
       appBar: swanModuleAppBar(context, title: 'İlanlar', actions: [

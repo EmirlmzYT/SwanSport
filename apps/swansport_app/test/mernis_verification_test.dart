@@ -45,7 +45,7 @@ void main() {
     expect(find.textContaining('spor lisansı veya yaş doğrulaması yerine geçmez'),findsOneWidget);
   });
   testWidgets('account switch clears sensitive draft and ignores late completion',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_PendingService(client);
     final sessions=StreamController<Session?>();addTearDown(sessions.close);
     Session? session(String uid)=>Session.fromJson({'access_token':'test-$uid','refresh_token':'refresh',

@@ -3,8 +3,9 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 
 import 'push.dart';
+import 'push_token_gate.dart';
 
-/// Web dışı platformlarda (Android) bildirim — Firebase Cloud Messaging.
+/// Web dışı platformlarda (Android/iOS) bildirim — Firebase Cloud Messaging.
 ///
 /// Tarayıcı sürümünden farkı yalnızca taşıyıcı: orada abonelik üç parçalıydı
 /// (adres + iki anahtar) ve yükü biz şifreliyorduk, burada tek bir cihaz
@@ -12,7 +13,7 @@ import 'push.dart';
 /// aynı arayüzün arkasında duruyor.
 ///
 /// iOS bu dosyayı da kullanır ama APNs anahtarı Firebase'e tanımlanmadan
-/// çalışmaz; şu an yalnızca Android hedefleniyor.
+/// çalışmaz; cihazda uygun APNs yetkili imza da gereklidir.
 
 /// Firebase yalnızca bir kez başlatılabilir; ikinci çağrı hata verir.
 bool _initialized = false;
@@ -25,8 +26,19 @@ Future<void> _ensureInitialized() async {
   _initialized = true;
 }
 
-/// Android'de bildirim kurulabilir.
-bool get pushSupported => defaultTargetPlatform == TargetPlatform.android;
+/// APNs/Firebase yapılandırması teslim için ayrıca gereklidir.
+const _iosFirebaseEnabled =
+    bool.fromEnvironment('IOS_FIREBASE_ENABLED', defaultValue: true);
+
+bool get pushSupported =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    (defaultTargetPlatform == TargetPlatform.iOS && _iosFirebaseEnabled);
+
+Future<void> _requireApns(FirebaseMessaging messaging) async {
+  if (defaultTargetPlatform != TargetPlatform.iOS) return;
+  final token = await waitForApnsToken(read: messaging.getAPNSToken);
+  if (token == null) throw const PushException(PushFailure.apnsUnavailable);
+}
 
 /// İzin daha önce verilmiş mi?
 ///
@@ -55,6 +67,7 @@ Future<PushSub> pushSubscribe() async {
     throw const PushException(PushFailure.denied);
   }
 
+  await _requireApns(messaging);
   final token = await messaging.getToken();
   if (token == null || token.isEmpty) {
     // İzin var ama token yok: genellikle Google Play Services eksik ya da
@@ -80,6 +93,7 @@ Future<PushSub?> pushCurrent() async {
   _permissionGranted = granted;
   if (!granted) return null;
 
+  await _requireApns(messaging);
   final token = await messaging.getToken();
   if (token == null || token.isEmpty) return null;
   return PushSub.fcm(token);
@@ -91,6 +105,7 @@ Future<String?> pushUnsubscribe() async {
   await _ensureInitialized();
 
   final messaging = FirebaseMessaging.instance;
+  await _requireApns(messaging);
   final token = await messaging.getToken();
   if (token == null) return null;
 

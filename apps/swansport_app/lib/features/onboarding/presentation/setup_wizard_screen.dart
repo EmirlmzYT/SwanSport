@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -125,7 +126,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
                 : 'Spor Belgesi Yükle';
     final progress = (_currentStep + 1) / _totalSteps;
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       body: SafeArea(
         child: Column(

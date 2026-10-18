@@ -38,7 +38,7 @@ void main() {
     expect(plan.isActive, isFalse);
     expect(plan.toMap().containsKey('created_at'), isFalse);
     expect(plan.toMap()['max_athletes'], isNull);
-    expect(() => (plan.features[1] as Map)['nested'] = [], throwsUnsupportedError);
+    expect(() => (plan.features[1] as Map)['nested'] = <Object?>[], throwsUnsupportedError);
   });
   test('new plan lets database generate id and explicit nullable fields', () {
     final plan = PlatformPlan(target: 'athlete', code: 'athlete_pro', name: 'Pro', priceMonthly: 79);

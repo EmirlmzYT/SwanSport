@@ -84,7 +84,7 @@ class _LeagueStandingsSelectorState extends ConsumerState<LeagueStandingsSelecto
         if(leagues.isEmpty)return Text('Yayımlanmış lig bulunmuyor.',style:SwanType.body(c.inkMuted));
         final selected=leagues.firstWhere((l)=>l.id==_org,orElse:()=>leagues.first);
         return Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          DropdownButtonFormField<String>(key:ValueKey(selected.id),value:selected.id,isExpanded:true,decoration:const InputDecoration(labelText:'Lig seç'),
+          DropdownButtonFormField<String>(key:ValueKey('league-picker-${selected.id}'),initialValue:selected.id,isExpanded:true,decoration:const InputDecoration(labelText:'Lig seç'),
             items:[for(final l in leagues)DropdownMenuItem(value:l.id,child:Text('${l.name} · ${liveSportName(l.sportCode)}${l.cityCode==null?'':' · İl ${l.cityCode}'}',maxLines:1,overflow:TextOverflow.ellipsis,style:SwanType.bodySm(c.ink)))],
             onChanged:(v)=>setState(()=>_org=v)),
           const SizedBox(height:SwanSpace.md),

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -26,7 +27,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
     final canReview =
         club != null && (club.role == 'club_admin' || club.role == 'coach');
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(

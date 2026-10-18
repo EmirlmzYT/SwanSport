@@ -1,9 +1,9 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../../app/design/swan_palette.dart';
-import '../../../../app/design/swan_shape.dart';
 import '../../../../app/widgets/swan_module_app_bar.dart';
 import '../../../athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 import '../../application/communication_center_state.dart';
@@ -52,7 +52,7 @@ class _CommunicationDetailScreenState
   @override
   Widget build(BuildContext context) {
     if (widget.invalidRoute) {
-      return const Scaffold(
+      return const SwanScaffold(
         body: Center(
           child: Text(
             'Geçersiz ileti bağlantısı.',
@@ -66,7 +66,7 @@ class _CommunicationDetailScreenState
       communicationDetailControllerProvider(_request!).notifier,
     );
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'İleti Ayrıntısı'),
       body: SafeArea(

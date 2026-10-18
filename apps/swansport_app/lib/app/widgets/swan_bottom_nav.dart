@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +6,9 @@ import 'action_gate.dart';
 
 import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
-import '../design/swan_type.dart';
 import 'create_sheet.dart';
+import 'scroll_chrome.dart';
+import '../design/swan_chrome.dart';
 
 /// Sabit beş öğeli alt gezinme.
 ///
@@ -78,12 +77,16 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    final c = context.swan;
     final current = ModalRoute.of(context)?.settings.name;
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
     final myId = ref.watch(currentProfileProvider).valueOrNull?.id;
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
+    final chrome = ScrollChromeScope.maybeOf(context);
+    final compact = chrome?.compact == true && _scrub == null;
+    final motion = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : SwanChrome.duration;
 
     // Hedefler tek yerde: hem çizim hem kaydırma bunu okuyor, ikisi ayrışamaz.
     final targets = <_NavTarget>[
@@ -113,6 +116,9 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
       ),
     ];
 
+    if (MediaQuery.viewInsetsOf(context).bottom > 0) {
+      return const SizedBox.shrink();
+    }
     return SafeArea(
       top: false,
       child: GestureDetector(
@@ -150,39 +156,26 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
         onHorizontalDragCancel:
             isIos ? () => setState(() => _scrub = null) : null,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 0),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(SwanRadius.lg),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(
-                sigmaX: isIos ? 18 : 0,
-                sigmaY: isIos ? 18 : 0,
-              ),
-              child: Container(
-                height: 62,
-                decoration: BoxDecoration(
-                  color: isIos
-                      ? c.surface.withValues(alpha: c.isDark ? .76 : .68)
-                      : c.surface,
-                  borderRadius: BorderRadius.circular(SwanRadius.lg),
-                  border: isIos
-                      ? Border.all(color: Colors.white.withValues(alpha: .22))
-                      : null,
-                  boxShadow: [
-                    BoxShadow(
-                      color:
-                          Colors.black.withValues(alpha: c.isDark ? .45 : .10),
-                      blurRadius: 24,
-                      offset: const Offset(0, 8),
-                    ),
-                  ],
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
+          padding: const EdgeInsets.fromLTRB(SwanChrome.horizontalInset,
+              SwanSpace.xs, SwanChrome.horizontalInset, SwanChrome.bottomGap),
+          child: Align(
+            heightFactor: 1,
+            alignment: Alignment.bottomCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: SwanChrome.maxWidth),
+              child: SwanGlassSurface(
+                floating: true,
+                child: AnimatedContainer(
+                  key: const Key('swan-bottom-nav-surface'),
+                  duration: motion,
+                  curve: Curves.easeOutCubic,
+                  height: compact
+                      ? SwanChrome.compactHeight
+                      : SwanChrome.expandedHeight,
+                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
+                  child: Row(children: [
                     for (var i = 0; i < targets.length; i++) ...[
-                      if (i == 2) const _CreateButton(),
+                      if (i == 2) const Expanded(child: _CreateButton()),
                       Expanded(
                           child: _Tab(
                         key: _keys[i],
@@ -196,12 +189,11 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                             ? route == targets[i].route
                             : _scrub == i,
                         scrubbing: _scrub == i,
-                        onTap: () {
-                          _go(context, targets[i].route, profileId: myId);
-                        },
+                        onTap: () =>
+                            _go(context, targets[i].route, profileId: myId),
                       )),
                     ],
-                  ],
+                  ]),
                 ),
               ),
             ),
@@ -238,93 +230,113 @@ class _NavTarget {
 }
 
 class _Tab extends StatelessWidget {
-  const _Tab({
-    super.key,
-    required this.icon,
-    required this.label,
-    required this.active,
-    required this.onTap,
-    this.scrubbing = false,
-  });
-
+  const _Tab(
+      {super.key,
+      required this.icon,
+      required this.label,
+      required this.active,
+      required this.onTap,
+      this.scrubbing = false});
   final IconData icon;
   final String label;
   final bool active;
-  final VoidCallback? onTap;
-
-  /// Parmak şu an bu sekmenin üstünde. Görsel olarak öne çıkıyor ki
-  /// kullanıcı bırakmadan önce nereye gideceğini görsün.
+  final VoidCallback onTap;
   final bool scrubbing;
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    // Aktif durum teal — brief'in kuralı: teal yalnızca önemli aksiyon ve
-    // aktif durum için.
-    final color = active ? c.accent : c.inkMuted;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    final motion = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : SwanChrome.duration;
+    return Semantics(
+      label: label,
+      button: true,
+      selected: active,
       onTap: onTap,
-      child: AnimatedScale(
-        // Kısa ve az: 1.08 fark edilir ama zıplamıyor.
-        scale: scrubbing ? 1.08 : 1,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          width: 60,
-          decoration: BoxDecoration(
-            // Yalnızca kaydırma sırasında zemin: parmağın altındaki sekme
-            // bırakmadan önce belli olsun. Normal durumda çubuk sade kalıyor.
-            color: active ? c.accentSoft : Colors.transparent,
-            borderRadius: BorderRadius.circular(SwanRadius.md),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 6),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(icon, size: 22, color: color),
-              const SizedBox(height: 3),
-              Text(label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(color,
-                      w: active ? FontWeight.w800 : FontWeight.w600)),
-            ],
-          ),
+      excludeSemantics: true,
+      child: Tooltip(
+        message: label,
+        triggerMode: TooltipTriggerMode.manual,
+        child: InkResponse(
+          onTap: onTap,
+          containedInkWell: true,
+          highlightShape: BoxShape.circle,
+          radius: SwanChrome.touchTarget,
+          child: SizedBox(
+              height: SwanChrome.touchTarget,
+              child: Center(
+                child: AnimatedScale(
+                  scale: scrubbing && motion != Duration.zero ? 1.06 : 1,
+                  duration: motion,
+                  curve: Curves.easeOutCubic,
+                  child: AnimatedContainer(
+                    duration: motion,
+                    curve: Curves.easeOutCubic,
+                    width: SwanChrome.selectedSize,
+                    height: SwanChrome.selectedSize,
+                    decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: active
+                            ? c.accentSoft
+                            : c.surface.withValues(alpha: 0)),
+                    child: Icon(icon,
+                        size: SwanChrome.iconSize,
+                        color: active ? c.accent : c.ink),
+                  ),
+                ),
+              )),
         ),
       ),
     );
   }
 }
 
-/// Ortadaki "+" — bağlama göre oluşturma eylemleri.
+/// Account gates and creation destinations are unchanged; only the surface changes.
 class _CreateButton extends ConsumerWidget {
   const _CreateButton();
-
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () async {
-        if (await requireSwanAction(context, ref, SwanAction.publish) &&
-            context.mounted) {
-          await showCreateSheet(context);
-        }
-      },
-      child: Container(
-        width: 46,
-        height: 46,
-        decoration: BoxDecoration(
-          // `accent` değil `accentFill`: üstünde beyaz ikon var. Koyu temada
-          // parlak teal + beyaz 2.27:1 veriyordu, eşik 3:1.
-          color: c.accentFill,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
+    Future<void> create() async {
+      if (await requireSwanAction(context, ref, SwanAction.publish) &&
+          context.mounted) {
+        await showCreateSheet(context);
+      }
+    }
+
+    return Semantics(
+      label: 'Oluştur',
+      button: true,
+      onTap: create,
+      excludeSemantics: true,
+      child: Tooltip(
+        message: 'Oluştur',
+        triggerMode: TooltipTriggerMode.manual,
+        child: InkResponse(
+          onTap: create,
+          containedInkWell: true,
+          highlightShape: BoxShape.circle,
+          radius: SwanChrome.touchTarget,
+          child: SizedBox(
+              height: SwanChrome.touchTarget,
+              child: Center(
+                child: Container(
+                  width: SwanChrome.createSize,
+                  height: SwanChrome.createSize,
+                  decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: c.isDark
+                          ? c.ink.withValues(alpha: .07)
+                          : c.surface.withValues(alpha: .72),
+                      border: Border.all(
+                          width: SwanChrome.rimWidth,
+                          color: c.ink.withValues(alpha: .10))),
+                  child: Icon(Icons.add_rounded,
+                      color: c.ink, size: SwanChrome.iconSize),
+                ),
+              )),
         ),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 24),
       ),
     );
   }

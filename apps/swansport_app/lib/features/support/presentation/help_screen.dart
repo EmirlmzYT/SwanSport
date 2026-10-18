@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -57,7 +58,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         '$_query|${_audience(access).join(',')}|${flags.enabled.join(',')}';
     final faq = ref.watch(faqProvider(key));
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Yardım & SSS'),
       extendBody: true,
       backgroundColor: c.bg,

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -32,7 +33,11 @@ class AuthGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(authSessionProvider).when(
           loading: () => const _Blank(),
-          error: (error, _) => const GuestExploreScreen(),
+          // An Auth failure is not evidence of a signed-out session.
+          error: (error, _) => SwanScaffold(body: Center(child: TextButton(
+            onPressed: () => ref.invalidate(authSessionProvider),
+            child: const Text('Oturumu yeniden kontrol et'),
+          ))),
           data: (session) {
             if (session != null) {
               return ref.watch(setupWizardRequiredProvider(session.user.id)).when(
@@ -61,5 +66,5 @@ class _Blank extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      Scaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor);
+      SwanScaffold(backgroundColor: Theme.of(context).scaffoldBackgroundColor);
 }

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../network/presentation/guest_explore_screen.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
@@ -7,7 +8,6 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import 'widgets/feed_entry.dart';
 import 'widgets/follow_suggestions.dart';
@@ -26,6 +26,7 @@ class FeedScreen extends ConsumerStatefulWidget {
 
 class _FeedScreenState extends ConsumerState<FeedScreen> {
   bool _followingOnly = false;
+
   PlatformConfig? _lastPlatformConfig;
 
   @override
@@ -41,28 +42,69 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
   @override
   Widget build(BuildContext context) {
     final access = ref.watch(swanAccessProvider);
-    _lastPlatformConfig = ref.watch(platformConfigProvider).valueOrNull ?? _lastPlatformConfig;
+    // Profile/club resolution can lag behind Auth. SwanAccess.none during that
+    // interval means no permissions yet, not that the session is a guest.
+    final liveBackend = ref.watch(isSupabaseEnabledProvider);
+    final session = liveBackend ? ref.watch(authSessionProvider) : null;
+    if (session != null && session.hasError && !session.hasValue) {
+      return SwanScaffold(
+        backgroundColor: context.swan.bg,
+        body: Center(
+            child: TextButton(
+          onPressed: () => ref.invalidate(authSessionProvider),
+          child: const Text('Oturumu yeniden kontrol et'),
+        )),
+      );
+    }
+    if (session != null && !session.hasValue) {
+      return SwanScaffold(backgroundColor: context.swan.bg);
+    }
+    final isGuest =
+        session != null ? session.valueOrNull == null : !access.hasAccount;
+    _lastPlatformConfig =
+        ref.watch(platformConfigProvider).valueOrNull ?? _lastPlatformConfig;
     final config = _lastPlatformConfig;
     if (config?.maintenanceEnabled == true && !access.isPlatformAdmin) {
       return PlatformMaintenanceNotice(
-        message: '${config!.maintenance['message'] ?? 'Kısa süreli bakım devam ediyor.'}',
-        onRetry: () => ref.invalidate(platformConfigProvider));
+          message:
+              '${config!.maintenance['message'] ?? 'Kısa süreli bakım devam ediyor.'}',
+          onRetry: () => ref.invalidate(platformConfigProvider));
     }
-    final banner = config?.broadcastEnabled == true ? PlatformBroadcastBanner(
-      key: ValueKey(jsonEncode([config!.broadcastAlert['severity'], config.broadcastAlert['title'], config.broadcastAlert['message']])),
-      alert: config.broadcastAlert) : null;
-    if (!access.hasAccount) {
+    final banner = config?.broadcastEnabled == true
+        ? PlatformBroadcastBanner(
+            key: ValueKey(jsonEncode([
+              config!.broadcastAlert['severity'],
+              config.broadcastAlert['title'],
+              config.broadcastAlert['message']
+            ])),
+            alert: config.broadcastAlert)
+        : null;
+    if (isGuest) {
       if (banner == null) return const GuestExploreScreen();
-      return Column(children: [SafeArea(bottom: false, child: Material(color: context.swan.bg, child: banner)), const Expanded(child: GuestExploreScreen())]);
+      return Column(children: [
+        SafeArea(
+            bottom: false,
+            child: Material(color: context.swan.bg, child: banner)),
+        const Expanded(child: GuestExploreScreen())
+      ]);
     }
     final c = context.swan;
 
     final activeFeed = _followingOnly ? feedProvider : discoverProvider;
     final async = ref.watch(activeFeed);
-
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: c.bg,
+      appBar: StitchFeedTopBar(
+        key: const Key('feed-floating-header'),
+        followingOnly: _followingOnly,
+        allLabel: 'Tümü (Keşfet)',
+        followingLabel: 'Takip Ettiklerim',
+        onFeedChanged: (value) {
+          if (value != _followingOnly) setState(() => _followingOnly = value);
+        },
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -86,29 +128,11 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                   parent: AlwaysScrollableScrollPhysics(),
                 ),
                 slivers: [
-                  // Pinned Google Stitch üst bar (SwanSport Wordmark + Bildirimler + Mesajlar)
-                  const SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _StitchHeaderDelegate(),
-                  ),
+                  const SliverToBoxAdapter(child: SwanHeaderSpacer()),
                   if (banner != null) SliverToBoxAdapter(child: banner),
                   const SliverToBoxAdapter(child: LiveMatchStrip()),
-                  const SliverToBoxAdapter(child: RefereeEntryCard(today: true)),
-                  SliverPersistentHeader(
-                    pinned: true,
-                    delegate: _FeedModeDelegate(
-                      extent: 42 + MediaQuery.textScalerOf(context).scale(12),
-                      color: c.bg,
-                      child: _FeedModeBar(
-                        followingOnly: _followingOnly,
-                        onChanged: (value) {
-                          if (value == _followingOnly) return;
-                          setState(() => _followingOnly = value);
-                        },
-                      ),
-                    ),
-                  ),
-
+                  const SliverToBoxAdapter(
+                      child: RefereeEntryCard(today: true)),
                   ...async.when(
                     loading: () => [
                       SliverToBoxAdapter(child: premiumCardLoading()),
@@ -206,95 +230,4 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     entries.sort((a, b) => b.sortDate.compareTo(a.sortDate));
     return entries;
   }
-}
-
-/// Ana akış içindeki iki içerik modu. Keşfet sekmesinin yerine geçmez:
-/// Keşfet spor modüllerini açar, burası yalnızca sosyal akışı süzer.
-class _FeedModeBar extends StatelessWidget {
-  const _FeedModeBar({
-    required this.followingOnly,
-    required this.onChanged,
-  });
-
-  final bool followingOnly;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(
-        SwanSpace.lg,
-        SwanSpace.sm,
-        SwanSpace.lg,
-        SwanSpace.xs,
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          children: [
-            StitchFilterPill(
-              label: 'Tümü (Keşfet)',
-              isSelected: !followingOnly,
-              onTap: () => onChanged(false),
-            ),
-            const SizedBox(width: SwanSpace.sm),
-            StitchFilterPill(
-              label: 'Takip Ettiklerim',
-              isSelected: followingOnly,
-              onTap: () => onChanged(true),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _StitchHeaderDelegate extends SliverPersistentHeaderDelegate {
-  const _StitchHeaderDelegate();
-
-  @override
-  double get minExtent => 56;
-
-  @override
-  double get maxExtent => 56;
-
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return const StitchFeedTopBar();
-  }
-
-  @override
-  bool shouldRebuild(covariant _StitchHeaderDelegate oldDelegate) => false;
-}
-
-class _FeedModeDelegate extends SliverPersistentHeaderDelegate {
-  const _FeedModeDelegate({
-    required this.child,
-    required this.extent,
-    required this.color,
-  });
-  final Widget child;
-  final double extent;
-  final Color color;
-  @override
-  double get minExtent => extent;
-  @override
-  double get maxExtent => extent;
-  @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) =>
-      Material(color: color, child: Center(child: child));
-  @override
-  bool shouldRebuild(covariant _FeedModeDelegate oldDelegate) =>
-      child != oldDelegate.child ||
-      extent != oldDelegate.extent ||
-      color != oldDelegate.color;
 }

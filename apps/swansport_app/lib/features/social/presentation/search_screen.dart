@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -147,7 +148,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
       ('Sporcular', _athleteCount),
     ];
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: surf,
       body: SafeArea(

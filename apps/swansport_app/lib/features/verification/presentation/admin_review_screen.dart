@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -51,7 +52,7 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final isAdmin = ref.watch(effectiveIsPlatformAdminProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(

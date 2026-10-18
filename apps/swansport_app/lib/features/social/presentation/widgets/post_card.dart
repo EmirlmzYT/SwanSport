@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-import '../../../../app/widgets/premium.dart';
 import '../comments_sheet.dart';
 import 'report_sheet.dart';
 import 'social_widgets.dart';

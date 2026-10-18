@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -61,9 +62,10 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
         ? const ['Kadro', 'Özet', 'Program', 'Gelişim']
         : const ['Kadro', 'Özet', 'Program', 'Sohbet', 'Gelişim'];
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
+      header: _buildHeader(context, c, club),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -72,7 +74,7 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
             child: Column(
               children: [
                 // 1. Header (Geri, Başlık, Yeni Sporcu Ekle)
-                _buildHeader(context, c, club),
+
 
                 // 2. Team Category Selector (Yatay Takım Listesi)
                 if (teams.isNotEmpty) ...[

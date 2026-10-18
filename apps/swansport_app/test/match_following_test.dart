@@ -36,25 +36,25 @@ void main(){
     expect(find.byType(FilledButton),findsNothing);expect(find.byIcon(Icons.notifications_active_rounded),findsNothing);
   });
   testWidgets('guest sees account gate and never writes after opening it',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);final service=_Service(client);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));final service=_Service(client);
     await tester.pumpWidget(_app(service,guest:true));await tester.pumpAndSettle();await tester.tap(find.text('Bildirimleri Aç'));await tester.pumpAndSettle();
     expect(find.text('Giriş Yap / Kayıt Ol'),findsOneWidget);expect(service.desired,isEmpty);
   });
   testWidgets('follow changes only match preference and exposes separate device permission control',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);final service=_Service(client);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));final service=_Service(client);
     await tester.pumpWidget(_app(service));await tester.pumpAndSettle();await tester.tap(find.text('Bildirimleri Aç'));await tester.pumpAndSettle();
     expect(service.desired,[true]);expect(find.text('Bildirimleri Kapat'),findsOneWidget);
     expect(find.text('Cihaz Bildirim Ayarları'),findsOneWidget);expect(find.textContaining('tercihi kaydedildi'),findsOneWidget);
     await tester.tap(find.text('Bildirimleri Kapat'));await tester.pumpAndSettle();expect(service.desired,[true,false]);
   });
   testWidgets('lost reply retries same desired state, not an inverted toggle',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);final service=_Service(client)..fail=true;
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));final service=_Service(client)..fail=true;
     await tester.pumpWidget(_app(service));await tester.pumpAndSettle();await tester.tap(find.text('Bildirimleri Aç'));await tester.pumpAndSettle();
     expect(find.text('Tercihi Yeniden Dene'),findsOneWidget);service.fail=false;
     await tester.tap(find.text('Tercihi Yeniden Dene'));await tester.pumpAndSettle();expect(service.desired,[true,true]);expect(service.followed,isTrue);
   });
   testWidgets('busy action cannot double-submit and dispose safely ignores completion',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_Service(client)..pending=Completer<bool>();await tester.pumpWidget(_app(service));await tester.pumpAndSettle();
     await tester.tap(find.text('Bildirimleri Aç'));await tester.pump();
     final button=tester.widget<FilledButton>(find.byType(FilledButton));expect(button.onPressed,isNull);expect(service.desired,[true]);

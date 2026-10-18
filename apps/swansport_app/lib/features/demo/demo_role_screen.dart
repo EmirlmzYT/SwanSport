@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
@@ -23,7 +24,7 @@ class DemoRoleScreen extends ConsumerWidget {
 
     final active = ref.watch(demoRoleProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       body: SafeArea(
         child: Center(

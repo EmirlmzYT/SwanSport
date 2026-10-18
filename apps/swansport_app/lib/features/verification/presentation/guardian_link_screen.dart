@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -41,7 +42,7 @@ class _GuardianLinkScreenState extends ConsumerState<GuardianLinkScreen> {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       appBar: swanModuleAppBar(context, title: 'Davet Kodu'),
       body: SafeArea(

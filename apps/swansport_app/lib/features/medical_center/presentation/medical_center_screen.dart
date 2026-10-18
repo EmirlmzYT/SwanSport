@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -15,7 +16,7 @@ class MedicalCenterScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
     final board = ref.watch(eligibilityBoardProvider);
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Medikal & Sağlık Merkezi'),
       body: SafeArea(

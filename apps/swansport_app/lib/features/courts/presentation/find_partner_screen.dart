@@ -1,10 +1,10 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'package:flutter/material.dart';
 import '../../../app/design/swan_shape.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
@@ -50,7 +50,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
     final myRequest = ref.watch(myOpenPartnerRequestProvider);
     final inbox = ref.watch(incomingPartnerPingsProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
       appBar: swanModuleAppBar(context, title: 'Partner Bul'),
       body: Column(children: [

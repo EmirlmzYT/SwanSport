@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -8,7 +9,6 @@ import '../../../app/widgets/quick_form.dart';
 import 'configuration_module_args.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
-import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -35,7 +35,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
     final club = ref.watch(activeClubProvider).valueOrNull;
     final identity = ref.watch(clubIdentityProvider).valueOrNull;
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
       appBar: swanModuleAppBar(context, title: 'Yapılandırma'),
@@ -604,7 +604,7 @@ class ConfigurationModuleScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return const Scaffold(
+    return const SwanScaffold(
       body: Center(child: Text('Bu bölüm Yapılandırma ekranına taşındı.')),
     );
   }

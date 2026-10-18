@@ -190,7 +190,7 @@ void main() {
     final service = VerificationService(client);
     final initial = calls.length;
     await expectLater(
-        service.requestPhoneVerification('05321234567'), throwsArgumentError);
+        service.requestPhoneVerification('123'), throwsArgumentError);
     await expectLater(service.confirmPhoneVerification('+905321234567', 'bad'),
         throwsArgumentError);
     expect(calls.length, initial);

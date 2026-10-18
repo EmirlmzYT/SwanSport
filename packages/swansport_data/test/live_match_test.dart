@@ -17,7 +17,7 @@ class _FakeService extends LiveMatchService {
     listCalls++;return [PublicLiveMatchSummary.fromMap(_summary(live:live))];
   }
   @override Future<PublicLiveMatchDetail?> fetchPublicMatchState(String id)async{
-    detailCalls++;return PublicLiveMatchDetail.fromMap({..._summary(live:live),'events':[]});
+    detailCalls++;return PublicLiveMatchDetail.fromMap({..._summary(live:live),'events':<Map<String,dynamic>>[]});
   }
 }
 void main(){
@@ -47,7 +47,7 @@ void main(){
   });
   test('only public RPCs are called, filter names and explicit empty/hidden payloads are preserved',()async{
     final requests=<http.Request>[];
-    final client=SupabaseClient('https://example.supabase.co','test',httpClient:MockClient((r)async{
+    final client=SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false),httpClient:MockClient((r)async{
       requests.add(r);return http.Response(r.url.path.endsWith('public_live_matches')?'[]':'null',200,
         headers:{'content-type':'application/json'},request:r);
     }));addTearDown(client.dispose);
@@ -66,7 +66,7 @@ void main(){
     expect(await container.read(publicMatchRosterProvider(_id).future),isNull);
   });
   testWidgets('polling is subscription-scoped: list 30s, live detail 10s, timers stop on disposal',(tester)async{
-    final client=SupabaseClient('https://example.supabase.co','test');addTearDown(client.dispose);
+    final client=(await tester.runAsync(() async => SupabaseClient('https://example.supabase.co', 'test', authOptions: const AuthClientOptions(autoRefreshToken: false))))!;addTearDown(() => tester.runAsync(client.dispose));
     final service=_FakeService(client);
     final container=ProviderContainer(overrides:[isSupabaseEnabledProvider.overrideWithValue(true),
       featureEnabledProvider(FeatureFlags.liveMatchHub).overrideWithValue(true),liveMatchServiceProvider.overrideWithValue(service)]);

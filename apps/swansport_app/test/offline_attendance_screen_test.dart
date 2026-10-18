@@ -221,6 +221,15 @@ void main() {
     });
     await t.pumpAndSettle();
     expect(remote.calls, 1);
+    // The Sembast write can finish before its watched Riverpod snapshot reaches
+    // the widget. pumpAndSettle does not wait for real asynchronous database IO.
+    final visibleDeadline = DateTime.now().add(const Duration(seconds: 10));
+    while (find.text('Sunucuda henüz doğrulanmadı').evaluate().isEmpty &&
+        DateTime.now().isBefore(visibleDeadline)) {
+      await t.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)));
+      await t.pumpAndSettle();
+    }
     expect(find.text('Sunucuda henüz doğrulanmadı'), findsOneWidget);
     expect(t.takeException(), isNull);
   });

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     final results = ref.watch(marketSearchProvider(_filter));
     final favorites = ref.watch(marketFavoritesProvider).valueOrNull ?? {};
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Pazaryeri', actions: [
         TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/ilan-ver'), icon: Icon(Icons.add_box_outlined), label: Text('İlan Ver', style: SwanType.caption(context.swan.accent))),
       ]),
@@ -302,8 +303,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
     MarketItem it,
     bool isFav,
   ) {
-    final svc = ref.read(marketplaceServiceProvider);
-
     return GestureDetector(
       onTap: () =>
           Navigator.pushNamed(context, '/urun', arguments: {'id': it.id}),
@@ -331,7 +330,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 children: [
                   if (it.imagePath != null)
                     Image.network(
-                      svc.imageUrl(it.imagePath!),
+                      ref.read(marketplaceServiceProvider).imageUrl(it.imagePath!),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _noImage(palette),
                     )
@@ -390,7 +389,7 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                     right: 6,
                     child: GestureDetector(
                       onTap: () async {
-                        await svc.setFavorite(it.id, !isFav);
+                        await ref.read(marketplaceServiceProvider).setFavorite(it.id, !isFav);
                         ref.invalidate(marketFavoritesProvider);
                       },
                       child: Container(

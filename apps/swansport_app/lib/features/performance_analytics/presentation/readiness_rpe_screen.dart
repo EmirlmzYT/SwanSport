@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -71,7 +72,7 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
     final historyAsync = ref.watch(myTrainingHistoryProvider);
     final profile = ref.watch(currentProfileProvider).valueOrNull;
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Hazırbulunuşluk & RPE'),
       extendBody: true,
       backgroundColor: c.bg,

@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -59,7 +60,7 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
       coachSearchProvider((query: _query, sport: _sport, city: null)),
     );
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Antrenör Bul', actions: [
         IconButton(tooltip: 'Bildirimler', icon: Icon(Icons.notifications_none_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/bildirimler')),
       ]),

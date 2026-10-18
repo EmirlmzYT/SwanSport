@@ -17,7 +17,7 @@ class _Service extends ClubStaffOperationsService {
 void main(){
   test('inventory DTOs preserve zero available/damage and immutable lists',(){
     final b=ClubInventoryBoard.fromMap({'items':[{'id':'i','name':'Top','category':'ball','quantity':5,'available':0,'damaged_quantity':3,'missing_quantity':2,'status':'active'}],
-      'assignments':[],'targets':[]});
+      'assignments':<Map<String,dynamic>>[],'targets':<Map<String,dynamic>>[]});
     expect(b.items.single.available,0);expect(b.items.single.damaged,3);expect(()=>b.items.clear(),throwsUnsupportedError);
   });
   test('health DTO has no diagnostic/identity payload and rest is separate from the clinical ID',(){
@@ -50,7 +50,7 @@ void main(){
   test('service uses scoped RPCs only and rejects unrelated mutation names',()async{
     final requests=<http.Request>[];
     final client=SupabaseClient('https://example.com','test',httpClient:MockClient((r)async{
-      requests.add(r);return http.Response(r.url.path.endsWith('club_inventory_board')?'{"items":[],"assignments":[],"targets":[]}':'null',200,headers:{'content-type':'application/json'});
+      requests.add(r);return http.Response(r.url.path.endsWith('club_inventory_board')?'{"items":[],"assignments":[],"targets":[]}':'null',200,headers:{'content-type':'application/json'},request:r);
     }));addTearDown(client.dispose);
     final s=ClubStaffOperationsService(client);await s.inventory('club');
     expect(requests.single.url.path,endsWith('/rpc/club_inventory_board'));expect(jsonDecode(requests.single.body),{'p_club':'club'});

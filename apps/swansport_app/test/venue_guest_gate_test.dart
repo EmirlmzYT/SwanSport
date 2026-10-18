@@ -241,7 +241,7 @@ void main() {
     await tester.tap(find.text('Kodu doğrula'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Yanlış kod'), findsOneWidget);
-    expect(find.text('123456'), findsOneWidget);
+    expect(tester.widget<TextField>(find.byType(TextField).last).controller!.text, '123456');
     verification.error = null;
     await tester.tap(find.text('Kodu doğrula'));
     await tester.pumpAndSettle();

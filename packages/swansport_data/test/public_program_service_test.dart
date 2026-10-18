@@ -112,6 +112,6 @@ void main() {
           request: r);
     }));
     addTearDown(client.dispose);
-    expect((await NewsService(client).sources()).single.name, 'Sport');
+    expect((await NewsService(client).sources()).where((s) => s.id == 'source').single.name, 'Sport');
   });
 }

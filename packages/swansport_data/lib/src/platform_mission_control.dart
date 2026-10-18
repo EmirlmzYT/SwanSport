@@ -196,7 +196,7 @@ class PlatformMissionControlService {
     return _client.storage.from('post-media').getPublicUrl(path);
   }
   Future<PlatformConfig> config() async => PlatformConfig.fromMap(
-      Map<String, dynamic>.from(await _client.rpc('get_public_platform_config') as Map));
+      Map<String, dynamic>.from(await _client.rpc<dynamic>('get_public_platform_config') as Map));
   Future<List<PlatformPlan>> plans() async {
     final rows = await _client.from('platform_plans').select().order('sort_order').order('code');
     return rows.map((row) => PlatformPlan.fromMap(row)).toList();
@@ -225,7 +225,7 @@ class PlatformMissionControlService {
     return (res as num?)?.toInt() ?? 0;
   }
   Future<void> updatePlatformSetting(String key, Map<String, dynamic> value) async {
-    await _client.rpc('update_platform_setting', params: {'p_key': key, 'p_value': value});
+    await _client.rpc<dynamic>('update_platform_setting', params: {'p_key': key, 'p_value': value});
     onWrite?.call();
   }
   Future<PlatformPlan> upsertPlatformPlan(PlatformPlan plan) async {

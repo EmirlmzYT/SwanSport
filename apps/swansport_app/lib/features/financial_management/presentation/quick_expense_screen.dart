@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -50,15 +51,16 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
     final categories = ref.watch(expenseCategoriesProvider);
     final club = ref.watch(activeClubProvider).valueOrNull;
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: bg,
+      header: _buildHeader(context, palette, club?.name ?? 'Kulüp'),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
               children: [
-                _buildHeader(context, palette, club?.name ?? 'Kulüp'),
+
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),

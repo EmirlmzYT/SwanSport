@@ -3,7 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:swansport_app/features/auth/presentation/screens/auth_screen.dart';
 import 'package:swansport_app/features/onboarding/presentation/onboarding_screen.dart';
-import 'package:swansport_app/main_development.dart' as app;
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_app/app/swansport_app.dart';
 
 /// Açılış kapısının iki yolu.
 ///
@@ -14,7 +15,7 @@ void main() {
   testWidgets('ilk açılışta tanıtım gösterilir', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
-    app.main();
+    await tester.pumpWidget(const ProviderScope(child: SwanSportApp()));
     // Tercih okuması eşzamansız: `pump` tek kare çiziyor, `pumpAndSettle`
     // FutureProvider çözülene kadar bekliyor.
     await tester.pumpAndSettle();
@@ -28,7 +29,7 @@ void main() {
   ) async {
     SharedPreferences.setMockInitialValues({kOnboardingSeenKey: true});
 
-    app.main();
+    await tester.pumpWidget(const ProviderScope(child: SwanSportApp()));
     await tester.pumpAndSettle();
 
     expect(find.byType(AuthScreen), findsNothing);
@@ -39,7 +40,7 @@ void main() {
   testWidgets('"Atla" tanıtımı kapatır ve bir daha göstermez', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
-    app.main();
+    await tester.pumpWidget(const ProviderScope(child: SwanSportApp()));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Atla'));
@@ -54,7 +55,7 @@ void main() {
   testWidgets('hızlı iki dokunuş iki sayfa ilerletir', (tester) async {
     SharedPreferences.setMockInitialValues({});
 
-    app.main();
+    await tester.pumpWidget(const ProviderScope(child: SwanSportApp()));
     await tester.pumpAndSettle();
 
     // Canlida bu senaryo tek sayfa ilerletiyordu: `nextPage` hedefi ucus

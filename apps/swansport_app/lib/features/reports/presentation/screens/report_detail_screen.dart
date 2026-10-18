@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -14,17 +15,17 @@ class ReportDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(reportsControllerProvider);
     if (args == null) {
-      return const Scaffold(
+      return const SwanScaffold(
         body: Center(child: Text('Geçersiz rapor bağlantısı.')),
       );
     }
     final found = state.templates.where((r) => r.id == args!.reportId);
     if (found.isEmpty) {
-      return const Scaffold(body: Center(child: Text('Rapor bulunamadı.')));
+      return const SwanScaffold(body: Center(child: Text('Rapor bulunamadı.')));
     }
     final report = found.single;
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Rapor Ayrıntısı'),
       body: SafeArea(

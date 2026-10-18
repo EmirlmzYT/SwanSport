@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -24,7 +25,7 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
     Widget body=Text('Aktif kulüp ve ihtisas yetkisi gerekli.',style:SwanType.body(c.ink));
     final allowed=club!=null&&switch(widget.mode){ClubStaffMode.inventory=>access.canReadClubInventory(club.id),ClubStaffMode.health=>access.canReadClubHealth(club.id),ClubStaffMode.sporting=>access.canReadClubPlanning(club.id)};
     if(allowed&&ref.watch(featureEnabledProvider(FeatureFlags.clubStaffOperations))){
-      final activeClub=club!;
+      final activeClub=club;
       final id=activeClub.id;
       final mutation=ref.watch(clubOperationControllerProvider(id));
       body=Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
@@ -76,7 +77,7 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
         }),
       ]);
     }
-    return Scaffold(backgroundColor:c.bg,appBar:swanModuleAppBar(context,title:title),bottomNavigationBar:const SwanBottomNav(),
+    return SwanScaffold(backgroundColor:c.bg,appBar:swanModuleAppBar(context,title:title),bottomNavigationBar:const SwanBottomNav(),
       body:SafeArea(child:Padding(padding:const EdgeInsets.all(SwanSpace.lg),child:body)));
   }
   Widget _card(Widget child)=>Container(margin:const EdgeInsets.only(top:SwanSpace.md),padding:const EdgeInsets.all(SwanSpace.lg),

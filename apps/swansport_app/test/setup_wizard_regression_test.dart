@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_app/app/design/swan_palette.dart';
+import 'package:swansport_app/app/widgets/swan_tabs.dart';
 import 'package:swansport_app/features/auth/presentation/screens/auth_gate.dart';
 import 'package:swansport_app/features/onboarding/application/setup_wizard_progress.dart';
 import 'package:swansport_app/features/onboarding/presentation/setup_wizard_screen.dart';
@@ -92,11 +93,14 @@ void main() {
       ),
     )));
     await tester.pumpAndSettle();
-    expect(find.text('Federasyon Lisansı'), findsOneWidget);
+    expect(tester.widget<SwanSegmentedTabs>(find.byType(SwanSegmentedTabs)).selected, 1);
     await tester.tap(find.text('Kimlik'));
     await tester.pumpAndSettle();
     dark.value = true;
     await tester.pumpAndSettle();
+    expect(tester.widget<SwanSegmentedTabs>(find.byType(SwanSegmentedTabs)).selected, 2);
+    await tester.scrollUntilVisible(find.text('Kimlik Belgesi'), 200,
+        scrollable: find.byType(Scrollable).first);
     expect(find.text('Kimlik Belgesi'), findsOneWidget);
     expect(find.text('Federasyon Lisansı'), findsNothing);
     expect(tester.takeException(), isNull);

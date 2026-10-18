@@ -30,7 +30,7 @@ void main() {
     final client = SupabaseClient('https://example.com', 'test', httpClient: MockClient((request) async {
       requests.add(request);
       return http.Response(request.url.path.endsWith('federation_console_matches') ? '{"total":0,"rows":[]}' : '"id"', 200,
-        headers: {'content-type': 'application/json'});
+        headers: {'content-type': 'application/json'}, request: request);
     }));
     addTearDown(client.dispose);
     final s = FederationConsoleService(client);

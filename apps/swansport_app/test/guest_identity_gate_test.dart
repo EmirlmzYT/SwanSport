@@ -96,7 +96,7 @@ void main() {
       home: const GuestExploreScreen(),
     )));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Profil'));
+    await tester.tap(find.byTooltip('Profil'));
     await tester.pumpAndSettle();
     expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),
         findsOneWidget);

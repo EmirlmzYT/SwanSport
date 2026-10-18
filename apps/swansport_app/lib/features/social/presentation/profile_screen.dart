@@ -1,9 +1,12 @@
+import 'package:swansport_app/app/widgets/swan_floating_header.dart';
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_chrome.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
@@ -38,12 +41,48 @@ class ProfileScreen extends ConsumerStatefulWidget {
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _selectedTab = 0; // 0: Grid, 1: Reels, 2: Saved
 
+  Widget _profileTopBar(SocialProfile p, Color ink) => SwanFloatingHeader(
+        leading: Navigator.canPop(context)
+            ? SwanHeaderIconButton(
+                icon: Icons.arrow_back_ios_new_rounded,
+                tooltip: 'Geri dön',
+                onPressed: () => Navigator.maybePop(context))
+            : null,
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          Flexible(
+              child: Text(
+                  p.username ?? p.name.toLowerCase().replaceAll(' ', ''),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.h3(ink))),
+          if (p.isVerified) ...[
+            const SizedBox(width: SwanSpace.xs),
+            Icon(Icons.verified_rounded,
+                size: SwanSpace.lg, color: context.swan.accent),
+          ],
+        ]),
+        actions: [
+          SwanHeaderIconButton(
+              icon: Icons.qr_code_2_rounded,
+              tooltip: 'Sporcu kartı',
+              onPressed: () => showSwanCard(context,
+                  id: p.id,
+                  name: p.name,
+                  isClub: widget.isClub,
+                  subtitle: p.roleLabel,
+                  avatarUrl: p.avatarUrl)),
+          SwanHeaderIconButton(
+              icon: Icons.settings_rounded,
+              tooltip: 'Ayarlar',
+              onPressed: () => Navigator.pushNamed(context, '/settings')),
+        ],
+      );
+
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bg = isDark ? context.swan.bg : SwanPalette.light.bg;
-    final surfContainer =
-        isDark ? context.swan.surface : context.swan.surface;
+    final surfContainer = isDark ? context.swan.surface : context.swan.surface;
     final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final line = isDark ? context.swan.line : SwanPalette.light.line;
@@ -52,7 +91,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final targetId = widget.id ?? myId;
 
     if (targetId == null) {
-      return Scaffold(
+      return SwanScaffold(
         backgroundColor: bg,
         body: Center(
           child: premiumEmpty(
@@ -72,9 +111,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ? ref.watch(clubPostsProvider(targetId))
         : ref.watch(authorPostsProvider(targetId));
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
+      scrollUnderHeader: true,
       backgroundColor: bg,
+      appBar: async.valueOrNull == null
+          ? null
+          : PreferredSize(
+              preferredSize: const Size.fromHeight(SwanChrome.headerHeight),
+              child: _profileTopBar(async.valueOrNull!, ink)),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -103,53 +148,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     }
                   },
                   child: ListView(
-                    padding: const EdgeInsets.fromLTRB(16, 10, 16, SwanSpace.xl * 5),
+                    padding:
+                        const EdgeInsets.fromLTRB(16, 10, 16, SwanSpace.xl * 5),
                     children: [
-                      // Top Navigation Bar (Stitch Screen 26)
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(child: Row(
-                            children: [
-                              Flexible(child: Text(
-                                p.username ??
-                                    p.name.toLowerCase().replaceAll(' ', ''), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w800),
-                              )),
-                              if (p.isVerified) ...[
-                                const SizedBox(width: 4),
-                                Icon(Icons.verified_rounded,
-                                    size: 17, color: context.swan.accent),
-                              ],
-                            ],
-                          )),
-                          Row(
-                            children: [
-                              _headerCircleBtn(
-                                icon: Icons.qr_code_2_rounded,
-                                onTap: () => showSwanCard(
-                                  context,
-                                  id: p.id,
-                                  name: p.name,
-                                  isClub: widget.isClub,
-                                  subtitle: p.roleLabel,
-                                  avatarUrl: p.avatarUrl,
-                                ),
-                                surfContainer: surfContainer,
-                                ink: ink,
-                              ),
-                              const SizedBox(width: 8),
-                              _headerCircleBtn(
-                                icon: Icons.settings_rounded,
-                                onTap: () =>
-                                    Navigator.pushNamed(context, '/settings'),
-                                surfContainer: surfContainer,
-                                ink: ink,
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-
+                      const SwanHeaderSpacer(),
                       const SizedBox(height: 16),
 
                       // Identity & Social Stats Row (Stitch Screen 26)
@@ -166,11 +168,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: LinearGradient(
-                                    colors: [context.swan.accent, context.swan.accent],
+                                    colors: [
+                                      context.swan.accent,
+                                      context.swan.accent
+                                    ],
                                   ),
                                   boxShadow: [
                                     BoxShadow(
-                                      color: context.swan.accent.withValues(alpha: 0.35),
+                                      color: context.swan.accent
+                                          .withValues(alpha: 0.35),
                                       blurRadius: 18,
                                       offset: const Offset(0, 4),
                                     ),
@@ -188,7 +194,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           alignment: Alignment.center,
                                           child: Text(
                                             p.initials,
-                                            style: SwanType.h1(context.swan.accent).copyWith(fontWeight: FontWeight.w800),
+                                            style:
+                                                SwanType.h1(context.swan.accent)
+                                                    .copyWith(
+                                                        fontWeight:
+                                                            FontWeight.w800),
                                           ),
                                         ),
                                 ),
@@ -227,13 +237,15 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceAround,
                                 children: [
-                                  Expanded(child: _statColumn(
+                                  Expanded(
+                                      child: _statColumn(
                                     label: 'Gönderi',
                                     value: '${p.postCount}',
                                     ink: ink,
                                     isHighlight: false,
                                   )),
-                                  Expanded(child: GestureDetector(
+                                  Expanded(
+                                      child: GestureDetector(
                                     onTap: () => Navigator.pushNamed(
                                       context,
                                       '/baglantilar',
@@ -250,7 +262,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       isHighlight: true,
                                     ),
                                   )),
-                                  Expanded(child: GestureDetector(
+                                  Expanded(
+                                      child: GestureDetector(
                                     onTap: () => Navigator.pushNamed(
                                       context,
                                       '/baglantilar',
@@ -284,7 +297,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               p.name,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: SwanType.h2(ink).copyWith(fontWeight: FontWeight.w800),
+                              style: SwanType.h2(ink)
+                                  .copyWith(fontWeight: FontWeight.w800),
                             ),
                           ),
                         ],
@@ -292,7 +306,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: 3),
                       Text(
                         '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'Üye'}',
-                        style: SwanType.caption(context.swan.accent, w: FontWeight.w600),
+                        style: SwanType.caption(context.swan.accent,
+                            w: FontWeight.w600),
                       ),
                       const SizedBox(height: 6),
                       Text(
@@ -349,19 +364,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Expanded(child: Row(
+                                    Expanded(
+                                        child: Row(
                                       children: [
                                         Icon(Icons.bolt_rounded,
-                                            size: 18, color: context.swan.accent),
+                                            size: 18,
+                                            color: context.swan.accent),
                                         const SizedBox(width: 6),
-                                        Flexible(child: Text(
-                                          'HAFTALIK PERFORMANS HUD', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.accent, w: FontWeight.w800),
+                                        Flexible(
+                                            child: Text(
+                                          'HAFTALIK PERFORMANS HUD',
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: SwanType.caption(
+                                              context.swan.accent,
+                                              w: FontWeight.w800),
                                         )),
                                       ],
                                     )),
-                                    Flexible(child: Text(
+                                    Flexible(
+                                        child: Text(
                                       'Son 7 Gün',
-                                      maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.inkMuted),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: SwanType.caption(
+                                          context.swan.inkMuted),
                                     )),
                                   ],
                                 ),
@@ -492,9 +519,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ],
 
                       if (p.isMe) const ManagementSection(),
-                      if (p.isMe && !p.isClub &&
+                      if (p.isMe &&
+                          !p.isClub &&
                           ref.watch(swanAccessProvider).isReferee &&
-                          ref.watch(featureEnabledProvider(FeatureFlags.refereeCockpit)))
+                          ref.watch(featureEnabledProvider(
+                              FeatureFlags.refereeCockpit)))
                         const RefereeEntryCard(route: '/hakem/gorevler'),
                     ],
                   ),
@@ -508,26 +537,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _headerCircleBtn({
-    required IconData icon,
-    required VoidCallback onTap,
-    required Color surfContainer,
-    required Color ink,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 38,
-        height: 38,
-        decoration: BoxDecoration(
-          color: surfContainer,
-          shape: BoxShape.circle,
-        ),
-        child: Icon(icon, size: 20, color: ink),
-      ),
-    );
-  }
-
   Widget _statColumn({
     required String label,
     required String value,
@@ -538,12 +547,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       children: [
         Text(
           value,
-          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(isHighlight ? context.swan.accent : ink).copyWith(fontWeight: FontWeight.w800),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: SwanType.h3(isHighlight ? context.swan.accent : ink)
+              .copyWith(fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 2),
         Text(
           label.toUpperCase(),
-          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w700),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w700),
         ),
       ],
     );
@@ -575,7 +589,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
             Text(
               label,
-              style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w600),
+              style:
+                  SwanType.caption(context.swan.inkMuted, w: FontWeight.w600),
             ),
           ],
         ),
@@ -613,11 +628,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(icon,
-                  size: 17, color: on ? context.swan.accentFill : context.swan.inkMuted),
+                  size: 17,
+                  color: on ? context.swan.accentFill : context.swan.inkMuted),
               const SizedBox(width: 6),
-              Flexible(child: Text(
+              Flexible(
+                  child: Text(
                 label,
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(on ? context.swan.ink : context.swan.inkMuted, w: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.caption(
+                    on ? context.swan.ink : context.swan.inkMuted,
+                    w: FontWeight.w700),
               )),
             ],
           ),
@@ -809,7 +830,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               ],
             ),
           ),
-          Icon(Icons.arrow_forward_rounded, size: 18, color: context.swan.accent),
+          Icon(Icons.arrow_forward_rounded,
+              size: 18, color: context.swan.accent),
         ],
       ),
     );
@@ -832,7 +854,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 height: 44,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [context.swan.accentFill, context.swan.accentFill]),
+                  gradient: LinearGradient(colors: [
+                    context.swan.accentFill,
+                    context.swan.accentFill
+                  ]),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
                     BoxShadow(
@@ -848,9 +873,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Icon(Icons.edit_rounded,
                         size: 16, color: context.swan.onAccent),
                     const SizedBox(width: 6),
-                    Flexible(child: Text(
+                    Flexible(
+                        child: Text(
                       'Profili Düzenle',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(context.swan.onAccent, w: FontWeight.w800),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.bodySm(context.swan.onAccent,
+                          w: FontWeight.w800),
                     )),
                   ],
                 ),
@@ -920,10 +949,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.edit_rounded, size: 18, color: context.swan.accent),
+                    Icon(Icons.edit_rounded,
+                        size: 18, color: context.swan.accent),
                     const SizedBox(width: 8),
-                    Flexible(child: Text('Kulüp Profilini Düzenle',
-                        maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(ink, w: FontWeight.w800))),
+                    Flexible(
+                        child: Text('Kulüp Profilini Düzenle',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.bodySm(ink, w: FontWeight.w800))),
                   ],
                 ),
               ),
@@ -960,8 +993,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       Icon(Icons.chat_bubble_outline_rounded,
                           size: 18, color: c.ink),
                       const SizedBox(width: 7),
-                      Flexible(child: Text('Mesaj',
-                          maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(c.ink, w: FontWeight.w800))),
+                      Flexible(
+                          child: Text('Mesaj',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style:
+                                  SwanType.bodySm(c.ink, w: FontWeight.w800))),
                     ],
                   ),
                 ),
@@ -1047,7 +1084,8 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
         decoration: BoxDecoration(
           gradient: _following
               ? null
-              : LinearGradient(colors: [context.swan.accent, context.swan.accent]),
+              : LinearGradient(
+                  colors: [context.swan.accent, context.swan.accent]),
           color: _following ? surf : null,
           borderRadius: BorderRadius.circular(SwanRadius.md),
           border:
@@ -1068,9 +1106,13 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
             Icon(_following ? Icons.check_rounded : Icons.add_rounded,
                 size: 18, color: _following ? ink : context.swan.onAccent),
             const SizedBox(width: 7),
-            Flexible(child: Text(_following ? 'Takiptesin' : 'Takip Et',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(_following ? ink : context.swan.onAccent,
-                    w: FontWeight.w800))),
+            Flexible(
+                child: Text(_following ? 'Takiptesin' : 'Takip Et',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.bodySm(
+                        _following ? ink : context.swan.onAccent,
+                        w: FontWeight.w800))),
           ],
         ),
       ),

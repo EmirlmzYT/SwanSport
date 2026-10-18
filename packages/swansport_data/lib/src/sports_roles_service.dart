@@ -50,13 +50,13 @@ class SportsRolesService {
     if (status != null && !MatchOfficialStatus.values.any((v) => v.name == status)) {
       throw ArgumentError.value(status, 'status');
     }
-    final rows = await _client.rpc('my_referee_matches', params: {'p_status': status});
+    final rows = await _client.rpc<dynamic>('my_referee_matches', params: {'p_status': status});
     return _rows(rows, RefereeMatchSummary.fromMap);
   }
 
   Future<void> respondMatchAssignment(String officialId, bool accept, {String? reason}) async {
     _requireAccount();
-    await _client.rpc('respond_match_assignment', params: {
+    await _client.rpc<dynamic>('respond_match_assignment', params: {
       'p_official_id': officialId, 'p_accept': accept, 'p_reason': reason});
     _onChanged?.call();
   }
@@ -65,7 +65,7 @@ class SportsRolesService {
     List<String> awayRoster, {String? notes, List<String>? homeSubs,
     List<String>? awaySubs}) async {
     _requireAccount();
-    await _client.rpc('referee_verify_lineup', params: {
+    await _client.rpc<dynamic>('referee_verify_lineup', params: {
       'p_match_id': matchId, 'p_home_roster': homeRoster, 'p_away_roster': awayRoster,
       'p_notes': notes, 'p_home_substitutes': homeSubs ?? const <String>[],
       'p_away_substitutes': awaySubs ?? const <String>[]});
@@ -74,7 +74,7 @@ class SportsRolesService {
 
   Future<List<MatchLineupApproval>> fetchMatchLineupApprovals(String matchId) async {
     if (_uid == null) return const [];
-    final rows = await _client.rpc('match_approved_lineups', params: {'p_match_id': matchId});
+    final rows = await _client.rpc<dynamic>('match_approved_lineups', params: {'p_match_id': matchId});
     final projected = _rows(rows, (m) => m);
     if (projected.isEmpty) return const [];
     // 0111 deliberately exposes only the approved eight columns. Get real row
@@ -92,7 +92,7 @@ class SportsRolesService {
   }
 
   Future<List<AcceptedMatchOfficial>> fetchAcceptedMatchOfficials(String matchId) async {
-    final rows = await _client.rpc('accepted_match_officials', params: {'p_match_id': matchId});
+    final rows = await _client.rpc<dynamic>('accepted_match_officials', params: {'p_match_id': matchId});
     return _rows(rows, AcceptedMatchOfficial.fromMap);
   }
 
@@ -108,7 +108,7 @@ class SportsRolesService {
       final clubId = row['club_id'] as String;
       if (row['role'] == 'coach' || row['role'] == 'club_admin') administrative.add(clubId);
       // The existing server predicate checks permission + revocation + membership.
-      if (await _client.rpc('is_authorized_health_officer', params: {'p_club': clubId}) == true) {
+      if (await _client.rpc<dynamic>('is_authorized_health_officer', params: {'p_club': clubId}) == true) {
         medical.add(clubId);
       }
     }
@@ -138,42 +138,42 @@ final Provider<SportsRolesService?> sportsRolesServiceProvider =
 // All private providers re-evaluate on account changes; no fabricated fixture roles.
 final FutureProvider<List<FederationRole>> myFederationRolesProvider =
     FutureProvider<List<FederationRole>>((ref) async {
-  final session = ref.watch(authSessionProvider).valueOrNull;
+  final session = ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyFederationRoles() ?? const [];
 });
 final FutureProvider<RefereeProfile?> myRefereeProfileProvider =
     FutureProvider<RefereeProfile?>((ref) async {
-  final session = ref.watch(authSessionProvider).valueOrNull;
+  final session = ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   if (session == null) return null;
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyRefereeProfile();
 });
 final FutureProvider<List<ClubStaffRole>> myClubStaffRolesProvider =
     FutureProvider<List<ClubStaffRole>>((ref) async {
-  final session = ref.watch(authSessionProvider).valueOrNull;
+  final session = ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyClubStaffRoles() ?? const [];
 });
 final FutureProvider<SportsClubAuthority> mySportsClubAuthorityProvider =
     FutureProvider<SportsClubAuthority>((ref) async {
-  final session = ref.watch(authSessionProvider).valueOrNull;
+  final session = ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   if (session == null) return SportsClubAuthority();
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyClubAuthority() ?? SportsClubAuthority();
 });
 final FutureProviderFamily<List<RefereeMatchSummary>, String?> myRefereeMatchesProvider =
     FutureProvider.family<List<RefereeMatchSummary>, String?>((ref, status) async {
-  final session = ref.watch(authSessionProvider).valueOrNull;
+  final session = ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMyRefereeMatches(status: status) ?? const [];
 });
 final FutureProviderFamily<List<MatchLineupApproval>, String> matchLineupApprovalsProvider =
     FutureProvider.family<List<MatchLineupApproval>, String>((ref, matchId) async {
-  final session = ref.watch(authSessionProvider).valueOrNull;
+  final session = ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   if (session == null) return const [];
   return await ref.watch(sportsRolesServiceProvider)?.fetchMatchLineupApprovals(matchId) ?? const [];
 });
 final FutureProviderFamily<List<AcceptedMatchOfficial>, String> acceptedMatchOfficialsProvider =
     FutureProvider.family<List<AcceptedMatchOfficial>, String>((ref, matchId) async {
-  ref.watch(authSessionProvider);
+  ref.watch(authSessionProvider.select((s) => s.valueOrNull));
   return await ref.watch(sportsRolesServiceProvider)?.fetchAcceptedMatchOfficials(matchId) ?? const [];
 });

@@ -48,7 +48,7 @@ void main() {
     await tester.tap(find.text('Branşları aç'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Futbol'); await tester.pump();
-    await tester.tap(find.text('Futbol')); await tester.pump();
+    await tester.tap(find.widgetWithText(CheckboxListTile, 'Futbol')); await tester.pump();
     await tester.tap(find.text('Kaydet')); await tester.pumpAndSettle();
     expect(find.textContaining('Kaydedilemedi:'), findsOneWidget);
     expect(tester.widget<CheckboxListTile>(find.byType(CheckboxListTile)).value, isTrue);

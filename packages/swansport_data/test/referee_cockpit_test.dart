@@ -93,7 +93,7 @@ void main(){
   test('state arrays and events are immutable, elapsed duration follows server anchor',(){
     final s=RefereeLiveState.fromMap({'match_id':'m','sport_code':'futbol','match_status':'scheduled','version':2,
       'home_score':1,'away_score':0,'period':1,'elapsed_seconds':30,'clock_started_at':'2026-10-13T12:00:00Z',
-      'events':[],'active_home':['a'],'active_away':['b'],'bench_home':[],'bench_away':[],'sets':[]});
+      'events':<Map<String,dynamic>>[],'active_home':['a'],'active_away':['b'],'bench_home':<String>[],'bench_away':<String>[],'sets':<Map<String,dynamic>>[]});
     expect(s.secondsAt(DateTime.utc(2026,10,13,12,1)),90);
     expect(()=>s.squads['active_home']!.add('x'),throwsUnsupportedError);
     expect(()=>s.events.clear(),throwsUnsupportedError);

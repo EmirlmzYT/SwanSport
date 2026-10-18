@@ -9,6 +9,11 @@ on:
       - 'packages/**'
       - '.github/workflows/build_ios.yml'
   workflow_dispatch:
+    inputs:
+      preview_only:
+        description: 'Only build an unsigned preview; never configure Apple distribution signing'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -30,6 +35,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.47.7'
           channel: stable
           cache: true
       - name: Bootstrap workspace
@@ -56,12 +62,17 @@ jobs:
           API_KEY_ID: ${{ vars.APPSTORE_API_KEY_ID }}
           TEAM_ID: ${{ vars.IOS_TEAM_ID }}
         run: |
-          if [[ -n "$CERTIFICATE" && -n "$CERTIFICATE_PASSWORD" && -n "$API_PRIVATE_KEY" && -n "$ISSUER_ID" && -n "$API_KEY_ID" && -n "$TEAM_ID" ]]; then
+          if [[ "${{ inputs.preview_only }}" != "true" && -n "$CERTIFICATE" && -n "$CERTIFICATE_PASSWORD" && -n "$API_PRIVATE_KEY" && -n "$ISSUER_ID" && -n "$API_KEY_ID" && -n "$TEAM_ID" ]]; then
             echo 'available=true' >> "$GITHUB_OUTPUT"
           else
             echo 'available=false' >> "$GITHUB_OUTPUT"
             echo 'Apple signing bilgileri eksik; Sideloadly için unsigned IPA üretilecek.'
           fi
+      - name: Configure iOS Firebase resource
+        env:
+          GOOGLESERVICE_INFO_PLIST_BASE64: ${{ secrets.GOOGLESERVICE_INFO_PLIST_BASE64 }}
+          REQUIRE_IOS_FIREBASE_CONFIG: ${{ steps.signing.outputs.available }}
+        run: python tools/configure_ios_firebase.py
       - name: Configure unsigned build signing
         working-directory: apps/swansport_app
         run: |
@@ -81,6 +92,7 @@ jobs:
           flutter build ios --release --no-codesign -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define="IOS_FIREBASE_ENABLED=$IOS_FIREBASE_ENABLED" \
             --dart-define=APP_ENV=production
       - name: Package unsigned IPA for Sideloadly
         working-directory: apps/swansport_app
@@ -88,6 +100,12 @@ jobs:
           rm -rf build/ios/unsigned-payload
           mkdir -p build/ios/unsigned-payload/Payload build/ios/release
           cp -R build/ios/iphoneos/Runner.app build/ios/unsigned-payload/Payload/
+          # FlutterFire configures Firebase during native plugin registration,
+          # before Dart can catch errors. Never ship an invalid placeholder.
+          if [[ "$IOS_FIREBASE_ENABLED" == "false" ]]; then
+            rm build/ios/unsigned-payload/Payload/Runner.app/GoogleService-Info.plist
+          fi
+          python ../../tools/verify_ios_preview_bundle.py build/ios/unsigned-payload/Payload/Runner.app --firebase-enabled "$IOS_FIREBASE_ENABLED"
           # Free Apple hesapları ile sideloading (Sideloadly / AltStore) yapıldığında
           # aps-environment içeren xcent entitlement profili uyuşmazlığından iOS uygulamayı başlatmaz.
           # Unsigned IPA içindeki xcent dosyalarını temizle:
@@ -144,6 +162,7 @@ jobs:
           flutter build ipa --release -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define="IOS_FIREBASE_ENABLED=$IOS_FIREBASE_ENABLED" \
             --dart-define=APP_ENV=production
       - name: Upload signed IPA artifact
         if: steps.signing.outputs.available == 'true'

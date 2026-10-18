@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_surface.dart';
 import '../../../../app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,7 @@ class GuardianOfficialResultScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Resmi Müsabaka Karnesi'),
       body: (matchId != null && childId != null

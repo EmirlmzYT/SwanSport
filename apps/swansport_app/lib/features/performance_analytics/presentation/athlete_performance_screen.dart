@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -46,9 +47,10 @@ class _AthletePerformanceScreenState
     final series = ref.watch(testSeriesProvider(widget.athleteId));
     final goals = ref.watch(goalsProvider(widget.athleteId));
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
+      header: _buildTopBar(context, ink, surf, line),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -63,7 +65,7 @@ class _AthletePerformanceScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
                 children: [
-                  _buildTopBar(context, ink, surf, line),
+
                   if (ref.watch(
                     featureEnabledProvider(FeatureFlags.developmentReport),
                   ))

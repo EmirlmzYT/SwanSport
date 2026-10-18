@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_surface.dart';
 import 'club_training_sports_sheet.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
@@ -31,7 +32,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
     final c = context.swan;
     final club = ref.watch(activeClubProvider).valueOrNull;
     final access = ref.watch(swanAccessProvider);
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüp Ayarları'),
       backgroundColor: c.bg,
       body: Center(child: ConstrainedBox(

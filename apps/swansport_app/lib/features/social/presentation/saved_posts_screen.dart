@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'dart:async';
 
@@ -91,7 +92,7 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
     final c = context.swan;
     final savedAsync = ref.watch(savedPostsProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kaydedilen Gönderiler'),
       extendBody: true,
       backgroundColor: c.bg,

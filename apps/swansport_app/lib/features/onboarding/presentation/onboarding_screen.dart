@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -125,7 +126,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     final c = context.swan;
     final last = _page == kOnboardingPages.length - 1;
 
-    return Scaffold(
+    return SwanScaffold(
       backgroundColor: c.bg,
       body: SafeArea(
         child: Center(

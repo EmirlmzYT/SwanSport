@@ -1,3 +1,4 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -178,7 +179,7 @@ class _FacilityReservationScreenState
     final clubAsync = ref.watch(activeClubProvider);
     final facilitiesAsync = ref.watch(facilityLoadProvider);
 
-    return Scaffold(
+    return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Tesis Rezervasyonu'),
@@ -655,12 +656,12 @@ class _FacilityReservationScreenState
             ),
           ],
           if (_checkedConflicts && _conflicts.isNotEmpty)
-            CheckboxListTile(
+            Material(type: MaterialType.transparency, child: CheckboxListTile(
               value: _allowConflict,
               activeColor: c.accent,
               title: Text('Çakışmaya rağmen kaydet', style: SwanType.bodySm(c.ink)),
               onChanged: _isSubmitting ? null : (value) => setState(() => _allowConflict = value ?? false),
-            ),
+            )),
           const SizedBox(height: SwanSpace.lg),
           SizedBox(
             width: double.infinity,
