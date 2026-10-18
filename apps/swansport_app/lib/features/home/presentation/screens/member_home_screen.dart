@@ -9,6 +9,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../clubs/presentation/club_create_sheet.dart';
 
 /// Üye Ana Ekranı — en düşük yetkili rol (premium v3).
 ///
@@ -115,8 +116,14 @@ class MemberHomeScreen extends ConsumerWidget {
                   if (_canFoundClub(creds.valueOrNull) && club == null) ...[
                     const SizedBox(height: 10),
                     Row(children: [
-                      _quick(context, isDark, Icons.add_business_rounded,
-                          'Kulüp Oluştur', '/athletes'),
+                      _quick(
+                        context,
+                        isDark,
+                        Icons.add_business_rounded,
+                        'Kulüp Oluştur',
+                        null,
+                        () => showClubCreateSheet(context),
+                      ),
                       const SizedBox(width: 10),
                       const Expanded(child: SizedBox()),
                     ]),
@@ -372,14 +379,22 @@ class MemberHomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _quick(BuildContext context, bool isDark, IconData icon, String label,
-      String route) {
+  Widget _quick(
+    BuildContext context,
+    bool isDark,
+    IconData icon,
+    String label, [
+    String? route,
+    VoidCallback? onTap,
+  ]) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Expanded(
       child: GestureDetector(
-        onTap: () => Navigator.pushNamed(context, route),
+        onTap: onTap ?? () {
+          if (route != null) Navigator.pushNamed(context, route);
+        },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
           decoration: BoxDecoration(

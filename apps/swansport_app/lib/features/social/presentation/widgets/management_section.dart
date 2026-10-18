@@ -39,6 +39,7 @@ class ManagementSection extends ConsumerWidget {
         ),
       if (access.isClubStaff) ...[
         const _Item(Icons.groups_rounded, 'Sporcular', '/athletes'),
+        const _Item(Icons.how_to_reg_rounded, 'Gelen Başvurular', '/basvurular'),
         const _Item(Icons.shield_rounded, 'Takımlar', '/teams'),
         const _Item(Icons.calendar_month_rounded, 'Takvim', '/calendar'),
         const _Item(Icons.checklist_rounded, 'Yoklama Al', '/attendance'),
@@ -50,6 +51,7 @@ class ManagementSection extends ConsumerWidget {
           '/performance-analytics',
         ),
         const _Item(Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command'),
+        const _Item(Icons.settings_suggest_rounded, 'Kulüp Ayarları', '/settings'),
       ],
       // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
       // görmüyor. Rotalar tanımlı kalıyor.

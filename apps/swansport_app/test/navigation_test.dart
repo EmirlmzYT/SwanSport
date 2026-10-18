@@ -23,6 +23,8 @@ void main() {
   final createSheet = read('lib/app/widgets/create_sheet.dart');
   // Profil'deki kişisel kısayollar (Aidatlarım / Belgelerim / Doğrulama).
   final profile = read('lib/features/social/presentation/profile_screen.dart');
+  final profileMenu =
+      read('lib/features/social/presentation/widgets/swan_profile_menu_sheet.dart');
 
   /// Bir kullanıcının menüsüz ulaşabilmesi gereken her rota.
   ///
@@ -91,8 +93,9 @@ void main() {
     });
 
     test('her rotanın bir giriş noktası var', () {
-      // Menü silindi; giriş noktaları artık bu dört dosya.
-      final entryPoints = explore + management + nav + createSheet + profile + guest;
+      // Menü silindi; giriş noktaları artık bu dosyalar.
+      final entryPoints =
+          explore + management + nav + createSheet + profile + profileMenu + guest;
       final orphans =
           reachable.where((r) => !entryPoints.contains("'$r'")).toList();
 

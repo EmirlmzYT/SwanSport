@@ -9,6 +9,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../clubs/presentation/club_create_sheet.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 
 /// Keşfet — kulüpleri il, ilçe, branş ve doğrulanmışlık filtreleriyle bul.
@@ -44,7 +45,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüpler & Akademiler', actions: [
-        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/basvurular'), icon: const Icon(Icons.add_circle_outline), label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent))),
+        TextButton.icon(
+          onPressed: () => showClubCreateSheet(context),
+          icon: const Icon(Icons.add_circle_outline),
+          label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent)),
+        ),
       ]),
       extendBody: true,
       backgroundColor: bg,
