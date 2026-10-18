@@ -118,7 +118,7 @@ if [[ "${1:-}" == "--cron" ]]; then
   LOCAL_SHA="$(git rev-parse HEAD)"
   REMOTE_SHA="$(git rev-parse "origin/$BRANCH")"
   HTML_SYNCED=true
-  if [[ ! -f "$TARGET_WEB_ROOT/index.html" ]] || ! cmp -s "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html" || [[ ! -f "$TARGET_WEB_ROOT/favicon.png" ]]; then
+  if [[ ! -f "$TARGET_WEB_ROOT/index.html" ]] || ! cmp -s "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html" || [[ ! -f "$TARGET_WEB_ROOT/favicon.png" ]] || ! cmp -s "$REPO_DIR/landing/llms.txt" "$TARGET_WEB_ROOT/llms.txt"; then
     HTML_SYNCED=false
   fi
   if [[ "$LOCAL_SHA" == "$REMOTE_SHA" && "$HTML_SYNCED" == "true" ]]; then
