@@ -527,6 +527,14 @@ class _PostCardState extends ConsumerState<PostCard>
                                       p.sourcePost!.imageUrl!,
                                       width: 96,
                                       height: 96,
+                                      cacheWidth: (96 *
+                                              MediaQuery.devicePixelRatioOf(
+                                                  context))
+                                          .round(),
+                                      cacheHeight: (96 *
+                                              MediaQuery.devicePixelRatioOf(
+                                                  context))
+                                          .round(),
                                       fit: BoxFit.cover,
                                     ),
                                   ),

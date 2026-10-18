@@ -87,6 +87,7 @@ class RatioImage extends StatefulWidget {
 class _RatioImageState extends State<RatioImage> {
   double? _ratio;
   bool _failed = false;
+  ImageProvider? _decodedImage;
   ImageStream? _stream;
   ImageStreamListener? _listener;
 
@@ -108,7 +109,17 @@ class _RatioImageState extends State<RatioImage> {
 
   void _resolve() {
     _detach();
-    final stream = widget.image.resolve(createLocalImageConfiguration(context));
+    // Akış kartı en fazla 620 mantıksal piksel genişliğinde. Telefonun
+    // göstereceğinden büyük fotoğrafı tam çözünürlükte belleğe alma.
+    final width = (MediaQuery.sizeOf(context).width.clamp(1.0, 620.0) *
+            MediaQuery.devicePixelRatioOf(context))
+        .round()
+        .clamp(1, 1600);
+    _decodedImage = widget.image is NetworkImage
+        ? ResizeImage(widget.image, width: width)
+        : widget.image;
+    final stream =
+        _decodedImage!.resolve(createLocalImageConfiguration(context));
     final listener = ImageStreamListener(
       (info, _) {
         if (!mounted) return;
@@ -179,7 +190,7 @@ class _RatioImageState extends State<RatioImage> {
                       ),
                     )
                   : Image(
-                      image: widget.image,
+                      image: _decodedImage ?? widget.image,
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => Center(
                         child: Icon(Icons.broken_image_rounded,
