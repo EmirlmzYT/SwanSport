@@ -38,6 +38,7 @@ void main() {
     '/organizasyonlar',
     '/canli-skor',
     // Profil > Yönetim
+    '/kulup-yonetim',
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
     '/announcements', '/performance-analytics', '/home-command',
     '/sezon-acilisi', '/veli-izinleri', '/gelisim-raporu', '/saha-islemlerim',

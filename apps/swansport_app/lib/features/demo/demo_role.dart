@@ -185,6 +185,7 @@ extension DemoRoleX on DemoRole {
 
   /// Kulüpte görev alan herkesin ortak tabanı.
   static const Set<String> _clubStaff = {
+    '/kulup-yonetim',
     '/dashboard',
     '/calendar',
     '/attendance',

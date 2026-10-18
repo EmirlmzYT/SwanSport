@@ -27,6 +27,7 @@ import '../features/calendar/presentation/screens/race_event_detail_screen.dart'
 import '../features/calendar/presentation/screens/schedule_calendar_screen.dart';
 import '../features/calendar/presentation/screens/guardian_official_result_screen.dart';
 import '../features/clubs/presentation/club_applications_screen.dart';
+import '../features/clubs/presentation/club_cockpit_screen.dart';
 import '../features/clubs/presentation/club_profile_detail_screen.dart';
 import '../features/communities/presentation/community_chat_screen.dart';
 import '../features/communities/presentation/federation_admin_screen.dart';
@@ -260,6 +261,7 @@ class SwanSportApp extends ConsumerWidget {
         '/beslenme': (context) => const NutritionTrackerScreen(),
         '/yaris-detay': (context) => const RaceEventDetailScreen(),
         '/kulup-detay': (context) => const ClubProfileDetailScreen(),
+        '/kulup-yonetim': (context) => const ClubCockpitScreen(),
       }.map((route, builder) => MapEntry(
           route,
           (route == testCenterRoute && testCenter) || SwanAccess.isGuestRoute(route)

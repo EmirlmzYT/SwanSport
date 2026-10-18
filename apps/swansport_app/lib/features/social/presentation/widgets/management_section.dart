@@ -38,6 +38,11 @@ class ManagementSection extends ConsumerWidget {
           '/sezon-acilisi',
         ),
       if (access.isClubStaff) ...[
+        const _Item(
+          Icons.space_dashboard_rounded,
+          'Kulüp Yönetim Kokpiti',
+          '/kulup-yonetim',
+        ),
         const _Item(Icons.groups_rounded, 'Sporcular', '/athletes'),
         const _Item(Icons.how_to_reg_rounded, 'Gelen Başvurular', '/basvurular'),
         const _Item(Icons.shield_rounded, 'Takımlar', '/teams'),
