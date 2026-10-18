@@ -1,10 +1,12 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `in_progress`
+Aktif Writer: Yok
+Durum: `ready_for_review`
 
 2026-10-18: Kullanıcı güncel +46 tabanı ve chat b5865f2 için IPA istedi. 0.5.18+48 önizleme; önceki hatalı eski taban +47 ile karışmayacak. Header korunur, main/tag/SQL/web/TestFlight değişmez.
+
+2026-10-18 IPA +48 sonucu: Kaynak 65e9696 / codex/chat-refresh-on-header46, macOS 39131577025 başarı; artifact 12138571137 indirildi. 13,503,146 byte IPA sürüm/build/executable/CRC/Firebase plist yokluğu ve kopya SHA-256 eşliği doğrulandı. +46 header/alt bar/feed diff boş; chat mevcut. İndirilenler'e teslim. Önceki mobil 510/510 ve son iOS config 7/7. Main/tag/SQL/web/TestFlight değişmedi; fiziksel cihaz açılış/görsel/mesaj teslim kabulü açık. Kanıt docs/ios-preview-0.5.18-48.md; Writer serbest.
 
 2026-10-18: Chat yenilemesi doğru 954fc4c / 0.5.17+46 tabanında yeniden devralındı. Eski daldan tüm dosya kopyalanmaz; SwanScaffold, SwanFloatingHeader ve alt gezinme korunarak yalnız chat değişiklikleri uyarlanır. Canlı SQL/deploy/IPA yok.
 
