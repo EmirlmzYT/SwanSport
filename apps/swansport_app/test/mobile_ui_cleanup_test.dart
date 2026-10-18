@@ -81,6 +81,11 @@ void main() {
       ]);
       expect(find.text('Yeni Sohbet'), findsOneWidget);
       expect(find.text('Çok Uzun Adlı Antrenör ve Takım Arkadaşı'), findsOneWidget);
+        expect(find.text('Antrenörler'), findsNothing);
+        await tester.enterText(find.byType(TextField), 'bulunmayan kişi');
+        await tester.pump();
+        expect(find.text('Sohbet bulunamadı'), findsOneWidget);
+        expect(find.text('Çok Uzun Adlı Antrenör ve Takım Arkadaşı'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 

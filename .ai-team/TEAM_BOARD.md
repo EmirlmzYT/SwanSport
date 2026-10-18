@@ -4,6 +4,10 @@ Son güncelleme: 2026-10-18 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `ready_for_review`
 
+2026-10-18: Kullanıcı chat arayüzünü yenilememi istedi. Sohbet listesi ve birebir/topluluk sohbet kabukları; gerçek veriler, mevcut eylem/okunma/gizlilik ve beş alt sekme korunur. Veritabanı/canlı yayın/yeni IPA bu görev kapsamında değil. Önceki IPA çalışması korunur.
+
+2026-10-18 chat sonucu: Öneri şeridi kaldırıldı; gerçek Birebir/Topluluk filtreleri, Türkçe arama/sıralama, ortak multiline/boş mesaj kapılı composer, sade balonlar ve topluluk header bağlı. Sahte ses kayıt/oynatma sayacı kaldırıldı; eski metin korunur. 41/41 ilgili widget/rota testi, analiz 0 error/warning (stil info mevcut), 611 syntax/24 token, SSS 44/44, push 42 ve diff temiz. Kanıt docs/chat-ui-refresh.md. Gerçek cihaz/görsel ve iki hesap teslim kabulü açık; DB/deploy/yeni IPA yok. Writer serbest.
+
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 
 Kontrol noktası: 0.5.14+43 kaynak düzeltmesi; sahte config kaldırıldı, disabled resource son paketten çıkarılır ve paket doğrulayıcı yokluğunu zorlar. API anahtarı/app ID biçimi kontrolü ve tüm Dart push girişleri için disabled regresyon eklendi. Python 6/6, gönderici 5/5, SSS 44/44, push 42 ve diff temiz; Flutter testi sürüyor. Gerçek cihaz tekrar kabulü yeni IPA kurulumuna bağlı.
