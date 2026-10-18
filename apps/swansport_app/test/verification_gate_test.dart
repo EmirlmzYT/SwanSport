@@ -68,9 +68,25 @@ void main() {
     });
 
     test('returns null for unrelated errors', () {
-      const error = 'PostgrestException(message: Kulüp adı zaten kullanılıyor, code: 23505)';
+      const error =
+          'PostgrestException(message: Kulüp adı zaten kullanılıyor, code: 23505)';
       final req = VerificationRequirement.detect(error);
       expect(req, isNull);
+    });
+
+    test('does not treat a generic insufficient privilege as identity gate',
+        () {
+      const error =
+          'PostgrestException(message: Bu kulübü düzenleyemezsiniz, code: 42501)';
+      expect(VerificationRequirement.detect(error), isNull);
+    });
+
+    test('guardian requirement opens the guardian linking flow', () {
+      const error =
+          'PostgrestException(message: Veli için doğrulanmış kimlik ve geçerli davet bağı gerekli, code: P0001)';
+      final req = VerificationRequirement.detect(error);
+      expect(req?.targetRoute, '/veli-bagla');
+      expect(req?.actionLabel, 'Veli Bağlantısını Tamamla');
     });
   });
 
@@ -87,7 +103,8 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           routes: {
-            '/dogrulama': (ctx) => const Scaffold(body: Text('DogrulamaEkrani')),
+            '/dogrulama': (ctx) =>
+                const Scaffold(body: Text('DogrulamaEkrani')),
           },
           home: const Scaffold(
             body: VerificationRequiredBottomSheet(requirement: req),

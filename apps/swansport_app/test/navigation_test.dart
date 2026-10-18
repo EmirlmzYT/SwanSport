@@ -16,15 +16,18 @@ void main() {
 
   final routes = read('lib/app/swansport_app.dart');
   final explore = read('lib/features/network/presentation/explore_screen.dart');
-  final guest = read('lib/features/network/presentation/guest_explore_screen.dart');
+  final guest =
+      read('lib/features/network/presentation/guest_explore_screen.dart');
   final management =
       read('lib/features/social/presentation/widgets/management_section.dart');
+  final cockpit =
+      read('lib/features/clubs/presentation/club_cockpit_screen.dart');
   final nav = read('lib/app/widgets/swan_bottom_nav.dart');
   final createSheet = read('lib/app/widgets/create_sheet.dart');
   // Profil'deki kişisel kısayollar (Aidatlarım / Belgelerim / Doğrulama).
   final profile = read('lib/features/social/presentation/profile_screen.dart');
-  final profileMenu =
-      read('lib/features/social/presentation/widgets/swan_profile_menu_sheet.dart');
+  final profileMenu = read(
+      'lib/features/social/presentation/widgets/swan_profile_menu_sheet.dart');
 
   /// Bir kullanıcının menüsüz ulaşabilmesi gereken her rota.
   ///
@@ -55,15 +58,31 @@ void main() {
   ];
 
   group('rota bütünlüğü', () {
-    test('public live match UUID route has hub/strip entrances and guest-safe parsing', () {
-      final router=read('lib/app/router.dart');
-      expect(router.contains("'canli-mac'"),isTrue);
-      expect(router.contains('isPublicMatchId(target.pathSegments.last)'),isTrue);
-      expect(routes.contains('liveMatchRoute(settings)'),isTrue);
-      expect(read('lib/features/live_match/presentation/live_match_widgets.dart').contains('/canli-mac/'),isTrue);
-      expect(read('lib/features/social/presentation/feed_screen.dart').contains('LiveMatchStrip()'),isTrue);
+    test('kulüp davet bağlantısı profil başvuru rotasına açılır', () {
+      expect(
+          cockpit.contains('swansport.pages.dev/#/kulup-profil?id='), isTrue);
+      expect(routes.contains("target?.path == '/kulup-profil'"), isTrue);
+      expect(routes.contains("target?.queryParameters['id']"), isTrue);
     });
-    test('referee deep routes retain validated match IDs and account guard', () {
+    test(
+        'public live match UUID route has hub/strip entrances and guest-safe parsing',
+        () {
+      final router = read('lib/app/router.dart');
+      expect(router.contains("'canli-mac'"), isTrue);
+      expect(
+          router.contains('isPublicMatchId(target.pathSegments.last)'), isTrue);
+      expect(routes.contains('liveMatchRoute(settings)'), isTrue);
+      expect(
+          read('lib/features/live_match/presentation/live_match_widgets.dart')
+              .contains('/canli-mac/'),
+          isTrue);
+      expect(
+          read('lib/features/social/presentation/feed_screen.dart')
+              .contains('LiveMatchStrip()'),
+          isTrue);
+    });
+    test('referee deep routes retain validated match IDs and account guard',
+        () {
       final router = read('lib/app/router.dart');
       for (final route in ['/hakem/esame', '/hakem/canli', '/hakem/rapor']) {
         expect(router.contains("'$route'"), isTrue);
@@ -72,10 +91,18 @@ void main() {
       expect(routes.contains('guardAccountRoutes'), isTrue);
       expect(router.contains('hasMatch(matchId)'), isTrue);
     });
-    test('private official result has notification and child calendar entry points', () {
+    test(
+        'private official result has notification and child calendar entry points',
+        () {
       expect(routes.contains("'/resmi-sonuc'"), isTrue);
-      expect(read('lib/features/social/presentation/notifications_screen.dart').contains('n.resultRoute'), isTrue);
-      expect(read('lib/features/calendar/presentation/screens/guardian_official_result_screen.dart').contains('/resmi-sonuc?notification='), isTrue);
+      expect(
+          read('lib/features/social/presentation/notifications_screen.dart')
+              .contains('n.resultRoute'),
+          isTrue);
+      expect(
+          read('lib/features/calendar/presentation/screens/guardian_official_result_screen.dart')
+              .contains('/resmi-sonuc?notification='),
+          isTrue);
     });
     test('kaldırılan prototip menülerinin eski bağlantıları korunur', () {
       for (final route in ['/reports', '/configuration']) {
@@ -95,8 +122,14 @@ void main() {
 
     test('her rotanın bir giriş noktası var', () {
       // Menü silindi; giriş noktaları artık bu dosyalar.
-      final entryPoints =
-          explore + management + nav + createSheet + profile + profileMenu + guest;
+      final entryPoints = explore +
+          management +
+          cockpit +
+          nav +
+          createSheet +
+          profile +
+          profileMenu +
+          guest;
       final orphans =
           reachable.where((r) => !entryPoints.contains("'$r'")).toList();
 

@@ -782,7 +782,7 @@ class SocialService {
       row = await _c
           .from('profiles')
           .select(
-            'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone, phone_hidden, instagram, twitter, website, primary_sport, position, height_cm, weight_kg, dominant_side',
+            'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone_hidden, instagram, twitter, website, primary_sport, position, dominant_side',
           )
           .eq('id', profileId)
           .maybeSingle();
@@ -791,7 +791,7 @@ class SocialService {
         row = await _c
             .from('profiles')
             .select(
-              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone, phone_hidden, instagram, twitter, website',
+              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone_hidden, instagram, twitter, website',
             )
             .eq('id', profileId)
             .maybeSingle();
@@ -799,13 +799,25 @@ class SocialService {
         row = await _c
             .from('profiles')
             .select(
-              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone',
+              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id',
             )
             .eq('id', profileId)
             .maybeSingle();
       }
     }
     if (row == null) return null;
+
+    Map<String, dynamic> privateProjection = const {};
+    try {
+      final projection = await _c.rpc<Map<String, dynamic>>(
+        'profile_private_projection',
+        params: {'p_profile_id': profileId},
+      );
+      privateProjection = projection;
+    } catch (_) {
+      // 0124 henüz uygulanmamış ortamlarda hassas alanlar güvenli biçimde
+      // boş kalır; doğrudan profiles okumasına geri dönülmez.
+    }
 
     final creds = await _c
         .from('profile_credentials')
@@ -900,15 +912,15 @@ class SocialService {
       isFollowedByMe: followed,
       isMe: uid == profileId,
       credentials: labels,
-      phone: row['phone'] as String?,
+      phone: privateProjection['phone'] as String?,
       phoneHidden: (row['phone_hidden'] as bool?) ?? true,
       instagram: row['instagram'] as String?,
       twitter: row['twitter'] as String?,
       website: row['website'] as String?,
       primarySport: row['primary_sport'] as String?,
       position: row['position'] as String?,
-      heightCm: (row['height_cm'] as num?)?.toInt(),
-      weightKg: (row['weight_kg'] as num?)?.toDouble(),
+      heightCm: (privateProjection['height_cm'] as num?)?.toInt(),
+      weightKg: (privateProjection['weight_kg'] as num?)?.toDouble(),
       dominantSide: row['dominant_side'] as String?,
     );
   }

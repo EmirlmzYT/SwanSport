@@ -410,11 +410,11 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Banka Standartlarında NFC ile Doğrula',
+                      'NFC ile doğrulama (hazırlanıyor)',
                       style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                     ),
                     Text(
-                      'Çipli kimliğini telefona dokundur ve anında onayla',
+                      'Durumu gör veya belge inceleme akışıyla devam et',
                       style: SwanType.caption(c.inkMuted),
                     ),
                   ],
@@ -429,8 +429,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
             child: ElevatedButton.icon(
               onPressed: () => showNfcIdentityVerificationSheet(context),
               style: ElevatedButton.styleFrom(
-                backgroundColor: c.accent,
-                foregroundColor: Colors.white,
+                backgroundColor: c.accentFill,
+                foregroundColor: c.onAccent,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(SwanRadius.sm),
                 ),
@@ -438,8 +438,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
               ),
               icon: const Icon(Icons.credit_card_rounded, size: 18),
               label: Text(
-                'NFC & Yüz Taramasını Başlat',
-                style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
+                'NFC doğrulama durumunu gör',
+                style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
               ),
             ),
           ),

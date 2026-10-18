@@ -30,33 +30,20 @@ class ManagementSection extends ConsumerWidget {
     final access = ref.watch(swanAccessProvider);
 
     final club = <_Item>[
-      if (access.isClubAdmin &&
-          ref.watch(featureEnabledProvider(FeatureFlags.seasonSetup)))
-        const _Item(
-          Icons.event_available_rounded,
-          'Sezon Açılışı',
-          '/sezon-acilisi',
-        ),
       if (access.isClubStaff) ...[
         const _Item(
           Icons.space_dashboard_rounded,
           'Kulüp Yönetim Kokpiti',
           '/kulup-yonetim',
         ),
-        const _Item(Icons.groups_rounded, 'Sporcular', '/athletes'),
-        const _Item(Icons.how_to_reg_rounded, 'Gelen Başvurular', '/basvurular'),
-        const _Item(Icons.shield_rounded, 'Takımlar', '/teams'),
-        const _Item(Icons.calendar_month_rounded, 'Takvim', '/calendar'),
-        const _Item(Icons.checklist_rounded, 'Yoklama Al', '/attendance'),
-        const _Item(Icons.fact_check_rounded, 'Devam Geçmişi', '/devam-durumu'),
-        const _Item(Icons.campaign_rounded, 'Duyurular', '/announcements'),
         const _Item(
           Icons.bar_chart_rounded,
           'Performans',
           '/performance-analytics',
         ),
         const _Item(Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command'),
-        const _Item(Icons.settings_suggest_rounded, 'Kulüp Ayarları', '/settings'),
+        const _Item(
+            Icons.settings_suggest_rounded, 'Kulüp Ayarları', '/settings'),
       ],
       // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
       // görmüyor. Rotalar tanımlı kalıyor.
@@ -69,45 +56,20 @@ class ManagementSection extends ConsumerWidget {
           'Antrenman Oturumu',
           '/antrenman-oturumu',
         ),
-        const _Item(
-          Icons.tune_rounded,
-          'Antrenman Şablonları',
-          '/antrenman-sablonlari',
-        ),
       ],
     ];
 
     final ops = <_Item>[
-      if (ref.watch(
-        featureEnabledProvider(FeatureFlags.clubStaffOperations),
-      )) ...[
-        if (access.canOpenClubInventory)
-          const _Item(
-            Icons.inventory_2_outlined,
-            'Malzeme & Zimmet',
-            '/kulup/malzeme-zimmet',
-          ),
-        if (access.canOpenClubHealth)
-          const _Item(
-            Icons.health_and_safety_outlined,
-            'Sağlık & İdari Dinlendirme',
-            '/kulup/saglik-takibi',
-          ),
-        if (access.canOpenClubPlanning)
-          const _Item(
-            Icons.groups_outlined,
-            'Sportif Kadro Planlama',
-            '/kulup/kadro-planlama',
-          ),
-      ],
       if (access.isClubStaff || access.isAccountant) ...[
-        const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
+        if (access.isAccountant)
+          const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
         const _Item(
           Icons.playlist_add_check_rounded,
           'Mali İşler',
           '/mali-isler',
         ),
-        const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
+        if (access.isAccountant)
+          const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
       ],
       if (access.isClubStaff) ...[
         const _Item(
@@ -115,7 +77,6 @@ class ManagementSection extends ConsumerWidget {
           'Medikal',
           '/medical-center',
         ),
-        const _Item(Icons.stadium_rounded, 'Tesisler', '/facilities'),
       ],
     ];
 

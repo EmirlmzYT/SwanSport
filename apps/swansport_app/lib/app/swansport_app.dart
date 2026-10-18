@@ -152,16 +152,21 @@ class SwanSportApp extends ConsumerWidget {
         SwanLocalizations.delegate,
       ],
       builder: (context, child) => testCenter
-          ? LocalTestCenterFrame(child: child ?? const SizedBox(),
-              onOpen: () => swanNavigatorKey.currentState?.pushNamed(testCenterRoute))
+          ? LocalTestCenterFrame(
+              child: child ?? const SizedBox(),
+              onOpen: () =>
+                  swanNavigatorKey.currentState?.pushNamed(testCenterRoute))
           : AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: testCenter ? ref.watch(localTestInitialRouteProvider) : '/',
       routes: <String, WidgetBuilder>{
         if (testCenter) testCenterRoute: (_) => const TestCenterScreen(),
         '/hakem/gorevler': (context) => const RefereeDutyListScreen(),
-        '/kulup/malzeme-zimmet': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
-        '/kulup/saglik-takibi': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
-        '/kulup/kadro-planlama': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
+        '/kulup/malzeme-zimmet': (context) =>
+            const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
+        '/kulup/saglik-takibi': (context) =>
+            const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
+        '/kulup/kadro-planlama': (context) =>
+            const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
         '/': (context) => const AuthGate(),
         '/auth': (context) => const AuthScreen(),
         '/home-command': (context) => const HomeCommandCenterScreen(),
@@ -264,12 +269,13 @@ class SwanSportApp extends ConsumerWidget {
         '/kulup-yonetim': (context) => const ClubCockpitScreen(),
       }.map((route, builder) => MapEntry(
           route,
-          (route == testCenterRoute && testCenter) || SwanAccess.isGuestRoute(route)
+          (route == testCenterRoute && testCenter) ||
+                  SwanAccess.isGuestRoute(route)
               ? builder
               : (context) => AccountRouteGate(builder: builder))),
       onGenerateRoute: guardAccountRoutes((settings) {
-        final liveMatch=liveMatchRoute(settings);
-        if(liveMatch!=null)return liveMatch;
+        final liveMatch = liveMatchRoute(settings);
+        if (liveMatch != null) return liveMatch;
         final referee = refereeRoute(settings);
         if (referee != null) return referee;
         final target = Uri.tryParse(settings.name ?? '');
@@ -302,13 +308,15 @@ class SwanSportApp extends ConsumerWidget {
           );
         }
         // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
-        if (settings.name == '/profil' || settings.name == '/kulup-profil') {
+        if (settings.name == '/profil' ||
+            settings.name == '/kulup-profil' ||
+            target?.path == '/kulup-profil') {
           final args = settings.arguments;
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => ProfileScreen(
-              id: args is String ? args : null,
-              isClub: settings.name == '/kulup-profil',
+              id: args is String ? args : target?.queryParameters['id'],
+              isClub: settings.name != '/profil',
             ),
           );
         }

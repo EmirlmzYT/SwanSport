@@ -140,10 +140,18 @@ class AccountRouteGate extends ConsumerWidget {
 /// kullanıcıya anlaşılır şekilde temizler.
 String cleanPostgresMessage(Object error) {
   final raw = error.toString();
-  final match = RegExp(r'message:\s*([^,)]+)').firstMatch(raw);
+  final match = RegExp(
+    r'PostgrestException\(message:\s*(.*?),\s*code:',
+    caseSensitive: false,
+    dotAll: true,
+  ).firstMatch(raw);
   var msg = match?.group(1)?.trim() ?? raw;
   if (msg.startsWith('Exception: ')) {
     msg = msg.substring('Exception: '.length).trim();
+  }
+  if (msg.contains('PostgrestException(') ||
+      RegExp(r'\b(code|details|hint):', caseSensitive: false).hasMatch(msg)) {
+    return 'İşlem tamamlanamadı. Lütfen tekrar deneyin.';
   }
   return msg;
 }
@@ -155,12 +163,14 @@ class VerificationRequirement {
     required this.description,
     required this.targetMode, // 0: Antrenör, 1: Sporcu, 2: Kimlik
     required this.actionLabel,
+    this.targetRoute = '/dogrulama',
   });
 
   final String title;
   final String description;
   final int targetMode;
   final String actionLabel;
+  final String targetRoute;
 
   /// Hata metninden veya istisnadan doğrulanmış hesap kısıtını tespit eder.
   static VerificationRequirement? detect(Object error) {
@@ -173,7 +183,8 @@ class VerificationRequirement {
         description:
             'Sporcu adına işlem yapabilmek için doğrulanmış veli hesabınız ve geçerli sporcu bağlantınızın bulunması gerekir.',
         targetMode: 2,
-        actionLabel: 'Kimliği Doğrula',
+        actionLabel: 'Veli Bağlantısını Tamamla',
+        targetRoute: '/veli-bagla',
       );
     }
     if (raw.contains('en az 2. kademe') ||
@@ -194,8 +205,7 @@ class VerificationRequirement {
         raw.contains('bekleme odasında') ||
         raw.contains('bekleme odasinda') ||
         raw.contains('kimlik gerekli') ||
-        raw.contains('hesap bekleme') ||
-        raw.contains('42501')) {
+        raw.contains('hesap bekleme')) {
       return const VerificationRequirement(
         title: 'Doğrulanmış Hesap Gerekli',
         description:
@@ -320,13 +330,13 @@ class VerificationRequiredBottomSheet extends StatelessWidget {
                   Navigator.pop(context);
                   Navigator.pushNamed(
                     context,
-                    '/dogrulama',
+                    requirement.targetRoute,
                     arguments: requirement.targetMode,
                   );
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: c.accent,
-                  foregroundColor: Colors.white,
+                  backgroundColor: c.accentFill,
+                  foregroundColor: c.onAccent,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(SwanRadius.md),
                   ),
@@ -335,7 +345,7 @@ class VerificationRequiredBottomSheet extends StatelessWidget {
                 icon: const Icon(Icons.arrow_forward_rounded, size: 18),
                 label: Text(
                   requirement.actionLabel,
-                  style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
+                  style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
                 ),
               ),
             ),
@@ -353,4 +363,3 @@ class VerificationRequiredBottomSheet extends StatelessWidget {
     );
   }
 }
-
