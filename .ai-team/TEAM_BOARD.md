@@ -1,8 +1,10 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `ready_for_review`
+Aktif Writer: Codex
+Durum: `in_progress`
+
+2026-10-18: Kullanıcı chat yenilemesi için IPA istedi. 0.5.15+44 önizleme derlemesi; Firebase-disabled/native guard korunur. Yalnız önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight yok.
 
 2026-10-18: Kullanıcı chat arayüzünü yenilememi istedi. Sohbet listesi ve birebir/topluluk sohbet kabukları; gerçek veriler, mevcut eylem/okunma/gizlilik ve beş alt sekme korunur. Veritabanı/canlı yayın/yeni IPA bu görev kapsamında değil. Önceki IPA çalışması korunur.
 
