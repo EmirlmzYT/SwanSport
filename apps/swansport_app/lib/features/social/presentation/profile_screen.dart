@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_app/app/widgets/swan_floating_header.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/design/swan_chrome.dart';
 import '../../../app/design/swan_palette.dart';
@@ -39,6 +40,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _selectedTab = 0; // Gönderiler / Hakkında
+  bool _isGridView = false;
   bool _changingAvatar = false;
 
   Future<void> _changeAvatar(SocialProfile profile) async {
@@ -355,12 +357,62 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'Üye'}',
+                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'Üye'}${p.primarySport != null && p.primarySport!.trim().isNotEmpty ? ' • ${p.primarySport!}${p.position != null && p.position!.trim().isNotEmpty ? ' (${p.position!})' : ''}' : ''}',
                         style: SwanType.caption(
                           context.swan.accent,
                           w: FontWeight.w600,
                         ),
                       ),
+                      if (p.heightCm != null ||
+                          p.weightKg != null ||
+                          (p.dominantSide != null &&
+                              p.dominantSide!.trim().isNotEmpty)) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            if (p.heightCm != null) ...[
+                              Text(
+                                '${p.heightCm} cm',
+                                style: SwanType.caption(
+                                  context.swan.ink,
+                                  w: FontWeight.w600,
+                                ),
+                              ),
+                              if (p.weightKg != null ||
+                                  (p.dominantSide != null &&
+                                      p.dominantSide!.trim().isNotEmpty))
+                                Text(
+                                  '  ·  ',
+                                  style: SwanType.caption(context.swan.inkMuted),
+                                ),
+                            ],
+                            if (p.weightKg != null) ...[
+                              Text(
+                                '${p.weightKg} kg',
+                                style: SwanType.caption(
+                                  context.swan.ink,
+                                  w: FontWeight.w600,
+                                ),
+                              ),
+                              if (p.dominantSide != null &&
+                                  p.dominantSide!.trim().isNotEmpty)
+                                Text(
+                                  '  ·  ',
+                                  style: SwanType.caption(context.swan.inkMuted),
+                                ),
+                            ],
+                            if (p.dominantSide != null &&
+                                p.dominantSide!.trim().isNotEmpty)
+                              Text(
+                                '${p.dominantSide!} Ayak/El',
+                                style: SwanType.caption(
+                                  context.swan.ink,
+                                  w: FontWeight.w600,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
                       const SizedBox(height: 6),
                       Text(
                         p.bio != null && p.bio!.trim().isNotEmpty
@@ -370,6 +422,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         overflow: TextOverflow.ellipsis,
                         style: SwanType.bodySm(context.swan.inkMuted),
                       ),
+
+                      if (_hasLinksOrContact(p)) ...[
+                        const SizedBox(height: 10),
+                        _socialAndContactChips(context, p),
+                      ],
 
                       const SizedBox(height: 14),
 
@@ -393,13 +450,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             setState(() => _selectedTab = index),
                       ),
                       const SizedBox(height: SwanSpace.md),
-                      if (_selectedTab == 0)
+                      if (_selectedTab == 0) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: Icon(
+                                Icons.grid_on_rounded,
+                                size: 20,
+                                color: _isGridView
+                                    ? context.swan.accent
+                                    : context.swan.inkMuted,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _isGridView = true),
+                              tooltip: 'Kare Izgara',
+                              visualDensity: VisualDensity.compact,
+                            ),
+                            IconButton(
+                              icon: Icon(
+                                Icons.view_agenda_outlined,
+                                size: 20,
+                                color: !_isGridView
+                                    ? context.swan.accent
+                                    : context.swan.inkMuted,
+                              ),
+                              onPressed: () =>
+                                  setState(() => _isGridView = false),
+                              tooltip: 'Akış Görünümü',
+                              visualDensity: VisualDensity.compact,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
                         _buildKineticGrid(
                           postsAsync,
                           ink,
                           surfHigh,
                           isMe: p.isMe,
-                        )
+                        ),
+                      ]
                       else ...[
                         Text('Profil bilgileri', style: SwanType.h3(ink)),
                         const SizedBox(height: SwanSpace.sm),
@@ -433,6 +523,149 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
+    );
+  }
+
+  bool _hasLinksOrContact(SocialProfile p) {
+    final hasIg = p.instagram != null && p.instagram!.trim().isNotEmpty;
+    final hasTw = p.twitter != null && p.twitter!.trim().isNotEmpty;
+    final hasWeb = p.website != null && p.website!.trim().isNotEmpty;
+    final hasPhone = p.phone != null &&
+        p.phone!.trim().isNotEmpty &&
+        (!p.phoneHidden || p.isMe);
+    return hasIg || hasTw || hasWeb || hasPhone;
+  }
+
+  Widget _socialAndContactChips(BuildContext context, SocialProfile p) {
+    final c = context.swan;
+    final hasIg = p.instagram != null && p.instagram!.trim().isNotEmpty;
+    final hasTw = p.twitter != null && p.twitter!.trim().isNotEmpty;
+    final hasWeb = p.website != null && p.website!.trim().isNotEmpty;
+    final hasPhone = p.phone != null &&
+        p.phone!.trim().isNotEmpty &&
+        (!p.phoneHidden || p.isMe);
+
+    String cleanHandle(String raw) {
+      var s = raw.trim();
+      if (s.startsWith('@')) s = s.substring(1);
+      if (s.startsWith('http://') || s.startsWith('https://')) {
+        final uri = Uri.tryParse(s);
+        if (uri != null && uri.pathSegments.isNotEmpty) {
+          return uri.pathSegments.first;
+        }
+      }
+      return s;
+    }
+
+    String cleanWeb(String raw) {
+      var s = raw.trim();
+      s = s.replaceFirst(RegExp(r'^https?://'), '');
+      if (s.endsWith('/')) s = s.substring(0, s.length - 1);
+      return s;
+    }
+
+    Future<void> launchSafe(String url) async {
+      try {
+        final uri = Uri.parse(url);
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 6,
+      children: [
+        if (hasWeb)
+          _chipItem(
+            icon: Icons.link_rounded,
+            label: cleanWeb(p.website!),
+            c: c,
+            onTap: () {
+              final raw = p.website!.trim();
+              final url = raw.startsWith('http') ? raw : 'https://$raw';
+              launchSafe(url);
+            },
+          ),
+        if (hasIg)
+          _chipItem(
+            icon: Icons.camera_alt_outlined,
+            label: '@${cleanHandle(p.instagram!)}',
+            c: c,
+            onTap: () {
+              final handle = cleanHandle(p.instagram!);
+              launchSafe('https://instagram.com/$handle');
+            },
+          ),
+        if (hasTw)
+          _chipItem(
+            icon: Icons.alternate_email_rounded,
+            label: '@${cleanHandle(p.twitter!)}',
+            c: c,
+            onTap: () {
+              final handle = cleanHandle(p.twitter!);
+              launchSafe('https://x.com/$handle');
+            },
+          ),
+        if (hasPhone) ...[
+          _chipItem(
+            icon: p.phoneHidden
+                ? Icons.lock_outline_rounded
+                : Icons.phone_outlined,
+            label: p.phoneHidden ? '${p.phone!} (Gizli)' : p.phone!,
+            c: c,
+            onTap: () {
+              final numClean = p.phone!.replaceAll(RegExp(r'\s+'), '');
+              launchSafe('tel:$numClean');
+            },
+          ),
+          if (!p.phoneHidden)
+            _chipItem(
+              icon: Icons.chat_bubble_outline_rounded,
+              label: 'WhatsApp',
+              c: c,
+              onTap: () {
+                var numClean = p.phone!.replaceAll(RegExp(r'[^0-9]'), '');
+                if (numClean.startsWith('0')) {
+                  numClean = '90${numClean.substring(1)}';
+                } else if (!numClean.startsWith('90') && numClean.length == 10) {
+                  numClean = '90$numClean';
+                }
+                launchSafe('https://wa.me/$numClean');
+              },
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _chipItem({
+    required IconData icon,
+    required String label,
+    required SwanPalette c,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: c.surfaceAlt,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: c.line.withValues(alpha: .4)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 13, color: c.inkMuted),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: SwanType.caption(c.ink, w: FontWeight.w600),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -477,6 +710,64 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
       data: (posts) {
         if (posts.isNotEmpty) {
+          if (_isGridView) {
+            return GridView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              shrinkWrap: true,
+              itemCount: posts.length,
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                crossAxisSpacing: 3,
+                mainAxisSpacing: 3,
+              ),
+              itemBuilder: (context, i) {
+                final post = posts[i];
+                return InkWell(
+                  onTap: () => _openPostDetail(context, post),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: surfHigh,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
+                          Image.network(
+                            post.imageUrl!,
+                            fit: BoxFit.cover,
+                          )
+                        else
+                          Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Center(
+                              child: Text(
+                                post.body,
+                                maxLines: 4,
+                                overflow: TextOverflow.ellipsis,
+                                textAlign: TextAlign.center,
+                                style: SwanType.caption(ink),
+                              ),
+                            ),
+                          ),
+                        if (post.sourcePostId != null)
+                          Positioned(
+                            top: 4,
+                            right: 4,
+                            child: Icon(
+                              Icons.repeat_rounded,
+                              size: 14,
+                              color: Colors.white.withValues(alpha: .9),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          }
           return Column(
             children: posts.map((post) => PostCard(post: post)).toList(),
           );
@@ -523,6 +814,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _openPostDetail(BuildContext context, PostRow post) {
+    final c = context.swan;
+    showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.sizeOf(ctx).height * 0.88,
+        ),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Center(
+              child: Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 8),
+                width: 36,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: c.line,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              ),
+            ),
+            Flexible(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.only(bottom: 24),
+                child: PostCard(post: post),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 

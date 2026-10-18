@@ -157,6 +157,16 @@ class SocialProfile {
     this.avatarTint,
     this.pinnedPostId,
     this.sections,
+    this.phone,
+    this.phoneHidden = true,
+    this.instagram,
+    this.twitter,
+    this.website,
+    this.primarySport,
+    this.position,
+    this.heightCm,
+    this.weightKg,
+    this.dominantSide,
   });
 
   final String id;
@@ -196,6 +206,26 @@ class SocialProfile {
 
   /// Kulüp profilinde bölüm sırası. null = varsayılan sıra.
   final List<String>? sections;
+
+  /// İsteğe bağlı iletişim telefonu
+  final String? phone;
+
+  /// Telefon numarasının profilde herkese açık olup olmadığı (varsayılan: true/gizli)
+  final bool phoneHidden;
+
+  /// Sosyal medya ve web bağlantıları
+  final String? instagram;
+  final String? twitter;
+  final String? website;
+
+  /// Sporcunun/kişinin birincil branşı ve mevkisi
+  final String? primarySport;
+  final String? position;
+
+  /// Boy, kilo ve baskın taraf
+  final int? heightCm;
+  final double? weightKg;
+  final String? dominantSide;
 
   /// Avatar gradyan indeksi: seçim varsa o, yoksa eski türetme.
   int get effectiveTint => avatarTint ?? name.length % 4;
@@ -747,12 +777,34 @@ class SocialService {
   // ----------------------------- profil --------------------------------
   Future<SocialProfile?> profile(String profileId) async {
     final uid = _uid;
-    final row = await _c
-        .from('profiles')
-        .select(
-            'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id')
-        .eq('id', profileId)
-        .maybeSingle();
+    Map<String, dynamic>? row;
+    try {
+      row = await _c
+          .from('profiles')
+          .select(
+            'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone, phone_hidden, instagram, twitter, website, primary_sport, position, height_cm, weight_kg, dominant_side',
+          )
+          .eq('id', profileId)
+          .maybeSingle();
+    } catch (_) {
+      try {
+        row = await _c
+            .from('profiles')
+            .select(
+              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone, phone_hidden, instagram, twitter, website',
+            )
+            .eq('id', profileId)
+            .maybeSingle();
+      } catch (_) {
+        row = await _c
+            .from('profiles')
+            .select(
+              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone',
+            )
+            .eq('id', profileId)
+            .maybeSingle();
+      }
+    }
     if (row == null) return null;
 
     final creds = await _c
@@ -848,6 +900,16 @@ class SocialService {
       isFollowedByMe: followed,
       isMe: uid == profileId,
       credentials: labels,
+      phone: row['phone'] as String?,
+      phoneHidden: (row['phone_hidden'] as bool?) ?? true,
+      instagram: row['instagram'] as String?,
+      twitter: row['twitter'] as String?,
+      website: row['website'] as String?,
+      primarySport: row['primary_sport'] as String?,
+      position: row['position'] as String?,
+      heightCm: (row['height_cm'] as num?)?.toInt(),
+      weightKg: (row['weight_kg'] as num?)?.toDouble(),
+      dominantSide: row['dominant_side'] as String?,
     );
   }
 
@@ -919,6 +981,16 @@ class SocialService {
     String? coverName,
     String? brandColor,
     int? avatarTint,
+    String? phone,
+    bool? phoneHidden,
+    String? instagram,
+    String? twitter,
+    String? website,
+    String? primarySport,
+    String? position,
+    int? heightCm,
+    double? weightKg,
+    String? dominantSide,
   }) async {
     final uid = _uid;
     if (uid == null) return;
@@ -941,7 +1013,7 @@ class SocialService {
 
     final brand = brandColor?.trim();
 
-    await _c.from('profiles').update({
+    final payload = <String, dynamic>{
       if (fullName != null && fullName.trim().isNotEmpty)
         'full_name': fullName.trim(),
       if (username != null)
@@ -956,7 +1028,45 @@ class SocialService {
             : null,
       // -1 = temizle, diğer değerler yazılıyor, null = dokunma.
       if (avatarTint != null) 'avatar_tint': avatarTint < 0 ? null : avatarTint,
-    }).eq('id', uid);
+      if (phone != null) 'phone': phone.trim().isEmpty ? null : phone.trim(),
+      if (phoneHidden != null) 'phone_hidden': phoneHidden,
+      if (instagram != null)
+        'instagram': instagram.trim().isEmpty ? null : instagram.trim(),
+      if (twitter != null)
+        'twitter': twitter.trim().isEmpty ? null : twitter.trim(),
+      if (website != null)
+        'website': website.trim().isEmpty ? null : website.trim(),
+      if (primarySport != null)
+        'primary_sport':
+            primarySport.trim().isEmpty ? null : primarySport.trim(),
+      if (position != null)
+        'position': position.trim().isEmpty ? null : position.trim(),
+      if (heightCm != null) 'height_cm': heightCm <= 0 ? null : heightCm,
+      if (weightKg != null) 'weight_kg': weightKg <= 0 ? null : weightKg,
+      if (dominantSide != null)
+        'dominant_side':
+            dominantSide.trim().isEmpty ? null : dominantSide.trim(),
+    };
+
+    try {
+      await _c.from('profiles').update(payload).eq('id', uid);
+    } catch (e) {
+      if ('$e'.contains('column') || '$e'.contains('does not exist')) {
+        final legacyPayload = Map<String, dynamic>.from(payload)
+          ..remove('phone_hidden')
+          ..remove('instagram')
+          ..remove('twitter')
+          ..remove('website')
+          ..remove('primary_sport')
+          ..remove('position')
+          ..remove('height_cm')
+          ..remove('weight_kg')
+          ..remove('dominant_side');
+        await _c.from('profiles').update(legacyPayload).eq('id', uid);
+      } else {
+        rethrow;
+      }
+    }
   }
 
   /// Profilin en üstüne bir gönderi sabitler. `null` sabitlemeyi kaldırıyor.
