@@ -8,7 +8,7 @@
 #
 #   2) Her "git push" sonrası sunucunun otomatik güncellenmesini kurmak için
 #      (Sunucuda sadece 1 kez çalıştırman yeterli):
-#      sudo bash tools/deploy_server.sh --install-auto-pull
+#      bash tools/deploy_server.sh --install-auto-pull
 # ==============================================================================
 
 set -euo pipefail
@@ -17,15 +17,16 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BRANCH="${DEPLOY_BRANCH:-main}"
 WEB_ROOT="${WEB_ROOT:-}"
 DB_CONTAINER="${DB_CONTAINER:-}"
-LOG_FILE="${LOG_FILE:-/var/log/swansport-deploy.log}"
+LOG_FILE="${LOG_FILE:-$HOME/swansport-deploy.log}"
 
-# Otomatik Web Root tespiti (/var/www/swansport.com.tr, /var/www/swansport, /var/www/html)
+# Otomatik Web Root tespiti (aaPanel /www/wwwroot/swansport.com.tr, /var/www/...)
 detect_web_root() {
   if [[ -n "$WEB_ROOT" ]]; then
     echo "$WEB_ROOT"
     return
   fi
   for candidate in \
+    "/www/wwwroot/swansport.com.tr" \
     "/var/www/swansport.com.tr" \
     "/var/www/swansport" \
     "/usr/share/nginx/html" \
@@ -35,7 +36,17 @@ detect_web_root() {
       return
     fi
   done
-  echo "/var/www/swansport.com.tr"
+  echo "/www/wwwroot/swansport.com.tr"
+}
+
+run_docker() {
+  if docker ps >/dev/null 2>&1; then
+    docker "$@"
+  elif sudo -n docker ps >/dev/null 2>&1; then
+    sudo docker "$@"
+  else
+    docker "$@"
+  fi
 }
 
 # Otomatik Supabase PostgreSQL container tespiti
@@ -46,8 +57,21 @@ detect_db_container() {
   fi
   if command -v docker >/dev/null 2>&1; then
     local found
-    found="$(docker ps --format '{{.Names}}' | grep -E 'supabase[-_]db|postgres' | head -n 1 || true)"
+    found="$(run_docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'supabase[-_]db|postgres' | head -n 1 || true)"
     echo "$found"
+  fi
+}
+
+copy_to_web_root() {
+  local src="$1"
+  local dst="$2"
+  local dst_dir
+  dst_dir="$(dirname "$dst")"
+  if mkdir -p "$dst_dir" 2>/dev/null && cp -f "$src" "$dst" 2>/dev/null; then
+    return 0
+  else
+    sudo mkdir -p "$dst_dir"
+    sudo cp -f "$src" "$dst"
   fi
 }
 
@@ -91,19 +115,16 @@ git pull --ff-only origin "$BRANCH"
 
 TARGET_WEB_ROOT="$(detect_web_root)"
 echo "🦢 [2/3] swansport.com.tr vitrin sayfası güncelleniyor -> $TARGET_WEB_ROOT"
-mkdir -p "$TARGET_WEB_ROOT"
-cp -f "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html"
+copy_to_web_root "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html"
 
 # Marka/logo asset'i varsa kopyala
 if [[ -f "$REPO_DIR/assets/branding/official_swan_logo.jpg" ]]; then
-  mkdir -p "$TARGET_WEB_ROOT/assets/branding"
-  cp -f "$REPO_DIR/assets/branding/official_swan_logo.jpg" "$TARGET_WEB_ROOT/assets/branding/official_swan_logo.jpg"
+  copy_to_web_root "$REPO_DIR/assets/branding/official_swan_logo.jpg" "$TARGET_WEB_ROOT/assets/branding/official_swan_logo.jpg"
 fi
 
 CONTAINER_NAME="$(detect_db_container)"
 if [[ -n "$CONTAINER_NAME" ]]; then
   echo "🦢 [3/3] Supabase veritabanı migration kontrolü ($CONTAINER_NAME)..."
-  # 0122_launch_waitlist.sql ve son migration'ları idempotent olarak uygula
   for mig in \
     "$REPO_DIR/supabase/migrations/0119_turkey_sports_federations_catalog.sql" \
     "$REPO_DIR/supabase/migrations/0120_multi_branch_training_engine.sql" \
@@ -111,7 +132,7 @@ if [[ -n "$CONTAINER_NAME" ]]; then
     "$REPO_DIR/supabase/migrations/0122_launch_waitlist.sql"; do
     if [[ -f "$mig" ]]; then
       echo "   -> Uygulanıyor: $(basename "$mig")"
-      docker exec -i "$CONTAINER_NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$mig" >/dev/null
+      run_docker exec -i "$CONTAINER_NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$mig" >/dev/null
     fi
   done
   echo "✅ Veritabanı migration'ları başarıyla uygulandı."
