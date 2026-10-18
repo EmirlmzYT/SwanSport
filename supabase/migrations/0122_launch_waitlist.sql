@@ -159,3 +159,6 @@ end;
 $$;
 revoke all on function public.mark_launch_waitlist_notified(text[]) from public, anon, authenticated;
 grant execute on function public.mark_launch_waitlist_notified(text[]) to authenticated;
+
+notify pgrst, 'reload schema';
+

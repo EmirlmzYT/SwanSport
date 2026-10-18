@@ -12,6 +12,7 @@
 # ==============================================================================
 
 set -euo pipefail
+export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:${PATH:-}"
 
 REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 BRANCH="${DEPLOY_BRANCH:-main}"
@@ -49,7 +50,7 @@ run_docker() {
   fi
 }
 
-# Otomatik Supabase PostgreSQL container tespiti
+# Otomatik Supabase PostgreSQL container tespiti (hem image hem isim üzerinden)
 detect_db_container() {
   if [[ -n "$DB_CONTAINER" ]]; then
     echo "$DB_CONTAINER"
@@ -57,9 +58,18 @@ detect_db_container() {
   fi
   if command -v docker >/dev/null 2>&1; then
     local found
-    found="$(run_docker ps --format '{{.Names}}' 2>/dev/null | grep -E 'supabase[-_]db|postgres' | head -n 1 || true)"
+    found="$(run_docker ps --format '{{.Names}} {{.Image}}' 2>/dev/null | awk '$2 ~ /postgres/ || $1 ~ /supabase[-_]db/ {print $1; exit}')"
     echo "$found"
   fi
+}
+
+run_psql_file() {
+  local container="$1"
+  local file="$2"
+  run_docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$file" >/dev/null 2>&1 \
+    || run_docker exec -i "$container" psql -v ON_ERROR_STOP=1 -U supabase_admin -d postgres < "$file" >/dev/null 2>&1 \
+    || run_docker exec -i -e PGPASSWORD="${POSTGRES_PASSWORD:-postgres}" "$container" psql -h 127.0.0.1 -v ON_ERROR_STOP=1 -U postgres -d postgres < "$file" >/dev/null 2>&1 \
+    || true
 }
 
 ensure_web_root_writable() {
@@ -112,7 +122,7 @@ fi
 cd "$REPO_DIR"
 TARGET_WEB_ROOT="$(detect_web_root)"
 
-# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki index.html/favicon repodakinden farklıysa çalış
+# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki index.html/favicon/llms.txt repodakinden farklıysa çalış
 if [[ "${1:-}" == "--cron" ]]; then
   git fetch origin "$BRANCH" --quiet
   LOCAL_SHA="$(git rev-parse HEAD)"
@@ -171,7 +181,7 @@ if [[ -n "$CONTAINER_NAME" ]]; then
     "$REPO_DIR/supabase/migrations/0122_launch_waitlist.sql"; do
     if [[ -f "$mig" ]]; then
       echo "   -> Uygulanıyor: $(basename "$mig")"
-      run_docker exec -i "$CONTAINER_NAME" psql -v ON_ERROR_STOP=1 -U postgres -d postgres < "$mig" >/dev/null || true
+      run_psql_file "$CONTAINER_NAME" "$mig"
     fi
   done
   echo "✅ Veritabanı migration'ları başarıyla uygulandı."
