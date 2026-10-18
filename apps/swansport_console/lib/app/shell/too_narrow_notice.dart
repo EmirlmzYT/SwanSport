@@ -14,32 +14,71 @@ class TooNarrowNotice extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
+    final isDark = t.brightness == Brightness.dark;
 
     return Scaffold(
-      body: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 380),
-          child: Padding(
-            padding: const EdgeInsets.all(ConsoleDensity.xl),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Icon(Icons.desktop_windows_rounded,
-                    size: 32, color: t.colorScheme.primary),
-                const SizedBox(height: ConsoleDensity.lg),
-                Text('Konsol masaüstü içindir',
-                    style: t.textTheme.titleLarge),
-                const SizedBox(height: ConsoleDensity.sm),
-                Text(
-                  'Yönetim ekranları geniş tablolar ve yan yana paneller '
-                  'kullanıyor; ${ConsoleDensity.minSupportedWidth.toInt()} '
-                  'pikselden dar ekranda okunmuyor.\n\n'
-                  'Bilgisayardan aç ya da telefonda SwanSport uygulamasını '
-                  'kullan.',
-                  style: t.textTheme.bodySmall,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: isDark
+              ? const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    ConsoleTheme.commandBackground,
+                    ConsoleTheme.commandSurface,
+                  ],
+                )
+              : null,
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: Padding(
+              padding: const EdgeInsets.all(ConsoleDensity.xl),
+              child: Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(ConsoleDensity.xl),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: t.colorScheme.primary.withValues(alpha: .14),
+                          borderRadius:
+                              BorderRadius.circular(ConsoleDensity.radius),
+                          border: Border.all(
+                            color: t.colorScheme.primary.withValues(alpha: .32),
+                          ),
+                        ),
+                        child: Icon(
+                          Icons.desktop_windows_rounded,
+                          size: 24,
+                          color: t.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(height: ConsoleDensity.lg),
+                      Text(
+                        'Konsol masaüstü içindir',
+                        style: t.textTheme.titleLarge,
+                      ),
+                      const SizedBox(height: ConsoleDensity.sm),
+                      Text(
+                        'Yönetim ekranları geniş tablolar ve yan yana paneller '
+                        'kullanıyor; ${ConsoleDensity.minSupportedWidth.toInt()} '
+                        'pikselden dar ekranda okunmuyor.\n\n'
+                        'Bilgisayardan aç ya da telefonda SwanSport uygulamasını '
+                        'kullan.',
+                        style: t.textTheme.bodySmall?.copyWith(height: 1.5),
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
           ),
         ),

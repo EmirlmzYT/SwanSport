@@ -81,171 +81,499 @@ class ConsoleDashboard extends ConsumerWidget {
           value: '${rows.where((r) => r.isRestricted).length}',
           detail: 'Uygunluk kısıtı · $documentStatus')))),
     ];
-    return ListView(padding: const EdgeInsets.all(ConsoleDensity.xl), children: [
-      Wrap(alignment: WrapAlignment.spaceBetween, spacing: ConsoleDensity.xl,
-        runSpacing: ConsoleDensity.md, children: [
-          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text('Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
-                style: t.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: ConsoleDensity.xs),
-            Text('Spor Kulübü Komuta Merkezi · ${fmtDate(now)}', style: t.textTheme.bodySmall),
-          ]),
-          Chip(avatar: const Icon(Icons.shield_outlined, size: 18),
-            label: Text(club.isLoading ? 'Kulüp yükleniyor…' : club.hasError ? 'Kulüp alınamadı' : club.valueOrNull?.name ?? 'Kulüp seçilmedi')),
-        ]),
-      const SizedBox(height: ConsoleDensity.xl),
-      LayoutBuilder(builder: (context, constraints) {
-        final columns = constraints.maxWidth >= ConsoleDensity.dashboardKpiMinWidth * 4 + ConsoleDensity.lg * 3 ? 4 : 2;
-        final width = (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) / columns;
-        return Wrap(spacing: ConsoleDensity.lg, runSpacing: ConsoleDensity.lg,
-          children: [for (final card in cards) SizedBox(width: width, child: card)]);
-      }),
-      const SizedBox(height: ConsoleDensity.xl),
-      Text('Hızlı Aksiyonlar', style: t.textTheme.titleMedium),
-      const SizedBox(height: ConsoleDensity.md),
-      LayoutBuilder(builder: (context, constraints) {
-        const groups = [
-          ('Kadro & Sporcu', [
-            (Icons.groups_outlined, 'Sporcu Listesi', '/sporcular'),
-            (Icons.pie_chart_outline_rounded, 'Kadro Dağılımı', '/sporcular'),
-          ]),
-          ('Antrenman & Takvim', [
-            (Icons.fact_check_outlined, 'Yoklama Al', '/yoklama'),
-            (Icons.stadium_outlined, 'Tesis Rezervasyonu', '/tesisler'),
-            (Icons.calendar_month_outlined, 'Takvim', '/takvim'),
-          ]),
-          ('Mali Defter & Kasa', [
-            (Icons.receipt_long_outlined, 'Gider Gir', '/defter'),
-            (Icons.request_quote_outlined, 'Tahsilat Onayı', '/tahsilat'),
-          ]),
-        ];
-        final available = groups.where((g) => g.$2.any(
-          (action) => moduleForRoute(action.$3)?.visibleTo(access) ?? false)).toList();
-        final columns = constraints.maxWidth >= ConsoleDensity.dashboardActionMinWidth * 3 + ConsoleDensity.lg * 2
-            ? 3 : constraints.maxWidth >= ConsoleDensity.dashboardActionMinWidth * 2 + ConsoleDensity.lg ? 2 : 1;
-        final width = (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) / columns;
-        return Wrap(spacing: ConsoleDensity.lg, runSpacing: ConsoleDensity.lg, children: [
-          for (final group in available) SizedBox(width: width,
-            child: _ActionGroup(title: group.$1, actions: [
-              for (final action in group.$2)
-                if (moduleForRoute(action.$3)?.visibleTo(access) ?? false)
-                  OutlinedButton.icon(
-                    onPressed: hasClub && (action.$2 != 'Kadro Dağılımı' || r != null) ? () {
-                      if (action.$2 == 'Gider Gir') {
-                        showExpenseDialog(context, ref);
-                      } else if (action.$2 == 'Kadro Dağılımı') {
-                        showDialog<void>(context: context,
-                          builder: (_) => _RosterDistribution(counts: r!));
-                      } else {
-                        context.go(action.$3);
-                      }
-                    } : null,
-                    icon: Icon(action.$1, size: 18), label: Text(action.$2)),
-            ])),
-        ]);
-      }),
-      if (showFinance && hasClub) Align(alignment: Alignment.centerRight,
-        child: TextButton.icon(
-          icon: const Icon(Icons.refresh_rounded, size: 18), label: const Text('Özeti yenile'),
-          onPressed: () {
-            ref.invalidate(financeOperationsSummaryProvider);
-            if (showOps) {
-              ref.invalidate(clubOperationsSummaryProvider);
-              ref.invalidate(clubRosterCountsProvider);
-              ref.invalidate(clubTodayAttendanceProvider);
-              ref.invalidate(eligibilityBoardProvider);
-              ref.invalidate(clubDashboardDayProvider);
-            }
-          })),
-      if (access.canPublishFederationResults) ...[
+    return ListView(
+      padding: const EdgeInsets.all(ConsoleDensity.xl),
+      children: [
+        Container(
+          padding: const EdgeInsets.all(ConsoleDensity.xl),
+          decoration: BoxDecoration(
+            color: t.colorScheme.surface,
+            borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+            border: Border.all(color: t.colorScheme.outline),
+          ),
+          child: Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: ConsoleDensity.xl,
+            runSpacing: ConsoleDensity.md,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: t.colorScheme.primary.withValues(alpha: .14),
+                      borderRadius:
+                          BorderRadius.circular(ConsoleDensity.radius),
+                      border: Border.all(
+                        color: t.colorScheme.primary.withValues(alpha: .32),
+                      ),
+                    ),
+                    child: Icon(
+                      Icons.space_dashboard_rounded,
+                      color: t.colorScheme.primary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: ConsoleDensity.md),
+                  Flexible(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
+                          style: t.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        const SizedBox(height: ConsoleDensity.xs),
+                        Text(
+                          'Spor Kulübü Komuta Merkezi · ${fmtDate(now)}',
+                          style: t.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: ConsoleDensity.sm,
+                runSpacing: ConsoleDensity.sm,
+                children: [
+                  Chip(
+                    avatar: Icon(
+                      Icons.shield_outlined,
+                      size: 17,
+                      color: t.colorScheme.primary,
+                    ),
+                    label: Text(
+                      club.isLoading
+                          ? 'Kulüp yükleniyor…'
+                          : club.hasError
+                              ? 'Kulüp alınamadı'
+                              : club.valueOrNull?.name ?? 'Kulüp seçilmedi',
+                    ),
+                  ),
+                  if (showFinance && hasClub)
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.refresh_rounded, size: 17),
+                      label: const Text('Özeti yenile'),
+                      onPressed: () {
+                        ref.invalidate(financeOperationsSummaryProvider);
+                        if (showOps) {
+                          ref.invalidate(clubOperationsSummaryProvider);
+                          ref.invalidate(clubRosterCountsProvider);
+                          ref.invalidate(clubTodayAttendanceProvider);
+                          ref.invalidate(eligibilityBoardProvider);
+                          ref.invalidate(clubDashboardDayProvider);
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: ConsoleDensity.xl),
-        Card(child: ListTile(leading: const Icon(Icons.verified_user_rounded),
-          title: const Text('Federasyon'), subtitle: const Text('Sonuç bekleyen resmi müsabakalar'),
-          trailing: const Icon(Icons.chevron_right_rounded),
-          onTap: () => context.go('/federasyon-sonuclari'))),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final columns = constraints.maxWidth >=
+                    ConsoleDensity.dashboardKpiMinWidth * 4 +
+                        ConsoleDensity.lg * 3
+                ? 4
+                : 2;
+            final width =
+                (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) /
+                    columns;
+            return Wrap(
+              spacing: ConsoleDensity.lg,
+              runSpacing: ConsoleDensity.lg,
+              children: [
+                for (final card in cards) SizedBox(width: width, child: card),
+              ],
+            );
+          },
+        ),
+        const SizedBox(height: ConsoleDensity.xl),
+        Row(
+          children: [
+            Icon(
+              Icons.bolt_rounded,
+              size: 19,
+              color: t.colorScheme.primary,
+            ),
+            const SizedBox(width: ConsoleDensity.xs),
+            Text('Hızlı Aksiyonlar', style: t.textTheme.titleMedium),
+          ],
+        ),
+        const SizedBox(height: ConsoleDensity.md),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            const groups = [
+              (
+                'Kadro & Sporcu',
+                [
+                  (Icons.groups_outlined, 'Sporcu Listesi', '/sporcular'),
+                  (
+                    Icons.pie_chart_outline_rounded,
+                    'Kadro Dağılımı',
+                    '/sporcular'
+                  ),
+                ]
+              ),
+              (
+                'Antrenman & Takvim',
+                [
+                  (Icons.fact_check_outlined, 'Yoklama Al', '/yoklama'),
+                  (Icons.stadium_outlined, 'Tesis Rezervasyonu', '/tesisler'),
+                  (Icons.calendar_month_outlined, 'Takvim', '/takvim'),
+                ]
+              ),
+              (
+                'Mali Defter & Kasa',
+                [
+                  (Icons.receipt_long_outlined, 'Gider Gir', '/defter'),
+                  (
+                    Icons.request_quote_outlined,
+                    'Tahsilat Onayı',
+                    '/tahsilat'
+                  ),
+                ]
+              ),
+            ];
+            final available = groups
+                .where(
+                  (g) => g.$2.any(
+                    (action) =>
+                        moduleForRoute(action.$3)?.visibleTo(access) ?? false,
+                  ),
+                )
+                .toList();
+            final columns = constraints.maxWidth >=
+                    ConsoleDensity.dashboardActionMinWidth * 3 +
+                        ConsoleDensity.lg * 2
+                ? 3
+                : constraints.maxWidth >=
+                        ConsoleDensity.dashboardActionMinWidth * 2 +
+                            ConsoleDensity.lg
+                    ? 2
+                    : 1;
+            final width =
+                (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) /
+                    columns;
+            return Wrap(
+              spacing: ConsoleDensity.lg,
+              runSpacing: ConsoleDensity.lg,
+              children: [
+                for (final group in available)
+                  SizedBox(
+                    width: width,
+                    child: _ActionGroup(
+                      title: group.$1,
+                      actions: [
+                        for (final action in group.$2)
+                          if (moduleForRoute(action.$3)?.visibleTo(access) ??
+                              false)
+                            OutlinedButton.icon(
+                              onPressed: hasClub &&
+                                      (action.$2 != 'Kadro Dağılımı' ||
+                                          r != null)
+                                  ? () {
+                                      if (action.$2 == 'Gider Gir') {
+                                        showExpenseDialog(context, ref);
+                                      } else if (action.$2 ==
+                                          'Kadro Dağılımı') {
+                                        showDialog<void>(
+                                          context: context,
+                                          builder: (_) =>
+                                              _RosterDistribution(counts: r!),
+                                        );
+                                      } else {
+                                        context.go(action.$3);
+                                      }
+                                    }
+                                  : null,
+                              icon: Icon(action.$1, size: 17),
+                              label: Text(action.$2),
+                            ),
+                      ],
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
+        if (access.canPublishFederationResults) ...[
+          const SizedBox(height: ConsoleDensity.xl),
+          Card(
+            child: ListTile(
+              leading: Icon(
+                Icons.verified_user_rounded,
+                color: t.colorScheme.primary,
+              ),
+              title: const Text('Federasyon'),
+              subtitle: const Text('Sonuç bekleyen resmi müsabakalar'),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => context.go('/federasyon-sonuclari'),
+            ),
+          ),
+        ],
+        const SizedBox(height: ConsoleDensity.xxl),
+        Row(
+          children: [
+            Icon(
+              Icons.playlist_add_check_circle_outlined,
+              size: 20,
+              color: t.colorScheme.primary,
+            ),
+            const SizedBox(width: ConsoleDensity.sm),
+            Text('Operasyon Kuyruğu', style: t.textTheme.titleLarge),
+          ],
+        ),
+        const SizedBox(height: ConsoleDensity.md),
+        if (!hasClub && (showFinance || showOps))
+          Text(
+            club.hasError
+                ? 'Kulüp bilgisi alınamadı; kuyruk yüklenemiyor.'
+                : club.isLoading
+                    ? 'Kulüp yükleniyor…'
+                    : 'Operasyonları görmek için aktif kulüp seç.',
+            style: t.textTheme.bodySmall,
+          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final two = showFinance &&
+                showOps &&
+                constraints.maxWidth >=
+                    ConsoleDensity.dashboardQueueMinWidth * 2 +
+                        ConsoleDensity.lg;
+            final width = two
+                ? (constraints.maxWidth - ConsoleDensity.lg) / 2
+                : constraints.maxWidth;
+            return Wrap(
+              spacing: ConsoleDensity.lg,
+              runSpacing: ConsoleDensity.lg,
+              children: [
+                if (finance != null)
+                  SizedBox(
+                    width: width,
+                    child: _QueuePanel(
+                      title: 'Mali İşler',
+                      icon: Icons.account_balance_wallet_outlined,
+                      child: AsyncSection<FinanceOperationsSummary>(
+                        value: finance,
+                        errorPrefix: 'Mali özet alınamadı',
+                        builder: (s) => WorkQueue(
+                          top: s.topItems,
+                          others: s.otherItems,
+                          emptyTitle: 'Şu anda mali işlem beklemiyor',
+                          emptyBody:
+                              'Bekleyen mali işlemler burada listelenir.',
+                        ),
+                      ),
+                    ),
+                  ),
+                if (ops != null)
+                  SizedBox(
+                    width: width,
+                    child: _QueuePanel(
+                      title: 'Kulüp İşleri',
+                      icon: Icons.assignment_outlined,
+                      child: AsyncSection<ClubOperationsSummary>(
+                        value: ops,
+                        errorPrefix: 'Operasyon özeti alınamadı',
+                        builder: (s) => Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${s.expiringDocumentCount} belge 30 gün içinde sona eriyor.',
+                              style: t.textTheme.bodySmall,
+                            ),
+                            const SizedBox(height: ConsoleDensity.md),
+                            WorkQueue(
+                              top: s.items
+                                  .where(
+                                    (i) =>
+                                        moduleForRoute(Uri.parse(i.route).path)
+                                            ?.visibleTo(access) ??
+                                        false,
+                                  )
+                                  .take(5)
+                                  .toList(),
+                              others: s.items
+                                  .where(
+                                    (i) =>
+                                        moduleForRoute(Uri.parse(i.route).path)
+                                            ?.visibleTo(access) ??
+                                        false,
+                                  )
+                                  .skip(5)
+                                  .toList(),
+                              emptyTitle:
+                                  'Erişebildiğin kuyruklarda bekleyen kulüp işi yok',
+                              emptyBody:
+                                  'Üyelik, belge ve yoklama işleri yetki kapsamına göre gösterilir.',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            );
+          },
+        ),
       ],
-      const SizedBox(height: ConsoleDensity.xxl),
-      Text('Operasyon Kuyruğu', style: t.textTheme.titleLarge),
-      const SizedBox(height: ConsoleDensity.md),
-      if (!hasClub && (showFinance || showOps))
-        Text(club.hasError ? 'Kulüp bilgisi alınamadı; kuyruk yüklenemiyor.'
-            : club.isLoading ? 'Kulüp yükleniyor…' : 'Operasyonları görmek için aktif kulüp seç.', style: t.textTheme.bodySmall),
-      LayoutBuilder(builder: (context, constraints) {
-        final two = showFinance && showOps && constraints.maxWidth >= ConsoleDensity.dashboardQueueMinWidth * 2 + ConsoleDensity.lg;
-        final width = two ? (constraints.maxWidth - ConsoleDensity.lg) / 2 : constraints.maxWidth;
-        return Wrap(spacing: ConsoleDensity.lg, runSpacing: ConsoleDensity.lg, children: [
-          if (finance != null) SizedBox(width: width, child: _QueuePanel(title: 'Mali İşler',
-            icon: Icons.account_balance_wallet_outlined,
-            child: AsyncSection<FinanceOperationsSummary>(value: finance, errorPrefix: 'Mali özet alınamadı',
-              builder: (s) => WorkQueue(top: s.topItems, others: s.otherItems,
-                emptyTitle: 'Şu anda mali işlem beklemiyor',
-                emptyBody: 'Bekleyen mali işlemler burada listelenir.')))),
-          if (ops != null) SizedBox(width: width, child: _QueuePanel(title: 'Kulüp İşleri',
-            icon: Icons.assignment_outlined,
-            child: AsyncSection<ClubOperationsSummary>(value: ops, errorPrefix: 'Operasyon özeti alınamadı',
-              builder: (s) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${s.expiringDocumentCount} belge 30 gün içinde sona eriyor.', style: t.textTheme.bodySmall),
-                const SizedBox(height: ConsoleDensity.md),
-                WorkQueue(top: s.items.where((i) => moduleForRoute(Uri.parse(i.route).path)?.visibleTo(access) ?? false).take(5).toList(),
-                  others: s.items.where((i) => moduleForRoute(Uri.parse(i.route).path)?.visibleTo(access) ?? false).skip(5).toList(),
-                  emptyTitle: 'Erişebildiğin kuyruklarda bekleyen kulüp işi yok',
-                  emptyBody: 'Üyelik, belge ve yoklama işleri yetki kapsamına göre gösterilir.'),
-              ])))),
-        ]);
-      }),
-    ]);
+    );
   }
 }
 
 class _KpiCard extends StatelessWidget {
-  const _KpiCard({required this.title, required this.icon, required this.route,
-    required this.enabled, required this.data, this.status});
+  const _KpiCard({
+    required this.title,
+    required this.icon,
+    required this.route,
+    required this.enabled,
+    required this.data,
+    this.status,
+  });
   final String title;
   final IconData icon;
   final String route;
   final bool enabled;
   final AsyncValue<_Metric>? data;
   final ConsoleKpiStatus? status;
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final value = data?.when(loading: () => '…', error: (_, __) => '—', data: (s) => s.value) ?? '—';
-    final detail = data?.when(loading: () => 'Yükleniyor…', error: (_, __) => 'Veri alınamadı', data: (s) => s.detail) ?? 'Bu alan için yetki gerekli';
-    return Card(margin: EdgeInsets.zero, clipBehavior: Clip.antiAlias,
-      child: InkWell(onTap: enabled ? () => context.go(route) : null,
+    final value = data?.when(
+          loading: () => '…',
+          error: (_, __) => '—',
+          data: (s) => s.value,
+        ) ??
+        '—';
+    final detail = data?.when(
+          loading: () => 'Yükleniyor…',
+          error: (_, __) => 'Veri alınamadı',
+          data: (s) => s.detail,
+        ) ??
+        'Bu alan için yetki gerekli';
+
+    return Card(
+      margin: EdgeInsets.zero,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: enabled ? () => context.go(route) : null,
         child: ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: ConsoleDensity.dashboardKpiHeight),
-          child: Padding(padding: const EdgeInsets.all(ConsoleDensity.xl),
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Row(children: [
-              Icon(icon, color: enabled ? t.colorScheme.primary : t.colorScheme.outline, size: 24),
-              const Spacer(), Icon(enabled ? Icons.north_east_rounded : Icons.lock_outline_rounded,
-                size: 16, color: t.colorScheme.outline),
-            ]),
-            const SizedBox(height: ConsoleDensity.md),
-            Text(title, style: t.textTheme.titleSmall),
-            const SizedBox(height: ConsoleDensity.sm),
-            Text(value, style: t.textTheme.headlineMedium?.copyWith(
-              fontWeight: FontWeight.w700, fontFeatures: const [FontFeature.tabularFigures()])),
-            const SizedBox(height: ConsoleDensity.xs),
-            Text(detail, style: t.textTheme.bodySmall),
-            if (status != null && enabled && data?.isLoading == false && data?.hasError == false) ...[
-              const SizedBox(height: ConsoleDensity.lg),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.sm, vertical: ConsoleDensity.xs),
-                decoration: BoxDecoration(
-                  color: t.colorScheme.primary.withValues(alpha: .12),
-                  borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
-                child: Text(status!.label, style: t.textTheme.labelMedium?.copyWith(color: t.colorScheme.primary))),
-              if (status!.progress != null) ...[
+          constraints: const BoxConstraints(
+            minHeight: ConsoleDensity.dashboardKpiHeight,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(ConsoleDensity.xl),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 38,
+                      height: 38,
+                      decoration: BoxDecoration(
+                        color: enabled
+                            ? t.colorScheme.primary.withValues(alpha: .14)
+                            : t.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Icon(
+                        icon,
+                        color: enabled
+                            ? t.colorScheme.primary
+                            : t.colorScheme.outline,
+                        size: 20,
+                      ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 28,
+                      height: 28,
+                      decoration: BoxDecoration(
+                        color: t.colorScheme.surfaceContainerHighest,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        enabled
+                            ? Icons.north_east_rounded
+                            : Icons.lock_outline_rounded,
+                        size: 15,
+                        color: enabled
+                            ? t.colorScheme.primary
+                            : t.colorScheme.outline,
+                      ),
+                    ),
+                  ],
+                ),
                 const SizedBox(height: ConsoleDensity.md),
-                ClipRRect(borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-                  child: LinearProgressIndicator(value: status!.progress,
-                    backgroundColor: t.colorScheme.primary.withValues(alpha: .08),
-                    semanticsLabel: status!.label)),
+                Text(title, style: t.textTheme.titleSmall),
+                const SizedBox(height: ConsoleDensity.sm),
+                Text(
+                  value,
+                  style: t.textTheme.headlineMedium?.copyWith(
+                    fontSize: 30,
+                    fontWeight: FontWeight.w800,
+                    fontFeatures: const [FontFeature.tabularFigures()],
+                  ),
+                ),
+                const SizedBox(height: ConsoleDensity.xs),
+                Text(detail, style: t.textTheme.bodySmall),
+                if (status != null &&
+                    enabled &&
+                    data?.isLoading == false &&
+                    data?.hasError == false) ...[
+                  const SizedBox(height: ConsoleDensity.lg),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: ConsoleDensity.sm + 2,
+                      vertical: ConsoleDensity.xs,
+                    ),
+                    decoration: BoxDecoration(
+                      color: t.colorScheme.primary.withValues(alpha: .14),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: t.colorScheme.primary.withValues(alpha: .30),
+                      ),
+                    ),
+                    child: Text(
+                      status!.label,
+                      style: t.textTheme.labelMedium?.copyWith(
+                        color: t.colorScheme.primary,
+                      ),
+                    ),
+                  ),
+                  if (status!.progress != null) ...[
+                    const SizedBox(height: ConsoleDensity.md),
+                    ClipRRect(
+                      borderRadius:
+                          BorderRadius.circular(ConsoleDensity.radius),
+                      child: LinearProgressIndicator(
+                        value: status!.progress,
+                        minHeight: 6,
+                        backgroundColor:
+                            t.colorScheme.primary.withValues(alpha: .10),
+                        semanticsLabel: status!.label,
+                      ),
+                    ),
+                  ],
+                ],
               ],
-            ],
-          ])))));
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
 
@@ -254,13 +582,32 @@ class _ActionGroup extends StatelessWidget {
   final String title;
   final List<Widget> actions;
   @override
-  Widget build(BuildContext context) => Card(margin: EdgeInsets.zero,
-    child: Padding(padding: const EdgeInsets.all(ConsoleDensity.lg),
-      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(title, style: Theme.of(context).textTheme.titleSmall),
-        const SizedBox(height: ConsoleDensity.md),
-        Wrap(spacing: ConsoleDensity.sm, runSpacing: ConsoleDensity.sm, children: actions),
-      ])));
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(ConsoleDensity.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title.toUpperCase(),
+              style: t.textTheme.labelSmall?.copyWith(
+                color: t.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(height: ConsoleDensity.md),
+            Wrap(
+              spacing: ConsoleDensity.sm,
+              runSpacing: ConsoleDensity.sm,
+              children: actions,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 class _RosterDistribution extends StatelessWidget {
@@ -271,40 +618,90 @@ class _RosterDistribution extends StatelessWidget {
     final status = ConsoleKpiStatus.roster(counts.total, counts.active);
     return AlertDialog(
       title: const Text('Kadro Dağılımı'),
-      content: SizedBox(width: ConsoleDensity.dashboardActionMinWidth,
-        child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        Text(status.label),
-        const SizedBox(height: ConsoleDensity.lg),
-        Text('Toplam: ${counts.total}'),
-        Text('Aktif: ${counts.active}'),
-        if (status.progress != null) ...[
-          Text('Aktif olmayan: ${counts.total - counts.active}'),
-          const SizedBox(height: ConsoleDensity.md),
-          LinearProgressIndicator(value: status.progress, semanticsLabel: status.label),
-        ],
-      ])),
-      actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('Kapat'))],
+      content: SizedBox(
+        width: ConsoleDensity.dashboardActionMinWidth,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(status.label),
+            const SizedBox(height: ConsoleDensity.lg),
+            Text('Toplam: ${counts.total}'),
+            Text('Aktif: ${counts.active}'),
+            if (status.progress != null) ...[
+              Text('Aktif olmayan: ${counts.total - counts.active}'),
+              const SizedBox(height: ConsoleDensity.md),
+              LinearProgressIndicator(
+                value: status.progress,
+                semanticsLabel: status.label,
+              ),
+            ],
+          ],
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.pop(context),
+          child: const Text('Kapat'),
+        ),
+      ],
     );
   }
 }
 
 class _QueuePanel extends StatelessWidget {
-  const _QueuePanel({required this.title, required this.icon, required this.child});
+  const _QueuePanel({
+    required this.title,
+    required this.icon,
+    required this.child,
+  });
   final String title;
   final IconData icon;
   final Widget child;
   @override
-  Widget build(BuildContext context) => Card(margin: EdgeInsets.zero, child: Padding(
-    padding: const EdgeInsets.all(ConsoleDensity.lg),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(
-        padding: const EdgeInsets.all(ConsoleDensity.md),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: .08),
-          borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
-        child: Row(children: [Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: ConsoleDensity.sm),
-          Expanded(child: Text(title, style: Theme.of(context).textTheme.titleMedium))])),
-      const SizedBox(height: ConsoleDensity.lg), child,
-    ])));
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.all(ConsoleDensity.lg),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(ConsoleDensity.md),
+              decoration: BoxDecoration(
+                color: t.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+                border: Border.all(color: t.colorScheme.outline),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 30,
+                    height: 30,
+                    decoration: BoxDecoration(
+                      color: t.colorScheme.primary.withValues(alpha: .14),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Icon(
+                      icon,
+                      size: 17,
+                      color: t.colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: ConsoleDensity.sm),
+                  Expanded(
+                    child: Text(title, style: t.textTheme.titleMedium),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: ConsoleDensity.lg),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
 }

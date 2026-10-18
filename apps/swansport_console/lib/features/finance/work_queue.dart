@@ -51,7 +51,7 @@ class WorkCard extends StatelessWidget {
     return SizedBox(
       width: 320,
       child: Material(
-        color: t.colorScheme.surface,
+        color: t.colorScheme.surfaceContainerHighest.withValues(alpha: .55),
         borderRadius: BorderRadius.circular(ConsoleDensity.radius),
         child: InkWell(
           borderRadius: BorderRadius.circular(ConsoleDensity.radius),
@@ -60,7 +60,7 @@ class WorkCard extends StatelessWidget {
             padding: const EdgeInsets.all(ConsoleDensity.lg),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-              border: Border.all(color: t.colorScheme.outlineVariant),
+              border: Border.all(color: t.colorScheme.outline),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -68,22 +68,30 @@ class WorkCard extends StatelessWidget {
                 Row(
                   children: [
                     Expanded(
-                      child: Text(item.title,
-                          style: t.textTheme.titleSmall,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        item.title,
+                        style: t.textTheme.titleSmall,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     const SizedBox(width: ConsoleDensity.sm),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: ConsoleDensity.sm, vertical: 2),
+                        horizontal: ConsoleDensity.sm + 2,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: tone.bg,
                         borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: tone.fg.withValues(alpha: .35),
+                        ),
                       ),
-                      child: Text(riskLabel(item.risk),
-                          style: t.textTheme.labelSmall
-                              ?.copyWith(color: tone.fg)),
+                      child: Text(
+                        riskLabel(item.risk),
+                        style: t.textTheme.labelSmall?.copyWith(color: tone.fg),
+                      ),
                     ),
                   ],
                 ),
@@ -92,30 +100,37 @@ class WorkCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
                   children: [
-                    Text('${item.count}',
-                        style: t.textTheme.headlineSmall?.copyWith(
-                            color: tone.fg,
-                            fontFeatures: const [
-                              FontFeature.tabularFigures()
-                            ])),
+                    Text(
+                      '${item.count}',
+                      style: t.textTheme.headlineSmall?.copyWith(
+                        color: tone.fg,
+                        fontWeight: FontWeight.w800,
+                        fontFeatures: const [FontFeature.tabularFigures()],
+                      ),
+                    ),
                     const SizedBox(width: ConsoleDensity.xs),
                     Text('kayıt', style: t.textTheme.bodySmall),
                     if (item.hasTotal) ...[
                       const Spacer(),
-                      Text(fmtMoney(item.total),
-                          style: t.textTheme.titleSmall?.copyWith(
-                              fontFeatures: const [
-                                FontFeature.tabularFigures()
-                              ])),
+                      Text(
+                        fmtMoney(item.total),
+                        style: t.textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                        ),
+                      ),
                     ],
                   ],
                 ),
                 const SizedBox(height: ConsoleDensity.sm),
                 // Neden önemli. Sayının tek başına anlamı yok: "3 taslak
                 // gider" gören kişi ne yapacağını bilmiyor.
-                Text(item.why,
-                    style: t.textTheme.bodySmall
-                        ?.copyWith(color: t.colorScheme.onSurfaceVariant)),
+                Text(
+                  item.why,
+                  style: t.textTheme.bodySmall?.copyWith(
+                    color: t.colorScheme.onSurfaceVariant,
+                  ),
+                ),
               ],
             ),
           ),
@@ -158,17 +173,38 @@ class _WorkQueueState extends State<WorkQueue> {
         width: double.infinity,
         padding: const EdgeInsets.all(ConsoleDensity.xl),
         decoration: BoxDecoration(
+          color: t.colorScheme.surfaceContainerHighest.withValues(alpha: .4),
           borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          border: Border.all(color: t.colorScheme.outlineVariant),
+          border: Border.all(color: t.colorScheme.outline),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
           children: [
-            Text(widget.emptyTitle, style: t.textTheme.titleSmall),
-            if (widget.emptyBody != null) ...[
-              const SizedBox(height: ConsoleDensity.xs),
-              Text(widget.emptyBody!, style: t.textTheme.bodySmall),
-            ],
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: t.colorScheme.primary.withValues(alpha: .12),
+                borderRadius: BorderRadius.circular(9),
+              ),
+              child: Icon(
+                Icons.task_alt_rounded,
+                size: 18,
+                color: t.colorScheme.primary,
+              ),
+            ),
+            const SizedBox(width: ConsoleDensity.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.emptyTitle, style: t.textTheme.titleSmall),
+                  if (widget.emptyBody != null) ...[
+                    const SizedBox(height: ConsoleDensity.xs),
+                    Text(widget.emptyBody!, style: t.textTheme.bodySmall),
+                  ],
+                ],
+              ),
+            ),
           ],
         ),
       );
@@ -186,12 +222,16 @@ class _WorkQueueState extends State<WorkQueue> {
           const SizedBox(height: ConsoleDensity.lg),
           TextButton.icon(
             onPressed: () => setState(() => _expanded = !_expanded),
-            icon: Icon(_expanded
-                ? Icons.expand_less_rounded
-                : Icons.expand_more_rounded),
-            label: Text(_expanded
-                ? 'Diğer işleri gizle'
-                : 'Tüm işler (${widget.others.length} tane daha)'),
+            icon: Icon(
+              _expanded
+                  ? Icons.expand_less_rounded
+                  : Icons.expand_more_rounded,
+            ),
+            label: Text(
+              _expanded
+                  ? 'Diğer işleri gizle'
+                  : 'Tüm işler (${widget.others.length} tane daha)',
+            ),
           ),
           if (_expanded) ...[
             const SizedBox(height: ConsoleDensity.sm),
@@ -207,7 +247,7 @@ class _WorkQueueState extends State<WorkQueue> {
   }
 }
 
-/// Ekran başlığı + açıklama — mali ekranların hepsinde aynı.
+/// Ekran başlığı + açıklama — mali ve operasyon ekranlarının hepsinde aynı.
 class ConsolePageHeader extends StatelessWidget {
   const ConsolePageHeader({
     super.key,
@@ -223,21 +263,41 @@ class ConsolePageHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: t.textTheme.titleLarge),
-              const SizedBox(height: ConsoleDensity.xs),
-              Text(subtitle, style: t.textTheme.bodySmall),
-            ],
+    return Container(
+      padding: const EdgeInsets.all(ConsoleDensity.lg),
+      decoration: BoxDecoration(
+        color: t.colorScheme.surface,
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+        border: Border.all(color: t.colorScheme.outline),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 4,
+            height: 38,
+            decoration: BoxDecoration(
+              color: t.colorScheme.primary,
+              borderRadius: BorderRadius.circular(4),
+            ),
           ),
-        ),
-        if (trailing != null) trailing!,
-      ],
+          const SizedBox(width: ConsoleDensity.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: t.textTheme.titleLarge),
+                const SizedBox(height: ConsoleDensity.xs),
+                Text(subtitle, style: t.textTheme.bodySmall),
+              ],
+            ),
+          ),
+          if (trailing != null) ...[
+            const SizedBox(width: ConsoleDensity.md),
+            trailing!,
+          ],
+        ],
+      ),
     );
   }
 }
@@ -269,13 +329,27 @@ class AsyncSection<T> extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(ConsoleDensity.lg),
         decoration: BoxDecoration(
-          color: t.colorScheme.error.withValues(alpha: 0.06),
+          color: t.colorScheme.error.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          border: Border.all(color: t.colorScheme.error.withValues(alpha: 0.3)),
+          border: Border.all(color: t.colorScheme.error.withValues(alpha: 0.35)),
         ),
-        child: Text('$errorPrefix: $e',
-            style: t.textTheme.bodySmall
-                ?.copyWith(color: t.colorScheme.error)),
+        child: Row(
+          children: [
+            Icon(
+              Icons.error_outline_rounded,
+              size: 18,
+              color: t.colorScheme.error,
+            ),
+            const SizedBox(width: ConsoleDensity.sm),
+            Expanded(
+              child: Text(
+                '$errorPrefix: $e',
+                style: t.textTheme.bodySmall
+                    ?.copyWith(color: t.colorScheme.error),
+              ),
+            ),
+          ],
+        ),
       ),
       data: builder,
     );

@@ -33,20 +33,43 @@ class StatusPill extends StatelessWidget {
       PillTone.muted => t.colorScheme.outline,
     };
 
+    final fgColor =
+        tone == PillTone.muted ? t.textTheme.bodySmall?.color : color;
+
     return Container(
       padding: const EdgeInsets.symmetric(
-          horizontal: ConsoleDensity.sm, vertical: 2),
+        horizontal: ConsoleDensity.sm + 2,
+        vertical: 3,
+      ),
       decoration: BoxDecoration(
         color: color.withValues(alpha: dark ? .16 : .12),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(color: color.withValues(alpha: .35)),
       ),
-      child: Text(
-        label,
-        style: t.textTheme.labelSmall?.copyWith(
-          color: tone == PillTone.muted ? t.textTheme.bodySmall?.color : color,
-          letterSpacing: .2,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: fgColor ?? color,
+            ),
+          ),
+          const SizedBox(width: 6),
+          Flexible(
+            child: Text(
+              label,
+              overflow: TextOverflow.ellipsis,
+              style: t.textTheme.labelSmall?.copyWith(
+                color: fgColor,
+                fontWeight: FontWeight.w700,
+                letterSpacing: .2,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

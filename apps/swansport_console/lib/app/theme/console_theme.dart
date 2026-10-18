@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-final consoleThemeModeProvider = StateProvider<ThemeMode>((ref) => ThemeMode.system);
+final consoleThemeModeProvider =
+    StateProvider<ThemeMode>((ref) => ThemeMode.dark);
 
 /// Konsolun görsel dili.
 ///
@@ -16,13 +17,13 @@ class ConsoleDensity {
   const ConsoleDensity._();
 
   /// Tablo satırı — 200 satırlık bir kadroda fark eden ölçü budur.
-  static const double rowHeight = 40;
-  static const double headerHeight = 36;
+  static const double rowHeight = 42;
+  static const double headerHeight = 38;
 
   /// Kabuk ölçüleri.
-  static const double sidebarWidth = 260;
-  static const double sidebarCollapsedWidth = 64;
-  static const double topBarHeight = 56;
+  static const double sidebarWidth = 264;
+  static const double sidebarCollapsedWidth = 68;
+  static const double topBarHeight = 60;
 
   /// Konsolun çalışabildiği en dar ekran.
   ///
@@ -46,12 +47,12 @@ class ConsoleDensity {
   static const double xl = 24;
   static const double xxl = 32;
 
-  static const double radius = 10;
-  static const double loginCardWidth = 420;
+  static const double radius = 12;
+  static const double loginCardWidth = 430;
   static const double dashboardKpiMinWidth = 210;
   static const double dashboardQueueMinWidth = 420;
   static const double dashboardActionMinWidth = 280;
-  static const double dashboardKpiHeight = 260;
+  static const double dashboardKpiHeight = 250;
   static const double logoPreviewSize = 80;
   static const double brandMarkSize = 22;
   static const double loginBrandMarkSize = 48;
@@ -60,20 +61,22 @@ class ConsoleDensity {
 class ConsoleTheme {
   const ConsoleTheme._();
 
-  // Console-owned athletic palette; widgets consume ThemeData, not hex.
-  static const Color commandBackground = Color(0xFF131D2E);
-  static const Color commandSurface = Color(0xFF1E293B);
-  static const Color commandSurfaceAlt = Color(0xFF253449);
+  // Console-owned athletic dark palette aligned with swansport.com.tr;
+  // widgets consume ThemeData, not hex.
+  static const Color commandBackground = Color(0xFF070D19);
+  static const Color commandSurface = Color(0xFF0F172A);
+  static const Color commandSurfaceAlt = Color(0xFF17233B);
   static const Color commandAccent = Color(0xFF00C7B1);
-  static const Color commandOutline = Color(0xFF304159);
+  static const Color commandSecondary = Color(0xFFF59E0B);
+  static const Color commandOutline = Color(0xFF22324F);
   static const Color commandMuted = Color(0xFF94A3B8);
 
   static ThemeData light() => _build(
         brightness: Brightness.light,
-        background: SwanColors.background,
+        background: const Color(0xFFF4F7FB),
         surface: SwanColors.surface,
-        surfaceAlt: SwanColors.surfaceVariant,
-        outline: SwanColors.outline,
+        surfaceAlt: const Color(0xFFEEF3F9),
+        outline: const Color(0xFFD8E2EE),
         ink: SwanColors.textPrimary,
         inkMuted: SwanColors.textSecondary,
         primary: SwanColors.primary,
@@ -100,47 +103,127 @@ class ConsoleTheme {
     required Color inkMuted,
     required Color primary,
   }) {
+    final isDark = brightness == Brightness.dark;
     // Rakamlar tabular: tabloda alt alta gelen sayılar kaymasın.
     final body = GoogleFonts.interTextTheme().apply(
       bodyColor: ink,
       displayColor: ink,
     );
 
+    final colorScheme = ColorScheme.fromSeed(
+      seedColor: SwanColors.primary,
+      brightness: brightness,
+    ).copyWith(
+      primary: primary,
+      secondary: commandSecondary,
+      tertiary: commandSecondary,
+      surface: surface,
+      surfaceContainerHighest: surfaceAlt,
+      onSurface: ink,
+      onSurfaceVariant: inkMuted,
+      outline: outline,
+      outlineVariant: outline.withValues(alpha: isDark ? 0.75 : 0.85),
+    );
+
     return ThemeData(
       useMaterial3: true,
       brightness: brightness,
       scaffoldBackgroundColor: background,
-      colorScheme: ColorScheme.fromSeed(
-        seedColor: SwanColors.primary,
-        brightness: brightness,
-      ).copyWith(
-        primary: primary,
-        surface: surface,
-        surfaceContainerHighest: surfaceAlt,
-        onSurface: ink,
-        onSurfaceVariant: inkMuted,
-        outline: outline,
-      ),
+      colorScheme: colorScheme,
       textTheme: body.copyWith(
+        headlineMedium: GoogleFonts.inter(
+          fontSize: 26,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.5,
+          color: ink,
+        ),
+        headlineSmall: GoogleFonts.inter(
+          fontSize: 22,
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.4,
+          color: ink,
+        ),
         titleLarge: GoogleFonts.inter(
-            fontSize: 20, fontWeight: FontWeight.w700, color: ink),
+          fontSize: 19,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
+          color: ink,
+        ),
         titleMedium: GoogleFonts.inter(
-            fontSize: 15, fontWeight: FontWeight.w600, color: ink),
+          fontSize: 15,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.1,
+          color: ink,
+        ),
+        titleSmall: GoogleFonts.inter(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w600,
+          color: ink,
+        ),
         bodyMedium: GoogleFonts.inter(fontSize: 13.5, color: ink),
         bodySmall: GoogleFonts.inter(fontSize: 12.5, color: inkMuted),
+        labelMedium: GoogleFonts.inter(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: ink,
+        ),
         labelSmall: GoogleFonts.inter(
-            fontSize: 11,
-            fontWeight: FontWeight.w600,
-            letterSpacing: .6,
-            color: inkMuted),
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: .65,
+          color: inkMuted,
+        ),
       ),
       dividerTheme: DividerThemeData(color: outline, space: 1, thickness: 1),
       cardTheme: CardThemeData(
         color: surface,
         elevation: 0,
+        margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          side: BorderSide.none,
+          side: BorderSide(color: outline),
+        ),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: surface,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(ConsoleDensity.radius + 4),
+          side: BorderSide(color: outline),
+        ),
+      ),
+      popupMenuTheme: PopupMenuThemeData(
+        color: surface,
+        elevation: 8,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+          side: BorderSide(color: outline),
+        ),
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: surfaceAlt,
+        side: BorderSide(color: outline),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(999),
+        ),
+        labelStyle: GoogleFonts.inter(
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+          color: ink,
+        ),
+      ),
+      tabBarTheme: TabBarThemeData(
+        labelColor: primary,
+        unselectedLabelColor: inkMuted,
+        dividerColor: outline,
+        indicatorSize: TabBarIndicatorSize.label,
+        labelStyle: GoogleFonts.inter(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w700,
+        ),
+        unselectedLabelStyle: GoogleFonts.inter(
+          fontSize: 13.5,
+          fontWeight: FontWeight.w500,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
@@ -148,7 +231,9 @@ class ConsoleTheme {
         fillColor: surfaceAlt,
         isDense: true,
         contentPadding: const EdgeInsets.symmetric(
-            horizontal: ConsoleDensity.md, vertical: ConsoleDensity.sm + 2),
+          horizontal: ConsoleDensity.md + 2,
+          vertical: ConsoleDensity.sm + 4,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(ConsoleDensity.radius),
           borderSide: BorderSide(color: outline),
@@ -162,17 +247,34 @@ class ConsoleTheme {
           borderSide: BorderSide(color: primary, width: 1.6),
         ),
       ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: ink,
+          minimumSize: const Size(0, 38),
+          padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),
+          side: BorderSide(color: outline),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+          ),
+          textStyle: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: SwanColors.primary,
-          foregroundColor: Colors.white,
+          backgroundColor: isDark ? commandAccent : SwanColors.primary,
+          foregroundColor: isDark ? const Color(0xFF041318) : Colors.white,
           minimumSize: const Size(0, 38),
           padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(ConsoleDensity.radius),
           ),
-          textStyle:
-              GoogleFonts.inter(fontSize: 13.5, fontWeight: FontWeight.w600),
+          textStyle: GoogleFonts.inter(
+            fontSize: 13.5,
+            fontWeight: FontWeight.w700,
+          ),
         ),
       ),
     );

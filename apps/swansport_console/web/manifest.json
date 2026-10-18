@@ -3,10 +3,10 @@
     "short_name": "Konsol",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "SwanSport kulüp ve platform yönetim konsolu.",
-    "orientation": "portrait-primary",
+    "background_color": "#070D19",
+    "theme_color": "#00C7B1",
+    "description": "SwanSport kulüp, tesis ve federasyon yönetim konsolu.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {

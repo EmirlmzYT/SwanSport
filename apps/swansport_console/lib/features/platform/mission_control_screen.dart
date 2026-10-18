@@ -36,21 +36,54 @@ class _MissionControlScreenState extends ConsumerState<MissionControlScreen> {
           TextButton(onPressed: () => ref.invalidate(platformConfigProvider), child: const Text('Tekrar dene')),
         ]) : const CircularProgressIndicator());
     return DefaultTabController(length: 5, child: Column(children: [
-      Padding(padding: const EdgeInsets.all(ConsoleDensity.xl), child: Row(children: [
-        Icon(Icons.admin_panel_settings_rounded, color: Theme.of(context).colorScheme.primary),
-        const SizedBox(width: ConsoleDensity.md),
-        Expanded(child: Text('Platform Mission Control', style: Theme.of(context).textTheme.headlineSmall)),
-        IconButton(tooltip: 'Platform verilerini yenile', onPressed: () {
-          ref.invalidate(platformConfigProvider); ref.invalidate(platformPlansProvider);
-          ref.invalidate(platformAuditLogsProvider); ref.invalidate(diagnosticOverviewProvider);
-          ref.invalidate(launchWaitlistEntriesProvider); ref.invalidate(launchWaitlistSummaryProvider);
-        }, icon: const Icon(Icons.refresh_rounded)),
-      ])),
+      Container(
+        color: Theme.of(context).colorScheme.surface,
+        padding: const EdgeInsets.fromLTRB(
+          ConsoleDensity.xl,
+          ConsoleDensity.lg,
+          ConsoleDensity.xl,
+          ConsoleDensity.md,
+        ),
+        child: Row(children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primary.withValues(alpha: .14),
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: .32),
+              ),
+            ),
+            child: Icon(
+              Icons.admin_panel_settings_rounded,
+              color: Theme.of(context).colorScheme.primary,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: ConsoleDensity.md),
+          Expanded(
+            child: Text(
+              'Platform Mission Control',
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+          ),
+          IconButton(tooltip: 'Platform verilerini yenile', onPressed: () {
+            ref.invalidate(platformConfigProvider); ref.invalidate(platformPlansProvider);
+            ref.invalidate(platformAuditLogsProvider); ref.invalidate(diagnosticOverviewProvider);
+            ref.invalidate(launchWaitlistEntriesProvider); ref.invalidate(launchWaitlistSummaryProvider);
+          }, icon: const Icon(Icons.refresh_rounded)),
+        ]),
+      ),
       if (config.hasError) const Text('Yenileme başarısız; önceki ayarlar ve taslaklar korunuyor.'),
-      const TabBar(isScrollable: true, tabs: [
-        Tab(text: 'Marka & Görünüm'), Tab(text: 'Finans & Komisyonlar'),
-        Tab(text: 'Paketler & Fiyatlandırma'), Tab(text: 'Şalterler'), Tab(text: 'Denetim & Sistem'),
-      ]),
+      Container(
+        width: double.infinity,
+        color: Theme.of(context).colorScheme.surface,
+        child: const TabBar(isScrollable: true, tabs: [
+          Tab(text: 'Marka & Görünüm'), Tab(text: 'Finans & Komisyonlar'),
+          Tab(text: 'Paketler & Fiyatlandırma'), Tab(text: 'Şalterler'), Tab(text: 'Denetim & Sistem'),
+        ]),
+      ),
       Expanded(child: TabBarView(children: [
         _Page(children: [
           const _Note('Marka ve duyuru ayarları herkese açıktır. Sır, erişim anahtarı veya özel belge eklemeyin. Her kart ayrı kaydedilir.'),
@@ -125,11 +158,29 @@ class _Note extends StatelessWidget {
   final String text;
   final bool alarm;
   @override
-  Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(ConsoleDensity.lg),
-    decoration: BoxDecoration(color: (alarm ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary).withValues(alpha: .1),
-      borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
-    child: Text(text, style: Theme.of(context).textTheme.bodyMedium));
+  Widget build(BuildContext context) {
+    final c = alarm ? Theme.of(context).colorScheme.error : Theme.of(context).colorScheme.primary;
+    return Container(
+      padding: const EdgeInsets.all(ConsoleDensity.lg),
+      decoration: BoxDecoration(
+        color: c.withValues(alpha: .10),
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+        border: Border.all(color: c.withValues(alpha: .32)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            alarm ? Icons.warning_amber_rounded : Icons.info_outline_rounded,
+            size: 18,
+            color: c,
+          ),
+          const SizedBox(width: ConsoleDensity.sm),
+          Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+        ],
+      ),
+    );
+  }
 }
 
 class _SettingForm extends ConsumerStatefulWidget {

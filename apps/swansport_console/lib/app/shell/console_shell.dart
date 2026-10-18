@@ -93,7 +93,8 @@ class _Sidebar extends ConsumerWidget {
     }
 
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 140),
+      duration: const Duration(milliseconds: 160),
+      curve: Curves.easeOutCubic,
       width: collapsed
           ? ConsoleDensity.sidebarCollapsedWidth
           : ConsoleDensity.sidebarWidth,
@@ -105,24 +106,64 @@ class _Sidebar extends ConsumerWidget {
             height: ConsoleDensity.topBarHeight,
             child: Padding(
               padding: const EdgeInsets.symmetric(
-                  horizontal: ConsoleDensity.md),
+                horizontal: ConsoleDensity.md,
+              ),
               child: Row(
+                mainAxisAlignment: collapsed
+                    ? MainAxisAlignment.center
+                    : MainAxisAlignment.start,
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(ConsoleDensity.xs),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: t.colorScheme.primary.withValues(alpha: .12),
-                      borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
-                    child: Tooltip(message: appName, child: SwanNetworkLogo(
-                      url: config?.logoUrl, size: ConsoleDensity.brandMarkSize, semanticLabel: appName,
-                      fallback: Icon(Icons.shield_moon_rounded,
-                        color: t.colorScheme.primary, size: ConsoleDensity.brandMarkSize)))),
+                      color: t.colorScheme.primary.withValues(alpha: .14),
+                      borderRadius:
+                          BorderRadius.circular(ConsoleDensity.radius),
+                      border: Border.all(
+                        color: t.colorScheme.primary.withValues(alpha: .32),
+                      ),
+                    ),
+                    child: Tooltip(
+                      message: appName,
+                      child: SwanNetworkLogo(
+                        url: config?.logoUrl,
+                        size: ConsoleDensity.brandMarkSize,
+                        semanticLabel: appName,
+                        fallback: Icon(
+                          Icons.shield_moon_rounded,
+                          color: t.colorScheme.primary,
+                          size: ConsoleDensity.brandMarkSize,
+                        ),
+                      ),
+                    ),
+                  ),
                   if (!collapsed) ...[
-                    const SizedBox(width: ConsoleDensity.sm),
+                    const SizedBox(width: ConsoleDensity.sm + 2),
                     Expanded(
-                      child: Text(appName,
-                          style: t.textTheme.titleMedium,
-                          overflow: TextOverflow.ellipsis),
+                      child: Text(
+                        appName,
+                        style: t.textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: t.colorScheme.primary.withValues(alpha: .12),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'PRO',
+                        style: t.textTheme.labelSmall?.copyWith(
+                          fontSize: 9.5,
+                          color: t.colorScheme.primary,
+                        ),
+                      ),
                     ),
                   ],
                 ],
@@ -130,50 +171,146 @@ class _Sidebar extends ConsumerWidget {
             ),
           ),
           Divider(height: 1, color: t.colorScheme.outline),
-          if (!collapsed) Padding(
-            padding: const EdgeInsets.all(ConsoleDensity.lg),
-            child: Row(children: [
-              Icon(Icons.shield_outlined, size: 18, color: t.colorScheme.primary),
-              const SizedBox(width: ConsoleDensity.sm),
-              Expanded(child: Text(club?.name ?? 'Kulüp seçilmedi',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.bodySmall)),
-              if (club != null) Tooltip(message: club.isPending ? 'Onay bekliyor' : 'Aktif kulüp',
-                child: Icon(club.isPending ? Icons.hourglass_top_rounded : Icons.verified_rounded,
-                  size: 16, color: club.isPending ? SwanColors.warning : SwanColors.success)),
-            ])),
-          Padding(padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.sm),
+          if (!collapsed)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                ConsoleDensity.md,
+                ConsoleDensity.md,
+                ConsoleDensity.md,
+                ConsoleDensity.sm,
+              ),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: ConsoleDensity.md,
+                  vertical: ConsoleDensity.sm + 2,
+                ),
+                decoration: BoxDecoration(
+                  color: t.colorScheme.surfaceContainerHighest,
+                  borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+                  border: Border.all(color: t.colorScheme.outline),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.shield_outlined,
+                      size: 17,
+                      color: t.colorScheme.primary,
+                    ),
+                    const SizedBox(width: ConsoleDensity.sm),
+                    Expanded(
+                      child: Text(
+                        club?.name ?? 'Kulüp seçilmedi',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: t.textTheme.bodySmall?.copyWith(
+                          color: t.colorScheme.onSurface,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    if (club != null)
+                      Tooltip(
+                        message:
+                            club.isPending ? 'Onay bekliyor' : 'Aktif kulüp',
+                        child: Icon(
+                          club.isPending
+                              ? Icons.hourglass_top_rounded
+                              : Icons.verified_rounded,
+                          size: 16,
+                          color: club.isPending
+                              ? SwanColors.warning
+                              : SwanColors.success,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            )
+          else
+            const SizedBox(height: ConsoleDensity.sm),
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: ConsoleDensity.sm),
             child: Material(
-              color: current == '/' ? t.colorScheme.primary.withValues(alpha: .12) : t.colorScheme.surface,
+              color: current == '/'
+                  ? t.colorScheme.primary.withValues(alpha: .14)
+                  : Colors.transparent,
               borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-              child: Tooltip(message: 'Komuta Merkezi', child: InkWell(
-                borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-                onTap: () => context.go('/'),
-                child: Padding(padding: const EdgeInsets.all(ConsoleDensity.sm),
-                  child: Row(mainAxisAlignment: collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
-                    children: [
-                      Icon(Icons.space_dashboard_outlined, size: 22,
-                        color: current == '/' ? t.colorScheme.primary : null),
-                      if (!collapsed) ...[
-                        const SizedBox(width: ConsoleDensity.md),
-                        Expanded(child: Text('Komuta Merkezi', style: t.textTheme.bodyMedium)),
+              child: Tooltip(
+                message: 'Komuta Merkezi',
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+                  onTap: () => context.go('/'),
+                  child: Container(
+                    height: 40,
+                    padding: EdgeInsets.symmetric(
+                      horizontal: collapsed ? 0 : ConsoleDensity.md,
+                    ),
+                    decoration: BoxDecoration(
+                      borderRadius:
+                          BorderRadius.circular(ConsoleDensity.radius),
+                      border: current == '/'
+                          ? Border.all(
+                              color:
+                                  t.colorScheme.primary.withValues(alpha: .35),
+                            )
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: collapsed
+                          ? MainAxisAlignment.center
+                          : MainAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.space_dashboard_rounded,
+                          size: 20,
+                          color: current == '/'
+                              ? t.colorScheme.primary
+                              : t.colorScheme.onSurfaceVariant,
+                        ),
+                        if (!collapsed) ...[
+                          const SizedBox(width: ConsoleDensity.md),
+                          Expanded(
+                            child: Text(
+                              'Komuta Merkezi',
+                              overflow: TextOverflow.ellipsis,
+                              style: t.textTheme.bodyMedium?.copyWith(
+                                color: current == '/'
+                                    ? t.colorScheme.primary
+                                    : t.colorScheme.onSurface,
+                                fontWeight: current == '/'
+                                    ? FontWeight.w700
+                                    : FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
-                    ])),
-              )))),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(
-                  vertical: ConsoleDensity.sm),
+                vertical: ConsoleDensity.sm,
+              ),
               children: [
                 for (final entry in groups.entries) ...[
                   if (!collapsed)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
-                          ConsoleDensity.lg,
-                          ConsoleDensity.md,
-                          ConsoleDensity.lg,
-                          ConsoleDensity.xs),
-                      child: Text(entry.key,
-                          style: t.textTheme.labelSmall),
+                        ConsoleDensity.lg,
+                        ConsoleDensity.md,
+                        ConsoleDensity.lg,
+                        ConsoleDensity.xs,
+                      ),
+                      child: Text(
+                        entry.key,
+                        style: t.textTheme.labelSmall,
+                      ),
                     )
                   else
                     const SizedBox(height: ConsoleDensity.md),
@@ -181,7 +318,8 @@ class _Sidebar extends ConsumerWidget {
                     _NavItem(
                       module: m,
                       collapsed: collapsed,
-                      selected: m.route == current || current.startsWith('${m.route}/'),
+                      selected: m.route == current ||
+                          current.startsWith('${m.route}/'),
                     ),
                 ],
                 if (visible.isEmpty && !collapsed)
@@ -204,9 +342,11 @@ class _Sidebar extends ConsumerWidget {
               ConsoleDensity.autoCollapseWidth)
             IconButton(
               tooltip: collapsed ? 'Menüyü genişlet' : 'Menüyü daralt',
-              icon: Icon(collapsed
-                  ? Icons.chevron_right_rounded
-                  : Icons.chevron_left_rounded),
+              icon: Icon(
+                collapsed
+                    ? Icons.chevron_right_rounded
+                    : Icons.chevron_left_rounded,
+              ),
               onPressed: () => ref
                   .read(sidebarCollapsedProvider.notifier)
                   .update((v) => !v),
@@ -231,25 +371,38 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final fg = selected ? t.colorScheme.primary : t.textTheme.bodyMedium?.color;
+    final fg = selected
+        ? t.colorScheme.primary
+        : t.textTheme.bodyMedium?.color;
+    final iconColor = selected
+        ? t.colorScheme.primary
+        : t.colorScheme.onSurfaceVariant;
 
     final item = Container(
       height: 38,
       margin: const EdgeInsets.symmetric(
-          horizontal: ConsoleDensity.sm, vertical: 1),
+        horizontal: ConsoleDensity.sm,
+        vertical: 1.5,
+      ),
       padding: EdgeInsets.symmetric(
-          horizontal: collapsed ? 0 : ConsoleDensity.md),
+        horizontal: collapsed ? 0 : ConsoleDensity.md,
+      ),
       decoration: BoxDecoration(
         color: selected
-            ? t.colorScheme.primary.withValues(alpha: .12)
+            ? t.colorScheme.primary.withValues(alpha: .14)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+        border: selected
+            ? Border.all(
+                color: t.colorScheme.primary.withValues(alpha: .32),
+              )
+            : null,
       ),
       child: Row(
         mainAxisAlignment:
             collapsed ? MainAxisAlignment.center : MainAxisAlignment.start,
         children: [
-          Icon(module.icon, size: 19, color: fg),
+          Icon(module.icon, size: 19, color: iconColor),
           if (!collapsed) ...[
             const SizedBox(width: ConsoleDensity.md),
             Expanded(
@@ -258,10 +411,19 @@ class _NavItem extends StatelessWidget {
                 overflow: TextOverflow.ellipsis,
                 style: t.textTheme.bodyMedium?.copyWith(
                   color: fg,
-                  fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),
+            if (selected)
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: t.colorScheme.primary,
+                ),
+              ),
           ],
         ],
       ),
@@ -329,24 +491,51 @@ class _ClubSwitcher extends ConsumerWidget {
     );
   }
 
-  Widget _clubChip(BuildContext context, String name, {required bool canSwitch}) {
+  Widget _clubChip(
+    BuildContext context,
+    String name, {
+    required bool canSwitch,
+  }) {
     final t = Theme.of(context);
     return Container(
       constraints: const BoxConstraints(maxWidth: 240),
-      padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.md, vertical: ConsoleDensity.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: ConsoleDensity.md,
+        vertical: ConsoleDensity.sm - 1,
+      ),
       decoration: BoxDecoration(
-        color: t.colorScheme.primary.withValues(alpha: .06),
-        border: Border.all(color: t.colorScheme.outlineVariant),
-        borderRadius: BorderRadius.circular(ConsoleDensity.radius)),
-      child: Row(mainAxisSize: MainAxisSize.min, children: [
-        Icon(Icons.shield_outlined, size: 16, color: t.colorScheme.primary),
-        const SizedBox(width: ConsoleDensity.sm),
-        Flexible(child: Text(name, maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.bodySmall)),
-        if (canSwitch) ...[
-          const SizedBox(width: ConsoleDensity.xs),
-          const Icon(Icons.expand_more_rounded, size: 16),
+        color: t.colorScheme.primary.withValues(alpha: .10),
+        border: Border.all(
+          color: t.colorScheme.primary.withValues(alpha: .28),
+        ),
+        borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.shield_outlined, size: 16, color: t.colorScheme.primary),
+          const SizedBox(width: ConsoleDensity.sm),
+          Flexible(
+            child: Text(
+              name,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: t.textTheme.bodySmall?.copyWith(
+                color: t.colorScheme.onSurface,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          if (canSwitch) ...[
+            const SizedBox(width: ConsoleDensity.xs),
+            Icon(
+              Icons.expand_more_rounded,
+              size: 16,
+              color: t.colorScheme.primary,
+            ),
+          ],
         ],
-      ]),
+      ),
     );
   }
 }
@@ -365,75 +554,159 @@ class _TopBar extends ConsumerWidget {
     final session = ref.watch(authSessionProvider);
     final signedIn = session.valueOrNull != null;
 
-    return SizedBox(
+    return Container(
       height: ConsoleDensity.topBarHeight,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.xl),
-        child: Row(
-          children: [
-            Expanded(child: Column(mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(module?.label ?? (current == '/' ? 'Komuta Merkezi' : 'Sporcu Detayı'),
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.titleMedium),
-                Text('Konsol > ${module?.label ?? (current == '/' ? 'Genel Bakış' : 'Sporcular')}',
-                  maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.labelSmall),
-              ])),
-            if (club != null) ...[
-              const SizedBox(width: ConsoleDensity.md),
-              Container(
-                width: 1,
-                height: 18,
-                color: t.colorScheme.outline,
-              ),
-              const SizedBox(width: ConsoleDensity.sm),
-              _ClubSwitcher(current: club),
-            ],
-            const SizedBox(width: ConsoleDensity.md),
-            Tooltip(message: signedIn ? 'Oturum açık; sunucu bağlantısı göstergesi değildir.' : 'Oturum doğrulanıyor',
-              child: Row(mainAxisSize: MainAxisSize.min, children: [
-                Container(width: 8, height: 8, decoration: BoxDecoration(
-                  shape: BoxShape.circle, color: signedIn ? SwanColors.success : t.colorScheme.outline)),
-                if (MediaQuery.sizeOf(context).width >= ConsoleDensity.autoCollapseWidth) ...[
-                  const SizedBox(width: ConsoleDensity.sm),
-                  Text(signedIn ? 'Oturum açık' : 'Oturum bekleniyor', style: t.textTheme.bodySmall),
-                ],
-              ])),
-            IconButton(tooltip: 'Temayı değiştir', icon: Icon(
-              t.brightness == Brightness.dark ? Icons.light_mode_outlined : Icons.dark_mode_outlined),
-              onPressed: () => ref.read(consoleThemeModeProvider.notifier).state =
-                t.brightness == Brightness.dark ? ThemeMode.light : ThemeMode.dark),
-            PopupMenuButton<String>(
-              tooltip: 'Hesap',
-              icon: const Icon(Icons.account_circle_rounded, size: 22),
-              itemBuilder: (_) => [
-                PopupMenuItem<String>(enabled: false, child: Text(profile?.fullName ?? 'Hesap')),
-                const PopupMenuItem(value: 'signout', child: Text('Çıkış yap')),
-              ],
-              onSelected: (v) async {
-                if (v == 'signout') {
-                  await _signOut(context, ref);
-                }
-              },
+      color: t.colorScheme.surface,
+      padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.xl),
+      child: Row(
+        children: [
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: t.colorScheme.primary.withValues(alpha: .12),
+              borderRadius: BorderRadius.circular(9),
             ),
+            child: Icon(
+              module?.icon ??
+                  (current == '/'
+                      ? Icons.space_dashboard_rounded
+                      : Icons.person_outline_rounded),
+              size: 18,
+              color: t.colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: ConsoleDensity.md),
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  module?.label ??
+                      (current == '/' ? 'Komuta Merkezi' : 'Sporcu Detayı'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  'Konsol > ${module?.label ?? (current == '/' ? 'Genel Bakış' : 'Sporcular')}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: t.textTheme.labelSmall,
+                ),
+              ],
+            ),
+          ),
+          if (club != null) ...[
+            const SizedBox(width: ConsoleDensity.md),
+            Container(
+              width: 1,
+              height: 20,
+              color: t.colorScheme.outline,
+            ),
+            const SizedBox(width: ConsoleDensity.sm),
+            _ClubSwitcher(current: club),
           ],
-        ),
+          const SizedBox(width: ConsoleDensity.md),
+          Tooltip(
+            message: signedIn
+                ? 'Oturum açık; sunucu bağlantısı göstergesi değildir.'
+                : 'Oturum doğrulanıyor',
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ConsoleDensity.sm + 2,
+                vertical: 5,
+              ),
+              decoration: BoxDecoration(
+                color: t.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(999),
+                border: Border.all(color: t.colorScheme.outline),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: signedIn
+                          ? SwanColors.success
+                          : t.colorScheme.outline,
+                    ),
+                  ),
+                  if (MediaQuery.sizeOf(context).width >=
+                      ConsoleDensity.autoCollapseWidth) ...[
+                    const SizedBox(width: ConsoleDensity.sm),
+                    Text(
+                      signedIn ? 'Oturum açık' : 'Oturum bekleniyor',
+                      style: t.textTheme.bodySmall,
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(width: ConsoleDensity.xs),
+          IconButton(
+            tooltip: 'Temayı değiştir',
+            icon: Icon(
+              t.brightness == Brightness.dark
+                  ? Icons.light_mode_outlined
+                  : Icons.dark_mode_outlined,
+            ),
+            onPressed: () =>
+                ref.read(consoleThemeModeProvider.notifier).state =
+                    t.brightness == Brightness.dark
+                        ? ThemeMode.light
+                        : ThemeMode.dark,
+          ),
+          PopupMenuButton<String>(
+            tooltip: 'Hesap',
+            icon: const Icon(Icons.account_circle_rounded, size: 22),
+            itemBuilder: (_) => [
+              PopupMenuItem<String>(
+                enabled: false,
+                child: Text(profile?.fullName ?? 'Hesap'),
+              ),
+              const PopupMenuItem(value: 'signout', child: Text('Çıkış yap')),
+            ],
+            onSelected: (v) async {
+              if (v == 'signout') {
+                await _signOut(context, ref);
+              }
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-String _roleLabel(SwanAccess access) => access.isClubAdmin ? 'Kulüp yöneticisi'
-    : access.isClubStaff ? 'Kulüp personeli'
-    : access.isAccountant ? 'Muhasebeci'
-    : access.isPlatformAdmin ? 'Platform yöneticisi'
-    : access.canPublishFederationResults ? 'Federasyon yetkilisi' : 'Hesap';
+String _roleLabel(SwanAccess access) => access.isClubAdmin
+    ? 'Kulüp yöneticisi'
+    : access.isClubStaff
+        ? 'Kulüp personeli'
+        : access.isAccountant
+            ? 'Muhasebeci'
+            : access.isPlatformAdmin
+                ? 'Platform yöneticisi'
+                : access.canPublishFederationResults
+                    ? 'Federasyon yetkilisi'
+                    : 'Hesap';
 
 Future<void> _signOut(BuildContext context, WidgetRef ref) async {
   try {
     await ref.read(accountSessionServiceProvider).signOut();
   } catch (_) {
-    if (context.mounted) ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Çıkış yapılamadı. Yeniden dene.')));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Çıkış yapılamadı. Yeniden dene.')),
+      );
+    }
   }
 }
 
@@ -445,18 +718,62 @@ class _AccountCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final profile = ref.watch(currentProfileProvider).valueOrNull;
     final t = Theme.of(context);
-    final avatar = Tooltip(message: profile?.fullName ?? 'Hesap', child: CircleAvatar(
-      radius: 16, backgroundColor: t.colorScheme.primary.withValues(alpha: .12),
-      child: Text(profile?.initials ?? '?', style: t.textTheme.labelSmall?.copyWith(color: t.colorScheme.primary))));
-    final exit = IconButton(tooltip: 'Çıkış yap', icon: const Icon(Icons.logout_rounded, size: 18),
-        onPressed: () => _signOut(context, ref));
-    return Padding(padding: const EdgeInsets.all(ConsoleDensity.sm),
-      child: collapsed ? Column(children: [avatar, exit]) : Row(children: [
-        avatar, const SizedBox(width: ConsoleDensity.sm),
-        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Text(profile?.fullName ?? 'Hesap', maxLines: 1, overflow: TextOverflow.ellipsis, style: t.textTheme.bodyMedium),
-          Text(_roleLabel(access), style: t.textTheme.labelSmall),
-        ])), exit,
-      ]));
+    final avatar = Tooltip(
+      message: profile?.fullName ?? 'Hesap',
+      child: CircleAvatar(
+        radius: 16,
+        backgroundColor: t.colorScheme.primary.withValues(alpha: .16),
+        child: Text(
+          profile?.initials ?? '?',
+          style: t.textTheme.labelSmall?.copyWith(
+            color: t.colorScheme.primary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ),
+    );
+    final exit = IconButton(
+      tooltip: 'Çıkış yap',
+      icon: const Icon(Icons.logout_rounded, size: 18),
+      onPressed: () => _signOut(context, ref),
+    );
+    return Padding(
+      padding: const EdgeInsets.all(ConsoleDensity.sm),
+      child: collapsed
+          ? Column(children: [avatar, exit])
+          : Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: ConsoleDensity.sm,
+                vertical: ConsoleDensity.xs,
+              ),
+              decoration: BoxDecoration(
+                color: t.colorScheme.surfaceContainerHighest,
+                borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+              ),
+              child: Row(
+                children: [
+                  avatar,
+                  const SizedBox(width: ConsoleDensity.sm),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          profile?.fullName ?? 'Hesap',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(_roleLabel(access), style: t.textTheme.labelSmall),
+                      ],
+                    ),
+                  ),
+                  exit,
+                ],
+              ),
+            ),
+    );
   }
 }

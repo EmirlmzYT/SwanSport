@@ -164,7 +164,7 @@ class ConsoleTable<T> extends StatelessWidget {
 
     return Container(
       height: ConsoleDensity.headerHeight,
-      color: t.colorScheme.surface,
+      color: t.colorScheme.surfaceContainerHighest,
       padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),
       child: Row(
         children: [
@@ -213,7 +213,8 @@ class ConsoleTable<T> extends StatelessWidget {
             ),
           ),
         ),
-        if (active)
+        if (active) ...[
+          const SizedBox(width: 4),
           Icon(
             query.ascending
                 ? Icons.arrow_upward_rounded
@@ -221,6 +222,7 @@ class ConsoleTable<T> extends StatelessWidget {
             size: 13,
             color: t.colorScheme.primary,
           ),
+        ],
       ],
     );
 
@@ -261,7 +263,7 @@ class ConsoleTable<T> extends StatelessWidget {
     if (rows.isEmpty) {
       return _Message(
         icon: Icons.inbox_rounded,
-        color: t.colorScheme.outline,
+        color: t.colorScheme.primary,
         title: emptyMessage,
         detail: query.search.isEmpty
             ? null
@@ -275,7 +277,7 @@ class ConsoleTable<T> extends StatelessWidget {
           itemCount: rows.length,
           separatorBuilder: (_, __) =>
               Divider(height: 1, color: t.colorScheme.outline),
-          itemBuilder: (context, i) => _row(context, rows[i]),
+          itemBuilder: (context, i) => _row(context, rows[i], i),
         ),
         // Sayfa değişirken eski satırlar görünür kalsın, ama devam eden bir iş
         // olduğu da belli olsun.
@@ -290,7 +292,7 @@ class ConsoleTable<T> extends StatelessWidget {
     );
   }
 
-  Widget _row(BuildContext context, T row) {
+  Widget _row(BuildContext context, T row, int index) {
     final t = Theme.of(context);
     final id = rowId(row);
     final isSelected = selected.contains(id);
@@ -300,8 +302,10 @@ class ConsoleTable<T> extends StatelessWidget {
       child: Container(
         height: ConsoleDensity.rowHeight,
         color: isSelected
-            ? t.colorScheme.primary.withValues(alpha: .06)
-            : Colors.transparent,
+            ? t.colorScheme.primary.withValues(alpha: .10)
+            : index.isOdd
+                ? t.colorScheme.surface.withValues(alpha: .45)
+                : Colors.transparent,
         padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),
         child: Row(
           children: [
@@ -342,14 +346,24 @@ class ConsoleTable<T> extends StatelessWidget {
     final to = query.offset + rows.length;
 
     return Container(
-      height: 44,
+      height: 46,
       padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),
       color: t.colorScheme.surface,
       child: Row(
         children: [
-          Text(
-            totalCount == 0 ? '0 kayıt' : '$from–$to / $totalCount kayıt',
-            style: t.textTheme.bodySmall,
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ConsoleDensity.sm + 2,
+              vertical: 4,
+            ),
+            decoration: BoxDecoration(
+              color: t.colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              totalCount == 0 ? '0 kayıt' : '$from–$to / $totalCount kayıt',
+              style: t.textTheme.bodySmall,
+            ),
           ),
           const Spacer(),
           IconButton(
@@ -359,8 +373,12 @@ class ConsoleTable<T> extends StatelessWidget {
                 ? null
                 : () => onQueryChanged(query.copyWith(page: query.page - 1)),
           ),
-          Text('${query.page + 1} / $_pageCount',
-              style: t.textTheme.bodySmall),
+          Text(
+            '${query.page + 1} / $_pageCount',
+            style: t.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
           IconButton(
             tooltip: 'Sonraki sayfa',
             icon: const Icon(Icons.chevron_right_rounded, size: 20),
@@ -407,12 +425,26 @@ class _BulkBar extends StatelessWidget {
     return Container(
       height: 46,
       padding: const EdgeInsets.symmetric(horizontal: ConsoleDensity.lg),
-      color: t.colorScheme.primary.withValues(alpha: .10),
+      color: t.colorScheme.primary.withValues(alpha: .12),
       child: Row(
         children: [
-          Text('$count seçili',
-              style: t.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: ConsoleDensity.sm,
+              vertical: 3,
+            ),
+            decoration: BoxDecoration(
+              color: t.colorScheme.primary.withValues(alpha: .18),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '$count seçili',
+              style: t.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w700,
+                color: t.colorScheme.primary,
+              ),
+            ),
+          ),
           const SizedBox(width: ConsoleDensity.lg),
           for (final a in actions) ...[
             TextButton.icon(
@@ -452,23 +484,42 @@ class _Message extends StatelessWidget {
     final t = Theme.of(context);
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 380),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 26, color: color),
-            const SizedBox(height: ConsoleDensity.md),
-            Text(title,
-                textAlign: TextAlign.center, style: t.textTheme.titleMedium),
-            if (detail != null) ...[
-              const SizedBox(height: ConsoleDensity.xs),
-              SelectableText(
-                detail!,
-                textAlign: TextAlign.center,
-                style: t.textTheme.bodySmall,
+        constraints: const BoxConstraints(maxWidth: 400),
+        child: Container(
+          padding: const EdgeInsets.all(ConsoleDensity.xl),
+          decoration: BoxDecoration(
+            color: t.colorScheme.surface,
+            borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+            border: Border.all(color: t.colorScheme.outline),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 44,
+                height: 44,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: .14),
+                  borderRadius: BorderRadius.circular(ConsoleDensity.radius),
+                ),
+                child: Icon(icon, size: 22, color: color),
               ),
+              const SizedBox(height: ConsoleDensity.md),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: t.textTheme.titleMedium,
+              ),
+              if (detail != null) ...[
+                const SizedBox(height: ConsoleDensity.xs),
+                SelectableText(
+                  detail!,
+                  textAlign: TextAlign.center,
+                  style: t.textTheme.bodySmall,
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -496,9 +547,13 @@ class ConsoleToolbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    final t = Theme.of(context);
+    return Container(
+      color: t.colorScheme.surface,
       padding: const EdgeInsets.symmetric(
-          horizontal: ConsoleDensity.lg, vertical: ConsoleDensity.md),
+        horizontal: ConsoleDensity.lg,
+        vertical: ConsoleDensity.md,
+      ),
       child: Row(
         children: [
           SizedBox(
