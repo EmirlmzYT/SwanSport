@@ -1,8 +1,10 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `ready_for_review`
+Aktif Writer: Codex
+Durum: `in_progress`
+
+2026-10-18: Kullanıcı gelişmiş chat a94d102 için IPA istedi. Güncel header46 korunarak 0.5.19+49 preview-only macOS derleme; main/tag/SQL/web/TestFlight yok.
 
 2026-10-18: Gelişmiş DM planı devralındı: güncel header46 tabanı korunur, ortak timeline/balon/tarih, yerel metin arama, kopyalama ve görünür DM okunma kapısı. Backend/RPC/RLS, ortak chrome/feed/konsol/Firebase değişmez. Yeni IPA/main merge/deploy yok.
 
