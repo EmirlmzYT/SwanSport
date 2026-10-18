@@ -1,10 +1,12 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `in_progress`
+Aktif Writer: Yok
+Durum: `ready_for_review`
 
 2026-10-18: Kullanıcı gelişmiş chat a94d102 için IPA istedi. Güncel header46 korunarak 0.5.19+49 preview-only macOS derleme; main/tag/SQL/web/TestFlight yok.
+
+2026-10-18 gelişmiş chat IPA sonucu: Kaynak 9767ae8 / codex/advanced-chat-header46, macOS 39133783901 başarılı. Artifact 12138628100 indirildi, IPA 13,514,881 byte; sürüm/build/executable/CRC ve Firebase plist yokluğu doğrulandı. İndirilenler kopyasının SHA-256 eşliği geçti. Yerel 526 mobil/37 veri ve IPA öncesi 7 iOS config başarılı. Rapor docs/ios-preview-0.5.19-49.md. Yeni cihaz açılış/sohbet teslim kabulü açık; main/tag/web/SQL/TestFlight yok. Writer serbest.
 
 2026-10-18: Gelişmiş DM planı devralındı: güncel header46 tabanı korunur, ortak timeline/balon/tarih, yerel metin arama, kopyalama ve görünür DM okunma kapısı. Backend/RPC/RLS, ortak chrome/feed/konsol/Firebase değişmez. Yeni IPA/main merge/deploy yok.
 
