@@ -141,6 +141,9 @@ fi
 if [[ -f "$REPO_DIR/landing/sitemap.xml" ]]; then
   copy_to_web_root "$REPO_DIR/landing/sitemap.xml" "$TARGET_WEB_ROOT/sitemap.xml"
 fi
+if [[ -f "$REPO_DIR/landing/llms.txt" ]]; then
+  copy_to_web_root "$REPO_DIR/landing/llms.txt" "$TARGET_WEB_ROOT/llms.txt"
+fi
 
 # Konsol ile birebir aynı favicon ve uygulama ikonları
 if [[ -f "$REPO_DIR/apps/swansport_console/web/favicon.png" ]]; then

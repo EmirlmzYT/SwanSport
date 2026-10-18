@@ -1,4 +1,30 @@
 User-agent: *
 Allow: /
 
+# Yapay Zeka Arama Motorları (ChatGPT, Google Gemini/AI Overviews, Perplexity, Claude, Apple Intelligence)
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: anthropic-ai
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
 Sitemap: https://swansport.com.tr/sitemap.xml
+# LLMs Context File: https://swansport.com.tr/llms.txt
