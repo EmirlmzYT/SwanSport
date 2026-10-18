@@ -9,6 +9,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_city_picker.dart';
 import '../../clubs/presentation/club_create_sheet.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 
@@ -190,8 +191,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           chip(
             _filter.city.isEmpty ? 'Şehir' : _filter.city,
             _filter.city.isNotEmpty,
-            () => _pick('Şehir', cities, _filter.city,
-                (v) => setState(() => _filter = _filter.copyWith(city: v))),
+            () async {
+              final picked = await showSwanCityPicker(
+                context,
+                selectedCity: _filter.city,
+              );
+              if (picked != null) {
+                setState(() => _filter = _filter.copyWith(city: picked.name));
+              }
+            },
             icon: Icons.location_on_rounded,
           ),
           chip(

@@ -2,7 +2,7 @@ name: Build iOS IPA and optionally release to TestFlight
 
 on:
   push:
-    branches: [main]
+    branches: [main, 'codex/**']
     tags: ['v*']
     paths:
       - 'apps/swansport_app/**'

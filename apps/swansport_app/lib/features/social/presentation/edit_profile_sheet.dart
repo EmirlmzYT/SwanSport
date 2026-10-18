@@ -8,6 +8,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_picker_sheet.dart';
+import '../../../app/widgets/swan_city_picker.dart';
 import 'widgets/social_widgets.dart';
 
 /// Profil düzenleme sayfasını açar. Kaydedilirse true döner.
@@ -573,11 +574,20 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 
   Widget _cityRow(BuildContext context) {
     final c = context.swan;
-    final cities = ref.watch(citiesProvider).valueOrNull ?? const <CityRow>[];
+    final cities = ref.watch(citiesProvider).valueOrNull ?? kTurkeyCities;
     final selected = cities.where((ci) => ci.code == _cityCode).firstOrNull;
 
     return InkWell(
-      onTap: cities.isEmpty ? null : () => _pickCity(cities),
+      onTap: () async {
+        final picked = await showSwanCityPicker(
+          context,
+          selectedCode: _cityCode,
+          selectedCity: selected?.name,
+        );
+        if (picked != null && mounted) {
+          setState(() => _cityCode = picked.code);
+        }
+      },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
@@ -657,115 +667,4 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     );
   }
 
-  Future<void> _pickCity(List<CityRow> cities) async {
-    final picked = await _pickFrom(cities, _cityCode, 'Şehir Seç');
-    if (picked != null && mounted) setState(() => _cityCode = picked);
-  }
-
-  Future<String?> _pickFrom(
-    List<CityRow> items,
-    String? current,
-    String title,
-  ) async {
-    final c = context.swan;
-    final search = TextEditingController();
-
-    return showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setSheet) {
-          final q = search.text.trim().toLowerCase();
-          final list = q.isEmpty
-              ? items
-              : items.where((ci) => trContains(ci.name, q)).toList();
-
-          return Container(
-            height: MediaQuery.sizeOf(ctx).height * 0.70,
-            decoration: BoxDecoration(
-              color: c.surface,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            padding: EdgeInsets.fromLTRB(
-              20,
-              12,
-              20,
-              MediaQuery.viewInsetsOf(ctx).bottom + 12,
-            ),
-            child: Column(
-              children: [
-                Center(
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    width: 36,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: c.line,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                  ),
-                ),
-                Text(title, style: SwanType.body(c.ink, w: FontWeight.w700)),
-                const SizedBox(height: 12),
-                TextField(
-                  controller: search,
-                  autofocus: true,
-                  onChanged: (_) => setSheet(() {}),
-                  style: SwanType.bodySm(c.ink),
-                  decoration: InputDecoration(
-                    hintText: 'Şehir ara…',
-                    hintStyle: SwanType.bodySm(c.inkMuted),
-                    prefixIcon:
-                        Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
-                    filled: true,
-                    fillColor: c.surfaceAlt,
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 14,
-                      vertical: 10,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: c.line),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: c.line),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: c.accent, width: 1.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: ListView.separated(
-                    itemCount: list.length,
-                    separatorBuilder: (_, __) =>
-                        Divider(height: 1, color: c.line.withValues(alpha: .3)),
-                    itemBuilder: (_, i) => ListTile(
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 2,
-                      ),
-                      title: Text(
-                        list[i].name,
-                        style: SwanType.bodySm(c.ink, w: FontWeight.w600),
-                      ),
-                      trailing: list[i].code == current
-                          ? Icon(Icons.check_rounded, color: c.accent, size: 20)
-                          : null,
-                      onTap: () => Navigator.pop(ctx, list[i].code),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
 }

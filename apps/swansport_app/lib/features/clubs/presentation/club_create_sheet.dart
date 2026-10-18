@@ -5,6 +5,8 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/widgets/action_gate.dart';
+import '../../../app/widgets/swan_city_picker.dart';
 
 /// Yeni kulüp oluşturma bottom sheet'i.
 Future<ClubRef?> showClubCreateSheet(BuildContext context) =>
@@ -26,7 +28,7 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _shortNameController = TextEditingController();
-  final _cityController = TextEditingController();
+  CityRow? _selectedCity;
 
   bool _loading = false;
   String? _error;
@@ -35,12 +37,41 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
   void dispose() {
     _nameController.dispose();
     _shortNameController.dispose();
-    _cityController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
+
+    final hasVerifiedIdentity =
+        ref.read(swanAccessProvider).hasVerifiedIdentity;
+    final creds = ref.read(myCredentialsProvider).valueOrNull;
+    final isApprovedCoach = creds?.any((cr) =>
+            cr.isCoach && cr.status == 'approved' && (cr.coachLevel ?? 0) >= 2) ??
+        false;
+
+    // Doğrulanmış hesap kontrolü (Yönlendirmeli uyarı)
+    if (!hasVerifiedIdentity || !isApprovedCoach) {
+      final req = !hasVerifiedIdentity
+          ? const VerificationRequirement(
+              title: 'Doğrulanmış Hesap Gerekli',
+              description:
+                  'Resmi kulüp kurma başvurusu yapabilmek için T.C. Kimlik doğrulamanızı tamamlamanız ve hesabınızın onaylanmış olması gerekmektedir.',
+              targetMode: 2,
+              actionLabel: 'Kimlik Doğrulamaya Git',
+            )
+          : const VerificationRequirement(
+              title: '2. Kademe Antrenör Belgesi Gerekli',
+              description:
+                  'Kulüp kurabilmek ve federasyona bağlı kadro oluşturabilmek için en az 2. kademe onaylı antrenör belgenizin doğrulanmış olması gerekir.',
+              targetMode: 0,
+              actionLabel: 'Antrenör Belgesi Yükle',
+            );
+
+      await showVerificationRequiredSheet(context, requirement: req);
+      return;
+    }
+
     setState(() {
       _loading = true;
       _error = null;
@@ -49,12 +80,12 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
     try {
       final name = _nameController.text.trim();
       final shortName = _shortNameController.text.trim();
-      final city = _cityController.text.trim();
+      final city = _selectedCity?.name;
 
       final club = await ref.read(athleteServiceProvider).createClub(
             name,
             shortName: shortName.isNotEmpty ? shortName : null,
-            city: city.isNotEmpty ? city : null,
+            city: city != null && city.isNotEmpty ? city : null,
           );
 
       ref.invalidate(myClubsProvider);
@@ -71,17 +102,17 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
       );
     } catch (e) {
       if (!mounted) return;
-      setState(() {
-        _loading = false;
-        final raw = e.toString();
-        if (raw.contains('Geçerli branşlı en az ikinci kademe belge') ||
-            raw.contains('en az 2. kademe')) {
-          _error =
-              'Kulüp kurabilmek için federasyon onaylı en az 2. kademe antrenör belgenizin doğrulanmış olması gerekir.';
-        } else {
-          _error = 'Kulüp oluşturulamadı: $e';
-        }
-      });
+      setState(() => _loading = false);
+
+      final req = VerificationRequirement.detect(e);
+      if (req != null) {
+        showVerificationRequiredSheet(context, requirement: req);
+      } else {
+        final cleanMsg = cleanPostgresMessage(e);
+        setState(() {
+          _error = 'Kulüp oluşturulamadı: $cleanMsg';
+        });
+      }
     }
   }
 
@@ -89,6 +120,8 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final creds = ref.watch(myCredentialsProvider).valueOrNull;
+    final hasVerifiedIdentity =
+        ref.watch(swanAccessProvider).hasVerifiedIdentity;
     final isApprovedCoach = creds?.any((cr) =>
             cr.isCoach && cr.status == 'approved' && (cr.coachLevel ?? 0) >= 2) ??
         false;
@@ -173,55 +206,155 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
                       borderRadius: BorderRadius.circular(SwanRadius.md),
                       border: Border.all(color: c.danger.withValues(alpha: 0.3)),
                     ),
-                    child: Row(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.error_outline_rounded,
-                            color: c.danger, size: 20),
-                        const SizedBox(width: SwanSpace.xs),
-                        Expanded(
-                          child: Text(
-                            _error!,
-                            style: SwanType.caption(c.danger),
-                          ),
+                        Row(
+                          children: [
+                            Icon(Icons.error_outline_rounded,
+                                color: c.danger, size: 20),
+                            const SizedBox(width: SwanSpace.xs),
+                            Expanded(
+                              child: Text(
+                                _error!,
+                                style: SwanType.caption(c.danger),
+                              ),
+                            ),
+                          ],
                         ),
+                        if (_error!.contains('doğrula') ||
+                            _error!.contains('antrenör') ||
+                            _error!.contains('kimlik')) ...[
+                          const SizedBox(height: SwanSpace.xs),
+                          Align(
+                            alignment: Alignment.centerRight,
+                            child: TextButton.icon(
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.pushNamed(context, '/dogrulama');
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: c.danger,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                              ),
+                              icon: const Icon(Icons.arrow_forward_rounded,
+                                  size: 14),
+                              label: Text(
+                                'Doğrulama Sayfasına Git',
+                                style: SwanType.caption(c.danger,
+                                    w: FontWeight.w700),
+                              ),
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(height: SwanSpace.md),
                 ],
 
-                // Bilgilendirme / Yetki kartı
+                // Bilgilendirme / Yönlendirmeli Yetki Kartı
                 Container(
                   padding: const EdgeInsets.all(SwanSpace.md),
                   decoration: BoxDecoration(
-                    color: isApprovedCoach
+                    color: isApprovedCoach && hasVerifiedIdentity
                         ? c.accent.withValues(alpha: 0.08)
                         : c.warning.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(SwanRadius.md),
                     border: Border.all(
-                      color: isApprovedCoach
+                      color: isApprovedCoach && hasVerifiedIdentity
                           ? c.accent.withValues(alpha: 0.25)
                           : c.warning.withValues(alpha: 0.3),
                     ),
                   ),
-                  child: Row(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        isApprovedCoach
-                            ? Icons.verified_rounded
-                            : Icons.info_outline_rounded,
-                        color: isApprovedCoach ? c.accent : c.warning,
-                        size: 20,
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(
+                            isApprovedCoach && hasVerifiedIdentity
+                                ? Icons.verified_rounded
+                                : Icons.verified_user_rounded,
+                            color: isApprovedCoach && hasVerifiedIdentity
+                                ? c.accent
+                                : c.warning,
+                            size: 22,
+                          ),
+                          const SizedBox(width: SwanSpace.sm),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  isApprovedCoach && hasVerifiedIdentity
+                                      ? 'Yetkili Antrenör Profili'
+                                      : 'Doğrulanmış Hesap Gerekli',
+                                  style: SwanType.bodySm(
+                                    isApprovedCoach && hasVerifiedIdentity
+                                        ? c.accent
+                                        : c.warning,
+                                    w: FontWeight.w700,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  isApprovedCoach && hasVerifiedIdentity
+                                      ? 'Onaylı antrenör belgeniz mevcut. Kulüp kurulduğunda kurucu ve yönetici olarak atanacaksınız.'
+                                      : !hasVerifiedIdentity
+                                          ? 'Resmi mevzuat gereği kulüp kurmak için T.C. Kimlik doğrulaması ve en az 2. kademe antrenör belgesi aranır.'
+                                          : 'Kulüp kurabilmek için federasyon onaylı en az 2. kademe antrenör belgenizin doğrulanmış olması gerekir.',
+                                  style: SwanType.caption(c.ink),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: SwanSpace.sm),
-                      Expanded(
-                        child: Text(
-                          isApprovedCoach
-                              ? 'Onaylı antrenör belgeniz mevcut. Kulüp kurulduğunda kurucu ve yönetici olarak atanacaksınız.'
-                              : 'Resmi mevzuat gereği kulüp kurmak için en az 2. kademe onaylı antrenör belgesi aranır.',
-                          style: SwanType.caption(c.ink),
+                      if (!isApprovedCoach || !hasVerifiedIdentity) ...[
+                        const SizedBox(height: SwanSpace.sm),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton.icon(
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.pushNamed(
+                                context,
+                                '/dogrulama',
+                                arguments: !hasVerifiedIdentity ? 2 : 0,
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              backgroundColor:
+                                  c.warning.withValues(alpha: 0.15),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: SwanSpace.sm,
+                                vertical: 6,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.sm),
+                              ),
+                            ),
+                            icon: Icon(
+                              Icons.arrow_forward_rounded,
+                              size: 15,
+                              color: c.ink,
+                            ),
+                            label: Text(
+                              !hasVerifiedIdentity
+                                  ? 'Kimlik Doğrulamaya Git'
+                                  : 'Antrenör Belgesi Yükle',
+                              style: SwanType.caption(c.ink,
+                                  w: FontWeight.w700),
+                            ),
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                 ),
@@ -252,41 +385,27 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
                 const SizedBox(height: SwanSpace.md),
 
                 // Kısa Ad ve Şehir
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 4,
-                      child: TextFormField(
-                        controller: _shortNameController,
-                        textInputAction: TextInputAction.next,
-                        decoration: InputDecoration(
-                          labelText: 'Kısa Ad / Kod',
-                          hintText: 'Örn: KBSK',
-                          prefixIcon: const Icon(Icons.tag_rounded, size: 20),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(SwanRadius.md),
-                          ),
-                        ),
-                      ),
+                TextFormField(
+                  controller: _shortNameController,
+                  textInputAction: TextInputAction.next,
+                  decoration: InputDecoration(
+                    labelText: 'Kısa Ad / Kod (opsiyonel)',
+                    hintText: 'Örn: KBSK',
+                    prefixIcon: const Icon(Icons.tag_rounded, size: 20),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
                     ),
-                    const SizedBox(width: SwanSpace.sm),
-                    Expanded(
-                      flex: 6,
-                      child: TextFormField(
-                        controller: _cityController,
-                        textInputAction: TextInputAction.done,
-                        decoration: InputDecoration(
-                          labelText: 'Şehir',
-                          hintText: 'Örn: İstanbul',
-                          prefixIcon:
-                              const Icon(Icons.location_city_rounded, size: 20),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(SwanRadius.md),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.md),
+
+                // Şehir Seçici (81 il ekosistemi)
+                SwanCityFormField(
+                  label: 'Kulüp Şehri (81 İl)',
+                  hint: 'Şehir seçiniz (örn: 34 İstanbul)',
+                  selectedCity: _selectedCity?.name,
+                  selectedCode: _selectedCity?.code,
+                  onChanged: (city) => setState(() => _selectedCity = city),
                 ),
                 const SizedBox(height: SwanSpace.lg),
 

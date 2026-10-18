@@ -9,7 +9,9 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_picker_sheet.dart';
+import '../../../app/widgets/action_gate.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_city_picker.dart';
 
 /// Kulüp profilini düzenleme.
 ///
@@ -53,6 +55,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
   final _instagram = TextEditingController();
   final _address = TextEditingController();
   final _founded = TextEditingController();
+  CityRow? _selectedCity;
 
   String? _brand;
   late List<String> _sections = List.of(ClubSection.defaults);
@@ -104,6 +107,13 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
           _instagram.text = c.instagram ?? '';
           _address.text = c.address ?? '';
           _founded.text = c.foundedYear?.toString() ?? '';
+          if (c.city != null && c.city!.isNotEmpty) {
+            _selectedCity = kTurkeyCities
+                    .where((ci) =>
+                        ci.name.toLowerCase() == c.city!.toLowerCase())
+                    .firstOrNull ??
+                CityRow(code: '', name: c.city!);
+          }
           _brand = c.brandColor;
           _sections = List.of(c.effectiveSections);
         }
@@ -143,6 +153,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
         widget.clubId,
         name: _name.text,
         shortName: _shortName.text,
+        city: _selectedCity?.name,
         bio: _bio.text,
         phone: _phone.text,
         email: _email.text,
@@ -173,7 +184,12 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
       ref.invalidate(clubSocialProfileProvider(widget.clubId));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      _snack('Kaydedilemedi: $e');
+      final req = VerificationRequirement.detect(e);
+      if (req != null && mounted) {
+        showVerificationRequiredSheet(context, requirement: req);
+      } else {
+        _snack('Kaydedilemedi: ${cleanPostgresMessage(e)}');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -282,12 +298,20 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
             hint: '1998', keyboard: TextInputType.number),
 
         const SizedBox(height: SwanSpace.xl),
-        _sectionTitle(c, 'İletişim'),
+        _sectionTitle(c, 'İletişim & Konum'),
+        SwanCityFormField(
+          label: 'Şehir (81 İl)',
+          hint: 'Şehir seçiniz',
+          selectedCity: _selectedCity?.name,
+          selectedCode: _selectedCity?.code,
+          onChanged: (city) => setState(() => _selectedCity = city),
+        ),
+        const SizedBox(height: SwanSpace.md),
         _field(c, 'Telefon', _phone, keyboard: TextInputType.phone),
         _field(c, 'E-posta', _email, keyboard: TextInputType.emailAddress),
         _field(c, 'Web sitesi', _website, hint: 'kulup.org'),
         _field(c, 'Instagram', _instagram, hint: 'kulupadi', prefix: '@'),
-        _field(c, 'Adres', _address, maxLines: 2),
+        _field(c, 'Açık Adres', _address, maxLines: 2),
 
         const SizedBox(height: SwanSpace.xl),
         _sectionTitle(c, 'Profil bölümleri'),

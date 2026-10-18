@@ -33,6 +33,14 @@
 	<string>Profil, gönderi ve belgelerine fotoğraf eklemek için kameranı kullanabilirsin.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Profil, gönderi ve belgelerine eklemek istediğin fotoğrafları seçebilirsin.</string>
+	<key>NFCReaderUsageDescription</key>
+	<string>T.C. Kimlik Kartınızın temassız çipini okumak için NFC erişimi gereklidir.</string>
+	<key>com.apple.developer.nfc.readersession.iso7816.select-identifiers</key>
+	<array>
+		<string>A0000002471001</string>
+		<string>A0000002472001</string>
+		<string>00000000000000</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIBackgroundModes</key>

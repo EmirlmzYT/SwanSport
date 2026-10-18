@@ -154,15 +154,17 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
         Navigator.pop(context, true);
       }
     } catch (e) {
-      final raw = '$e';
-      final msg = raw.contains('doğrulat')
-          ? 'Başvuru için önce kimliğini doğrulatmalısın.'
-          : raw.contains('zaten üyesisin')
-              ? 'Bu kulübün zaten üyesisin.'
-              : raw.contains('bekleyen bir başvurun')
-                  ? 'Bu kulübe bekleyen bir başvurun zaten var.'
-                  : 'Başvuru gönderilemedi: $e';
-      if (mounted) {
+      if (!mounted) return;
+      final req = VerificationRequirement.detect(e);
+      if (req != null) {
+        showVerificationRequiredSheet(context, requirement: req);
+      } else {
+        final clean = cleanPostgresMessage(e);
+        final msg = clean.contains('zaten üyesisin')
+            ? 'Bu kulübün zaten üyesisin.'
+            : clean.contains('bekleyen bir başvurun')
+                ? 'Bu kulübe bekleyen bir başvurun zaten var.'
+                : 'Başvuru gönderilemedi: $clean';
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(msg), backgroundColor: SwanPalette.light.danger));
       }

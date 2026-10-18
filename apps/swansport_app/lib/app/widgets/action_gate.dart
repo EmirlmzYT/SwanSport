@@ -135,3 +135,222 @@ class AccountRouteGate extends ConsumerWidget {
     );
   }
 }
+
+/// Veritabanı ve yetki kuralı istisnalarından gelen teknik metinleri
+/// kullanıcıya anlaşılır şekilde temizler.
+String cleanPostgresMessage(Object error) {
+  final raw = error.toString();
+  final match = RegExp(r'message:\s*([^,)]+)').firstMatch(raw);
+  var msg = match?.group(1)?.trim() ?? raw;
+  if (msg.startsWith('Exception: ')) {
+    msg = msg.substring('Exception: '.length).trim();
+  }
+  return msg;
+}
+
+/// Doğrulanmış hesap veya belge gerektiren kural kısıtlamalarını temsil eder.
+class VerificationRequirement {
+  const VerificationRequirement({
+    required this.title,
+    required this.description,
+    required this.targetMode, // 0: Antrenör, 1: Sporcu, 2: Kimlik
+    required this.actionLabel,
+  });
+
+  final String title;
+  final String description;
+  final int targetMode;
+  final String actionLabel;
+
+  /// Hata metninden veya istisnadan doğrulanmış hesap kısıtını tespit eder.
+  static VerificationRequirement? detect(Object error) {
+    final raw = error.toString().toLowerCase();
+    if (raw.contains('veli için doğrulanmış kimlik') ||
+        raw.contains('veli için') ||
+        raw.contains('davet bağı')) {
+      return const VerificationRequirement(
+        title: 'Veli Doğrulaması Gerekli',
+        description:
+            'Sporcu adına işlem yapabilmek için doğrulanmış veli hesabınız ve geçerli sporcu bağlantınızın bulunması gerekir.',
+        targetMode: 2,
+        actionLabel: 'Kimliği Doğrula',
+      );
+    }
+    if (raw.contains('en az 2. kademe') ||
+        raw.contains('en az ikinci kademe') ||
+        raw.contains('ikinci kademe belge') ||
+        raw.contains('antrenör belgesi') ||
+        raw.contains('antrenör kademesi')) {
+      return const VerificationRequirement(
+        title: 'Antrenör Belgesi Gerekli',
+        description:
+            'Kulüp kurabilmek ve kadro yönetebilmek için federasyon onaylı en az 2. kademe antrenör belgenizin doğrulanmış olması gerekir.',
+        targetMode: 0,
+        actionLabel: 'Antrenör Belgesi Yükle',
+      );
+    }
+    if (raw.contains('doğrulanmış kimlik') ||
+        raw.contains('dogrulanmis kimlik') ||
+        raw.contains('bekleme odasında') ||
+        raw.contains('bekleme odasinda') ||
+        raw.contains('kimlik gerekli') ||
+        raw.contains('hesap bekleme') ||
+        raw.contains('42501')) {
+      return const VerificationRequirement(
+        title: 'Doğrulanmış Hesap Gerekli',
+        description:
+            'Bu işlemi gerçekleştirebilmek için T.C. Kimlik doğrulaması yapmanız ve hesabınızın onaylanmış olması gerekmektedir.',
+        targetMode: 2,
+        actionLabel: 'Kimlik Doğrulamaya Git',
+      );
+    }
+    if (raw.contains('hesapsız sporcu için branş lisans')) {
+      return const VerificationRequirement(
+        title: 'Lisans Kaydı Gerekli',
+        description:
+            'Sporcunun kulüp kadrosuna dahil edilebilmesi için geçerli branş lisans kaydı gerekmektedir.',
+        targetMode: 1,
+        actionLabel: 'Lisans Bilgilerini Gör',
+      );
+    }
+    return null;
+  }
+}
+
+/// Yönlendirmeli doğrulanmış hesap uyarı modalını açar.
+Future<void> showVerificationRequiredSheet(
+  BuildContext context, {
+  VerificationRequirement? requirement,
+  String? title,
+  String? description,
+  int targetMode = 2,
+  String? actionLabel,
+}) {
+  final req = requirement ??
+      VerificationRequirement(
+        title: title ?? 'Doğrulanmış Hesap Gerekli',
+        description: description ??
+            'Bu işlemi gerçekleştirebilmek için doğrulanmış kimlik veya lisans belgesi gerekmektedir.',
+        targetMode: targetMode,
+        actionLabel: actionLabel ?? 'Doğrulamaya Git',
+      );
+
+  return showModalBottomSheet<void>(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (ctx) => VerificationRequiredBottomSheet(requirement: req),
+  );
+}
+
+/// Yönlendirmeli şık doğrulanmış hesap bottom sheet'i.
+class VerificationRequiredBottomSheet extends StatelessWidget {
+  const VerificationRequiredBottomSheet({
+    required this.requirement,
+    super.key,
+  });
+
+  final VerificationRequirement requirement;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return Container(
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: const BorderRadius.vertical(
+          top: Radius.circular(SwanRadius.lg),
+        ),
+      ),
+      padding: const EdgeInsets.fromLTRB(
+        SwanSpace.lg,
+        SwanSpace.md,
+        SwanSpace.lg,
+        SwanSpace.xl,
+      ),
+      child: SafeArea(
+        top: false,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Center(
+              child: Container(
+                width: 38,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: c.line,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: SwanSpace.lg),
+            Center(
+              child: Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: c.warning.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  Icons.verified_user_rounded,
+                  color: c.warning,
+                  size: 30,
+                ),
+              ),
+            ),
+            const SizedBox(height: SwanSpace.md),
+            Text(
+              requirement.title,
+              textAlign: TextAlign.center,
+              style: SwanType.h2(c.ink),
+            ),
+            const SizedBox(height: SwanSpace.sm),
+            Text(
+              requirement.description,
+              textAlign: TextAlign.center,
+              style: SwanType.bodySm(c.inkMuted),
+            ),
+            const SizedBox(height: SwanSpace.xl),
+            SizedBox(
+              height: 48,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pushNamed(
+                    context,
+                    '/dogrulama',
+                    arguments: requirement.targetMode,
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.accent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                  ),
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.arrow_forward_rounded, size: 18),
+                label: Text(
+                  requirement.actionLabel,
+                  style: SwanType.bodySm(Colors.white, w: FontWeight.w700),
+                ),
+              ),
+            ),
+            const SizedBox(height: SwanSpace.xs),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Daha Sonra',
+                style: SwanType.caption(c.inkMuted),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

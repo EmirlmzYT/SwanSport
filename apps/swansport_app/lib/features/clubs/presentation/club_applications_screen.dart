@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
+import '../../../app/widgets/action_gate.dart';
 import '../../../app/widgets/premium.dart';
 import 'coach_accept_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -364,9 +365,15 @@ class ClubApplicationsScreen extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('İşlem başarısız: $e'),
-            backgroundColor: SwanPalette.light.danger));
+        final req = VerificationRequirement.detect(e);
+        if (req != null) {
+          showVerificationRequiredSheet(context, requirement: req);
+        } else {
+          final clean = cleanPostgresMessage(e);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('İşlem başarısız: $clean'),
+              backgroundColor: SwanPalette.light.danger));
+        }
       }
     }
   }
@@ -384,9 +391,15 @@ class ClubApplicationsScreen extends ConsumerWidget {
       }
     } catch (e) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('İşlem başarısız: $e'),
-            backgroundColor: SwanPalette.light.danger));
+        final req = VerificationRequirement.detect(e);
+        if (req != null) {
+          showVerificationRequiredSheet(context, requirement: req);
+        } else {
+          final clean = cleanPostgresMessage(e);
+          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+              content: Text('İşlem başarısız: $clean'),
+              backgroundColor: SwanPalette.light.danger));
+        }
       }
     }
   }
