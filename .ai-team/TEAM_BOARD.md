@@ -1,8 +1,10 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `ready_for_review`
+Aktif Writer: Codex
+Durum: `in_progress`
+
+2026-10-18: Kullanıcı güncel +46 tabanı ve chat b5865f2 için IPA istedi. 0.5.18+48 önizleme; önceki hatalı eski taban +47 ile karışmayacak. Header korunur, main/tag/SQL/web/TestFlight değişmez.
 
 2026-10-18: Chat yenilemesi doğru 954fc4c / 0.5.17+46 tabanında yeniden devralındı. Eski daldan tüm dosya kopyalanmaz; SwanScaffold, SwanFloatingHeader ve alt gezinme korunarak yalnız chat değişiklikleri uyarlanır. Canlı SQL/deploy/IPA yok.
 
