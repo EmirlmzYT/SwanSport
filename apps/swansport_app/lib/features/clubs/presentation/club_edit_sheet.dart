@@ -8,7 +8,7 @@ import '../../../app/design/swan_brand.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/premium.dart';
 
 /// Kulüp profilini düzenleme.
@@ -71,8 +71,15 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
   @override
   void dispose() {
     for (final c in [
-      _name, _shortName, _bio, _phone, _email,
-      _website, _instagram, _address, _founded,
+      _name,
+      _shortName,
+      _bio,
+      _phone,
+      _email,
+      _website,
+      _instagram,
+      _address,
+      _founded,
     ]) {
       c.dispose();
     }
@@ -81,9 +88,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
 
   Future<void> _load() async {
     try {
-      final c = await ref
-          .read(clubConfigServiceProvider)
-          .identity(widget.clubId);
+      final c =
+          await ref.read(clubConfigServiceProvider).identity(widget.clubId);
       if (!mounted) return;
       setState(() {
         _club = c;
@@ -103,13 +109,17 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
         }
       });
     } catch (e) {
-      if (mounted) setState(() { _error = '$e'; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = '$e';
+          _loading = false;
+        });
     }
   }
 
   Future<void> _pick(bool cover) async {
     try {
-      final picked = await pickImage();
+      final picked = await showSingleImagePicker(context);
       if (picked == null || !mounted) return;
       setState(() {
         if (cover) {
@@ -194,8 +204,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
           child: _loading
               ? const Padding(
                   padding: EdgeInsets.all(SwanSpace.xl),
-                  child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                  child:
+                      Center(child: CircularProgressIndicator(strokeWidth: 2)),
                 )
               : _error != null
                   ? Padding(
@@ -229,8 +239,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
               onTap: _save,
               child: Container(
                 height: 34,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   // Kaydet düğmesi TEAL — marka rengi değil. Teal bu
@@ -240,8 +249,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
                   borderRadius: BorderRadius.circular(SwanRadius.sm),
                 ),
                 child: Text('Kaydet',
-                    style:
-                        SwanType.caption(Colors.white, w: FontWeight.w800)),
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
               ),
             ),
         ]),
@@ -389,8 +397,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
       ),
       const SizedBox(height: 8),
       Wrap(spacing: 8, runSpacing: 8, children: [
-        _swatch(context, null, _brand == null,
-            () => setState(() => _brand = null)),
+        _swatch(
+            context, null, _brand == null, () => setState(() => _brand = null)),
         for (final hex in kBrandSwatches)
           _swatch(context, hex, _brand?.toUpperCase() == hex,
               () => setState(() => _brand = hex)),
@@ -435,8 +443,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
       for (var i = 0; i < _sections.length; i++)
         Container(
           margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(
-              horizontal: SwanSpace.md, vertical: 8),
+          padding:
+              const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 8),
           decoration: BoxDecoration(
             color: c.surface,
             borderRadius: BorderRadius.circular(SwanRadius.sm),
@@ -493,8 +501,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
               GestureDetector(
                 onTap: () => setState(() => _sections.add(k)),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: c.surfaceAlt,
                     borderRadius: BorderRadius.circular(999),
@@ -543,6 +551,9 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
   }
 
   /// `post-media` public bucket; yol doğrudan URL'e çevriliyor.
-  String _publicUrl(String path) =>
-      ref.read(supabaseClientProvider).storage.from('post-media').getPublicUrl(path);
+  String _publicUrl(String path) => ref
+      .read(supabaseClientProvider)
+      .storage
+      .from('post-media')
+      .getPublicUrl(path);
 }

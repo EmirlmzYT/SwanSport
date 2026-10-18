@@ -10,12 +10,13 @@ import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/media/image_pick.dart';
+import '../../../../app/media/image_picker_sheet.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 
 final documentImagePickerProvider =
-    Provider<Future<PickedImage?> Function()>((ref) => pickImage);
+    Provider<Future<PickedImage?> Function()?>((ref) => null);
 
 /// Gerçek belge listesi, yetkiye göre yükleme ve doğrulama akışları.
 class DocumentVaultScreen extends ConsumerStatefulWidget {
@@ -47,7 +48,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Belge Kasası', actions: [
-        IconButton(tooltip: 'Belge yükle', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: _add),
+        IconButton(
+            tooltip: 'Belge yükle',
+            icon: Icon(Icons.add_rounded, color: context.swan.inkMuted),
+            onPressed: _add),
       ]),
       extendBody: true,
       backgroundColor: bg,
@@ -58,10 +62,12 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
               children: [
-                if (widget.child != null) Padding(
-                  padding: const EdgeInsets.all(SwanSpace.md),
-                  child: Text('${widget.child!.name} · ${widget.child!.clubName}',
-                    style: SwanType.caption(palette.inkMuted))),
+                if (widget.child != null)
+                  Padding(
+                      padding: const EdgeInsets.all(SwanSpace.md),
+                      child: Text(
+                          '${widget.child!.name} · ${widget.child!.clubName}',
+                          style: SwanType.caption(palette.inkMuted))),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -85,8 +91,6 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
-
-
 
   Widget _buildContent(
     List<VaultDoc> allDocs,
@@ -757,7 +761,10 @@ class _DocumentVaultScreenState extends ConsumerState<DocumentVaultScreen> {
     // 3) Dosya
     String? path;
     String fileLabel = '';
-    final picked = await ref.read(documentImagePickerProvider)();
+    final picker = ref.read(documentImagePickerProvider);
+    final picked = picker != null
+        ? await picker()
+        : await showSingleImagePicker(context, title: 'Belge fotoğrafı');
     if (picked != null) {
       try {
         path = await ref

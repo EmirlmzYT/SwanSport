@@ -9,6 +9,7 @@ import '../../../app/design/swan_chrome.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -38,6 +39,33 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _selectedTab = 0; // Gönderiler / Hakkında
+  bool _changingAvatar = false;
+
+  Future<void> _changeAvatar(SocialProfile profile) async {
+    if (_changingAvatar) return;
+    setState(() => _changingAvatar = true);
+    try {
+      final image =
+          await showSingleImagePicker(context, title: 'Profil fotoğrafı');
+      if (image == null || !mounted) return;
+      await ref.read(socialServiceProvider).updateProfile(
+            avatarBytes: image.bytes,
+            avatarName: image.name,
+          );
+      ref.invalidate(socialProfileProvider(profile.id));
+      ref.invalidate(currentProfileProvider);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+              content: Text(
+                  'Profil fotoğrafı kaydedilemedi. Tekrar deneyebilirsin.',),),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _changingAvatar = false);
+    }
+  }
 
   Widget _profileTopBar(SocialProfile p, Color ink) => SwanFloatingHeader(
         leading: Navigator.canPop(context)
@@ -162,59 +190,80 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       // Identity & Social Stats Row (Stitch Screen 26)
                       Row(
                         children: [
-                          // Avatar with Dynamic Cyan Halo Ring
-                          Stack(
-                            clipBehavior: Clip.none,
-                            children: [
-                              Container(
-                                width: 80,
-                                height: 80,
-                                padding: const EdgeInsets.all(3),
-                                decoration: BoxDecoration(
-                                  shape: BoxShape.circle,
-                                  border: Border.all(color: line),
-                                ),
-                                child: ClipOval(
-                                  child: p.avatarUrl != null &&
-                                          p.avatarUrl!.isNotEmpty
-                                      ? Image.network(
-                                          p.avatarUrl!,
-                                          fit: BoxFit.cover,
-                                        )
-                                      : Container(
-                                          color: surfHigh,
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            p.initials,
-                                            style: SwanType.h1(
-                                              context.swan.accent,
-                                            ).copyWith(
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          ),
-                                        ),
-                                ),
-                              ),
-                              if (p.isVerified)
-                                Positioned(
-                                  bottom: -2,
-                                  right: -2,
-                                  child: Container(
-                                    width: 24,
-                                    height: 24,
+                          // Kendi fotoğrafına dokunarak doğrudan değiştirebilir.
+                          Semantics(
+                            button: p.isMe && !p.isClub,
+                            label: p.isMe && !p.isClub
+                                ? 'Profil fotoğrafını değiştir'
+                                : 'Profil fotoğrafı',
+                            child: GestureDetector(
+                              onTap: p.isMe && !p.isClub && !_changingAvatar
+                                  ? () => _changeAvatar(p)
+                                  : null,
+                              child: Stack(
+                                clipBehavior: Clip.none,
+                                children: [
+                                  Container(
+                                    width: 80,
+                                    height: 80,
+                                    padding: const EdgeInsets.all(3),
                                     decoration: BoxDecoration(
-                                      color: context.swan.accent,
                                       shape: BoxShape.circle,
-                                      border: Border.all(color: bg, width: 2),
+                                      border: Border.all(color: line),
                                     ),
-                                    child: Icon(
-                                      Icons.check_rounded,
-                                      size: 14,
-                                      color: context.swan.onAccent,
+                                    child: ClipOval(
+                                      child: p.avatarUrl != null &&
+                                              p.avatarUrl!.isNotEmpty
+                                          ? Image.network(
+                                              p.avatarUrl!,
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Container(
+                                              color: surfHigh,
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                p.initials,
+                                                style: SwanType.h1(
+                                                  context.swan.accent,
+                                                ).copyWith(
+                                                  fontWeight: FontWeight.w800,
+                                                ),
+                                              ),
+                                            ),
                                     ),
                                   ),
-                                ),
-                            ],
+                                  if (p.isVerified || (p.isMe && !p.isClub))
+                                    Positioned(
+                                      bottom: -2,
+                                      right: -2,
+                                      child: Container(
+                                        width: 24,
+                                        height: 24,
+                                        decoration: BoxDecoration(
+                                          color: context.swan.accent,
+                                          shape: BoxShape.circle,
+                                          border:
+                                              Border.all(color: bg, width: 2),
+                                        ),
+                                        child: _changingAvatar
+                                            ? const Padding(
+                                                padding: EdgeInsets.all(3),
+                                                child:
+                                                    CircularProgressIndicator(
+                                                        strokeWidth: 2,),
+                                              )
+                                            : Icon(
+                                                p.isMe && !p.isClub
+                                                    ? Icons.photo_camera_rounded
+                                                    : Icons.check_rounded,
+                                                size: 14,
+                                                color: context.swan.onAccent,
+                                              ),
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 16),
 

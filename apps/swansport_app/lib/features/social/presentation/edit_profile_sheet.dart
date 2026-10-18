@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/design/swan_type.dart';
@@ -60,7 +60,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 
   Future<void> _pickCover() async {
     try {
-      final picked = await pickImage();
+      final picked =
+          await showSingleImagePicker(context, title: 'Kapak fotoğrafı');
       if (picked == null || !mounted) return;
       setState(() {
         _coverBytes = picked.bytes;
@@ -73,7 +74,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 
   Future<void> _pickAvatar() async {
     try {
-      final picked = await pickImage();
+      final picked =
+          await showSingleImagePicker(context, title: 'Profil fotoğrafı');
       if (picked == null || !mounted) return;
       setState(() {
         _avatarBytes = picked.bytes;
@@ -96,18 +98,15 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
             coverBytes: _coverBytes,
             coverName: _coverName,
             // Değişmediyse gönderilmiyor; boş metin "temizle" demek.
-            brandColor: _brand == widget.profile.brandColor
-                ? null
-                : (_brand ?? ''),
+            brandColor:
+                _brand == widget.profile.brandColor ? null : (_brand ?? ''),
             // -1 = temizle. null'ın "dokunma" ile "sıfırla" anlamlarını
             // ayırmanın başka yolu yok.
-            avatarTint: _tint == widget.profile.avatarTint
-                ? null
-                : (_tint ?? -1),
+            avatarTint:
+                _tint == widget.profile.avatarTint ? null : (_tint ?? -1),
             // Yalnızca değiştiyse gönder — dokunulmamış alan yazılmasın.
-            cityCode: _cityCode == widget.profile.cityCode
-                ? null
-                : (_cityCode ?? ''),
+            cityCode:
+                _cityCode == widget.profile.cityCode ? null : (_cityCode ?? ''),
           );
       ref.invalidate(currentProfileProvider);
       // Şehir değişmiş olabilir: uygun topluluklara katılımı tazele.
@@ -184,8 +183,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                       width: 28,
                       height: 28,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                            colors: [kTealBright, kTeal]),
+                        gradient:
+                            const LinearGradient(colors: [kTealBright, kTeal]),
                         borderRadius: BorderRadius.circular(10),
                         border: Border.all(color: surf, width: 2),
                       ),
@@ -250,7 +249,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text('Vazgeç',
-                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                    style: SwanType.bodySm(SwanColors.textSecondary,
+                        w: FontWeight.w700)),
               ),
             ),
           ],
@@ -258,7 +258,6 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       ),
     );
   }
-
 
   /// İl seçici — 81 il veritabanından gelir, tek kaynak.
   /// Şehir topluluk üyeliğini belirlediği için serbest metin değil, seçim.
@@ -288,7 +287,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               Expanded(
                 child: Text(
                   selected?.name ?? 'Şehir seç',
-                  style: SwanType.bodySm(selected == null ? SwanColors.textSecondary : ink),
+                  style: SwanType.bodySm(
+                      selected == null ? SwanColors.textSecondary : ink),
                 ),
               ),
               const Icon(Icons.expand_more_rounded,
@@ -302,7 +302,6 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       ],
     );
   }
-
 
   Future<void> _pickCity(List<CityRow> cities) async {
     final picked = await _pickFrom(cities, _cityCode, 'Şehir seç');
@@ -330,8 +329,7 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           height: MediaQuery.of(ctx).size.height * 0.75,
           decoration: BoxDecoration(
             color: surf,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: EdgeInsets.fromLTRB(
               20, 16, 20, MediaQuery.of(ctx).viewInsets.bottom),
@@ -347,8 +345,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                 hintText: 'Ara…',
                 hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                 prefixIcon: const Icon(Icons.search_rounded, size: 19),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(14)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
               ),
             ),
             const SizedBox(height: 8),
@@ -426,8 +424,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       const SizedBox(height: 8),
       Wrap(spacing: 8, runSpacing: 8, children: [
         // "Renk yok" seçeneği: uygulamanın kendi kimliğine dönüş.
-        _swatch(context, null, _brand == null,
-            () => setState(() => _brand = null)),
+        _swatch(
+            context, null, _brand == null, () => setState(() => _brand = null)),
         for (final hex in kBrandSwatches)
           _swatch(context, hex, _brand?.toUpperCase() == hex,
               () => setState(() => _brand = hex)),
@@ -494,15 +492,16 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                   color: _tint == null ? c.ink : c.line,
                   width: _tint == null ? 2 : 1),
             ),
-            child: Icon(Icons.auto_awesome_rounded, size: 16, color: c.inkMuted),
+            child:
+                Icon(Icons.auto_awesome_rounded, size: 16, color: c.inkMuted),
           ),
         ),
       ]),
     ]);
   }
 
-  Widget _field(bool isDark, String label, TextEditingController ctrl,
-      String hint,
+  Widget _field(
+      bool isDark, String label, TextEditingController ctrl, String hint,
       {int maxLines = 1, String? prefix}) {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
@@ -511,7 +510,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label.toUpperCase(),
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
         const SizedBox(height: 7),
         TextField(
           controller: ctrl,
@@ -520,9 +520,9 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           decoration: InputDecoration(
             hintText: hint,
             prefixText: prefix,
-            prefixStyle: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700),
-            hintStyle:
-                SwanType.bodySm(SwanColors.textSecondary),
+            prefixStyle:
+                SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700),
+            hintStyle: SwanType.bodySm(SwanColors.textSecondary),
             filled: true,
             fillColor: alt,
             contentPadding:

@@ -29,6 +29,10 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>Profil, gönderi ve belgelerine fotoğraf eklemek için kameranı kullanabilirsin.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Profil, gönderi ve belgelerine eklemek istediğin fotoğrafları seçebilirsin.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UIBackgroundModes</key>

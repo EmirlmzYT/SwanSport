@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/widgets/tag_composer.dart';
@@ -45,6 +45,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
 
   bool _asClub = true;
   bool _busy = false;
+  bool _picking = false;
 
   static const _maxMedia = 8;
 
@@ -52,7 +53,9 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   void initState() {
     super.initState();
     if (widget.startWithImage) {
-      Future.microtask(_pickImage);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _pickImage();
+      });
     }
   }
 
@@ -63,23 +66,21 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
   }
 
   Future<void> _pickImage() async {
-    if (_media.length >= _maxMedia) {
-      _snack('En fazla $_maxMedia fotoğraf ekleyebilirsin',
-          SwanPalette.light.warning);
-      return;
-    }
+    if (_busy || _picking || _media.length >= _maxMedia) return;
+    setState(() => _picking = true);
     try {
-      final picked = await pickImage();
-      if (picked == null || !mounted) return;
-      setState(() =>
-          _media.add(PickedMedia(bytes: picked.bytes, name: picked.name)));
-    } catch (e) {
-      _snack('Görsel seçilemedi: $e', SwanPalette.light.danger);
+      final images = await showImagePickerSheet(context,
+          title: 'Gönderiye fotoğraf ekle', limit: _maxMedia - _media.length);
+      if (!mounted) return;
+      setState(() => _media.addAll(images
+          .map((image) => PickedMedia(bytes: image.bytes, name: image.name))));
+    } finally {
+      if (mounted) setState(() => _picking = false);
     }
   }
 
   Future<void> _share(String? clubId) async {
-    if (_busy) return;
+    if (_busy || _picking) return;
     final text = _ctrl.text.trim();
     if (text.isEmpty && _media.isEmpty) {
       _snack('Bir şeyler yaz ya da görsel ekle', SwanPalette.light.warning);
@@ -214,7 +215,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
                                           icon: const Icon(Icons.close))),
                                 ]))),
                   TextButton.icon(
-                      onPressed: _busy || _media.length >= _maxMedia
+                      onPressed: _busy || _picking || _media.length >= _maxMedia
                           ? null
                           : _pickImage,
                       icon: const Icon(Icons.add_photo_alternate_outlined),
@@ -251,7 +252,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
           SizedBox(
               width: double.infinity,
               child: FilledButton(
-                  onPressed: _busy || !canShare
+                  onPressed: _busy || _picking || !canShare
                       ? null
                       : () => _share(effectiveAsClub ? club.id : null),
                   child: Text(_busy ? 'Paylaşılıyor…' : 'Paylaş'))),

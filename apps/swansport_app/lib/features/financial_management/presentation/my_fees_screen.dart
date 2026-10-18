@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -43,7 +43,6 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-
               Expanded(
                 child: RefreshIndicator(
                   onRefresh: () async {
@@ -403,7 +402,7 @@ class _MyFeesScreenState extends ConsumerState<MyFeesScreen> {
               onTap: busy
                   ? null
                   : () async {
-                      final picked = await pickImage();
+                      final picked = await showSingleImagePicker(context);
                       if (picked == null) return;
                       setSheet(() => busy = true);
                       try {
