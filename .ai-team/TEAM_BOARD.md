@@ -1,12 +1,14 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `in_progress`
+Aktif Writer: Yok
+Durum: `ready_for_review`
 
 2026-10-18: Kullanıcı chat yenilemesi için IPA istedi. 0.5.15+44 önizleme derlemesi; Firebase-disabled/native guard korunur. Yalnız önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight yok.
 
 2026-10-18 sürüm düzeltmesi: Kullanıcı build 47 istedi. 44 koşusu teslim edilmeden iptal edildi; hedef 0.5.15+47.
+
+2026-10-18 IPA sonucu: Chat yenilemesi 0.5.15+47, kaynak b914e67, macOS 39129343931 başarılı. Artifact 12136883294 indirildi; IPA 13,486,198 byte, sürüm/build/executable/CRC ve Firebase plist yokluğu doğrulandı. İndirilenler kopyasının hash'i eş. 45/45 ilgili Flutter, 7/7 iOS config, SSS/push/diff temiz. Main/tag/SQL/web/TestFlight yok; cihaz açılış/görsel kabulü açık. Rapor docs/ios-preview-0.5.15-47.md. Writer serbest.
 
 2026-10-18: Kullanıcı chat arayüzünü yenilememi istedi. Sohbet listesi ve birebir/topluluk sohbet kabukları; gerçek veriler, mevcut eylem/okunma/gizlilik ve beş alt sekme korunur. Veritabanı/canlı yayın/yeni IPA bu görev kapsamında değil. Önceki IPA çalışması korunur.
 
