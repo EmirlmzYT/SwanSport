@@ -19,7 +19,10 @@ import '../../../../app/design/swan_type.dart';
 ///
 /// Yalnızca kendi profilinde ve yalnızca ilgili rolde görünür.
 class ManagementSection extends ConsumerWidget {
-  const ManagementSection({super.key});
+  const ManagementSection({super.key, this.compact = false, this.onNavigate});
+
+  final bool compact;
+  final ValueChanged<String>? onNavigate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -68,10 +71,27 @@ class ManagementSection extends ConsumerWidget {
     ];
 
     final ops = <_Item>[
-      if (ref.watch(featureEnabledProvider(FeatureFlags.clubStaffOperations))) ...[
-        if (access.canOpenClubInventory) const _Item(Icons.inventory_2_outlined, 'Malzeme & Zimmet', '/kulup/malzeme-zimmet'),
-        if (access.canOpenClubHealth) const _Item(Icons.health_and_safety_outlined, 'Sağlık & İdari Dinlendirme', '/kulup/saglik-takibi'),
-        if (access.canOpenClubPlanning) const _Item(Icons.groups_outlined, 'Sportif Kadro Planlama', '/kulup/kadro-planlama'),
+      if (ref.watch(
+        featureEnabledProvider(FeatureFlags.clubStaffOperations),
+      )) ...[
+        if (access.canOpenClubInventory)
+          const _Item(
+            Icons.inventory_2_outlined,
+            'Malzeme & Zimmet',
+            '/kulup/malzeme-zimmet',
+          ),
+        if (access.canOpenClubHealth)
+          const _Item(
+            Icons.health_and_safety_outlined,
+            'Sağlık & İdari Dinlendirme',
+            '/kulup/saglik-takibi',
+          ),
+        if (access.canOpenClubPlanning)
+          const _Item(
+            Icons.groups_outlined,
+            'Sportif Kadro Planlama',
+            '/kulup/kadro-planlama',
+          ),
       ],
       if (access.isClubStaff || access.isAccountant) ...[
         const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
@@ -136,7 +156,7 @@ class ManagementSection extends ConsumerWidget {
       const _Item(Icons.group_add_rounded, 'Başvurular', '/basvurular'),
       const _Item(Icons.vpn_key_rounded, 'Davet Kodu', '/veli-bagla'),
       const _Item(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
-      const _Item(Icons.settings_rounded, 'Ayarlar', '/settings'),
+      if (!compact) const _Item(Icons.settings_rounded, 'Ayarlar', '/settings'),
     ];
 
     final groups = <(String, List<_Item>)>[
@@ -151,9 +171,20 @@ class ManagementSection extends ConsumerWidget {
       children: [
         for (final g in groups) ...[
           const SizedBox(height: SwanSpace.xl),
-          Text(g.$1, style: SwanType.h3(c.ink)),
-          const SizedBox(height: SwanSpace.xs),
-          for (final item in g.$2) _row(context, c, item),
+          if (compact)
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(
+                g.$1,
+                style: SwanType.body(c.ink, w: FontWeight.w700),
+              ),
+              children: [for (final item in g.$2) _row(context, c, item)],
+            )
+          else ...[
+            Text(g.$1, style: SwanType.h3(c.ink)),
+            const SizedBox(height: SwanSpace.xs),
+            for (final item in g.$2) _row(context, c, item),
+          ],
         ],
       ],
     );
@@ -162,16 +193,16 @@ class ManagementSection extends ConsumerWidget {
   Widget _row(BuildContext context, SwanPalette c, _Item item) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.pushNamed(context, item.route),
+      onTap: () => onNavigate != null
+          ? onNavigate!(item.route)
+          : Navigator.pushNamed(context, item.route),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
         child: Row(
           children: [
             Icon(item.icon, size: 20, color: c.inkMuted),
             const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Text(item.label, style: SwanType.body(c.ink)),
-            ),
+            Expanded(child: Text(item.label, style: SwanType.body(c.ink))),
             Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
           ],
         ),
