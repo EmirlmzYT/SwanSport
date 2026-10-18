@@ -122,10 +122,13 @@ test('Cloudflare /api/waitlist handler and landing/index.html showcase contract'
   const html = await readFile(new URL('../landing/index.html', import.meta.url), 'utf8');
   assert.ok(!html.includes('.apk'), 'landing/index.html must not expose raw APK download links');
   assert.ok(!html.includes('.ipa'), 'landing/index.html must not expose raw IPA download links');
+  assert.ok(!html.includes('konsol.swansport.com.tr'), 'landing/index.html must not expose console login links');
   for (const role of ['athlete', 'coach', 'club_admin', 'guardian', 'referee']) {
     assert.ok(html.includes(`data-role="${role}"`), `missing role chip ${role}`);
     assert.ok(html.includes(`data-preview="${role}"`), `missing cockpit preview tab ${role}`);
   }
+  assert.ok(html.includes('phone-3d-rig'), 'missing 3D hardware stage');
+  assert.ok(html.includes('canli-laboratuvar'), 'missing interactive live training lab');
   assert.ok(html.includes('join_launch_waitlist'));
   assert.ok(html.includes('/api/waitlist'));
 

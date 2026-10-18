@@ -1,1223 +1,3099 @@
 <!doctype html>
 <html lang="tr">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0A111E">
-  <title>SwanSport — Türkiye'nin Spor Kulübü, Sporcu ve Saha Ekosistemi</title>
-  <meta name="description" content="60 branşta antrenman kokpiti, canlı maç ve puan durumu merkezi, şeffaf kulüp muhasebesi, hakem esame sistemi ve saha rezervasyonları tek platformda. Yayınlandığında ilk sen haberdar ol.">
-  <link rel="canonical" href="https://swansport.com.tr/">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="tr_TR">
-  <meta property="og:title" content="SwanSport — Sporun Dijital Buluşma Noktası">
-  <meta property="og:description" content="Sporcular, antrenörler, kulüpler, veliler ve hakemler için yeni nesil spor işletim sistemi. Çok yakında App Store ve Google Play'de.">
-  <meta property="og:url" content="https://swansport.com.tr/">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0%25' stop-color='%2314B8B1'/%3E%3Cstop offset='100%25' stop-color='%23008C95'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='48' height='48' rx='14' fill='url(%23g)'/%3E%3Ctext x='24' y='33' text-anchor='middle' font-family='Arial,sans-serif' font-size='27' font-weight='800' fill='white'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      color-scheme: dark;
-      --bg: #0A111E;
-      --bg-elev: #0F1829;
-      --surface: #131D2E;
-      --surface-soft: rgba(19, 29, 46, 0.78);
-      --card: rgba(23, 35, 56, 0.76);
-      --line: #223148;
-      --line-bright: rgba(20, 184, 177, 0.35);
-      --ink: #F8FAFC;
-      --ink-muted: #94A3B8;
-      --ink-dim: #64748B;
-      --accent: #14B8B1;
-      --accent-bright: #2DD4BF;
-      --accent-deep: #008C95;
-      --danger: #EF4444;
-      --warning: #F59E0B;
-      --success: #10B981;
-      --radius-lg: 22px;
-      --radius-md: 14px;
-      --radius-sm: 10px;
-    }
-    * { box-sizing: border-box; }
-    html { scroll-behavior: smooth; scroll-padding-top: 96px; }
-    body {
-      margin: 0;
-      background-color: var(--bg);
-      background-image:
-        radial-gradient(ellipse 80% 50% at 50% -10%, rgba(20, 184, 177, 0.16), transparent),
-        radial-gradient(circle at 85% 28%, rgba(0, 140, 149, 0.11), transparent 45%);
-      color: var(--ink);
-      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-    h1, h2, h3, .font-display { font-family: 'Sora', 'Plus Jakarta Sans', sans-serif; }
-    a { color: inherit; text-decoration: none; }
-    button, input, select { font: inherit; }
-    button { cursor: pointer; }
-    svg { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible {
-      outline: 2px solid var(--accent-bright);
-      outline-offset: 3px;
-    }
-    .wrap { width: min(1220px, calc(100% - 40px)); margin: 0 auto; }
-    .skip { position: fixed; top: -100px; left: 20px; z-index: 200; background: var(--accent-deep); color: #fff; padding: 10px 16px; border-radius: 8px; font-weight: 700; }
-    .skip:focus { top: 14px; }
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>SwanSport — Türkiye'nin Spor Ağı ve Kulüp İşletim Sistemi</title>
+    <meta
+      name="description"
+      content="60 spor branşında canlı antrenman kokpiti, şeffaf kulüp finansı, veli eylem merkezi, hakem maç motoru ve saha rezervasyon ağı. Çok yakında App Store ve Google Play'de."
+    />
+    <meta name="theme-color" content="#070C16" />
+    <meta property="og:title" content="SwanSport — Sahadaki Her Rol İçin Tek Spor Ağı" />
+    <meta
+      property="og:description"
+      content="Sporcu, antrenör, kulüp yöneticisi, veli ve hakem için uçtan uca dijital spor ekosistemi. Yayınlandığında ilk haberdar olmak için erken erişim sırasına katılın."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://swansport.com.tr" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg-deep: #060b14;
+        --bg-base: #0b1322;
+        --bg-surface: #121d31;
+        --bg-elevated: #18263f;
+        --bg-glass: rgba(18, 29, 49, 0.72);
+        --ink: #f8fafc;
+        --ink-soft: #cbd5e1;
+        --ink-muted: #8b9bb4;
+        --line: #233350;
+        --line-bright: rgba(45, 212, 191, 0.38);
+        --accent: #14b8b1;
+        --accent-bright: #2dd4bf;
+        --accent-glow: rgba(20, 184, 177, 0.22);
+        --gold: #f59e0b;
+        --success: #10b981;
+        --danger: #f43f5e;
+        --purple: #8b5cf6;
+        --blue: #38bdf8;
+        --radius-xl: 28px;
+        --radius-lg: 20px;
+        --radius-md: 14px;
+        --shadow-lg: 0 32px 90px rgba(2, 6, 17, 0.75);
+      }
 
-    /* Header */
-    .header {
-      position: sticky;
-      top: 0;
-      z-index: 90;
-      background: rgba(10, 17, 30, 0.84);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-    }
-    .nav { height: 78px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-    .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 800; font-size: 20px; letter-spacing: -0.6px; }
-    .brand-mark {
-      width: 40px; height: 40px; border-radius: 12px;
-      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-      display: grid; place-items: center;
-      color: #fff; font-family: 'Sora', sans-serif; font-weight: 800; font-size: 21px;
-      box-shadow: 0 8px 24px rgba(20, 184, 177, 0.28);
-    }
-    .brand-badge {
-      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
-      padding: 3px 8px; border-radius: 999px; background: rgba(20, 184, 177, 0.14);
-      color: var(--accent-bright); border: 1px solid var(--line-bright);
-    }
-    .nav-links { display: flex; align-items: center; gap: 26px; font-size: 13px; font-weight: 600; color: #CBD5E1; }
-    .nav-links a:hover { color: var(--accent-bright); }
-    .nav-actions { display: flex; align-items: center; gap: 10px; }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
 
-    /* Buttons & Badges */
-    .btn {
-      display: inline-flex; align-items: center; justify-content: center; gap: 9px;
-      min-height: 44px; padding: 10px 18px; border-radius: 12px;
-      border: 1px solid var(--line); background: rgba(19, 29, 46, 0.9);
-      color: var(--ink); font-size: 13px; font-weight: 700;
-      transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
-    }
-    .btn:hover { transform: translateY(-1px); border-color: #3B5275; background: #1A273D; }
-    .btn-primary {
-      background: linear-gradient(135deg, var(--accent), var(--accent-deep));
-      border-color: var(--accent); color: #06101B; font-weight: 800;
-      box-shadow: 0 10px 28px rgba(20, 184, 177, 0.24);
-    }
-    .btn-primary:hover {
-      background: linear-gradient(135deg, var(--accent-bright), var(--accent));
-      border-color: var(--accent-bright);
-      color: #040B14;
-    }
-    .pill {
-      display: inline-flex; align-items: center; gap: 8px;
-      padding: 6px 14px; border-radius: 999px;
-      border: 1px solid var(--line-bright);
-      background: rgba(20, 184, 177, 0.1);
-      color: #99F6E4; font-size: 12px; font-weight: 700;
-    }
-    .pulse-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: var(--accent-bright);
-      box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.2);
-    }
-    .eyebrow {
-      display: inline-block; font-size: 11px; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 0.16em; color: var(--accent-bright);
-      margin-bottom: 10px;
-    }
+      html {
+        scroll-behavior: smooth;
+        background: var(--bg-deep);
+        color: var(--ink);
+        font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      }
 
-    /* Mobile Menu */
-    .mobile-menu { display: none; }
-    .mobile-menu summary {
-      list-style: none; width: 42px; height: 42px; border-radius: 10px;
-      border: 1px solid var(--line); display: grid; place-items: center; cursor: pointer;
-    }
-    .mobile-menu summary::-webkit-details-marker { display: none; }
-    .mobile-links {
-      position: absolute; top: 78px; left: 0; right: 0;
-      background: var(--surface); border-bottom: 1px solid var(--line);
-      padding: 20px; display: grid; gap: 14px;
-    }
+      body {
+        min-height: 100vh;
+        overflow-x: hidden;
+        background:
+          radial-gradient(circle at 15% 8%, rgba(20, 184, 177, 0.16), transparent 36%),
+          radial-gradient(circle at 85% 16%, rgba(56, 189, 248, 0.12), transparent 38%),
+          radial-gradient(circle at 50% 62%, rgba(139, 92, 246, 0.08), transparent 45%),
+          linear-gradient(180deg, #060b14 0%, #0b1322 45%, #070d18 100%);
+        line-height: 1.6;
+      }
 
-    /* Hero Section */
-    .hero { padding: 64px 0 56px; position: relative; }
-    .hero-grid {
-      display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 36px; align-items: start;
-    }
-    .hero h1 {
-      font-size: clamp(34px, 4.2vw, 56px);
-      line-height: 1.1; letter-spacing: -1.8px;
-      margin: 18px 0 18px; font-weight: 800;
-    }
-    .hero h1 span {
-      background: linear-gradient(90deg, #5EEAD4, #14B8B1);
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    }
-    .hero-lead {
-      font-size: 16px; color: var(--ink-muted); max-width: 560px; margin: 0 0 26px; line-height: 1.75;
-    }
+      /* 3D Background Canvas */
+      #bg-canvas {
+        position: fixed;
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 0;
+        opacity: 0.75;
+      }
 
-    /* Waitlist Card in Hero */
-    .waitlist-card {
-      background: linear-gradient(160deg, rgba(23, 35, 56, 0.92), rgba(15, 24, 41, 0.95));
-      border: 1px solid rgba(20, 184, 177, 0.32);
-      border-radius: var(--radius-lg);
-      padding: 24px;
-      box-shadow: 0 22px 60px rgba(0, 0, 0, 0.42);
-      max-width: 570px;
-    }
-    .waitlist-head {
-      display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 14px;
-      flex-wrap: wrap;
-    }
-    .waitlist-head strong { font-size: 15px; color: #fff; display: flex; align-items: center; gap: 8px; }
-    .waitlist-counter {
-      font-size: 11px; font-weight: 700; color: var(--accent-bright);
-      background: rgba(20, 184, 177, 0.12); padding: 4px 10px; border-radius: 999px;
-    }
-    .role-chips-label { font-size: 11px; font-weight: 700; color: var(--ink-muted); margin-bottom: 8px; display: block; }
-    .role-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 14px; }
-    .role-chip {
-      padding: 7px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
-      border: 1px solid var(--line); background: rgba(10, 17, 30, 0.7); color: #CBD5E1;
-      transition: all 0.15s ease;
-    }
-    .role-chip:hover { border-color: #3B5275; color: #fff; }
-    .role-chip[aria-pressed="true"] {
-      background: rgba(20, 184, 177, 0.18);
-      border-color: var(--accent-bright);
-      color: #5EEAD4;
-      box-shadow: 0 0 0 1px rgba(45, 212, 191, 0.25);
-    }
-    .waitlist-inputs {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;
-    }
-    .waitlist-main-row {
-      display: grid; grid-template-columns: 1fr auto; gap: 10px;
-    }
-    .input-field {
-      width: 100%; min-height: 46px; padding: 10px 14px;
-      border-radius: 11px; border: 1px solid var(--line);
-      background: rgba(10, 17, 30, 0.85); color: var(--ink);
-      font-size: 13px;
-    }
-    .input-field::placeholder { color: var(--ink-dim); }
-    .input-field:focus { border-color: var(--accent-bright); }
-    .waitlist-feedback {
-      margin-top: 12px; padding: 11px 14px; border-radius: 10px;
-      font-size: 12.5px; font-weight: 600; display: none;
-    }
-    .waitlist-feedback.show { display: flex; align-items: center; gap: 9px; }
-    .waitlist-feedback.ok {
-      background: rgba(16, 185, 129, 0.14); border: 1px solid rgba(16, 185, 129, 0.4); color: #A7F3D0;
-    }
-    .waitlist-feedback.err {
-      background: rgba(239, 68, 68, 0.14); border: 1px solid rgba(239, 68, 68, 0.4); color: #FECACA;
-    }
+      a {
+        color: inherit;
+        text-decoration: none;
+      }
 
-    /* Store Coming Soon Badges */
-    .store-strip {
-      display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 16px;
-    }
-    .store-badge {
-      display: inline-flex; align-items: center; gap: 10px;
-      padding: 9px 14px; border-radius: 11px;
-      border: 1px solid var(--line); background: rgba(15, 24, 41, 0.75);
-      font-size: 12px; color: #CBD5E1; transition: border-color 0.2s, transform 0.2s;
-    }
-    .store-badge:hover { border-color: var(--line-bright); transform: translateY(-1px); }
-    .store-badge small { display: block; font-size: 10px; color: var(--accent-bright); font-weight: 700; }
-    .store-badge strong { font-size: 13px; color: #fff; }
+      .container {
+        position: relative;
+        z-index: 2;
+        width: min(1260px, calc(100% - 40px));
+        margin: 0 auto;
+      }
 
-    /* Interactive Showcase Cockpit (Right Column) */
-    .cockpit-shell {
-      background: linear-gradient(180deg, rgba(19, 29, 46, 0.95), rgba(11, 18, 32, 0.95));
-      border: 1px solid var(--line);
-      border-radius: var(--radius-lg);
-      padding: 18px;
-      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
-      position: relative;
-    }
-    .cockpit-tabs {
-      display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px;
-      border-bottom: 1px solid var(--line); margin-bottom: 16px;
-      scrollbar-width: none;
-    }
-    .cockpit-tabs::-webkit-scrollbar { display: none; }
-    .cockpit-tab {
-      padding: 8px 13px; border-radius: 10px; border: 1px solid transparent;
-      background: rgba(10, 17, 30, 0.6); color: var(--ink-muted);
-      font-size: 12px; font-weight: 700; white-space: nowrap;
-      display: inline-flex; align-items: center; gap: 6px;
-      transition: all 0.16s ease;
-    }
-    .cockpit-tab:hover { color: #fff; background: rgba(30, 41, 59, 0.7); }
-    .cockpit-tab[aria-selected="true"] {
-      background: rgba(20, 184, 177, 0.16);
-      border-color: var(--accent);
-      color: var(--accent-bright);
-    }
+      /* Top Announcement Ribbon */
+      .top-ribbon {
+        position: relative;
+        z-index: 60;
+        background: linear-gradient(90deg, rgba(20, 184, 177, 0.15), rgba(56, 189, 248, 0.18), rgba(20, 184, 177, 0.15));
+        border-bottom: 1px solid rgba(45, 212, 191, 0.25);
+        padding: 9px 16px;
+        text-align: center;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #e2e8f0;
+      }
 
-    .device-stage {
-      display: grid; grid-template-columns: 1fr; gap: 14px;
-    }
-    .phone-frame {
-      background: #080E1A; border: 2px solid #283A56; border-radius: 24px;
-      padding: 16px; position: relative;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    }
-    .phone-statusbar {
-      display: flex; justify-content: space-between; align-items: center;
-      font-size: 11px; font-weight: 700; color: var(--ink-muted);
-      padding-bottom: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-      margin-bottom: 14px;
-    }
-    .live-pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 3px 9px; border-radius: 999px;
-      background: rgba(239, 68, 68, 0.16); border: 1px solid rgba(239, 68, 68, 0.4);
-      color: #FCA5A5; font-size: 10px; font-weight: 800;
-    }
-    .live-pill i { width: 6px; height: 6px; border-radius: 50%; background: #EF4444; display: inline-block; }
-    .screen-card {
-      background: var(--surface); border: 1px solid var(--line);
-      border-radius: 14px; padding: 14px; margin-bottom: 10px;
-    }
-    .screen-card:last-child { margin-bottom: 0; }
-    .screen-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
-    .score-board {
-      display: grid; grid-template-columns: 1fr auto 1fr; align-items: center;
-      text-align: center; gap: 10px; padding: 10px 0;
-    }
-    .score-num {
-      font-family: 'Sora', sans-serif; font-size: 24px; font-weight: 800;
-      color: #fff; background: #0A111E; padding: 6px 14px; border-radius: 10px;
-      border: 1px solid var(--line);
-    }
-    .mini-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
-    .mini-stat {
-      background: rgba(10, 17, 30, 0.75); border: 1px solid var(--line);
-      border-radius: 10px; padding: 9px 10px;
-    }
-    .mini-stat small { display: block; font-size: 10px; color: var(--ink-muted); }
-    .mini-stat b { font-size: 15px; color: #fff; }
-    .mini-stat span { font-size: 10px; color: var(--accent-bright); display: block; }
-    .badge-teal {
-      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
-      background: rgba(20, 184, 177, 0.14); color: var(--accent-bright);
-    }
-    .badge-amber {
-      font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 6px;
-      background: rgba(245, 158, 11, 0.16); color: #FCD34D;
-    }
+      .top-ribbon strong {
+        color: var(--accent-bright);
+        font-weight: 800;
+      }
 
-    /* 60 Branches Strip */
-    .branches-bar {
-      border-top: 1px solid rgba(255, 255, 255, 0.07);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
-      background: rgba(15, 24, 41, 0.65);
-      padding: 20px 0;
-    }
-    .branches-inner {
-      display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-    }
-    .branches-tags { display: flex; flex-wrap: wrap; gap: 8px; }
-    .branch-pill {
-      padding: 6px 12px; border-radius: 999px; font-size: 12px; font-weight: 600;
-      background: rgba(19, 29, 46, 0.9); border: 1px solid var(--line); color: #CBD5E1;
-    }
-    .branch-pill.highlight {
-      border-color: var(--line-bright); color: var(--accent-bright); background: rgba(20, 184, 177, 0.1);
-    }
+      .top-ribbon a {
+        margin-left: 8px;
+        color: #ffffff;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+        font-weight: 700;
+      }
 
-    /* Sections & Bento Grid */
-    section.block { padding: 84px 0; }
-    .section-head {
-      display: flex; justify-content: space-between; align-items: flex-end; gap: 24px;
-      margin-bottom: 36px; flex-wrap: wrap;
-    }
-    .section-head h2 {
-      font-size: clamp(26px, 3vw, 40px); line-height: 1.15; letter-spacing: -1.2px; margin: 0;
-    }
-    .section-head p { color: var(--ink-muted); max-width: 440px; margin: 0; font-size: 14px; }
+      /* Sticky Glass Navbar */
+      .navbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        background: rgba(6, 11, 20, 0.8);
+        border-bottom: 1px solid rgba(35, 51, 80, 0.75);
+      }
 
-    .bento { display: grid; grid-template-columns: repeat(6, 1fr); gap: 18px; }
-    .bento-card {
-      grid-column: span 2;
-      background: linear-gradient(155deg, rgba(23, 35, 56, 0.82), rgba(15, 24, 41, 0.92));
-      border: 1px solid var(--line);
-      border-radius: 20px; padding: 26px;
-      display: flex; flex-direction: column; justify-content: space-between;
-      transition: border-color 0.2s ease, transform 0.2s ease;
-    }
-    .bento-card:hover { border-color: #365075; transform: translateY(-2px); }
-    .bento-card.wide { grid-column: span 3; }
-    .icon-badge {
-      width: 44px; height: 44px; border-radius: 12px;
-      background: rgba(20, 184, 177, 0.12); border: 1px solid var(--line-bright);
-      color: var(--accent-bright); display: grid; place-items: center; margin-bottom: 18px;
-    }
-    .bento-card h3 { font-size: 19px; margin: 0 0 10px; letter-spacing: -0.4px; }
-    .bento-card p { font-size: 13.5px; color: var(--ink-muted); margin: 0 0 18px; }
-    .demo-box {
-      background: rgba(10, 17, 30, 0.8); border: 1px solid var(--line);
-      border-radius: 12px; padding: 12px 14px; font-size: 12px;
-    }
-    .slot-pills { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; text-align: center; }
-    .slot-pills span {
-      padding: 7px 4px; border-radius: 8px; border: 1px solid var(--line);
-      font-size: 11px; color: var(--ink-muted);
-    }
-    .slot-pills span.free {
-      background: rgba(20, 184, 177, 0.16); border-color: var(--accent); color: #99F6E4; font-weight: 700;
-    }
+      .navbar-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 76px;
+        gap: 18px;
+      }
 
-    /* 5 Role Cards */
-    .roles-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
-    .role-card {
-      background: rgba(19, 29, 46, 0.78); border: 1px solid var(--line);
-      border-radius: 18px; padding: 22px 18px; cursor: pointer;
-      transition: all 0.18s ease; text-align: left;
-    }
-    .role-card:hover, .role-card.active {
-      border-color: var(--accent);
-      background: linear-gradient(180deg, rgba(20, 184, 177, 0.12), rgba(19, 29, 46, 0.92));
-      transform: translateY(-2px);
-    }
-    .role-card .num { font-size: 10px; font-weight: 800; color: var(--accent-bright); letter-spacing: 0.1em; }
-    .role-card h3 { font-size: 16px; margin: 10px 0 8px; }
-    .role-card p { font-size: 12.5px; color: var(--ink-muted); margin: 0; }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        font-size: 20px;
+        letter-spacing: -0.03em;
+      }
 
-    /* Bottom Launch CTA Banner */
-    .cta-banner {
-      background: radial-gradient(circle at 85% 20%, rgba(20, 184, 177, 0.24), transparent 55%), var(--surface);
-      border: 1px solid rgba(20, 184, 177, 0.35);
-      border-radius: 26px; padding: 44px;
-      display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 36px; align-items: center;
-    }
-    .cta-banner h2 { font-size: clamp(26px, 3vw, 38px); margin: 10px 0 14px; line-height: 1.15; }
-    .cta-banner p { color: var(--ink-muted); margin: 0 0 20px; font-size: 14.5px; }
+      .brand-mark {
+        width: 44px;
+        height: 44px;
+        border-radius: 13px;
+        background: linear-gradient(135deg, #14b8b1 0%, #0d9488 50%, #0f172a 100%);
+        border: 1px solid rgba(45, 212, 191, 0.5);
+        display: grid;
+        place-items: center;
+        box-shadow: 0 10px 28px rgba(20, 184, 177, 0.32);
+        overflow: hidden;
+      }
 
-    /* FAQ & Privacy */
-    .faq-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin-top: 28px; }
-    .faq-item {
-      background: rgba(19, 29, 46, 0.65); border: 1px solid var(--line);
-      border-radius: 14px; padding: 16px 20px;
-    }
-    .faq-item summary { font-weight: 700; font-size: 14px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center; }
-    .faq-item summary::-webkit-details-marker { display: none; }
-    .faq-item p { font-size: 13px; color: var(--ink-muted); margin: 12px 0 0; }
+      .brand-mark svg {
+        width: 25px;
+        height: 25px;
+      }
 
-    /* Footer */
-    .footer { border-top: 1px solid rgba(255, 255, 255, 0.08); padding: 36px 0 44px; margin-top: 40px; }
-    .footer-top { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
-    .footer-links { display: flex; gap: 22px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-muted); }
-    .footer-links a:hover { color: var(--accent-bright); }
-    .footer-bottom {
-      display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
-      margin-top: 24px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05);
-      font-size: 11.5px; color: var(--ink-dim);
-    }
+      .brand-tag {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+        font-size: 11px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: rgba(20, 184, 177, 0.14);
+        border: 1px solid rgba(20, 184, 177, 0.32);
+        color: var(--accent-bright);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
 
-    @media (max-width: 1060px) {
-      .hero-grid, .cta-banner { grid-template-columns: 1fr; }
-      .roles-grid { grid-template-columns: repeat(2, 1fr); }
-      .bento-card, .bento-card.wide { grid-column: span 3; }
-    }
-    @media (max-width: 760px) {
-      .nav-links, .nav-actions { display: none; }
-      .mobile-menu { display: block; }
-      .hero { padding: 36px 0 40px; }
-      .waitlist-inputs, .waitlist-main-row, .faq-grid { grid-template-columns: 1fr; }
-      .bento { grid-template-columns: 1fr; }
-      .bento-card, .bento-card.wide { grid-column: span 1; }
-      .roles-grid { grid-template-columns: 1fr; }
-      .cta-banner { padding: 26px 20px; }
-      .mini-grid { grid-template-columns: 1fr 1fr; }
-    }
-    @media (prefers-reduced-motion: reduce) {
-      html { scroll-behavior: auto; }
-      *, *::before, *::after { transition: none !important; animation: none !important; }
-    }
-  </style>
-</head>
-<body>
-  <a class="skip" href="#icerik">İçeriğe geç</a>
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
 
-  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden" xmlns="http://www.w3.org/2000/svg">
-    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></symbol>
-    <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8m-4-4v4"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></symbol>
-    <symbol id="i-court" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="1"/><path d="M12 5v14M3 9h18M3 15h18"/></symbol>
-    <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20v-2a6 6 0 0 1 12 0v2m1-15a3 3 0 0 1 0 6m3 9v-2a6 6 0 0 0-3-5"/></symbol>
-    <symbol id="i-qr" viewBox="0 0 24 24"><path d="M3 3h6v6H3zM15 3h6v6h-6zM3 15h6v6H3zM15 15h3v3h3v3h-6v-6Zm6-3h-3M12 3v3m0 6v3m0 6h1M3 12h3"/></symbol>
-    <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M20 7H5a2 2 0 0 1 0-4h13v4M3 5v14a2 2 0 0 0 2 2h15V7m0 5h-5v5h5"/><path d="M17 14.5h.01"/></symbol>
-    <symbol id="i-medal" viewBox="0 0 24 24"><circle cx="12" cy="9" r="6"/><path d="m8 14-2 7 6-3 6 3-2-7m-6-12 2-1 2 1"/></symbol>
-    <symbol id="i-whistle" viewBox="0 0 24 24"><circle cx="15" cy="14" r="5"/><path d="M3 10h9l2 1M7 10v3"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
-    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
-    <symbol id="i-apple" viewBox="0 0 24 24"><path d="M13 6c0-2 1-4 4-4 0 2-1 4-4 4Zm-1 2c-2 0-3-2-6 0-4 3-1 13 3 13 1 0 2-1 3-1s2 1 3 1c2 0 4-3 5-5-3-1-4-5-1-7-2-3-4-2-7-1Z"/></symbol>
-    <symbol id="i-play" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></symbol>
-  </svg>
+      .nav-links a:hover {
+        color: var(--accent-bright);
+      }
 
-  <header class="header">
-    <div class="wrap nav">
-      <a class="brand" href="#" aria-label="SwanSport ana sayfa">
-        <span class="brand-mark" aria-hidden="true">S</span>
-        <span>SwanSport</span>
-        <span class="brand-badge">Erken Erişim</span>
-      </a>
-      <nav class="nav-links" aria-label="Ana menü">
-        <a href="#kokpit">İnteraktif Vitrin</a>
-        <a href="#ozellikler">60 Branş &amp; Modüller</a>
-        <a href="#roller">Kimin İçin?</a>
-        <a href="#sss">SSS</a>
-      </nav>
-      <div class="nav-actions">
-        <a class="btn" href="https://konsol.swansport.com.tr" target="_blank" rel="noopener noreferrer">
-          <svg aria-hidden="true"><use href="#i-monitor"/></svg>Yönetim Konsolu<span class="sr-only"> (yeni sekme)</span>
-        </a>
-        <a class="btn btn-primary" href="#haberdar-ol">
-          <svg aria-hidden="true"><use href="#i-bell"/></svg>Yayınlanınca Haber Ver
-        </a>
-      </div>
-      <details class="mobile-menu">
-        <summary aria-label="Mobil menüyü aç veya kapat"><svg aria-hidden="true"><use href="#i-menu"/></svg></summary>
-        <nav class="mobile-links" aria-label="Mobil menü">
-          <a href="#kokpit">İnteraktif Vitrin</a>
-          <a href="#ozellikler">60 Branş &amp; Modüller</a>
-          <a href="#roller">Kimin İçin?</a>
-          <a href="#sss">SSS</a>
-          <a class="btn" href="https://konsol.swansport.com.tr" target="_blank" rel="noopener noreferrer">Yönetim Konsolu ↗</a>
-          <a class="btn btn-primary" href="#haberdar-ol">Yayınlanınca Haber Ver</a>
-        </nav>
-      </details>
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 11px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+        border: 1px solid transparent;
+        font-family: inherit;
+      }
+
+      .btn-ghost {
+        background: rgba(18, 29, 49, 0.78);
+        border-color: var(--line);
+        color: var(--ink-soft);
+      }
+
+      .btn-ghost:hover {
+        border-color: var(--accent);
+        color: var(--ink);
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #14b8b1 0%, #0d9488 100%);
+        color: #041017;
+        font-weight: 800;
+        box-shadow: 0 12px 32px rgba(20, 184, 177, 0.32);
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 38px rgba(20, 184, 177, 0.45);
+        filter: brightness(1.05);
+      }
+
+      .btn-primary:disabled {
+        opacity: 0.65;
+        cursor: wait;
+        transform: none;
+      }
+
+      /* Hero Section with 3D Interactive Stage */
+      .hero {
+        position: relative;
+        padding: 64px 0 64px;
+      }
+
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.06fr 0.94fr;
+        gap: 48px;
+        align-items: center;
+      }
+
+      .launch-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 7px 15px;
+        border-radius: 999px;
+        background: rgba(20, 184, 177, 0.12);
+        border: 1px solid rgba(45, 212, 191, 0.35);
+        color: var(--accent-bright);
+        font-size: 12.5px;
+        font-weight: 700;
+        margin-bottom: 22px;
+        box-shadow: 0 0 28px rgba(20, 184, 177, 0.16);
+      }
+
+      .pulse-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--accent-bright);
+        box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.7);
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          box-shadow: 0 0 0 0 rgba(45, 212, 191, 0.75);
+        }
+        70% {
+          box-shadow: 0 0 0 10px rgba(45, 212, 191, 0);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(45, 212, 191, 0);
+        }
+      }
+
+      .hero h1 {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(34px, 4.7vw, 58px);
+        line-height: 1.07;
+        letter-spacing: -0.035em;
+        margin-bottom: 20px;
+      }
+
+      .hero h1 .gradient-text {
+        background: linear-gradient(135deg, #5eead4 0%, #38bdf8 50%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+
+      .hero-lead {
+        font-size: clamp(16px, 1.3vw, 18.5px);
+        color: var(--ink-soft);
+        max-width: 600px;
+        margin-bottom: 26px;
+      }
+
+      .hero-micro-badges {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      .micro-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 6px 12px;
+        border-radius: 10px;
+        background: rgba(18, 29, 49, 0.85);
+        border: 1px solid var(--line);
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--ink-soft);
+      }
+
+      .micro-badge span {
+        color: var(--accent-bright);
+      }
+
+      /* Waitlist Card */
+      .waitlist-card {
+        position: relative;
+        background: linear-gradient(165deg, rgba(24, 38, 63, 0.92) 0%, rgba(12, 20, 36, 0.96) 100%);
+        border: 1px solid rgba(45, 212, 191, 0.34);
+        border-radius: var(--radius-xl);
+        padding: 26px;
+        box-shadow: var(--shadow-lg), 0 0 60px rgba(20, 184, 177, 0.1);
+        overflow: hidden;
+      }
+
+      .waitlist-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 10%;
+        right: 10%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(94, 234, 212, 0.85), transparent);
+      }
+
+      .waitlist-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+      }
+
+      .waitlist-title {
+        font-family: 'Sora', sans-serif;
+        font-size: 17px;
+        font-weight: 700;
+        color: #ffffff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .waitlist-counter {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--accent-bright);
+        background: rgba(20, 184, 177, 0.14);
+        border: 1px solid rgba(20, 184, 177, 0.28);
+        padding: 4px 11px;
+        border-radius: 999px;
+      }
+
+      .role-selector-label {
+        display: block;
+        font-size: 11.5px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--ink-muted);
+        margin-bottom: 8px;
+      }
+
+      .role-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        margin-bottom: 14px;
+      }
+
+      .role-chip {
+        padding: 8px 13px;
+        border-radius: 10px;
+        font-size: 12.5px;
+        font-weight: 700;
+        background: rgba(9, 15, 28, 0.78);
+        border: 1px solid var(--line);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition: all 0.16s ease;
+        user-select: none;
+      }
+
+      .role-chip:hover {
+        border-color: rgba(45, 212, 191, 0.5);
+        color: #ffffff;
+      }
+
+      .role-chip.active {
+        background: rgba(20, 184, 177, 0.18);
+        border-color: var(--accent-bright);
+        color: var(--accent-bright);
+        box-shadow: 0 0 18px rgba(20, 184, 177, 0.22);
+      }
+
+      .waitlist-inputs {
+        display: grid;
+        grid-template-columns: 1.3fr 0.9fr;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .waitlist-inputs-secondary {
+        display: grid;
+        grid-template-columns: 1fr 1.15fr;
+        gap: 10px;
+      }
+
+      .input-field,
+      .select-field {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 11px;
+        background: rgba(7, 12, 22, 0.92);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        font-size: 13.5px;
+        font-family: inherit;
+        outline: none;
+        transition: border-color 0.18s ease, box-shadow 0.18s ease;
+      }
+
+      .input-field::placeholder {
+        color: var(--ink-muted);
+      }
+
+      .input-field:focus,
+      .select-field:focus {
+        border-color: var(--accent-bright);
+        box-shadow: 0 0 0 3px rgba(20, 184, 177, 0.16);
+      }
+
+      .waitlist-feedback {
+        margin-top: 12px;
+        padding: 11px 14px;
+        border-radius: 11px;
+        font-size: 13px;
+        font-weight: 600;
+        display: none;
+      }
+
+      .waitlist-feedback.show {
+        display: block;
+      }
+
+      .waitlist-feedback.ok {
+        background: rgba(16, 185, 129, 0.14);
+        border: 1px solid rgba(16, 185, 129, 0.4);
+        color: #6ee7b7;
+      }
+
+      .waitlist-feedback.err {
+        background: rgba(244, 63, 94, 0.14);
+        border: 1px solid rgba(244, 63, 94, 0.4);
+        color: #fda4af;
+      }
+
+      /* Store Badges Row */
+      .store-badges {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      .store-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        padding: 10px 16px;
+        border-radius: 13px;
+        background: rgba(12, 20, 36, 0.85);
+        border: 1px solid var(--line);
+        color: var(--ink);
+        transition: all 0.2s ease;
+      }
+
+      .store-badge:hover {
+        border-color: rgba(45, 212, 191, 0.45);
+        transform: translateY(-2px);
+      }
+
+      .store-badge svg {
+        width: 22px;
+        height: 22px;
+        color: var(--accent-bright);
+        flex-shrink: 0;
+      }
+
+      .store-badge-meta {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+      }
+
+      .store-badge-sub {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent-bright);
+      }
+
+      .store-badge-main {
+        font-size: 13.5px;
+        font-weight: 800;
+      }
+
+      /* ==========================================================================
+         3D Interactive Hero Hardware Stage
+         ========================================================================== */
+      .stage-3d-wrapper {
+        perspective: 1400px;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .stage-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px;
+        border-radius: 999px;
+        background: rgba(12, 20, 36, 0.88);
+        border: 1px solid var(--line);
+        margin-bottom: 18px;
+        z-index: 6;
+      }
+
+      .stage-btn {
+        padding: 6px 13px;
+        border-radius: 999px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--ink-soft);
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+      }
+
+      .stage-btn.active {
+        background: rgba(20, 184, 177, 0.2);
+        color: var(--accent-bright);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+      }
+
+      .phone-3d-rig {
+        position: relative;
+        width: 356px;
+        height: 650px;
+        transform-style: preserve-3d;
+        transform: rotateY(-14deg) rotateX(8deg);
+        transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+        cursor: grab;
+      }
+
+      .phone-3d-rig.exploded {
+        transform: rotateY(-24deg) rotateX(14deg) scale(0.95);
+      }
+
+      /* 3D Chassis Backplate Shadow & Depth */
+      .phone-chassis-shadow {
+        position: absolute;
+        inset: 20px;
+        border-radius: 46px;
+        background: radial-gradient(circle, rgba(20, 184, 177, 0.32), rgba(2, 6, 17, 0.95));
+        transform: translateZ(-45px);
+        filter: blur(28px);
+      }
+
+      .phone-chassis {
+        position: absolute;
+        inset: 0;
+        border-radius: 44px;
+        background: linear-gradient(155deg, #1e2d4a 0%, #09111f 45%, #15233b 100%);
+        padding: 11px;
+        box-shadow:
+          0 30px 80px rgba(0, 0, 0, 0.8),
+          0 0 0 1px rgba(148, 163, 184, 0.25),
+          inset 0 1px 2px rgba(255, 255, 255, 0.25);
+        transform-style: preserve-3d;
+      }
+
+      .phone-screen {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        border-radius: 34px;
+        background: #080f1d;
+        border: 1px solid #1e2e4a;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 11px;
+        overflow: hidden;
+        transform-style: preserve-3d;
+      }
+
+      .phone-glare {
+        position: absolute;
+        inset: 0;
+        border-radius: 34px;
+        background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.12), transparent 55%);
+        pointer-events: none;
+        z-index: 10;
+      }
+
+      .dynamic-island {
+        width: 96px;
+        height: 22px;
+        background: #02050b;
+        border-radius: 999px;
+        margin: 0 auto 2px;
+        border: 1px solid #1b2840;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 10px;
+      }
+
+      .island-led {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #10b981;
+        box-shadow: 0 0 8px #10b981;
+      }
+
+      /* Floating 3D Satellite Cards around the Phone */
+      .floating-card-3d {
+        position: absolute;
+        background: rgba(15, 25, 44, 0.88);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(45, 212, 191, 0.42);
+        border-radius: 16px;
+        padding: 12px 14px;
+        box-shadow: 0 22px 45px rgba(2, 6, 17, 0.78);
+        transform-style: preserve-3d;
+        transition: transform 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+
+      .floating-card-top-left {
+        top: 56px;
+        left: -68px;
+        width: 210px;
+        transform: translateZ(55px);
+      }
+
+      .floating-card-bottom-right {
+        bottom: 84px;
+        right: -64px;
+        width: 220px;
+        transform: translateZ(75px);
+      }
+
+      .floating-card-mid-right {
+        top: 230px;
+        right: -72px;
+        width: 195px;
+        transform: translateZ(45px);
+      }
+
+      .phone-3d-rig.exploded .floating-card-top-left {
+        transform: translateZ(110px) translateX(-18px) translateY(-10px);
+      }
+
+      .phone-3d-rig.exploded .floating-card-bottom-right {
+        transform: translateZ(130px) translateX(20px) translateY(10px);
+      }
+
+      .phone-3d-rig.exploded .floating-card-mid-right {
+        transform: translateZ(95px) translateX(24px);
+      }
+
+      .phone-3d-rig.exploded .mock-card-elevate {
+        transform: translateZ(38px);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.65);
+      }
+
+      .fc-tag {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--accent-bright);
+        margin-bottom: 4px;
+      }
+
+      .fc-val {
+        font-family: 'Sora', sans-serif;
+        font-size: 14px;
+        font-weight: 800;
+        color: #ffffff;
+      }
+
+      .fc-sub {
+        font-size: 11px;
+        color: var(--ink-muted);
+        margin-top: 2px;
+      }
+
+      /* Phone Internal UI Elements */
+      .mock-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .mock-user {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+      }
+
+      .mock-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #14b8b1, #3b82f6);
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        font-size: 12px;
+        color: #041017;
+      }
+
+      .mock-card {
+        background: rgba(18, 29, 49, 0.95);
+        border: 1px solid #243554;
+        border-radius: 15px;
+        padding: 12px;
+        transition: transform 0.35s ease, box-shadow 0.35s ease;
+      }
+
+      .mock-card-accent {
+        background: linear-gradient(135deg, rgba(20, 184, 177, 0.2), rgba(15, 23, 42, 0.96));
+        border-color: rgba(45, 212, 191, 0.45);
+      }
+
+      .mock-tag {
+        display: inline-block;
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: var(--accent-bright);
+        margin-bottom: 4px;
+      }
+
+      .mock-metric-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 7px;
+        margin-top: 8px;
+      }
+
+      .mock-metric {
+        background: rgba(7, 12, 22, 0.85);
+        border: 1px solid #1e2e4a;
+        border-radius: 10px;
+        padding: 7px;
+        text-align: center;
+      }
+
+      .mock-metric strong {
+        display: block;
+        font-family: 'Sora', sans-serif;
+        font-size: 14px;
+        color: #ffffff;
+      }
+
+      .mock-metric span {
+        font-size: 10px;
+        color: var(--ink-muted);
+      }
+
+      .mock-bottom-nav {
+        margin-top: auto;
+        background: #060b14;
+        border: 1px solid #1d2c47;
+        border-radius: 14px;
+        padding: 8px 10px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10px;
+        color: var(--ink-muted);
+      }
+
+      .mock-bottom-nav .active-nav {
+        color: var(--accent-bright);
+        font-weight: 800;
+      }
+
+      .mock-plus {
+        width: 26px;
+        height: 26px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #041017;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+      }
+
+      /* ==========================================================================
+         Stats Strip
+         ========================================================================== */
+      .stats-strip {
+        margin: 18px 0 64px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
+
+      .stat-box {
+        background: rgba(15, 25, 44, 0.78);
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        padding: 22px;
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.25s ease, border-color 0.25s ease;
+      }
+
+      .stat-box:hover {
+        transform: translateY(-4px);
+        border-color: rgba(45, 212, 191, 0.45);
+      }
+
+      .stat-number {
+        font-family: 'Sora', sans-serif;
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--accent-bright);
+        line-height: 1.1;
+        margin-bottom: 6px;
+      }
+
+      .stat-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink);
+      }
+
+      .stat-sub {
+        font-size: 12.5px;
+        color: var(--ink-muted);
+        margin-top: 3px;
+      }
+
+      /* ==========================================================================
+         Section Headings
+         ========================================================================== */
+      .section {
+        padding: 78px 0;
+        position: relative;
+      }
+
+      .section-header {
+        text-align: center;
+        max-width: 780px;
+        margin: 0 auto 46px;
+      }
+
+      .eyebrow {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--accent-bright);
+        background: rgba(20, 184, 177, 0.12);
+        border: 1px solid rgba(20, 184, 177, 0.28);
+        padding: 5px 13px;
+        border-radius: 999px;
+        margin-bottom: 14px;
+      }
+
+      .section-title {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(27px, 3.5vw, 42px);
+        line-height: 1.14;
+        letter-spacing: -0.025em;
+        margin-bottom: 14px;
+      }
+
+      .section-desc {
+        font-size: 16.5px;
+        color: var(--ink-soft);
+      }
+
+      /* ==========================================================================
+         Before vs After Commercial Comparison ("Kaos vs. SwanSport")
+         ========================================================================== */
+      .comparison-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+
+      .compare-card {
+        border-radius: var(--radius-xl);
+        padding: 32px;
+        border: 1px solid var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .compare-old {
+        background: linear-gradient(160deg, rgba(35, 19, 32, 0.55), rgba(12, 18, 32, 0.92));
+        border-color: rgba(244, 63, 94, 0.28);
+      }
+
+      .compare-new {
+        background: linear-gradient(160deg, rgba(16, 48, 56, 0.68), rgba(12, 22, 38, 0.96));
+        border-color: rgba(45, 212, 191, 0.45);
+        box-shadow: 0 24px 70px rgba(20, 184, 177, 0.14);
+      }
+
+      .compare-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        margin-bottom: 16px;
+      }
+
+      .compare-old .compare-badge {
+        background: rgba(244, 63, 94, 0.16);
+        color: #fda4af;
+      }
+
+      .compare-new .compare-badge {
+        background: rgba(20, 184, 177, 0.2);
+        color: var(--accent-bright);
+      }
+
+      .compare-card h3 {
+        font-family: 'Sora', sans-serif;
+        font-size: 22px;
+        margin-bottom: 18px;
+      }
+
+      .compare-list {
+        list-style: none;
+        display: grid;
+        gap: 13px;
+      }
+
+      .compare-list li {
+        display: flex;
+        align-items: flex-start;
+        gap: 11px;
+        font-size: 14.5px;
+        color: var(--ink-soft);
+      }
+
+      .compare-list li strong {
+        color: #ffffff;
+      }
+
+      /* ==========================================================================
+         5-Role Interactive Cockpit Showcase
+         ========================================================================== */
+      .cockpit-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 34px;
+      }
+
+      .cockpit-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        padding: 12px 20px;
+        border-radius: 14px;
+        background: rgba(18, 29, 49, 0.78);
+        border: 1px solid var(--line);
+        color: var(--ink-soft);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+      }
+
+      .cockpit-tab:hover {
+        border-color: rgba(45, 212, 191, 0.45);
+        color: #ffffff;
+      }
+
+      .cockpit-tab.active {
+        background: linear-gradient(135deg, rgba(20, 184, 177, 0.24), rgba(13, 148, 136, 0.12));
+        border-color: var(--accent-bright);
+        color: #ffffff;
+        box-shadow: 0 12px 30px rgba(20, 184, 177, 0.2);
+      }
+
+      .cockpit-stage {
+        background: linear-gradient(160deg, rgba(20, 33, 56, 0.88), rgba(9, 15, 28, 0.96));
+        border: 1px solid var(--line);
+        border-radius: var(--radius-xl);
+        padding: 38px;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .cockpit-panel {
+        display: none;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 36px;
+        align-items: center;
+      }
+
+      .cockpit-panel.active {
+        display: grid;
+        animation: fadeIn 0.28s ease;
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .panel-Copy h3 {
+        font-family: 'Sora', sans-serif;
+        font-size: 28px;
+        margin-bottom: 12px;
+      }
+
+      .panel-Copy p {
+        color: var(--ink-soft);
+        font-size: 15.5px;
+        margin-bottom: 22px;
+      }
+
+      .feature-bullets {
+        list-style: none;
+        display: grid;
+        gap: 12px;
+      }
+
+      .feature-bullets li {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        font-size: 14.5px;
+        color: var(--ink-soft);
+      }
+
+      .bullet-check {
+        width: 22px;
+        height: 22px;
+        border-radius: 7px;
+        background: rgba(20, 184, 177, 0.18);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        color: var(--accent-bright);
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 800;
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+
+      .ui-window {
+        background: #070d19;
+        border: 1px solid #243656;
+        border-radius: 22px;
+        padding: 22px;
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+        transform: perspective(1000px) rotateY(-4deg);
+        transition: transform 0.3s ease;
+      }
+
+      .ui-window:hover {
+        transform: perspective(1000px) rotateY(0deg);
+      }
+
+      .ui-window-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 14px;
+        margin-bottom: 16px;
+        border-bottom: 1px solid #1b2a44;
+      }
+
+      .window-dots {
+        display: flex;
+        gap: 6px;
+      }
+
+      .window-dots span {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #2b3d5e;
+      }
+
+      .window-dots span:first-child {
+        background: #f43f5e;
+      }
+      .window-dots span:nth-child(2) {
+        background: #f59e0b;
+      }
+      .window-dots span:nth-child(3) {
+        background: #10b981;
+      }
+
+      .window-route {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 11.5px;
+        color: var(--accent-bright);
+        background: rgba(20, 184, 177, 0.12);
+        padding: 3px 10px;
+        border-radius: 6px;
+      }
+
+      .sim-grid {
+        display: grid;
+        gap: 10px;
+      }
+
+      .sim-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #111c30;
+        border: 1px solid #213252;
+        border-radius: 12px;
+        padding: 12px 14px;
+        font-size: 13px;
+      }
+
+      .sim-pill {
+        font-size: 11px;
+        font-weight: 700;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: rgba(20, 184, 177, 0.16);
+        color: var(--accent-bright);
+      }
+
+      .sim-pill.warn {
+        background: rgba(245, 158, 11, 0.16);
+        color: #fcd34d;
+      }
+
+      .sim-pill.ok {
+        background: rgba(16, 185, 129, 0.16);
+        color: #6ee7b7;
+      }
+
+      .mono-code {
+        font-family: 'JetBrains Mono', monospace;
+        color: #fcd34d;
+        font-weight: 700;
+      }
+
+      /* ==========================================================================
+         Interactive Live Branch Training Simulator (Canlı Antrenman Pedi Deneyimi)
+         ========================================================================== */
+      .lab-box {
+        background: linear-gradient(155deg, rgba(19, 31, 53, 0.92), rgba(8, 14, 26, 0.97));
+        border: 1px solid rgba(45, 212, 191, 0.35);
+        border-radius: var(--radius-xl);
+        padding: 34px;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .lab-grid {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 32px;
+        align-items: center;
+      }
+
+      .arch-buttons {
+        display: grid;
+        gap: 10px;
+      }
+
+      .arch-btn {
+        text-align: left;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: rgba(10, 17, 30, 0.85);
+        border: 1px solid var(--line);
+        color: var(--ink-soft);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-family: inherit;
+      }
+
+      .arch-btn:hover {
+        border-color: rgba(45, 212, 191, 0.45);
+      }
+
+      .arch-btn.active {
+        background: rgba(20, 184, 177, 0.16);
+        border-color: var(--accent-bright);
+        color: #ffffff;
+      }
+
+      .arch-btn strong {
+        display: block;
+        font-size: 14.5px;
+        color: #ffffff;
+        margin-bottom: 2px;
+      }
+
+      .arch-btn span {
+        font-size: 12px;
+        color: var(--ink-muted);
+      }
+
+      .interactive-pad {
+        background: #070d18;
+        border: 1px solid #233554;
+        border-radius: 20px;
+        padding: 24px;
+      }
+
+      .pad-score-keys {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin: 14px 0;
+      }
+
+      .pad-key {
+        flex: 1;
+        min-width: 54px;
+        padding: 12px 10px;
+        border-radius: 12px;
+        border: 1px solid #293d61;
+        background: #121e33;
+        color: #ffffff;
+        font-family: 'Sora', sans-serif;
+        font-weight: 800;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.15s ease;
+      }
+
+      .pad-key:hover {
+        border-color: var(--accent-bright);
+        background: rgba(20, 184, 177, 0.22);
+        transform: translateY(-2px);
+      }
+
+      .pad-log {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        min-height: 42px;
+        padding: 10px;
+        border-radius: 12px;
+        background: #0b1424;
+        border: 1px solid #1d2d49;
+        align-items: center;
+      }
+
+      .shot-chip {
+        padding: 5px 11px;
+        border-radius: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 12.5px;
+        font-weight: 700;
+        background: rgba(20, 184, 177, 0.18);
+        border: 1px solid rgba(45, 212, 191, 0.4);
+        color: var(--accent-bright);
+      }
+
+      /* ==========================================================================
+         60 Sports Federations Pill Wall
+         ========================================================================== */
+      .branch-wall {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 24px;
+      }
+
+      .branch-pill {
+        padding: 9px 15px;
+        border-radius: 999px;
+        background: rgba(18, 29, 49, 0.8);
+        border: 1px solid var(--line);
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-soft);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+      }
+
+      .branch-pill:hover {
+        border-color: var(--accent-bright);
+        color: #ffffff;
+        transform: translateY(-2px);
+      }
+
+      .branch-pill b {
+        font-size: 10.5px;
+        padding: 2px 7px;
+        border-radius: 999px;
+        background: rgba(20, 184, 177, 0.15);
+        color: var(--accent-bright);
+        text-transform: uppercase;
+      }
+
+      /* ==========================================================================
+         3D Tilt Feature Bento Grid
+         ========================================================================== */
+      .bento-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+
+      .bento-card {
+        background: linear-gradient(160deg, rgba(19, 31, 52, 0.88), rgba(10, 17, 30, 0.95));
+        border: 1px solid var(--line);
+        border-radius: var(--radius-lg);
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
+        transform-style: preserve-3d;
+      }
+
+      .bento-card:hover {
+        border-color: rgba(45, 212, 191, 0.48);
+        box-shadow: 0 24px 55px rgba(2, 6, 17, 0.7);
+      }
+
+      .bento-card.span-2 {
+        grid-column: span 2;
+      }
+
+      .bento-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 13px;
+        background: rgba(20, 184, 177, 0.14);
+        border: 1px solid rgba(45, 212, 191, 0.32);
+        display: grid;
+        place-items: center;
+        color: var(--accent-bright);
+        font-size: 20px;
+      }
+
+      .bento-card h3 {
+        font-family: 'Sora', sans-serif;
+        font-size: 20px;
+        color: #ffffff;
+      }
+
+      .bento-card p {
+        font-size: 14.5px;
+        color: var(--ink-soft);
+      }
+
+      .bento-mini-preview {
+        margin-top: auto;
+        padding-top: 12px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .mini-tag {
+        font-size: 11.5px;
+        font-weight: 700;
+        padding: 5px 10px;
+        border-radius: 8px;
+        background: rgba(7, 12, 22, 0.8);
+        border: 1px solid #223352;
+        color: var(--ink-soft);
+      }
+
+      /* ==========================================================================
+         FAQ Section
+         ========================================================================== */
+      .faq-list {
+        max-width: 840px;
+        margin: 0 auto;
+        display: grid;
+        gap: 12px;
+      }
+
+      details.faq-item {
+        background: rgba(16, 26, 44, 0.82);
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        padding: 18px 22px;
+        transition: border-color 0.2s ease;
+      }
+
+      details.faq-item[open] {
+        border-color: rgba(45, 212, 191, 0.45);
+      }
+
+      details.faq-item summary {
+        font-weight: 700;
+        font-size: 16px;
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+      }
+
+      details.faq-item summary::-webkit-details-marker {
+        display: none;
+      }
+
+      details.faq-item p {
+        margin-top: 12px;
+        font-size: 14.5px;
+        color: var(--ink-soft);
+      }
+
+      /* ==========================================================================
+         Bottom Launch CTA Banner
+         ========================================================================== */
+      .cta-banner {
+        margin: 30px 0 80px;
+        background:
+          radial-gradient(circle at 85% 20%, rgba(20, 184, 177, 0.26), transparent 45%),
+          linear-gradient(145deg, #13223b 0%, #091221 100%);
+        border: 1px solid rgba(45, 212, 191, 0.42);
+        border-radius: var(--radius-xl);
+        padding: 48px;
+        text-align: center;
+        box-shadow: var(--shadow-lg);
+      }
+
+      .cta-banner h2 {
+        font-family: 'Sora', sans-serif;
+        font-size: clamp(26px, 3.2vw, 38px);
+        margin-bottom: 12px;
+      }
+
+      .cta-banner p {
+        color: var(--ink-soft);
+        max-width: 600px;
+        margin: 0 auto 26px;
+      }
+
+      .bottom-form {
+        max-width: 660px;
+        margin: 0 auto;
+        display: grid;
+        grid-template-columns: 0.9fr 1.3fr auto;
+        gap: 10px;
+      }
+
+      /* Footer */
+      .footer {
+        border-top: 1px solid var(--line);
+        padding: 36px 0 48px;
+        color: var(--ink-muted);
+        font-size: 13.5px;
+      }
+
+      .footer-inner {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+      }
+
+      .footer-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+
+      .footer-links a:hover {
+        color: var(--accent-bright);
+      }
+
+      @media (max-width: 1024px) {
+        .hero-grid,
+        .cockpit-panel.active,
+        .comparison-grid,
+        .lab-grid {
+          grid-template-columns: 1fr;
+        }
+        .stats-strip {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .bento-grid {
+          grid-template-columns: 1fr;
+        }
+        .bento-card.span-2 {
+          grid-column: span 1;
+        }
+        .nav-links {
+          display: none;
+        }
+        .floating-card-top-left,
+        .floating-card-bottom-right,
+        .floating-card-mid-right {
+          display: none;
+        }
+      }
+
+      @media (max-width: 640px) {
+        .waitlist-inputs,
+        .waitlist-inputs-secondary,
+        .bottom-form {
+          grid-template-columns: 1fr;
+        }
+        .stats-strip {
+          grid-template-columns: 1fr;
+        }
+        .cockpit-stage,
+        .cta-banner,
+        .lab-box {
+          padding: 22px;
+        }
+        .phone-3d-rig {
+          width: 310px;
+          height: 600px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Interactive 3D Stadium & Telemetry Particle Field -->
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+    <!-- Top Ribbon -->
+    <div class="top-ribbon">
+      <span>🦢 <strong>SWANSPORT LANSMAN VİTRİNİ:</strong> 60 Spor Branşı, 5 Rol ve Uçtan Uca Kulüp İşletim Sistemi çok yakında iOS ve Android'de.</span>
+      <a href="#erken-erisim">Erken Erişim Sırasına Katıl →</a>
     </div>
-  </header>
 
-  <main id="icerik">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="wrap hero-grid">
-        <div>
-          <span class="pill">
-            <span class="pulse-dot" aria-hidden="true"></span>
-            <span id="launch-eta-pill">Çok Yakında App Store ve Google Play'de</span>
+    <!-- Top Navigation (Zero Console Links — Pure Product Showcase) -->
+    <header class="navbar">
+      <div class="container navbar-inner">
+        <a href="#" class="brand">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 3c-3.5 0-6 2.5-6 5.5 0 2 1.2 3.6 3 4.5L7 19h10l-2-6c1.8-.9 3-2.5 3-4.5C18 5.5 15.5 3 12 3z" />
+              <path d="M5 21h14" />
+            </svg>
           </span>
-          <h1 id="hero-title">Spor Kulüplerinin, Sahaların ve 60 Branşın <span>Dijital İşletim Sistemi.</span></h1>
-          <p class="hero-lead">
-            Branşa özel canlı antrenman kokpiti, resmi esame ve canlı maç skor merkezi, şeffaf kulüp muhasebesi, veli işlem merkezi ve halka açık kort sırası tek çatı altında.
-          </p>
+          <span>SwanSport</span>
+          <span class="brand-tag">Lansman Öncesi</span>
+        </a>
 
-          <!-- Waitlist Card -->
-          <div class="waitlist-card" id="haberdar-ol">
-            <div class="waitlist-head">
-              <strong><svg aria-hidden="true" style="color:var(--accent-bright)"><use href="#i-bell"/></svg>Uygulama Yayınlanınca Bana Haber Ver</strong>
-              <span class="waitlist-counter" id="waitlist-count-badge">Erken erişim kaydı açık</span>
+        <nav class="nav-links" aria-label="Bölümler">
+          <a href="#neden-swansport">Neden SwanSport?</a>
+          <a href="#kokpit-onizleme">5 Rol Deneyimi</a>
+          <a href="#canli-laboratuvar">Canlı Antrenman Pedi</a>
+          <a href="#teknoloji-bento">Mimari & Özellikler</a>
+          <a href="#sss">S.S.S.</a>
+        </nav>
+
+        <div class="nav-actions">
+          <a href="#kokpit-onizleme" class="btn btn-ghost">Uygulamayı Keşfet</a>
+          <a href="#erken-erisim" class="btn btn-primary">Yayınlanınca Haber Ver 🔔</a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero Section -->
+    <main>
+      <section class="hero">
+        <div class="container hero-grid">
+          <div>
+            <div class="launch-pill">
+              <span class="pulse-dot"></span>
+              <span id="launch-eta-pill">Çok Yakında App Store ve Google Play'de</span>
             </div>
 
-            <form id="waitlist-form" novalidate>
-              <span class="role-chips-label" id="role-group-label">1. Platformdaki rolünü seç:</span>
-              <div class="role-chips" role="group" aria-labelledby="role-group-label">
-                <button type="button" class="role-chip" data-role="athlete" aria-pressed="true">Sporcu</button>
-                <button type="button" class="role-chip" data-role="coach" aria-pressed="false">Antrenör</button>
-                <button type="button" class="role-chip" data-role="club_admin" aria-pressed="false">Kulüp Yöneticisi</button>
-                <button type="button" class="role-chip" data-role="guardian" aria-pressed="false">Veli</button>
-                <button type="button" class="role-chip" data-role="referee" aria-pressed="false">Hakem / Gözlemci</button>
+            <h1>
+              Spor Kulüpleri, Sahalar ve Sporcular İçin
+              <span class="gradient-text">360° Dijital Spor Ağı.</span>
+            </h1>
+
+            <p class="hero-lead">
+              Dağınık WhatsApp gruplarına, kaybolan aidat listelerine ve kağıt üstü antrenman notlarına veda edin.
+              <strong>60 spor federasyonu branşında</strong> canlı antrenman kokpiti, şeffaf kulüp kasası, veli bilgi hattı, hakem maç motoru ve GPS'li kort sırası tek uygulamada birleşti.
+            </p>
+
+            <div class="hero-micro-badges">
+              <div class="micro-badge"><span>✓</span> 60 Branş & 120 Şablon</div>
+              <div class="micro-badge"><span>✓</span> #A3F91C Muhasebeci Gizlilik Kalkanı</div>
+              <div class="micro-badge"><span>✓</span> Offline-First Saha Yoklaması</div>
+              <div class="micro-badge"><span>✓</span> Canlı Maç & Fikstür Motoru</div>
+            </div>
+
+            <!-- Waitlist Card -->
+            <div class="waitlist-card" id="erken-erisim">
+              <div class="waitlist-header">
+                <div class="waitlist-title">
+                  <span>🚀</span>
+                  <span>Uygulama Yayınlanınca Bana Haber Ver</span>
+                </div>
+                <span class="waitlist-counter" id="waitlist-count-badge">Erken erişim kayıtları açık</span>
               </div>
 
-              <div class="waitlist-inputs">
-                <div>
-                  <label for="wl-sport" class="sr-only">İlgilendiğin Branş</label>
-                  <select id="wl-sport" name="sport_code" class="input-field">
-                    <option value="">Branş seç (Opsiyonel — 60 Branş)</option>
-                    <option value="futbol">Futbol</option>
-                    <option value="tenis">Tenis</option>
-                    <option value="basketbol">Basketbol</option>
-                    <option value="voleybol">Voleybol</option>
-                    <option value="yuzme">Yüzme</option>
-                    <option value="okculuk">Okçuluk</option>
-                    <option value="atletizm">Atletizm</option>
-                    <option value="cimnastik">Cimnastik</option>
-                    <option value="taekwondo">Taekwondo &amp; Mücadele</option>
-                    <option value="satranc">Satranç &amp; Zihin Sporları</option>
-                    <option value="coklu">Çok Branşlı Kulüp / Diğer</option>
+              <form id="hero-waitlist-form" novalidate>
+                <span class="role-selector-label">Sahadaki Rolünüzü Seçin</span>
+                <div class="role-chips" id="hero-role-chips" role="radiogroup" aria-label="Sahadaki rolünüz">
+                  <button type="button" class="role-chip active" data-role="athlete">🏃 Sporcu</button>
+                  <button type="button" class="role-chip" data-role="coach">📋 Antrenör</button>
+                  <button type="button" class="role-chip" data-role="club_admin">🛡️ Kulüp Yöneticisi</button>
+                  <button type="button" class="role-chip" data-role="guardian">👨‍👩‍👧 Veli</button>
+                  <button type="button" class="role-chip" data-role="referee">⚖️ Hakem / Gözlemci</button>
+                </div>
+
+                <div class="waitlist-inputs">
+                  <input
+                    type="email"
+                    id="hero-email"
+                    class="input-field"
+                    placeholder="E-posta adresiniz (örn. ad@kulup.com)"
+                    required
+                    autocomplete="email"
+                  />
+                  <select id="hero-sport" class="select-field" aria-label="Ana spor branşı">
+                    <option value="">Branş Seçin (Opsiyonel)</option>
+                    <option value="football">⚽ Futbol / Halı Saha</option>
+                    <option value="basketball">🏀 Basketbol</option>
+                    <option value="volleyball">🏐 Voleybol</option>
+                    <option value="tennis">🎾 Tenis</option>
+                    <option value="swimming">🏊 Yüzme</option>
+                    <option value="archery">🏹 Okçuluk</option>
+                    <option value="athletics">🏃 Atletizm</option>
+                    <option value="gymnastics">🤸 Cimnastik</option>
+                    <option value="martial_arts">🥋 Savunma Sporları (Taekwondo/Judo/Karate)</option>
+                    <option value="other">🏅 Diğer Federasyon Branşları (60 Branş)</option>
                   </select>
                 </div>
-                <div>
-                  <label for="wl-city" class="sr-only">Kulüp veya Şehir</label>
-                  <input id="wl-city" name="club_or_city" type="text" maxlength="120" class="input-field" placeholder="Şehir veya Kulüp adı (Opsiyonel)">
+
+                <div class="waitlist-inputs-secondary">
+                  <input
+                    type="text"
+                    id="hero-club"
+                    class="input-field"
+                    placeholder="Kulüp adı veya şehir (Opsiyonel)"
+                    maxlength="120"
+                  />
+                  <button type="submit" class="btn btn-primary" id="hero-submit-btn">
+                    Yayınlanınca Haber Ver 🔔
+                  </button>
                 </div>
+
+                <div id="hero-feedback" class="waitlist-feedback" role="status" aria-live="polite"></div>
+              </form>
+            </div>
+
+            <!-- Store Badges (No raw APK/IPA — Official Store Pre-Launch) -->
+            <div class="store-badges" aria-label="Uygulama mağazaları">
+              <a href="#erken-erisim" class="store-badge" id="store-ios-link">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 6.33c.64-.78 1.08-1.86.96-2.94-.93.04-2.06.62-2.72 1.4-.58.68-1.1 1.79-.96 2.84 1.04.08 2.08-.52 2.72-1.3z"/>
+                </svg>
+                <div class="store-badge-meta">
+                  <span class="store-badge-sub" id="store-ios-sub">Çok Yakında</span>
+                  <span class="store-badge-main">App Store</span>
+                </div>
+              </a>
+
+              <a href="#erken-erisim" class="store-badge" id="store-android-link">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M3 20.5v-17c0-.83.94-1.3 1.6-.8l14 8.5c.6.37.6 1.23 0 1.6l-14 8.5c-.66.5-1.6.03-1.6-.8z"/>
+                </svg>
+                <div class="store-badge-meta">
+                  <span class="store-badge-sub" id="store-android-sub">Çok Yakında</span>
+                  <span class="store-badge-main">Google Play</span>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Right Column: 3D Interactive Hardware & Layer Stage -->
+          <div class="stage-3d-wrapper">
+            <div class="stage-controls" role="group" aria-label="3B sahne görünüm kontrolleri">
+              <button type="button" class="stage-btn active" id="btn-3d-assembled">📱 3B Canlı Sahne</button>
+              <button type="button" class="stage-btn" id="btn-3d-exploded">🧊 3B Katmanları Ayır</button>
+            </div>
+
+            <div class="phone-3d-rig" id="phone-3d-rig">
+              <div class="phone-chassis-shadow"></div>
+
+              <!-- Floating 3D Satellite Cards -->
+              <div class="floating-card-3d floating-card-top-left">
+                <div class="fc-tag">🔴 CANLI MAÇ MOTORU</div>
+                <div class="fc-val">Kuğu SK 3 — 1 Anadolu</div>
+                <div class="fc-sub">78' Gol · Onaylı Esame · Anlık Push</div>
               </div>
 
-              <div class="waitlist-main-row">
-                <div>
-                  <label for="wl-email" class="sr-only">E-posta Adresin</label>
-                  <input id="wl-email" name="email" type="email" required autocomplete="email" class="input-field" placeholder="E-posta adresin (örn. ad@kulup.com)">
+              <div class="floating-card-3d floating-card-mid-right">
+                <div class="fc-tag">🛡️ GİZLİLİK KALKANI</div>
+                <div class="fc-val">Kod: #A3F91C</div>
+                <div class="fc-sub">Muhasebede Sıfır Sporcu Adı</div>
+              </div>
+
+              <div class="floating-card-3d floating-card-bottom-right">
+                <div class="fc-tag">👨‍👩‍👧 VELİ BİLDİRİMİ</div>
+                <div class="fc-val">Yoklama Alındı ✓</div>
+                <div class="fc-sub">17:00 Olimpik Havuz · Kulvar 4</div>
+              </div>
+
+              <!-- 3D Phone Chassis -->
+              <div class="phone-chassis">
+                <div class="phone-screen">
+                  <div class="phone-glare" id="phone-glare"></div>
+                  <div class="dynamic-island">
+                    <span style="font-size:9px;color:#94a3b8;font-weight:700;">LIVE</span>
+                    <span class="island-led"></span>
+                  </div>
+
+                  <div class="mock-top">
+                    <div class="mock-user">
+                      <div class="mock-avatar">SK</div>
+                      <div>
+                        <div style="font-size: 13px; font-weight: 800; color: #fff">SwanSpor Kulübü</div>
+                        <div style="font-size: 11px; color: #5eead4" id="hero-mock-role-badge">Aktif Rol: Sporcu & Antrenör</div>
+                      </div>
+                    </div>
+                    <span style="font-size: 11px; padding: 4px 9px; border-radius: 999px; background: rgba(20,184,177,0.16); color: #5eead4; font-weight: 700;">
+                      60 Branş
+                    </span>
+                  </div>
+
+                  <div class="mock-card mock-card-accent mock-card-elevate">
+                    <span class="mock-tag">Canlı Antrenman Kokpiti · Okçuluk 70m</span>
+                    <div style="font-weight: 800; font-size: 14.5px; color: #fff">Olimpik Yay — 6 Ok Seri #4</div>
+                    <div style="font-size: 11.5px; color: #cbd5e1; margin-top: 2px">
+                      Atışlar: <strong style="color:#5eead4;">X · 10 · 10 · 9 · 9 · 9</strong> (57/60 Puan)
+                    </div>
+                    <div class="mock-metric-row">
+                      <div class="mock-metric">
+                        <strong>9.50</strong>
+                        <span>Ok Ort.</span>
+                      </div>
+                      <div class="mock-metric">
+                        <strong>%94</strong>
+                        <span>Sarı Bölge</span>
+                      </div>
+                      <div class="mock-metric">
+                        <strong>RPE 6</strong>
+                        <span>Yük İndeksi</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="mock-card mock-card-elevate">
+                    <span class="mock-tag">Resmi Müsabaka & Canlı Skor</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <div>
+                        <div style="font-weight: 700; font-size: 13px; color: #fff">U16 Bölgesel Lig · 2. Periyot</div>
+                        <div style="font-size: 11px; color: #8b9bb4">Esame Onaylı · Hakem Kokpiti Bağlı</div>
+                      </div>
+                      <span style="font-family:'Sora',sans-serif;font-weight:800;font-size:15px;color:#5eead4;">42 - 38</span>
+                    </div>
+                  </div>
+
+                  <div class="mock-card mock-card-elevate">
+                    <span class="mock-tag">Kulüp Kasası & Aidat</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <div>
+                        <div style="font-weight: 700; font-size: 13px; color: #fff">Ekim DönemiTahsilatı</div>
+                        <div style="font-size: 11px; color: #8b9bb4">Anonim Ref: <span class="mono-code">#A3F91C</span></div>
+                      </div>
+                      <span class="sim-pill ok">Ödendi ✓</span>
+                    </div>
+                  </div>
+
+                  <div class="mock-card">
+                    <span class="mock-tag">GPS Doğrulamalı Kort Sırası</span>
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <div style="font-size: 12px; color: #cbd5e1">Merkez Kort #2 · 48m mesafede</div>
+                      <span class="sim-pill">Sırada #1</span>
+                    </div>
+                  </div>
+
+                  <div class="mock-bottom-nav">
+                    <span class="active-nav">Ana Sayfa</span>
+                    <span>Keşfet</span>
+                    <span class="mock-plus">+</span>
+                    <span>Mesajlar</span>
+                    <span>Profil</span>
+                  </div>
                 </div>
-                <button type="submit" id="wl-submit" class="btn btn-primary">
-                  <svg aria-hidden="true"><use href="#i-bell"/></svg>
-                  <span id="wl-submit-text">Bana Haber Ver</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Key Platform Numbers -->
+        <div class="container">
+          <div class="stats-strip">
+            <div class="stat-box">
+              <div class="stat-number">60</div>
+              <div class="stat-label">Türkiye Spor Federasyonu Branşı</div>
+              <div class="stat-sub">7 özel antrenman arketipi ve 120 hazır şablon</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">5 Rol</div>
+              <div class="stat-label">Tek Hesapta Kesintisiz Geçiş</div>
+              <div class="stat-sub">Sporcu · Antrenör · Kulüp · Veli · Hakem</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">%100</div>
+              <div class="stat-label">Muhasebeci ve Çocuk Gizliliği</div>
+              <div class="stat-sub">#A3F91C anonim finans kodu ve veli izin kalkanı</div>
+            </div>
+            <div class="stat-box">
+              <div class="stat-number">Offline</div>
+              <div class="stat-label">Kesintisiz Saha Yoklaması</div>
+              <div class="stat-sub">İnternet çekmeyen tesiste bile yerel kuyruk ve senkron</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           Neden SwanSport? (Reklam & Karşılaştırma Sahnesi)
+           ======================================================================== -->
+      <section class="section" id="neden-swansport">
+        <div class="container">
+          <div class="section-header">
+            <span class="eyebrow">Kaostan Profesyonel Dünyaya</span>
+            <h2 class="section-title">Kulübünüzü WhatsApp Gruplarından ve Excel Dosyalarından Kurtarın</h2>
+            <p class="section-desc">
+              Türkiye'deki spor kulüplerinin, antrenörlerin ve velilerin her gün yaşadığı iletişim ve takip karmaşasını tek bir akıllı işletim sisteminde çözdük.
+            </p>
+          </div>
+
+          <div class="comparison-grid">
+            <div class="compare-card compare-old">
+              <span class="compare-badge">✕ Eski Usul Kulüp & Saha Yönetimi</span>
+              <h3>Dağınık Gruplar ve Kaybolan Veriler</h3>
+              <ul class="compare-list">
+                <li>
+                  <span>❌</span>
+                  <div><strong>50 Kişilik WhatsApp Karmaşası:</strong> Maç saati, saha konumu ve antrenman iptalleri yüzlerce mesajın arasında kaybolur.</div>
+                </li>
+                <li>
+                  <span>❌</span>
+                  <div><strong>Excel ve Kağıt Üstü Aidat Takibi:</strong> Kimin hangi ay ödeme yaptığı karışır, dış muhasebeci tüm sporcuların özel isimlerini görür.</div>
+                </li>
+                <li>
+                  <span>❌</span>
+                  <div><strong>Unutulan Antrenman Dereceleri:</strong> Kronometreyle ölçülen dereceler ve ok/atış puanları defterde kalır, gelişim grafiğine dönüşmez.</div>
+                </li>
+                <li>
+                  <span>❌</span>
+                  <div><strong>"Çocuğum Sahaya Geldi mi?" Endişesi:</strong> Veliler yoklama bilgisini öğrenmek için antrenörü aramak zorunda kalır.</div>
+                </li>
+                <li>
+                  <span>❌</span>
+                  <div><strong>Kort ve Halı Saha Sıra Tartışması:</strong> Sahada kimin sırada olduğu veya nöbetçi personelin kim olduğu bilinemez.</div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="compare-card compare-new">
+              <span class="compare-badge">✓ SwanSport Dijital Ekosistemi</span>
+              <h3>Her Rol İçin Özel Tasarlanmış Tek Merkez</h3>
+              <ul class="compare-list">
+                <li>
+                  <span>🚀</span>
+                  <div><strong>Akıllı Takvim & Otomatik Bildirim:</strong> Antrenman, tesis tahsisi ve resmi maç programı değiştiği anda sadece ilgili kadroya ve velilere bildirim gider.</div>
+                </li>
+                <li>
+                  <span>🛡️</span>
+                  <div><strong>#A3F91C Anonim Finans Kalkanı:</strong> Aidat ve giderler kuruşu kuruşuna izlenir; muhasebeci sporcu adını hiç görmeden resmi mutabakat yapar.</div>
+                </li>
+                <li>
+                  <span>📊</span>
+                  <div><strong>60 Branşa Özel Canlı Veri Pedi:</strong> Yüzme split'lerinden okçuluk hedef serilerine kadar her veri tek dokunuşla sporcu CV'sine işlenir.</div>
+                </li>
+                <li>
+                  <span>👨‍👩‍👧</span>
+                  <div><strong>Anlık Veli Eylem Merkezi:</strong> Antrenör yoklamayı aldığı saniyede velinin telefonuna bildirim düşer; izin belgeleri tek dokunuşla onaylanır.</div>
+                </li>
+                <li>
+                  <span>📍</span>
+                  <div><strong>GPS Doğrulamalı Saha & Kort Sırası:</strong> Yalnızca sahaya fiziksel olarak yakın sporcular sıraya girer, hayalet rezervasyonlar biter.</div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           5 Rol, 5 Özel Kokpit Deneyimi
+           ======================================================================== -->
+      <section class="section" id="kokpit-onizleme">
+        <div class="container">
+          <div class="section-header">
+            <span class="eyebrow">5 Rol · Tek Uygulama</span>
+            <h2 class="section-title">Sahadaki Rolünüzü Seçin, Ekranınızı Canlı İnceleyin</h2>
+            <p class="section-desc">
+              SwanSport herkes için aynı menüyü göstermez; onaylı belgenize, kulüp üyeliğinize ve sahadaki görevinize göre arayüzü anında size uyarlar.
+            </p>
+          </div>
+
+          <div class="cockpit-tabs" role="tablist" aria-label="Rol önizlemeleri">
+            <button type="button" class="cockpit-tab active" data-preview="athlete" role="tab" aria-selected="true">🏃 Sporcu Kokpiti</button>
+            <button type="button" class="cockpit-tab" data-preview="coach" role="tab" aria-selected="false">📋 Antrenör Kokpiti</button>
+            <button type="button" class="cockpit-tab" data-preview="club_admin" role="tab" aria-selected="false">🛡️ Kulüp Yönetimi</button>
+            <button type="button" class="cockpit-tab" data-preview="guardian" role="tab" aria-selected="false">👨‍👩‍👧 Veli Merkezi</button>
+            <button type="button" class="cockpit-tab" data-preview="referee" role="tab" aria-selected="false">⚖️ Hakem Kokpiti</button>
+          </div>
+
+          <div class="cockpit-stage">
+            <!-- 1. Sporcu -->
+            <div class="cockpit-panel active" id="panel-athlete">
+              <div class="panel-Copy">
+                <span class="eyebrow">Lisanslı & Ferdi Sporcular</span>
+                <h3>Performansın, Resmi Maç CV'n ve Saha Ağın Cebinde</h3>
+                <p>
+                  Antrenman derecelerinden resmi müsabaka sonuçlarına, günlük beslenme/hidrasyon takibinden mahallendeki açık kortta partner bulmaya kadar her şey tek profilde.
+                </p>
+                <ul class="feature-bullets">
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Canlı Antrenman Katılımı:</strong> Antrenörün başlattığı oturuma katıl, branşına özel veri pedinde (Okçuluk, Yüzme, Tenis, Atletizm, Futbol) setlerini anlık kaydet.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Doğrulanmış Sporcu CV'si:</strong> Hakem ve federasyon onaylı resmi müsabaka derecelerin profilinde kalıcı rozet olarak yer alır.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Saha & Partner Bul:</strong> Konumuna en yakın kort ve halı sahaları gör, eksik oyuncu ilanlarına başvur veya GPS ile kort sırasına gir.</div>
+                  </li>
+                </ul>
+              </div>
+              <div class="ui-window">
+                <div class="ui-window-bar">
+                  <div class="window-dots"><span></span><span></span><span></span></div>
+                  <span class="window-route">/antrenman/oturum · Sporcu Görünümü</span>
+                </div>
+                <div class="sim-grid">
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🏹 Olimpik Yay 70m · 6. Seri</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Atışlar: X - 10 - 10 - 9 - 9 - 8</div>
+                    </div>
+                    <span class="sim-pill">56 / 60 Puan</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🏅 Resmi Müsabaka Derecesi</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">İl Şampiyonası · Hakem Onaylı CV Kaydı</div>
+                    </div>
+                    <span class="sim-pill ok">Çeyrek Final</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">💧 Beslenme & Hidrasyon Hedefi</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Günlük Su: 2.8L / 3.0L · Protein Hedefi Tamam</div>
+                    </div>
+                    <span class="sim-pill ok">%93</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🎾 Partner İlanı · Merkez Kort #1</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Bu akşam 20:00 · Orta-İleri Seviye Tekler</div>
+                    </div>
+                    <span class="sim-pill">Eşleşme Hazır</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. Antrenör -->
+            <div class="cockpit-panel" id="panel-coach">
+              <div class="panel-Copy">
+                <span class="eyebrow">1–5. Kademe Antrenörler</span>
+                <h3>Kronometre, Kağıt Yoklama ve WhatsApp Karmaşasına Son</h3>
+                <p>
+                  60 branşın tamamına uyumlu 7 arketip motoruyla antrenman şablonunuzu saniyeler içinde kurun, internet çekmeyen sahada bile yoklama alın ve velilere tek dokunuşla gelişim karnesi gönderin.
+                </p>
+                <ul class="feature-bullets">
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Akıllı Branş Kapsamı:</strong> Kulübünüzün aktif branşları arasında tek dokunuşla geçiş yapın; her branş kendi metrik pedini otomatik açar.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Offline-First Saha Yoklaması:</strong> Bodrum salonda veya bağlantı kopan sahada yoklamayı işaretleyin; bağlantı geldiğinde çakışmasız senkronize olsun.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Veli Gelişim Karnesi & Sağlık Kilidi:</strong> Dönemlik gelişim raporunu yayınlayın; doktorun koyduğu tıbbi dinlenme kilidini kadro ekranında anında görün.</div>
+                  </li>
+                </ul>
+              </div>
+              <div class="ui-window">
+                <div class="ui-window-bar">
+                  <div class="window-dots"><span></span><span></span><span></span></div>
+                  <span class="window-route">/yoklama & /antrenman-olustur · Antrenör</span>
+                </div>
+                <div class="sim-grid">
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">📋 U16 A Takım Akşam Antrenmanı</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">22 Sporcu Katıldı · 1 İzinli · 1 Tıbbi İstirahat</div>
+                    </div>
+                    <span class="sim-pill ok">Senkronize ✓</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🏊 Yüzme 4x100m Serbest İnterval</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Arketip: Time-Split · Otomatik Kulvar Ortalaması</div>
+                    </div>
+                    <span class="sim-pill">01:02.40</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🩺 Sporcu Sağlık & Uygunluk Kilidi</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Tıbbi kilitli sporcu esame listesine eklenemez</div>
+                    </div>
+                    <span class="sim-pill warn">Korumalı</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">📈 Dönemlik Veli Gelişim Raporu</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Teknik, kondisyon ve devamlılık özeti</div>
+                    </div>
+                    <span class="sim-pill ok">Velilere İletildi</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. Kulüp Yöneticisi -->
+            <div class="cockpit-panel" id="panel-club_admin">
+              <div class="panel-Copy">
+                <span class="eyebrow">Kulüp Yönetimi & İdari Operasyon</span>
+                <h3>Finans, Çoklu Branş, Tesis ve Zimmet Tek Merkezde</h3>
+                <p>
+                  Kulübünüzün antrenman yaptığı tüm branşları yönetin, aidat dönemlerini ve gider onay zincirini şeffaflaştırın, dış muhasebecinize sporcu kişisel verilerini açmadan denetim imkanı verin.
+                </p>
+                <ul class="feature-bullets">
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Muhasebeci Gizlilik Kalkanı (<span class="mono-code">#A3F91C</span>):</strong> Muhasebeci aidat ve gider defterini inceler ancak sporcu ad-soyadlarını asla göremez; yalnızca sabit referans kodunu görür.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Envanter, Zimmet ve Tesis Takvimi:</strong> Kulüp malzemelerinin kime zimmetli olduğunu ve saha/salon saatlerindeki çakışmaları anında denetleyin.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Çoklu Branş & Kadro Bağlama:</strong> Küçük yaş (hesapsız/veli bağlantılı) sporcular ile yetişkin lisanslı sporcuları aynı kadro mimarisinde eksiksiz yönetin.</div>
+                  </li>
+                </ul>
+              </div>
+              <div class="ui-window">
+                <div class="ui-window-bar">
+                  <div class="window-dots"><span></span><span></span><span></span></div>
+                  <span class="window-route">/finans & /kulup-operasyon · Yönetim</span>
+                </div>
+                <div class="sim-grid">
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">💳 Aidat Tahsilatı · Sporcu <span class="mono-code">#A3F91C</span></strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Muhasebeci Görünümü: Kişisel Veri Maskeli (RLS)</div>
+                    </div>
+                    <span class="sim-pill ok">₺2.500 Tahsil</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🧾 Tedarikçi & Saha Gider Onayı</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Olimpik Havuz Kulvar Kirası · Fatura Ekli</div>
+                    </div>
+                    <span class="sim-pill">Onaylandı</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🎒 Kulüp Envanter & Malzeme Zimmeti</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">24 Müsabaka Forması · 12 Kronometre · 8 Yay</div>
+                    </div>
+                    <span class="sim-pill ok">Tam Kayıt</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🏟️ Tesis Çakışma Kontrolü</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">A Salonu · 18:00–20:00 Voleybol / Basketbol</div>
+                    </div>
+                    <span class="sim-pill ok">0 Çakışma</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 4. Veli -->
+            <div class="cockpit-panel" id="panel-guardian">
+              <div class="panel-Copy">
+                <span class="eyebrow">Veli Eylem Merkezi</span>
+                <h3>Çocuğunuzun Spor Yolculuğunu Güvenle ve Şeffaflıkla İzleyin</h3>
+                <p>
+                  "Antrenmana girdi mi?", "Turnuva izin belgesi imzalandı mı?", "Aidat ne zaman?" sorularını tek ekranda çözen, çocuk gizliliğini merkeze alan özel veli kokpiti.
+                </p>
+                <ul class="feature-bullets">
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Tek Dokunuşla İzin & Mazeret:</strong> Deplasman/turnuva izinlerini ve antrenman devamsızlık mazeretlerini uygulama içinden saniyeler içinde onaylayın.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Çocuk Gizlilik Kalkanı:</strong> Herkese açık canlı maç ekranlarında çocuğunuzun tam adının görünüp görünmeyeceğini yalnız siz belirlersiniz.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Gelişim Karnesi & Resmi Sonuçlar:</strong> Antrenörün hazırladığı dönemlik gelişim raporunu ve resmi maç derecelerini zaman tünelinde takip edin.</div>
+                  </li>
+                </ul>
+              </div>
+              <div class="ui-window">
+                <div class="ui-window-bar">
+                  <div class="window-dots"><span></span><span></span><span></span></div>
+                  <span class="window-route">/veli-merkezi · Veli Görünümü</span>
+                </div>
+                <div class="sim-grid">
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🔔 Canlı Yoklama Bildirimi</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Efe K. 17:00 Yüzme Antrenmanına Katıldı</div>
+                    </div>
+                    <span class="sim-pill ok">Az Önce</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">✍️ Turnuva Veli Muvafakatnamesi</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">29 Ekim Cumhuriyet Kupası Каtılım Onayı</div>
+                    </div>
+                    <span class="sim-pill">Onay Bekliyor</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🛡️ Çocuk Açık İsim Görünürlüğü</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Genel canlı skorda ad maskeleme (E. K.) aktif</div>
+                    </div>
+                    <span class="sim-pill ok">Korumalı</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">📊 3 Aylık Antrenör Gelişim Raporu</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">50m Serbest derecesinde %8.4 iyileşme</div>
+                    </div>
+                    <span class="sim-pill ok">Karnede Gör</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 5. Hakem -->
+            <div class="cockpit-panel" id="panel-referee">
+              <div class="panel-Copy">
+                <span class="eyebrow">Mobil Hakem Kokpiti & Gözlemci</span>
+                <h3>Esame Kontrolünden Canlı Maç Olaylarına ve İmzalı Rapora</h3>
+                <p>
+                  Atandığınız resmi müsabakaları tek ekranda görün, maç öncesi dondurulmuş esame listelerini doğrulayın, maç içi olayları canlı işleyin ve değiştirilemez (immutable) resmi hakem raporunu mühürleyin.
+                </p>
+                <ul class="feature-bullets">
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Dondurulmuş Esame & Cezalı Kontrolü:</strong> Disiplin cezası veya sağlık kilidi olan sporcular sunucu tarafında otomatik engellenir; onaylanan esame maç boyu değiştirilemez.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>Canlı Maç Olay Motoru:</strong> Futbol, Basketbol, Tenis ve takım branşlarında gol, periyot, kart ve set skorlarını gerçek zamanlı kaydedin.</div>
+                  </li>
+                  <li>
+                    <span class="bullet-check">✓</span>
+                    <div><strong>İmzalı Resmi Rapor & Seyirci Yansıması:</strong> Maç bittiğinde imzalanan rapor sonucu mühürler ve sporcuların resmi CV'lerine otomatik işlenir.</div>
+                  </li>
+                </ul>
+              </div>
+              <div class="ui-window">
+                <div class="ui-window-bar">
+                  <div class="window-dots"><span></span><span></span><span></span></div>
+                  <span class="window-route">/hakem/canli · Hakem Kokpiti</span>
+                </div>
+                <div class="sim-grid">
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">⚖️ Esame Doğrulama · Ev & Deplasman</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">18+18 Lisanslı Sporcu · Cezalı/Engelli Yok</div>
+                    </div>
+                    <span class="sim-pill ok">Mühürlendi ✓</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">⚽ Canlı Skor & Olay Kaydı (74')</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Anadolu SK 2 — 1 Kuzey Yıldızı · Gol & Sarı Kart</div>
+                    </div>
+                    <span class="sim-pill">Canlı Yayında</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🎾 Çoklu Branş Protokolü (Tenis / Basketbol)</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Set galibiyeti, tie-break ve periyot kuralları hazır</div>
+                    </div>
+                    <span class="sim-pill ok">Aktif</span>
+                  </div>
+                  <div class="sim-row">
+                    <div>
+                      <strong style="color:#fff;">🔒 Değiştirilemez (Immutable) Maç Raporu</strong>
+                      <div style="font-size:11.5px;color:#8b9bb4;">Başhakem imzası sonrası federasyon kuruluna düşer</div>
+                    </div>
+                    <span class="sim-pill">İmzaya Hazır</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           Interactive Live Branch Training Simulator (Canlı Antrenman Pedi Deneyimi)
+           ======================================================================== -->
+      <section class="section" id="canli-laboratuvar">
+        <div class="container">
+          <div class="section-header">
+            <span class="eyebrow">Canlı İnteraktif Deneyim</span>
+            <h2 class="section-title">60 Branşın Antrenman Motorunu Şimdi Burada Test Edin</h2>
+            <p class="section-desc">
+              Her spor aynı şekilde ölçülmez. Okçulukta ok serisi, yüzmede 50m split, teniste set skoru, halterde 1RM ağırlık gerekir. Sol taraftan bir arketip seçin ve sağdaki canlı antrenman pedine dokunun!
+            </p>
+          </div>
+
+          <div class="lab-box">
+            <div class="lab-grid">
+              <div class="arch-buttons" role="tablist" aria-label="Branş arketip seçimi">
+                <button type="button" class="arch-btn active" data-arch="archery">
+                  <strong>🏹 Hedef & İsabet Arketipi (Okçuluk · Atıcılık · Dart)</strong>
+                  <span>X / 10 / 9 / 8 / M ok vuruş girişi ve anlık seri ortalaması</span>
+                </button>
+                <button type="button" class="arch-btn" data-arch="swimming">
+                  <strong>⏱️ Süre & Split Arketipi (Yüzme · Atletizm · Kürek · Bisiklet)</strong>
+                  <span>Tur bazlı salise kaydı, tempo ve en iyi derece analizi</span>
+                </button>
+                <button type="button" class="arch-btn" data-arch="racket">
+                  <strong>🎾 Set & Ralli Arketipi (Tenis · Voleybol · Masa Tenisi · Badminton)</strong>
+                  <span>Set skoru, tie-break kilidi ve servis istatistiği</span>
+                </button>
+                <button type="button" class="arch-btn" data-arch="strength">
+                  <strong>🏋️ Ağırlık & Tekrar Arketipi (Halter · Fitness · Kondisyon)</strong>
+                  <span>Set × Tekrar × Kg, tahmini 1RM ve RPE zorluk derecesi</span>
                 </button>
               </div>
-              <div id="wl-feedback" class="waitlist-feedback" role="status" aria-live="polite"></div>
-            </form>
 
-            <div class="store-strip" aria-label="Mağaza yayın durumu">
-              <a href="#wl-email" id="store-ios-link" class="store-badge">
-                <svg aria-hidden="true"><use href="#i-apple"/></svg>
-                <div><small id="store-ios-sub">Çok Yakında · Ön Kayıt</small><strong>App Store (iOS)</strong></div>
-              </a>
-              <a href="#wl-email" id="store-android-link" class="store-badge">
-                <svg aria-hidden="true"><use href="#i-play"/></svg>
-                <div><small id="store-android-sub">Çok Yakında · Ön Kayıt</small><strong>Google Play (Android)</strong></div>
-              </a>
-              <a href="https://konsol.swansport.com.tr" target="_blank" rel="noopener noreferrer" class="store-badge">
-                <svg aria-hidden="true"><use href="#i-monitor"/></svg>
-                <div><small>Web Üzerinden Erişim</small><strong>Yönetim Konsolu ↗</strong></div>
-              </a>
-            </div>
-          </div>
-        </div>
-
-        <!-- Interactive 5-Role Device Cockpit Preview -->
-        <div class="cockpit-shell" id="kokpit" aria-label="İnteraktif SwanSport ekran önizlemesi">
-          <div class="cockpit-tabs" role="tablist" aria-label="Rol ekranları">
-            <button type="button" class="cockpit-tab" role="tab" aria-selected="true" data-preview="athlete">🏅 Sporcu</button>
-            <button type="button" class="cockpit-tab" role="tab" aria-selected="false" data-preview="coach">📋 Antrenör</button>
-            <button type="button" class="cockpit-tab" role="tab" aria-selected="false" data-preview="club_admin">🏛️ Kulüp &amp; Konsol</button>
-            <button type="button" class="cockpit-tab" role="tab" aria-selected="false" data-preview="guardian">🛡️ Veli Merkezi</button>
-            <button type="button" class="cockpit-tab" role="tab" aria-selected="false" data-preview="referee">⚖️ Hakem Kokpiti</button>
-          </div>
-
-          <div class="device-stage" id="preview-stage" aria-live="polite">
-            <!-- Populated dynamically & initialized with Athlete view -->
-            <div class="phone-frame">
-              <div class="phone-statusbar">
-                <span>SwanSport · <strong id="pv-role-title" style="color:#fff">Sporcu Ekranı</strong></span>
-                <span class="live-pill" id="pv-badge"><i></i> CANLI SKOR &amp; SAHA</span>
-              </div>
-              <div id="pv-body">
-                <div class="screen-card">
-                  <div class="screen-row">
-                    <span style="font-size:11px;color:var(--ink-muted)">Bölgesel Gençler Ligi · 64'</span>
-                    <span class="badge-teal">🔔 Bildirim Açık</span>
+              <div class="interactive-pad">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:8px;">
+                  <div>
+                    <span class="mock-tag" id="lab-arch-badge">CANLI SİMÜLASYON · HEDEF ARKETİPİ</span>
+                    <h3 style="font-family:'Sora',sans-serif;font-size:19px;color:#fff;" id="lab-arch-title">Okçuluk 70m — 6 Ok Seri Pedi</h3>
                   </div>
-                  <div class="score-board">
-                    <div><strong style="font-size:13px">Anadolu SK</strong><small style="display:block;font-size:10px;color:var(--ink-muted)">Ev Sahibi</small></div>
-                    <div class="score-num">2 - 1</div>
-                    <div><strong style="font-size:13px">Kuğuspor</strong><small style="display:block;font-size:10px;color:var(--ink-muted)">Deplasman</small></div>
-                  </div>
+                  <button type="button" class="btn btn-ghost" id="lab-reset-btn" style="padding:7px 12px;font-size:12px;">Sıfırla ↺</button>
                 </div>
-                <div class="screen-card">
-                  <div class="screen-row">
-                    <div>
-                      <strong style="font-size:13px;display:block">Millet Bahçesi Kort #2</strong>
-                      <small style="font-size:11px;color:var(--ink-muted)">Konum doğrulamalı sıra · Partner Bul</small>
-                    </div>
-                    <span class="badge-teal">18:00 Boş</span>
+
+                <p style="font-size:13px;color:var(--ink-soft);margin-bottom:12px;" id="lab-arch-desc">
+                  Aşağıdaki tuşlara tıklayarak sporcunun atışlarını veya derecelerini girin; SwanSport Branş Motoru ortalamayı ve performansı anında hesaplasın:
+                </p>
+
+                <div class="pad-score-keys" id="lab-keys"></div>
+
+                <div style="font-size:11.5px;font-weight:700;color:var(--ink-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.06em;">
+                  Kaydedilen Seri Verisi
+                </div>
+                <div class="pad-log" id="lab-log"></div>
+
+                <div class="mock-metric-row" style="margin-top:14px;">
+                  <div class="mock-metric">
+                    <strong id="lab-stat-1">57 / 60</strong>
+                    <span id="lab-stat-1-label">Toplam Puan</span>
                   </div>
-                  <div class="mini-grid">
-                    <div class="mini-stat"><small>Lisans Sicili</small><b>Onaylı</b><span>Ferdi &amp; Kulüp</span></div>
-                    <div class="mini-stat"><small>Bu Ay Antrenman</small><b>18 Oturum</b><span>%94 Katılım</span></div>
-                    <div class="mini-stat"><small>Resmi CV</small><b>12 Maç</b><span>Kilitli Esame</span></div>
+                  <div class="mock-metric">
+                    <strong id="lab-stat-2">9.50</strong>
+                    <span id="lab-stat-2-label">Birim Ortalama</span>
+                  </div>
+                  <div class="mock-metric">
+                    <strong id="lab-stat-3" style="color:var(--accent-bright);">Elit Seri</strong>
+                    <span id="lab-stat-3-label">Motor Değerlendirmesi</span>
                   </div>
                 </div>
               </div>
             </div>
+
+            <!-- 60 Federations Strip -->
+            <div class="branch-wall" style="margin-top:32px;padding-top:24px;border-top:1px solid var(--line);">
+              <span class="branch-pill">⚽ Futbol <b>Takım Taktik</b></span>
+              <span class="branch-pill">🏀 Basketbol <b>Periyot & Şut</b></span>
+              <span class="branch-pill">🏐 Voleybol <b>Set & Rotasyon</b></span>
+              <span class="branch-pill">🎾 Tenis <b>Set & Tie-Break</b></span>
+              <span class="branch-pill">🏊 Yüzme <b>Kulvar & Split</b></span>
+              <span class="branch-pill">🏹 Okçuluk <b>Seri & X/10 Hedef</b></span>
+              <span class="branch-pill">🏃 Atletizm <b>Pist & Derece</b></span>
+              <span class="branch-pill">🤸 Cimnastik <b>D+E Jüri Puanı</b></span>
+              <span class="branch-pill">🥋 Taekwondo & Judo <b>Raunt & Teknik</b></span>
+              <span class="branch-pill">🥊 Boks & Kickboks <b>Raunt & Köşe</b></span>
+              <span class="branch-pill">🏋️ Halter <b>1RM & Tonaj</b></span>
+              <span class="branch-pill">🤺 Eskrim <b>Tuş & Pul</b></span>
+              <span class="branch-pill">🏸 Badminton & Masa Tenisi <b>Ralli & Set</b></span>
+              <span class="branch-pill">🚣 Kürek & Kano <b>500m Tempo</b></span>
+              <span class="branch-pill">🚴 Bisiklet <b>Kadans & Watt</b></span>
+              <span class="branch-pill">♟️ Satranç <b>Tur & ELO/UKD</b></span>
+              <span class="branch-pill">🏅 +44 Resmi Federasyon Branşı Daha</span>
+            </div>
           </div>
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px;font-size:11px;color:var(--ink-dim)">
-            <span>Sekmelere tıklayarak her rolün ekranını inceleyebilirsin.</span>
-            <span>Temsili arayüz · Gerçek modüller</span>
+        </div>
+      </section>
+
+      <!-- ========================================================================
+           3D Tilt Feature Bento Grid
+           ======================================================================== -->
+      <section class="section" id="teknoloji-bento">
+        <div class="container">
+          <div class="section-header">
+            <span class="eyebrow">Kurumsal Güvenlik & Saha Teknolojisi</span>
+            <h2 class="section-title">Sadece Bir Takvim Değil, Tam Donanımlı Spor Altyapısı</h2>
+            <p class="section-desc">
+              Veritabanı seviyesinde gizlilikten (RLS) gerçek zamanlı seyirci skor merkezine kadar kulüplerin ve sporcuların ihtiyaç duyduğu her detay düşünüldü.
+            </p>
+          </div>
+
+          <div class="bento-grid">
+            <div class="bento-card span-2 tilt-card">
+              <div class="bento-icon">🔴</div>
+              <h3>Seyirci Canlı Skor Merkezi & Anlık Lig Puan Durumu</h3>
+              <p>
+                Resmi ve açık turnuvalarda hakem kokpitinden girilen her gol, periyot veya tenis seti saniyeler içinde seyirci ekranına ve canlı lig puan tablosuna yansır. Takip ettiğiniz kulübün maçı başladığında bildirim alırsınız; küçük yaştaki sporcuların adları ise veli iznine göre otomatik korunur.
+              </p>
+              <div class="bento-mini-preview">
+                <span class="mini-tag">⚡ Gerçek Zamanlı Skor & Kronometre</span>
+                <span class="mini-tag">🏆 Otomatik Averaj & Canlı Puan Tablosu</span>
+                <span class="mini-tag">🔔 Kulüp & Maç Bildirim Aboneliği</span>
+                <span class="mini-tag">🛡️ Çocuk Gizlilik Maskesi</span>
+              </div>
+            </div>
+
+            <div class="bento-card tilt-card">
+              <div class="bento-icon">🔒</div>
+              <h3>Muhasebeci Gizliliği (<span class="mono-code">#A3F91C</span>)</h3>
+              <p>
+                Dışarıdan hizmet veren muhasebeciniz kulübün gelir-gider defterini ve aidat mutabakatını eksiksiz denetler; ancak veritabanı seviyesinde hiçbir sporcunun adını, telefonunu veya kimliğini göremez.
+              </p>
+              <div class="bento-mini-preview">
+                <span class="mini-tag">Sıfır Kişisel Veri Sızıntısı</span>
+                <span class="mini-tag">Sabit #A3F91C Kodu</span>
+              </div>
+            </div>
+
+            <div class="bento-card tilt-card">
+              <div class="bento-icon">📍</div>
+              <h3>GPS Doğrulamalı Kort Sırası & Halı Saha</h3>
+              <p>
+                Halka açık kortlarda "Sıra kimdeydi?" karmaşası biter. Sunucu tabanlı mesafe doğrulamasıyla yalnızca sahada bulunan oyuncular bekleme sırasına girer; halı saha işletmelerinde nöbetçi personel devri tek dokunuşla yapılır.
+              </p>
+              <div class="bento-mini-preview">
+                <span class="mini-tag">Sunucu Mesafe Doğrulaması</span>
+                <span class="mini-tag">Nöbet Devir Zinciri</span>
+              </div>
+            </div>
+
+            <div class="bento-card tilt-card">
+              <div class="bento-icon">📶</div>
+              <h3>Offline-First Saha Yoklaması</h3>
+              <p>
+                İnternetin çekmediği kapalı spor salonlarında veya deplasman sahalarında yoklama ve antrenman verisi yerel kuyrukta saklanır; bağlantı kurulduğu anda veri kaybı olmadan senkronize edilir.
+              </p>
+              <div class="bento-mini-preview">
+                <span class="mini-tag">Kesintisiz Yerel Kuyruk</span>
+                <span class="mini-tag">İdempotent Senkronizasyon</span>
+              </div>
+            </div>
+
+            <div class="bento-card tilt-card">
+              <div class="bento-icon">🪪</div>
+              <h3>Onaylı Kademe & Belge Doğrulaması</h3>
+              <p>
+                Antrenör kademeleri (1–5), hakem klasmanları ve sporcu lisansları salt beyana değil, incelenmiş belge doğrulamasına dayanır. Yetki kapıları hem mobil uygulamada hem sunucuda tek merkezden denetlenir.
+              </p>
+              <div class="bento-mini-preview">
+                <span class="mini-tag">Merkezi SwanAccess Yetki Motoru</span>
+                <span class="mini-tag">Satır Düzeyi Güvenlik (RLS)</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- 60 Branches Bar -->
-    <div class="branches-bar">
-      <div class="wrap branches-inner">
-        <div>
-          <span class="eyebrow" style="margin:0">60 Resmi Spor Branşı &amp; 7 Antrenman Arketipi</span>
-          <div style="font-size:13px;color:var(--ink-muted)">Okçuluktan yüzmeye, futboldan satranca her branşın kendi terim ve skor motoru</div>
-        </div>
-        <div class="branches-tags">
-          <span class="branch-pill highlight">⚽ Futbol</span>
-          <span class="branch-pill highlight">🎾 Tenis</span>
-          <span class="branch-pill highlight">🏀 Basketbol</span>
-          <span class="branch-pill">🏐 Voleybol</span>
-          <span class="branch-pill">🏹 Okçuluk</span>
-          <span class="branch-pill">🏊 Yüzme</span>
-          <span class="branch-pill">🤸 Cimnastik</span>
-          <span class="branch-pill">🥋 Taekwondo</span>
-          <span class="branch-pill">♟️ Satranç</span>
-          <span class="branch-pill highlight">+51 Branş Daha</span>
-        </div>
-      </div>
-    </div>
-
-    <!-- Bento Features Section -->
-    <section class="block" id="ozellikler" aria-labelledby="features-title">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow">Uygulama Mimarisi</span>
-            <h2 id="features-title">Basit Bir Takvim Değil.<br>Tam Kapsamlı Spor Ekosistemi.</h2>
+      <!-- ========================================================================
+           FAQ Section
+           ======================================================================== -->
+      <section class="section" id="sss">
+        <div class="container">
+          <div class="section-header">
+            <span class="eyebrow">Merak Edilenler</span>
+            <h2 class="section-title">Sıkça Sorulan Sorular</h2>
+            <p class="section-desc">
+              SwanSport'un lansman takvimi, kulüp kurulumu ve erken erişim süreci hakkında en çok sorulanlar.
+            </p>
           </div>
-          <p>Kulüp yönetiminden halka açık kortlara, resmi federasyon esamesinden çocuk gizliliği korumalı canlı skorlara kadar her detay sahadaki gerçek kurallara göre inşa edildi.</p>
-        </div>
 
-        <div class="bento">
-          <article class="bento-card wide">
-            <div>
-              <div class="icon-badge"><svg aria-hidden="true"><use href="#i-medal"/></svg></div>
-              <h3>Canlı Maç Merkezi &amp; Anlık Puan Durumu</h3>
-              <p>Resmi müsabakaların canlı kronometresi, set/gol akışı, onaylı esame kadroları ve anlık güncellenen lig puan durumu tablosu. Takip ettiğin kulübün maçı başladığında veya skor değiştiğinde anında bildirim al.</p>
-            </div>
-            <div class="demo-box">
-              <div class="screen-row" style="margin-bottom:8px">
-                <strong style="color:#fff">U16 Bölgesel Lig Tablosu</strong>
-                <span class="badge-teal">Canlı Averaj Hesaplama</span>
-              </div>
-              <div style="display:grid;grid-template-columns:28px 1fr 36px 36px 44px;gap:6px;font-size:11.5px;color:var(--ink-muted)">
-                <span>#1</span><strong style="color:#fff">Kuğuspor Akademi</strong><span>14G</span><span>+28</span><strong style="color:var(--accent-bright)">42 P</strong>
-                <span>#2</span><strong style="color:#fff">Anadolu Yıldızları</strong><span>12G</span><span>+19</span><strong style="color:#fff">38 P</strong>
-              </div>
-            </div>
-          </article>
+          <div class="faq-list">
+            <details class="faq-item" open>
+              <summary>
+                <span>Uygulama ne zaman yayınlanacak ve nasıl haberdar olacağım?</span>
+                <span style="color:var(--accent-bright);">+</span>
+              </summary>
+              <p>
+                SwanSport mobil uygulaması (iOS App Store ve Google Play) son saha testlerinin tamamlanmasının ardından yayınlanacaktır. Yukarıdaki <strong>"Yayınlanınca Bana Haber Ver"</strong> formuna e-posta adresinizi bıraktığınızda, mağaza bağlantıları açıldığı anda doğrudan e-posta ile davet alacaksınız.
+              </p>
+            </details>
 
-          <article class="bento-card wide">
-            <div>
-              <div class="icon-badge"><svg aria-hidden="true"><use href="#i-qr"/></svg></div>
-              <h3>60 Branş Antrenman Kokpiti &amp; Çevrimdışı Yoklama</h3>
-              <p>Hedef puanı, tur/mesafe kronometresi, ağırlık/RPE, jüri seri puanı ve taktik/zihin drilleri. İnternet çekmeyen salonlarda bile çevrimdışı yoklama al, bağlantı geldiğinde çakışma korumalı senkronize et.</p>
-            </div>
-            <div class="demo-box">
-              <div class="screen-row">
-                <span><strong>Karekodlu &amp; Çevrimdışı Yoklama</strong> · 7 Arketip</span>
-                <span class="badge-teal">Dönem Gelişim Raporu</span>
-              </div>
-            </div>
-          </article>
+            <details class="faq-item">
+              <summary>
+                <span>Spor kulübümüzde birden fazla branş var, hepsini aynı anda yönetebilir miyiz?</span>
+                <span style="color:var(--accent-bright);">+</span>
+              </summary>
+              <p>
+                Evet. Kulüp yöneticileri ve antrenörler 60 Türkiye spor federasyonu branşı arasından kulübün aktif çalıştığı tüm branşları (örneğin Futbol, Voleybol, Yüzme ve Okçuluk) seçebilir; antrenman ve kadro ekranlarında branşlar arasında tek dokunuşla geçiş yapabilir.
+              </p>
+            </details>
 
-          <article class="bento-card">
-            <div>
-              <div class="icon-badge"><svg aria-hidden="true"><use href="#i-court"/></svg></div>
-              <h3>Halka Açık Kortlar &amp; Halı Saha Panosu</h3>
-              <p>Belediye kortlarında sıraya evden gir, sıran gelince konum doğrulamasıyla korta çık. Aynı şehir ve branştaki onaylı oyuncularla Partner Bul.</p>
-            </div>
-            <div class="slot-pills" aria-label="Örnek kort saatleri">
-              <span>17:00</span>
-              <span class="free">18:00 Boş</span>
-              <span class="free">19:00 Boş</span>
-              <span>20:00</span>
-            </div>
-          </article>
+            <details class="faq-item">
+              <summary>
+                <span>Küçük yaştaki (telefonu olmayan) sporcular sisteme nasıl kaydediliyor?</span>
+                <span style="color:var(--accent-bright);">+</span>
+              </summary>
+              <p>
+                Altyapı ve çocuk sporcuların kendi giriş hesabı olması zorunlu değildir. Kulüp kadrosuna doğrudan eklenebilir ve velilerinin hesabına bağlanabilirler. Tüm yoklama, izin ve gelişim karnesi süreçleri velinin ekranı üzerinden güvenle yürütülür.
+              </p>
+            </details>
 
-          <article class="bento-card">
-            <div>
-              <div class="icon-badge"><svg aria-hidden="true"><use href="#i-wallet"/></svg></div>
-              <h3>Muhasebeci Gizlilik Kalkanı</h3>
-              <p>Kulüp muhasebecisi gelir-gider defterini, banka mutabakatını ve dönem kapanışını yönetir; ancak sporcuların isimlerini ve sağlık verilerini asla görmez.</p>
-            </div>
-            <div class="demo-box">
-              <div class="screen-row">
-                <span style="font-family:monospace;color:var(--accent-bright)">Aidat Tahsilatı · #A3F91C</span>
-                <span class="badge-amber">Kişisel Veri Maskeli</span>
-              </div>
-            </div>
-          </article>
-
-          <article class="bento-card">
-            <div>
-              <div class="icon-badge"><svg aria-hidden="true"><use href="#i-whistle"/></svg></div>
-              <h3>Hakem Kokpiti &amp; Federasyon Sicili</h3>
-              <p>MHK atamaları, maç öncesi kilitlenen dijital esame onayı, canlı olay kaydı ve imzalı hakem raporu. Ceza/sağlık kilidi olan sporcu esameye eklenemez.</p>
-            </div>
-            <div class="demo-box">
-              <div class="screen-row">
-                <span><strong>Esame &amp; Uygunluk Denetimi</strong></span>
-                <span class="badge-teal">Sunucu Doğrulamalı</span>
-              </div>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5 Roles Section -->
-    <section class="block" id="roller" aria-labelledby="roles-title" style="padding-top:20px">
-      <div class="wrap">
-        <div class="section-head">
-          <div>
-            <span class="eyebrow">Takımın Her Parçası</span>
-            <h2 id="roles-title">5 Farklı Rol. Tek Ortak Saha.</h2>
+            <details class="faq-item">
+              <summary>
+                <span>Bireysel sporcular da kulübe üye olmadan kullanabilir mi?</span>
+                <span style="color:var(--accent-bright);">+</span>
+              </summary>
+              <p>
+                Kesinlikle. Ferdi sporcular kendi antrenman programlarını takip edebilir, açık kort ve halı sahaları keşfedip partner ilanlarına katılabilir, beslenme/hidrasyon hedeflerini tutabilir ve resmi canlı maç skorlarını izleyebilir.
+              </p>
+            </details>
           </div>
-          <p>Bir karta tıkladığında yukarıdaki interaktif kokpit o rolün ekranına geçer ve aşağıdaki erken erişim formunda rolünü otomatik seçer.</p>
         </div>
+      </section>
 
-        <div class="roles-grid">
-          <button type="button" class="role-card active" data-select-role="athlete">
-            <span class="num">01 / SPORCU</span>
-            <h3>Sporcular</h3>
-            <p>Resmi maç geçmişi, branş antrenman verileri, kort sırası ve seviyene uygun partner eşleşmesi.</p>
-          </button>
-          <button type="button" class="role-card" data-select-role="coach">
-            <span class="num">02 / ANTRENÖR</span>
-            <h3>Antrenörler</h3>
-            <p>Onaylı 1–5. kademe antrenör rozeti, 60 branş antrenman şablonları, çevrimdışı yoklama ve gelişim raporu.</p>
-          </button>
-          <button type="button" class="role-card" data-select-role="club_admin">
-            <span class="num">03 / KULÜP YÖNETİCİSİ</span>
-            <h3>Kulüp Yöneticileri</h3>
-            <p>Sezon açılışı, kadro-üye eşleştirme, malzeme zimmeti, aidat planları ve masaüstü yönetim konsolu.</p>
-          </button>
-          <button type="button" class="role-card" data-select-role="guardian">
-            <span class="num">04 / VELİ</span>
-            <h3>Veliler</h3>
-            <p>Çocuğunun antrenman ve müsabaka RSVP yanıtları, belge süre uyarıları ve çocuk gizliliği koruması.</p>
-          </button>
-          <button type="button" class="role-card" data-select-role="referee">
-            <span class="num">05 / HAKEM &amp; KURUL</span>
-            <h3>Hakemler &amp; Federasyon</h3>
-            <p>Dijital esame kontrolü, canlı maç olay günlüğü, imzalı müsabaka raporu ve il/branş lig yönetimi.</p>
-          </button>
-        </div>
-      </div>
-    </section>
-
-    <!-- Secondary Waitlist CTA & FAQ -->
-    <section class="block" id="sss" aria-labelledby="cta-bottom-title" style="padding-top:10px">
-      <div class="wrap">
+      <!-- ========================================================================
+           Bottom Launch CTA Banner
+           ======================================================================== -->
+      <section class="container">
         <div class="cta-banner">
-          <div>
-            <span class="pill"><span class="pulse-dot" aria-hidden="true"></span>Lansman Bildirim Listesi</span>
-            <h2 id="cta-bottom-title">Uygulama Paylaşıldığında İlk Sana Mail Gönderelim.</h2>
-            <p>Şu anda App Store ve Google Play mağaza hazırlıklarımız tamamlanıyor. Dışarıdan APK veya IPA kurmakla uğraşma; e-postanı bırak, resmi mağaza indirme bağlantıları açıldığı saniye sana haber verelim.</p>
-          </div>
-          <div>
-            <form id="waitlist-form-bottom" novalidate style="display:grid;gap:10px">
-              <label for="wl-email-bottom" class="sr-only">E-posta Adresin</label>
-              <input id="wl-email-bottom" type="email" required class="input-field" placeholder="E-posta adresini yaz...">
-              <button type="submit" class="btn btn-primary" style="width:100%">
-                <svg aria-hidden="true"><use href="#i-bell"/></svg>
-                <span>Yayınlanınca Bana Mail Gönder</span>
-              </button>
-              <div id="wl-feedback-bottom" class="waitlist-feedback" role="status" aria-live="polite"></div>
-            </form>
-          </div>
+          <span class="eyebrow">Lansman Listesi</span>
+          <h2>Sahaya İlk Çıkanlardan Olun</h2>
+          <p>
+            Uygulama mağazalarda yayınlandığı anda indirme bağlantısını ve erken erişim ayrıcalıklarını ilk olarak e-posta kutunuza gönderelim.
+          </p>
+
+          <form id="bottom-waitlist-form" class="bottom-form" novalidate>
+            <select id="bottom-role" class="select-field" aria-label="Sahadaki rolünüz">
+              <option value="athlete">🏃 Sporcu</option>
+              <option value="coach">📋 Antrenör</option>
+              <option value="club_admin">🛡️ Kulüp Yöneticisi</option>
+              <option value="guardian">👨‍👩‍👧 Veli</option>
+              <option value="referee">⚖️ Hakem / Gözlemci</option>
+            </select>
+            <input
+              type="email"
+              id="bottom-email"
+              class="input-field"
+              placeholder="E-posta adresiniz"
+              required
+              autocomplete="email"
+            />
+            <button type="submit" class="btn btn-primary" id="bottom-submit-btn">
+              Bana Haber Ver 🔔
+            </button>
+          </form>
+          <div id="bottom-feedback" class="waitlist-feedback" style="max-width:660px;margin:12px auto 0;" role="status" aria-live="polite"></div>
         </div>
+      </section>
+    </main>
 
-        <div class="faq-grid" aria-label="Sıkça Sorulan Sorular">
-          <details class="faq-item" open>
-            <summary>Uygulama ne zaman ve hangi mağazalarda yayınlanacak? <span>+</span></summary>
-            <p>SwanSport mobil uygulaması hem iOS (App Store) hem de Android (Google Play) için resmi mağazalarda yayınlanacaktır. Erken erişim listesine e-postanı bıraktığında yayın anında doğrudan indirme bağlantısı e-postana gelir.</p>
-          </details>
-          <details class="faq-item" open>
-            <summary>Kulübümü veya tesisimi şimdiden kaydedebilir miyim? <span>+</span></summary>
-            <p>Evet! Yukarıdaki formda rolünü "Kulüp Yöneticisi" seçip kulüp/şehir adını yazarak kaydolabilir veya masaüstü <a href="https://konsol.swansport.com.tr" style="color:var(--accent-bright);text-decoration:underline">Yönetim Konsolu</a> üzerinden ön inceleme yapabilirsin.</p>
-          </details>
-          <details class="faq-item">
-            <summary>Çocuk sporcuların ve kulüp mali verilerinin gizliliği nasıl korunuyor? <span>+</span></summary>
-            <p>Reşit olmayan sporcuların profilleri varsayılan olarak dış paylaşıma kapalıdır ve isimleri veli izni olmadan genel tablolarda maskelenir. Kulüp muhasebecileri ise yalnızca anonim referans kodlarıyla (<code>#A3F91C</code>) mali defteri görür.</p>
-          </details>
-          <details class="faq-item">
-            <summary>Hangi spor branşları destekleniyor? <span>+</span></summary>
-            <p>Futbol, tenis, basketbol, voleybol, yüzme, okçuluk, atletizm, cimnastik, taekwondo ve satranç dahil Türkiye'deki 60 resmi spor branşının tamamı kendilerine özel antrenman ve skor arketipleriyle desteklenir.</p>
-          </details>
+    <!-- Footer (Pure Brand Showcase — No Console Links) -->
+    <footer class="footer">
+      <div class="container footer-inner">
+        <div>
+          <strong style="color:#fff;">SwanSport</strong> · Türkiye'nin Spor Ağı ve Kulüp Yönetim Platformu · © 2026
+        </div>
+        <div class="footer-links">
+          <a href="#erken-erisim">Erken Erişim</a>
+          <a href="#neden-swansport">Neden SwanSport?</a>
+          <a href="#kokpit-onizleme">5 Rol Kokpiti</a>
+          <a href="#canli-laboratuvar">60 Branş Motoru</a>
+          <a href="mailto:iletisim@swansport.com.tr">İletişim</a>
         </div>
       </div>
-    </section>
-  </main>
+    </footer>
 
-  <footer class="footer">
-    <div class="wrap">
-      <div class="footer-top">
-        <a class="brand" href="#">
-          <span class="brand-mark" aria-hidden="true" style="width:32px;height:32px;font-size:17px;border-radius:10px">S</span>
-          <span>SwanSport</span>
-        </a>
-        <nav class="footer-links" aria-label="Alt bağlantılar">
-          <a href="#kokpit">İnteraktif Vitrin</a>
-          <a href="#ozellikler">Özellikler</a>
-          <a href="#roller">Roller</a>
-          <a href="#haberdar-ol">Bana Haber Ver</a>
-          <a href="https://konsol.swansport.com.tr" target="_blank" rel="noopener noreferrer">Yönetim Konsolu ↗</a>
-        </nav>
-      </div>
-      <div class="footer-bottom">
-        <span>© <span id="year">2026</span> SwanSport. Tüm hakları saklıdır. Kişisel veriler rol bazlı güvenlik ve KVKK ilkeleriyle korunur.</span>
-        <span>Sahada buluşalım. 🦢</span>
-      </div>
-    </div>
-  </footer>
+    <script>
+      (function () {
+        // =====================================================================
+        // 1) Interactive 3D WebGL-Style Perspective Canvas Background
+        // =====================================================================
+        const canvas = document.getElementById('bg-canvas');
+        if (canvas && canvas.getContext) {
+          const ctx = canvas.getContext('2d');
+          let width = (canvas.width = window.innerWidth);
+          let height = (canvas.height = window.innerHeight);
+          let mouseX = width * 0.5;
+          let mouseY = height * 0.35;
 
-  <script>
-    (function () {
-      document.getElementById('year').textContent = new Date().getFullYear();
+          const nodes = Array.from({ length: 44 }, (_, i) => ({
+            x: (Math.random() - 0.5) * 1600,
+            y: (Math.random() - 0.5) * 1000,
+            z: Math.random() * 900 + 100,
+            r: Math.random() * 2.2 + 1,
+            hue: i % 3 === 0 ? '#2dd4bf' : i % 3 === 1 ? '#38bdf8' : '#8b5cf6'
+          }));
 
-      // Mobile menu close handlers
-      const menu = document.querySelector('.mobile-menu');
-      if (menu) {
-        menu.querySelectorAll('a').forEach(link => link.addEventListener('click', () => { menu.open = false; }));
-        document.addEventListener('keydown', e => { if (e.key === 'Escape' && menu.open) { menu.open = false; menu.querySelector('summary').focus(); } });
-        document.addEventListener('click', e => { if (menu.open && !menu.contains(e.target)) menu.open = false; });
-      }
+          window.addEventListener('resize', function () {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+          });
 
-      // 5-Role Interactive Cockpit Preview Data
-      const PREVIEWS = {
-        athlete: {
-          title: 'Sporcu Ekranı',
-          badge: 'CANLI SKOR & SAHA',
-          html: `
-            <div class="screen-card">
-              <div class="screen-row">
-                <span style="font-size:11px;color:var(--ink-muted)">Bölgesel Gençler Ligi · 64'</span>
-                <span class="badge-teal">🔔 Bildirim Açık</span>
-              </div>
-              <div class="score-board">
-                <div><strong style="font-size:13px">Anadolu SK</strong><small style="display:block;font-size:10px;color:var(--ink-muted)">Ev Sahibi</small></div>
-                <div class="score-num">2 - 1</div>
-                <div><strong style="font-size:13px">Kuğuspor</strong><small style="display:block;font-size:10px;color:var(--ink-muted)">Deplasman</small></div>
-              </div>
-            </div>
-            <div class="screen-card">
-              <div class="screen-row">
-                <div>
-                  <strong style="font-size:13px;display:block">Millet Bahçesi Kort #2</strong>
-                  <small style="font-size:11px;color:var(--ink-muted)">Konum doğrulamalı sıra · Partner Bul</small>
-                </div>
-                <span class="badge-teal">18:00 Boş</span>
-              </div>
-              <div class="mini-grid">
-                <div class="mini-stat"><small>Lisans Sicili</small><b>Onaylı</b><span>Ferdi &amp; Kulüp</span></div>
-                <div class="mini-stat"><small>Bu Ay Antrenman</small><b>18 Oturum</b><span>%94 Katılım</span></div>
-                <div class="mini-stat"><small>Resmi CV</small><b>12 Maç</b><span>Kilitli Esame</span></div>
-              </div>
-            </div>`
-        },
-        coach: {
-          title: 'Antrenör Kokpiti',
-          badge: '60 BRANŞ MOTORU',
-          html: `
-            <div class="screen-card">
-              <div class="screen-row">
-                <div>
-                  <strong style="font-size:13px;display:block">Okçuluk · Olimpik 70m Sıralama</strong>
-                  <small style="font-size:11px;color:var(--ink-muted)">Set 4 / 6 · Atış Süresi: 01:42</small>
-                </div>
-                <span class="badge-teal">Canlı Oturum</span>
-              </div>
-              <div class="mini-grid">
-                <div class="mini-stat"><small>Yoklama</small><b>18 / 20</b><span>Çevrimdışı Hazır</span></div>
-                <div class="mini-stat"><small>Ortalama Seri</small><b>56.4 P</b><span>+2.1 Gelişim</span></div>
-                <div class="mini-stat"><small>Dönem Raporu</small><b>Hazır</b><span>Tek Tıkla Paylaş</span></div>
-              </div>
-            </div>
-            <div class="screen-card">
-              <div class="screen-row">
-                <span style="font-size:12px"><strong>Akıllı Branş Bağlamı:</strong> Kulübün aktif branşları otomatik süzülür</span>
-                <span class="badge-amber">1–5. Kademe</span>
-              </div>
-            </div>`
-        },
-        club_admin: {
-          title: 'Kulüp & Masaüstü Konsol',
-          badge: 'KOMUTA MERKEZİ',
-          html: `
-            <div class="screen-card">
-              <div class="screen-row">
-                <div>
-                  <strong style="font-size:13px;display:block">Sezon &amp; Mali Operasyon Merkezi</strong>
-                  <small style="font-size:11px;color:var(--ink-muted)">Kadro, Aidat Planları, Zimmet ve Harcama Onayı</small>
-                </div>
-                <span class="badge-teal">Denetim İzli</span>
-              </div>
-              <div class="mini-grid">
-                <div class="mini-stat"><small>Aktif Sporcu</small><b>148</b><span>6 Takım · 4 Branş</span></div>
-                <div class="mini-stat"><small>Tahsilat Oranı</small><b>%92</b><span>Dönem Açık</span></div>
-                <div class="mini-stat"><small>Muhasebeci Kodu</small><b>#A3F91C</b><span>İsimler Gizli</span></div>
-              </div>
-            </div>
-            <div class="screen-card">
-              <div class="screen-row">
-                <span style="font-size:12px">Envanter &amp; Malzeme Zimmeti · İdari/Medikal Uygunluk Kilidi</span>
-                <span class="badge-teal">konsol.swansport.com.tr</span>
-              </div>
-            </div>`
-        },
-        guardian: {
-          title: 'Veli İşlem Merkezi',
-          badge: 'ÇOCUK GİZLİLİĞİ KALKANI',
-          html: `
-            <div class="screen-card">
-              <div class="screen-row">
-                <div>
-                  <strong style="font-size:13px;display:block">Cumartesi U14 Antrenmanı · 10:00</strong>
-                  <small style="font-size:11px;color:var(--ink-muted)">Katılım Yanıtı (RSVP) &amp; Servis Bilgilendirmesi</small>
-                </div>
-                <span class="badge-teal">Katılıyor ✓</span>
-              </div>
-              <div class="mini-grid">
-                <div class="mini-stat"><small>Devam Oranı</small><b>%96</b><span>Bu Dönem</span></div>
-                <div class="mini-stat"><small>Sağlık Belgesi</small><b>Geçerli</b><span>Kasada Korunur</span></div>
-                <div class="mini-stat"><small>Görünürlük</small><b>Korumalı</b><span>Dış Paylaşım Kapalı</span></div>
-              </div>
-            </div>
-            <div class="screen-card">
-              <div class="screen-row">
-                <span style="font-size:12px">Maç başlangıcı ve resmi sonuç onaylandığında anında bildirim</span>
-                <span class="badge-teal">Veli Hesabı</span>
-              </div>
-            </div>`
-        },
-        referee: {
-          title: 'Mobil Hakem Kokpiti',
-          badge: 'RESMİ ESAME & RAPOR',
-          html: `
-            <div class="screen-card">
-              <div class="screen-row">
-                <div>
-                  <strong style="font-size:13px;display:block">Esame Onayı &amp; Lisans/Ceza Kontrolü</strong>
-                  <small style="font-size:11px;color:var(--ink-muted)">Ev &amp; Deplasman kadroları maç öncesi donduruldu</small>
-                </div>
-                <span class="badge-teal">İmzalı Snapshot</span>
-              </div>
-              <div class="mini-grid">
-                <div class="mini-stat"><small>İlk 11 / Yedek</small><b>Doğrulandı</b><span>Ceza Kilidi Yok</span></div>
-                <div class="mini-stat"><small>Canlı Olaylar</small><b>Append-Only</b><span>Geri Al (Undo) İzli</span></div>
-                <div class="mini-stat"><small>Maç Raporu</small><b>MHK Özel</b><span>Gizli Not Korumalı</span></div>
-              </div>
-            </div>
-            <div class="screen-card">
-              <div class="screen-row">
-                <span style="font-size:12px">Başhakem ve masa görevlisi tescili anında sporcu CV'sine işlenir</span>
-                <span class="badge-amber">MHK &amp; İl Temsilciliği</span>
-              </div>
-            </div>`
+          window.addEventListener('pointermove', function (e) {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+          });
+
+          function render3DField() {
+            ctx.clearRect(0, 0, width, height);
+            const cx = width * 0.5 + (mouseX - width * 0.5) * 0.06;
+            const cy = height * 0.45 + (mouseY - height * 0.45) * 0.06;
+            const fov = 520;
+
+            const projected = [];
+            for (let i = 0; i < nodes.length; i++) {
+              const n = nodes[i];
+              n.z -= 0.65;
+              if (n.z < 80) n.z = 980;
+              const scale = fov / n.z;
+              const px = cx + n.x * scale;
+              const py = cy + n.y * scale;
+              projected.push({ px, py, scale, hue: n.hue, r: n.r });
+            }
+
+            // Draw subtle 3D telemetry connections
+            for (let i = 0; i < projected.length; i++) {
+              for (let j = i + 1; j < projected.length; j++) {
+                const dx = projected[i].px - projected[j].px;
+                const dy = projected[i].py - projected[j].py;
+                const dist = Math.hypot(dx, dy);
+                if (dist < 145) {
+                  ctx.strokeStyle = 'rgba(45, 212, 191, ' + (1 - dist / 145) * 0.12 + ')';
+                  ctx.lineWidth = 1;
+                  ctx.beginPath();
+                  ctx.moveTo(projected[i].px, projected[i].py);
+                  ctx.lineTo(projected[j].px, projected[j].py);
+                  ctx.stroke();
+                }
+              }
+            }
+
+            for (let i = 0; i < projected.length; i++) {
+              const p = projected[i];
+              ctx.fillStyle = p.hue;
+              ctx.globalAlpha = Math.min(0.85, p.scale * 0.9);
+              ctx.beginPath();
+              ctx.arc(p.px, p.py, Math.max(1, p.r * p.scale), 0, Math.PI * 2);
+              ctx.fill();
+            }
+            ctx.globalAlpha = 1;
+            requestAnimationFrame(render3DField);
+          }
+          requestAnimationFrame(render3DField);
         }
-      };
 
-      let selectedRole = 'athlete';
-      const roleChips = document.querySelectorAll('.role-chip');
-      const cockpitTabs = document.querySelectorAll('.cockpit-tab');
-      const roleCards = document.querySelectorAll('.role-card');
-      const pvTitle = document.getElementById('pv-role-title');
-      const pvBadge = document.getElementById('pv-badge');
-      const pvBody = document.getElementById('pv-body');
+        // =====================================================================
+        // 2) Interactive 3D Phone Stage Tilt & Exploded View Toggle
+        // =====================================================================
+        const phoneRig = document.getElementById('phone-3d-rig');
+        const phoneGlare = document.getElementById('phone-glare');
+        const btnAssembled = document.getElementById('btn-3d-assembled');
+        const btnExploded = document.getElementById('btn-3d-exploded');
+        let isExploded = false;
 
-      function setRole(role, updateForm) {
-        if (!PREVIEWS[role]) return;
-        selectedRole = role;
-        const data = PREVIEWS[role];
-        pvTitle.textContent = data.title;
-        pvBadge.innerHTML = '<i></i> ' + data.badge;
-        pvBody.innerHTML = data.html;
+        if (btnAssembled && btnExploded && phoneRig) {
+          btnAssembled.addEventListener('click', function () {
+            isExploded = false;
+            phoneRig.classList.remove('exploded');
+            btnAssembled.classList.add('active');
+            btnExploded.classList.remove('active');
+          });
+          btnExploded.addEventListener('click', function () {
+            isExploded = true;
+            phoneRig.classList.add('exploded');
+            btnExploded.classList.add('active');
+            btnAssembled.classList.remove('active');
+          });
 
-        cockpitTabs.forEach(tab => {
-          tab.setAttribute('aria-selected', tab.dataset.preview === role ? 'true' : 'false');
-        });
-        roleCards.forEach(card => {
-          card.classList.toggle('active', card.dataset.selectRole === role);
-        });
-        if (updateForm) {
-          roleChips.forEach(chip => {
-            chip.setAttribute('aria-pressed', chip.dataset.role === role ? 'true' : 'false');
+          phoneRig.addEventListener('pointermove', function (e) {
+            const rect = phoneRig.getBoundingClientRect();
+            const nx = (e.clientX - rect.left) / rect.width - 0.5;
+            const ny = (e.clientY - rect.top) / rect.height - 0.5;
+            const rotY = nx * 24 - (isExploded ? 18 : 10);
+            const rotX = -ny * 20 + (isExploded ? 12 : 6);
+            phoneRig.style.transform =
+              'rotateY(' + rotY.toFixed(1) + 'deg) rotateX(' + rotX.toFixed(1) + 'deg)' + (isExploded ? ' scale(0.95)' : '');
+            if (phoneGlare) {
+              const gx = Math.round((nx + 0.5) * 100);
+              const gy = Math.round((ny + 0.5) * 100);
+              phoneGlare.style.background =
+                'radial-gradient(circle at ' + gx + '% ' + gy + '%, rgba(255,255,255,0.18), transparent 55%)';
+            }
+          });
+
+          phoneRig.addEventListener('pointerleave', function () {
+            phoneRig.style.transform = isExploded
+              ? 'rotateY(-24deg) rotateX(14deg) scale(0.95)'
+              : 'rotateY(-14deg) rotateX(8deg)';
           });
         }
-      }
 
-      cockpitTabs.forEach(tab => {
-        tab.addEventListener('click', () => setRole(tab.dataset.preview, true));
-      });
-      roleChips.forEach(chip => {
-        chip.addEventListener('click', () => setRole(chip.dataset.role, true));
-      });
-      roleCards.forEach(card => {
-        card.addEventListener('click', () => {
-          setRole(card.dataset.selectRole, true);
-          document.getElementById('kokpit').scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // 3D Tilt on Bento Cards
+        document.querySelectorAll('.tilt-card').forEach(function (card) {
+          card.addEventListener('pointermove', function (e) {
+            const r = card.getBoundingClientRect();
+            const x = (e.clientX - r.left) / r.width - 0.5;
+            const y = (e.clientY - r.top) / r.height - 0.5;
+            card.style.transform = 'perspective(900px) rotateY(' + (x * 7).toFixed(1) + 'deg) rotateX(' + (-y * 7).toFixed(1) + 'deg) translateY(-4px)';
+          });
+          card.addEventListener('pointerleave', function () {
+            card.style.transform = '';
+          });
         });
-      });
 
-      // Supabase & Waitlist API Integration (Self-hosted api.swansport.com.tr + Cloud fallback)
-      const SUPABASE_BACKENDS = [
-        {
-          url: 'https://api.swansport.com.tr',
-          key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE'
-        },
-        {
-          url: 'https://gokkimnokigqxmbppvle.supabase.co',
-          key: 'sb_publishable_G5WQXM4DMmpnwPN9V9srFQ_JZZ2_Yje'
-        }
-      ];
+        // =====================================================================
+        // 3) Interactive Live Branch Training Lab (60 Branş Simülatörü)
+        // =====================================================================
+        const ARCHETYPES = {
+          archery: {
+            badge: 'CANLI SİMÜLASYON · HEDEF & İSABET ARKETİPİ',
+            title: '🏹 Okçuluk 70m — 6 Ok Seri Pedi',
+            desc: 'Ok vuruş değerlerine dokunun; SwanSport Branş Motoru seri toplamını ve sarı bölge yüzdesini anında hesaplasın:',
+            keys: [
+              { label: 'X (10)', val: 10, chip: 'X' },
+              { label: '10 Puan', val: 10, chip: '10' },
+              { label: '9 Puan', val: 9, chip: '9' },
+              { label: '8 Puan', val: 8, chip: '8' },
+              { label: '7 Puan', val: 7, chip: '7' },
+              { label: 'M (0)', val: 0, chip: 'M' }
+            ],
+            initial: [
+              { val: 10, chip: 'X' },
+              { val: 10, chip: '10' },
+              { val: 9, chip: '9' },
+              { val: 9, chip: '9' }
+            ],
+            stat1Label: 'Seri Toplamı',
+            stat2Label: 'Ok Ortalaması',
+            format: function (items) {
+              const sum = items.reduce((a, b) => a + b.val, 0);
+              const avg = items.length ? (sum / items.length).toFixed(2) : '0.00';
+              const grade = avg >= 9 ? 'Olimpik Seri' : avg >= 8 ? 'Turnuva Hazır' : 'Gelişim Serisi';
+              return { s1: sum + ' / ' + items.length * 10, s2: avg, s3: grade };
+            }
+          },
+          swimming: {
+            badge: 'CANLI SİMÜLASYON · SÜRE & SPLİT ARKETİPİ',
+            title: '🏊 Yüzme 100m Serbest — 50m Split Pedi',
+            desc: 'Kulvar geçiş derecelerini ekleyin; motor ortalama split ve tempo istikrarını otomatik çıkarsın:',
+            keys: [
+              { label: '28.4sn', val: 28.4, chip: '28.40s' },
+              { label: '29.1sn', val: 29.1, chip: '29.10s' },
+              { label: '29.8sn', val: 29.8, chip: '29.80s' },
+              { label: '30.5sn', val: 30.5, chip: '30.50s' }
+            ],
+            initial: [
+              { val: 28.4, chip: '28.40s' },
+              { val: 29.1, chip: '29.10s' }
+            ],
+            stat1Label: 'Toplam Süre',
+            stat2Label: '50m Split Ort.',
+            format: function (items) {
+              const sum = items.reduce((a, b) => a + b.val, 0);
+              const avg = items.length ? (sum / items.length).toFixed(2) : '0.00';
+              return { s1: sum.toFixed(2) + ' sn', s2: avg + ' sn', s3: avg < 29.5 ? 'A Barajı Temposu' : 'Aerobik Tempo' };
+            }
+          },
+          racket: {
+            badge: 'CANLI SİMÜLASYON · SET & RALLİ ARKETİPİ',
+            title: '🎾 Tenis & Voleybol — Set Skor Pedi',
+            desc: 'Tamamlanan set skorlarını ekleyin; kazanan set sayısı ve oyun averajı anında güncellensin:',
+            keys: [
+              { label: '6 - 4', val: 1, chip: 'Set: 6-4' },
+              { label: '7 - 6 (TB)', val: 1, chip: 'Set: 7-6' },
+              { label: '4 - 6', val: 0, chip: 'Set: 4-6' },
+              { label: '6 - 2', val: 1, chip: 'Set: 6-2' }
+            ],
+            initial: [
+              { val: 1, chip: 'Set: 6-4' },
+              { val: 1, chip: 'Set: 7-6' }
+            ],
+            stat1Label: 'Kazanılan Set',
+            stat2Label: 'Oynanan Set',
+            format: function (items) {
+              const won = items.reduce((a, b) => a + b.val, 0);
+              return { s1: won + ' Set', s2: items.length + ' Set', s3: won > items.length / 2 ? 'Maç Galibiyeti' : 'Başabaş Seri' };
+            }
+          },
+          strength: {
+            badge: 'CANLI SİMÜLASYON · AĞIRLIK & TEKRAR ARKETİPİ',
+            title: '🏋️ Halter & Kondisyon — Tonaj ve 1RM Pedi',
+            desc: 'Kaldırılan setleri ekleyin; toplam antrenman tonajı (kg) ve ortalama yük otomatik hesaplansın:',
+            keys: [
+              { label: '5×80kg', val: 400, chip: '5×80kg' },
+              { label: '5×90kg', val: 450, chip: '5×90kg' },
+              { label: '3×100kg', val: 300, chip: '3×100kg' },
+              { label: '1×115kg', val: 115, chip: '1×115kg (PR)' }
+            ],
+            initial: [
+              { val: 400, chip: '5×80kg' },
+              { val: 450, chip: '5×90kg' }
+            ],
+            stat1Label: 'Toplam Tonaj',
+            stat2Label: 'Set Başı Yük',
+            format: function (items) {
+              const sum = items.reduce((a, b) => a + b.val, 0);
+              const avg = items.length ? Math.round(sum / items.length) : 0;
+              return { s1: sum + ' kg', s2: avg + ' kg', s3: 'Yüksek Patlayıcı Güç' };
+            }
+          }
+        };
 
-      async function callSupabaseRpc(rpcName, bodyObj) {
-        for (const backend of SUPABASE_BACKENDS) {
-          try {
-            const res = await fetch(backend.url + '/rest/v1/rpc/' + rpcName, {
-              method: 'POST',
-              headers: {
-                apikey: backend.key,
-                Authorization: 'Bearer ' + backend.key,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify(bodyObj || {})
+        let activeArchKey = 'archery';
+        let currentLabItems = ARCHETYPES.archery.initial.slice();
+
+        function renderLab() {
+          const arch = ARCHETYPES[activeArchKey];
+          document.getElementById('lab-arch-badge').textContent = arch.badge;
+          document.getElementById('lab-arch-title').textContent = arch.title;
+          document.getElementById('lab-arch-desc').textContent = arch.desc;
+          document.getElementById('lab-stat-1-label').textContent = arch.stat1Label;
+          document.getElementById('lab-stat-2-label').textContent = arch.stat2Label;
+
+          const keysEl = document.getElementById('lab-keys');
+          keysEl.innerHTML = '';
+          arch.keys.forEach(function (k) {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'pad-key';
+            btn.textContent = '+ ' + k.label;
+            btn.addEventListener('click', function () {
+              if (currentLabItems.length >= 8) currentLabItems.shift();
+              currentLabItems.push({ val: k.val, chip: k.chip });
+              updateLabOutput();
             });
-            if (res.ok) {
-              return await res.json();
+            keysEl.appendChild(btn);
+          });
+          updateLabOutput();
+        }
+
+        function updateLabOutput() {
+          const arch = ARCHETYPES[activeArchKey];
+          const logEl = document.getElementById('lab-log');
+          logEl.innerHTML = '';
+          currentLabItems.forEach(function (item) {
+            const span = document.createElement('span');
+            span.className = 'shot-chip';
+            span.textContent = item.chip;
+            logEl.appendChild(span);
+          });
+          const res = arch.format(currentLabItems);
+          document.getElementById('lab-stat-1').textContent = res.s1;
+          document.getElementById('lab-stat-2').textContent = res.s2;
+          document.getElementById('lab-stat-3').textContent = res.s3;
+        }
+
+        document.querySelectorAll('.arch-btn').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            document.querySelectorAll('.arch-btn').forEach(function (b) {
+              b.classList.remove('active');
+            });
+            btn.classList.add('active');
+            activeArchKey = btn.getAttribute('data-arch') || 'archery';
+            currentLabItems = ARCHETYPES[activeArchKey].initial.slice();
+            renderLab();
+          });
+        });
+
+        const resetLabBtn = document.getElementById('lab-reset-btn');
+        if (resetLabBtn) {
+          resetLabBtn.addEventListener('click', function () {
+            currentLabItems = [];
+            updateLabOutput();
+          });
+        }
+        renderLab();
+
+        // =====================================================================
+        // 4) Role Chip Selection & 5-Role Cockpit Switcher
+        // =====================================================================
+        let selectedHeroRole = 'athlete';
+        const roleLabels = {
+          athlete: 'Aktif Rol: Sporcu Kokpiti',
+          coach: 'Aktif Rol: Antrenör Kokpiti',
+          club_admin: 'Aktif Rol: Kulüp Yöneticisi',
+          guardian: 'Aktif Rol: Veli Eylem Merkezi',
+          referee: 'Aktif Rol: Mobil Hakem Kokpiti'
+        };
+
+        function activateCockpitTab(roleKey) {
+          document.querySelectorAll('.cockpit-tab').forEach(function (t) {
+            const isMatch = t.getAttribute('data-preview') === roleKey;
+            t.classList.toggle('active', isMatch);
+            t.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+          });
+          document.querySelectorAll('.cockpit-panel').forEach(function (p) {
+            p.classList.toggle('active', p.id === 'panel-' + roleKey);
+          });
+          const heroRoleBadge = document.getElementById('hero-mock-role-badge');
+          if (heroRoleBadge && roleLabels[roleKey]) {
+            heroRoleBadge.textContent = roleLabels[roleKey];
+          }
+        }
+
+        document.querySelectorAll('#hero-role-chips .role-chip').forEach(function (chip) {
+          chip.addEventListener('click', function () {
+            document.querySelectorAll('#hero-role-chips .role-chip').forEach(function (c) {
+              c.classList.remove('active');
+            });
+            chip.classList.add('active');
+            selectedHeroRole = chip.getAttribute('data-role') || 'athlete';
+            activateCockpitTab(selectedHeroRole);
+          });
+        });
+
+        document.querySelectorAll('.cockpit-tab').forEach(function (tab) {
+          tab.addEventListener('click', function () {
+            const roleKey = tab.getAttribute('data-preview');
+            if (roleKey) activateCockpitTab(roleKey);
+          });
+        });
+
+        // =====================================================================
+        // 5) Supabase & Waitlist API Integration (Self-hosted + Cloud fallback)
+        // =====================================================================
+        const SUPABASE_BACKENDS = [
+          {
+            url: 'https://api.swansport.com.tr',
+            key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyAgCiAgICAicm9sZSI6ICJhbm9uIiwKICAgICJpc3MiOiAic3VwYWJhc2UtZGVtbyIsCiAgICAiaWF0IjogMTY0MTc2OTIwMCwKICAgICJleHAiOiAxNzk5NTM1NjAwCn0.dc_X5iR_VP_qT0zsiyj_I_OZ2T9FtRU2BBNWN8Bu4GE'
+          },
+          {
+            url: 'https://gokkimnokigqxmbppvle.supabase.co',
+            key: 'sb_publishable_G5WQXM4DMmpnwPN9V9srFQ_JZZ2_Yje'
+          }
+        ];
+
+        async function callSupabaseRpc(rpcName, bodyObj) {
+          for (const backend of SUPABASE_BACKENDS) {
+            try {
+              const res = await fetch(backend.url + '/rest/v1/rpc/' + rpcName, {
+                method: 'POST',
+                headers: {
+                  apikey: backend.key,
+                  Authorization: 'Bearer ' + backend.key,
+                  'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bodyObj || {})
+              });
+              if (res.ok) {
+                return await res.json();
+              }
+            } catch (_) {}
+          }
+          return null;
+        }
+
+        async function loadPublicLaunchState() {
+          try {
+            const [summary, cfg] = await Promise.all([
+              callSupabaseRpc('public_waitlist_summary', {}),
+              callSupabaseRpc('get_public_platform_config', {})
+            ]);
+
+            if (summary) {
+              const total = Number(summary && summary.total_count) || 0;
+              const badge = document.getElementById('waitlist-count-badge');
+              if (badge && total > 0) {
+                badge.textContent = total + ' kişi erken erişim sırasına katıldı';
+              }
+            }
+
+            if (cfg) {
+              const rel = cfg && cfg.launch_release;
+              if (rel) {
+                if (rel.eta_label) {
+                  document.getElementById('launch-eta-pill').textContent = rel.eta_label;
+                }
+                if (rel.app_store_url) {
+                  const ios = document.getElementById('store-ios-link');
+                  ios.href = rel.app_store_url;
+                  ios.target = '_blank';
+                  ios.rel = 'noopener noreferrer';
+                  document.getElementById('store-ios-sub').textContent = 'Şimdi İndir';
+                }
+                if (rel.play_store_url) {
+                  const andr = document.getElementById('store-android-link');
+                  andr.href = rel.play_store_url;
+                  andr.target = '_blank';
+                  andr.rel = 'noopener noreferrer';
+                  document.getElementById('store-android-sub').textContent = 'Şimdi İndir';
+                }
+              }
             }
           } catch (_) {}
         }
-        return null;
-      }
 
-      async function loadPublicLaunchState() {
-        try {
-          const [summary, cfg] = await Promise.all([
-            callSupabaseRpc('public_waitlist_summary', {}),
-            callSupabaseRpc('get_public_platform_config', {})
-          ]);
-
-          if (summary) {
-            const total = Number(summary && summary.total_count) || 0;
-            const badge = document.getElementById('waitlist-count-badge');
-            if (badge && total > 0) {
-              badge.textContent = total + ' kişi erken erişim sırasına katıldı';
-            }
+        async function submitWaitlist(payload, feedbackEl, buttonEl) {
+          const email = String(payload.email || '').trim().toLowerCase();
+          if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            feedbackEl.className = 'waitlist-feedback show err';
+            feedbackEl.textContent = 'Lütfen geçerli bir e-posta adresi girin.';
+            return;
           }
 
-          if (cfg) {
-            const rel = cfg && cfg.launch_release;
-            if (rel) {
-              if (rel.eta_label) {
-                document.getElementById('launch-eta-pill').textContent = rel.eta_label;
-              }
-              if (rel.app_store_url) {
-                const ios = document.getElementById('store-ios-link');
-                ios.href = rel.app_store_url;
-                ios.target = '_blank';
-                ios.rel = 'noopener noreferrer';
-                document.getElementById('store-ios-sub').textContent = 'Şimdi İndir';
-              }
-              if (rel.play_store_url) {
-                const andr = document.getElementById('store-android-link');
-                andr.href = rel.play_store_url;
-                andr.target = '_blank';
-                andr.rel = 'noopener noreferrer';
-                document.getElementById('store-android-sub').textContent = 'Şimdi İndir';
+          const prevHtml = buttonEl.innerHTML;
+          buttonEl.disabled = true;
+          buttonEl.textContent = 'Kaydediliyor...';
+          feedbackEl.className = 'waitlist-feedback';
+
+          let succeeded = false;
+          let already = false;
+          let totalCount = 0;
+
+          // 1) Try /api/waitlist first if reverse-proxied or on Cloudflare Pages
+          try {
+            const apiRes = await fetch('/api/waitlist', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (apiRes.ok) {
+              const data = await apiRes.json();
+              if (data && data.ok) {
+                succeeded = true;
+                already = Boolean(data.already_registered);
+                totalCount = Number(data.waitlist_count) || 0;
               }
             }
-          }
-        } catch (_) {
-          // Graceful offline/pre-migration fallback
-        }
-      }
+          } catch (_) {}
 
-      async function submitWaitlist(payload, feedbackEl, buttonEl) {
-        const email = String(payload.email || '').trim().toLowerCase();
-        if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-          feedbackEl.className = 'waitlist-feedback show err';
-          feedbackEl.textContent = 'Lütfen geçerli bir e-posta adresi girin.';
-          return;
-        }
-
-        const prevHtml = buttonEl.innerHTML;
-        buttonEl.disabled = true;
-        buttonEl.textContent = 'Kaydediliyor...';
-        feedbackEl.className = 'waitlist-feedback';
-
-        let succeeded = false;
-        let already = false;
-        let totalCount = 0;
-
-        // 1) Try /api/waitlist first if reverse-proxied or on Cloudflare Pages
-        try {
-          const apiRes = await fetch('/api/waitlist', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (apiRes.ok) {
-            const data = await apiRes.json();
-            if (data && data.ok) {
+          // 2) Direct Supabase RPC call (Self-hosted https://api.swansport.com.tr or cloud fallback)
+          if (!succeeded) {
+            const data = await callSupabaseRpc('join_launch_waitlist', {
+              p_email: email,
+              p_role: payload.role || 'athlete',
+              p_sport_code: payload.sport_code || null,
+              p_club_or_city: payload.club_or_city || null,
+              p_source: 'swansport.com.tr'
+            });
+            if (data) {
               succeeded = true;
               already = Boolean(data.already_registered);
               totalCount = Number(data.waitlist_count) || 0;
             }
           }
-        } catch (_) {}
 
-        // 2) Direct Supabase RPC call (Self-hosted https://api.swansport.com.tr or cloud fallback)
-        if (!succeeded) {
-          const data = await callSupabaseRpc('join_launch_waitlist', {
-            p_email: email,
-            p_role: payload.role || 'athlete',
-            p_sport_code: payload.sport_code || null,
-            p_club_or_city: payload.club_or_city || null,
-            p_source: 'swansport.com.tr'
-          });
-          if (data) {
-            succeeded = true;
-            already = Boolean(data.already_registered);
-            totalCount = Number(data.waitlist_count) || 0;
+          buttonEl.disabled = false;
+          buttonEl.innerHTML = prevHtml;
+
+          if (succeeded) {
+            try {
+              localStorage.setItem('swansport_waitlist_email', email);
+            } catch (_) {}
+            feedbackEl.className = 'waitlist-feedback show ok';
+            feedbackEl.textContent = already
+              ? 'Bu e-posta adresi zaten erken erişim listemizde kayıtlı! Tercihleriniz güncellendi; uygulama yayınlandığında ilk size haber vereceğiz.'
+              : 'Harika! Erken erişim sıranız ayrıldı. SwanSport App Store ve Google Play’de yayınlandığı anda size e-posta göndereceğiz.';
+            if (totalCount > 0) {
+              const badge = document.getElementById('waitlist-count-badge');
+              if (badge) badge.textContent = totalCount + ' kişi erken erişim sırasına katıldı';
+            }
+          } else {
+            feedbackEl.className = 'waitlist-feedback show err';
+            feedbackEl.textContent = 'Şu anda bağlantı kurulamadı. Lütfen birkaç saniye sonra tekrar deneyin.';
           }
         }
 
-        buttonEl.disabled = false;
-        buttonEl.innerHTML = prevHtml;
-
-        if (succeeded) {
-          try {
-            localStorage.setItem('swansport_waitlist_email', email);
-          } catch (_) {}
-          feedbackEl.className = 'waitlist-feedback show ok';
-          feedbackEl.textContent = already
-            ? 'E-posta adresin zaten erken erişim listemizde kayıtlı! Tercihlerin güncellendi; uygulama yayınlandığında ilk sana haber vereceğiz.'
-            : 'Harika! Erken erişim sıran ayrıldı. SwanSport yayınlandığı anda e-postana bildirim göndereceğiz.';
-          if (totalCount > 0) {
-            const badge = document.getElementById('waitlist-count-badge');
-            if (badge) badge.textContent = totalCount + ' kişi erken erişim sırasına katıldı';
-          }
-        } else {
-          feedbackEl.className = 'waitlist-feedback show err';
-          feedbackEl.textContent = 'Şu anda bağlantı kurulamadı. Lütfen birkaç saniye sonra tekrar deneyin.';
-        }
-      }
-
-      const heroForm = document.getElementById('waitlist-form');
-      if (heroForm) {
-        heroForm.addEventListener('submit', function (e) {
+        document.getElementById('hero-waitlist-form').addEventListener('submit', function (e) {
           e.preventDefault();
-          submitWaitlist({
-            email: document.getElementById('wl-email').value,
-            role: selectedRole,
-            sport_code: document.getElementById('wl-sport').value || null,
-            club_or_city: document.getElementById('wl-city').value || null,
-            source: 'swansport.com.tr-hero'
-          }, document.getElementById('wl-feedback'), document.getElementById('wl-submit'));
+          submitWaitlist(
+            {
+              action: 'join',
+              email: document.getElementById('hero-email').value,
+              role: selectedHeroRole,
+              sport_code: document.getElementById('hero-sport').value || null,
+              club_or_city: document.getElementById('hero-club').value || null
+            },
+            document.getElementById('hero-feedback'),
+            document.getElementById('hero-submit-btn')
+          );
         });
-      }
 
-      const bottomForm = document.getElementById('waitlist-form-bottom');
-      if (bottomForm) {
-        bottomForm.addEventListener('submit', function (e) {
+        document.getElementById('bottom-waitlist-form').addEventListener('submit', function (e) {
           e.preventDefault();
-          const btn = bottomForm.querySelector('button[type="submit"]');
-          submitWaitlist({
-            email: document.getElementById('wl-email-bottom').value,
-            role: selectedRole,
-            sport_code: document.getElementById('wl-sport').value || null,
-            club_or_city: document.getElementById('wl-city').value || null,
-            source: 'swansport.com.tr-bottom'
-          }, document.getElementById('wl-feedback-bottom'), btn);
+          submitWaitlist(
+            {
+              action: 'join',
+              email: document.getElementById('bottom-email').value,
+              role: document.getElementById('bottom-role').value || 'athlete',
+              sport_code: null,
+              club_or_city: null
+            },
+            document.getElementById('bottom-feedback'),
+            document.getElementById('bottom-submit-btn')
+          );
         });
-      }
 
-      loadPublicLaunchState();
-    })();
-  </script>
-</body>
+        loadPublicLaunchState();
+      })();
+    </script>
+  </body>
 </html>
