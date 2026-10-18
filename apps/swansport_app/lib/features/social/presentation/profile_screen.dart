@@ -353,16 +353,42 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               ).copyWith(fontWeight: FontWeight.w800),
                             ),
                           ),
+                          if (p.isVerified) ...[
+                            const SizedBox(width: 6),
+                            Icon(
+                              Icons.verified_rounded,
+                              size: 19,
+                              color: context.swan.accent,
+                            ),
+                          ],
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
-                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')} • ${p.roleLabel ?? 'Üye'}${p.primarySport != null && p.primarySport!.trim().isNotEmpty ? ' • ${p.primarySport!}${p.position != null && p.position!.trim().isNotEmpty ? ' (${p.position!})' : ''}' : ''}',
-                        style: SwanType.caption(
-                          context.swan.accent,
-                          w: FontWeight.w600,
-                        ),
+                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')}',
+                        style: SwanType.bodySm(context.swan.inkMuted),
                       ),
+                      const SizedBox(height: 8),
+
+                      if ((p.roleLabel != null && p.roleLabel!.isNotEmpty) ||
+                          (p.primarySport != null &&
+                              p.primarySport!.trim().isNotEmpty) ||
+                          p.credentials.isNotEmpty) ...[
+                        Wrap(
+                          spacing: 6,
+                          runSpacing: 6,
+                          children: [
+                            if (p.roleLabel != null && p.roleLabel!.isNotEmpty)
+                              _roleBadge(context, p.roleLabel!),
+                            if (p.primarySport != null &&
+                                p.primarySport!.trim().isNotEmpty)
+                              _sportBadge(context, p.primarySport!, p.position),
+                            ...p.credentials
+                                .map((cred) => _credentialBadge(context, cred)),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                      ],
                       if (p.heightCm != null ||
                           p.weightKg != null ||
                           (p.dominantSide != null &&
@@ -523,6 +549,128 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
+    );
+  }
+
+  Widget _roleBadge(BuildContext context, String roleLabel) {
+    final c = context.swan;
+    final lower = roleLabel.toLowerCase();
+    final IconData icon;
+    if (lower.contains('yönetici') || lower.contains('admin')) {
+      icon = Icons.admin_panel_settings_rounded;
+    } else if (lower.contains('antrenör') || lower.contains('koç')) {
+      icon = Icons.sports_rounded;
+    } else if (lower.contains('sporcu') || lower.contains('oyuncu')) {
+      icon = Icons.directions_run_rounded;
+    } else if (lower.contains('veli')) {
+      icon = Icons.family_restroom_rounded;
+    } else if (lower.contains('hakem')) {
+      icon = Icons.sports_handball_rounded;
+    } else if (lower.contains('sağlık') || lower.contains('doktor')) {
+      icon = Icons.medical_services_rounded;
+    } else if (lower.contains('muhasebe')) {
+      icon = Icons.receipt_long_rounded;
+    } else {
+      icon = Icons.shield_outlined;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: c.accent.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: c.accent.withValues(alpha: 0.3),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: c.accent),
+          const SizedBox(width: 4.5),
+          Text(
+            roleLabel,
+            style: SwanType.caption(c.accent, w: FontWeight.w700),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sportBadge(BuildContext context, String sport, String? position) {
+    final c = context.swan;
+    final lower = sport.toLowerCase();
+    final IconData icon;
+    if (lower.contains('futbol')) {
+      icon = Icons.sports_soccer_rounded;
+    } else if (lower.contains('basketbol')) {
+      icon = Icons.sports_basketball_rounded;
+    } else if (lower.contains('voleybol')) {
+      icon = Icons.sports_volleyball_rounded;
+    } else if (lower.contains('tenis')) {
+      icon = Icons.sports_tennis_rounded;
+    } else if (lower.contains('yüzme')) {
+      icon = Icons.pool_rounded;
+    } else if (lower.contains('koşu') || lower.contains('atletizm')) {
+      icon = Icons.directions_run_rounded;
+    } else if (lower.contains('fitness') || lower.contains('ağırlık')) {
+      icon = Icons.fitness_center_rounded;
+    } else {
+      icon = Icons.sports_rounded;
+    }
+
+    final text = position != null && position.trim().isNotEmpty
+        ? '$sport · $position'
+        : sport;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: c.surfaceAlt,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: c.line.withValues(alpha: 0.5),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 13, color: c.inkMuted),
+          const SizedBox(width: 4.5),
+          Text(
+            text,
+            style: SwanType.caption(c.ink, w: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _credentialBadge(BuildContext context, String cred) {
+    final c = context.swan;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+      decoration: BoxDecoration(
+        color: c.surfaceAlt,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: c.line.withValues(alpha: 0.5),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.workspace_premium_rounded, size: 13, color: c.accent),
+          const SizedBox(width: 4.5),
+          Text(
+            cred,
+            style: SwanType.caption(c.ink, w: FontWeight.w600),
+          ),
+        ],
+      ),
     );
   }
 
