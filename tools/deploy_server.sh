@@ -81,6 +81,7 @@ copy_to_web_root() {
     return 0
   else
     ensure_web_root_writable "$dst_dir"
+    mkdir -p "$dst_dir" 2>/dev/null || sudo mkdir -p "$dst_dir"
     cp -f "$src" "$dst" 2>/dev/null || sudo cp -f "$src" "$dst"
   fi
 }
@@ -98,7 +99,7 @@ install_auto_pull_cron() {
   echo "✅ Otomatik güncelleme kuruldu!"
   echo "   Artık GitHub'a her 'git push' yapıldığında sunucu 1 dakika içinde şifresiz olarak:"
   echo "   - Yeni kodu çeker ($REPO_DIR)"
-  echo "   - swansport.com.tr vitrinini günceller ($target_web)"
+  echo "   - swansport.com.tr vitrinini, favicon/logo ve SEO dosyalarını günceller ($target_web)"
   echo "   - Yeni SQL migration dosyalarını Supabase DB'ye uygular."
   echo "   Log dosyası: $LOG_FILE"
 }
@@ -111,13 +112,13 @@ fi
 cd "$REPO_DIR"
 TARGET_WEB_ROOT="$(detect_web_root)"
 
-# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki index.html repodakinden farklıysa çalış
+# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki index.html/favicon repodakinden farklıysa çalış
 if [[ "${1:-}" == "--cron" ]]; then
   git fetch origin "$BRANCH" --quiet
   LOCAL_SHA="$(git rev-parse HEAD)"
   REMOTE_SHA="$(git rev-parse "origin/$BRANCH")"
   HTML_SYNCED=true
-  if [[ ! -f "$TARGET_WEB_ROOT/index.html" ]] || ! cmp -s "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html"; then
+  if [[ ! -f "$TARGET_WEB_ROOT/index.html" ]] || ! cmp -s "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html" || [[ ! -f "$TARGET_WEB_ROOT/favicon.png" ]]; then
     HTML_SYNCED=false
   fi
   if [[ "$LOCAL_SHA" == "$REMOTE_SHA" && "$HTML_SYNCED" == "true" ]]; then
@@ -131,10 +132,28 @@ git fetch origin "$BRANCH"
 git checkout "$BRANCH"
 git pull --ff-only origin "$BRANCH"
 
-echo "🦢 [2/3] swansport.com.tr vitrin sayfası güncelleniyor -> $TARGET_WEB_ROOT"
+echo "🦢 [2/3] swansport.com.tr vitrin, favicon, logo ve SEO dosyaları güncelleniyor -> $TARGET_WEB_ROOT"
 copy_to_web_root "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html"
 
-# Marka/logo asset'i varsa kopyala
+if [[ -f "$REPO_DIR/landing/robots.txt" ]]; then
+  copy_to_web_root "$REPO_DIR/landing/robots.txt" "$TARGET_WEB_ROOT/robots.txt"
+fi
+if [[ -f "$REPO_DIR/landing/sitemap.xml" ]]; then
+  copy_to_web_root "$REPO_DIR/landing/sitemap.xml" "$TARGET_WEB_ROOT/sitemap.xml"
+fi
+
+# Konsol ile birebir aynı favicon ve uygulama ikonları
+if [[ -f "$REPO_DIR/apps/swansport_console/web/favicon.png" ]]; then
+  copy_to_web_root "$REPO_DIR/apps/swansport_console/web/favicon.png" "$TARGET_WEB_ROOT/favicon.png"
+fi
+if [[ -f "$REPO_DIR/apps/swansport_console/web/icons/Icon-192.png" ]]; then
+  copy_to_web_root "$REPO_DIR/apps/swansport_console/web/icons/Icon-192.png" "$TARGET_WEB_ROOT/icons/Icon-192.png"
+fi
+if [[ -f "$REPO_DIR/apps/swansport_console/web/icons/Icon-512.png" ]]; then
+  copy_to_web_root "$REPO_DIR/apps/swansport_console/web/icons/Icon-512.png" "$TARGET_WEB_ROOT/icons/Icon-512.png"
+fi
+
+# Resmi kuğu marka logosu
 if [[ -f "$REPO_DIR/assets/branding/official_swan_logo.jpg" ]]; then
   copy_to_web_root "$REPO_DIR/assets/branding/official_swan_logo.jpg" "$TARGET_WEB_ROOT/assets/branding/official_swan_logo.jpg"
 fi

@@ -3,19 +3,154 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    <title>SwanSport — Türkiye'nin Spor Ağı ve Kulüp İşletim Sistemi</title>
+    <title>SwanSport — Spor Kulübü Yönetim Programı, Antrenman Takip ve Canlı Skor Ağı</title>
     <meta
       name="description"
-      content="60 spor branşında canlı antrenman kokpiti, şeffaf kulüp finansı, veli merkezi, hakem maç motoru ve saha ağı. Çok yakında App Store ve Google Play'de."
+      content="Türkiye'nin yeni nesil spor kulübü yönetim programı ve spor okulu yazılımı. 60 branşta canlı antrenman takip uygulaması, aidat takip programı, çevrimdışı sporcu yoklama sistemi, veli bilgilendirme merkezi, dijital esame, canlı maç skoru ve kort/halı saha ağı."
     />
+    <meta
+      name="keywords"
+      content="spor kulübü yönetim programı, spor okulu yazılımı, aidat takip programı, sporcu yoklama sistemi, antrenman takip uygulaması, sporcu performans takip, kulüp muhasebe programı, veli bilgilendirme sistemi, canlı maç skoru, amatör lig puan durumu, dijital esame sistemi, hakem maç raporu, tenis kortu rezervasyon, halı saha sıra sistemi, futbol, basketbol, voleybol, yüzme, okçuluk, cimnastik, atletizm, taekwondo, swansport"
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="author" content="SwanSport" />
+    <meta name="geo.region" content="TR" />
+    <meta name="geo.placename" content="Türkiye" />
+    <link rel="canonical" href="https://swansport.com.tr/" />
+
+    <!-- Panel / Konsol ile Birebir Aynı Favicon & Uygulama İkonları -->
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/icons/Icon-192.png" />
+    <link rel="apple-touch-icon" sizes="192x192" href="/icons/Icon-192.png" />
+    <link rel="apple-touch-icon" sizes="512x512" href="/icons/Icon-512.png" />
     <meta name="theme-color" content="#070c16" />
-    <meta property="og:title" content="SwanSport — Sahadaki Her Rol İçin Tek Spor Ağı" />
+    <meta name="apple-mobile-web-app-title" content="SwanSport" />
+    <meta name="application-name" content="SwanSport" />
+
+    <!-- Open Graph / WhatsApp / LinkedIn / Facebook -->
+    <meta property="og:locale" content="tr_TR" />
+    <meta property="og:site_name" content="SwanSport" />
+    <meta property="og:title" content="SwanSport — Spor Kulübü Yönetim Programı ve 360° Dijital Spor Ağı" />
     <meta
       property="og:description"
-      content="Sporcu, antrenör, kulüp, veli ve hakem için uçtan uca dijital spor ekosistemi. Yayınlandığında ilk sen haberdar ol."
+      content="60 spor branşında canlı antrenman kokpiti, şeffaf kulüp aidat/finans yönetimi, anlık veli yoklama bildirimi, hakem esame motoru ve saha ağı."
     />
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://swansport.com.tr" />
+    <meta property="og:url" content="https://swansport.com.tr/" />
+    <meta property="og:image" content="https://swansport.com.tr/assets/branding/official_swan_logo.jpg" />
+    <meta property="og:image:alt" content="SwanSport Resmi Kuğu Logosu" />
+
+    <!-- Twitter / X Cards -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="SwanSport — Türkiye'nin Spor Ağı ve Kulüp İşletim Sistemi" />
+    <meta
+      name="twitter:description"
+      content="Sporcu, antrenör, kulüp yöneticisi, veli ve hakem için tek uygulama. 60 branş antrenman motoru ve şeffaf kulüp yönetimi."
+    />
+    <meta name="twitter:image" content="https://swansport.com.tr/assets/branding/official_swan_logo.jpg" />
+
+    <!-- Google Rich Snippets (Schema.org JSON-LD: Organization, SoftwareApplication, WebSite, FAQPage) -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://swansport.com.tr/#organization",
+            "name": "SwanSport",
+            "alternateName": ["SwanSpor", "SwanSport Spor Ağı ve Kulüp Yönetim Platformu"],
+            "url": "https://swansport.com.tr/",
+            "logo": {
+              "@type": "ImageObject",
+              "url": "https://swansport.com.tr/assets/branding/official_swan_logo.jpg",
+              "width": 512,
+              "height": 512
+            },
+            "description": "Türkiye'deki spor kulüpleri, spor okulları, antrenörler, sporcular, veliler ve hakemler için 60 branş destekli dijital spor yönetimi ve saha ağı platformu.",
+            "email": "iletisim@swansport.com.tr",
+            "areaServed": {
+              "@type": "Country",
+              "name": "TR"
+            }
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://swansport.com.tr/#website",
+            "url": "https://swansport.com.tr/",
+            "name": "SwanSport",
+            "inLanguage": "tr-TR",
+            "publisher": {
+              "@id": "https://swansport.com.tr/#organization"
+            }
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://swansport.com.tr/#app",
+            "name": "SwanSport — Spor Kulübü Yönetim ve Antrenman Uygulaması",
+            "operatingSystem": "iOS, Android, Web",
+            "applicationCategory": "SportsApplication",
+            "applicationSubCategory": "BusinessApplication",
+            "inLanguage": "tr-TR",
+            "publisher": {
+              "@id": "https://swansport.com.tr/#organization"
+            },
+            "featureList": [
+              "60 Türkiye Spor Federasyonu Branşında Canlı Antrenman Kokpiti",
+              "Spor Kulübü Aidat Takip Programı ve Muhasebeci Gizlilik Kalkanı (#A3F91C)",
+              "Çevrimdışı (Offline-First) Sporcu Yoklama ve Devam Takip Sistemi",
+              "Anlık Veli Bilgilendirme, İzin Onayı ve Dönemlik Gelişim Karnesi",
+              "Dijital Esame Doğrulama, Mobil Hakem Kokpiti ve Canlı Maç Skoru Merkezi",
+              "GPS Konum Doğrulamalı Tenis Kortu Sırası ve Halı Saha Rezervasyon Ağı"
+            ],
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "TRY",
+              "availability": "https://schema.org/PreOrder"
+            }
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://swansport.com.tr/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "SwanSport spor kulübü yönetim programı ne zaman yayınlanacak?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "SwanSport mobil uygulaması son saha testlerinin ardından App Store (iOS) ve Google Play (Android) mağazalarında yayınlanacaktır. Erken erişim formuna e-posta bırakan kullanıcılara lansman anında bildirim gönderilir."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Spor okulunda veya kulüpte birden fazla branş aynı anda yönetilebilir mi?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Evet. Futbol, basketbol, voleybol, yüzme, tenis, okçuluk, cimnastik, atletizm ve taekwondo dahil 60 spor federasyonu branşında çoklu branş yönetimi ve branşa özel antrenman veri pedi sunulur."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Aidat takip programında sporcu kişisel verileri muhasebeciden nasıl korunur?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "SwanSport veri katmanında dış muhasebeciler sporcuların ad-soyad veya kimlik bilgilerini göremez; yalnızca #A3F91C gibi sabit anonim referans kodlarıyla aidat ve gelir-gider mutabakatı yapar."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Telefonu olmayan altyapı ve çocuk sporcuların yoklama ve izin takibi nasıl yapılır?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Küçük yaştaki sporcular kendi giriş hesabına ihtiyaç duymadan kulüp kadrosuna eklenir ve veli hesabına bağlanır. Yoklama bildirimi, turnuva izin onayı ve gelişim karnesi doğrudan veli ekranından yürütülür."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -147,14 +282,22 @@
       }
 
       .brand-mark {
-        width: 34px;
-        height: 34px;
+        width: 36px;
+        height: 36px;
         border-radius: 10px;
         display: grid;
         place-items: center;
+        overflow: hidden;
         background: linear-gradient(140deg, #2dd4bf, #0d9488);
         color: #04131a;
         box-shadow: 0 6px 20px rgba(20, 184, 177, 0.35);
+      }
+
+      .brand-mark img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
       }
 
       .brand-mark .icon {
@@ -1661,7 +1804,9 @@
     <header class="nav" id="nav">
       <div class="wrap nav-inner">
         <a href="#" class="brand" aria-label="SwanSport ana sayfa">
-          <span class="brand-mark"><svg class="icon"><use href="#i-swan" /></svg></span>
+          <span class="brand-mark">
+            <img src="/assets/branding/official_swan_logo.jpg" onerror="this.src='/favicon.png'" alt="SwanSport Kuğu Logosu" width="36" height="36" />
+          </span>
           SwanSport
         </a>
         <nav class="nav-links" aria-label="Bölümler">
@@ -2208,13 +2353,68 @@
     </main>
 
     <footer class="footer">
-      <div class="wrap footer-inner">
-        <div><strong style="color:var(--ink)">SwanSport</strong> · Türkiye'nin spor ağı · © 2026</div>
-        <div class="footer-links">
-          <a href="#neden">Neden SwanSport</a>
-          <a href="#kokpit-onizleme">Roller</a>
-          <a href="#ozellikler">Özellikler</a>
-          <a href="mailto:iletisim@swansport.com.tr">İletişim</a>
+      <div class="wrap">
+        <div
+          style="
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            padding-bottom: 28px;
+            margin-bottom: 24px;
+            border-bottom: 1px solid var(--line);
+            text-align: left;
+          "
+        >
+          <div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+              <span class="brand-mark" style="width:30px;height:30px;border-radius:8px;">
+                <img src="/assets/branding/official_swan_logo.jpg" onerror="this.src='/favicon.png'" alt="SwanSport" width="30" height="30" />
+              </span>
+              <strong style="color:var(--ink);font-family:'Sora',sans-serif;font-size:16px;">SwanSport</strong>
+            </div>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.55;">
+              Türkiye'nin spor kulübü yönetim programı, spor okulu yazılımı, 60 branş canlı antrenman takip uygulaması ve dijital saha ağı.
+            </p>
+          </div>
+
+          <div>
+            <h3 style="font-size:12.5px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+              Kulüp & Spor Okulu Yazılımı
+            </h3>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+              Spor kulübü yönetim programı · Spor okulu yazılımı · Kulüp aidat takip programı · Çevrimdışı sporcu yoklama sistemi · Veli bilgilendirme ve izin onay sistemi · Muhasebeci gizlilik kalkanı (#A3F91C) · Malzeme zimmet ve tesis takvimi.
+            </p>
+          </div>
+
+          <div>
+            <h3 style="font-size:12.5px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+              60 Branş Antrenman Motoru
+            </h3>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+              Futbol · Basketbol · Voleybol · Yüzme split kronometre · Tenis set skoru · Okçuluk hedef serisi · Atletizm derece takibi · Cimnastik · Taekwondo · Judo · Karate · Boks · Halter · Eskrim · Badminton · Masa Tenisi · Kürek · Bisiklet · Satranç.
+            </p>
+          </div>
+
+          <div>
+            <h3 style="font-size:12.5px;font-weight:800;color:var(--ink);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">
+              Müsabaka, Hakem & Saha Ağı
+            </h3>
+            <p style="font-size:12.5px;color:var(--muted);line-height:1.6;">
+              Canlı maç skoru merkezi · Amatör ve bölgesel lig puan durumu · Dijital esame doğrulama · Mobil hakem kokpiti ve maç raporu · GPS doğrulamalı tenis kortu bekleme sırası · Halı saha rezervasyon ve partner bulma ağı.
+            </p>
+          </div>
+        </div>
+
+        <div class="footer-inner">
+          <div><strong style="color:var(--ink)">SwanSport</strong> · Türkiye'nin Spor Ağı ve Kulüp İşletim Sistemi · © 2026</div>
+          <div class="footer-links">
+            <a href="#neden">Neden SwanSport</a>
+            <a href="#kokpit-onizleme">Roller</a>
+            <a href="#canli-laboratuvar">Antrenman Motoru</a>
+            <a href="#ozellikler">Özellikler</a>
+            <a href="/sitemap.xml">Site Haritası</a>
+            <a href="mailto:iletisim@swansport.com.tr">İletişim</a>
+          </div>
         </div>
       </div>
     </footer>

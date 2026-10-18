@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://swansport.com.tr/sitemap.xml
