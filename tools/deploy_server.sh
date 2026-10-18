@@ -122,7 +122,7 @@ fi
 cd "$REPO_DIR"
 TARGET_WEB_ROOT="$(detect_web_root)"
 
-# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki index.html/favicon/llms.txt repodakinden farklıysa çalış
+# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki dosyalar/DB henüz senkron değilse çalış
 if [[ "${1:-}" == "--cron" ]]; then
   git fetch origin "$BRANCH" --quiet
   LOCAL_SHA="$(git rev-parse HEAD)"
@@ -131,16 +131,26 @@ if [[ "${1:-}" == "--cron" ]]; then
   if [[ ! -f "$TARGET_WEB_ROOT/index.html" ]] || ! cmp -s "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html" || [[ ! -f "$TARGET_WEB_ROOT/favicon.png" ]] || ! cmp -s "$REPO_DIR/landing/llms.txt" "$TARGET_WEB_ROOT/llms.txt"; then
     HTML_SYNCED=false
   fi
+  DB_CHECK_CONTAINER="$(detect_db_container)"
+  if [[ -n "$DB_CHECK_CONTAINER" ]]; then
+    HAS_WAITLIST="$(run_docker exec -i "$DB_CHECK_CONTAINER" psql -U postgres -d postgres -tAc "select to_regclass('public.launch_waitlist');" 2>/dev/null | tr -d '[:space:]' || true)"
+    if [[ "$HAS_WAITLIST" != "public.launch_waitlist" && "$HAS_WAITLIST" != "launch_waitlist" ]]; then
+      HTML_SYNCED=false
+    fi
+  fi
   if [[ "$LOCAL_SHA" == "$REMOTE_SHA" && "$HTML_SYNCED" == "true" ]]; then
     exit 0
   fi
-  echo "[$(date -Iseconds)] Güncelleme tetiklendi: $LOCAL_SHA -> $REMOTE_SHA (html_synced=$HTML_SYNCED)"
+  echo "[$(date -Iseconds)] Güncelleme tetiklendi: $LOCAL_SHA -> $REMOTE_SHA (synced=$HTML_SYNCED)"
 fi
 
-echo "🦢 [1/3] Git üzerinden güncel kod çekiliyor ($BRANCH)..."
-git fetch origin "$BRANCH"
-git checkout "$BRANCH"
-git pull --ff-only origin "$BRANCH"
+if [[ "${1:-}" != "--post-pull" ]]; then
+  echo "🦢 [1/3] Git üzerinden güncel kod çekiliyor ($BRANCH)..."
+  git fetch origin "$BRANCH"
+  git checkout "$BRANCH"
+  git pull --ff-only origin "$BRANCH"
+  exec bash "$REPO_DIR/tools/deploy_server.sh" --post-pull
+fi
 
 echo "🦢 [2/3] swansport.com.tr vitrin, favicon, logo ve SEO dosyaları güncelleniyor -> $TARGET_WEB_ROOT"
 copy_to_web_root "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html"
@@ -175,10 +185,10 @@ CONTAINER_NAME="$(detect_db_container)"
 if [[ -n "$CONTAINER_NAME" ]]; then
   echo "🦢 [3/3] Supabase veritabanı migration kontrolü ($CONTAINER_NAME)..."
   for mig in \
+    "$REPO_DIR/supabase/migrations/0122_launch_waitlist.sql" \
     "$REPO_DIR/supabase/migrations/0119_turkey_sports_federations_catalog.sql" \
     "$REPO_DIR/supabase/migrations/0120_multi_branch_training_engine.sql" \
-    "$REPO_DIR/supabase/migrations/0121_general_availability_and_club_training_sports.sql" \
-    "$REPO_DIR/supabase/migrations/0122_launch_waitlist.sql"; do
+    "$REPO_DIR/supabase/migrations/0121_general_availability_and_club_training_sports.sql"; do
     if [[ -f "$mig" ]]; then
       echo "   -> Uygulanıyor: $(basename "$mig")"
       run_psql_file "$CONTAINER_NAME" "$mig"
