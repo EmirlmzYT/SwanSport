@@ -50,7 +50,8 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
         final c = ctx.swan;
         return AlertDialog(
           backgroundColor: c.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(SwanRadius.md)),
           title: Text('Yeni Koleksiyon', style: SwanType.h3(c.ink)),
           content: TextField(
             controller: titleCtrl,
@@ -58,7 +59,8 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
             decoration: InputDecoration(
               hintText: 'Koleksiyon adı (örn. Yay Ayarları)',
               hintStyle: SwanType.bodySm(c.inkMuted),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(SwanRadius.sm)),
             ),
           ),
           actions: [
@@ -79,7 +81,8 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                   );
                 }
               },
-              child: Text('Oluştur', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+              child: Text('Oluştur',
+                  style: SwanType.caption(c.accent, w: FontWeight.w700)),
             ),
           ],
         );
@@ -103,11 +106,10 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-
-
                 // Top Search and New Collection Action Bar
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg, vertical: SwanSpace.xs),
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: SwanSpace.lg, vertical: SwanSpace.xs),
                   child: Row(
                     children: [
                       Expanded(
@@ -117,15 +119,18 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                             color: c.surfaceAlt,
                             borderRadius: BorderRadius.circular(SwanRadius.md),
                           ),
-                          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: SwanSpace.md),
                           child: Row(
                             children: [
-                              Icon(Icons.search_rounded, color: c.inkMuted, size: 19),
+                              Icon(Icons.search_rounded,
+                                  color: c.inkMuted, size: 19),
                               const SizedBox(width: SwanSpace.xs),
                               Expanded(
                                 child: TextField(
                                   controller: _searchCtrl,
-                                  onChanged: (v) => setState(() => _query = v.trim().toLowerCase()),
+                                  onChanged: (v) => setState(
+                                      () => _query = v.trim().toLowerCase()),
                                   style: SwanType.body(c.ink),
                                   decoration: InputDecoration(
                                     hintText: 'Kaydedilenler içinde ara...',
@@ -142,7 +147,8 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                                     _searchCtrl.clear();
                                     setState(() => _query = '');
                                   },
-                                  child: Icon(Icons.close_rounded, size: 16, color: c.inkMuted),
+                                  child: Icon(Icons.close_rounded,
+                                      size: 16, color: c.inkMuted),
                                 ),
                             ],
                           ),
@@ -154,7 +160,8 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                         borderRadius: BorderRadius.circular(SwanRadius.md),
                         child: Container(
                           height: 44,
-                          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: SwanSpace.md),
                           decoration: BoxDecoration(
                             color: c.surface,
                             borderRadius: BorderRadius.circular(SwanRadius.md),
@@ -162,11 +169,13 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.bookmark_add_outlined, color: c.accent, size: 18),
+                              Icon(Icons.bookmark_add_outlined,
+                                  color: c.accent, size: 18),
                               const SizedBox(width: 4),
                               Text(
                                 'Yeni',
-                                style: SwanType.caption(c.accent, w: FontWeight.w700),
+                                style: SwanType.caption(c.accent,
+                                    w: FontWeight.w700),
                               ),
                             ],
                           ),
@@ -182,16 +191,19 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                   height: 38,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                     itemCount: _categories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: SwanSpace.xs),
+                    separatorBuilder: (_, __) =>
+                        const SizedBox(width: SwanSpace.xs),
                     itemBuilder: (context, i) {
                       final on = _categoryIndex == i;
                       return InkWell(
                         onTap: () => setState(() => _categoryIndex = i),
                         borderRadius: BorderRadius.circular(999),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 14, vertical: 7),
                           decoration: BoxDecoration(
                             color: on ? c.accentFill : c.surfaceAlt,
                             borderRadius: BorderRadius.circular(999),
@@ -218,8 +230,10 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                     data: (list) {
                       final filtered = list.where((p) {
                         if (_query.isNotEmpty) {
-                          final matchBody = p.body.toLowerCase().contains(_query);
-                          final matchAuthor = p.author.toLowerCase().contains(_query);
+                          final matchBody =
+                              p.body.toLowerCase().contains(_query);
+                          final matchAuthor =
+                              p.author.toLowerCase().contains(_query);
                           if (!matchBody && !matchAuthor) return false;
                         }
                         if (_categoryIndex == 1) {
@@ -249,11 +263,14 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                                     color: c.surfaceAlt,
                                     shape: BoxShape.circle,
                                   ),
-                                  child: Icon(Icons.bookmark_border_rounded, color: c.inkMuted, size: 28),
+                                  child: Icon(Icons.bookmark_border_rounded,
+                                      color: c.inkMuted, size: 28),
                                 ),
                                 const SizedBox(height: SwanSpace.md),
                                 Text(
-                                  list.isEmpty ? 'Henüz kaydedilen yok' : 'Eşleşen kayıt bulunamadı',
+                                  list.isEmpty
+                                      ? 'Henüz kaydedilen yok'
+                                      : 'Eşleşen kayıt bulunamadı',
                                   style: SwanType.h3(c.ink),
                                 ),
                                 const SizedBox(height: SwanSpace.xs),
@@ -271,10 +288,13 @@ class _SavedPostsScreenState extends ConsumerState<SavedPostsScreen> {
                       }
 
                       return ListView.separated(
-                        padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
+                        padding: const EdgeInsets.fromLTRB(
+                            SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, 132),
                         itemCount: filtered.length,
-                        separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.md),
-                        itemBuilder: (_, i) => _StitchSavedCard(post: filtered[i]),
+                        separatorBuilder: (_, __) =>
+                            const SizedBox(height: SwanSpace.md),
+                        itemBuilder: (_, i) =>
+                            _StitchSavedCard(post: filtered[i]),
                       );
                     },
                   ),
@@ -304,12 +324,15 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
   Future<void> _remove() async {
     setState(() => _busy = true);
     try {
-      await ref.read(socialShareServiceProvider).toggleSaved(widget.post.postId);
+      await ref
+          .read(socialShareServiceProvider)
+          .toggleSaved(widget.post.postId);
       ref.invalidate(savedPostsProvider);
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('$e')));
       }
     }
   }
@@ -361,14 +384,16 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
                         ),
                         const SizedBox(width: 4),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 6, vertical: 1),
                           decoration: BoxDecoration(
                             color: c.surfaceAlt,
                             borderRadius: BorderRadius.circular(4),
                           ),
                           child: Text(
                             'Antrenör',
-                            style: SwanType.caption(c.accent, w: FontWeight.w700),
+                            style:
+                                SwanType.caption(c.accent, w: FontWeight.w700),
                           ),
                         ),
                       ],
@@ -398,7 +423,8 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
                       color: c.accent.withValues(alpha: .12),
                       shape: BoxShape.circle,
                     ),
-                    child: Icon(Icons.bookmark_rounded, size: 20, color: c.accent),
+                    child:
+                        Icon(Icons.bookmark_rounded, size: 20, color: c.accent),
                   ),
                 ),
             ],
@@ -426,7 +452,8 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
                       color: Colors.black.withValues(alpha: .6),
                       shape: BoxShape.circle,
                     ),
-                    child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 26),
+                    child: const Icon(Icons.play_arrow_rounded,
+                        color: Colors.white, size: 26),
                   ),
                 ],
               ),
@@ -450,7 +477,8 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
               const SizedBox(width: 4),
               Text('1.2B', style: SwanType.caption(c.inkMuted)),
               const SizedBox(width: SwanSpace.md),
-              Icon(Icons.chat_bubble_outline_rounded, size: 14, color: c.inkMuted),
+              Icon(Icons.chat_bubble_outline_rounded,
+                  size: 14, color: c.inkMuted),
               const SizedBox(width: 4),
               Text('24', style: SwanType.caption(c.inkMuted)),
               const Spacer(),
@@ -517,8 +545,12 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
     try {
       await ref.read(socialShareServiceProvider).repostOrQuote(
             widget.postId,
-            body: _controller.text.trim().isEmpty ? null : _controller.text.trim(),
+            body: _controller.text.trim().isEmpty
+                ? null
+                : _controller.text.trim(),
           );
+      ref.invalidate(feedProvider);
+      ref.invalidate(discoverProvider);
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -541,7 +573,8 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
     return Container(
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
       ),
       padding: EdgeInsets.fromLTRB(
         SwanSpace.lg,
@@ -573,9 +606,13 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.authorName, style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                Text(widget.authorName,
+                    style: SwanType.caption(c.accent, w: FontWeight.w700)),
                 const SizedBox(height: 2),
-                Text(widget.preview, maxLines: 2, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(c.ink)),
+                Text(widget.preview,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.bodySm(c.ink)),
               ],
             ),
           ),
@@ -586,9 +623,13 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
             decoration: InputDecoration(
               hintText: 'Düşüncelerini ekle (isteğe bağlı)...',
               hintStyle: SwanType.bodySm(c.inkMuted),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(SwanRadius.sm)),
             ),
           ),
+          const SizedBox(height: SwanSpace.xs),
+          Text('Not eklersen alıntı, boş bırakırsan yeniden paylaşım olur.',
+              style: SwanType.caption(c.inkMuted)),
           const SizedBox(height: SwanSpace.md),
           ElevatedButton(
             onPressed: _busy ? null : _submit,
@@ -596,11 +637,17 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
               backgroundColor: c.accentFill,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.sm)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(SwanRadius.sm)),
             ),
             child: _busy
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Text('Paylaş', style: TextStyle(fontWeight: FontWeight.bold)),
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Colors.white))
+                : const Text('Paylaş',
+                    style: TextStyle(fontWeight: FontWeight.bold)),
           ),
         ],
       ),

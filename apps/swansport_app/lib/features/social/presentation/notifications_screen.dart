@@ -13,22 +13,13 @@ import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import 'widgets/social_widgets.dart';
 
-/// Bildirimler & Etkinlik Akışı (Google Stitch Screen 24).
-///
-/// Google Stitch "SwanSport - Bildirimler & Etkinlik Akışı" tasarımını uygular:
-/// - Üst Başlık & "Tümünü Okundu İşaretle" Eylemi
-/// - Filtre Çipleri (Tümü, Etkileşimler, Antrenör & Plan, Kulüp & Meydan Okuma)
-/// - Gruplandırılmış Bildirim Akışı (Bugün / Dün)
-/// - Antrenör Planı Bildirimi (A2 Kuvvet & Mobilite hızlı geçiş)
-/// - PR Tebrik Kartı (Görsel ve 180kg x 2 Detayı)
-/// - Kulüp Koşusu Daveti (İnteraktif "Katılıyorum" butonu)
-/// - Seri ve Başarı Rozeti (82 Günlük Seri, ilk %5)
-/// - Gerçek Supabase bildirim sağlayıcıları ve anlık bildirim tercihleri
+/// Kişisel bildirim akışı ve telefon bildirim tercihleri.
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
@@ -36,9 +27,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   final List<String> _filters = const [
     'Tümü',
-    'Etkileşimler',
-    'Antrenör & Plan',
-    'Kulüp & Meydan Okuma',
+    'Sosyal',
+    'Antrenman',
+    'Kulüp',
   ];
 
   String get _category => switch (_selectedFilter) {
@@ -49,27 +40,22 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       };
 
   @override
-  void initState() {
-    super.initState();
-    Future.microtask(() async {
-      try {
-        await ref.read(notificationServiceProvider).markAllRead();
-        if (mounted) ref.invalidate(unreadNotificationsProvider);
-      } catch (_) {
-        // Okuma işareti başarısızsa gerçek sayaç korunur; açık aksiyon yeniden dener.
-      }
-    });
-  }
-
-  @override
   Widget build(BuildContext context) {
     final c = context.swan;
     final async = ref.watch(categorizedNotificationsProvider(_category));
+    final unreadCount = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Bildirimler', actions: [
-        IconButton(tooltip: 'Tümünü okundu işaretle', icon: Icon(Icons.done_all_rounded, color: context.swan.inkMuted), onPressed: _markAllRead),
-        IconButton(tooltip: 'Tercihler', icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted), onPressed: _openPrefs),
+        if (unreadCount > 0)
+          IconButton(
+              tooltip: 'Tümünü okundu işaretle',
+              icon: Icon(Icons.done_all_rounded, color: c.inkMuted),
+              onPressed: _markAllRead),
+        IconButton(
+            tooltip: 'Bildirim ayarları',
+            icon: Icon(Icons.settings_outlined, color: c.inkMuted),
+            onPressed: _openPrefs),
       ]),
       extendBody: true,
       backgroundColor: c.bg,
@@ -80,10 +66,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-
-                const _PushBanner(),
-                const _PushDiagnosticsPanel(),
-                _buildSubheader(c),
+                _buildSubheader(c, unreadCount),
                 _buildFilterChips(c),
                 const SizedBox(height: SwanSpace.sm),
                 Expanded(
@@ -91,51 +74,93 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     color: c.accent,
                     backgroundColor: c.surface,
                     onRefresh: () async {
-                      ref.invalidate(categorizedNotificationsProvider(_category));
-                      await ref.read(categorizedNotificationsProvider(_category).future);
+                      ref.invalidate(
+                          categorizedNotificationsProvider(_category));
+                      await ref.read(
+                          categorizedNotificationsProvider(_category).future);
                     },
                     child: async.when(
-                      loading: () => const Center(child: CircularProgressIndicator()),
-                      error: (e, _) => ListView(children: [premiumError(context, '$e')]),
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (e, _) =>
+                          ListView(children: [premiumError(context, '$e')]),
                       data: (list) {
                         if (list.isEmpty) {
-                          return Center(
-                            child: Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Container(
-                                    width: 64,
-                                    height: 64,
-                                    decoration: BoxDecoration(
-                                      color: c.surfaceAlt,
-                                      shape: BoxShape.circle,
+                          return ListView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 24, vertical: 48),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Container(
+                                      width: 64,
+                                      height: 64,
+                                      decoration: BoxDecoration(
+                                        color: c.surfaceAlt,
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                          Icons.notifications_none_rounded,
+                                          size: 32,
+                                          color: c.inkMuted),
                                     ),
-                                    child: Icon(Icons.notifications_none_rounded, size: 32, color: c.inkMuted),
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Text(
-                                    'Henüz bildiriminiz yok',
-                                    style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  Text(
-                                    'Kulüp etkinlikleri, antrenman güncellemeleri ve etkileşimler burada listelenir.',
-                                    textAlign: TextAlign.center,
-                                    style: SwanType.caption(c.inkMuted),
-                                  ),
-                                ],
-                              ),
-                            ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      _selectedFilter == 0
+                                          ? 'Henüz bildirimin yok'
+                                          : 'Bu kategoride bildirim yok',
+                                      style: SwanType.h3(c.ink).copyWith(
+                                          fontWeight: FontWeight.w700),
+                                    ),
+                                    const SizedBox(height: 6),
+                                    Text(
+                                      _selectedFilter == 0
+                                          ? 'Yeni gelişmeler olduğunda burada göreceksin.'
+                                          : 'Diğer bildirimlere Tümü sekmesinden bakabilirsin.',
+                                      textAlign: TextAlign.center,
+                                      style: SwanType.caption(c.inkMuted),
+                                    ),
+                                  ],
+                                ),
+                              )
+                            ],
                           );
                         }
 
-                        return ListView.separated(
-                          padding: const EdgeInsets.fromLTRB(SwanSpace.md, 8, SwanSpace.md, SwanSpace.xl * 5),
+                        return ListView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: const EdgeInsets.fromLTRB(SwanSpace.md,
+                              SwanSpace.md, SwanSpace.md, SwanSpace.xl * 5),
                           itemCount: list.length,
-                          separatorBuilder: (_, __) => const SizedBox(height: 8),
-                          itemBuilder: (context, i) => _tile(c, list[i]),
+                          itemBuilder: (context, i) {
+                            final n = list[i];
+                            final heading = _dateHeading(n.createdAt);
+                            final previousHeading = i == 0
+                                ? null
+                                : _dateHeading(list[i - 1].createdAt);
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (heading != previousHeading)
+                                  Padding(
+                                    padding: EdgeInsets.only(
+                                        top: i == 0 ? 0 : SwanSpace.lg,
+                                        bottom: SwanSpace.sm),
+                                    child: Text(heading,
+                                        style: SwanType.bodySm(c.ink,
+                                            w: FontWeight.w700)),
+                                  ),
+                                _tile(c, n),
+                                if (i + 1 < list.length &&
+                                    _dateHeading(list[i + 1].createdAt) ==
+                                        heading)
+                                  Divider(height: 1, indent: 62, color: c.line),
+                              ],
+                            );
+                          },
                         );
                       },
                     ),
@@ -150,36 +175,43 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-
-
   Future<void> _markAllRead() async {
     try {
       await ref.read(notificationServiceProvider).markAllRead();
       if (!mounted) return;
       ref.invalidate(unreadNotificationsProvider);
-      ref.invalidate(categorizedNotificationsProvider(_category));
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tüm bildirimler okundu olarak işaretlendi.')));
+      ref.invalidate(categorizedNotificationsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Tüm bildirimler okundu olarak işaretlendi.')));
     } catch (_) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Bildirimler işaretlenemedi. Tekrar deneyin.')));
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+            content: Text('Bildirimler işaretlenemedi. Tekrar deneyin.')));
     }
   }
 
-  Widget _buildSubheader(SwanPalette c) {
-    final unreadCount = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
+  Widget _buildSubheader(SwanPalette c, int unreadCount) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(SwanSpace.md, SwanSpace.md, SwanSpace.md, SwanSpace.xs),
+      padding: const EdgeInsets.fromLTRB(
+          SwanSpace.md, SwanSpace.md, SwanSpace.md, SwanSpace.xs),
       child: Row(children: [
-        Expanded(child: Text('Etkinlik & Akış', maxLines: 1,
-            overflow: TextOverflow.ellipsis, style: SwanType.h3(c.ink))),
+        Expanded(
+            child: Text(
+                unreadCount > 0 ? 'Gelişmelerin burada' : 'Tüm bildirimler',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.bodySm(c.inkMuted))),
         if (unreadCount > 0) ...[
           const SizedBox(width: SwanSpace.sm),
-          Flexible(child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
-            decoration: BoxDecoration(color: c.accentSoft,
+          Flexible(
+              child: Container(
+            padding: const EdgeInsets.symmetric(
+                horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
+            decoration: BoxDecoration(
+                color: c.accentSoft,
                 borderRadius: BorderRadius.circular(SwanRadius.sm)),
-            child: Text('$unreadCount Yeni', maxLines: 1,
+            child: Text('$unreadCount yeni',
+                maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: SwanType.caption(c.accent, w: FontWeight.w800)),
           )),
@@ -191,7 +223,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Widget _buildFilterChips(SwanPalette c) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 6),
+      padding:
+          const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 6),
       child: Row(
         children: _filters.asMap().entries.map((entry) {
           final idx = entry.key;
@@ -205,23 +238,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               borderRadius: BorderRadius.circular(999),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 180),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                 decoration: BoxDecoration(
-                  color: isSelected ? c.accentFill : c.surfaceAlt,
+                  color: isSelected ? c.accentFill : c.surface,
                   borderRadius: BorderRadius.circular(999),
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: c.accent.withValues(alpha: 0.3),
-                            blurRadius: 6,
-                            offset: const Offset(0, 2),
-                          ),
-                        ]
-                      : null,
+                  border: Border.all(color: isSelected ? c.accentFill : c.line),
                 ),
                 child: Text(
                   label,
-                  style: SwanType.caption(isSelected ? c.onAccent : c.ink, w: isSelected ? FontWeight.w800 : FontWeight.w500),
+                  style: SwanType.caption(isSelected ? c.onAccent : c.ink,
+                      w: isSelected ? FontWeight.w800 : FontWeight.w500),
                 ),
               ),
             ),
@@ -231,64 +258,99 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
+  String _dateHeading(DateTime date) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final day = DateTime(date.year, date.month, date.day);
+    if (day == today) return 'Bugün';
+    if (day == today.subtract(const Duration(days: 1))) return 'Dün';
+    return 'Daha önce';
+  }
 
-
-
-
+  IconData _iconFor(NotificationRow n) => switch (n.kind) {
+        'like' => Icons.favorite_rounded,
+        'comment' => Icons.mode_comment_rounded,
+        'follow' => Icons.person_add_rounded,
+        'message' => Icons.chat_bubble_rounded,
+        'match_live' || 'match_result' => Icons.sports_score_rounded,
+        'referee_assignment' => Icons.sports_rounded,
+        'training' || 'attendance' => Icons.fitness_center_rounded,
+        'application' || 'offer' || 'review' => Icons.assignment_rounded,
+        _ => Icons.notifications_rounded,
+      };
 
   Widget _tile(SwanPalette c, NotificationRow n) {
+    final route = n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute;
     return InkWell(
-      onTap: (n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute) == null ? null : () => Navigator.pushNamed(context, (n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute)!),
-      child: Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              color: c.accent.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(SwanRadius.md),
-            ),
-            child: Icon(Icons.notifications_active_rounded, size: 20, color: c.accent),
+        onTap: route == null ? null : () => Navigator.pushNamed(context, route),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        child: Container(
+          padding: const EdgeInsets.symmetric(
+              horizontal: SwanSpace.sm, vertical: SwanSpace.md),
+          decoration: BoxDecoration(
+            color: n.isUnread ? c.accentSoft : c.surface,
+            borderRadius: BorderRadius.circular(SwanRadius.md),
           ),
-          const SizedBox(width: SwanSpace.md),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: n.isUnread ? c.surface : c.surfaceAlt,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(_iconFor(n),
+                    size: 19, color: n.isUnread ? c.accent : c.inkMuted),
+              ),
+              const SizedBox(width: SwanSpace.md),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        n.title,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            n.title,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.bodySm(c.ink,
+                                w: n.isUnread
+                                    ? FontWeight.w800
+                                    : FontWeight.w600),
+                          ),
+                        ),
+                        const SizedBox(width: SwanSpace.sm),
+                        Text(shortAgo(n.createdAt),
+                            style: SwanType.caption(c.inkMuted)),
+                      ],
                     ),
-                    Flexible(child: Text(shortAgo(n.createdAt), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.inkMuted))),
+                    const SizedBox(height: 3),
+                    if ((n.body ?? '').trim().isNotEmpty)
+                      Text(n.body!,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: SwanType.bodySm(c.inkMuted)),
                   ],
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  n.body ?? '',
-                  style: SwanType.caption(c.inkMuted),
+              ),
+              if (n.isUnread) ...[
+                const SizedBox(width: SwanSpace.sm),
+                Padding(
+                  padding: const EdgeInsets.only(top: SwanSpace.sm),
+                  child: Container(
+                      width: 7,
+                      height: 7,
+                      decoration: BoxDecoration(
+                          color: c.accent, shape: BoxShape.circle)),
                 ),
               ],
-            ),
+            ],
           ),
-        ],
-      ),
-    ));
+        ));
   }
 
   Future<void> _openPrefs() async {
@@ -299,12 +361,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
       builder: (ctx) => Container(
-        constraints: BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.8),
+        constraints:
+            BoxConstraints(maxHeight: MediaQuery.of(ctx).size.height * 0.8),
         decoration: BoxDecoration(
           color: c.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
         ),
-        padding: EdgeInsets.fromLTRB(SwanSpace.lg, 18, SwanSpace.lg, 20 + MediaQuery.of(ctx).padding.bottom),
+        padding: EdgeInsets.fromLTRB(SwanSpace.lg, 18, SwanSpace.lg,
+            20 + MediaQuery.of(ctx).padding.bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -326,14 +391,21 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     data: (list) => ListView(
                       shrinkWrap: true,
                       children: [
+                        const _PushBanner(),
+                        const _PushDiagnosticsPanel(),
                         for (final p in list)
                           SwitchListTile(
                             value: p.enabled,
                             activeTrackColor: c.accent,
-                            title: Text(p.label, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                            subtitle: Text(p.hint, style: SwanType.caption(c.inkMuted)),
+                            title: Text(p.label,
+                                style:
+                                    SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                            subtitle: Text(p.hint,
+                                style: SwanType.caption(c.inkMuted)),
                             onChanged: (v) async {
-                              await ref.read(notificationServiceProvider).setPref(p.category, v);
+                              await ref
+                                  .read(notificationServiceProvider)
+                                  .setPref(p.category, v);
                               ref.invalidate(notificationPrefsProvider);
                             },
                           ),
@@ -414,7 +486,8 @@ class _PushBanner extends ConsumerWidget {
       if (value) {
         await enablePush(ref);
         messenger.showSnackBar(SnackBar(
-            content: Text('Bildirimler açıldı'), backgroundColor: context.swan.accent));
+            content: Text('Bildirimler açıldı'),
+            backgroundColor: context.swan.accent));
       } else {
         await disablePush(ref);
         messenger.showSnackBar(SnackBar(
@@ -429,7 +502,8 @@ class _PushBanner extends ConsumerWidget {
           PushFailure.unsupported =>
             'Bu tarayıcı bildirim desteklemiyor. iPhone kullanıyorsan uygulamayı ana ekrana ekleyip oradan aç.',
           PushFailure.failed => 'Bildirim açılamadı, tekrar dener misin?',
-          PushFailure.apnsUnavailable => 'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırması kontrol edilmeli.',
+          PushFailure.apnsUnavailable =>
+            'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırması kontrol edilmeli.',
         }),
         backgroundColor: SwanPalette.light.danger,
       ));
@@ -469,7 +543,11 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
             Row(children: [
               Icon(Icons.info_outline_rounded, size: 17, color: c.warning),
               const SizedBox(width: 8),
-              Expanded(child: Text('Bildirimler neden gelmiyor', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.ink, w: FontWeight.w800))),
+              Expanded(
+                  child: Text('Bildirimler neden gelmiyor',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.caption(c.ink, w: FontWeight.w800))),
             ]),
             const SizedBox(height: 8),
             Text(diag.summary, style: SwanType.caption(c.inkMuted)),
@@ -495,7 +573,8 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(SwanRadius.sm),
                 ),
                 child: Text('Kaydı tekrar dene',
-                    style: SwanType.caption(context.swan.onAccent, w: FontWeight.w800)),
+                    style: SwanType.caption(context.swan.onAccent,
+                        w: FontWeight.w800)),
               ),
             ),
           ],
@@ -510,7 +589,8 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
       await enablePush(ref);
       ref.invalidate(pushDiagnosticsProvider);
       messenger.showSnackBar(SnackBar(
-          content: Text('Cihaz kaydedildi'), backgroundColor: context.swan.accent));
+          content: Text('Cihaz kaydedildi'),
+          backgroundColor: context.swan.accent));
     } catch (e) {
       ref.invalidate(pushDiagnosticsProvider);
       messenger.showSnackBar(SnackBar(
@@ -527,12 +607,18 @@ class _PushDiagnosticsPanel extends ConsumerWidget {
           Icon(ok ? Icons.check_rounded : Icons.close_rounded,
               size: 13, color: ok ? c.success : c.danger),
           const SizedBox(width: 6),
-          Expanded(child: Text(label, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.inkMuted))),
+          Expanded(
+              child: Text(label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.caption(c.inkMuted))),
           const SizedBox(width: SwanSpace.sm),
-          Flexible(child: Text(note ?? (ok ? 'var' : 'yok'),
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(ok ? c.success : c.danger,
-                  w: FontWeight.w700))),
+          Flexible(
+              child: Text(note ?? (ok ? 'var' : 'yok'),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: SwanType.caption(ok ? c.success : c.danger,
+                      w: FontWeight.w700))),
         ]),
       );
 }
-

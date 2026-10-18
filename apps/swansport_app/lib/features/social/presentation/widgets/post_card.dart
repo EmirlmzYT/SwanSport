@@ -87,10 +87,20 @@ class _PostCardState extends ConsumerState<PostCard>
     }
   }
 
+  void _likeOnDoubleTap() {
+    if (!_liked && !_busy) _toggleLike();
+  }
+
   Future<void> _openComments() async {
-    final added = await showCommentsSheet(context, widget.post.id);
-    if (added != null && added > 0 && mounted) {
-      setState(() => _comments += added);
+    await showCommentsSheet(context, widget.post.id);
+    if (!mounted) return;
+    try {
+      ref.invalidate(postCommentsProvider(widget.post.id));
+      final comments =
+          await ref.read(postCommentsProvider(widget.post.id).future);
+      if (mounted) setState(() => _comments = comments.length);
+    } catch (_) {
+      // Akış kartındaki son bilinen sayı korunur.
     }
   }
 
@@ -108,9 +118,11 @@ class _PostCardState extends ConsumerState<PostCard>
       builder: (ctx) => Container(
         decoration: BoxDecoration(
           color: surf,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
+          borderRadius:
+              const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
         ),
-        padding: const EdgeInsets.fromLTRB(SwanSpace.md, SwanSpace.lg, SwanSpace.md, SwanSpace.xl),
+        padding: const EdgeInsets.fromLTRB(
+            SwanSpace.md, SwanSpace.lg, SwanSpace.md, SwanSpace.xl),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
             width: 40,
@@ -163,7 +175,8 @@ class _PostCardState extends ConsumerState<PostCard>
       onTap: onTap,
       leading: Icon(icon, size: 21, color: color),
       title: Text(label, style: SwanType.bodySm(color, w: FontWeight.w700)),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SwanRadius.md)),
     );
   }
 
@@ -175,7 +188,8 @@ class _PostCardState extends ConsumerState<PostCard>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SwanRadius.lg)),
         title: Text('Kullanıcıyı engelle', style: SwanType.h3(ink)),
         content: Text(
             '${widget.post.displayName} artık gönderilerini göremeyecek ve '
@@ -246,7 +260,8 @@ class _PostCardState extends ConsumerState<PostCard>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SwanRadius.lg)),
         title: Text('Gönderiyi düzenle', style: SwanType.h3(ink)),
         content: TextField(
           controller: ctrl,
@@ -266,7 +281,8 @@ class _PostCardState extends ConsumerState<PostCard>
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Kaydet',
-                style: SwanType.bodySm(context.swan.accent, w: FontWeight.w800)),
+                style:
+                    SwanType.bodySm(context.swan.accent, w: FontWeight.w800)),
           ),
         ],
       ),
@@ -303,7 +319,8 @@ class _PostCardState extends ConsumerState<PostCard>
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: surf,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(SwanRadius.lg)),
         title: Text('Gönderiyi sil', style: SwanType.h3(ink)),
         content: Text('Bu gönderi kalıcı olarak silinecek.',
             style: SwanType.bodySm(
@@ -424,14 +441,15 @@ class _PostCardState extends ConsumerState<PostCard>
                 ),
                 if (p.isNews)
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: SwanSpace.sm, vertical: SwanSpace.xs),
                     decoration: BoxDecoration(
                       color: context.swan.surfaceAlt,
                       borderRadius: BorderRadius.circular(SwanRadius.sm),
                     ),
                     child: Text('HABER',
-                        style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w800)),
+                        style: SwanType.caption(context.swan.inkMuted,
+                            w: FontWeight.w800)),
                   ),
                 // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
                 GestureDetector(
@@ -448,26 +466,84 @@ class _PostCardState extends ConsumerState<PostCard>
               ]),
             ),
 
-            // Yalnız açık sportif beyanlar; resmi doğrulama değildir.
-            if (!p.isNews) AthleticHighlights(body: p.body),
-
-            // Metin — bağlam ve yazarın özgün anlatımı korunur.
-            if (p.body.trim().isNotEmpty)
-              Padding(
-                padding: EdgeInsets.fromLTRB(
-                    SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.md),
-                child: Text(p.body,
-                    style: SwanType.bodySm(ink).copyWith(height: 1.45)),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onDoubleTap: _likeOnDoubleTap,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Yalnız açık sportif beyanlar; resmi doğrulama değildir.
+                  if (!p.isNews) AthleticHighlights(body: p.body),
+                  if (p.body.trim().isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.md),
+                      child: Text(p.body,
+                          style: SwanType.bodySm(ink).copyWith(height: 1.45)),
+                    ),
+                  if (p.imageUrl != null)
+                    RatioImage(image: NetworkImage(p.imageUrl!)),
+                  if (p.sourcePostId != null)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                          SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.md),
+                      child: Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(SwanSpace.md),
+                        decoration: BoxDecoration(
+                          color: context.swan.surfaceAlt,
+                          borderRadius: BorderRadius.circular(SwanRadius.sm),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              p.isRepost
+                                  ? 'Yeniden paylaşıldı'
+                                  : 'Alıntılanan gönderi',
+                              style: SwanType.caption(context.swan.inkMuted),
+                            ),
+                            const SizedBox(height: SwanSpace.xs),
+                            if (p.sourcePost == null)
+                              Text('Bu gönderi artık kullanılamıyor.',
+                                  style: SwanType.bodySm(context.swan.inkMuted))
+                            else ...[
+                              Text(p.sourcePost!.displayName,
+                                  style: SwanType.bodySm(context.swan.ink,
+                                      w: FontWeight.w700)),
+                              if (p.sourcePost!.body.trim().isNotEmpty)
+                                Text(p.sourcePost!.body,
+                                    maxLines: 3,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: SwanType.bodySm(context.swan.ink)),
+                              if (p.sourcePost!.imageUrl != null)
+                                Padding(
+                                  padding:
+                                      const EdgeInsets.only(top: SwanSpace.sm),
+                                  child: ClipRRect(
+                                    borderRadius:
+                                        BorderRadius.circular(SwanRadius.sm),
+                                    child: Image.network(
+                                      p.sourcePost!.imageUrl!,
+                                      width: 96,
+                                      height: 96,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                ],
               ),
-
-            // Görsel — kendi oranında, 4:5 ile 1.91:1 arasına sıkıştırılmış.
-            // Medya yüzeyin tamamını doldurur; metin ayrı nefes alanı taşır.
-            if (p.imageUrl != null)
-              RatioImage(image: NetworkImage(p.imageUrl!)),
+            ),
 
             // Eylemler
             Padding(
-              padding: const EdgeInsets.fromLTRB(SwanSpace.sm, SwanSpace.sm, SwanSpace.md, SwanSpace.sm),
+              padding: const EdgeInsets.fromLTRB(
+                  SwanSpace.sm, SwanSpace.sm, SwanSpace.md, SwanSpace.sm),
               child: Row(children: [
                 _action(
                   icon: _liked
@@ -488,7 +564,7 @@ class _PostCardState extends ConsumerState<PostCard>
                 _action(
                   icon: Icons.repeat_rounded,
                   label: '',
-                  tooltip: 'Yeniden paylaş',
+                  tooltip: 'Alıntıla veya yeniden paylaş',
                   onTap: () => showRepostSheet(
                     context,
                     ref,
@@ -561,8 +637,8 @@ class _PostCardState extends ConsumerState<PostCard>
               borderRadius: BorderRadius.circular(SwanRadius.md),
               onTap: onTap,
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: SwanSpace.sm),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: SwanSpace.md, vertical: SwanSpace.sm),
                 child: Row(children: [
                   scale == null
                       ? Icon(icon, size: 21, color: c)
