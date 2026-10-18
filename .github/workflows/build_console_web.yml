@@ -48,7 +48,17 @@ jobs:
 
       - name: Package Web Zip
         run: |
+          SHORT_SHA="${GITHUB_SHA:0:8}"
           echo "${{ github.sha }}" > apps/swansport_console/build/web/version_sha.txt
+          sed -i "s|flutter_bootstrap.js|flutter_bootstrap.js?v=${SHORT_SHA}|g" apps/swansport_console/build/web/index.html
+          sed -i "s|\"mainJsPath\":\"main.dart.js\"|\"mainJsPath\":\"main.dart.js?v=${SHORT_SHA}\"|g" apps/swansport_console/build/web/flutter_bootstrap.js
+          python3 -c '
+          import re, pathlib
+          p = pathlib.Path("apps/swansport_console/build/web/flutter_bootstrap.js")
+          s = p.read_text(encoding="utf-8")
+          s = re.sub(r"_flutter\.loader\.load\(\{[\s\S]*?\}\);", "_flutter.loader.load();", s)
+          p.write_text(s, encoding="utf-8")
+          '
           cd apps/swansport_console/build/web
           zip -qry "$GITHUB_WORKSPACE/swansport-console-web.zip" .
 
