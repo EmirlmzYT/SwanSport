@@ -6,6 +6,8 @@ Durum: `in_progress`
 
 2026-10-18: Kullanıcı chat yenilemesi için IPA istedi. 0.5.15+44 önizleme derlemesi; Firebase-disabled/native guard korunur. Yalnız önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight yok.
 
+2026-10-18 sürüm düzeltmesi: Kullanıcı build 47 istedi. 44 koşusu teslim edilmeden iptal edildi; hedef 0.5.15+47.
+
 2026-10-18: Kullanıcı chat arayüzünü yenilememi istedi. Sohbet listesi ve birebir/topluluk sohbet kabukları; gerçek veriler, mevcut eylem/okunma/gizlilik ve beş alt sekme korunur. Veritabanı/canlı yayın/yeni IPA bu görev kapsamında değil. Önceki IPA çalışması korunur.
 
 2026-10-18 chat sonucu: Öneri şeridi kaldırıldı; gerçek Birebir/Topluluk filtreleri, Türkçe arama/sıralama, ortak multiline/boş mesaj kapılı composer, sade balonlar ve topluluk header bağlı. Sahte ses kayıt/oynatma sayacı kaldırıldı; eski metin korunur. 41/41 ilgili widget/rota testi, analiz 0 error/warning (stil info mevcut), 611 syntax/24 token, SSS 44/44, push 42 ve diff temiz. Kanıt docs/chat-ui-refresh.md. Gerçek cihaz/görsel ve iki hesap teslim kabulü açık; DB/deploy/yeni IPA yok. Writer serbest.
