@@ -44,13 +44,13 @@ run_docker() {
   if docker ps >/dev/null 2>&1; then
     docker "$@"
   elif sudo -n docker ps >/dev/null 2>&1; then
-    sudo docker "$@"
+    sudo -n docker "$@"
   else
-    docker "$@"
+    return 1
   fi
 }
 
-# Otomatik Supabase PostgreSQL container tespiti (hem image hem isim üzerinden)
+# Otomatik Supabase PostgreSQL container tespiti (önce supabase-db, sonra postgres)
 detect_db_container() {
   if [[ -n "$DB_CONTAINER" ]]; then
     echo "$DB_CONTAINER"
@@ -58,7 +58,10 @@ detect_db_container() {
   fi
   if command -v docker >/dev/null 2>&1; then
     local found
-    found="$(run_docker ps --format '{{.Names}} {{.Image}}' 2>/dev/null | awk '$2 ~ /postgres/ || $1 ~ /supabase[-_]db/ {print $1; exit}')"
+    found="$(run_docker ps --format '{{.Names}} {{.Image}}' 2>/dev/null | awk '$1 ~ /supabase[-_]db/ {print $1; exit}' || true)"
+    if [[ -z "$found" ]]; then
+      found="$(run_docker ps --format '{{.Names}} {{.Image}}' 2>/dev/null | awk '$2 ~ /postgres/ {print $1; exit}' || true)"
+    fi
     echo "$found"
   fi
 }
@@ -249,6 +252,16 @@ copy_to_web_root() {
 }
 
 install_auto_pull_cron() {
+  git config --global --add safe.directory "$REPO_DIR" 2>/dev/null || true
+  if [[ "$(id -u)" == "0" ]]; then
+    local repo_owner
+    repo_owner="$(stat -c '%U' "$REPO_DIR" 2>/dev/null || true)"
+    if [[ -n "$repo_owner" && "$repo_owner" != "root" ]]; then
+      usermod -aG docker "$repo_owner" 2>/dev/null || true
+      (crontab -u "$repo_owner" -l 2>/dev/null | grep -v "tools/deploy_server.sh" || true) | crontab -u "$repo_owner" - 2>/dev/null || true
+    fi
+  fi
+
   local target_web
   target_web="$(detect_web_root)"
   echo "🔑 Web klasörü ($target_web) için arka plan yazma izni tanımlanıyor..."
@@ -271,6 +284,7 @@ install_auto_pull_cron() {
   echo "   - konsol.swansport.com.tr yeni derlemesini otomatik indirip açar ($console_web)"
   echo "   - Yeni SQL migration dosyalarını Supabase DB'ye uygular."
   echo "   Log dosyası: $LOG_FILE"
+  exec bash "$REPO_DIR/tools/deploy_server.sh"
 }
 
 if [[ "${1:-}" == "--install-auto-pull" ]]; then
@@ -281,11 +295,17 @@ fi
 cd "$REPO_DIR"
 TARGET_WEB_ROOT="$(detect_web_root)"
 
-# Cron modundaysa uzak repoda yeni commit varsa VEYA canlıdaki dosyalar/DB/Konsol henüz senkron değilse çalış
+# Cron modundaysa uzak repoda yeni commit varsa ÖNCE hemen çek (hiçbir alt kontrol git pull'u bloklamasın)
 if [[ "${1:-}" == "--cron" ]]; then
   git fetch origin "$BRANCH" --quiet
   LOCAL_SHA="$(git rev-parse HEAD)"
   REMOTE_SHA="$(git rev-parse "origin/$BRANCH")"
+  if [[ "$LOCAL_SHA" != "$REMOTE_SHA" ]]; then
+    echo "[$(date -Iseconds)] Yeni commit algılandı: $LOCAL_SHA -> $REMOTE_SHA"
+    git checkout "$BRANCH"
+    git pull --ff-only origin "$BRANCH"
+    exec bash "$REPO_DIR/tools/deploy_server.sh" --post-pull
+  fi
   HTML_SYNCED=true
   if [[ ! -f "$TARGET_WEB_ROOT/index.html" ]] || ! cmp -s "$REPO_DIR/landing/index.html" "$TARGET_WEB_ROOT/index.html" || [[ ! -f "$TARGET_WEB_ROOT/favicon.png" ]] || ! cmp -s "$REPO_DIR/landing/llms.txt" "$TARGET_WEB_ROOT/llms.txt"; then
     HTML_SYNCED=false
@@ -309,10 +329,10 @@ if [[ "${1:-}" == "--cron" ]]; then
       HTML_SYNCED=false
     fi
   fi
-  if [[ "$LOCAL_SHA" == "$REMOTE_SHA" && "$HTML_SYNCED" == "true" ]]; then
+  if [[ "$HTML_SYNCED" == "true" ]]; then
     exit 0
   fi
-  echo "[$(date -Iseconds)] Güncelleme tetiklendi: $LOCAL_SHA -> $REMOTE_SHA (synced=$HTML_SYNCED)"
+  echo "[$(date -Iseconds)] Senkronizasyon tetiklendi: $LOCAL_SHA (synced=$HTML_SYNCED)"
 fi
 
 if [[ "${1:-}" != "--post-pull" ]]; then
