@@ -9,7 +9,6 @@ import 'package:swansport_core/swansport_core.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/shared_content_card.dart';
 import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
@@ -17,6 +16,8 @@ import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_floating_header.dart';
 import '../../../app/widgets/chat_composer.dart';
 import '../../../app/widgets/swan_tabs.dart';
+import 'widgets/chat_presentation.dart';
+import 'widgets/chat_timeline.dart';
 
 /// Gruplar ve birebir sohbetler; katılım ve mesajlar gerçek kayıtlardan okunur.
 class MessagesScreen extends ConsumerStatefulWidget {
@@ -43,11 +44,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   String _query = '';
   int _selectedFilter = 0; // 0 = Tüm Mesajlar, 1 = Birebir, 2 = Topluluklar
 
-  final List<String> _filters = const [
-    'Tümü',
-    'Birebir',
-    'Topluluklar'
-  ];
+  final List<String> _filters = const ['Tümü', 'Birebir', 'Topluluklar'];
 
   @override
   void initState() {
@@ -418,343 +415,236 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _ctrl = TextEditingController();
-  final _scroll = ScrollController();
+  final _search = TextEditingController();
   final List<MessageRow> _pending = [];
   final Set<String> _marked = {};
-  bool _perMessageMarkUnavailable = false;
+  final Set<String> _marking = {};
+  final Set<String> _retrying = {};
+  bool _searching = false;
+  bool _gating = false;
+
   @override
   void initState() {
     super.initState();
     OpenChat.open(widget.otherId, widget.otherName);
-    Future.microtask(() async {
-      if (!mounted) return;
-      try {
-        await ref
-            .read(notificationServiceProvider)
-            .markConversationRead(widget.otherId);
-        if (mounted) ref.invalidate(conversationsProvider);
-      } catch (_) {
-        // Opening the conversation must not fail when read receipts are offline.
-      }
-    });
   }
 
   @override
   void dispose() {
     OpenChat.close(widget.otherId);
     _ctrl.dispose();
-    _scroll.dispose();
+    _search.dispose();
     super.dispose();
   }
 
-  void _markVisible(List<MessageRow> list) {
-    final ids = list
-        .where((m) => !m.isMine && !m.isRead && !_marked.contains(m.id))
-        .map((m) => m.id)
+  Future<void> _markVisible(List<ChatItem> visible) async {
+    final ids = visible
+        .where((item) =>
+            !item.message.isMine &&
+            !item.message.isRead &&
+            !_marked.contains(item.message.id) &&
+            !_marking.contains(item.message.id))
+        .map((item) => item.message.id)
         .toList();
-    if (ids.isEmpty) return;
-    _marked.addAll(ids);
-    final svc = ref.read(notificationServiceProvider);
-
-    Future.microtask(() async {
-      try {
-        if (_perMessageMarkUnavailable) {
-          await svc.markConversationRead(widget.otherId);
-        } else {
-          await svc.markMessagesRead(ids);
-        }
-        if (mounted) ref.invalidate(conversationsProvider);
-      } catch (_) {
-        if (_perMessageMarkUnavailable) return;
-        _perMessageMarkUnavailable = true;
-        try {
-          await svc.markConversationRead(widget.otherId);
-          if (mounted) ref.invalidate(conversationsProvider);
-        } catch (_) {}
-      }
-    });
-  }
-
-  Future<void> _send() async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
-      return;
-    final text = _ctrl.text.trim();
-    if (text.isEmpty) return;
-    _ctrl.clear();
-    await _deliver(text);
-  }
-
-  Future<void> _deliver(String text, {String? retryId}) async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
-      return;
-    final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
-    setState(() {
-      _pending
-        ..removeWhere((m) => m.id == id)
-        ..add(MessageRow(
-          id: id,
-          body: text,
-          createdAt: DateTime.now(),
-          isMine: true,
-          status: MessageStatus.sending,
-        ));
-    });
-    _scrollToEnd();
-
+    if (ids.isEmpty || !mounted) return;
+    _marking.addAll(ids);
     try {
-      await ref.read(notificationServiceProvider).send(widget.otherId, text);
-      if (mounted) setState(() => _pending.removeWhere((m) => m.id == id));
-      if (mounted) ref.invalidate(conversationsProvider);
-    } catch (_) {
+      await ref.read(notificationServiceProvider).markMessagesRead(ids);
       if (!mounted) return;
-      setState(() {
-        final i = _pending.indexWhere((m) => m.id == id);
-        if (i >= 0) {
-          _pending[i] = _pending[i].copyWith(status: MessageStatus.failed);
-        }
-      });
+      _marked.addAll(ids);
+      ref.invalidate(conversationsProvider);
+    } catch (_) {
+      // Never fall back to marking the entire unseen conversation.
+      // Retry on the next visibility/scroll update, not an unbounded timer.
+    } finally {
+      _marking.removeAll(ids);
     }
   }
 
-  void _scrollToEnd() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scroll.hasClients) return;
-      _scroll.animateTo(
-        0,
-        duration: const Duration(milliseconds: 220),
-        curve: Curves.easeOut,
-      );
+  Future<void> _send() async {
+    final text = _ctrl.text.trim();
+    if (text.isEmpty || _gating) return;
+    _gating = true;
+    var allowed = false;
+    try {
+      allowed = await requireSwanAction(context, ref, SwanAction.message);
+    } finally {
+      _gating = false;
+    }
+    if (!allowed || !mounted) return;
+    if (_ctrl.text.trim() == text) _ctrl.clear();
+    await _deliver(text);
+  }
+
+  Future<void> _retry(String id) async {
+    if (_retrying.contains(id)) return;
+    final found =
+        _pending.where((m) => m.id == id && m.status == MessageStatus.failed);
+    if (found.isEmpty) return;
+    final message = found.first;
+    _retrying.add(id);
+    try {
+      if (!await requireSwanAction(context, ref, SwanAction.message) ||
+          !mounted) return;
+      await _deliver(message.body, retryId: id);
+    } finally {
+      _retrying.remove(id);
+    }
+  }
+
+  Future<void> _deliver(String text, {String? retryId}) async {
+    if (!mounted) return;
+    final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
+    final existing = _pending.where((m) => m.id == id).firstOrNull;
+    setState(() {
+      _pending.removeWhere((m) => m.id == id);
+      _pending.add(MessageRow(
+          id: id,
+          body: text,
+          createdAt: existing?.createdAt ?? DateTime.now(),
+          isMine: true,
+          status: MessageStatus.sending));
     });
+    try {
+      await ref.read(notificationServiceProvider).send(widget.otherId, text);
+      if (!mounted) return;
+      setState(() => _pending.removeWhere((m) => m.id == id));
+      ref.invalidate(conversationsProvider);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        final index = _pending.indexWhere((m) => m.id == id);
+        if (index >= 0)
+          _pending[index] =
+              _pending[index].copyWith(status: MessageStatus.failed);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
     final async = ref.watch(chatProvider(widget.otherId));
-
+    final people = ref.watch(conversationsProvider).valueOrNull ??
+        const <ConversationRow>[];
+    final person = people.where((p) => p.otherId == widget.otherId).firstOrNull;
+    final avatar = person?.otherAvatarUrl;
+    void profile() =>
+        Navigator.pushNamed(context, '/profil', arguments: widget.otherId);
+    final identity = Row(children: [
+      SocialAvatar(
+          initials: person?.initials ??
+              (widget.otherName.isEmpty
+                  ? '?'
+                  : widget.otherName.characters.first),
+          imageUrl: avatar,
+          size: SwanSpace.xl * 2,
+          gradientIndex: widget.otherName.length % 4),
+      const SizedBox(width: SwanSpace.md),
+      Expanded(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(widget.otherName,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.h3(c.ink)),
+        Text('Birebir sohbet', style: SwanType.caption(c.inkMuted)),
+      ])),
+    ]);
     return SwanScaffold(
-      backgroundColor: c.bg,
-      header: _buildChatHeader(c),
-      body: SafeArea(
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
-            child: Column(
-              children: [
-                Expanded(
-                  child: async.when(
-                    loading: () =>
-                        const Center(child: CircularProgressIndicator()),
-                    error: (e, _) => premiumError(context, '$e'),
-                    data: (list) {
-                      _markVisible(list);
-                      final all = [...list, ..._pending];
-
-                      if (all.isEmpty) {
-                        return Center(
-                          child: Padding(
-                            padding: const EdgeInsets.all(32),
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Container(
-                                  width: 60,
-                                  height: 60,
-                                  decoration: BoxDecoration(
-                                    color: c.surfaceAlt,
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(Icons.chat_bubble_outline_rounded,
-                                      size: 28, color: c.accent),
-                                ),
-                                const SizedBox(height: 14),
-                                Text(
-                                  'Henüz Mesaj Yok',
-                                  style: SwanType.h3(c.ink)
-                                      .copyWith(fontWeight: FontWeight.w700),
-                                ),
-                                const SizedBox(height: 6),
-                                Text(
-                                  '${widget.otherName} ile antrenman veya program detaylarını konuşmaya başlayın.',
-                                  textAlign: TextAlign.center,
-                                  style: SwanType.bodySm(c.inkMuted),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      }
-
-                      return ListView.builder(
-                        controller: _scroll,
-                        reverse: true,
-                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
-                        itemCount: all.length,
-                        itemBuilder: (_, i) =>
-                            _bubble(c, all[all.length - 1 - i]),
-                      );
-                    },
-                  ),
-                ),
-
-                // Interactive Quick Chips Row
-
-                // Bottom Message Input Bar
-                _buildInputBar(c),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildChatHeader(SwanPalette c) {
-    return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: SwanSpace.sm, vertical: 8),
-      decoration: BoxDecoration(
-        color: c.surface,
-        border: Border(bottom: BorderSide(color: c.line)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-              child: Row(
-            children: [
+        backgroundColor: c.bg,
+        header: Padding(
+            padding: const EdgeInsets.all(SwanSpace.sm),
+            child: Row(children: [
               IconButton(
-                onPressed: () => Navigator.maybePop(context),
-                icon: Icon(Icons.arrow_back_ios_new_rounded,
-                    size: 18, color: c.ink),
-                tooltip: 'Geri',
-              ),
-              CircleAvatar(
-                radius: 20,
-                backgroundColor: c.surface,
-                child: Text(
-                  widget.otherName.isNotEmpty
-                      ? widget.otherName[0].toUpperCase()
-                      : '?',
-                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: 10),
+                  tooltip: 'Geri dön',
+                  onPressed: () => Navigator.maybePop(context),
+                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: c.ink)),
               Expanded(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(widget.otherName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                  Text('Birebir sohbet', style: SwanType.caption(c.inkMuted)),
-                ],
-              )),
-            ],
-          )),
-          Row(
-            children: [
+                  child: InkWell(
+                      onTap: profile,
+                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                      child: Semantics(
+                          button: true, label: 'Profili aç', child: identity))),
               IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/profil',
-                    arguments: widget.otherId),
-                icon: Icon(Icons.info_outline_rounded, size: 20, color: c.ink),
-                tooltip: 'Profil',
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
+                  tooltip: 'Sohbette ara',
+                  onPressed: () => setState(() => _searching = !_searching),
+                  icon: Icon(Icons.search_rounded, color: c.ink)),
+            ])),
+        body: SafeArea(
+            top: false,
+            child: Center(
+                child: ConstrainedBox(
+                    constraints: const BoxConstraints(maxWidth: 680),
+                    child: Column(children: [
+                      if (_searching)
+                        Padding(
+                            padding: const EdgeInsets.all(SwanSpace.md),
+                            child: TextField(
+                                controller: _search,
+                                autofocus: true,
+                                style: SwanType.body(c.ink),
+                                onChanged: (_) => setState(() {}),
+                                decoration: InputDecoration(
+                                    hintText: 'Yüklenen mesajlarda ara',
+                                    prefixIcon:
+                                        const Icon(Icons.search_rounded),
+                                    suffixIcon: IconButton(
+                                        tooltip: 'Aramayı kapat',
+                                        onPressed: () {
+                                          _search.clear();
+                                          FocusScope.of(context).unfocus();
+                                          setState(() => _searching = false);
+                                        },
+                                        icon:
+                                            const Icon(Icons.close_rounded))))),
+                      Expanded(
+                          child: async.when(
+                        loading: () =>
+                            const Center(child: CircularProgressIndicator()),
+                        error: (e, _) => premiumError(context, '$e'),
+                        data: (list) => ChatTimeline(
+                            key: ValueKey(widget.otherId),
+                            items: orderedChatItems([
+                              ...list,
+                              ..._pending
+                            ].map((m) => ChatItem(
+                                message: m,
+                                senderId: m.isMine ? 'self' : widget.otherId))),
+                            query: _searching ? _search.text : '',
+                            searching: _searching,
+                            onVisible: _markVisible,
+                            onRetry: _retry,
+                            empty: Padding(
+                                padding: const EdgeInsets.all(SwanSpace.xl),
+                                child: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SocialAvatar(
+                                          initials: person?.initials ??
+                                              (widget.otherName.isEmpty
+                                                  ? '?'
+                                                  : widget.otherName.characters
+                                                      .first),
+                                          imageUrl: avatar,
+                                          size: SwanSpace.xl * 3,
+                                          gradientIndex:
+                                              widget.otherName.length % 4),
+                                      const SizedBox(height: SwanSpace.lg),
+                                      Text(widget.otherName,
+                                          textAlign: TextAlign.center,
+                                          style: SwanType.h2(c.ink)),
+                                      const SizedBox(height: SwanSpace.sm),
+                                      Text('İlk mesajı gönder',
+                                          style: SwanType.body(c.inkMuted)),
+                                      const SizedBox(height: SwanSpace.xl),
+                                      OutlinedButton(
+                                          onPressed: profile,
+                                          child:
+                                              const Text('Profili görüntüle')),
+                                    ]))),
+                      )),
+                      SwanChatComposer(controller: _ctrl, onSend: _send),
+                    ])))));
   }
-
-  Widget _buildInputBar(SwanPalette c) =>
-      SwanChatComposer(controller: _ctrl, onSend: _send);
-
-  Widget _bubble(SwanPalette c, MessageRow m) {
-    return Align(
-      alignment: m.isMine ? Alignment.centerRight : Alignment.centerLeft,
-      child: GestureDetector(
-        onTap: m.status == MessageStatus.failed
-            ? () => _deliver(m.body, retryId: m.id)
-            : null,
-        child: Container(
-          constraints:
-              BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
-          margin: const EdgeInsets.only(bottom: SwanSpace.sm),
-          padding: const EdgeInsets.symmetric(
-              horizontal: SwanSpace.lg, vertical: SwanSpace.md),
-          decoration: BoxDecoration(
-            color: m.isMine ? c.accentFill : c.surface,
-            borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(SwanRadius.md),
-              topRight: const Radius.circular(SwanRadius.md),
-              bottomLeft:
-                  Radius.circular(m.isMine ? SwanRadius.md : SwanSpace.xs),
-              bottomRight:
-                  Radius.circular(m.isMine ? SwanSpace.xs : SwanRadius.md),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (m.isShare && m.sharedId != null)
-                SharedContentCard(
-                  kind: m.sharedKind ?? m.contentType,
-                  id: m.sharedId!,
-                  onDark: m.isMine,
-                ),
-              if (m.body.isNotEmpty) ...[
-                Text(
-                  m.body,
-                  style:
-                      SwanType.bodySm(m.isMine ? context.swan.onAccent : c.ink)
-                          .copyWith(height: 1.35),
-                ),
-              ],
-              const SizedBox(height: 3),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                      child: Text(
-                    m.status == MessageStatus.failed
-                        ? 'Gönderilemedi · dokun, tekrar dene'
-                        : shortAgo(m.createdAt),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(
-                        m.isMine ? context.swan.onAccent : c.inkMuted,
-                        w: FontWeight.w600),
-                  )),
-                  if (m.isMine) ...[
-                    const SizedBox(width: 5),
-                    _tick(m),
-                  ],
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _tick(MessageRow m) => switch (m.status) {
-        MessageStatus.sending => SizedBox(
-            width: 11,
-            height: 11,
-            child: CircularProgressIndicator(
-                strokeWidth: 1.4, color: context.swan.onAccent),
-          ),
-        MessageStatus.failed =>
-          Icon(Icons.refresh_rounded, size: 13, color: context.swan.onAccent),
-        MessageStatus.sent => Icon(
-            m.isRead ? Icons.done_all_rounded : Icons.done_rounded,
-            size: 13,
-            color: m.isRead
-                ? context.swan.onAccent
-                : context.swan.onAccent.withValues(alpha: .6),
-          ),
-      };
 }

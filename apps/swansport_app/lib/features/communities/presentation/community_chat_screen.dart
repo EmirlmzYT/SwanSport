@@ -5,10 +5,10 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
-import '../../social/presentation/widgets/social_widgets.dart';
+import '../../social/presentation/widgets/chat_presentation.dart';
+import '../../social/presentation/widgets/chat_timeline.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/widgets/chat_composer.dart';
@@ -33,9 +33,7 @@ class CommunityChatScreen extends ConsumerStatefulWidget {
 
 class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   final _ctrl = TextEditingController();
-  final _scroll = ScrollController();
   bool _sending = false;
-  int _seen = 0;
 
   @override
   void initState() {
@@ -54,7 +52,6 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   @override
   void dispose() {
     _ctrl.dispose();
-    _scroll.dispose();
     super.dispose();
   }
 
@@ -65,7 +62,6 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
     setState(() => _sending = true);
     try {
       await ref.read(communityServiceProvider).send(widget.communityId, text);
-      _scrollToEnd();
       ref.invalidate(communityListProvider);
     } catch (e) {
       if (mounted) {
@@ -168,12 +164,6 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   }
 
   /// Yeni mesaj gelince en alta kaydır — grup sohbetinde akış hep aşağı doğru.
-  void _scrollToEnd() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!_scroll.hasClients) return;
-      _scroll.jumpTo(_scroll.position.maxScrollExtent);
-    });
-  }
 
   Future<void> _send() async {
     if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
@@ -289,32 +279,19 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                   child: async.when(
                     loading: () => premiumLoading(),
                     error: (e, _) => premiumError(context, '$e'),
-                    data: (list) {
-                      if (list.length != _seen) {
-                        _seen = list.length;
-                        _scrollToEnd();
-                      }
-                      if (list.isEmpty) {
-                        return Center(
-                          child: Text('İlk mesajı sen yaz',
-                              style: SwanType.bodySm(SwanColors.textSecondary,
-                                  w: FontWeight.w600)),
-                        );
-                      }
-                      return ListView.builder(
-                        controller: _scroll,
-                        padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
-                        itemCount: list.length,
-                        itemBuilder: (_, i) {
-                          final m = list[i];
-                          // Aynı kişinin arka arkaya mesajlarında adı tekrarlama.
-                          final showName = !m.isMine &&
-                              (i == 0 || list[i - 1].senderId != m.senderId);
-                          return _bubble(isDark, m, members[m.senderId],
-                              showName: showName);
-                        },
-                      );
-                    },
+                    data: (list) => ChatTimeline(
+                      items: orderedChatItems(list.map((m) => ChatItem(
+                          message: MessageRow(
+                              id: m.id,
+                              body: m.body,
+                              createdAt: m.createdAt,
+                              isMine: m.isMine),
+                          senderId: m.senderId,
+                          senderName: members[m.senderId]?.name ?? 'Üye',
+                          avatarUrl: members[m.senderId]?.avatarUrl))),
+                      empty: Text('İlk mesajı sen yaz',
+                          style: SwanType.body(context.swan.inkMuted)),
+                    ),
                   ),
                 ),
                 // `viewInsets.bottom` EKLENMİYOR.
@@ -337,77 +314,6 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _bubble(bool isDark, CommunityMessageRow m, CommunityMember? sender,
-      {required bool showName}) {
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
-    final surf = isDark ? SwanPalette.dark.surfaceAlt : Colors.white;
-
-    final bubble = Container(
-      constraints:
-          BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
-      padding: const EdgeInsets.symmetric(
-          horizontal: SwanSpace.lg, vertical: SwanSpace.md),
-      decoration: BoxDecoration(
-        color: m.isMine ? context.swan.accentFill : surf,
-        borderRadius: BorderRadius.only(
-          topLeft: const Radius.circular(SwanRadius.md),
-          topRight: const Radius.circular(SwanRadius.md),
-          bottomLeft: Radius.circular(m.isMine ? SwanRadius.md : SwanSpace.xs),
-          bottomRight: Radius.circular(m.isMine ? SwanSpace.xs : SwanRadius.md),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (showName)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 3),
-              child: Text(sender?.name ?? 'Üye',
-                  style: SwanType.caption(kTeal, w: FontWeight.w800)),
-            ),
-          Text(m.body,
-              style: SwanType.bodySm(m.isMine ? Colors.white : ink)
-                  .copyWith(height: 1.35)),
-          const SizedBox(height: 3),
-          Text(shortAgo(m.createdAt),
-              style: SwanType.caption(
-                  m.isMine ? Colors.white70 : SwanColors.textSecondary,
-                  w: FontWeight.w600)),
-        ],
-      ),
-    );
-
-    // Karşı taraf: baloncuğun yanında küçük avatar (kim yazdığı bir bakışta).
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment:
-            m.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!m.isMine) ...[
-            SizedBox(
-              width: 28,
-              child: showName
-                  ? GestureDetector(
-                      onTap: () => Navigator.pushNamed(context, '/profil',
-                          arguments: m.senderId),
-                      child: SocialAvatar(
-                        initials: sender?.initials ?? '?',
-                        size: 26,
-                        gradientIndex: m.senderId.hashCode.abs() % 4,
-                      ),
-                    )
-                  : null,
-            ),
-            const SizedBox(width: 7),
-          ],
-          Flexible(child: bubble),
-        ],
       ),
     );
   }
