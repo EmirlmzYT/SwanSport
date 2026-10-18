@@ -1,6 +1,7 @@
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../network/presentation/guest_explore_screen.dart';
 import 'dart:convert';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -200,34 +201,86 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
     ];
   }
 
-  /// Gönderileri kulüp duyuruları ve spor haberleriyle harmanlar.
+  /// Gönderileri kulüp duyuruları ve yatay kaydırılabilir spor haberleri modülleriyle harmanlar.
   ///
-  /// Üçü de zaman sırasına göre tek listede akar; ana sayfa yalnızca
-  /// gönderilerden ibaret kalmaz.
+  /// Haberler tüm akışı boğacak şekilde tek tek listelenmek yerine, 5'erli
+  /// yatay kaydırılabilir kart modülleri halinde gönderilerin arasına periyodik serpiştirilir.
   List<FeedEntry> _merge(WidgetRef ref, List<PostRow> posts) {
     // Engellenen (ve engelleyen) kişilerin gönderileri akışta görünmez.
     final hidden = ref.watch(hiddenProfilesProvider).valueOrNull ?? const {};
-    final entries = <FeedEntry>[
+    final postEntries = <FeedEntry>[
       for (final p in posts)
         if (!hidden.contains(p.authorId)) FeedEntry.post(p),
     ];
 
     final clubName = ref.watch(activeClubProvider).valueOrNull?.name;
     final anns = ref.watch(announcementsProvider).valueOrNull ?? const [];
-    for (final a in anns.take(10)) {
-      entries.add(FeedEntry.announcement(a, clubName: clubName));
+    final annEntries = <FeedEntry>[
+      for (final a in anns.take(10))
+        FeedEntry.announcement(a, clubName: clubName),
+    ];
+
+    final socialEntries = [...postEntries, ...annEntries]
+      ..sort((a, b) => b.sortDate.compareTo(a.sortDate));
+
+    // "Takip" sekmesinde genel spor haberleri yer almaz.
+    if (_followingOnly) {
+      return socialEntries;
     }
 
-    // "Takip" yalnızca kişinin seçtiği hesapların gönderilerini ve kendi
-    // kulüp duyurularını taşır. Genel spor haberleri "Tümü" akışında.
-    if (!_followingOnly) {
-      final news = ref.watch(newsProvider).valueOrNull ?? const [];
-      for (final n in news.take(15)) {
-        entries.add(FeedEntry.news(n));
+    final allNews = ref.watch(newsProvider).valueOrNull ?? const [];
+    if (allNews.isEmpty) {
+      return socialEntries;
+    }
+
+    // Haberleri en fazla 10 adetle sınırla ve 5'erli yatay gruplara böl
+    final limitedNews = allNews.take(10).toList();
+    final newsChunks = <List<NewsItem>>[];
+    for (var i = 0; i < limitedNews.length; i += 5) {
+      final chunk = limitedNews.sublist(i, math.min(i + 5, limitedNews.length));
+      if (chunk.isNotEmpty) {
+        newsChunks.add(chunk);
       }
     }
 
-    entries.sort((a, b) => b.sortDate.compareTo(a.sortDate));
-    return entries;
+    if (socialEntries.isEmpty) {
+      return [
+        for (var i = 0; i < newsChunks.length; i++)
+          FeedEntry.newsCarousel(
+            newsChunks[i],
+            carouselTitle:
+                i == 0 ? 'Günün Spor Gündemi' : 'Öne Çıkan Başlıklar',
+          ),
+      ];
+    }
+
+    // Gönderilerin arasına her ~4 gönderide bir yatay haber modülü serpiştir
+    final result = <FeedEntry>[];
+    var chunkIdx = 0;
+    const interval = 4;
+
+    for (var i = 0; i < socialEntries.length; i++) {
+      if (i > 0 && i % interval == 0 && chunkIdx < newsChunks.length) {
+        result.add(FeedEntry.newsCarousel(
+          newsChunks[chunkIdx],
+          carouselTitle:
+              chunkIdx == 0 ? 'Günün Spor Gündemi' : 'Öne Çıkan Başlıklar',
+        ));
+        chunkIdx++;
+      }
+      result.add(socialEntries[i]);
+    }
+
+    // Akış çok kısaysa ve henüz haber grubu gösterilmediyse sona ekle
+    while (chunkIdx < newsChunks.length && chunkIdx < 2) {
+      result.add(FeedEntry.newsCarousel(
+        newsChunks[chunkIdx],
+        carouselTitle:
+            chunkIdx == 0 ? 'Günün Spor Gündemi' : 'Öne Çıkan Başlıklar',
+      ));
+      chunkIdx++;
+    }
+
+    return result;
   }
 }
