@@ -4,6 +4,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_core/swansport_core.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
@@ -14,6 +15,8 @@ import '../../../app/widgets/premium.dart';
 import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_floating_header.dart';
+import '../../../app/widgets/chat_composer.dart';
+import '../../../app/widgets/swan_tabs.dart';
 
 /// Gruplar ve birebir sohbetler; katılım ve mesajlar gerçek kayıtlardan okunur.
 class MessagesScreen extends ConsumerStatefulWidget {
@@ -38,18 +41,18 @@ class _Entry {
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
-  int _selectedFilter =
-      0; // 0 = Tüm Mesajlar, 1 = Antrenörler, 2 = Kulüp Grupları
+  int _selectedFilter = 0; // 0 = Tüm Mesajlar, 1 = Birebir, 2 = Topluluklar
 
   final List<String> _filters = const [
-    'Tüm Mesajlar',
-    'Antrenörler',
-    'Kulüp Grupları'
+    'Tümü',
+    'Birebir',
+    'Topluluklar'
   ];
 
   @override
   void initState() {
     super.initState();
+    _selectedFilter = widget.initialTab == 1 ? 2 : 0;
     Future.microtask(() async {
       if (!mounted || !ref.read(isSupabaseEnabledProvider)) return;
       try {
@@ -97,6 +100,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 await ref.read(conversationsProvider.future);
               },
               child: ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
                 children: [
                   const SwanHeaderSpacer(),
@@ -105,15 +109,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   _buildSearchField(c),
                   const SizedBox(height: SwanSpace.md),
 
-                  if (_query.isEmpty) ...[
-                    _buildActiveAthletesReel(c),
-                    const SizedBox(height: SwanSpace.sm),
-                  ],
-
                   _buildCategoryFilters(c),
                   const SizedBox(height: SwanSpace.sm),
 
-                  // Dynamic list or curated Stitch chat roster
+                  // Real conversations only; no suggested/mock chat roster.
                   dms.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(SwanSpace.lg),
@@ -169,7 +168,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           onChanged: (v) => setState(() => _query = v.trim()),
           style: SwanType.bodySm(c.ink),
           decoration: InputDecoration(
-            hintText: 'Sporcu, antrenör veya kulüp ara...',
+            hintText: 'Sohbetlerde ara…',
             hintStyle: SwanType.bodySm(c.inkMuted),
             prefixIcon: Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
             suffixIcon: _query.isEmpty
@@ -190,166 +189,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     );
   }
 
-  Widget _buildActiveAthletesReel(SwanPalette c) {
-    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
-    if (suggestions.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                  child: Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration:
-                        BoxDecoration(color: c.accent, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                      child: Text(
-                    'Kişi önerileri (${suggestions.length})',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(c.ink, w: FontWeight.w700),
-                  )),
-                ],
-              )),
-              TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/ara'),
-                  child: Text(
-                    'Tümü',
-                    style: SwanType.caption(c.accent, w: FontWeight.w700),
-                  )),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 84,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-            scrollDirection: Axis.horizontal,
-            itemCount: suggestions.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
-            itemBuilder: (context, i) {
-              final a = suggestions[i];
-              return InkWell(
-                onTap: () {
-                  Navigator.pushNamed(context, '/profil', arguments: a.id);
-                },
-                borderRadius: BorderRadius.circular(999),
-                child: Column(
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: c.accent,
-                              width: 2,
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: (a.avatarUrl != null &&
-                                    a.avatarUrl!.isNotEmpty)
-                                ? Image.network(
-                                    a.avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: c.surfaceAlt,
-                                      child:
-                                          Icon(Icons.person, color: c.inkMuted),
-                                    ),
-                                  )
-                                : Container(
-                                    color: c.surfaceAlt,
-                                    child:
-                                        Icon(Icons.person, color: c.inkMuted),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 56,
-                      child: Text(
-                        a.name,
-                        style: SwanType.caption(c.ink, w: FontWeight.w600),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCategoryFilters(SwanPalette c) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: c.surfaceAlt,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-        ),
-        child: Row(
-          children: _filters.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final label = entry.value;
-            final isSelected = _selectedFilter == idx;
-
-            return Expanded(
-              child: InkWell(
-                onTap: () => setState(() => _selectedFilter = idx),
-                borderRadius: BorderRadius.circular(SwanRadius.sm),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? c.accentFill : Colors.transparent,
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: c.accent.withValues(alpha: 0.25),
-                              blurRadius: 6,
-                              offset: const Offset(0, 1),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      label,
-                      style: SwanType.caption(
-                          isSelected ? c.onAccent : c.inkMuted,
-                          w: isSelected ? FontWeight.w800 : FontWeight.w500),
-                    ),
-                  ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
+      child: SwanPillTabs(
+          labels: _filters,
+          selected: _selectedFilter,
+          onSelect: (index) => setState(() => _selectedFilter = index)),
     );
   }
 
@@ -360,6 +206,12 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       for (final g in filteredGroups) _Entry.group(g),
       for (final dm in dms) _Entry.dm(dm),
     ];
+    entries.removeWhere((e) =>
+        (_selectedFilter == 1 && e.dm == null) ||
+        (_selectedFilter == 2 && e.group == null) ||
+        !trContains(e.group?.name ?? e.dm!.otherName, _query));
+    entries.sort(
+        (a, b) => (b.at ?? DateTime(1970)).compareTo(a.at ?? DateTime(1970)));
 
     if (entries.isEmpty) {
       return Padding(
@@ -378,7 +230,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                   size: 48, color: c.accent),
               const SizedBox(height: 12),
               Text(
-                'Henüz mesajınız yok',
+                _query.isNotEmpty ? 'Sohbet bulunamadı' : 'Henüz mesajınız yok',
                 style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 6),
@@ -427,8 +279,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       padding: const EdgeInsets.all(SwanSpace.md),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
       ),
       child: InkWell(
         onTap: () => Navigator.pushNamed(
@@ -493,8 +344,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       padding: const EdgeInsets.all(SwanSpace.md),
       decoration: BoxDecoration(
         color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
       ),
       child: InkWell(
         onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
@@ -577,10 +427,15 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     super.initState();
     OpenChat.open(widget.otherId, widget.otherName);
     Future.microtask(() async {
-      await ref
-          .read(notificationServiceProvider)
-          .markConversationRead(widget.otherId);
-      if (mounted) ref.invalidate(conversationsProvider);
+      if (!mounted) return;
+      try {
+        await ref
+            .read(notificationServiceProvider)
+            .markConversationRead(widget.otherId);
+        if (mounted) ref.invalidate(conversationsProvider);
+      } catch (_) {
+        // Opening the conversation must not fail when read receipts are offline.
+      }
     });
   }
 
@@ -649,7 +504,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     try {
       await ref.read(notificationServiceProvider).send(widget.otherId, text);
       if (mounted) setState(() => _pending.removeWhere((m) => m.id == id));
-      ref.invalidate(conversationsProvider);
+      if (mounted) ref.invalidate(conversationsProvider);
     } catch (_) {
       if (!mounted) return;
       setState(() {
@@ -790,6 +645,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(widget.otherName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
                   Text('Birebir sohbet', style: SwanType.caption(c.inkMuted)),
                 ],
@@ -811,21 +668,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     );
   }
 
-  Widget _buildInputBar(SwanPalette c) => Padding(
-      padding: const EdgeInsets.fromLTRB(SwanSpace.md, 6, SwanSpace.md, 12),
-      child: Row(children: [
-        Expanded(
-            child: TextField(
-                controller: _ctrl,
-                minLines: 1,
-                maxLines: 4,
-                onSubmitted: (_) => _send(),
-                decoration: const InputDecoration(hintText: 'Mesaj yaz…'))),
-        IconButton(
-            tooltip: 'Gönder',
-            onPressed: _send,
-            icon: Icon(Icons.send_rounded, color: c.accent)),
-      ]));
+  Widget _buildInputBar(SwanPalette c) =>
+      SwanChatComposer(controller: _ctrl, onSend: _send);
 
   Widget _bubble(SwanPalette c, MessageRow m) {
     return Align(
@@ -835,21 +679,21 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             ? () => _deliver(m.body, retryId: m.id)
             : null,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 300),
-          margin: const EdgeInsets.only(bottom: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          constraints:
+              BoxConstraints(maxWidth: MediaQuery.sizeOf(context).width * .78),
+          margin: const EdgeInsets.only(bottom: SwanSpace.sm),
+          padding: const EdgeInsets.symmetric(
+              horizontal: SwanSpace.lg, vertical: SwanSpace.md),
           decoration: BoxDecoration(
-            gradient: m.isMine
-                ? LinearGradient(colors: [c.accentFill, c.accentFill])
-                : null,
-            color: m.isMine ? null : c.surfaceAlt,
+            color: m.isMine ? c.accentFill : c.surface,
             borderRadius: BorderRadius.only(
-              topLeft: const Radius.circular(16),
-              topRight: const Radius.circular(16),
-              bottomLeft: Radius.circular(m.isMine ? 16 : 4),
-              bottomRight: Radius.circular(m.isMine ? 4 : 16),
+              topLeft: const Radius.circular(SwanRadius.md),
+              topRight: const Radius.circular(SwanRadius.md),
+              bottomLeft:
+                  Radius.circular(m.isMine ? SwanRadius.md : SwanSpace.xs),
+              bottomRight:
+                  Radius.circular(m.isMine ? SwanSpace.xs : SwanRadius.md),
             ),
-            border: m.isMine ? null : Border.all(color: c.line),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

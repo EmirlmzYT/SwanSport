@@ -2,7 +2,11 @@
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `complete`
+Durum: `ready_for_review`
+
+2026-10-18: Chat yenilemesi doğru 954fc4c / 0.5.17+46 tabanında yeniden devralındı. Eski daldan tüm dosya kopyalanmaz; SwanScaffold, SwanFloatingHeader ve alt gezinme korunarak yalnız chat değişiklikleri uyarlanır. Canlı SQL/deploy/IPA yok.
+
+2026-10-18 chat +46 sonucu: Gerçek konuşma arama/sıralama, Tümü/Birebir/Topluluk pill filtreleri, ortak composer ve sade DM/topluluk balonları uyarlandı. Header/alt bar/feed dosyaları 954fc4c ile birebir; mesajlar floating kabuğu korunur. Sahte ses UI kaldırıldı, okunma/lifecycle ve gönderim esnası yeni taslak korunur. Nihai mobil 510/510, odaklı 65/65 ve son filtre 22/22; kaynak analiz 0 error/warning, 616 syntax/24 token, SSS 44/44, push 42 ve diff temiz. Kanıt docs/chat-refresh-header46.md. Sürüm değişmedi, canlı SQL/deploy/IPA yok; gerçek cihaz/iki hesap teslim kabulü açık. Writer serbest.
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 

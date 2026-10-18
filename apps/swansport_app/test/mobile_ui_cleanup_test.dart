@@ -71,6 +71,31 @@ void main() {
   });
 
   for (final mode in Brightness.values) {
+    testWidgets('message filters and legacy community tab preserve header46: $mode', (tester) async {
+      await render(tester, const MessagesScreen(initialTab: 1), mode, overrides: [
+        conversationsProvider.overrideWith((_) async => [ConversationRow(
+          otherId: 'peer', otherName: 'Işık Sporcu', lastBody: 'Selam',
+          lastAt: DateTime(2026, 10, 18), unread: 1)]),
+        communityListProvider.overrideWith((_) async => [CommunityRow(
+          id: 'group', name: 'Takım Sohbeti', cityName: '', memberCount: 3,
+          unread: 0, joined: true, lastAt: DateTime(2026, 10, 17))]),
+      ]);
+      expect(find.text('Takım Sohbeti'), findsOneWidget);
+      expect(find.text('Işık Sporcu'), findsNothing);
+      expect(find.byTooltip('Yeni Sohbet'), findsOneWidget);
+      await tester.tap(find.text('Tümü'));
+      await tester.pump();
+      expect(tester.getTopLeft(find.text('Işık Sporcu')).dy,
+          lessThan(tester.getTopLeft(find.text('Takım Sohbeti')).dy));
+      await tester.tap(find.text('Birebir'));
+      await tester.pump();
+      expect(find.text('Takım Sohbeti'), findsNothing);
+      await tester.enterText(find.byType(TextField), 'isik');
+      await tester.pump();
+      expect(find.text('Işık Sporcu'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('message header and long conversation names stay bounded: $mode', (tester) async {
       await render(tester, const MessagesScreen(), mode, overrides: [
         conversationsProvider.overrideWith((_) async => [ConversationRow(
@@ -81,6 +106,10 @@ void main() {
       ]);
       expect(find.byTooltip('Yeni Sohbet'), findsOneWidget);
       expect(find.text('Çok Uzun Adlı Antrenör ve Takım Arkadaşı'), findsOneWidget);
+        await tester.enterText(find.byType(TextField), 'bulunmayan kişi');
+        await tester.pump();
+        expect(find.text('Sohbet bulunamadı'), findsOneWidget);
+        expect(find.text('Çok Uzun Adlı Antrenör ve Takım Arkadaşı'), findsNothing);
       expect(tester.takeException(), isNull);
     });
 
