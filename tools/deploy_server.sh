@@ -40,91 +40,13 @@ detect_web_root() {
   echo "/www/wwwroot/swansport.com.tr"
 }
 
-# Otomatik Konsol Web Root tespiti (aaPanel /www/wwwroot/konsol.swansport.com.tr, /var/www/...)
-detect_console_root() {
-  if [[ -n "${CONSOLE_WEB_ROOT:-}" ]]; then
-    echo "$CONSOLE_WEB_ROOT"
-    return
-  fi
-  for candidate in \
-    "/www/wwwroot/konsol.swansport.com.tr" \
-    "/var/www/konsol.swansport.com.tr" \
-    "/www/wwwroot/console.swansport.com.tr"; do
-    if [[ -d "$candidate" ]]; then
-      echo "$candidate"
-      return
-    fi
-  done
-  echo ""
-}
-
-CONSOLE_RELEASE_URL="https://github.com/EmirlmzYT/SwanSport/releases/download/v0.5.2+20/swansport-console-web.zip"
-
-fetch_console_release_sig() {
-  if command -v curl >/dev/null 2>&1; then
-    curl -sIL --max-time 10 "$CONSOLE_RELEASE_URL" 2>/dev/null \
-      | tr -d '\r' \
-      | awk 'tolower($1) == "etag:" || tolower($1) == "last-modified:" || tolower($1) == "content-length:" {print tolower($1), $2, $3, $4, $5}' \
-      | tail -n 3 \
-      | tr '\n' '|' || true
-  fi
-}
-
-sync_console_web_if_needed() {
-  local console_dir
-  console_dir="$(detect_console_root)"
-  if [[ -z "$console_dir" || ! -d "$console_dir" ]]; then
-    return 0
-  fi
-  local remote_sig
-  remote_sig="$(fetch_console_release_sig)"
-  if [[ -z "$remote_sig" ]]; then
-    return 0
-  fi
-  local local_sig=""
-  if [[ -f "$console_dir/.console_release_sig" ]]; then
-    local_sig="$(cat "$console_dir/.console_release_sig" 2>/dev/null || true)"
-  fi
-  if [[ "$remote_sig" == "$local_sig" && -f "$console_dir/main.dart.js" ]]; then
-    return 0
-  fi
-  echo "🦢 Konsol web paketi güncelleniyor -> $console_dir"
-  local tmp_zip="/tmp/swansport-console-web-$$.zip"
-  local tmp_extract="/tmp/swansport-console-extract-$$"
-  if curl -fsSL --max-time 60 "$CONSOLE_RELEASE_URL" -o "$tmp_zip"; then
-    rm -rf "$tmp_extract"
-    mkdir -p "$tmp_extract"
-    if command -v unzip >/dev/null 2>&1 && unzip -oq "$tmp_zip" -d "$tmp_extract"; then
-      if cp -rf "$tmp_extract"/. "$console_dir"/ 2>/dev/null; then
-        echo -n "$remote_sig" > "$console_dir/.console_release_sig" 2>/dev/null || true
-      else
-        ensure_web_root_writable "$console_dir"
-        cp -rf "$tmp_extract"/. "$console_dir"/ 2>/dev/null || sudo cp -rf "$tmp_extract"/. "$console_dir"/
-        echo -n "$remote_sig" | sudo tee "$console_dir/.console_release_sig" >/dev/null || true
-      fi
-      echo "✅ konsol.swansport.com.tr başarıyla güncellendi."
-    elif command -v python3 >/dev/null 2>&1; then
-      python3 -m zipfile -e "$tmp_zip" "$tmp_extract"
-      if cp -rf "$tmp_extract"/. "$console_dir"/ 2>/dev/null; then
-        echo -n "$remote_sig" > "$console_dir/.console_release_sig" 2>/dev/null || true
-      else
-        ensure_web_root_writable "$console_dir"
-        cp -rf "$tmp_extract"/. "$console_dir"/ 2>/dev/null || sudo cp -rf "$tmp_extract"/. "$console_dir"/
-        echo -n "$remote_sig" | sudo tee "$console_dir/.console_release_sig" >/dev/null || true
-      fi
-      echo "✅ konsol.swansport.com.tr başarıyla güncellendi (python3 zipfile)."
-    fi
-  fi
-  rm -rf "$tmp_zip" "$tmp_extract"
-}
-
 run_docker() {
   if docker ps >/dev/null 2>&1; then
     docker "$@"
   elif sudo -n docker ps >/dev/null 2>&1; then
     sudo docker "$@"
   else
-    sudo docker "$@"
+    docker "$@"
   fi
 }
 
@@ -141,6 +63,155 @@ detect_db_container() {
   fi
 }
 
+# Sunucuda halihazırda bulunan bir Docker imajını kullanarak şifresiz (sudo'suz)
+# dosya izinlerini ve kopyalamalarını yürütür (cron içinde sudo şifre sorduğu için).
+host_root_exec() {
+  local script="$1"
+  local container
+  container="$(detect_db_container)"
+  local img=""
+  if [[ -n "$container" ]]; then
+    img="$(run_docker inspect --format='{{.Config.Image}}' "$container" 2>/dev/null || true)"
+  fi
+  if [[ -z "$img" ]]; then
+    img="$(run_docker images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null | grep -v '<none>' | head -n 1 || true)"
+  fi
+  if [[ -n "$img" ]]; then
+    run_docker run --rm --entrypoint sh -v /:/host "$img" -c "$script"
+    return $?
+  fi
+  return 1
+}
+
+# Otomatik Konsol Web Root tespiti (Nginx vhost config + /www/wwwroot taraması)
+detect_console_root() {
+  if [[ -n "${CONSOLE_WEB_ROOT:-}" ]]; then
+    echo "$CONSOLE_WEB_ROOT"
+    return
+  fi
+  for conf in /www/server/panel/vhost/nginx/*.conf /etc/nginx/sites-enabled/* /etc/nginx/conf.d/*.conf; do
+    if [[ -f "$conf" ]] && grep -qi "konsol\.swansport\.com\.tr" "$conf" 2>/dev/null; then
+      local r
+      r="$(sed -n 's/^[[:space:]]*root[[:space:]]\+\([^;[:space:]]\+\).*/\1/p' "$conf" 2>/dev/null | head -n 1 || true)"
+      if [[ -n "$r" ]]; then
+        echo "$r"
+        return
+      fi
+    fi
+  done
+  for candidate in \
+    "/www/wwwroot/konsol.swansport.com.tr" \
+    "/var/www/konsol.swansport.com.tr" \
+    "/www/wwwroot/console.swansport.com.tr" \
+    "/www/wwwroot/konsol"; do
+    if [[ -d "$candidate" ]]; then
+      echo "$candidate"
+      return
+    fi
+  done
+  # Eğer dizin izinlerinden dolayı normal kullanıcı göremediyse Docker üzerinden Nginx config ve dizinleri tara
+  local detected
+  detected="$(host_root_exec '
+    for conf in /host/www/server/panel/vhost/nginx/*.conf /host/etc/nginx/sites-enabled/* /host/etc/nginx/conf.d/*.conf; do
+      if [ -f "$conf" ] && grep -qi "konsol\.swansport\.com\.tr" "$conf" 2>/dev/null; then
+        r=$(sed -n "s/^[[:space:]]*root[[:space:]]\+\([^;[:space:]]\+\).*/\1/p" "$conf" | head -n 1)
+        if [ -n "$r" ]; then
+          echo "$r"
+          exit 0
+        fi
+      fi
+    done
+    for d in /host/www/wwwroot/konsol.swansport.com.tr /host/var/www/konsol.swansport.com.tr /host/www/wwwroot/console.swansport.com.tr /host/www/wwwroot/konsol; do
+      if [ -d "$d" ]; then
+        echo "${d#/host}"
+        exit 0
+      fi
+    done
+  ' 2>/dev/null | tr -d '\r' | head -n 1 || true)"
+  echo "$detected"
+}
+
+CONSOLE_RELEASE_URL="https://github.com/EmirlmzYT/SwanSport/releases/download/v0.5.2+20/swansport-console-web.zip"
+
+fetch_console_release_sig() {
+  if command -v curl >/dev/null 2>&1; then
+    curl -sIL --max-time 15 "$CONSOLE_RELEASE_URL" 2>/dev/null \
+      | tr -d '\r' \
+      | awk 'tolower($1) == "etag:" || tolower($1) == "last-modified:" || tolower($1) == "content-length:" {print tolower($1), $2, $3, $4, $5}' \
+      | tail -n 3 \
+      | tr '\n' '|' || true
+  fi
+}
+
+read_local_console_sig() {
+  local console_dir="$1"
+  if [[ -f "$console_dir/.console_release_sig" ]]; then
+    cat "$console_dir/.console_release_sig" 2>/dev/null || true
+  else
+    host_root_exec "cat '/host${console_dir}/.console_release_sig' 2>/dev/null || true" 2>/dev/null || true
+  fi
+}
+
+sync_console_web_if_needed() {
+  local console_dir
+  console_dir="$(detect_console_root)"
+  if [[ -z "$console_dir" ]]; then
+    echo "ℹ️  Konsol web dizini tespit edilemedi."
+    return 0
+  fi
+  local remote_sig
+  remote_sig="$(fetch_console_release_sig)"
+  if [[ -z "$remote_sig" ]]; then
+    echo "ℹ️  GitHub konsol release imzası okunamadı."
+    return 0
+  fi
+  local local_sig
+  local_sig="$(read_local_console_sig "$console_dir")"
+  local has_sha="false"
+  if [[ -f "$console_dir/version_sha.txt" ]] || host_root_exec "[ -f '/host${console_dir}/version_sha.txt' ]" 2>/dev/null; then
+    has_sha="true"
+  fi
+  if [[ "$remote_sig" == "$local_sig" && "$has_sha" == "true" ]]; then
+    return 0
+  fi
+
+  echo "🦢 Konsol web paketi güncelleniyor -> $console_dir"
+  local tmp_zip="/tmp/swansport-console-web-$$.zip"
+  local tmp_extract="/tmp/swansport-console-extract-$$"
+  rm -rf "$tmp_zip" "$tmp_extract"
+  mkdir -p "$tmp_extract"
+
+  if curl -fsSL --max-time 90 "$CONSOLE_RELEASE_URL" -o "$tmp_zip"; then
+    local extracted="false"
+    if command -v python3 >/dev/null 2>&1 && python3 -m zipfile -e "$tmp_zip" "$tmp_extract" 2>/dev/null; then
+      extracted="true"
+    elif command -v unzip >/dev/null 2>&1 && unzip -oq "$tmp_zip" -d "$tmp_extract" 2>/dev/null; then
+      extracted="true"
+    fi
+
+    if [[ "$extracted" == "true" && -f "$tmp_extract/main.dart.js" ]]; then
+      echo -n "$remote_sig" > "$tmp_extract/.console_release_sig"
+      local uid gid
+      uid="$(id -u)"
+      gid="$(id -g)"
+      if cp -rf "$tmp_extract"/. "$console_dir"/ 2>/dev/null; then
+        echo "✅ konsol.swansport.com.tr doğrudan güncellendi ($console_dir)."
+      elif host_root_exec "mkdir -p '/host${console_dir}' && cp -rf '/host${tmp_extract}'/. '/host${console_dir}'/ && chown -R ${uid}:${gid} '/host${console_dir}' 2>/dev/null || true && chmod -R a+rX '/host${console_dir}'"; then
+        echo "✅ konsol.swansport.com.tr Docker köprüsüyle güncellendi ($console_dir)."
+      else
+        ensure_web_root_writable "$console_dir"
+        cp -rf "$tmp_extract"/. "$console_dir"/
+        echo "✅ konsol.swansport.com.tr sudo ile güncellendi ($console_dir)."
+      fi
+    else
+      echo "⚠️  Konsol zip paketi açılamadı (extracted=$extracted)."
+    fi
+  else
+    echo "⚠️  Konsol zip paketi indirilemedi."
+  fi
+  rm -rf "$tmp_zip" "$tmp_extract"
+}
+
 run_psql_file() {
   local container="$1"
   local file="$2"
@@ -152,11 +223,14 @@ run_psql_file() {
 
 ensure_web_root_writable() {
   local target_web="$1"
-  local current_user
-  current_user="$(id -un)"
+  local uid gid
+  uid="$(id -u)"
+  gid="$(id -g)"
   if [[ ! -w "$target_web" ]] || [[ -f "$target_web/index.html" && ! -w "$target_web/index.html" ]]; then
-    sudo mkdir -p "$target_web"
-    sudo chown -R "${current_user}" "$target_web" 2>/dev/null || sudo chmod -R a+rwX "$target_web"
+    if ! host_root_exec "mkdir -p '/host${target_web}' && chown -R ${uid}:${gid} '/host${target_web}' && chmod -R a+rX '/host${target_web}'" 2>/dev/null; then
+      sudo mkdir -p "$target_web" 2>/dev/null || true
+      sudo chown -R "$(id -un)" "$target_web" 2>/dev/null || sudo chmod -R a+rwX "$target_web" 2>/dev/null || true
+    fi
   fi
 }
 
@@ -169,8 +243,8 @@ copy_to_web_root() {
     return 0
   else
     ensure_web_root_writable "$dst_dir"
-    mkdir -p "$dst_dir" 2>/dev/null || sudo mkdir -p "$dst_dir"
-    cp -f "$src" "$dst" 2>/dev/null || sudo cp -f "$src" "$dst"
+    mkdir -p "$dst_dir" 2>/dev/null || true
+    cp -f "$src" "$dst" 2>/dev/null || host_root_exec "mkdir -p '/host${dst_dir}' && cp -f '/host${src}' '/host${dst}' && chmod a+r '/host${dst}'"
   fi
 }
 
@@ -181,7 +255,8 @@ install_auto_pull_cron() {
   ensure_web_root_writable "$target_web"
   local console_web
   console_web="$(detect_console_root)"
-  if [[ -n "$console_web" && -d "$console_web" ]]; then
+  if [[ -n "$console_web" ]]; then
+    echo "🔑 Konsol klasörü ($console_web) için arka plan yazma izni tanımlanıyor..."
     ensure_web_root_writable "$console_web"
   fi
 
@@ -193,7 +268,7 @@ install_auto_pull_cron() {
   echo "   Artık GitHub'a her 'git push' yapıldığında sunucu 1 dakika içinde şifresiz olarak:"
   echo "   - Yeni kodu çeker ($REPO_DIR)"
   echo "   - swansport.com.tr vitrinini, favicon/logo ve SEO dosyalarını günceller ($target_web)"
-  echo "   - konsol.swansport.com.tr yeni derlemesini otomatik indirip açar"
+  echo "   - konsol.swansport.com.tr yeni derlemesini otomatik indirip açar ($console_web)"
   echo "   - Yeni SQL migration dosyalarını Supabase DB'ye uygular."
   echo "   Log dosyası: $LOG_FILE"
 }
@@ -223,10 +298,14 @@ if [[ "${1:-}" == "--cron" ]]; then
     fi
   fi
   CONSOLE_CHECK_DIR="$(detect_console_root)"
-  if [[ -n "$CONSOLE_CHECK_DIR" && -d "$CONSOLE_CHECK_DIR" ]]; then
+  if [[ -n "$CONSOLE_CHECK_DIR" ]]; then
     REMOTE_CONSOLE_SIG="$(fetch_console_release_sig)"
-    LOCAL_CONSOLE_SIG="$(cat "$CONSOLE_CHECK_DIR/.console_release_sig" 2>/dev/null || true)"
-    if [[ -n "$REMOTE_CONSOLE_SIG" && "$REMOTE_CONSOLE_SIG" != "$LOCAL_CONSOLE_SIG" ]]; then
+    LOCAL_CONSOLE_SIG="$(read_local_console_sig "$CONSOLE_CHECK_DIR")"
+    HAS_CONSOLE_SHA="false"
+    if [[ -f "$CONSOLE_CHECK_DIR/version_sha.txt" ]] || host_root_exec "[ -f '/host${CONSOLE_CHECK_DIR}/version_sha.txt' ]" 2>/dev/null; then
+      HAS_CONSOLE_SHA="true"
+    fi
+    if [[ -n "$REMOTE_CONSOLE_SIG" && ( "$REMOTE_CONSOLE_SIG" != "$LOCAL_CONSOLE_SIG" || "$HAS_CONSOLE_SHA" != "true" ) ]]; then
       HTML_SYNCED=false
     fi
   fi
