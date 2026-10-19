@@ -735,7 +735,9 @@ void main() {
       expect(find.byTooltip('Bildirimleri Aç'), findsOneWidget);
     });
 
-    test('0130 müsabaka duyurusu iptal ve erteleme bildirim sözleşmesi denetimi', () {
+    test(
+        '0130 müsabaka duyurusu iptal ve erteleme bildirim sözleşmesi denetimi',
+        () {
       final root = Directory.current.parent.parent.path;
       final sql = File(
               '$root/supabase/migrations/0130_federation_notice_notifications.sql')
@@ -746,9 +748,25 @@ void main() {
       expect(sql.contains('_send_match_follow_notice'), isTrue);
       expect(sql.contains('match_cancelled'), isTrue);
       expect(sql.contains('match_postponed'), isTrue);
-      expect(sql.contains('müsabakası federasyon tarafından iptal edildi'), isTrue);
-      expect(sql.contains('müsabakası federasyon tarafından ertelendi'), isTrue);
+      expect(sql.contains('müsabakası federasyon tarafından iptal edildi'),
+          isTrue);
+      expect(
+          sql.contains('müsabakası federasyon tarafından ertelendi'), isTrue);
       expect(sql.contains("'cancelled','postponed'"), isTrue);
+    });
+
+    test('0131 duyuru desteği sonuç sürümü ve redakte gerekçeyi korur', () {
+      final root = Directory.current.parent.parent.path;
+      final sql = File(
+              '$root/supabase/migrations/0131_public_match_header_result_revision_regression.sql')
+          .readAsStringSync();
+
+      expect(sql.contains("'cancelled','postponed'"), isTrue);
+      expect(sql.contains("'result_version'"), isTrue);
+      expect(sql.contains("'revision_reason'"), isTrue);
+      expect(sql.contains('public._public_result_revision_label(r.version)'),
+          isTrue);
+      expect(sql.contains('r.reason'), isFalse);
     });
   });
 }
