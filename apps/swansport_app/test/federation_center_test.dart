@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/federation/presentation/federation_center_screen.dart';
 import 'package:swansport_app/features/live_match/presentation/league_standings_view.dart';
+import 'package:swansport_app/features/live_match/presentation/match_follow_button.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 final _mockTodayMatch = PublicLiveMatchSummary.fromMap({
@@ -153,6 +154,8 @@ Future<void> pumpFederationCenter(
   bool liveMatchHubEnabled = true,
   bool leagueStandingsEnabled = true,
   bool federationBulletinEnabled = true,
+  bool liveMatchNotificationsEnabled = false,
+  bool isFollowed = false,
   List<FederationPendingMatch>? pendingMatches,
 }) async {
   await tester.pumpWidget(
@@ -166,6 +169,24 @@ Future<void> pumpFederationCenter(
             .overrideWithValue(leagueStandingsEnabled),
         featureEnabledProvider(FeatureFlags.federationBulletin)
             .overrideWithValue(federationBulletinEnabled),
+        featureEnabledProvider(FeatureFlags.liveMatchNotifications)
+            .overrideWithValue(liveMatchNotificationsEnabled),
+        matchFollowStateProvider(_mockTodayMatch.matchId).overrideWith(
+          (ref) async => MatchFollowState(
+            matchId: _mockTodayMatch.matchId,
+            isFollowed: isFollowed,
+          ),
+        ),
+        isMatchFollowedProvider(_mockTodayMatch.matchId)
+            .overrideWith((ref) async => isFollowed),
+        matchFollowStateProvider(_mockActivity.id).overrideWith(
+          (ref) async => MatchFollowState(
+            matchId: _mockActivity.id,
+            isFollowed: isFollowed,
+          ),
+        ),
+        isMatchFollowedProvider(_mockActivity.id)
+            .overrideWith((ref) async => isFollowed),
         leagueStandingsProvider
             .overrideWith((ref, arg) async => [_mockStandingsRow]),
         federationPendingResultsProvider.overrideWith(
@@ -678,6 +699,56 @@ void main() {
       expect(sql.contains('public_federation_disciplinary_bulletin'), isTrue);
       expect(sql.contains('public_federation_notices'), isTrue);
       expect(sql.contains('athlete_publicity'), isTrue);
+    });
+
+    testWidgets(
+        'liveMatchNotifications kapalıyken Bugün & Canlı ve Fikstür sekmelerinde takip butonu gösterilmez',
+        (tester) async {
+      await pumpFederationCenter(tester, liveMatchNotificationsEnabled: false);
+
+      expect(find.byType(MatchFollowButton), findsNothing);
+
+      await tester.tap(find.text('Fikstür & Takvim'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MatchFollowButton), findsNothing);
+    });
+
+    testWidgets(
+        'liveMatchNotifications açıkken Bugün & Canlı sekmesindeki maç kartında MatchFollowButton yer alır',
+        (tester) async {
+      await pumpFederationCenter(tester, liveMatchNotificationsEnabled: true);
+
+      expect(find.byType(MatchFollowButton), findsOneWidget);
+      expect(find.text('Bildirimleri Aç'), findsOneWidget);
+    });
+
+    testWidgets(
+        'liveMatchNotifications açıkken Fikstür & Takvim sekmesindeki müsabakada kompakt MatchFollowButton yer alır',
+        (tester) async {
+      await pumpFederationCenter(tester, liveMatchNotificationsEnabled: true);
+
+      await tester.tap(find.text('Fikstür & Takvim'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(MatchFollowButton), findsOneWidget);
+      expect(find.byTooltip('Bildirimleri Aç'), findsOneWidget);
+    });
+
+    test('0130 müsabaka duyurusu iptal ve erteleme bildirim sözleşmesi denetimi', () {
+      final root = Directory.current.parent.parent.path;
+      final sql = File(
+              '$root/supabase/migrations/0130_federation_notice_notifications.sql')
+          .readAsStringSync();
+
+      expect(sql.contains('trg_notify_federation_match_notice'), isTrue);
+      expect(sql.contains('_notify_federation_match_notice'), isTrue);
+      expect(sql.contains('_send_match_follow_notice'), isTrue);
+      expect(sql.contains('match_cancelled'), isTrue);
+      expect(sql.contains('match_postponed'), isTrue);
+      expect(sql.contains('müsabakası federasyon tarafından iptal edildi'), isTrue);
+      expect(sql.contains('müsabakası federasyon tarafından ertelendi'), isTrue);
+      expect(sql.contains("'cancelled','postponed'"), isTrue);
     });
   });
 }

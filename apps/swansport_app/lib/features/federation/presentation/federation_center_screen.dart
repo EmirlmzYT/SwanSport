@@ -12,6 +12,7 @@ import '../../../app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_tabs.dart';
 import '../../live_match/presentation/league_standings_view.dart';
 import '../../live_match/presentation/live_match_widgets.dart';
+import '../../live_match/presentation/match_follow_button.dart';
 
 class FederationCenterScreen extends ConsumerStatefulWidget {
   const FederationCenterScreen({
@@ -83,6 +84,8 @@ class _FederationCenterScreenState
         ref.watch(featureEnabledProvider(FeatureFlags.leagueStandings));
     final federationBulletinEnabled =
         ref.watch(featureEnabledProvider(FeatureFlags.federationBulletin));
+    final liveMatchNotificationsEnabled =
+        ref.watch(featureEnabledProvider(FeatureFlags.liveMatchNotifications));
     final async = ref.watch(federationCenterOverviewProvider(_filter));
 
     return SwanScaffold(
@@ -170,6 +173,8 @@ class _FederationCenterScreenState
                       liveMatchHubEnabled: liveMatchHubEnabled,
                       leagueStandingsEnabled: leagueStandingsEnabled,
                       federationBulletinEnabled: federationBulletinEnabled,
+                      liveMatchNotificationsEnabled:
+                          liveMatchNotificationsEnabled,
                     ),
                   ),
                 ],
@@ -384,6 +389,7 @@ class _FederationCenterScreenState
     required bool liveMatchHubEnabled,
     required bool leagueStandingsEnabled,
     required bool federationBulletinEnabled,
+    required bool liveMatchNotificationsEnabled,
   }) {
     switch (_selectedTab) {
       case 0:
@@ -392,9 +398,15 @@ class _FederationCenterScreenState
           c,
           overview,
           liveMatchHubEnabled: liveMatchHubEnabled,
+          liveMatchNotificationsEnabled: liveMatchNotificationsEnabled,
         );
       case 1:
-        return _buildUpcomingSliver(context, c, overview);
+        return _buildUpcomingSliver(
+          context,
+          c,
+          overview,
+          liveMatchNotificationsEnabled: liveMatchNotificationsEnabled,
+        );
       case 2:
         return leagueStandingsEnabled
             ? _buildStandingsSliver(context, c, overview)
@@ -411,6 +423,7 @@ class _FederationCenterScreenState
                 c,
                 overview,
                 liveMatchHubEnabled: liveMatchHubEnabled,
+                liveMatchNotificationsEnabled: liveMatchNotificationsEnabled,
               );
       default:
         return _buildTodayAndLiveSliver(
@@ -418,6 +431,7 @@ class _FederationCenterScreenState
           c,
           overview,
           liveMatchHubEnabled: liveMatchHubEnabled,
+          liveMatchNotificationsEnabled: liveMatchNotificationsEnabled,
         );
     }
   }
@@ -427,6 +441,7 @@ class _FederationCenterScreenState
     SwanPalette c,
     FederationCenterOverview overview, {
     required bool liveMatchHubEnabled,
+    required bool liveMatchNotificationsEnabled,
   }) {
     final matches = overview.todayMatches;
 
@@ -465,7 +480,17 @@ class _FederationCenterScreenState
       separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.md),
       itemBuilder: (context, index) {
         final match = matches[index];
-        return LiveMatchCard(match: match);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            LiveMatchCard(match: match),
+            if (liveMatchNotificationsEnabled)
+              Padding(
+                padding: const EdgeInsets.only(bottom: SwanSpace.md),
+                child: MatchFollowButton(matchId: match.matchId),
+              ),
+          ],
+        );
       },
     );
   }
@@ -473,8 +498,9 @@ class _FederationCenterScreenState
   Widget _buildUpcomingSliver(
     BuildContext context,
     SwanPalette c,
-    FederationCenterOverview overview,
-  ) {
+    FederationCenterOverview overview, {
+    required bool liveMatchNotificationsEnabled,
+  }) {
     final activities = overview.upcomingActivities;
 
     if (activities.isEmpty) {
@@ -549,12 +575,21 @@ class _FederationCenterScreenState
                   ],
                 ),
               ),
-              if (a.isMatch)
+              if (a.isMatch) ...[
+                if (liveMatchNotificationsEnabled)
+                  Padding(
+                    padding: const EdgeInsets.only(right: SwanSpace.xs),
+                    child: MatchFollowButton(
+                      matchId: a.id,
+                      compact: true,
+                    ),
+                  ),
                 TextButton(
                   onPressed: () =>
                       Navigator.pushNamed(context, '/canli-mac/${a.id}'),
                   child: Text('Detay', style: SwanType.caption(c.accent)),
                 ),
+              ],
             ],
           ),
         );
