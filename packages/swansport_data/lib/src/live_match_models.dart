@@ -10,15 +10,19 @@ class PublicLiveMatchSummary {
     this.cityCode,this.programName,this.startsAt,this.location,this.homeClubName,this.awayClubName,
     this.homeClubLogo,this.awayClubLogo,this.homeScore,this.awayScore,this.period,
     this.isLive=false,this.isToday=false,this.elapsedSeconds=0,this.clockStartedAt,this.serverNow,
-    this.periodHome,this.periodAway,List<({int home,int away})> sets=const []}) : sets=List.unmodifiable(sets);
+    this.periodHome,this.periodAway,this.resultVersion,this.revisionReason,
+    List<({int home,int away})> sets=const []}) : sets=List.unmodifiable(sets);
   final String matchId,sportCode,status;
   final String? cityCode,programName,location,homeClubName,awayClubName,homeClubLogo,awayClubLogo;
   final DateTime? startsAt,clockStartedAt,serverNow;
-  final int? homeScore,awayScore,period,periodHome,periodAway;
+  final int? homeScore,awayScore,period,periodHome,periodAway,resultVersion;
+  final String? revisionReason;
   final bool isLive,isToday;
   final int elapsedSeconds;
   final List<({int home,int away})> sets;
   bool get clockRunning => isLive && clockStartedAt!=null && serverNow!=null;
+  bool get isOfficialResult => status == 'played';
+  bool get isRevisedResult => status == 'played' && (resultVersion != null && resultVersion! > 1);
   /// Server time anchors the snapshot; local monotonic duration only animates it.
   int secondsAt(Duration sinceSnapshot) => max(0,elapsedSeconds) + (clockRunning
     ? max(0,serverNow!.difference(clockStartedAt!).inSeconds)+max(0,sinceSnapshot.inSeconds) : 0);
@@ -29,6 +33,7 @@ class PublicLiveMatchSummary {
     homeClubLogo:m['home_club_logo'] as String?,awayClubLogo:m['away_club_logo'] as String?,
     homeScore:_int(m['home_score']),awayScore:_int(m['away_score']),period:_int(m['period']),
     periodHome:_int(m['period_home']),periodAway:_int(m['period_away']),
+    resultVersion:_int(m['result_version']),revisionReason:m['revision_reason'] as String?,
     isLive:m['is_live']==true,isToday:m['is_today']==true,elapsedSeconds:_int(m['elapsed_seconds'])??0,
     clockStartedAt:_date(m['clock_started_at']),serverNow:_date(m['server_now']),
     sets:[for(final row in m['sets'] as List? ?? const [])
@@ -80,4 +85,27 @@ class PublicMatchRoster {
   final List<PublicRosterPlayer> players;
   factory PublicMatchRoster.fromMap(Map<String,dynamic> m) => PublicMatchRoster(matchId:m['match_id'] as String,
     players:[for(final row in m['players'] as List? ?? const []) PublicRosterPlayer.fromMap(Map<String,dynamic>.from(row as Map))]);
+}
+
+class PublicMatchResultRevision {
+  const PublicMatchResultRevision({
+    required this.id,
+    required this.version,
+    required this.reason,
+    required this.recordedAt,
+    this.isCurrent = false,
+  });
+  final String id;
+  final int version;
+  final String reason;
+  final DateTime recordedAt;
+  final bool isCurrent;
+
+  factory PublicMatchResultRevision.fromMap(Map<String, dynamic> m) => PublicMatchResultRevision(
+    id: m['id'] as String,
+    version: _int(m['version']) ?? 1,
+    reason: m['reason'] as String? ?? 'Resmi sonuç tescili',
+    recordedAt: _date(m['recorded_at']) ?? DateTime.now(),
+    isCurrent: m['is_current'] == true,
+  );
 }

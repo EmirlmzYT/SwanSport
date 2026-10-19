@@ -33,6 +33,18 @@ class LiveMatchService {
     _id(matchId);final row=await client.rpc<dynamic>('match_public_roster',params:{'p_match_id':matchId});
     return row==null ? null : PublicMatchRoster.fromMap(Map<String,dynamic>.from(row as Map));
   }
+  Future<List<PublicMatchResultRevision>> fetchMatchResultRevisions(String matchId) async {
+    _id(matchId);
+    try {
+      final rows=await client.rpc<dynamic>('public_match_result_revisions',params:{'p_match_id':matchId});
+      return List.unmodifiable([
+        for(final row in rows as List? ?? const [])
+          PublicMatchResultRevision.fromMap(Map<String,dynamic>.from(row as Map))
+      ]);
+    } on PostgrestException catch(_) {
+      return const [];
+    }
+  }
 }
 
 final Provider<LiveMatchService> liveMatchServiceProvider=Provider<LiveMatchService>((ref)=>LiveMatchService(ref.watch(supabaseClientProvider)));
@@ -51,7 +63,7 @@ final AutoDisposeFutureProvider<List<PublicLiveMatchSummary>> publicLiveMatchesP
 final AutoDisposeFutureProviderFamily<PublicLiveMatchDetail?,String> publicMatchLiveStateProvider=FutureProvider.autoDispose.family<PublicLiveMatchDetail?,String>((ref,id) async {
   if(!ref.watch(isSupabaseEnabledProvider) || !ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub)))return null;
   var disposed=false;ref.onDispose(()=>disposed=true);
-  PublicLiveMatchDetail? result=null;
+  PublicLiveMatchDetail? result;
   try {
     result=await ref.watch(liveMatchServiceProvider).fetchPublicMatchState(id);
     return result;
@@ -65,4 +77,8 @@ final AutoDisposeFutureProviderFamily<PublicMatchRoster?,String> publicMatchRost
   var disposed=false;ref.onDispose(()=>disposed=true);
   try {return await ref.watch(liveMatchServiceProvider).fetchPublicMatchRoster(id);}
   finally {if(!disposed){final timer=Timer(const Duration(seconds:10),ref.invalidateSelf);ref.onDispose(timer.cancel);}}
+});
+final AutoDisposeFutureProviderFamily<List<PublicMatchResultRevision>,String> publicMatchResultRevisionsProvider=FutureProvider.autoDispose.family<List<PublicMatchResultRevision>,String>((ref,id) async {
+  if(!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(liveMatchServiceProvider).fetchMatchResultRevisions(id);
 });

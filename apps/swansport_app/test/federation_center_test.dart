@@ -45,6 +45,49 @@ final _mockLeague = StandingsLeague.fromMap({
   'city_code': '34',
 });
 
+final _mockOfficialPlayedMatch = PublicLiveMatchSummary.fromMap({
+  'match_id': '00000000-0000-0000-0000-000000000010',
+  'program_name': 'U18 İstanbul Futbol Ligi',
+  'sport_code': 'futbol',
+  'city_code': '34',
+  'status': 'played',
+  'home_club_name': 'Galata SK',
+  'away_club_name': 'Beyoğlu Gençlik',
+  'home_score': 3,
+  'away_score': 1,
+  'is_live': false,
+  'is_today': true,
+  'result_version': 1,
+  'revision_reason': 'Hakem imzalı maç raporu',
+});
+
+final _mockRevisedPlayedMatch = PublicLiveMatchSummary.fromMap({
+  'match_id': '00000000-0000-0000-0000-000000000020',
+  'program_name': 'U18 İstanbul Futbol Ligi',
+  'sport_code': 'futbol',
+  'city_code': '34',
+  'status': 'played',
+  'home_club_name': 'Anadolu Hisarı İdman',
+  'away_club_name': 'Sarıyer GSK',
+  'home_score': 0,
+  'away_score': 3,
+  'is_live': false,
+  'is_today': true,
+  'result_version': 2,
+  'revision_reason': 'Disiplin Kurulu Kararı No: 2026/41 ile tescil revizyonu',
+});
+
+final _mockPendingMatch = FederationPendingMatch(
+  id: '00000000-0000-0000-0000-000000000030',
+  name: 'U16 İstanbul Basketbol Ligi',
+  sportCode: 'basketbol',
+  version: 0,
+  homeName: 'Fenerbahçe Koleji',
+  awayName: 'Darüşşafaka Akademi',
+  startsAt: DateTime(2026, 10, 19, 14, 0),
+  location: 'Ayhan Şahenk Spor Salonu',
+);
+
 final _mockStandingsRow = LeagueStandingsRow(
   rank: 1,
   participantId: 'part-1',
@@ -68,6 +111,7 @@ Future<void> pumpFederationCenter(
   double textScale = 1.0,
   bool liveMatchHubEnabled = true,
   bool leagueStandingsEnabled = true,
+  List<FederationPendingMatch>? pendingMatches,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -80,6 +124,8 @@ Future<void> pumpFederationCenter(
             .overrideWithValue(leagueStandingsEnabled),
         leagueStandingsProvider
             .overrideWith((ref, arg) async => [_mockStandingsRow]),
+        federationPendingResultsProvider.overrideWith((ref, offset) async =>
+            pendingMatches ?? [_mockPendingMatch]),
         federationCenterOverviewProvider.overrideWith((ref, filter) {
           if (error != null) throw error;
           return overview ??
@@ -320,6 +366,64 @@ void main() {
       }
       tester.view.resetPhysicalSize();
       tester.view.resetDevicePixelRatio();
+    });
+
+    testWidgets('Tescilli ve revize edilmiş müsabaka sonuçları rozet ve gerekçeyle gösterilir',
+        (tester) async {
+      await pumpFederationCenter(
+        tester,
+        overview: FederationCenterOverview(
+          todayMatches: [_mockOfficialPlayedMatch, _mockRevisedPlayedMatch],
+          liveMatches: const [],
+          upcomingActivities: const [],
+          leagues: const [],
+        ),
+      );
+
+      // Tescilli sonuç kartı (V1)
+      expect(find.text('✓ TESCİLLİ SONUÇ'), findsOneWidget);
+      expect(find.text('Galata SK'), findsOneWidget);
+      expect(find.text('Beyoğlu Gençlik'), findsOneWidget);
+      expect(find.text('3 : 1'), findsOneWidget);
+      expect(find.text('Hakem imzalı maç raporu'), findsOneWidget);
+
+      // Revize sonuç kartı (V2)
+      expect(find.text('● REVİZE SONUÇ (V2)'), findsOneWidget);
+      expect(find.text('Anadolu Hisarı İdman'), findsOneWidget);
+      expect(find.text('Sarıyer GSK'), findsOneWidget);
+      expect(find.text('0 : 3'), findsOneWidget);
+      expect(find.text('Disiplin Kurulu Kararı No: 2026/41 ile tescil revizyonu'), findsOneWidget);
+    });
+
+    testWidgets('Yetkili kullanıcı Bekleyen Sonuçlar butonuna dokununca tescil modalı açılır',
+        (tester) async {
+      final fedAccess = SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: null,
+        coachLevel: 0,
+        athleteKind: null,
+        federationRoles: [
+          FederationRole(
+            id: 'role-1',
+            federationId: 'fed-1',
+            profileId: 'test-profile-1',
+            role: FederationRoleKind.president,
+            startsOn: DateTime(2020, 1, 1),
+            endsOn: DateTime(2030, 12, 31),
+          ),
+        ],
+      );
+
+      await pumpFederationCenter(tester, access: fedAccess);
+
+      expect(find.text('Bekleyen Sonuçlar'), findsOneWidget);
+      await tester.tap(find.text('Bekleyen Sonuçlar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bekleyen Resmi Sonuçlar'), findsOneWidget);
+      expect(find.text('Fenerbahçe Koleji — Darüşşafaka Akademi'), findsOneWidget);
+      expect(find.text('V0 Tescil'), findsOneWidget);
+      expect(find.text('Sonucu Tescil Et / Yayımla'), findsOneWidget);
     });
   });
 }

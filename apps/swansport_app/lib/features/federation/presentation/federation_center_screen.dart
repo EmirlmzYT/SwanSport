@@ -243,6 +243,19 @@ class _FederationCenterScreenState
                     ),
                   ),
                   TextButton(
+                    onPressed: () => _showPendingResultsSheet(context, c),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: SwanSpace.sm,
+                        vertical: SwanSpace.xs,
+                      ),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text('Bekleyen Sonuçlar', style: SwanType.caption(c.accent, w: FontWeight.w700)),
+                  ),
+                  const SizedBox(width: SwanSpace.xs),
+                  TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/calendar'),
                     style: TextButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
@@ -678,6 +691,320 @@ class _FederationCenterScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  void _showPendingResultsSheet(BuildContext context, SwanPalette c) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(SwanRadius.lg),
+        ),
+      ),
+      builder: (ctx) => Consumer(
+        builder: (context, ref, _) {
+          final async = ref.watch(federationPendingResultsProvider(0));
+          return SafeArea(
+            child: DraggableScrollableSheet(
+              expand: false,
+              initialChildSize: 0.75,
+              minChildSize: 0.4,
+              maxChildSize: 0.95,
+              builder: (_, scrollController) => SingleChildScrollView(
+                controller: scrollController,
+                padding: const EdgeInsets.all(SwanSpace.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 36,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: SwanSpace.md),
+                        decoration: BoxDecoration(
+                          color: c.line,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Bekleyen Resmi Sonuçlar', style: SwanType.h3(c.ink)),
+                              const SizedBox(height: SwanSpace.xs),
+                              Text(
+                                'Hakem raporu veya itiraz sonrası tescil bekleyen müsabakalar',
+                                style: SwanType.caption(c.inkMuted),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.close_rounded, color: c.inkMuted),
+                          onPressed: () => Navigator.pop(ctx),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: SwanSpace.md),
+                    async.when(
+                      loading: () => Center(child: Padding(padding: const EdgeInsets.all(SwanSpace.xl), child: premiumLoading())),
+                      error: (err, _) => premiumError(
+                        context,
+                        '$err',
+                        onRetry: () => ref.invalidate(federationPendingResultsProvider(0)),
+                      ),
+                      data: (matches) {
+                        if (matches.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: SwanSpace.xl * 2),
+                            child: Center(
+                              child: Column(
+                                children: [
+                                  Icon(Icons.check_circle_outline_rounded, size: 44, color: c.accent),
+                                  const SizedBox(height: SwanSpace.sm),
+                                  Text(
+                                    'Bekleyen resmi tescil talebi bulunmuyor',
+                                    style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                                  ),
+                                  const SizedBox(height: SwanSpace.xs),
+                                  Text(
+                                    'Tüm tamamlanan maçlar tescil edilmiş durumda.',
+                                    style: SwanType.caption(c.inkMuted),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }
+                        return Column(
+                          children: [
+                            for (final match in matches)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: SwanSpace.md),
+                                child: Container(
+                                  padding: const EdgeInsets.all(SwanSpace.md),
+                                  decoration: BoxDecoration(
+                                    color: c.bg,
+                                    borderRadius: BorderRadius.circular(SwanRadius.md),
+                                    border: Border.all(color: c.line),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.xs, vertical: 2),
+                                            decoration: BoxDecoration(
+                                              color: c.accent.withValues(alpha: 0.15),
+                                              borderRadius: BorderRadius.circular(SwanRadius.sm),
+                                            ),
+                                            child: Text(
+                                              'V${match.version} Tescil',
+                                              style: SwanType.caption(c.accent, w: FontWeight.w700),
+                                            ),
+                                          ),
+                                          const SizedBox(width: SwanSpace.xs),
+                                          Text(
+                                            liveSportName(match.sportCode),
+                                            style: SwanType.caption(c.inkMuted),
+                                          ),
+                                          const Spacer(),
+                                          if (match.startsAt != null)
+                                            Text(liveStartTime(match.startsAt!), style: SwanType.caption(c.inkMuted)),
+                                        ],
+                                      ),
+                                      const SizedBox(height: SwanSpace.sm),
+                                      Text(
+                                        '${match.homeName ?? "Ev Sahibi"} — ${match.awayName ?? "Deplasman"}',
+                                        style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                                      ),
+                                      const SizedBox(height: SwanSpace.xs),
+                                      Text(match.name, style: SwanType.caption(c.inkMuted)),
+                                      if (match.location != null && match.location!.isNotEmpty) ...[
+                                        const SizedBox(height: 2),
+                                        Text(match.location!, style: SwanType.caption(c.inkMuted)),
+                                      ],
+                                      const SizedBox(height: SwanSpace.md),
+                                      SizedBox(
+                                        width: double.infinity,
+                                        child: ElevatedButton.icon(
+                                          onPressed: () => _showPublishResultDialog(context, ref, c, match),
+                                          icon: const Icon(Icons.publish_rounded, size: 16),
+                                          label: const Text('Sonucu Tescil Et / Yayımla'),
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: c.accent,
+                                            foregroundColor: c.onAccent,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  void _showPublishResultDialog(
+    BuildContext context,
+    WidgetRef ref,
+    SwanPalette c,
+    FederationPendingMatch match,
+  ) {
+    final homeController = TextEditingController();
+    final awayController = TextEditingController();
+    final reasonController = TextEditingController(text: match.version == 0 ? 'Hakem onaylı resmi maç sonucu tescili' : 'MHK tescil kararı');
+    var isSubmitting = false;
+
+    showDialog<void>(
+      context: context,
+      builder: (dlgContext) => StatefulBuilder(
+        builder: (context, setDialogState) {
+          return AlertDialog(
+            backgroundColor: c.surface,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(SwanRadius.lg)),
+            title: Text('Resmi Sonuç Tescili (V${match.version + 1})', style: SwanType.h3(c.ink)),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('${match.homeName ?? "Ev"} vs ${match.awayName ?? "Deplasman"}', style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                  const SizedBox(height: SwanSpace.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: homeController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: match.homeName ?? 'Ev Skor',
+                            filled: true,
+                            fillColor: c.bg,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+                          ),
+                        ),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: SwanSpace.sm),
+                        child: Text(':', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: awayController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: match.awayName ?? 'Dep Skor',
+                            filled: true,
+                            fillColor: c.bg,
+                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: SwanSpace.md),
+                  TextField(
+                    controller: reasonController,
+                    maxLines: 2,
+                    decoration: InputDecoration(
+                      labelText: 'Tescil / Revizyon Gerekçesi',
+                      hintText: 'Örn: MHK onaylı resmi müsabaka tescili',
+                      filled: true,
+                      fillColor: c.bg,
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(SwanRadius.md)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: isSubmitting ? null : () => Navigator.pop(dlgContext),
+                child: Text('İptal', style: SwanType.bodySm(c.inkMuted)),
+              ),
+              ElevatedButton(
+                onPressed: isSubmitting
+                    ? null
+                    : () async {
+                        final hs = int.tryParse(homeController.text.trim());
+                        final as = int.tryParse(awayController.text.trim());
+                        final reason = reasonController.text.trim();
+
+                        if (hs == null || as == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Lütfen geçerli sayısal skorlar girin.')),
+                          );
+                          return;
+                        }
+                        if (reason.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Lütfen tescil gerekçesi belirtin.')),
+                          );
+                          return;
+                        }
+
+                        setDialogState(() => isSubmitting = true);
+                        try {
+                          final service = ref.read(federationRecordsServiceProvider);
+                          if (service == null) throw StateError('Sunucu bağlantısı aktif değil');
+
+                          await service.publishResult(
+                            matchId: match.id,
+                            protocol: {'type': 'score', 'home': hs, 'away': as},
+                            reason: reason,
+                            expectedVersion: match.version,
+                          );
+
+                          if (dlgContext.mounted) Navigator.pop(dlgContext);
+                          ref.invalidate(federationPendingResultsProvider(0));
+                          ref.invalidate(federationCenterOverviewProvider(_filter));
+
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Resmi sonuç başarıyla tescil edildi ve yayımlandı.')),
+                            );
+                          }
+                        } catch (e) {
+                          setDialogState(() => isSubmitting = false);
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Tescil işlemi başarısız: $e')),
+                            );
+                          }
+                        }
+                      },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: c.accent,
+                  foregroundColor: c.onAccent,
+                ),
+                child: isSubmitting
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Text('Tescil Et'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
