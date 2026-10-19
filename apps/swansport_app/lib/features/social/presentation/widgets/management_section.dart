@@ -81,6 +81,11 @@ class ManagementSection extends ConsumerWidget {
     ];
 
     final platform = <_Item>[
+      const _Item(
+        Icons.verified_rounded,
+        'Federasyon Yayın Merkezi',
+        '/federasyon-merkezi',
+      ),
       if (access.isPlatformAdmin) ...[
         const _Item(
           Icons.admin_panel_settings_rounded,

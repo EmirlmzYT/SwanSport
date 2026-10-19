@@ -34,6 +34,12 @@ class GuestExploreScreen extends ConsumerWidget {
               style: SwanType.bodySm(c.inkMuted)),
           const SizedBox(height: SwanSpace.lg),
           const LiveMatchStrip(),
+          SwanActionCard(
+            icon: Icons.verified_rounded,
+            title: 'Federasyon Yayın Merkezi',
+            subtitle: 'Resmi takvim, fikstür, canlı skorlar ve sonuçlar',
+            onTap: () => Navigator.pushNamed(context, '/federasyon-merkezi'),
+          ),
           if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub))) SwanActionCard(
             icon: Icons.scoreboard_outlined,
             title: 'Canlı Skor Merkezi',

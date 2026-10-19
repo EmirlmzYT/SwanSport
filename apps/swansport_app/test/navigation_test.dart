@@ -40,6 +40,7 @@ void main() {
     '/kortlar', '/partner-ara', '/ilanlar', '/kulupler', '/topluluklar',
     '/organizasyonlar',
     '/canli-skor',
+    '/federasyon-merkezi',
     // Profil > Yönetim
     '/kulup-yonetim',
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',

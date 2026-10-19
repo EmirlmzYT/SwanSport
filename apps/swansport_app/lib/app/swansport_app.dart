@@ -45,6 +45,7 @@ import '../features/documents/presentation/screens/document_vault_screen.dart';
 import '../features/equipment/presentation/equipment_tuning_screen.dart';
 import '../features/facilities/presentation/facility_management_screen.dart';
 import '../features/facilities/presentation/facility_reservation_screen.dart';
+import '../features/federation/presentation/federation_center_screen.dart';
 import '../features/financial_management/presentation/accountant_privacy_ledger_screen.dart';
 import '../features/financial_management/presentation/campaigns_screen.dart';
 import '../features/financial_management/presentation/closed_period_reversal_screen.dart';
@@ -207,6 +208,7 @@ class SwanSportApp extends ConsumerWidget {
         '/mesajlar': (context) => const MessagesScreen(),
         '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
         '/federasyon-takvimi': (context) => const PublicSportCalendarScreen(),
+        '/federasyon-merkezi': (context) => const FederationCenterScreen(),
         '/kesfet': (context) => const ExploreScreen(),
         '/kulupler': (context) => const DiscoverScreen(),
         '/pazaryeri': (context) => const MarketplaceScreen(),

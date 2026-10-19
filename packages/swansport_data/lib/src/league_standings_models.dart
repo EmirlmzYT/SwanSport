@@ -36,8 +36,10 @@ class StandingsLeague {
   final int winPoints,drawPoints,lossPoints;
   factory StandingsLeague.fromMap(Map<String,dynamic> m)=>StandingsLeague(
     id:m['id'] as String,name:m['name'] as String,sportCode:m['sport_code'] as String,
-    cityCode:m['city_code'] as String?,federationId:m['federation_id'] as String?,winPoints:(m['win_points'] as num).toInt(),
-    drawPoints:(m['draw_points'] as num).toInt(),lossPoints:(m['loss_points'] as num).toInt());
+    cityCode:m['city_code'] as String?,federationId:m['federation_id'] as String?,
+    winPoints:(m['win_points'] as num?)?.toInt() ?? 3,
+    drawPoints:(m['draw_points'] as num?)?.toInt() ?? 1,
+    lossPoints:(m['loss_points'] as num?)?.toInt() ?? 0);
 }
 
 class MatchStandingsContext {

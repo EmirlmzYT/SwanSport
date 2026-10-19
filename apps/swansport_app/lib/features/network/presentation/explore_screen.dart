@@ -302,6 +302,20 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                   onTap: () => Navigator.pushNamed(
                                       context, '/canli-skor'),
                                 )),
+                          SizedBox(
+                            width: itemWidth,
+                            child: _ModuleGridCard(
+                              icon: Icons.verified_rounded,
+                              title: 'Federasyon',
+                              subtitle: 'Fikstür, sonuç, takvim',
+                              iconColor: context.swan.accent,
+                              badge: 'Resmi',
+                              onTap: () => Navigator.pushNamed(
+                                context,
+                                '/federasyon-merkezi',
+                              ),
+                            ),
+                          ),
                           if (ref
                               .watch(featureEnabledProvider('coach_discovery')))
                             SizedBox(

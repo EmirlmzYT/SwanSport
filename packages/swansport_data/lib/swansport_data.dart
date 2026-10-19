@@ -10,6 +10,7 @@ library;
 export 'src/sport_context_service.dart';
 export 'src/club_staff_operations.dart';
 export 'src/federation_console.dart';
+export 'src/federation_center_service.dart';
 
 // Antrenman oturumu modelleri `SessionPhase`, `SessionRhythm` ve
 // `TrainingProtocolConfig` tiplerini DONDURUYOR. Bunlari yeniden

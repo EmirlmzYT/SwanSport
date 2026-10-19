@@ -115,6 +115,7 @@ class SwanAccess {
         '/partner-ara',
         '/oyuncu-aranan',
         '/federasyon-takvimi',
+        '/federasyon-merkezi',
         '/calendar',
         '/yardim',
         '/rehber',
