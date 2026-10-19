@@ -8,10 +8,9 @@ on:
       - 'apps/swansport_app/**'
       - 'packages/**'
       - '.github/workflows/release_android.yml'
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'apps/swansport_app/test/**'
+      - '!**.md'
+      - '!docs/**'
+      - '!apps/swansport_app/test/**'
   workflow_dispatch:
 
 permissions:

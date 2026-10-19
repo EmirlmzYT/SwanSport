@@ -8,10 +8,9 @@ on:
       - 'apps/swansport_app/**'
       - 'packages/**'
       - '.github/workflows/build_ios.yml'
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - 'apps/swansport_app/test/**'
+      - '!**.md'
+      - '!docs/**'
+      - '!apps/swansport_app/test/**'
   workflow_dispatch:
     inputs:
       preview_only:
