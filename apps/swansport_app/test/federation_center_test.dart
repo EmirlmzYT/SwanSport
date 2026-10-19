@@ -105,6 +105,45 @@ final _mockStandingsRow = LeagueStandingsRow(
   form: ['W', 'W', 'D', 'W', 'L'],
 );
 
+final _mockDisciplinaryItem = FederationDisciplinaryItem(
+  id: '00000000-0000-0000-0000-000000000040',
+  matchId: '00000000-0000-0000-0000-000000000001',
+  sportCode: 'basketbol',
+  clubName: 'Kadıköy SK',
+  athleteDisplay: 'Sporcu (#A3F91C)',
+  penaltyType: 'match_ban',
+  penaltyLabel: '2 Maç Men',
+  reason: 'Sportmenlik dışı kural ihlali nedeniyle tedbirli ceza',
+  createdAt: DateTime(2026, 10, 19, 11, 0),
+  matchTitle: 'Kadıköy SK – Beşiktaş Akademi',
+  programName: 'U16 İstanbul Basketbol Ligi',
+);
+
+final _mockRightsBanItem = FederationDisciplinaryItem(
+  id: '00000000-0000-0000-0000-000000000041',
+  matchId: '00000000-0000-0000-0000-000000000001',
+  sportCode: 'futbol',
+  clubName: 'Galata SK',
+  athleteDisplay: 'Ahmet Yılmaz',
+  penaltyType: 'rights_ban',
+  penaltyLabel: '3 Ay Hak Mahrumiyeti',
+  reason: 'Müsabaka hakemine yönelik ağır hakaret',
+  createdAt: DateTime(2026, 10, 18, 15, 30),
+  matchTitle: 'Galata SK – Beyoğlu Gençlik',
+  programName: 'U18 İstanbul Futbol Ligi',
+);
+
+final _mockNoticeItem = FederationNoticeItem(
+  id: '00000000-0000-0000-0000-000000000050',
+  sportCode: 'basketbol',
+  noticeType: 'match_postponed',
+  title: 'Müsabaka Erteleme: Fenerbahçe Koleji – Darüşşafaka Akademi',
+  body: 'Saha zemini bakım çalışması nedeniyle ileri bir tarihe ertelenmiştir.',
+  publishedAt: DateTime(2026, 10, 19, 9, 0),
+  programName: 'U16 İstanbul Basketbol Ligi',
+  matchId: '00000000-0000-0000-0000-000000000001',
+);
+
 Future<void> pumpFederationCenter(
   WidgetTester tester, {
   SwanAccess access = SwanAccess.none,
@@ -136,6 +175,11 @@ Future<void> pumpFederationCenter(
                 liveMatches: [_mockTodayMatch],
                 upcomingActivities: [_mockActivity],
                 leagues: [_mockLeague],
+                disciplinaryDecisions: [
+                  _mockDisciplinaryItem,
+                  _mockRightsBanItem,
+                ],
+                notices: [_mockNoticeItem],
               );
         }),
       ],
@@ -166,6 +210,7 @@ void main() {
       expect(find.text('Bugün & Canlı'), findsOneWidget);
       expect(find.text('Fikstür & Takvim'), findsOneWidget);
       expect(find.text('Puan Durumu'), findsOneWidget);
+      expect(find.text('Disiplin & Bülten'), findsOneWidget);
 
       expect(find.text('U16 İstanbul Basketbol Ligi'), findsOneWidget);
       expect(find.text('Kadıköy SK'), findsOneWidget);
@@ -545,6 +590,77 @@ void main() {
       expect(sql.contains('public._public_result_revision_label(r.version)'),
           isTrue);
       expect(sql.contains('r.reason'), isFalse);
+    });
+
+    testWidgets(
+        'Disiplin & Bülten sekmesinde ceza kararları, gerekçe ve gizli sporcu referansı (#...) gösterilir',
+        (tester) async {
+      await pumpFederationCenter(tester);
+
+      await tester.tap(find.text('Disiplin & Bülten'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Resmi Disiplin Kararları (2)'), findsOneWidget);
+      expect(find.text('2 Maç Men'), findsOneWidget);
+      expect(find.text('3 Ay Hak Mahrumiyeti'), findsOneWidget);
+      expect(find.text('Kadıköy SK'), findsOneWidget);
+      expect(find.textContaining('#A3F91C'), findsOneWidget);
+      expect(find.text('Galata SK'), findsOneWidget);
+      expect(find.textContaining('Ahmet Yılmaz'), findsOneWidget);
+      expect(
+        find.text('Sportmenlik dışı kural ihlali nedeniyle tedbirli ceza'),
+        findsOneWidget,
+      );
+      await tester.scrollUntilVisible(
+        find.textContaining('Fenerbahçe Koleji'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
+      expect(
+        find.text('Müsabaka Erteleme: Fenerbahçe Koleji – Darüşşafaka Akademi'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'Disiplin bülteninde alt filtre seçimi (Disiplin, Duyurular) kartları doğru filtreler',
+        (tester) async {
+      await pumpFederationCenter(tester);
+
+      await tester.tap(find.text('Disiplin & Bülten'));
+      await tester.pumpAndSettle();
+
+      // Disiplin filtresine bas
+      await tester.tap(find.text('Disiplin (2)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 Maç Men'), findsOneWidget);
+      expect(
+        find.text('Müsabaka Erteleme: Fenerbahçe Koleji – Darüşşafaka Akademi'),
+        findsNothing,
+      );
+
+      // Duyurular filtresine bas
+      await tester.tap(find.text('Duyurular (1)'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('2 Maç Men'), findsNothing);
+      expect(
+        find.text('Müsabaka Erteleme: Fenerbahçe Koleji – Darüşşafaka Akademi'),
+        findsOneWidget,
+      );
+    });
+
+    test('kamusal disiplin bülteni ve duyuru migration kuralları doğrulanır', () {
+      final root = Directory.current.parent.parent.path;
+      final sql = File(
+              '$root/supabase/migrations/0128_federation_disciplinary_bulletin.sql')
+          .readAsStringSync();
+
+      expect(sql.contains('public.athlete_ref(d.athlete_id)'), isTrue);
+      expect(sql.contains('public_federation_disciplinary_bulletin'), isTrue);
+      expect(sql.contains('public_federation_notices'), isTrue);
+      expect(sql.contains('athlete_publicity'), isTrue);
     });
   });
 }

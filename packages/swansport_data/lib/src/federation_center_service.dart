@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'feature_flags.dart';
+import 'federation_bulletin_models.dart';
+import 'federation_bulletin_service.dart';
 import 'league_standings_models.dart';
 import 'league_standings_service.dart';
 import 'live_match_models.dart';
@@ -55,15 +57,20 @@ class FederationCenterOverview {
     required this.liveMatches,
     required this.upcomingActivities,
     required this.leagues,
+    this.disciplinaryDecisions = const [],
+    this.notices = const [],
   });
 
   final List<PublicLiveMatchSummary> todayMatches;
   final List<PublicLiveMatchSummary> liveMatches;
   final List<FederationActivity> upcomingActivities;
   final List<StandingsLeague> leagues;
+  final List<FederationDisciplinaryItem> disciplinaryDecisions;
+  final List<FederationNoticeItem> notices;
 
   int get liveCount => liveMatches.length;
   int get todayCount => todayMatches.length;
+  int get bulletinCount => disciplinaryDecisions.length + notices.length;
 }
 
 /// Kamuya açık federasyon merkezi özeti (Canlı maçlar, bugünün maçları, takvim aktiviteleri ve ligler).
@@ -144,10 +151,36 @@ final federationCenterOverviewProvider = FutureProvider.autoDispose
     }).toList();
   }
 
+  // 4. Disiplin bülteni ve resmi müsabaka duyuruları
+  final bulletinService = ref.watch(federationBulletinServiceProvider);
+  final allDecisions = await bulletinService.fetchDisciplinaryBulletin(
+    sportCode: filter.sportCode,
+    cityCode: filter.cityCode,
+  );
+  final allNotices = await bulletinService.fetchNotices(
+    sportCode: filter.sportCode,
+    cityCode: filter.cityCode,
+  );
+
+  final filteredDecisions = allDecisions.where((d) {
+    if (queryLower.isEmpty) return true;
+    final text = '${d.clubName} ${d.athleteDisplay} ${d.reason} ${d.matchTitle} ${d.penaltyLabel}'
+        .toLowerCase();
+    return text.contains(queryLower);
+  }).toList();
+
+  final filteredNotices = allNotices.where((n) {
+    if (queryLower.isEmpty) return true;
+    final text = '${n.title} ${n.body} ${n.programName}'.toLowerCase();
+    return text.contains(queryLower);
+  }).toList();
+
   return FederationCenterOverview(
     todayMatches: today,
     liveMatches: live,
     upcomingActivities: filteredActivities,
     leagues: leagues,
+    disciplinaryDecisions: filteredDecisions,
+    notices: filteredNotices,
   );
 });

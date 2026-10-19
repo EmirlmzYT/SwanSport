@@ -34,6 +34,7 @@ class _FederationCenterScreenState
     extends ConsumerState<FederationCenterScreen> {
   late int _selectedTab;
   late FederationCenterFilter _filter;
+  int _bulletinFilterIndex = 0;
   final TextEditingController _searchController = TextEditingController();
 
   static const List<String> _sports = [
@@ -364,6 +365,7 @@ class _FederationCenterScreenState
         liveMatchHubEnabled ? 'Bugün & Canlı' : 'Bugün',
         'Fikstür & Takvim',
         'Puan Durumu',
+        'Disiplin & Bülten',
       ],
       selected: _selectedTab,
       onSelect: (index) => setState(() => _selectedTab = index),
@@ -395,6 +397,8 @@ class _FederationCenterScreenState
                 icon: Icons.leaderboard_rounded,
                 message: 'Puan durumu henüz kullanıma açılmadı.',
               );
+      case 3:
+        return _buildBulletinSliver(context, c, overview);
       default:
         return _buildTodayAndLiveSliver(
           context,
@@ -698,6 +702,391 @@ class _FederationCenterScreenState
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildBulletinSliver(
+    BuildContext context,
+    SwanPalette c,
+    FederationCenterOverview overview,
+  ) {
+    final decisions = overview.disciplinaryDecisions;
+    final notices = overview.notices;
+
+    final showDecisions =
+        _bulletinFilterIndex == 0 || _bulletinFilterIndex == 1;
+    final showNotices = _bulletinFilterIndex == 0 || _bulletinFilterIndex == 2;
+
+    final visibleDecisions =
+        showDecisions ? decisions : const <FederationDisciplinaryItem>[];
+    final visibleNotices =
+        showNotices ? notices : const <FederationNoticeItem>[];
+
+    final isEmpty = visibleDecisions.isEmpty && visibleNotices.isEmpty;
+
+    return SliverMainAxisGroup(
+      slivers: [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: SwanSpace.md),
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [
+                  _buildBulletinFilterChip(
+                    c,
+                    label: 'Tümü',
+                    index: 0,
+                    count: overview.bulletinCount,
+                  ),
+                  const SizedBox(width: SwanSpace.xs),
+                  _buildBulletinFilterChip(
+                    c,
+                    label: 'Disiplin',
+                    index: 1,
+                    count: decisions.length,
+                  ),
+                  const SizedBox(width: SwanSpace.xs),
+                  _buildBulletinFilterChip(
+                    c,
+                    label: 'Duyurular',
+                    index: 2,
+                    count: notices.length,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        if (isEmpty)
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: SwanSpace.xl * 2),
+              child: Center(
+                child: Column(
+                  children: [
+                    Icon(Icons.gavel_rounded, size: 40, color: c.inkMuted),
+                    const SizedBox(height: SwanSpace.sm),
+                    Text(
+                      'Kayıtlı disiplin kararı veya resmi duyuru bulunamadı',
+                      style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        else ...[
+          if (visibleDecisions.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+                child: Row(
+                  children: [
+                    Icon(Icons.gavel_rounded, size: 16, color: c.danger),
+                    const SizedBox(width: SwanSpace.xs),
+                    Text(
+                      'Resmi Disiplin Kararları (${visibleDecisions.length})',
+                      style: SwanType.caption(c.ink, w: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverList.separated(
+              itemCount: visibleDecisions.length,
+              separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.md),
+              itemBuilder: (context, index) {
+                final item = visibleDecisions[index];
+                return _buildDisciplinaryCard(context, c, item);
+              },
+            ),
+            if (visibleNotices.isNotEmpty)
+              const SliverToBoxAdapter(
+                child: SizedBox(height: SwanSpace.lg),
+              ),
+          ],
+          if (visibleNotices.isNotEmpty) ...[
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+                child: Row(
+                  children: [
+                    Icon(Icons.campaign_outlined, size: 16, color: c.accent),
+                    const SizedBox(width: SwanSpace.xs),
+                    Text(
+                      'Müsabaka & Statü Duyuruları (${visibleNotices.length})',
+                      style: SwanType.caption(c.ink, w: FontWeight.w700),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SliverList.separated(
+              itemCount: visibleNotices.length,
+              separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.md),
+              itemBuilder: (context, index) {
+                final notice = visibleNotices[index];
+                return _buildNoticeCard(context, c, notice);
+              },
+            ),
+          ],
+        ],
+      ],
+    );
+  }
+
+  Widget _buildBulletinFilterChip(
+    SwanPalette c, {
+    required String label,
+    required int index,
+    required int count,
+  }) {
+    final isSelected = _bulletinFilterIndex == index;
+    return ChoiceChip(
+      label: Text('$label ($count)'),
+      selected: isSelected,
+      labelStyle: SwanType.caption(
+        isSelected ? c.onAccent : c.ink,
+        w: isSelected ? FontWeight.w700 : FontWeight.w500,
+      ),
+      backgroundColor: c.surface,
+      selectedColor: c.accentFill,
+      side: BorderSide(color: isSelected ? c.accent : c.line),
+      onSelected: (_) => setState(() => _bulletinFilterIndex = index),
+    );
+  }
+
+  Widget _buildDisciplinaryCard(
+    BuildContext context,
+    SwanPalette c,
+    FederationDisciplinaryItem item,
+  ) {
+    final Color badgeColor;
+    final Color badgeBg;
+    final IconData badgeIcon;
+
+    if (item.isSuspension) {
+      badgeColor = c.danger;
+      badgeBg = c.danger.withValues(alpha: 0.1);
+      badgeIcon = Icons.block_rounded;
+    } else if (item.isWarning) {
+      badgeColor = const Color(0xFFF59E0B);
+      badgeBg = const Color(0xFFF59E0B).withValues(alpha: 0.12);
+      badgeIcon = Icons.warning_amber_rounded;
+    } else if (item.isFine) {
+      badgeColor = c.ink;
+      badgeBg = c.bg;
+      badgeIcon = Icons.attach_money_rounded;
+    } else {
+      badgeColor = c.accent;
+      badgeBg = c.accent.withValues(alpha: 0.1);
+      badgeIcon = Icons.gavel_rounded;
+    }
+
+    final dateStr =
+        '${item.createdAt.day.toString().padLeft(2, '0')}.${item.createdAt.month.toString().padLeft(2, '0')}.${item.createdAt.year}';
+
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SwanSpace.sm,
+                  vertical: SwanSpace.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: c.bg,
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                  border: Border.all(color: c.line),
+                ),
+                child: Text(
+                  liveSportName(item.sportCode).toUpperCase(),
+                  style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SwanSpace.sm,
+                  vertical: SwanSpace.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: badgeBg,
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(badgeIcon, size: 12, color: badgeColor),
+                    const SizedBox(width: SwanSpace.xs),
+                    Text(
+                      item.penaltyLabel,
+                      style: SwanType.caption(badgeColor, w: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              Text(dateStr, style: SwanType.caption(c.inkMuted)),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.sm),
+          Row(
+            children: [
+              Text(
+                item.clubName,
+                style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Expanded(
+                child: Text(
+                  '• ${item.athleteDisplay}',
+                  style: SwanType.caption(c.inkMuted),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.xs),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(SwanSpace.sm),
+            decoration: BoxDecoration(
+              color: c.bg,
+              borderRadius: BorderRadius.circular(SwanRadius.md),
+            ),
+            child: Text(
+              item.reason,
+              style: SwanType.caption(c.ink),
+            ),
+          ),
+          if (item.matchTitle.isNotEmpty || item.programName.isNotEmpty) ...[
+            const SizedBox(height: SwanSpace.xs),
+            Text(
+              item.matchTitle.isNotEmpty
+                  ? '${item.programName} • ${item.matchTitle}'
+                  : item.programName,
+              style: SwanType.caption(c.inkMuted),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoticeCard(
+    BuildContext context,
+    SwanPalette c,
+    FederationNoticeItem notice,
+  ) {
+    final Color badgeColor = notice.isCancellation
+        ? c.danger
+        : (notice.isPostponement ? c.accent : c.inkMuted);
+    final String badgeLabel = notice.isCancellation
+        ? 'İPTAL'
+        : (notice.isPostponement ? 'ERTELEME' : 'RESMİ BİLDİRİM');
+    final IconData badgeIcon = notice.isCancellation
+        ? Icons.cancel_outlined
+        : (notice.isPostponement
+            ? Icons.update_rounded
+            : Icons.info_outline_rounded);
+
+    final dateStr =
+        '${notice.publishedAt.day.toString().padLeft(2, '0')}.${notice.publishedAt.month.toString().padLeft(2, '0')}.${notice.publishedAt.year}';
+
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.lg),
+        border: Border.all(color: c.line),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SwanSpace.sm,
+                  vertical: SwanSpace.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: badgeColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(badgeIcon, size: 12, color: badgeColor),
+                    const SizedBox(width: SwanSpace.xs),
+                    Text(
+                      badgeLabel,
+                      style: SwanType.caption(badgeColor, w: FontWeight.w800),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: SwanSpace.sm,
+                  vertical: SwanSpace.xs,
+                ),
+                decoration: BoxDecoration(
+                  color: c.bg,
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                  border: Border.all(color: c.line),
+                ),
+                child: Text(
+                  liveSportName(notice.sportCode).toUpperCase(),
+                  style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
+                ),
+              ),
+              const Spacer(),
+              Text(dateStr, style: SwanType.caption(c.inkMuted)),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.sm),
+          Text(
+            notice.title,
+            style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+          ),
+          const SizedBox(height: SwanSpace.xs),
+          Text(
+            notice.body,
+            style: SwanType.caption(c.inkMuted),
+          ),
+          if (notice.matchId != null) ...[
+            const SizedBox(height: SwanSpace.xs),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.pushNamed(
+                    context, '/canli-mac/${notice.matchId}'),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: Size.zero,
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+                child: Text('Maç Detayı', style: SwanType.caption(c.accent)),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
