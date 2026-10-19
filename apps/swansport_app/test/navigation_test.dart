@@ -58,6 +58,43 @@ void main() {
   ];
 
   group('rota bütünlüğü', () {
+    test('profil menüsü rol ve özellik kapılarını birlikte uygular', () {
+      expect(profileMenu.contains('access.isParent &&'), isTrue);
+      expect(
+        profileMenu.contains(
+          'featureEnabledProvider(FeatureFlags.parentHub)',
+        ),
+        isTrue,
+      );
+      expect(profileMenu.contains('access.isReferee &&'), isTrue);
+      expect(
+        profileMenu.contains(
+          'featureEnabledProvider(FeatureFlags.refereeCockpit)',
+        ),
+        isTrue,
+      );
+      expect(profileMenu.contains('if (isStaff)'), isTrue);
+      expect(profileMenu.contains("open('/kulup-yonetim')"), isTrue);
+    });
+
+    test('kulüp operasyonları tek kokpit girişinin arkasında kalır', () {
+      for (final route in [
+        '/antrenman-oturumu',
+        '/medical-center',
+        '/performance-analytics',
+        '/home-command',
+      ]) {
+        expect(cockpit.contains("'$route'"), isTrue);
+        expect(profileMenu.contains("'$route'"), isFalse);
+      }
+      expect(
+        cockpit.contains(
+          'featureEnabledProvider(FeatureFlags.sportTrainingSessions)',
+        ),
+        isTrue,
+      );
+    });
+
     test('kulüp davet bağlantısı profil başvuru rotasına açılır', () {
       expect(
           cockpit.contains('swansport.pages.dev/#/kulup-profil?id='), isTrue);

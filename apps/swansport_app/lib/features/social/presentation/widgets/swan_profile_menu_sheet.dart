@@ -79,7 +79,8 @@ class _ProfileMenu extends ConsumerWidget {
 
     final isStaff = access.isClubStaff;
     final isAccountant = access.isAccountant && !isStaff;
-    final isParent = ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
+    final isParent = access.isParent &&
+        ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
     final isReferee = !profile.isClub &&
         access.isReferee &&
         ref.watch(featureEnabledProvider(FeatureFlags.refereeCockpit));
@@ -112,7 +113,7 @@ class _ProfileMenu extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Menü', style: SwanType.h2(c.ink)),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: SwanSpace.xs),
                       Text(
                         profile.roleLabel != null
                             ? '${profile.name} • ${profile.roleLabel}'
@@ -146,14 +147,14 @@ class _ProfileMenu extends ConsumerWidget {
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(9),
+                        padding: const EdgeInsets.all(SwanSpace.sm),
                         decoration: BoxDecoration(
-                          color: c.accent,
+                          color: c.accentFill,
                           borderRadius: BorderRadius.circular(SwanRadius.sm),
                         ),
-                        child: const Icon(
+                        child: Icon(
                           Icons.space_dashboard_rounded,
-                          color: Colors.white,
+                          color: c.onAccent,
                           size: 20,
                         ),
                       ),
@@ -166,7 +167,7 @@ class _ProfileMenu extends ConsumerWidget {
                               'Kulüp Yönetim Kokpiti',
                               style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                             ),
-                            const SizedBox(height: 2),
+                            const SizedBox(height: SwanSpace.xs),
                             Text(
                               'Kadro, antrenman, aidat ve operasyonlar',
                               style: SwanType.caption(c.inkMuted),
