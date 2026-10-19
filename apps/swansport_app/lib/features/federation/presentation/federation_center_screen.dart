@@ -10,6 +10,7 @@ import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../../app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/swan_tabs.dart';
+import '../../live_match/presentation/league_standings_view.dart';
 import '../../live_match/presentation/live_match_widgets.dart';
 
 class FederationCenterScreen extends ConsumerStatefulWidget {
@@ -75,6 +76,10 @@ class _FederationCenterScreenState
   Widget build(BuildContext context) {
     final c = context.swan;
     final access = ref.watch(swanAccessProvider);
+    final liveMatchHubEnabled =
+        ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub));
+    final leagueStandingsEnabled =
+        ref.watch(featureEnabledProvider(FeatureFlags.leagueStandings));
     final async = ref.watch(federationCenterOverviewProvider(_filter));
 
     return SwanScaffold(
@@ -118,7 +123,10 @@ class _FederationCenterScreenState
                       const SizedBox(height: SwanSpace.md),
                       _buildSearchAndFilters(c),
                       const SizedBox(height: SwanSpace.md),
-                      _buildTabs(c),
+                      _buildTabs(
+                        c,
+                        liveMatchHubEnabled: liveMatchHubEnabled,
+                      ),
                     ],
                   ),
                 ),
@@ -151,7 +159,13 @@ class _FederationCenterScreenState
                       SwanSpace.lg,
                       SwanSpace.xl * 5,
                     ),
-                    sliver: _buildTabContent(context, c, overview),
+                    sliver: _buildTabContent(
+                      context,
+                      c,
+                      overview,
+                      liveMatchHubEnabled: liveMatchHubEnabled,
+                      leagueStandingsEnabled: leagueStandingsEnabled,
+                    ),
                   ),
                 ],
               ),
@@ -162,7 +176,11 @@ class _FederationCenterScreenState
     );
   }
 
-  Widget _buildHeaderHero(BuildContext context, SwanPalette c, SwanAccess access) {
+  Widget _buildHeaderHero(
+    BuildContext context,
+    SwanPalette c,
+    SwanAccess access,
+  ) {
     return Container(
       padding: const EdgeInsets.all(SwanSpace.md),
       decoration: BoxDecoration(
@@ -284,8 +302,9 @@ class _FederationCenterScreenState
             itemBuilder: (context, i) {
               final code = _sports[i];
               final label = _sportLabels[i];
-              final isSelected = (code == 'Tümü' && _filter.sportCode == null) ||
-                  _filter.sportCode == code;
+              final isSelected =
+                  (code == 'Tümü' && _filter.sportCode == null) ||
+                      _filter.sportCode == code;
 
               return ChoiceChip(
                 label: Text(label),
@@ -316,10 +335,13 @@ class _FederationCenterScreenState
     );
   }
 
-  Widget _buildTabs(SwanPalette c) {
+  Widget _buildTabs(
+    SwanPalette c, {
+    required bool liveMatchHubEnabled,
+  }) {
     return SwanPillTabs(
-      labels: const [
-        'Bugün & Canlı',
+      labels: [
+        liveMatchHubEnabled ? 'Bugün & Canlı' : 'Bugün',
         'Fikstür & Takvim',
         'Puan Durumu',
       ],
@@ -331,25 +353,44 @@ class _FederationCenterScreenState
   Widget _buildTabContent(
     BuildContext context,
     SwanPalette c,
-    FederationCenterOverview overview,
-  ) {
+    FederationCenterOverview overview, {
+    required bool liveMatchHubEnabled,
+    required bool leagueStandingsEnabled,
+  }) {
     switch (_selectedTab) {
       case 0:
-        return _buildTodayAndLiveSliver(context, c, overview);
+        return _buildTodayAndLiveSliver(
+          context,
+          c,
+          overview,
+          liveMatchHubEnabled: liveMatchHubEnabled,
+        );
       case 1:
         return _buildUpcomingSliver(context, c, overview);
       case 2:
-        return _buildStandingsSliver(context, c, overview);
+        return leagueStandingsEnabled
+            ? _buildStandingsSliver(context, c, overview)
+            : _buildFeatureUnavailableSliver(
+                c,
+                icon: Icons.leaderboard_rounded,
+                message: 'Puan durumu henüz kullanıma açılmadı.',
+              );
       default:
-        return _buildTodayAndLiveSliver(context, c, overview);
+        return _buildTodayAndLiveSliver(
+          context,
+          c,
+          overview,
+          liveMatchHubEnabled: liveMatchHubEnabled,
+        );
     }
   }
 
   Widget _buildTodayAndLiveSliver(
     BuildContext context,
     SwanPalette c,
-    FederationCenterOverview overview,
-  ) {
+    FederationCenterOverview overview, {
+    required bool liveMatchHubEnabled,
+  }) {
     final matches = overview.todayMatches;
 
     if (matches.isEmpty) {
@@ -362,12 +403,16 @@ class _FederationCenterScreenState
                 Icon(Icons.sports_rounded, size: 40, color: c.inkMuted),
                 const SizedBox(height: SwanSpace.sm),
                 Text(
-                  'Bugün için planlanmış resmi maç bulunamadı',
+                  liveMatchHubEnabled
+                      ? 'Bugün için planlanmış resmi maç bulunamadı'
+                      : 'Bugünün canlı skorları henüz kullanıma açılmadı',
                   style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                 ),
                 const SizedBox(height: SwanSpace.xs),
                 Text(
-                  'Fikstür ve takvim sekmesinden yaklaşan resmi maçları inceleyebilirsin.',
+                  liveMatchHubEnabled
+                      ? 'Fikstür ve takvim sekmesinden yaklaşan resmi maçları inceleyebilirsin.'
+                      : 'Fikstür ve takvim sekmesinden yayımlanmış resmi programı inceleyebilirsin.',
                   style: SwanType.caption(c.inkMuted),
                   textAlign: TextAlign.center,
                 ),
@@ -438,7 +483,9 @@ class _FederationCenterScreenState
                 ),
                 child: Center(
                   child: Icon(
-                    a.isMatch ? Icons.sports_score_rounded : Icons.event_rounded,
+                    a.isMatch
+                        ? Icons.sports_score_rounded
+                        : Icons.event_rounded,
                     color: c.accent,
                     size: 20,
                   ),
@@ -467,7 +514,8 @@ class _FederationCenterScreenState
               ),
               if (a.isMatch)
                 TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/canli-mac/${a.id}'),
+                  onPressed: () =>
+                      Navigator.pushNamed(context, '/canli-mac/${a.id}'),
                   child: Text('Detay', style: SwanType.caption(c.accent)),
                 ),
             ],
@@ -509,49 +557,148 @@ class _FederationCenterScreenState
       separatorBuilder: (_, __) => const SizedBox(height: SwanSpace.md),
       itemBuilder: (context, index) {
         final league = leagues[index];
-        return Container(
-          padding: const EdgeInsets.all(SwanSpace.md),
-          decoration: BoxDecoration(
-            color: c.surface,
+        return Material(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(SwanRadius.lg),
+          child: InkWell(
             borderRadius: BorderRadius.circular(SwanRadius.lg),
-            border: Border.all(color: c.line),
-          ),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(SwanSpace.sm),
-                decoration: BoxDecoration(
-                  color: c.bg,
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  Icons.emoji_events_outlined,
-                  size: 20,
-                  color: c.accent,
-                ),
+            onTap: () => _showLeagueStandingsSheet(context, c, league),
+            child: Container(
+              padding: const EdgeInsets.all(SwanSpace.md),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(SwanRadius.lg),
+                border: Border.all(color: c.line),
               ),
-              const SizedBox(width: SwanSpace.md),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      league.name,
-                      style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(SwanSpace.sm),
+                    decoration: BoxDecoration(
+                      color: c.bg,
+                      shape: BoxShape.circle,
                     ),
-                    const SizedBox(height: SwanSpace.xs),
-                    Text(
-                      '${league.sportCode.toUpperCase()} • ${league.cityCode ?? "Genel"} Puan Durumu',
-                      style: SwanType.caption(c.inkMuted),
+                    child: Icon(
+                      Icons.emoji_events_outlined,
+                      size: 20,
+                      color: c.accent,
                     ),
-                  ],
-                ),
+                  ),
+                  const SizedBox(width: SwanSpace.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          league.name,
+                          style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                        ),
+                        const SizedBox(height: SwanSpace.xs),
+                        Text(
+                          '${league.sportCode.toUpperCase()} • ${league.cityCode ?? "Genel"} Puan Durumu',
+                          style: SwanType.caption(c.inkMuted),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right_rounded, color: c.inkMuted),
+                ],
               ),
-              Icon(Icons.chevron_right_rounded, color: c.inkMuted),
-            ],
+            ),
           ),
         );
       },
     );
   }
+
+  void _showLeagueStandingsSheet(
+    BuildContext context,
+    SwanPalette c,
+    StandingsLeague league,
+  ) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: c.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          top: Radius.circular(SwanRadius.lg),
+        ),
+      ),
+      builder: (ctx) => SafeArea(
+        child: DraggableScrollableSheet(
+          expand: false,
+          initialChildSize: 0.7,
+          minChildSize: 0.4,
+          maxChildSize: 0.95,
+          builder: (_, scrollController) => SingleChildScrollView(
+            controller: scrollController,
+            padding: const EdgeInsets.all(SwanSpace.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: SwanSpace.md),
+                    decoration: BoxDecoration(
+                      color: c.line,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(league.name, style: SwanType.h3(c.ink)),
+                          const SizedBox(height: SwanSpace.xs),
+                          Text(
+                            '${liveSportName(league.sportCode)}${league.cityCode == null ? '' : ' • İl ${league.cityCode}'} • Puan: ${league.winPoints}/${league.drawPoints}/${league.lossPoints}',
+                            style: SwanType.caption(c.inkMuted),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.close_rounded, color: c.inkMuted),
+                      onPressed: () => Navigator.pop(ctx),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: SwanSpace.md),
+                LeagueStandingsView(
+                  key: ValueKey('league-standings-${league.id}'),
+                  orgId: league.id,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeatureUnavailableSliver(
+    SwanPalette c, {
+    required IconData icon,
+    required String message,
+  }) =>
+      SliverToBoxAdapter(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: SwanSpace.xl * 2),
+          child: Center(
+            child: Column(
+              children: [
+                Icon(icon, size: 40, color: c.inkMuted),
+                const SizedBox(height: SwanSpace.sm),
+                Text(message, style: SwanType.bodySm(c.inkMuted)),
+              ],
+            ),
+          ),
+        ),
+      );
 }

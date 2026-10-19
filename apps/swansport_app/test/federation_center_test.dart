@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/federation/presentation/federation_center_screen.dart';
+import 'package:swansport_app/features/live_match/presentation/league_standings_view.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 final _mockTodayMatch = PublicLiveMatchSummary.fromMap({
@@ -44,20 +45,41 @@ final _mockLeague = StandingsLeague.fromMap({
   'city_code': '34',
 });
 
+final _mockStandingsRow = LeagueStandingsRow(
+  rank: 1,
+  participantId: 'part-1',
+  name: 'Kadıköy SK',
+  played: 10,
+  won: 8,
+  drawn: 1,
+  lost: 1,
+  goalsFor: 720,
+  goalsAgainst: 650,
+  goalDiff: 70,
+  points: 25,
+  form: ['W', 'W', 'D', 'W', 'L'],
+);
+
 Future<void> pumpFederationCenter(
   WidgetTester tester, {
   SwanAccess access = SwanAccess.none,
   FederationCenterOverview? overview,
   Object? error,
   double textScale = 1.0,
+  bool liveMatchHubEnabled = true,
+  bool leagueStandingsEnabled = true,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         swanAccessProvider.overrideWithValue(access),
         isSupabaseEnabledProvider.overrideWithValue(true),
-        featureEnabledProvider(FeatureFlags.liveMatchHub).overrideWithValue(true),
-        featureEnabledProvider(FeatureFlags.leagueStandings).overrideWithValue(true),
+        featureEnabledProvider(FeatureFlags.liveMatchHub)
+            .overrideWithValue(liveMatchHubEnabled),
+        featureEnabledProvider(FeatureFlags.leagueStandings)
+            .overrideWithValue(leagueStandingsEnabled),
+        leagueStandingsProvider
+            .overrideWith((ref, arg) async => [_mockStandingsRow]),
         federationCenterOverviewProvider.overrideWith((ref, filter) {
           if (error != null) throw error;
           return overview ??
@@ -112,7 +134,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Türkiye Gençler Şampiyonası'), findsOneWidget);
-      expect(find.textContaining('Türkiye Basketbol Federasyonu'), findsOneWidget);
+      expect(
+        find.textContaining('Türkiye Basketbol Federasyonu'),
+        findsOneWidget,
+      );
 
       // Puan Durumu sekmesine tıkla
       await tester.tap(find.text('Puan Durumu'));
@@ -120,6 +145,13 @@ void main() {
 
       expect(find.text('Gelişim Ligi A Grubu'), findsOneWidget);
       expect(find.textContaining('BASKETBOL'), findsOneWidget);
+
+      // Lige dokunarak ayrıntı puan tablosunu aç
+      await tester.tap(find.text('Gelişim Ligi A Grubu'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(LeagueStandingsView), findsOneWidget);
+      expect(find.text('Resmi Sonuçlar'), findsOneWidget);
     });
 
     testWidgets('Maç kartına tıklandığında maç detay sayfasına yönlendirir',
@@ -144,15 +176,24 @@ void main() {
         ),
       );
 
-      expect(find.text('Bugün için planlanmış resmi maç bulunamadı'), findsOneWidget);
+      expect(
+        find.text('Bugün için planlanmış resmi maç bulunamadı'),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('Fikstür & Takvim'));
       await tester.pumpAndSettle();
-      expect(find.text('Filtrelere uygun resmi faaliyet bulunamadı'), findsOneWidget);
+      expect(
+        find.text('Filtrelere uygun resmi faaliyet bulunamadı'),
+        findsOneWidget,
+      );
 
       await tester.tap(find.text('Puan Durumu'));
       await tester.pumpAndSettle();
-      expect(find.text('Kayıtlı resmi lig puan tablosu bulunamadı'), findsOneWidget);
+      expect(
+        find.text('Kayıtlı resmi lig puan tablosu bulunamadı'),
+        findsOneWidget,
+      );
     });
 
     testWidgets('Hata durumunda premiumError ve Tekrar Dene butonu çalışır',
@@ -164,8 +205,10 @@ void main() {
           overrides: [
             swanAccessProvider.overrideWithValue(SwanAccess.none),
             isSupabaseEnabledProvider.overrideWithValue(true),
-            featureEnabledProvider(FeatureFlags.liveMatchHub).overrideWithValue(true),
-            featureEnabledProvider(FeatureFlags.leagueStandings).overrideWithValue(true),
+            featureEnabledProvider(FeatureFlags.liveMatchHub)
+                .overrideWithValue(true),
+            featureEnabledProvider(FeatureFlags.leagueStandings)
+                .overrideWithValue(true),
             federationCenterOverviewProvider.overrideWith((ref, filter) {
               if (!retried) throw Exception('Sunucu yanıt vermedi timed out');
               return FederationCenterOverview(
@@ -215,6 +258,36 @@ void main() {
       await pumpFederationCenter(tester, access: fedAccess);
 
       expect(find.text('Federasyon / MHK Görev Yetkisi Aktif'), findsOneWidget);
+    });
+
+    testWidgets(
+        'kapalı özellikler canlı skor veya puan tablosu varmış gibi gösterilmez',
+        (tester) async {
+      await pumpFederationCenter(
+        tester,
+        liveMatchHubEnabled: false,
+        leagueStandingsEnabled: false,
+        overview: const FederationCenterOverview(
+          todayMatches: [],
+          liveMatches: [],
+          upcomingActivities: [],
+          leagues: [],
+        ),
+      );
+
+      expect(find.text('Bugün'), findsOneWidget);
+      expect(find.text('Bugün & Canlı'), findsNothing);
+      expect(
+        find.text('Bugünün canlı skorları henüz kullanıma açılmadı'),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Puan Durumu'));
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Puan durumu henüz kullanıma açılmadı.'),
+        findsOneWidget,
+      );
     });
 
     testWidgets(
