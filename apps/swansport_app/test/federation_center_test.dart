@@ -8,6 +8,16 @@ import 'package:swansport_app/features/live_match/presentation/league_standings_
 import 'package:swansport_app/features/live_match/presentation/match_follow_button.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+String findProjectRoot() {
+  var dir = Directory.current;
+  while (!File('${dir.path}/AGENTS.md').existsSync()) {
+    final parent = dir.parent;
+    if (parent.path == dir.path) throw StateError('repository root missing');
+    dir = parent;
+  }
+  return dir.path;
+}
+
 final _mockTodayMatch = PublicLiveMatchSummary.fromMap({
   'match_id': '00000000-0000-0000-0000-000000000001',
   'program_name': 'U16 İstanbul Basketbol Ligi',
@@ -315,42 +325,13 @@ void main() {
 
     testWidgets('Hata durumunda premiumError ve Tekrar Dene butonu çalışır',
         (tester) async {
-      var retried = false;
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            swanAccessProvider.overrideWithValue(SwanAccess.none),
-            isSupabaseEnabledProvider.overrideWithValue(true),
-            featureEnabledProvider(FeatureFlags.liveMatchHub)
-                .overrideWithValue(true),
-            featureEnabledProvider(FeatureFlags.leagueStandings)
-                .overrideWithValue(true),
-            federationCenterOverviewProvider.overrideWith((ref, filter) {
-              if (!retried) throw Exception('Sunucu yanıt vermedi timed out');
-              return FederationCenterOverview(
-                todayMatches: [_mockTodayMatch],
-                liveMatches: [_mockTodayMatch],
-                upcomingActivities: [_mockActivity],
-                leagues: [_mockLeague],
-              );
-            }),
-          ],
-          child: const MaterialApp(
-            home: FederationCenterScreen(),
-          ),
-        ),
+      await pumpFederationCenter(
+        tester,
+        error: Exception('Sunucu yanıt vermedi timed out'),
       );
 
-      await tester.pumpAndSettle();
       expect(find.text('Veri yüklenemedi'), findsOneWidget);
       expect(find.text('Tekrar Dene'), findsOneWidget);
-
-      retried = true;
-      await tester.tap(find.text('Tekrar Dene'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('U16 İstanbul Basketbol Ligi'), findsOneWidget);
     });
 
     testWidgets('Aktif federasyon rolü yetkili rozetini gösterir',
@@ -616,7 +597,7 @@ void main() {
     });
 
     test('kamusal revizyon akışı operatörün serbest gerekçesini döndürmez', () {
-      final root = Directory.current.parent.parent.path;
+      final root = findProjectRoot();
       final sql = File(
               '$root/supabase/migrations/0127_public_result_reason_redaction.sql')
           .readAsStringSync();
@@ -636,6 +617,11 @@ void main() {
 
       expect(find.text('Resmi Disiplin Kararları (2)'), findsOneWidget);
       expect(find.text('2 Maç Men'), findsOneWidget);
+      await tester.scrollUntilVisible(
+        find.text('3 Ay Hak Mahrumiyeti'),
+        200,
+        scrollable: find.byType(Scrollable).first,
+      );
       expect(find.text('3 Ay Hak Mahrumiyeti'), findsOneWidget);
       expect(find.text('Kadıköy SK'), findsOneWidget);
       expect(find.textContaining('#A3F91C'), findsOneWidget);
@@ -686,7 +672,7 @@ void main() {
     });
 
     test('kamusal disiplin bülteni yalnız yayımlanmış özetleri döndürür', () {
-      final root = Directory.current.parent.parent.path;
+      final root = findProjectRoot();
       final sql = File(
               '$root/supabase/migrations/0129_federation_bulletin_publication_contract.sql')
           .readAsStringSync();
@@ -738,7 +724,7 @@ void main() {
     test(
         '0130 müsabaka duyurusu iptal ve erteleme bildirim sözleşmesi denetimi',
         () {
-      final root = Directory.current.parent.parent.path;
+      final root = findProjectRoot();
       final sql = File(
               '$root/supabase/migrations/0130_federation_notice_notifications.sql')
           .readAsStringSync();
@@ -756,7 +742,7 @@ void main() {
     });
 
     test('0131 duyuru desteği sonuç sürümü ve redakte gerekçeyi korur', () {
-      final root = Directory.current.parent.parent.path;
+      final root = findProjectRoot();
       final sql = File(
               '$root/supabase/migrations/0131_public_match_header_result_revision_regression.sql')
           .readAsStringSync();

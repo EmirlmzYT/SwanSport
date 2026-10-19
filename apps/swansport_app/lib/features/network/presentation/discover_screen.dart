@@ -153,7 +153,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
   Widget _filterBar(bool isDark, Color ink) {
     final opts = ref.watch(filterOptionsProvider).valueOrNull ?? const [];
-    final cities = opts.where((o) => o.kind == 'city').toList();
     final sports = opts.where((o) => o.kind == 'sport').toList();
 
     Widget chip(String label, bool active, VoidCallback onTap,
