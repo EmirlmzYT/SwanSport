@@ -52,3 +52,5 @@ jobs:
           flutter test --no-pub packages/swansport_branch_engine
           flutter test --no-pub packages/swansport_data
           flutter test --no-pub apps/swansport_app/test/federation_center_test.dart
+          flutter test --no-pub apps/swansport_app/test/modern_messages_screen_test.dart
+          flutter test --no-pub apps/swansport_app/test/merged_routes_test.dart

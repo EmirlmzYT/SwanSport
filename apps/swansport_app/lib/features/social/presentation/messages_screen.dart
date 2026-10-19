@@ -25,31 +25,52 @@ class MessagesScreen extends ConsumerStatefulWidget {
   ConsumerState<MessagesScreen> createState() => _MessagesScreenState();
 }
 
-class _Entry {
-  const _Entry.group(CommunityRow this.group) : dm = null;
-  const _Entry.dm(ConversationRow this.dm) : group = null;
+class _ChatItemDisplay {
+  const _ChatItemDisplay({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.time,
+    required this.kind, // 'group', 'club', 'coach'
+    this.unread = 0,
+    this.isMuted = false,
+    this.avatarUrl,
+    this.avatarAsset,
+    this.avatarWidget,
+    this.initials = '',
+    required this.onTap,
+  });
 
-  final CommunityRow? group;
-  final ConversationRow? dm;
-
-  DateTime? get at => group?.lastAt ?? dm?.lastAt;
+  final String id;
+  final String title;
+  final String subtitle;
+  final String time;
+  final String kind;
+  final int unread;
+  final bool isMuted;
+  final String? avatarUrl;
+  final String? avatarAsset;
+  final Widget? avatarWidget;
+  final String initials;
+  final VoidCallback onTap;
 }
 
 class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   final _searchCtrl = TextEditingController();
   String _query = '';
-  int _selectedFilter =
-      0; // 0 = Tüm Mesajlar, 1 = Antrenörler, 2 = Kulüp Grupları
+  late int _selectedFilter;
 
   final List<String> _filters = const [
-    'Tüm Mesajlar',
+    'Tümü',
+    'Gruplar',
+    'Kulüpler',
     'Antrenörler',
-    'Kulüp Grupları'
   ];
 
   @override
   void initState() {
     super.initState();
+    _selectedFilter = widget.initialTab == 1 ? 1 : 0;
     Future.microtask(() async {
       if (!mounted || !ref.read(isSupabaseEnabledProvider)) return;
       try {
@@ -65,6 +86,38 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   void dispose() {
     _searchCtrl.dispose();
     super.dispose();
+  }
+
+  String _formatDate(DateTime? dt) {
+    if (dt == null) return '';
+    final now = DateTime.now();
+    final diff = now.difference(dt);
+    if (diff.inDays == 0 && now.day == dt.day) {
+      final h = dt.hour.toString().padLeft(2, '0');
+      final m = dt.minute.toString().padLeft(2, '0');
+      return '$h:$m';
+    } else if (diff.inDays < 2 && now.day - dt.day == 1) {
+      return 'Dün';
+    } else if (diff.inDays < 7) {
+      const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+      return days[dt.weekday - 1];
+    } else {
+      const months = [
+        'Oca',
+        'Şub',
+        'Mar',
+        'Nis',
+        'May',
+        'Haz',
+        'Tem',
+        'Ağu',
+        'Eyl',
+        'Eki',
+        'Kas',
+        'Ara'
+      ];
+      return '${dt.day} ${months[dt.month - 1]}';
+    }
   }
 
   @override
@@ -100,20 +153,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 padding: const EdgeInsets.fromLTRB(0, 0, 0, SwanSpace.xl * 5),
                 children: [
                   const SwanHeaderSpacer(),
-                  const SizedBox(height: SwanSpace.sm),
+                  const SizedBox(height: SwanSpace.xs),
 
                   _buildSearchField(c),
-                  const SizedBox(height: SwanSpace.md),
-
-                  if (_query.isEmpty) ...[
-                    _buildActiveAthletesReel(c),
-                    const SizedBox(height: SwanSpace.sm),
-                  ],
+                  const SizedBox(height: 12),
 
                   _buildCategoryFilters(c),
-                  const SizedBox(height: SwanSpace.sm),
+                  const SizedBox(height: 10),
 
-                  // Dynamic list or curated Stitch chat roster
                   dms.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(SwanSpace.lg),
@@ -122,10 +169,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     error: (e, _) => premiumError(context, '$e'),
                     data: (list) => _buildChatRoster(c, list, groups),
                   ),
-
-                  if (_query.isEmpty) ...[
-                    const SizedBox(height: SwanSpace.md),
-                  ],
                 ],
               ),
             ),
@@ -141,17 +184,46 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             ? SwanHeaderIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
                 tooltip: 'Geri dön',
-                onPressed: () => Navigator.maybePop(context))
+                onPressed: () => Navigator.maybePop(context),
+              )
             : null,
-        title: Text('Mesajlar',
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: SwanType.h2(c.ink)),
+        title: Text(
+          'Mesajlar',
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: SwanType.h2(c.ink).copyWith(fontWeight: FontWeight.w800),
+        ),
         actions: [
-          SwanHeaderIconButton(
-              icon: Icons.edit_square,
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: c.surfaceAlt,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.person_add_alt_1_outlined,
+                  size: 20, color: c.accent),
+              tooltip: 'Yeni Grup veya Kişi',
+              onPressed: () => Navigator.pushNamed(context, '/ara'),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: c.surfaceAlt,
+              shape: BoxShape.circle,
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              icon: Icon(Icons.edit_square, size: 19, color: c.accent),
               tooltip: 'Yeni Sohbet',
-              onPressed: () => Navigator.pushNamed(context, '/ara'))
+              onPressed: () => Navigator.pushNamed(context, '/ara'),
+            ),
+          ),
         ],
       );
 
@@ -159,239 +231,354 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
       child: Container(
+        height: 46,
         decoration: BoxDecoration(
           color: c.surfaceAlt,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          border: Border.all(color: c.line),
+          borderRadius: BorderRadius.circular(16),
         ),
         child: TextField(
           controller: _searchCtrl,
           onChanged: (v) => setState(() => _query = v.trim()),
           style: SwanType.bodySm(c.ink),
           decoration: InputDecoration(
-            hintText: 'Sporcu, antrenör veya kulüp ara...',
+            hintText: 'Kişi, grup veya kulüp ara...',
             hintStyle: SwanType.bodySm(c.inkMuted),
-            prefixIcon: Icon(Icons.search_rounded, size: 20, color: c.inkMuted),
+            prefixIcon: Icon(Icons.search_rounded, size: 21, color: c.inkMuted),
             suffixIcon: _query.isEmpty
                 ? null
                 : IconButton(
-                    icon: Icon(Icons.close_rounded, size: 16),
+                    icon: Icon(Icons.close_rounded,
+                        size: 16, color: c.inkMuted),
                     onPressed: () {
                       _searchCtrl.clear();
                       setState(() => _query = '');
                     },
                   ),
             border: InputBorder.none,
-            contentPadding: const EdgeInsets.symmetric(
-                horizontal: SwanSpace.md, vertical: 10),
+            contentPadding: const EdgeInsets.symmetric(vertical: 12),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildActiveAthletesReel(SwanPalette c) {
-    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
-    if (suggestions.isEmpty) return const SizedBox.shrink();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                  child: Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration:
-                        BoxDecoration(color: c.accent, shape: BoxShape.circle),
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                      child: Text(
-                    'Kişi önerileri (${suggestions.length})',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(c.ink, w: FontWeight.w700),
-                  )),
-                ],
-              )),
-              TextButton(
-                  onPressed: () => Navigator.pushNamed(context, '/ara'),
-                  child: Text(
-                    'Tümü',
-                    style: SwanType.caption(c.accent, w: FontWeight.w700),
-                  )),
-            ],
-          ),
-        ),
-        const SizedBox(height: 8),
-        SizedBox(
-          height: 84,
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-            scrollDirection: Axis.horizontal,
-            itemCount: suggestions.length,
-            separatorBuilder: (_, __) => const SizedBox(width: 14),
-            itemBuilder: (context, i) {
-              final a = suggestions[i];
-              return InkWell(
-                onTap: () {
-                  Navigator.pushNamed(context, '/profil', arguments: a.id);
-                },
-                borderRadius: BorderRadius.circular(999),
-                child: Column(
-                  children: [
-                    Stack(
-                      clipBehavior: Clip.none,
-                      children: [
-                        Container(
-                          width: 54,
-                          height: 54,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: c.accent,
-                              width: 2,
-                            ),
-                          ),
-                          child: ClipOval(
-                            child: (a.avatarUrl != null &&
-                                    a.avatarUrl!.isNotEmpty)
-                                ? Image.network(
-                                    a.avatarUrl!,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Container(
-                                      color: c.surfaceAlt,
-                                      child:
-                                          Icon(Icons.person, color: c.inkMuted),
-                                    ),
-                                  )
-                                : Container(
-                                    color: c.surfaceAlt,
-                                    child:
-                                        Icon(Icons.person, color: c.inkMuted),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      width: 56,
-                      child: Text(
-                        a.name,
-                        style: SwanType.caption(c.ink, w: FontWeight.w600),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildCategoryFilters(SwanPalette c) {
-    return Padding(
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
       padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-          color: c.surfaceAlt,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-        ),
-        child: Row(
-          children: _filters.asMap().entries.map((entry) {
-            final idx = entry.key;
-            final label = entry.value;
-            final isSelected = _selectedFilter == idx;
+      child: Row(
+        children: _filters.asMap().entries.map((entry) {
+          final idx = entry.key;
+          final label = entry.value;
+          final isSelected = _selectedFilter == idx;
 
-            return Expanded(
-              child: InkWell(
-                onTap: () => setState(() => _selectedFilter = idx),
-                borderRadius: BorderRadius.circular(SwanRadius.sm),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(vertical: 8),
-                  decoration: BoxDecoration(
-                    color: isSelected ? c.accentFill : Colors.transparent,
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: c.accent.withValues(alpha: 0.25),
-                              blurRadius: 6,
-                              offset: const Offset(0, 1),
-                            ),
-                          ]
-                        : null,
-                  ),
-                  child: Center(
-                    child: Text(
-                      label,
-                      style: SwanType.caption(
-                          isSelected ? c.onAccent : c.inkMuted,
-                          w: isSelected ? FontWeight.w800 : FontWeight.w500),
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: InkWell(
+              onTap: () => setState(() => _selectedFilter = idx),
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 160),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? c.accentFill : c.surfaceAlt,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: SwanType.caption(
+                      isSelected ? c.onAccent : c.inkMuted,
+                      w: isSelected ? FontWeight.w700 : FontWeight.w600,
                     ),
                   ),
                 ),
               ),
-            );
-          }).toList(),
-        ),
+            ),
+          );
+        }).toList(),
       ),
     );
   }
 
   Widget _buildChatRoster(
       SwanPalette c, List<ConversationRow> dms, List<CommunityRow> groups) {
-    final filteredGroups = groups.where((g) => g.joined).toList();
-    final entries = <_Entry>[
-      for (final g in filteredGroups) _Entry.group(g),
-      for (final dm in dms) _Entry.dm(dm),
+    final List<_ChatItemDisplay> items = [];
+
+    // Real Supabase DMs
+    for (final dm in dms) {
+      items.add(_ChatItemDisplay(
+        id: dm.otherId,
+        title: dm.otherName,
+        subtitle: dm.lastBody,
+        time: _formatDate(dm.lastAt),
+        unread: dm.unread,
+        kind: 'coach',
+        avatarUrl: dm.otherAvatarUrl,
+        initials: dm.initials,
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+          'id': dm.otherId,
+          'name': dm.otherName,
+        }),
+      ));
+    }
+
+    // Real Joined Groups
+    for (final g in groups.where((g) => g.joined)) {
+      items.add(_ChatItemDisplay(
+        id: g.id,
+        title: g.name,
+        subtitle: g.lastBody?.trim().isNotEmpty == true
+            ? g.lastBody!
+            : '${g.memberCount} üye',
+        time: _formatDate(g.lastAt),
+        kind: g.isFederation ? 'club' : 'group',
+        initials: g.name.characters.take(2).toString(),
+        avatarWidget: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: g.isFederation ? Colors.white : c.surfaceAlt,
+            border: Border.all(
+                color: c.accent.withValues(alpha: 0.3), width: 1),
+          ),
+          child: Center(
+            child: Icon(
+              g.isFederation
+                  ? Icons.shield_outlined
+                  : Icons.group_rounded,
+              color: g.isFederation
+                  ? const Color(0xFF131D2E)
+                  : c.accent,
+              size: 24,
+            ),
+          ),
+        ),
+        onTap: () => Navigator.pushNamed(
+          context,
+          g.isFederation ? '/federasyon' : '/topluluk',
+          arguments: {'id': g.id, 'name': g.name},
+        ),
+      ));
+    }
+
+    // Reference showcase channels & conversations
+    final existingTitles = items.map((i) => i.title.toLowerCase()).toSet();
+
+    final List<_ChatItemDisplay> showcase = [
+      _ChatItemDisplay(
+        id: 'group-u12-takim',
+        title: 'U12 Takım Grubu',
+        subtitle: 'Ahmet Demir: Yarınki antrenman 18:00\'da...',
+        time: '14:32',
+        unread: 3,
+        isMuted: true,
+        kind: 'group',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=150&auto=format&fit=crop&q=80',
+        initials: 'U12',
+        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
+          'id': 'group-u12-takim',
+          'name': 'U12 Takım Grubu',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'coach-ahmet-demir',
+        title: 'Ahmet Demir',
+        subtitle: 'Antrenman detayları için teşekkürler.',
+        time: '13:15',
+        unread: 1,
+        kind: 'coach',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+        initials: 'AD',
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+          'id': 'coach-ahmet-demir',
+          'name': 'Ahmet Demir',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'club-swan-spor',
+        title: 'Swan Spor Kulübü',
+        subtitle: 'Yeni duyuru paylaşıldı.',
+        time: '11:20',
+        unread: 5,
+        kind: 'club',
+        avatarAsset: 'assets/branding/official_swan_logo.jpg',
+        initials: 'SSK',
+        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
+          'id': 'club-swan-spor',
+          'name': 'Swan Spor Kulübü',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'athlete-zeynep-kaya',
+        title: 'Zeynep Kaya',
+        subtitle: 'Turnuva için belgeler hazır.',
+        time: 'Dün',
+        unread: 0,
+        kind: 'coach',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+        initials: 'ZK',
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+          'id': 'athlete-zeynep-kaya',
+          'name': 'Zeynep Kaya',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'group-veli-grubu',
+        title: 'Veli Grubu',
+        subtitle: 'Toplantı 20:00\'da olacak.',
+        time: 'Dün',
+        unread: 2,
+        kind: 'group',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=150&auto=format&fit=crop&q=80',
+        initials: 'VG',
+        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
+          'id': 'group-veli-grubu',
+          'name': 'Veli Grubu',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'coach-mehmet-arslan',
+        title: 'Mehmet Arslan',
+        subtitle: 'Görüşmek üzere hocam.',
+        time: 'Sal',
+        unread: 0,
+        kind: 'coach',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+        initials: 'MA',
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+          'id': 'coach-mehmet-arslan',
+          'name': 'Mehmet Arslan',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'federation-official',
+        title: 'Federasyon',
+        subtitle: 'Resmi duyuru.',
+        time: 'Sal',
+        unread: 0,
+        kind: 'club',
+        initials: 'FED',
+        avatarWidget: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: Colors.white,
+            border: Border.all(color: c.line, width: 1),
+          ),
+          child: const Center(
+            child: Icon(Icons.shield_outlined,
+                color: Color(0xFF131D2E), size: 26),
+          ),
+        ),
+        onTap: () => Navigator.pushNamed(context, '/federasyon'),
+      ),
+      _ChatItemDisplay(
+        id: 'group-u14-takim',
+        title: 'U14 Takımı',
+        subtitle: 'Maç kadrosu paylaşıldı.',
+        time: 'Pzt',
+        unread: 4,
+        kind: 'group',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=150&auto=format&fit=crop&q=80',
+        initials: 'U14',
+        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
+          'id': 'group-u14-takim',
+          'name': 'U14 Takımı',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'athlete-elif-yilmaz',
+        title: 'Elif Yılmaz',
+        subtitle: 'Aidat ödemesi hakkında bilgi aldım.',
+        time: '18 Nis',
+        unread: 0,
+        kind: 'coach',
+        avatarUrl:
+            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+        initials: 'EY',
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+          'id': 'athlete-elif-yilmaz',
+          'name': 'Elif Yılmaz',
+        }),
+      ),
+      _ChatItemDisplay(
+        id: 'club-malzeme-ekibi',
+        title: 'Malzeme Ekibi',
+        subtitle: 'Yeni forma siparişi yolda.',
+        time: '17 Nis',
+        unread: 0,
+        kind: 'club',
+        initials: 'ME',
+        avatarWidget: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: c.accentFill,
+          ),
+          child:
+              Icon(Icons.shopping_cart_outlined, color: c.onAccent, size: 24),
+        ),
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+          'id': 'club-malzeme-ekibi',
+          'name': 'Malzeme Ekibi',
+        }),
+      ),
     ];
 
-    if (entries.isEmpty) {
+    for (final s in showcase) {
+      if (!existingTitles.contains(s.title.toLowerCase())) {
+        items.add(s);
+      }
+    }
+
+    // Filter by category
+    List<_ChatItemDisplay> filtered = items;
+    if (_selectedFilter == 1) {
+      filtered = filtered.where((i) => i.kind == 'group').toList();
+    } else if (_selectedFilter == 2) {
+      filtered = filtered.where((i) => i.kind == 'club').toList();
+    } else if (_selectedFilter == 3) {
+      filtered = filtered.where((i) => i.kind == 'coach').toList();
+    }
+
+    // Filter by query
+    if (_query.isNotEmpty) {
+      final q = _query.toLowerCase();
+      filtered = filtered
+          .where((i) =>
+              i.title.toLowerCase().contains(q) ||
+              i.subtitle.toLowerCase().contains(q))
+          .toList();
+    }
+
+    if (filtered.isEmpty) {
       return Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 24),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: c.surface,
-            borderRadius: BorderRadius.circular(SwanRadius.lg),
-            border: Border.all(color: c.line),
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 32),
+        child: Center(
           child: Column(
             children: [
-              Icon(Icons.chat_bubble_outline_rounded,
-                  size: 48, color: c.accent),
+              Icon(Icons.search_off_rounded, size: 42, color: c.inkMuted),
               const SizedBox(height: 12),
               Text(
-                'Henüz mesajınız yok',
-                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
+                'Sohbet bulunamadı',
+                style: SwanType.body(c.ink, w: FontWeight.w700),
               ),
               const SizedBox(height: 6),
               Text(
-                'Antrenörünüzle veya takım arkadaşlarınızla iletişime geçmek için yeni bir sohbet başlatın.',
+                'Farklı bir arama yapabilir veya yeni bir sohbet başlatabilirsiniz.',
                 textAlign: TextAlign.center,
                 style: SwanType.caption(c.inkMuted),
               ),
               const SizedBox(height: 16),
               FilledButton.icon(
                 onPressed: () => Navigator.pushNamed(context, '/ara'),
-                icon: Icon(Icons.search_rounded, size: 16, color: c.onAccent),
-                label: const Text('Kullanıcı Ara & Sohbet Başlat'),
+                icon: Icon(Icons.person_search_rounded, size: 16, color: c.onAccent),
+                label: const Text('Kişi veya Kulüp Ara'),
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accentFill,
                   foregroundColor: c.onAccent,
@@ -405,75 +592,92 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       );
     }
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
-      child: Column(
-        children: [
-          for (final e in entries)
-            if (e.group != null &&
-                (_selectedFilter == 0 || _selectedFilter == 2))
-              _buildRealGroupTile(c, e.group!)
-            else if (e.dm != null &&
-                (_selectedFilter == 0 || _selectedFilter == 1))
-              _buildRealDmTile(c, e.dm!),
-        ],
-      ),
+    return Column(
+      children: [
+        for (final item in filtered) _buildConversationRow(c, item),
+      ],
     );
   }
 
-  Widget _buildRealGroupTile(SwanPalette c, CommunityRow g) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(
-          context,
-          g.isFederation ? '/federasyon' : '/topluluk',
-          arguments: {'id': g.id, 'name': g.name},
+  Widget _buildAvatar(SwanPalette c, _ChatItemDisplay item) {
+    if (item.avatarWidget != null) {
+      return item.avatarWidget!;
+    }
+    if (item.avatarAsset != null) {
+      return Container(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: Colors.black,
+          border: Border.all(
+              color: c.accent.withValues(alpha: 0.35), width: 1.2),
         ),
+        child: ClipOval(
+          child: Image.asset(
+            item.avatarAsset!,
+            fit: BoxFit.cover,
+            errorBuilder: (_, __, ___) => Center(
+              child: Icon(Icons.sports_rounded, color: c.accent, size: 24),
+            ),
+          ),
+        ),
+      );
+    }
+    if (item.avatarUrl != null && item.avatarUrl!.isNotEmpty) {
+      return ClipOval(
+        child: Image.network(
+          item.avatarUrl!,
+          width: 52,
+          height: 52,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => GradientAvatar(
+            initials: item.initials.isNotEmpty
+                ? item.initials
+                : item.title.characters.take(2).toString(),
+            size: 52,
+            radius: 26,
+            gradientIndex: item.title.length % 4,
+          ),
+        ),
+      );
+    }
+    return GradientAvatar(
+      initials: item.initials.isNotEmpty
+          ? item.initials
+          : item.title.characters.take(2).toString(),
+      size: 52,
+      radius: 26,
+      gradientIndex: item.title.length % 4,
+    );
+  }
+
+  Widget _buildConversationRow(SwanPalette c, _ChatItemDisplay item) {
+    return InkWell(
+      onTap: item.onTap,
+      child: Padding(
+        padding:
+            const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 10),
         child: Row(
           children: [
-            Container(
+            SizedBox(
               width: 52,
               height: 52,
-              decoration: BoxDecoration(
-                color: c.accentSoft,
-                borderRadius: BorderRadius.circular(SwanRadius.md),
-              ),
-              child: Icon(
-                g.isFederation ? Icons.campaign_rounded : Icons.forum_rounded,
-                size: 24,
-                color: c.accent,
-              ),
+              child: _buildAvatar(c, item),
             ),
-            const SizedBox(width: SwanSpace.md),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                          child: Text(g.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: SwanType.body(c.ink, w: FontWeight.w700))),
-                      if (g.lastAt != null)
-                        Text(shortAgo(g.lastAt!),
-                            style: SwanType.caption(c.inkMuted)),
-                    ],
+                  Text(
+                    item.title,
+                    style: SwanType.body(c.ink, w: FontWeight.w700),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    g.lastBody?.trim().isNotEmpty == true
-                        ? g.lastBody!
-                        : '${g.memberCount} üye',
+                    item.subtitle,
                     style: SwanType.caption(c.inkMuted),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -481,74 +685,63 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 ],
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRealDmTile(SwanPalette c, ConversationRow dm) {
-    return Container(
-      margin: const EdgeInsets.only(top: 8),
-      padding: const EdgeInsets.all(SwanSpace.md),
-      decoration: BoxDecoration(
-        color: c.surface,
-        borderRadius: BorderRadius.circular(SwanRadius.lg),
-        border: Border.all(color: c.line),
-      ),
-      child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
-          'id': dm.otherId,
-          'name': dm.otherName,
-        }),
-        child: Row(
-          children: [
-            SocialAvatar(
-              initials: dm.initials,
-              imageUrl: dm.otherAvatarUrl,
-              size: 52,
-              gradientIndex: dm.otherName.length % 4,
+            const SizedBox(width: 8),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      item.time,
+                      style: SwanType.caption(c.inkMuted, w: FontWeight.w500),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (item.isMuted) ...[
+                          Icon(
+                            Icons.notifications_off_outlined,
+                            size: 15,
+                            color: c.inkMuted,
+                          ),
+                          if (item.unread > 0) const SizedBox(width: 6),
+                        ],
+                        if (item.unread > 0)
+                          Container(
+                            constraints: const BoxConstraints(
+                                minWidth: 20, minHeight: 20),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 5, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: c.accentFill,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            alignment: Alignment.center,
+                            child: Text(
+                              '${item.unread}',
+                              style: SwanType.caption(c.onAccent,
+                                      w: FontWeight.w800)
+                                  .copyWith(
+                                fontSize: 11,
+                                height: 1.1,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+                const SizedBox(width: 4),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: c.inkMuted.withValues(alpha: 0.35),
+                ),
+              ],
             ),
-            const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                          child: Text(dm.otherName,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: SwanType.body(c.ink, w: FontWeight.w700))),
-                      Flexible(
-                          child: Text(shortAgo(dm.lastAt),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: SwanType.caption(c.inkMuted))),
-                    ],
-                  ),
-                  const SizedBox(height: 3),
-                  Text(
-                    dm.lastBody,
-                    style: SwanType.caption(c.inkMuted),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ],
-              ),
-            ),
-            if (dm.unread > 0)
-              Container(
-                margin: const EdgeInsets.only(left: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-                decoration: BoxDecoration(
-                    color: c.accentFill,
-                    borderRadius: BorderRadius.circular(999)),
-                child: Text('${dm.unread}',
-                    style: SwanType.caption(c.onAccent, w: FontWeight.w700)),
-              ),
           ],
         ),
       ),
