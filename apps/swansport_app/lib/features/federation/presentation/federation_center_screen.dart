@@ -244,20 +244,24 @@ class _FederationCenterScreenState
                       style: SwanType.caption(c.accent, w: FontWeight.w700),
                     ),
                   ),
-                  TextButton(
-                    onPressed: () => _showPendingResultsSheet(context, c),
-                    style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: SwanSpace.sm,
-                        vertical: SwanSpace.xs,
+                  if (access.canPublishFederationResults) ...[
+                    TextButton(
+                      onPressed: () => _showPendingResultsSheet(context, c),
+                      style: TextButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: SwanSpace.sm,
+                          vertical: SwanSpace.xs,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
-                      minimumSize: Size.zero,
-                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      child: Text(
+                        'Bekleyen Sonuçlar',
+                        style: SwanType.caption(c.accent, w: FontWeight.w700),
+                      ),
                     ),
-                    child: Text('Bekleyen Sonuçlar',
-                        style: SwanType.caption(c.accent, w: FontWeight.w700)),
-                  ),
-                  const SizedBox(width: SwanSpace.xs),
+                    const SizedBox(width: SwanSpace.xs),
+                  ],
                   TextButton(
                     onPressed: () => Navigator.pushNamed(context, '/calendar'),
                     style: TextButton.styleFrom(
@@ -873,11 +877,10 @@ class _FederationCenterScreenState
                                             vertical: SwanSpace.xs,
                                           ),
                                           decoration: BoxDecoration(
-                                            color: c.danger
-                                                .withValues(alpha: 0.1),
-                                            borderRadius:
-                                                BorderRadius.circular(
-                                                    SwanRadius.sm),
+                                            color:
+                                                c.danger.withValues(alpha: 0.1),
+                                            borderRadius: BorderRadius.circular(
+                                                SwanRadius.sm),
                                           ),
                                           child: Row(
                                             children: [
@@ -887,7 +890,10 @@ class _FederationCenterScreenState
                                                   width: SwanSpace.xs),
                                               Expanded(
                                                 child: Text(
-                                                  'Bu branş için Sonuç Yayıncısı yetkiniz bulunmuyor (' + liveSportName(match.sportCode) + ').',
+                                                  'Bu branş için Sonuç Yayıncısı yetkiniz bulunmuyor (' +
+                                                      liveSportName(
+                                                          match.sportCode) +
+                                                      ').',
                                                   style: SwanType.caption(
                                                       c.danger),
                                                 ),
@@ -1125,8 +1131,7 @@ class _PublishResultDialogState extends ConsumerState<_PublishResultDialog> {
                       SizedBox(
                         width: 52,
                         child: Text('${i + 1}. Set',
-                            style:
-                                SwanType.caption(c.ink, w: FontWeight.w700)),
+                            style: SwanType.caption(c.ink, w: FontWeight.w700)),
                       ),
                       Expanded(
                         child: TextField(
@@ -1206,8 +1211,7 @@ class _PublishResultDialogState extends ConsumerState<_PublishResultDialog> {
                         filled: true,
                         fillColor: c.bg,
                         border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(SwanRadius.md)),
+                            borderRadius: BorderRadius.circular(SwanRadius.md)),
                       ),
                     ),
                   ),
@@ -1226,8 +1230,7 @@ class _PublishResultDialogState extends ConsumerState<_PublishResultDialog> {
                         filled: true,
                         fillColor: c.bg,
                         border: OutlineInputBorder(
-                            borderRadius:
-                                BorderRadius.circular(SwanRadius.md)),
+                            borderRadius: BorderRadius.circular(SwanRadius.md)),
                       ),
                     ),
                   ),

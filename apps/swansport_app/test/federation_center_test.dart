@@ -424,13 +424,12 @@ void main() {
       await tester.tap(find.text('Sonucu Tescil Et / Yayımla'));
       await tester.pumpAndSettle();
 
-
       expect(find.text('Resmi Sonuç Tescili (V1)'), findsOneWidget);
       expect(find.text('Skor Girişi (Basketbol)'), findsOneWidget);
     });
 
     testWidgets(
-        'Yetkisiz federasyon kullanıcısı için branş yetki uyarısı gösterilir ve tescil engellenir',
+        'Sonuç yayıncısı olmayan federasyon rolü bekleyen sonuçlara erişemez',
         (tester) async {
       final fedAccess = SwanAccess(
         isPlatformAdmin: false,
@@ -451,16 +450,8 @@ void main() {
 
       await pumpFederationCenter(tester, access: fedAccess);
 
-      expect(find.text('Bekleyen Sonuçlar'), findsOneWidget);
-      await tester.tap(find.text('Bekleyen Sonuçlar'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Bekleyen Resmi Sonuçlar'), findsOneWidget);
-      expect(
-        find.text('Bu branş için Sonuç Yayıncısı yetkiniz bulunmuyor (Basketbol).'),
-        findsOneWidget,
-      );
-      expect(find.text('Sonucu Tescil Et / Yayımla'), findsNothing);
+      expect(find.text('Federasyon / MHK Görev Yetkisi Aktif'), findsOneWidget);
+      expect(find.text('Bekleyen Sonuçlar'), findsNothing);
     });
 
     testWidgets(
@@ -537,7 +528,8 @@ void main() {
 
       expect(find.text('Masaüstü Konsolu Gerekli'), findsOneWidget);
       expect(
-        find.text('Yüzme branşında resmi sonuçlar seri, kulvar ve sporcu dereceleri gerektirir.'),
+        find.text(
+            'Yüzme branşında resmi sonuçlar seri, kulvar ve sporcu dereceleri gerektirir.'),
         findsOneWidget,
       );
       expect(find.text('Anladım'), findsOneWidget);
