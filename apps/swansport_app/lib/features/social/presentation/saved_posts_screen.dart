@@ -331,8 +331,14 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('$e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(friendlyErrorMessage(e,
+                defaultMessage:
+                    'Kayıt kaldırılamadı. Lütfen tekrar deneyin.')),
+            backgroundColor: context.swan.danger,
+          ),
+        );
       }
     }
   }
@@ -551,17 +557,28 @@ class _RepostSheetState extends ConsumerState<_RepostSheet> {
           );
       ref.invalidate(feedProvider);
       ref.invalidate(discoverProvider);
+      final myId = ref.read(currentProfileProvider).valueOrNull?.id;
+      if (myId != null) {
+        ref.invalidate(authorPostsProvider(myId));
+      }
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Paylaşıldı')),
+          SnackBar(
+            content: const Text('Paylaşıldı'),
+            backgroundColor: context.swan.accent,
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Hata: $e')),
+          SnackBar(
+            content: Text(friendlyErrorMessage(e,
+                defaultMessage: 'Paylaşılamadı. Lütfen tekrar deneyin.')),
+            backgroundColor: context.swan.danger,
+          ),
         );
       }
     }

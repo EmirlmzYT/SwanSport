@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/tag_composer.dart';
+import '../../../app/widgets/friendly_error.dart';
 
 /// Gönderi oluşturma sayfasını açar. Paylaşım yapıldıysa true döner.
 Future<bool?> showPostComposer(BuildContext context,
@@ -83,7 +84,7 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
     if (_busy || _picking) return;
     final text = _ctrl.text.trim();
     if (text.isEmpty && _media.isEmpty) {
-      _snack('Bir şeyler yaz ya da görsel ekle', SwanPalette.light.warning);
+      _snack('Bir şeyler yaz ya da görsel ekle', context.swan.warning);
       return;
     }
     setState(() => _busy = true);
@@ -107,19 +108,38 @@ class _PostComposerSheetState extends ConsumerState<_PostComposerSheet> {
               .setTags(postId, mentions: wanted, hashtags: tagList);
           if (done < wanted.length && mounted) {
             _snack('${wanted.length - done} kişi etiketlenemedi',
-                SwanPalette.light.warning);
+                context.swan.warning);
           }
         } catch (e) {
           if (mounted) {
-            _snack('Gönderi paylaşıldı, etiketler eklenemedi: $e',
-                SwanPalette.light.warning);
+            _snack(
+                friendlyErrorMessage(e,
+                    defaultMessage:
+                        'Gönderi paylaşıldı, etiketler eklenemedi.'),
+                context.swan.warning);
           }
         }
       }
 
+      ref.invalidate(feedProvider);
+      ref.invalidate(discoverProvider);
+      if (clubId != null) {
+        ref.invalidate(clubPostsProvider(clubId));
+      }
+      final myId = ref.read(currentProfileProvider).valueOrNull?.id;
+      if (myId != null) {
+        ref.invalidate(authorPostsProvider(myId));
+      }
+
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      _snack('Paylaşılamadı: $e', SwanPalette.light.danger);
+      if (mounted) {
+        _snack(
+            friendlyErrorMessage(e,
+                defaultMessage:
+                    'Gönderi paylaşılamadı. Lütfen tekrar deneyin.'),
+            context.swan.danger);
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }

@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import 'widgets/social_widgets.dart';
+import '../../../app/widgets/friendly_error.dart';
 
 /// Yorumlar sayfasını alttan açar. Eklenen yorum sayısını döner.
 Future<int?> showCommentsSheet(BuildContext context, String postId) {
@@ -82,8 +83,10 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Yorum gönderilemedi: $e'),
-            backgroundColor: SwanPalette.light.danger));
+            content: Text(friendlyErrorMessage(e,
+                defaultMessage:
+                    'Yorum gönderilemedi. Lütfen tekrar deneyin.')),
+            backgroundColor: context.swan.danger));
       }
     } finally {
       if (mounted) setState(() => _sending = false);
@@ -334,8 +337,9 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text('Silinemedi: $e'),
-            backgroundColor: SwanPalette.light.danger));
+            content: Text(friendlyErrorMessage(e,
+                defaultMessage: 'Yorum silinemedi. Lütfen tekrar deneyin.')),
+            backgroundColor: context.swan.danger));
       }
     }
   }

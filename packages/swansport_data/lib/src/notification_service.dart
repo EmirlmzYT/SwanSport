@@ -295,6 +295,13 @@ class NotificationService {
     return (rows as List).length;
   }
 
+  Future<void> markRead(String notificationId) async {
+    final uid = _uid;
+    if (uid == null) return;
+    await _c.rpc<void>('mark_notifications_read',
+        params: {'p_notification': notificationId});
+  }
+
   Future<void> markAllRead() async {
     final uid = _uid;
     if (uid == null) return;

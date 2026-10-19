@@ -12,6 +12,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import 'widgets/social_widgets.dart';
+import 'comments_sheet.dart';
 
 /// Kişisel bildirim akışı ve telefon bildirim tercihleri.
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -279,10 +280,115 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         _ => Icons.notifications_rounded,
       };
 
-  Widget _tile(SwanPalette c, NotificationRow n) {
+  Future<void> _handleNotificationTap(NotificationRow n) async {
+    if (n.isUnread) {
+      try {
+        await ref.read(notificationServiceProvider).markRead(n.id);
+        if (mounted) {
+          ref.invalidate(unreadNotificationsProvider);
+          ref.invalidate(categorizedNotificationsProvider);
+        }
+      } catch (_) {
+        // Okundu işaretleme hatası gezinmeyi engellememeli
+      }
+    }
+
+    if (!mounted) return;
+
     final route = n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute;
+    if (route != null) {
+      Navigator.pushNamed(context, route);
+      return;
+    }
+
+    switch (n.kind) {
+      case 'follow':
+        if (n.actorId != null && n.actorId!.isNotEmpty) {
+          Navigator.pushNamed(context, '/profil', arguments: n.actorId);
+        }
+        break;
+      case 'message':
+        if (n.actorId != null && n.actorId!.isNotEmpty) {
+          Navigator.pushNamed(context, '/sohbet', arguments: {
+            'id': n.actorId,
+            'name': n.title.isNotEmpty ? n.title : 'Sohbet',
+          });
+        }
+        break;
+      case 'application':
+      case 'review':
+      case 'offer':
+        Navigator.pushNamed(context, '/basvurular');
+        break;
+      case 'like':
+      case 'comment':
+        if (n.entityType == 'post' &&
+            n.entityId != null &&
+            n.entityId!.isNotEmpty) {
+          showCommentsSheet(context, n.entityId!);
+        } else if (n.actorId != null && n.actorId!.isNotEmpty) {
+          Navigator.pushNamed(context, '/profil', arguments: n.actorId);
+        }
+        break;
+      case 'fee':
+      case 'fee_reminder':
+        Navigator.pushNamed(context, '/aidatlarim');
+        break;
+      case 'payment':
+        Navigator.pushNamed(context, '/finans');
+        break;
+      case 'donation':
+        Navigator.pushNamed(context, '/bagis');
+        break;
+      case 'training':
+      case 'training_session':
+        Navigator.pushNamed(context, '/antrenman-oturumu');
+        break;
+      case 'attendance':
+      case 'attendance_reminder':
+        Navigator.pushNamed(context, '/attendance');
+        break;
+      case 'event':
+        Navigator.pushNamed(context, '/calendar');
+        break;
+      case 'announcement':
+        Navigator.pushNamed(context, '/announcements');
+        break;
+      case 'document':
+      case 'documents':
+      case 'document_expiry':
+        Navigator.pushNamed(context, '/documents');
+        break;
+      case 'partner_request':
+      case 'partner_request_accepted':
+        Navigator.pushNamed(context, '/partner-ara');
+        break;
+      case 'turf_slot_request':
+      case 'turf_field':
+      case 'turf_manager':
+        Navigator.pushNamed(context, '/halisahalar');
+        break;
+      case 'store_decision':
+        Navigator.pushNamed(context, '/magaza-basvuru');
+        break;
+      case 'moderation':
+        Navigator.pushNamed(context, '/pazaryeri');
+        break;
+      default:
+        if (n.actorId != null && n.actorId!.isNotEmpty) {
+          Navigator.pushNamed(context, '/profil', arguments: n.actorId);
+        } else if (n.entityType == 'post' &&
+            n.entityId != null &&
+            n.entityId!.isNotEmpty) {
+          showCommentsSheet(context, n.entityId!);
+        }
+        break;
+    }
+  }
+
+  Widget _tile(SwanPalette c, NotificationRow n) {
     return InkWell(
-        onTap: route == null ? null : () => Navigator.pushNamed(context, route),
+        onTap: () => _handleNotificationTap(n),
         borderRadius: BorderRadius.circular(SwanRadius.md),
         child: Container(
           padding: const EdgeInsets.symmetric(
