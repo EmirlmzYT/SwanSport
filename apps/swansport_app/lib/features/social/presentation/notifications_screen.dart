@@ -83,8 +83,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                     child: async.when(
                       loading: () =>
                           const Center(child: CircularProgressIndicator()),
-                      error: (e, _) =>
-                          ListView(children: [premiumError(context, '$e')]),
+                      error: (e, _) => ListView(
+                        children: [
+                          premiumError(
+                            context,
+                            '$e',
+                            onRetry: () => ref.invalidate(
+                              categorizedNotificationsProvider(_category),
+                            ),
+                          ),
+                        ],
+                      ),
                       data: (list) {
                         if (list.isEmpty) {
                           return ListView(

@@ -107,7 +107,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
                 async.when(
                   loading: () => premiumLoading(),
-                  error: (e, _) => premiumError(context, '$e'),
+                  error: (e, _) => premiumError(
+                    context,
+                    '$e',
+                    onRetry: () => ref.invalidate(
+                      discoverClubsProvider(_filter),
+                    ),
+                  ),
                   data: (list) => list.isEmpty
                       ? Container(
                           padding: const EdgeInsets.all(24),

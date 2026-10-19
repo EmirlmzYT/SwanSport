@@ -139,7 +139,13 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                       SliverToBoxAdapter(child: premiumCardLoading()),
                     ],
                     error: (e, _) => [
-                      SliverToBoxAdapter(child: premiumError(context, '$e')),
+                      SliverToBoxAdapter(
+                        child: premiumError(
+                          context,
+                          '$e',
+                          onRetry: () => ref.invalidate(activeFeed),
+                        ),
+                      ),
                     ],
                     data: (posts) => _contentSlivers(context, ref, posts),
                   ),
