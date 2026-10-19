@@ -190,16 +190,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       ref.invalidate(authorPostsProvider(targetId));
                     }
                   },
-                  child: ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      16,
-                      10,
-                      16,
-                      SwanSpace.xl * 5,
+                  child: CustomScrollView(
+                    physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics(),
                     ),
-                    children: [
-                      const SwanHeaderSpacer(),
-                      const SizedBox(height: 16),
+                    slivers: [
+                      SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SwanHeaderSpacer(),
+                              const SizedBox(height: 16),
 
                       // Identity & Social Stats Row (Stitch Screen 26)
                       Row(
@@ -231,6 +234,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                           ? Image.network(
                                               p.avatarUrl!,
                                               fit: BoxFit.cover,
+                                              cacheWidth: (80 *
+                                                      MediaQuery.devicePixelRatioOf(
+                                                          context,))
+                                                  .round(),
+                                              cacheHeight: (80 *
+                                                      MediaQuery.devicePixelRatioOf(
+                                                          context,))
+                                                  .round(),
                                             )
                                           : Container(
                                               color: surfHigh,
@@ -528,14 +539,25 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 4),
-                        _buildKineticGrid(
-                          postsAsync,
-                          ink,
-                          surfHigh,
-                          isMe: p.isMe,
-                        ),
-                      ]
-                      else ...[
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              if (_selectedTab == 0)
+                ..._buildKineticGridSlivers(
+                  postsAsync,
+                  ink,
+                  surfHigh,
+                  isMe: p.isMe,
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                  sliver: SliverToBoxAdapter(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
                         Text('Profil bilgileri', style: SwanType.h3(ink)),
                         const SizedBox(height: SwanSpace.sm),
                         Text(
@@ -559,13 +581,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ClubMembersSection(clubId: p.id),
                         ],
                       ],
-                    ],
+                    ),
                   ),
-                );
-              },
-            ),
+                ),
+              const SliverToBoxAdapter(
+                child: SizedBox(height: SwanSpace.xl * 5),
+              ),
+            ],
           ),
-        ),
+        );
+      },
+    ),
+  ),
+),
       ),
       bottomNavigationBar: const SwanBottomNav(),
     );
@@ -938,123 +966,157 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildKineticGrid(
+  List<Widget> _buildKineticGridSlivers(
     AsyncValue<List<PostRow>> postsAsync,
     Color ink,
     Color surfHigh, {
     required bool isMe,
   }) {
     return postsAsync.when(
-      loading: premiumCardLoading,
-      error: (e, _) => Text(
-        friendlyErrorMessage(e, defaultMessage: 'Gönderiler yüklenemedi.'),
-        style: SwanType.caption(context.swan.inkMuted),
-      ),
+      loading: () => [
+        SliverToBoxAdapter(child: premiumCardLoading()),
+      ],
+      error: (e, _) => [
+        SliverToBoxAdapter(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Text(
+              friendlyErrorMessage(e, defaultMessage: 'Gönderiler yüklenemedi.'),
+              style: SwanType.caption(context.swan.inkMuted),
+            ),
+          ),
+        ),
+      ],
       data: (posts) {
         if (posts.isNotEmpty) {
           if (_isGridView) {
-            return GridView.builder(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: posts.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                crossAxisSpacing: 3,
-                mainAxisSpacing: 3,
-              ),
-              itemBuilder: (context, i) {
-                final post = posts[i];
-                return InkWell(
-                  onTap: () => _openPostDetail(context, post),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: surfHigh,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Stack(
-                      fit: StackFit.expand,
-                      children: [
-                        if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
-                          Image.network(
-                            post.imageUrl!,
-                            fit: BoxFit.cover,
-                          )
-                        else
-                          Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Center(
-                              child: Text(
-                                post.body,
-                                maxLines: 4,
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.center,
-                                style: SwanType.caption(ink),
-                              ),
-                            ),
-                          ),
-                        if (post.sourcePostId != null)
-                          Positioned(
-                            top: 4,
-                            right: 4,
-                            child: Icon(
-                              Icons.repeat_rounded,
-                              size: 14,
-                              color: Colors.white.withValues(alpha: .9),
-                            ),
-                          ),
-                      ],
-                    ),
+            final cacheWidth = ((MediaQuery.sizeOf(context).width.clamp(320.0, 620.0) / 3) *
+                    MediaQuery.devicePixelRatioOf(context))
+                .round();
+            return [
+              SliverPadding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                sliver: SliverGrid(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 3,
+                    mainAxisSpacing: 3,
                   ),
-                );
-              },
-            );
-          }
-          return Column(
-            children: posts.map((post) => PostCard(post: post)).toList(),
-          );
-        }
-        return Container(
-          padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
-          alignment: Alignment.center,
-          child: Column(
-            children: [
-              Icon(
-                Icons.feed_outlined,
-                size: 44,
-                color: context.swan.inkMuted.withValues(alpha: 0.5),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Henüz paylaşım yok',
-                style: SwanType.bodySm(ink, w: FontWeight.w700),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                isMe
-                    ? 'Spor anlarını ilk gönderinle paylaş.'
-                    : 'Bu profilin gönderileri burada görünecek.',
-                textAlign: TextAlign.center,
-                style: SwanType.caption(context.swan.inkMuted),
-              ),
-              if (isMe) ...[
-                const SizedBox(height: SwanSpace.md),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: context.swan.accent,
-                    side: BorderSide(color: context.swan.accent),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  delegate: SliverChildBuilderDelegate(
+                    (context, i) {
+                      final post = posts[i];
+                      return InkWell(
+                        key: ValueKey('grid_${post.id}'),
+                        onTap: () => _openPostDetail(context, post),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: surfHigh,
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: Stack(
+                            fit: StackFit.expand,
+                            children: [
+                              if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
+                                Image.network(
+                                  post.imageUrl!,
+                                  fit: BoxFit.cover,
+                                  cacheWidth: cacheWidth,
+                                )
+                              else
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
+                                  child: Center(
+                                    child: Text(
+                                      post.body,
+                                      maxLines: 4,
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.center,
+                                      style: SwanType.caption(ink),
+                                    ),
+                                  ),
+                                ),
+                              if (post.sourcePostId != null)
+                                Positioned(
+                                  top: 4,
+                                  right: 4,
+                                  child: Icon(
+                                    Icons.repeat_rounded,
+                                    size: 14,
+                                    color: Colors.white.withValues(alpha: .9),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                    childCount: posts.length,
                   ),
-                  onPressed: () => showPostComposer(context),
-                  icon: const Icon(Icons.add, size: 16),
-                  label: const Text('İlk Gönderini Paylaş'),
                 ),
-              ],
-            ],
+              ),
+            ];
+          }
+          return [
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) => PostCard(
+                    key: ValueKey('post_${posts[i].id}'),
+                    post: posts[i],
+                  ),
+                  childCount: posts.length,
+                ),
+              ),
+            ),
+          ];
+        }
+        return [
+          SliverToBoxAdapter(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 36, horizontal: 20),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  Icon(
+                    Icons.feed_outlined,
+                    size: 44,
+                    color: context.swan.inkMuted.withValues(alpha: 0.5),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Henüz paylaşım yok',
+                    style: SwanType.bodySm(ink, w: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    isMe
+                        ? 'Spor anlarını ilk gönderinle paylaş.'
+                        : 'Bu profilin gönderileri burada görünecek.',
+                    textAlign: TextAlign.center,
+                    style: SwanType.caption(context.swan.inkMuted),
+                  ),
+                  if (isMe) ...[
+                    const SizedBox(height: SwanSpace.md),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: context.swan.accent,
+                        side: BorderSide(color: context.swan.accent),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () => showPostComposer(context),
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('İlk Gönderini Paylaş'),
+                    ),
+                  ],
+                ],
+              ),
+            ),
           ),
-        );
+        ];
       },
     );
   }

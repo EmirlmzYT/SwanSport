@@ -58,14 +58,31 @@ class FeedEntry {
   }
 
   Widget build() {
-    if (post != null) return PostCard(post: post!);
+    if (post != null) {
+      return PostCard(key: ValueKey('post_${post!.id}'), post: post!);
+    }
     if (announcement != null) {
-      return AnnouncementCard(item: announcement!, clubName: clubName);
+      final annKey =
+          'ann_${announcement!.title}_${announcement!.createdAt.millisecondsSinceEpoch}';
+      return AnnouncementCard(
+        key: ValueKey(annKey),
+        item: announcement!,
+        clubName: clubName,
+      );
     }
     if (newsGroup != null && newsGroup!.isNotEmpty) {
-      return NewsCarouselCard(items: newsGroup!, title: carouselTitle);
+      final first = newsGroup!.first;
+      final groupKey =
+          'carousel_${first.link ?? first.title}_${first.publishedAt.millisecondsSinceEpoch}';
+      return NewsCarouselCard(
+        key: ValueKey(groupKey),
+        items: newsGroup!,
+        title: carouselTitle,
+      );
     }
-    return NewsCard(item: news!);
+    final singleKey =
+        'news_${news!.link ?? news!.title}_${news!.publishedAt.millisecondsSinceEpoch}';
+    return NewsCard(key: ValueKey(singleKey), item: news!);
   }
 }
 
@@ -256,7 +273,13 @@ class NewsCard extends StatelessWidget {
                           item.imageUrl == null || item.imageUrl!.trim().isEmpty
                               ? _NewsImageFallback(c: c)
                               : Image(
-                                  image: NetworkImage(item.imageUrl!),
+                                  image: ResizeImage(
+                                    NetworkImage(item.imageUrl!),
+                                    width: (MediaQuery.sizeOf(context).width.clamp(320.0, 620.0) *
+                                            MediaQuery.devicePixelRatioOf(context))
+                                        .round()
+                                        .clamp(320, 1600),
+                                  ),
                                   fit: BoxFit.cover,
                                   errorBuilder: (_, __, ___) =>
                                       _NewsImageFallback(c: c),
@@ -502,6 +525,8 @@ class _CarouselNewsItemCard extends StatelessWidget {
                     : Image.network(
                         item.imageUrl!,
                         fit: BoxFit.cover,
+                        cacheWidth: (240 * MediaQuery.devicePixelRatioOf(context)).round(),
+                        cacheHeight: (116 * MediaQuery.devicePixelRatioOf(context)).round(),
                         errorBuilder: (_, __, ___) => _NewsImageFallback(c: c),
                       ),
               ),
@@ -524,6 +549,8 @@ class _CarouselNewsItemCard extends StatelessWidget {
                                 item.sourceIconUrl!,
                                 width: 14,
                                 height: 14,
+                                cacheWidth: (14 * MediaQuery.devicePixelRatioOf(context)).round().clamp(14, 64),
+                                cacheHeight: (14 * MediaQuery.devicePixelRatioOf(context)).round().clamp(14, 64),
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
                                     const SizedBox.shrink(),

@@ -158,7 +158,7 @@ class _RatioImageState extends State<RatioImage> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final placeholder = widget.background ??
         (isDark ? SwanPalette.dark.surfaceAlt : SwanPalette.light.surfaceAlt);
-    final ratio = (_ratio ?? 1).clamp(kMinPostAspect, kMaxPostAspect);
+    final ratio = (_ratio ?? (4 / 3)).clamp(kMinPostAspect, kMaxPostAspect);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(widget.borderRadius),
@@ -181,12 +181,11 @@ class _RatioImageState extends State<RatioImage> {
                   ),
                 )
               : _ratio == null
-                  ? const Center(
-                      child: SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                            strokeWidth: 2, color: kTeal),
+                  ? Center(
+                      child: Icon(
+                        Icons.image_outlined,
+                        color: SwanColors.textSecondary.withValues(alpha: 0.25),
+                        size: 32,
                       ),
                     )
                   : Image(
