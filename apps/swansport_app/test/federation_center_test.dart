@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -58,7 +60,7 @@ final _mockOfficialPlayedMatch = PublicLiveMatchSummary.fromMap({
   'is_live': false,
   'is_today': true,
   'result_version': 1,
-  'revision_reason': 'Hakem imzalı maç raporu',
+  'revision_reason': 'Resmi sonuç tescil edildi',
 });
 
 final _mockRevisedPlayedMatch = PublicLiveMatchSummary.fromMap({
@@ -74,7 +76,7 @@ final _mockRevisedPlayedMatch = PublicLiveMatchSummary.fromMap({
   'is_live': false,
   'is_today': true,
   'result_version': 2,
-  'revision_reason': 'Disiplin Kurulu Kararı No: 2026/41 ile tescil revizyonu',
+  'revision_reason': 'Resmi sonuç güncellendi',
 });
 
 final _mockPendingMatch = FederationPendingMatch(
@@ -124,8 +126,8 @@ Future<void> pumpFederationCenter(
             .overrideWithValue(leagueStandingsEnabled),
         leagueStandingsProvider
             .overrideWith((ref, arg) async => [_mockStandingsRow]),
-        federationPendingResultsProvider.overrideWith((ref, offset) async =>
-            pendingMatches ?? [_mockPendingMatch]),
+        federationPendingResultsProvider.overrideWith(
+            (ref, offset) async => pendingMatches ?? [_mockPendingMatch]),
         federationCenterOverviewProvider.overrideWith((ref, filter) {
           if (error != null) throw error;
           return overview ??
@@ -368,7 +370,8 @@ void main() {
       tester.view.resetDevicePixelRatio();
     });
 
-    testWidgets('Tescilli ve revize edilmiş müsabaka sonuçları rozet ve gerekçeyle gösterilir',
+    testWidgets(
+        'Tescilli ve revize edilmiş müsabaka sonuçları rozet ve gerekçeyle gösterilir',
         (tester) async {
       await pumpFederationCenter(
         tester,
@@ -385,17 +388,49 @@ void main() {
       expect(find.text('Galata SK'), findsOneWidget);
       expect(find.text('Beyoğlu Gençlik'), findsOneWidget);
       expect(find.text('3 : 1'), findsOneWidget);
-      expect(find.text('Hakem imzalı maç raporu'), findsOneWidget);
+      expect(find.text('Resmi sonuç tescil edildi'), findsOneWidget);
 
       // Revize sonuç kartı (V2)
       expect(find.text('● REVİZE SONUÇ (V2)'), findsOneWidget);
       expect(find.text('Anadolu Hisarı İdman'), findsOneWidget);
       expect(find.text('Sarıyer GSK'), findsOneWidget);
       expect(find.text('0 : 3'), findsOneWidget);
-      expect(find.text('Disiplin Kurulu Kararı No: 2026/41 ile tescil revizyonu'), findsOneWidget);
+      expect(find.text('Resmi sonuç güncellendi'), findsOneWidget);
     });
 
-    testWidgets('Yetkili kullanıcı Bekleyen Sonuçlar butonuna dokununca tescil modalı açılır',
+    testWidgets(
+        'Yetkili kullanıcı Bekleyen Sonuçlar butonuna dokununca tescil modalı açılır',
+        (tester) async {
+      final fedAccess = const SwanAccess(
+        isPlatformAdmin: true,
+        clubRole: null,
+        coachLevel: 0,
+        athleteKind: null,
+      );
+
+      await pumpFederationCenter(tester, access: fedAccess);
+
+      expect(find.text('Bekleyen Sonuçlar'), findsOneWidget);
+      await tester.tap(find.text('Bekleyen Sonuçlar'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Bekleyen Resmi Sonuçlar'), findsOneWidget);
+      expect(
+          find.text('Fenerbahçe Koleji — Darüşşafaka Akademi'), findsOneWidget);
+      expect(find.text('V0 Tescil'), findsOneWidget);
+      expect(find.text('Sonucu Tescil Et / Yayımla'), findsOneWidget);
+
+      await tester.ensureVisible(find.text('Sonucu Tescil Et / Yayımla'));
+      await tester.tap(find.text('Sonucu Tescil Et / Yayımla'));
+      await tester.pumpAndSettle();
+
+
+      expect(find.text('Resmi Sonuç Tescili (V1)'), findsOneWidget);
+      expect(find.text('Skor Girişi (Basketbol)'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Yetkisiz federasyon kullanıcısı için branş yetki uyarısı gösterilir ve tescil engellenir',
         (tester) async {
       final fedAccess = SwanAccess(
         isPlatformAdmin: false,
@@ -421,9 +456,103 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Bekleyen Resmi Sonuçlar'), findsOneWidget);
-      expect(find.text('Fenerbahçe Koleji — Darüşşafaka Akademi'), findsOneWidget);
-      expect(find.text('V0 Tescil'), findsOneWidget);
-      expect(find.text('Sonucu Tescil Et / Yayımla'), findsOneWidget);
+      expect(
+        find.text('Bu branş için Sonuç Yayıncısı yetkiniz bulunmuyor (Basketbol).'),
+        findsOneWidget,
+      );
+      expect(find.text('Sonucu Tescil Et / Yayımla'), findsNothing);
+    });
+
+    testWidgets(
+        'Tenis müsabakası için set bazlı tescil formu açılır ve dinamik set eklenebilir',
+        (tester) async {
+      final tennisPending = const FederationPendingMatch(
+        id: 'tennis-match-1',
+        name: 'İstanbul Veteranlar Tenis Turnuvası',
+        sportCode: 'tenis',
+        version: 0,
+        homeName: 'Enka SK',
+        awayName: 'TED Kulübü',
+      );
+
+      await pumpFederationCenter(
+        tester,
+        access: const SwanAccess(
+          isPlatformAdmin: true,
+          clubRole: null,
+          coachLevel: 0,
+          athleteKind: null,
+        ),
+        pendingMatches: [tennisPending],
+      );
+
+      await tester.tap(find.text('Bekleyen Sonuçlar'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Sonucu Tescil Et / Yayımla'));
+      await tester.tap(find.text('Sonucu Tescil Et / Yayımla'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Set Skorları (Tenis)'), findsOneWidget);
+      expect(find.text('1. Set'), findsOneWidget);
+      expect(find.text('2. Set'), findsOneWidget);
+      expect(find.text('Set Ekle'), findsOneWidget);
+
+      await tester.tap(find.text('Set Ekle'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('3. Set'), findsOneWidget);
+      expect(find.text('Set Kaldır'), findsOneWidget);
+    });
+
+    testWidgets(
+        'Yüzme gibi bireysel branşlarda masaüstü konsol zorunluluğu uyarısı gösterilir',
+        (tester) async {
+      final swimPending = const FederationPendingMatch(
+        id: 'swim-match-1',
+        name: 'Kulüplerarası Yıldızlar Yüzme Şampiyonası',
+        sportCode: 'yuzme',
+        version: 0,
+        homeName: 'Fenerbahçe',
+        awayName: 'Galatasaray',
+      );
+
+      await pumpFederationCenter(
+        tester,
+        access: const SwanAccess(
+          isPlatformAdmin: true,
+          clubRole: null,
+          coachLevel: 0,
+          athleteKind: null,
+        ),
+        pendingMatches: [swimPending],
+      );
+
+      await tester.tap(find.text('Bekleyen Sonuçlar'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Sonucu Tescil Et / Yayımla'));
+      await tester.tap(find.text('Sonucu Tescil Et / Yayımla'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Masaüstü Konsolu Gerekli'), findsOneWidget);
+      expect(
+        find.text('Yüzme branşında resmi sonuçlar seri, kulvar ve sporcu dereceleri gerektirir.'),
+        findsOneWidget,
+      );
+      expect(find.text('Anladım'), findsOneWidget);
+      expect(find.text('Tescil Et'), findsNothing);
+    });
+
+    test('kamusal revizyon akışı operatörün serbest gerekçesini döndürmez', () {
+      final root = Directory.current.parent.parent.path;
+      final sql = File(
+              '$root/supabase/migrations/0127_public_result_reason_redaction.sql')
+          .readAsStringSync();
+
+      expect(sql.contains('public._public_result_revision_label(r.version)'),
+          isTrue);
+      expect(sql.contains('r.reason'), isFalse);
     });
   });
 }

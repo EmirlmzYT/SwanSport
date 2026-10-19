@@ -263,9 +263,19 @@ class SwanAccess {
     return level == 1 || level == 2;
   }
 
-  bool get canPublishFederationResults => federationAppointments.any(
+  bool get canPublishFederationResults =>
+      isPlatformAdmin ||
+      federationAppointments.any(
         (a) => canWriteFederation(
             a.sportCode, a.cityCode, FederationDuty.resultPublisher),
+      );
+
+  bool canPublishResultFor({required String sportCode, String? cityCode}) =>
+      isPlatformAdmin ||
+      canWriteFederation(
+        sportCode,
+        cityCode,
+        FederationDuty.resultPublisher,
       );
 
   bool canWriteFederation(

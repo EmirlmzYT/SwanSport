@@ -7,7 +7,16 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import 'match_follow_button.dart';
 
-String liveSportName(String code)=>switch(code){'futbol'=>'Futbol','basketbol'=>'Basketbol','voleybol'=>'Voleybol','tenis'=>'Tenis',_=>code};
+String liveSportName(String code) => switch (code) {
+      'futbol' => 'Futbol',
+      'basketbol' => 'Basketbol',
+      'voleybol' => 'Voleybol',
+      'tenis' => 'Tenis',
+      'yuzme' => 'Yüzme',
+      'atletizm' => 'Atletizm',
+      'okculuk' => 'Okçuluk',
+      _ => code,
+    };
 String liveClock(int seconds)=>'${(seconds~/60).toString().padLeft(2,'0')}:${(seconds%60).toString().padLeft(2,'0')}';
 String liveStartTime(DateTime instant){final t=calendarTurkeyTime(instant);
   return '${t.day.toString().padLeft(2,'0')}.${t.month.toString().padLeft(2,'0')} · ${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';}
