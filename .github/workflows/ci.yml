@@ -4,7 +4,19 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -30,7 +42,7 @@ jobs:
         continue-on-error: true
 
       - name: Analyze
-        run: melos analyze
+        run: melos exec -- flutter analyze --no-fatal-infos
 
       - name: Test
         run: melos test

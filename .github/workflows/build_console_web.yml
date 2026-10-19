@@ -8,10 +8,18 @@ on:
       - 'apps/swansport_console/**'
       - 'packages/**'
       - '.github/workflows/build_console_web.yml'
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - 'apps/swansport_console/test/**'
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: console-web-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-console:
