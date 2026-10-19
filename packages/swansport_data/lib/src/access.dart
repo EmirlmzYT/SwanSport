@@ -424,3 +424,40 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
         ref.watch(delegatedTurfFieldIdsProvider).valueOrNull ?? const {},
   );
 });
+
+/// Rol, üyelik veya oturum değiştiğinde `swanAccessProvider` ve onu besleyen
+/// tüm sağlayıcıları topluca geçersiz kılar (invalidate).
+void invalidateSwanAccessProviders(void Function(ProviderOrFamily) invalidate) {
+  final providers = <ProviderOrFamily>[
+    currentProfileProvider,
+    activeClubProvider,
+    isPlatformAdminProvider,
+    myCredentialsProvider,
+    myIdentityGateProvider,
+    myAccountantClubIdsProvider,
+    myManagedTurfFieldIdsProvider,
+    delegatedTurfFieldIdsProvider,
+    myFederationAppointmentsProvider,
+    myFederationRolesProvider,
+    myRefereeProfileProvider,
+    myClubStaffRolesProvider,
+    mySportsClubAuthorityProvider,
+    myClubOperationsAuthorityProvider,
+    guardianAthleteIdsProvider,
+    myVenueVerificationTierProvider,
+  ];
+  for (final p in providers) {
+    invalidate(p);
+  }
+}
+
+extension SwanAccessRefX on Ref {
+  /// SwanAccess'i besleyen tüm profil, üyelik ve yetki provider'larını yeniler.
+  void invalidateSwanAccess() => invalidateSwanAccessProviders(invalidate);
+}
+
+extension SwanAccessWidgetRefX on WidgetRef {
+  /// SwanAccess'i besleyen tüm profil, üyelik ve yetki provider'larını yeniler.
+  void invalidateSwanAccess() => invalidateSwanAccessProviders(invalidate);
+}
+

@@ -158,7 +158,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: async.when(
               loading: () => premiumLoading(),
-              error: (e, _) => premiumError(context, '$e'),
+              error: (e, _) => premiumError(
+                context,
+                e,
+                onRetry: () {
+                  if (widget.isClub) {
+                    ref.invalidate(clubSocialProfileProvider(targetId));
+                    ref.invalidate(clubPostsProvider(targetId));
+                  } else {
+                    ref.invalidate(socialProfileProvider(targetId));
+                    ref.invalidate(authorPostsProvider(targetId));
+                  }
+                },
+              ),
               data: (p) {
                 if (p == null) {
                   return premiumEmpty(
@@ -935,7 +947,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     return postsAsync.when(
       loading: premiumCardLoading,
       error: (e, _) => Text(
-        'Yüklenemedi: $e',
+        friendlyErrorMessage(e, defaultMessage: 'Gönderiler yüklenemedi.'),
         style: SwanType.caption(context.swan.inkMuted),
       ),
       data: (posts) {

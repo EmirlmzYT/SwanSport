@@ -2,12 +2,12 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_picker_sheet.dart';
+import '../../../app/widgets/friendly_error.dart';
 import '../../../app/widgets/swan_city_picker.dart';
 import 'widgets/social_widgets.dart';
 
@@ -130,14 +130,14 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
             cityCode:
                 _cityCode == widget.profile.cityCode ? null : (_cityCode ?? ''),
           );
-      ref.invalidate(currentProfileProvider);
+      ref.invalidateSwanAccess();
       await ref.read(communityServiceProvider).ensureMine();
       ref.invalidate(communityListProvider);
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       final msg = '$e'.contains('duplicate') || '$e'.contains('unique')
           ? 'Bu kullanıcı adı alınmış, başka bir tane dene.'
-          : 'Kaydedilemedi: $e';
+          : friendlyErrorMessage(e, defaultMessage: 'Profil güncellenemedi. Lütfen tekrar deneyin.');
       if (mounted) _snack(msg, context.swan.danger);
     } finally {
       if (mounted) setState(() => _busy = false);

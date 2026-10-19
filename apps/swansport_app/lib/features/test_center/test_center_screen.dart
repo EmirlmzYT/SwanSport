@@ -64,8 +64,7 @@ class _TestCenterScreenState extends ConsumerState<TestCenterScreen> {
       final restart = ref.read(localTestRestartProvider);
       if (restart != null) { restart(_startRoute(role), null); return; }
       ref.read(selectedClubIdProvider.notifier).state = null;
-      ref.invalidate(activeClubProvider);
-      ref.invalidate(currentProfileProvider);
+      ref.invalidateSwanAccess();
       Navigator.of(context).pushNamedAndRemoveUntil(_startRoute(role), (_) => false);
     } catch (_) {
       final message = 'Giriş yapılamadı. Yerel backend ve test hesaplarının kurulumunu kontrol et.';
