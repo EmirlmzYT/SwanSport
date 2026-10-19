@@ -180,4 +180,58 @@ void main() {
     tester.view.resetPhysicalSize();
     tester.view.resetDevicePixelRatio();
   });
+
+  testWidgets(
+      'admin sees finance before training and has access to admin-only actions',
+      (tester) async {
+    tester.view.physicalSize = const Size(600, 3500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await pumpCockpit(tester, admin, training: true, season: true);
+
+    final financePos = tester.getTopLeft(find.text('MALİ İŞLER & KASA')).dy;
+    final trainingPos = tester.getTopLeft(find.text('ANTRENMAN & TAKVİM')).dy;
+    expect(financePos, lessThan(trainingPos));
+
+    expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
+    expect(find.text('Kulüp Gideri Ekle'), findsOneWidget);
+    expect(find.text('Kulüp Ayarları'), findsOneWidget);
+  });
+
+  testWidgets(
+      'coach sees training before finance and cannot see admin-only actions',
+      (tester) async {
+    tester.view.physicalSize = const Size(600, 3500);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
+    await pumpCockpit(tester, coach, training: true, season: true);
+
+    final trainingPos = tester.getTopLeft(find.text('ANTRENMAN & TAKVİM')).dy;
+    final financePos = tester.getTopLeft(find.text('MALİ İŞLER & KASA')).dy;
+    expect(trainingPos, lessThan(financePos));
+
+    expect(find.byIcon(Icons.edit_outlined), findsNothing);
+    expect(find.text('Kulüp Gideri Ekle'), findsNothing);
+    expect(find.text('Kulüp Ayarları'), findsNothing);
+  });
+
+  testWidgets('urgent rows show relevant single-touch actions per role',
+      (tester) async {
+    await pumpCockpit(tester, coach, training: true);
+    expect(find.text('GÜNÜN ACİL İŞLERİ'), findsOneWidget);
+    expect(find.text('Yoklama Al'), findsOneWidget);
+    expect(find.text('Oturum Aç'), findsOneWidget);
+
+    await pumpCockpit(tester, admin, training: false);
+    expect(find.text('Yoklama Al'), findsOneWidget);
+    expect(find.text('Hatırlat'), findsOneWidget);
+  });
 }

@@ -115,6 +115,8 @@ class ClubCockpitScreen extends ConsumerWidget {
                   ref,
                   c,
                   club: club,
+                  access: access,
+                  trainingEnabled: trainingEnabled,
                   pendingApps: pendingApps,
                   pendingPaymentsCount: pendingPayments.length,
                 ),
@@ -129,274 +131,30 @@ class ClubCockpitScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: SwanSpace.xl),
 
-                // 4. SADELEŞTİRİLMİŞ YÖNETİM BLOKLARI
-                _buildSectionHeader('KADRO & SPORCULAR', c),
-                const SizedBox(height: SwanSpace.sm),
-                _buildGroupCard(
-                  c,
-                  children: [
-                    _buildTile(
-                      c,
-                      icon: Icons.person_add_alt_1_rounded,
-                      title: 'Yeni Sporcu / Öğrenci Ekle',
-                      subtitle:
-                          'WhatsApp davet linki gönder veya sahada elle kaydet',
-                      badge: 'Hızlı',
-                      badgeColor: c.accent,
-                      onTap: () => _showAddAthleteHybridSheet(context, club),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.how_to_reg_rounded,
-                      title: 'Gelen Başvurular',
-                      subtitle: pendingApps > 0
-                          ? '$pendingApps onay bekleyen yeni öğrenci'
-                          : 'Yeni kayıt taleplerini incele',
-                      badge: pendingApps > 0 ? '$pendingApps' : null,
-                      badgeColor: c.warning,
-                      onTap: () => Navigator.pushNamed(context, '/basvurular'),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.groups_rounded,
-                      title: 'Sporcu Kadrosu',
-                      subtitle: '$activeAthletesCount aktif sporcu kaydı',
-                      onTap: () => Navigator.pushNamed(context, '/athletes'),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.shield_rounded,
-                      title: 'Takımlar ve Yaş Grupları',
-                      subtitle: 'Branş takımları, yaş kategorileri ve listeler',
-                      onTap: () => Navigator.pushNamed(context, '/teams'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.xl),
-
-                _buildSectionHeader('ANTRENMAN & TAKVİM', c),
-                const SizedBox(height: SwanSpace.sm),
-                _buildGroupCard(
-                  c,
-                  children: [
-                    _buildTile(
-                      c,
-                      icon: Icons.checklist_rounded,
-                      title: 'Günlük Yoklama Al',
-                      subtitle: 'Bugünkü antrenman için devam çizelgesi',
-                      onTap: () => Navigator.pushNamed(context, '/attendance'),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.fact_check_rounded,
-                      title: 'Devam Durumu & Geçmiş',
-                      subtitle: 'Tüm sporcuların devam ve yoklama raporları',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/devam-durumu'),
-                    ),
-                    _buildDivider(c),
-                    if (trainingEnabled) ...[
-                      _buildTile(
-                        c,
-                        icon: Icons.tune_rounded,
-                        title: 'Antrenman Şablonları & Oturumlar',
-                        subtitle:
-                            'Branşa özel egzersiz planları ve drill havuzu',
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          '/antrenman-sablonlari',
-                        ),
-                      ),
-                      _buildDivider(c),
-                      _buildTile(
-                        c,
-                        icon: Icons.sports_rounded,
-                        title: 'Antrenman Oturumu',
-                        subtitle: 'Aktif antrenman oturumunu başlat ve yönet',
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          '/antrenman-oturumu',
-                        ),
-                      ),
-                      _buildDivider(c),
-                    ],
-                    _buildTile(
-                      c,
-                      icon: Icons.calendar_month_rounded,
-                      title: 'Kulüp Takvimi',
-                      subtitle: 'Maçlar, antrenmanlar ve etkinlik programı',
-                      onTap: () => Navigator.pushNamed(context, '/calendar'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.xl),
-
-                _buildSectionHeader('MALİ İŞLER & KASA', c),
-                const SizedBox(height: SwanSpace.sm),
-                _buildGroupCard(
-                  c,
-                  children: [
-                    _buildTile(
-                      c,
-                      icon: Icons.notifications_active_rounded,
-                      title: 'Tek Tıkla Aidat Hatırlatma',
-                      subtitle:
-                          'Ödeme bildirimlerini incele veya genel mesajı paylaş',
-                      badge: pendingPayments.isNotEmpty
-                          ? '${pendingPayments.length}'
-                          : null,
-                      badgeColor: c.warning,
-                      onTap: () => _showFeeReminderSheet(
-                        context,
-                        club,
-                        pendingPayments,
-                      ),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.payments_rounded,
-                      title: 'Aidat ve Tahsilat Yönetimi',
-                      subtitle: 'Öğrenci aidat takibi ve tahsilat durumu',
-                      onTap: () => Navigator.pushNamed(context, '/finans'),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.receipt_long_rounded,
-                      title: 'Kulüp Gideri Ekle',
-                      subtitle: 'Tesis, malzeme ve operasyon harcaması kaydet',
-                      onTap: () => Navigator.pushNamed(context, '/gider-ekle'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.xl),
-
-                _buildSectionHeader('TESİS & OPERASYON', c),
-                const SizedBox(height: SwanSpace.sm),
-                _buildGroupCard(
-                  c,
-                  children: [
-                    if (staffOperationsEnabled &&
-                        access.canManageClubInventory(club.id)) ...[
-                      _buildTile(
-                        c,
-                        icon: Icons.inventory_2_outlined,
-                        title: 'Malzeme & Zimmet Takibi',
-                        subtitle:
-                            'Kulüp envanteri ve sporculara teslim edilenler',
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          '/kulup/malzeme-zimmet',
-                        ),
-                      ),
-                      _buildDivider(c),
-                    ],
-                    _buildTile(
-                      c,
-                      icon: Icons.stadium_rounded,
-                      title: 'Tesisler ve Sahalar',
-                      subtitle: 'Kort ve saha tahsisleri, kullanım saatleri',
-                      onTap: () => Navigator.pushNamed(context, '/facilities'),
-                    ),
-                    _buildDivider(c),
-                    if (staffOperationsEnabled &&
-                        access.canReadClubHealth(club.id)) ...[
-                      _buildTile(
-                        c,
-                        icon: Icons.health_and_safety_outlined,
-                        title: 'Sağlık & İdari Dinlendirme',
-                        subtitle: 'Sakatlık kayıtları ve dinlendirme kararları',
-                        onTap: () => Navigator.pushNamed(
-                          context,
-                          '/kulup/saglik-takibi',
-                        ),
-                      ),
-                      _buildDivider(c),
-                    ],
-                    if (staffOperationsEnabled &&
-                        access.canReadClubPlanning(club.id)) ...[
-                      _buildTile(c,
-                          icon: Icons.groups_outlined,
-                          title: 'Sportif Kadro Planlama',
-                          subtitle: 'Sezon kadrosunu ve görevleri planla',
-                          onTap: () => Navigator.pushNamed(
-                              context, '/kulup/kadro-planlama')),
-                      _buildDivider(c),
-                    ],
-                    if (access.isClubAdmin && seasonEnabled) ...[
-                      _buildTile(c,
-                          icon: Icons.event_available_rounded,
-                          title: 'Sezon Açılışı',
-                          subtitle: 'Yeni sezonun kulüp hazırlıklarını yönet',
-                          onTap: () =>
-                              Navigator.pushNamed(context, '/sezon-acilisi')),
-                      _buildDivider(c),
-                    ],
-                    _buildTile(
-                      c,
-                      icon: Icons.campaign_rounded,
-                      title: 'Kulüp Duyurusu Paylaş',
-                      subtitle: 'Tüm sporcu ve velilere anlık duyuru gönder',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/announcements'),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.medical_services_rounded,
-                      title: 'Medikal Merkez',
-                      subtitle: 'Sağlık muayeneleri, tetkikler ve sağlık raporları',
-                      onTap: () =>
-                          Navigator.pushNamed(context, '/medical-center'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: SwanSpace.xl),
-
-                _buildSectionHeader('ANALİZ & KULÜP AYARLARI', c),
-                const SizedBox(height: SwanSpace.sm),
-                _buildGroupCard(
-                  c,
-                  children: [
-                    _buildTile(
-                      c,
-                      icon: Icons.bar_chart_rounded,
-                      title: 'Performans & Analitik',
-                      subtitle: 'Takım ve sporcu gelişim istatistikleri',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        '/performance-analytics',
-                      ),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.dashboard_rounded,
-                      title: 'Komuta Merkezi',
-                      subtitle: 'Kulüp operasyonel genel bakış',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        '/home-command',
-                      ),
-                    ),
-                    _buildDivider(c),
-                    _buildTile(
-                      c,
-                      icon: Icons.settings_suggest_rounded,
-                      title: 'Kulüp Ayarları',
-                      subtitle: 'Kulüp tercihleri, profil ve üyelik ayarları',
-                      onTap: () => Navigator.pushNamed(
-                        context,
-                        '/settings',
-                      ),
-                    ),
-                  ],
-                ),
+                // 4. SADELEŞTİRİLMİŞ YÖNETİM BLOKLARI (Role-tailored order)
+                if (access.isClubAdmin) ...[
+                  // YÖNETİCİ ÖNCELİK SIRASI: Mali İşler -> Kadro & Sporcular -> Antrenman & Takvim -> Tesis & Operasyon -> Analiz & Ayarlar
+                  _buildFinanceSection(context, c, club, pendingPayments, access),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildRosterSection(context, c, club: club, pendingApps: pendingApps, activeAthletesCount: activeAthletesCount),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildTrainingSection(context, c, trainingEnabled: trainingEnabled),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildOperationsSection(context, c, club: club, access: access, staffOperationsEnabled: staffOperationsEnabled, seasonEnabled: seasonEnabled),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildAnalyticsSection(context, c, access: access),
+                ] else ...[
+                  // ANTRENÖR ÖNCELİK SIRASI: Antrenman & Takvim -> Kadro & Sporcular -> Tesis & Operasyon -> Mali İşler -> Analiz
+                  _buildTrainingSection(context, c, trainingEnabled: trainingEnabled),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildRosterSection(context, c, club: club, pendingApps: pendingApps, activeAthletesCount: activeAthletesCount),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildOperationsSection(context, c, club: club, access: access, staffOperationsEnabled: staffOperationsEnabled, seasonEnabled: seasonEnabled),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildFinanceSection(context, c, club, pendingPayments, access),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildAnalyticsSection(context, c, access: access),
+                ],
               ],
             ),
           );
@@ -458,11 +216,12 @@ class ClubCockpitScreen extends ConsumerWidget {
                   ],
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.edit_outlined, color: c.inkMuted, size: 22),
-                tooltip: 'Kulüp Bilgilerini Düzenle',
-                onPressed: () => showClubEditSheet(context, club.id),
-              ),
+              if (access.isClubAdmin)
+                IconButton(
+                  icon: Icon(Icons.edit_outlined, color: c.inkMuted, size: 22),
+                  tooltip: 'Kulüp Bilgilerini Düzenle',
+                  onPressed: () => showClubEditSheet(context, club.id),
+                ),
             ],
           ),
           const SizedBox(height: SwanSpace.md),
@@ -550,6 +309,8 @@ class ClubCockpitScreen extends ConsumerWidget {
     WidgetRef ref,
     SwanPalette c, {
     required ClubRef club,
+    required SwanAccess access,
+    required bool trainingEnabled,
     required int pendingApps,
     required int pendingPaymentsCount,
   }) {
@@ -574,42 +335,422 @@ class ClubCockpitScreen extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: SwanSpace.sm),
-          if (pendingApps > 0) ...[
+          if (access.isClubAdmin) ...[
+            if (pendingApps > 0) ...[
+              _urgentRow(
+                c,
+                icon: Icons.how_to_reg_rounded,
+                color: c.warning,
+                text: '$pendingApps yeni sporcu başvurusu onayınızı bekliyor',
+                buttonLabel: 'Onayla',
+                onTap: () => Navigator.pushNamed(context, '/basvurular'),
+              ),
+              const SizedBox(height: SwanSpace.xs),
+            ],
             _urgentRow(
               c,
-              icon: Icons.how_to_reg_rounded,
-              color: c.warning,
-              text: '$pendingApps yeni sporcu başvurusu onayınızı bekliyor',
-              buttonLabel: 'Onayla',
-              onTap: () => Navigator.pushNamed(context, '/basvurular'),
+              icon: Icons.checklist_rounded,
+              color: c.accent,
+              text: 'Günün antrenman yoklamasını başlatın',
+              buttonLabel: 'Yoklama Al',
+              onTap: () => Navigator.pushNamed(context, '/attendance'),
             ),
             const SizedBox(height: SwanSpace.xs),
-          ],
-          _urgentRow(
-            c,
-            icon: Icons.checklist_rounded,
-            color: c.accent,
-            text: 'Günün antrenman yoklamasını başlatın',
-            buttonLabel: 'Yoklama Al',
-            onTap: () => Navigator.pushNamed(context, '/attendance'),
-          ),
-          const SizedBox(height: SwanSpace.xs),
-          _urgentRow(
-            c,
-            icon: Icons.notifications_active_rounded,
-            color: pendingPaymentsCount > 0 ? c.warning : c.inkMuted,
-            text: pendingPaymentsCount > 0
-                ? '$pendingPaymentsCount ödeme bildirimi onay bekliyor'
-                : 'Genel aidat hatırlatma metnini paylaşın',
-            buttonLabel: 'Hatırlat',
-            onTap: () => _showFeeReminderSheet(
-              context,
-              club,
-              ref.read(pendingPaymentsProvider).valueOrNull ?? const [],
+            _urgentRow(
+              c,
+              icon: Icons.notifications_active_rounded,
+              color: pendingPaymentsCount > 0 ? c.warning : c.inkMuted,
+              text: pendingPaymentsCount > 0
+                  ? '$pendingPaymentsCount ödeme bildirimi onay bekliyor'
+                  : 'Genel aidat hatırlatma metnini paylaşın',
+              buttonLabel: 'Hatırlat',
+              onTap: () => _showFeeReminderSheet(
+                context,
+                club,
+                ref.read(pendingPaymentsProvider).valueOrNull ?? const [],
+              ),
             ),
-          ),
+          ] else ...[
+            _urgentRow(
+              c,
+              icon: Icons.checklist_rounded,
+              color: c.accent,
+              text: 'Günün antrenman yoklamasını başlatın',
+              buttonLabel: 'Yoklama Al',
+              onTap: () => Navigator.pushNamed(context, '/attendance'),
+            ),
+            if (trainingEnabled) ...[
+              const SizedBox(height: SwanSpace.xs),
+              _urgentRow(
+                c,
+                icon: Icons.sports_rounded,
+                color: c.accent,
+                text: 'Günün antrenman oturumunu başlatın ve yönetin',
+                buttonLabel: 'Oturum Aç',
+                onTap: () =>
+                    Navigator.pushNamed(context, '/antrenman-oturumu'),
+              ),
+            ],
+            if (pendingApps > 0) ...[
+              const SizedBox(height: SwanSpace.xs),
+              _urgentRow(
+                c,
+                icon: Icons.how_to_reg_rounded,
+                color: c.warning,
+                text: '$pendingApps yeni sporcu başvurusu inceleme bekliyor',
+                buttonLabel: 'Başvurular',
+                onTap: () => Navigator.pushNamed(context, '/basvurular'),
+              ),
+            ],
+          ],
         ],
       ),
+    );
+  }
+
+  // -------------------------------------------------------------
+  // KADRO & SPORCULAR BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildRosterSection(
+    BuildContext context,
+    SwanPalette c, {
+    required ClubRef club,
+    required int pendingApps,
+    required int activeAthletesCount,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('KADRO & SPORCULAR', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            _buildTile(
+              c,
+              icon: Icons.person_add_alt_1_rounded,
+              title: 'Yeni Sporcu / Öğrenci Ekle',
+              subtitle:
+                  'WhatsApp davet linki gönder veya sahada elle kaydet',
+              badge: 'Hızlı',
+              badgeColor: c.accent,
+              onTap: () => _showAddAthleteHybridSheet(context, club),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.how_to_reg_rounded,
+              title: 'Gelen Başvurular',
+              subtitle: pendingApps > 0
+                  ? '$pendingApps onay bekleyen yeni öğrenci'
+                  : 'Yeni kayıt taleplerini incele',
+              badge: pendingApps > 0 ? '$pendingApps' : null,
+              badgeColor: c.warning,
+              onTap: () => Navigator.pushNamed(context, '/basvurular'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.groups_rounded,
+              title: 'Sporcu Kadrosu',
+              subtitle: '$activeAthletesCount aktif sporcu kaydı',
+              onTap: () => Navigator.pushNamed(context, '/athletes'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.shield_rounded,
+              title: 'Takımlar ve Yaş Grupları',
+              subtitle: 'Branş takımları, yaş kategorileri ve listeler',
+              onTap: () => Navigator.pushNamed(context, '/teams'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // -------------------------------------------------------------
+  // ANTRENMAN & TAKVİM BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildTrainingSection(
+    BuildContext context,
+    SwanPalette c, {
+    required bool trainingEnabled,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('ANTRENMAN & TAKVİM', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            _buildTile(
+              c,
+              icon: Icons.checklist_rounded,
+              title: 'Günlük Yoklama Al',
+              subtitle: 'Bugünkü antrenman için devam çizelgesi',
+              onTap: () => Navigator.pushNamed(context, '/attendance'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.fact_check_rounded,
+              title: 'Devam Durumu & Geçmiş',
+              subtitle: 'Tüm sporcuların devam ve yoklama raporları',
+              onTap: () => Navigator.pushNamed(context, '/devam-durumu'),
+            ),
+            _buildDivider(c),
+            if (trainingEnabled) ...[
+              _buildTile(
+                c,
+                icon: Icons.tune_rounded,
+                title: 'Antrenman Şablonları & Oturumlar',
+                subtitle:
+                    'Branşa özel egzersiz planları ve drill havuzu',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/antrenman-sablonlari',
+                ),
+              ),
+              _buildDivider(c),
+              _buildTile(
+                c,
+                icon: Icons.sports_rounded,
+                title: 'Antrenman Oturumu',
+                subtitle: 'Aktif antrenman oturumunu başlat ve yönet',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/antrenman-oturumu',
+                ),
+              ),
+              _buildDivider(c),
+            ],
+            _buildTile(
+              c,
+              icon: Icons.calendar_month_rounded,
+              title: 'Kulüp Takvimi',
+              subtitle: 'Maçlar, antrenmanlar ve etkinlik programı',
+              onTap: () => Navigator.pushNamed(context, '/calendar'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // -------------------------------------------------------------
+  // MALİ İŞLER & KASA BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildFinanceSection(
+    BuildContext context,
+    SwanPalette c,
+    ClubRef club,
+    List<PendingPayment> pendingPayments,
+    SwanAccess access,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('MALİ İŞLER & KASA', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            _buildTile(
+              c,
+              icon: Icons.notifications_active_rounded,
+              title: 'Tek Tıkla Aidat Hatırlatma',
+              subtitle:
+                  'Ödeme bildirimlerini incele veya genel mesajı paylaş',
+              badge: pendingPayments.isNotEmpty
+                  ? '${pendingPayments.length}'
+                  : null,
+              badgeColor: c.warning,
+              onTap: () => _showFeeReminderSheet(
+                context,
+                club,
+                pendingPayments,
+              ),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.payments_rounded,
+              title: 'Aidat ve Tahsilat Yönetimi',
+              subtitle: 'Öğrenci aidat takibi ve tahsilat durumu',
+              onTap: () => Navigator.pushNamed(context, '/finans'),
+            ),
+            if (access.isClubAdmin) ...[
+              _buildDivider(c),
+              _buildTile(
+                c,
+                icon: Icons.receipt_long_rounded,
+                title: 'Kulüp Gideri Ekle',
+                subtitle: 'Tesis, malzeme ve operasyon harcaması kaydet',
+                onTap: () => Navigator.pushNamed(context, '/gider-ekle'),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+
+  // -------------------------------------------------------------
+  // TESİS & OPERASYON BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildOperationsSection(
+    BuildContext context,
+    SwanPalette c, {
+    required ClubRef club,
+    required SwanAccess access,
+    required bool staffOperationsEnabled,
+    required bool seasonEnabled,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('TESİS & OPERASYON', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            if (staffOperationsEnabled &&
+                access.canManageClubInventory(club.id)) ...[
+              _buildTile(
+                c,
+                icon: Icons.inventory_2_outlined,
+                title: 'Malzeme & Zimmet Takibi',
+                subtitle:
+                    'Kulüp envanteri ve sporculara teslim edilenler',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/kulup/malzeme-zimmet',
+                ),
+              ),
+              _buildDivider(c),
+            ],
+            _buildTile(
+              c,
+              icon: Icons.stadium_rounded,
+              title: 'Tesisler ve Sahalar',
+              subtitle: 'Kort ve saha tahsisleri, kullanım saatleri',
+              onTap: () => Navigator.pushNamed(context, '/facilities'),
+            ),
+            _buildDivider(c),
+            if (staffOperationsEnabled &&
+                access.canReadClubHealth(club.id)) ...[
+              _buildTile(
+                c,
+                icon: Icons.health_and_safety_outlined,
+                title: 'Sağlık & İdari Dinlendirme',
+                subtitle: 'Sakatlık kayıtları ve dinlendirme kararları',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/kulup/saglik-takibi',
+                ),
+              ),
+              _buildDivider(c),
+            ],
+            if (staffOperationsEnabled &&
+                access.canReadClubPlanning(club.id)) ...[
+              _buildTile(
+                c,
+                icon: Icons.groups_outlined,
+                title: 'Sportif Kadro Planlama',
+                subtitle: 'Sezon kadrosunu ve görevleri planla',
+                onTap: () =>
+                    Navigator.pushNamed(context, '/kulup/kadro-planlama'),
+              ),
+              _buildDivider(c),
+            ],
+            if (access.isClubAdmin && seasonEnabled) ...[
+              _buildTile(
+                c,
+                icon: Icons.event_available_rounded,
+                title: 'Sezon Açılışı',
+                subtitle: 'Yeni sezonun kulüp hazırlıklarını yönet',
+                onTap: () =>
+                    Navigator.pushNamed(context, '/sezon-acilisi'),
+              ),
+              _buildDivider(c),
+            ],
+            _buildTile(
+              c,
+              icon: Icons.campaign_rounded,
+              title: 'Kulüp Duyurusu Paylaş',
+              subtitle: 'Tüm sporcu ve velilere anlık duyuru gönder',
+              onTap: () => Navigator.pushNamed(context, '/announcements'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.medical_services_rounded,
+              title: 'Medikal Merkez',
+              subtitle: 'Sağlık muayeneleri, tetkikler ve sağlık raporları',
+              onTap: () => Navigator.pushNamed(context, '/medical-center'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // -------------------------------------------------------------
+  // ANALİZ & KULÜP AYARLARI BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildAnalyticsSection(
+    BuildContext context,
+    SwanPalette c, {
+    required SwanAccess access,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('ANALİZ & KULÜP AYARLARI', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            _buildTile(
+              c,
+              icon: Icons.bar_chart_rounded,
+              title: 'Performans & Analitik',
+              subtitle: 'Takım ve sporcu gelişim istatistikleri',
+              onTap: () => Navigator.pushNamed(
+                context,
+                '/performance-analytics',
+              ),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.dashboard_rounded,
+              title: 'Komuta Merkezi',
+              subtitle: 'Kulüp operasyonel genel bakış',
+              onTap: () => Navigator.pushNamed(
+                context,
+                '/home-command',
+              ),
+            ),
+            if (access.isClubAdmin) ...[
+              _buildDivider(c),
+              _buildTile(
+                c,
+                icon: Icons.settings_suggest_rounded,
+                title: 'Kulüp Ayarları',
+                subtitle: 'Kulüp tercihleri, profil ve üyelik ayarları',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/settings',
+                ),
+              ),
+            ],
+          ],
+        ),
+      ],
     );
   }
 
