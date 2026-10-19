@@ -81,6 +81,8 @@ class _FederationCenterScreenState
         ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub));
     final leagueStandingsEnabled =
         ref.watch(featureEnabledProvider(FeatureFlags.leagueStandings));
+    final federationBulletinEnabled =
+        ref.watch(featureEnabledProvider(FeatureFlags.federationBulletin));
     final async = ref.watch(federationCenterOverviewProvider(_filter));
 
     return SwanScaffold(
@@ -127,6 +129,7 @@ class _FederationCenterScreenState
                       _buildTabs(
                         c,
                         liveMatchHubEnabled: liveMatchHubEnabled,
+                        federationBulletinEnabled: federationBulletinEnabled,
                       ),
                     ],
                   ),
@@ -166,6 +169,7 @@ class _FederationCenterScreenState
                       overview,
                       liveMatchHubEnabled: liveMatchHubEnabled,
                       leagueStandingsEnabled: leagueStandingsEnabled,
+                      federationBulletinEnabled: federationBulletinEnabled,
                     ),
                   ),
                 ],
@@ -359,13 +363,14 @@ class _FederationCenterScreenState
   Widget _buildTabs(
     SwanPalette c, {
     required bool liveMatchHubEnabled,
+    required bool federationBulletinEnabled,
   }) {
     return SwanPillTabs(
       labels: [
         liveMatchHubEnabled ? 'Bugün & Canlı' : 'Bugün',
         'Fikstür & Takvim',
         'Puan Durumu',
-        'Disiplin & Bülten',
+        if (federationBulletinEnabled) 'Disiplin & Bülten',
       ],
       selected: _selectedTab,
       onSelect: (index) => setState(() => _selectedTab = index),
@@ -378,6 +383,7 @@ class _FederationCenterScreenState
     FederationCenterOverview overview, {
     required bool liveMatchHubEnabled,
     required bool leagueStandingsEnabled,
+    required bool federationBulletinEnabled,
   }) {
     switch (_selectedTab) {
       case 0:
@@ -398,7 +404,14 @@ class _FederationCenterScreenState
                 message: 'Puan durumu henüz kullanıma açılmadı.',
               );
       case 3:
-        return _buildBulletinSliver(context, c, overview);
+        return federationBulletinEnabled
+            ? _buildBulletinSliver(context, c, overview)
+            : _buildTodayAndLiveSliver(
+                context,
+                c,
+                overview,
+                liveMatchHubEnabled: liveMatchHubEnabled,
+              );
       default:
         return _buildTodayAndLiveSliver(
           context,

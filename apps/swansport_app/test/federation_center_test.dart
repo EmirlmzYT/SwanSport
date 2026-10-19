@@ -152,6 +152,7 @@ Future<void> pumpFederationCenter(
   double textScale = 1.0,
   bool liveMatchHubEnabled = true,
   bool leagueStandingsEnabled = true,
+  bool federationBulletinEnabled = true,
   List<FederationPendingMatch>? pendingMatches,
 }) async {
   await tester.pumpWidget(
@@ -163,6 +164,8 @@ Future<void> pumpFederationCenter(
             .overrideWithValue(liveMatchHubEnabled),
         featureEnabledProvider(FeatureFlags.leagueStandings)
             .overrideWithValue(leagueStandingsEnabled),
+        featureEnabledProvider(FeatureFlags.federationBulletin)
+            .overrideWithValue(federationBulletinEnabled),
         leagueStandingsProvider
             .overrideWith((ref, arg) async => [_mockStandingsRow]),
         federationPendingResultsProvider.overrideWith(
@@ -381,6 +384,16 @@ void main() {
         find.text('Puan durumu henüz kullanıma açılmadı.'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('disiplin bülteni bayrağı kapalıyken sekme gösterilmez',
+        (tester) async {
+      await pumpFederationCenter(
+        tester,
+        federationBulletinEnabled: false,
+      );
+
+      expect(find.text('Disiplin & Bülten'), findsNothing);
     });
 
     testWidgets(
@@ -651,13 +664,17 @@ void main() {
       );
     });
 
-    test('kamusal disiplin bülteni ve duyuru migration kuralları doğrulanır', () {
+    test('kamusal disiplin bülteni yalnız yayımlanmış özetleri döndürür', () {
       final root = Directory.current.parent.parent.path;
       final sql = File(
-              '$root/supabase/migrations/0128_federation_disciplinary_bulletin.sql')
+              '$root/supabase/migrations/0129_federation_bulletin_publication_contract.sql')
           .readAsStringSync();
 
       expect(sql.contains('public.athlete_ref(d.athlete_id)'), isTrue);
+      expect(sql.contains('b.public_summary'), isTrue);
+      expect(sql.contains('federation_disciplinary_bulletins'), isTrue);
+      expect(sql.contains('federation_match_notices'), isTrue);
+      expect(sql.contains("'federation_bulletin'"), isTrue);
       expect(sql.contains('public_federation_disciplinary_bulletin'), isTrue);
       expect(sql.contains('public_federation_notices'), isTrue);
       expect(sql.contains('athlete_publicity'), isTrue);

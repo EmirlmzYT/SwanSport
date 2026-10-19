@@ -151,21 +151,27 @@ final federationCenterOverviewProvider = FutureProvider.autoDispose
     }).toList();
   }
 
-  // 4. Disiplin bülteni ve resmi müsabaka duyuruları
-  final bulletinService = ref.watch(federationBulletinServiceProvider);
-  final allDecisions = await bulletinService.fetchDisciplinaryBulletin(
-    sportCode: filter.sportCode,
-    cityCode: filter.cityCode,
-  );
-  final allNotices = await bulletinService.fetchNotices(
-    sportCode: filter.sportCode,
-    cityCode: filter.cityCode,
-  );
+  // 4. Disiplin bülteni ve resmi müsabaka duyuruları. Bayrak kapalıyken
+  // kamusal RPC'lere istek atılmaz; kapalı özellik veri kaynağı değildir.
+  List<FederationDisciplinaryItem> allDecisions = const [];
+  List<FederationNoticeItem> allNotices = const [];
+  if (ref.watch(featureEnabledProvider(FeatureFlags.federationBulletin))) {
+    final bulletinService = ref.watch(federationBulletinServiceProvider);
+    allDecisions = await bulletinService.fetchDisciplinaryBulletin(
+      sportCode: filter.sportCode,
+      cityCode: filter.cityCode,
+    );
+    allNotices = await bulletinService.fetchNotices(
+      sportCode: filter.sportCode,
+      cityCode: filter.cityCode,
+    );
+  }
 
   final filteredDecisions = allDecisions.where((d) {
     if (queryLower.isEmpty) return true;
-    final text = '${d.clubName} ${d.athleteDisplay} ${d.reason} ${d.matchTitle} ${d.penaltyLabel}'
-        .toLowerCase();
+    final text =
+        '${d.clubName} ${d.athleteDisplay} ${d.reason} ${d.matchTitle} ${d.penaltyLabel}'
+            .toLowerCase();
     return text.contains(queryLower);
   }).toList();
 
