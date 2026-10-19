@@ -2,15 +2,7 @@ name: Release Android APK
 
 on:
   push:
-    branches: ['codex/**', main]
     tags: ['v*']
-    paths:
-      - 'apps/swansport_app/**'
-      - 'packages/**'
-      - '.github/workflows/release_android.yml'
-      - '!**.md'
-      - '!docs/**'
-      - '!apps/swansport_app/test/**'
   workflow_dispatch:
 
 permissions:

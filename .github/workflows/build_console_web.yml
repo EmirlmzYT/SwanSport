@@ -2,15 +2,7 @@ name: Build Console Web
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - 'apps/swansport_console/**'
-      - 'packages/**'
-      - '.github/workflows/build_console_web.yml'
-      - '!**.md'
-      - '!docs/**'
-      - '!apps/swansport_console/test/**'
   workflow_dispatch:
 
 permissions:
