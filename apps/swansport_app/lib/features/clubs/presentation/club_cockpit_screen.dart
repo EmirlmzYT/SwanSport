@@ -212,6 +212,17 @@ class ClubCockpitScreen extends ConsumerWidget {
                         ),
                       ),
                       _buildDivider(c),
+                      _buildTile(
+                        c,
+                        icon: Icons.sports_rounded,
+                        title: 'Antrenman Oturumu',
+                        subtitle: 'Aktif antrenman oturumunu başlat ve yönet',
+                        onTap: () => Navigator.pushNamed(
+                          context,
+                          '/antrenman-oturumu',
+                        ),
+                      ),
+                      _buildDivider(c),
                     ],
                     _buildTile(
                       c,
@@ -333,6 +344,56 @@ class ClubCockpitScreen extends ConsumerWidget {
                       subtitle: 'Tüm sporcu ve velilere anlık duyuru gönder',
                       onTap: () =>
                           Navigator.pushNamed(context, '/announcements'),
+                    ),
+                    _buildDivider(c),
+                    _buildTile(
+                      c,
+                      icon: Icons.medical_services_rounded,
+                      title: 'Medikal Merkez',
+                      subtitle: 'Sağlık muayeneleri, tetkikler ve sağlık raporları',
+                      onTap: () =>
+                          Navigator.pushNamed(context, '/medical-center'),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: SwanSpace.xl),
+
+                _buildSectionHeader('ANALİZ & KULÜP AYARLARI', c),
+                const SizedBox(height: SwanSpace.sm),
+                _buildGroupCard(
+                  c,
+                  children: [
+                    _buildTile(
+                      c,
+                      icon: Icons.bar_chart_rounded,
+                      title: 'Performans & Analitik',
+                      subtitle: 'Takım ve sporcu gelişim istatistikleri',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/performance-analytics',
+                      ),
+                    ),
+                    _buildDivider(c),
+                    _buildTile(
+                      c,
+                      icon: Icons.dashboard_rounded,
+                      title: 'Komuta Merkezi',
+                      subtitle: 'Kulüp operasyonel genel bakış',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/home-command',
+                      ),
+                    ),
+                    _buildDivider(c),
+                    _buildTile(
+                      c,
+                      icon: Icons.settings_suggest_rounded,
+                      title: 'Kulüp Ayarları',
+                      subtitle: 'Kulüp tercihleri, profil ve üyelik ayarları',
+                      onTap: () => Navigator.pushNamed(
+                        context,
+                        '/settings',
+                      ),
                     ),
                   ],
                 ),
