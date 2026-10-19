@@ -33,9 +33,7 @@ class _ChatItemDisplay {
     required this.time,
     required this.kind, // 'group', 'club', 'coach'
     this.unread = 0,
-    this.isMuted = false,
     this.avatarUrl,
-    this.avatarAsset,
     this.avatarWidget,
     this.initials = '',
     required this.onTap,
@@ -47,9 +45,7 @@ class _ChatItemDisplay {
   final String time;
   final String kind;
   final int unread;
-  final bool isMuted;
   final String? avatarUrl;
-  final String? avatarAsset;
   final Widget? avatarWidget;
   final String initials;
   final VoidCallback onTap;
@@ -362,180 +358,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       ));
     }
 
-    // Reference showcase channels & conversations
-    final existingTitles = items.map((i) => i.title.toLowerCase()).toSet();
-
-    final List<_ChatItemDisplay> showcase = [
-      _ChatItemDisplay(
-        id: 'group-u12-takim',
-        title: 'U12 Takım Grubu',
-        subtitle: 'Ahmet Demir: Yarınki antrenman 18:00\'da...',
-        time: '14:32',
-        unread: 3,
-        isMuted: true,
-        kind: 'group',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=150&auto=format&fit=crop&q=80',
-        initials: 'U12',
-        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
-          'id': 'group-u12-takim',
-          'name': 'U12 Takım Grubu',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'coach-ahmet-demir',
-        title: 'Ahmet Demir',
-        subtitle: 'Antrenman detayları için teşekkürler.',
-        time: '13:15',
-        unread: 1,
-        kind: 'coach',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
-        initials: 'AD',
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
-          'id': 'coach-ahmet-demir',
-          'name': 'Ahmet Demir',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'club-swan-spor',
-        title: 'Swan Spor Kulübü',
-        subtitle: 'Yeni duyuru paylaşıldı.',
-        time: '11:20',
-        unread: 5,
-        kind: 'club',
-        avatarAsset: 'assets/branding/official_swan_logo.jpg',
-        initials: 'SSK',
-        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
-          'id': 'club-swan-spor',
-          'name': 'Swan Spor Kulübü',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'athlete-zeynep-kaya',
-        title: 'Zeynep Kaya',
-        subtitle: 'Turnuva için belgeler hazır.',
-        time: 'Dün',
-        unread: 0,
-        kind: 'coach',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-        initials: 'ZK',
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
-          'id': 'athlete-zeynep-kaya',
-          'name': 'Zeynep Kaya',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'group-veli-grubu',
-        title: 'Veli Grubu',
-        subtitle: 'Toplantı 20:00\'da olacak.',
-        time: 'Dün',
-        unread: 2,
-        kind: 'group',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1517649763962-0c623266ddc0?w=150&auto=format&fit=crop&q=80',
-        initials: 'VG',
-        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
-          'id': 'group-veli-grubu',
-          'name': 'Veli Grubu',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'coach-mehmet-arslan',
-        title: 'Mehmet Arslan',
-        subtitle: 'Görüşmek üzere hocam.',
-        time: 'Sal',
-        unread: 0,
-        kind: 'coach',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
-        initials: 'MA',
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
-          'id': 'coach-mehmet-arslan',
-          'name': 'Mehmet Arslan',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'federation-official',
-        title: 'Federasyon',
-        subtitle: 'Resmi duyuru.',
-        time: 'Sal',
-        unread: 0,
-        kind: 'club',
-        initials: 'FED',
-        avatarWidget: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white,
-            border: Border.all(color: c.line, width: 1),
-          ),
-          child: const Center(
-            child: Icon(Icons.shield_outlined,
-                color: Color(0xFF131D2E), size: 26),
-          ),
-        ),
-        onTap: () => Navigator.pushNamed(context, '/federasyon'),
-      ),
-      _ChatItemDisplay(
-        id: 'group-u14-takim',
-        title: 'U14 Takımı',
-        subtitle: 'Maç kadrosu paylaşıldı.',
-        time: 'Pzt',
-        unread: 4,
-        kind: 'group',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1526232761682-d26e03ac148e?w=150&auto=format&fit=crop&q=80',
-        initials: 'U14',
-        onTap: () => Navigator.pushNamed(context, '/topluluk', arguments: {
-          'id': 'group-u14-takim',
-          'name': 'U14 Takımı',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'athlete-elif-yilmaz',
-        title: 'Elif Yılmaz',
-        subtitle: 'Aidat ödemesi hakkında bilgi aldım.',
-        time: '18 Nis',
-        unread: 0,
-        kind: 'coach',
-        avatarUrl:
-            'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-        initials: 'EY',
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
-          'id': 'athlete-elif-yilmaz',
-          'name': 'Elif Yılmaz',
-        }),
-      ),
-      _ChatItemDisplay(
-        id: 'club-malzeme-ekibi',
-        title: 'Malzeme Ekibi',
-        subtitle: 'Yeni forma siparişi yolda.',
-        time: '17 Nis',
-        unread: 0,
-        kind: 'club',
-        initials: 'ME',
-        avatarWidget: Container(
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: c.accentFill,
-          ),
-          child:
-              Icon(Icons.shopping_cart_outlined, color: c.onAccent, size: 24),
-        ),
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
-          'id': 'club-malzeme-ekibi',
-          'name': 'Malzeme Ekibi',
-        }),
-      ),
-    ];
-
-    for (final s in showcase) {
-      if (!existingTitles.contains(s.title.toLowerCase())) {
-        items.add(s);
-      }
-    }
-
     // Filter by category
     List<_ChatItemDisplay> filtered = items;
     if (_selectedFilter == 1) {
@@ -558,27 +380,40 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     if (filtered.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 32),
+        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
         child: Center(
           child: Column(
             children: [
-              Icon(Icons.search_off_rounded, size: 42, color: c.inkMuted),
-              const SizedBox(height: 12),
+              Container(
+                width: 64,
+                height: 64,
+                decoration: BoxDecoration(
+                  color: c.surfaceAlt,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.chat_bubble_outline_rounded,
+                    size: 28, color: c.accent),
+              ),
+              const SizedBox(height: 14),
               Text(
-                'Sohbet bulunamadı',
-                style: SwanType.body(c.ink, w: FontWeight.w700),
+                _query.isNotEmpty
+                    ? 'Eşleşen sohbet bulunamadı'
+                    : 'Henüz mesajınız yok',
+                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 6),
               Text(
-                'Farklı bir arama yapabilir veya yeni bir sohbet başlatabilirsiniz.',
+                _query.isNotEmpty
+                    ? 'Farklı bir arama yapabilir veya yeni bir sohbet başlatabilirsiniz.'
+                    : 'Antrenörünüzle veya takım arkadaşlarınızla iletişime geçmek için yeni bir sohbet başlatın.',
                 textAlign: TextAlign.center,
                 style: SwanType.caption(c.inkMuted),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 18),
               FilledButton.icon(
                 onPressed: () => Navigator.pushNamed(context, '/ara'),
                 icon: Icon(Icons.person_search_rounded, size: 16, color: c.onAccent),
-                label: const Text('Kişi veya Kulüp Ara'),
+                label: const Text('Kullanıcı Ara & Sohbet Başlat'),
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accentFill,
                   foregroundColor: c.onAccent,
@@ -603,25 +438,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     if (item.avatarWidget != null) {
       return item.avatarWidget!;
     }
-    if (item.avatarAsset != null) {
-      return Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: Colors.black,
-          border: Border.all(
-              color: c.accent.withValues(alpha: 0.35), width: 1.2),
-        ),
-        child: ClipOval(
-          child: Image.asset(
-            item.avatarAsset!,
-            fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => Center(
-              child: Icon(Icons.sports_rounded, color: c.accent, size: 24),
-            ),
-          ),
-        ),
-      );
-    }
     if (item.avatarUrl != null && item.avatarUrl!.isNotEmpty) {
       return ClipOval(
         child: Image.network(
@@ -632,7 +448,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           errorBuilder: (_, __, ___) => GradientAvatar(
             initials: item.initials.isNotEmpty
                 ? item.initials
-                : item.title.characters.take(2).toString(),
+                : (item.title.isNotEmpty ? item.title[0].toUpperCase() : '?'),
             size: 52,
             radius: 26,
             gradientIndex: item.title.length % 4,
@@ -643,7 +459,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
     return GradientAvatar(
       initials: item.initials.isNotEmpty
           ? item.initials
-          : item.title.characters.take(2).toString(),
+          : (item.title.isNotEmpty ? item.title[0].toUpperCase() : '?'),
       size: 52,
       radius: 26,
       gradientIndex: item.title.length % 4,
@@ -701,14 +517,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        if (item.isMuted) ...[
-                          Icon(
-                            Icons.notifications_off_outlined,
-                            size: 15,
-                            color: c.inkMuted,
-                          ),
-                          if (item.unread > 0) const SizedBox(width: 6),
-                        ],
                         if (item.unread > 0)
                           Container(
                             constraints: const BoxConstraints(
