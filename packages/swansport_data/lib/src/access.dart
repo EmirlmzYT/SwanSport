@@ -9,6 +9,7 @@ import 'parent_actions.dart';
 import 'saha_operations.dart';
 import 'sports_roles_models.dart';
 import 'sports_roles_service.dart';
+import 'supabase_athletes.dart';
 import 'supabase_scope.dart';
 import 'turf_service.dart';
 import 'verification_service.dart';

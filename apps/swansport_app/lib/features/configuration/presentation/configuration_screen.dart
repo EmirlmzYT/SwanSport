@@ -346,6 +346,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
           .read(clubConfigServiceProvider)
           .setMemberRole(m.membershipId, role, coachLevel: level);
       ref.invalidate(clubMembersAdminProvider);
+      ref.invalidateSwanAccess();
     }, 'Rol güncellendi');
   }
 
@@ -370,6 +371,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
     await _guard(() async {
       await ref.read(clubConfigServiceProvider).removeMember(m.membershipId);
       ref.invalidate(clubMembersAdminProvider);
+      ref.invalidateSwanAccess();
     }, 'Üye çıkarıldı');
   }
 

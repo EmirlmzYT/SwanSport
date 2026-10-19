@@ -2,7 +2,6 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:swansport_app/app/widgets/friendly_error.dart';
 import 'package:swansport_app/app/widgets/premium.dart';
 
 void main() {
@@ -97,12 +96,32 @@ void main() {
 
       expect(retried, isTrue);
     });
+
+    testWidgets('düz PGRST kodunu teknik ayrıntı olarak göstermez',
+        (tester) async {
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: Builder(
+              builder: (context) => premiumError(context, 'PGRST116'),
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('PGRST116'), findsNothing);
+      expect(
+        find.text('Aradığınız kayıt bulunamadı veya kaldırılmış olabilir.'),
+        findsOneWidget,
+      );
+    });
   });
 
   group('Profil sorgusu RLS güvencesi', () {
     test('Hassas sütunlar doğrudan profil sorgularında yer almaz', () {
       final root = Directory.current.path;
-      var path = '$root/../../packages/swansport_data/lib/src/social_service.dart';
+      var path =
+          '$root/../../packages/swansport_data/lib/src/social_service.dart';
       if (!File(path).existsSync()) {
         path = '$root/../packages/swansport_data/lib/src/social_service.dart';
       }
@@ -116,10 +135,27 @@ void main() {
         file.indexOf("Future<SocialProfile?> profile("),
         file.indexOf("if (row == null) return null;"),
       );
+      final profileMethod = file.substring(
+        file.indexOf("Future<SocialProfile?> profile("),
+        file.indexOf("Future<SocialProfile?> clubProfile("),
+      );
+      final selectedColumns = RegExp(
+        r"\.select\(\s*'([^']*)'",
+        multiLine: true,
+      )
+          .allMatches(directSelectBlock)
+          .expand((match) => match.group(1)!.split(','))
+          .map((column) => column.trim())
+          .toSet();
 
-      for (final forbidden in ['height_cm', 'weight_kg', 'national_id']) {
+      for (final forbidden in [
+        'phone',
+        'height_cm',
+        'weight_kg',
+        'national_id',
+      ]) {
         expect(
-          directSelectBlock.contains(forbidden),
+          selectedColumns.contains(forbidden),
           isFalse,
           reason: '$forbidden sütunu doğrudan profiles sorgusunda bulunamaz!',
         );
@@ -127,10 +163,17 @@ void main() {
 
       // profile_private_projection yalnız oturumlu (uid != null) çağrılmalıdır.
       expect(
-        file.contains('if (uid != null)') &&
-            file.contains("'profile_private_projection'"),
+        RegExp(
+          r"if \(uid != null\) \{[\s\S]*?'profile_private_projection'",
+        ).hasMatch(profileMethod),
         isTrue,
         reason: 'profile_private_projection uid != null ile korunmalıdır!',
+      );
+
+      expect(
+        profileMethod.contains('catch (_)'),
+        isFalse,
+        reason: 'Ağ ve sunucu hataları sessizce yutulmamalıdır.',
       );
     });
   });

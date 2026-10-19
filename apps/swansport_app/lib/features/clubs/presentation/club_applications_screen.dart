@@ -384,6 +384,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
       await ref.read(clubApplicationServiceProvider).review(id, accept);
       ref.invalidate(clubPendingApplicationsProvider);
       ref.invalidate(clubAthletesProvider);
+      if (accept) ref.invalidateSwanAccess();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(accept ? 'Başvuru kabul edildi' : 'Başvuru reddedildi'),

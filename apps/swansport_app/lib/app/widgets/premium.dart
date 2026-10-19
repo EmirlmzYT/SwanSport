@@ -226,11 +226,16 @@ Widget premiumError(
 }) {
   final c = context.swan;
   final raw = error?.toString();
-  final isTechnical = raw != null &&
-      (raw.toLowerCase().contains('exception') ||
-          raw.contains('42501') ||
-          raw.contains('pgrst') ||
-          raw.contains('failed host lookup'));
+  final normalized = raw?.toLowerCase();
+  final isTechnical = normalized != null &&
+      (normalized.contains('exception') ||
+          normalized.contains('42501') ||
+          normalized.contains('pgrst') ||
+          normalized.contains('permission denied') ||
+          normalized.contains('row-level security') ||
+          normalized.contains('failed host lookup') ||
+          normalized.contains('timed out') ||
+          normalized.contains('unauthorized'));
   final msg = !isTechnical && raw != null && raw.trim().isNotEmpty
       ? raw
       : friendlyErrorMessage(error, defaultMessage: defaultMessage);

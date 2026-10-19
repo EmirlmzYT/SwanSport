@@ -777,34 +777,13 @@ class SocialService {
   // ----------------------------- profil --------------------------------
   Future<SocialProfile?> profile(String profileId) async {
     final uid = _uid;
-    Map<String, dynamic>? row;
-    try {
-      row = await _c
-          .from('profiles')
-          .select(
-            'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone_hidden, instagram, twitter, website, primary_sport, position, dominant_side',
-          )
-          .eq('id', profileId)
-          .maybeSingle();
-    } catch (_) {
-      try {
-        row = await _c
-            .from('profiles')
-            .select(
-              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone_hidden, instagram, twitter, website',
-            )
-            .eq('id', profileId)
-            .maybeSingle();
-      } catch (_) {
-        row = await _c
-            .from('profiles')
-            .select(
-              'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id',
-            )
-            .eq('id', profileId)
-            .maybeSingle();
-      }
-    }
+    final row = await _c
+        .from('profiles')
+        .select(
+          'id, full_name, username, bio, avatar_path, city_code, cover_path, brand_color, avatar_tint, pinned_post_id, phone_hidden, instagram, twitter, website, primary_sport, position, dominant_side',
+        )
+        .eq('id', profileId)
+        .maybeSingle();
     if (row == null) return null;
 
     Map<String, dynamic> privateProjection = const {};
@@ -815,28 +794,22 @@ class SocialService {
           params: {'p_profile_id': profileId},
         );
         privateProjection = projection;
-      } catch (_) {
+      } on PostgrestException catch (error) {
+        if (error.code != 'PGRST202' && error.code != '42883') rethrow;
         // 0124 henüz uygulanmamış ortamlarda hassas alanlar güvenli biçimde
         // boş kalır; doğrudan profiles okumasına geri dönülmez.
       }
     }
 
-    List<dynamic> creds = const [];
-    try {
-      final res = await _c
-          .from('profile_credentials')
-          .select('kind, coach_level, status, sports(name)')
-          .eq('profile_id', profileId)
-          .eq('status', 'approved');
-      if (res is List) creds = res;
-    } catch (_) {}
+    final creds = await _c
+        .from('profile_credentials')
+        .select('kind, coach_level, status, sports(name)')
+        .eq('profile_id', profileId)
+        .eq('status', 'approved');
 
     // Sporcunun "lisanslı" mı "ferdi" mi olduğu seçime değil, bir kulübe bağlı
     // olup olmamasına bağlıdır: kulübü varsa lisanslı, yoksa ferdi sporcudur.
-    var hasClub = false;
-    try {
-      hasClub = await _hasActiveClub(profileId);
-    } catch (_) {}
+    final hasClub = await _hasActiveClub(profileId);
 
     final labels = <String>[];
     for (final r in creds) {
@@ -849,61 +822,44 @@ class SocialService {
       }
     }
 
-    List<dynamic> posts = const [];
-    try {
-      final res = await _c
-          .from('posts')
-          .select('id')
-          .eq('author_profile_id', profileId)
-          .isFilter('club_id', null);
-      if (res is List) posts = res;
-    } catch (_) {}
+    final posts = await _c
+        .from('posts')
+        .select('id')
+        .eq('author_profile_id', profileId)
+        .isFilter('club_id', null);
 
-    List<dynamic> followers = const [];
-    try {
-      final res = await _c
-          .from('follows')
-          .select('follower_id')
-          .eq('target_type', 'profile')
-          .eq('target_id', profileId);
-      if (res is List) followers = res;
-    } catch (_) {}
+    final followers = await _c
+        .from('follows')
+        .select('follower_id')
+        .eq('target_type', 'profile')
+        .eq('target_id', profileId);
 
-    List<dynamic> following = const [];
-    try {
-      final res = await _c
-          .from('follows')
-          .select('target_id')
-          .eq('follower_id', profileId);
-      if (res is List) following = res;
-    } catch (_) {}
+    final following = await _c
+        .from('follows')
+        .select('target_id')
+        .eq('follower_id', profileId);
 
     var followed = false;
     if (uid != null && uid != profileId) {
-      try {
-        final f = await _c
-            .from('follows')
-            .select('target_id')
-            .eq('follower_id', uid)
-            .eq('target_type', 'profile')
-            .eq('target_id', profileId)
-            .maybeSingle();
-        followed = f != null;
-      } catch (_) {}
+      final f = await _c
+          .from('follows')
+          .select('target_id')
+          .eq('follower_id', uid)
+          .eq('target_type', 'profile')
+          .eq('target_id', profileId)
+          .maybeSingle();
+      followed = f != null;
     }
 
     // Kulüp rolü (varsa)
     String? roleLabel;
-    Map<String, dynamic>? mem;
-    try {
-      mem = await _c
-          .from('club_memberships')
-          .select('role, clubs(name)')
-          .eq('profile_id', profileId)
-          .eq('status', 'active')
-          .limit(1)
-          .maybeSingle();
-    } catch (_) {}
+    final mem = await _c
+        .from('club_memberships')
+        .select('role, clubs(name)')
+        .eq('profile_id', profileId)
+        .eq('status', 'active')
+        .limit(1)
+        .maybeSingle();
     if (mem != null) {
       final club = mem['clubs'];
       final role = switch (mem['role'] as String?) {
@@ -961,34 +917,23 @@ class SocialService {
         .maybeSingle();
     if (row == null) return null;
 
-    List<dynamic> posts = const [];
-    try {
-      final res = await _c.from('posts').select('id').eq('club_id', clubId);
-      if (res is List) posts = res;
-    } catch (_) {}
-
-    List<dynamic> followers = const [];
-    try {
-      final res = await _c
-          .from('follows')
-          .select('follower_id')
-          .eq('target_type', 'club')
-          .eq('target_id', clubId);
-      if (res is List) followers = res;
-    } catch (_) {}
+    final posts = await _c.from('posts').select('id').eq('club_id', clubId);
+    final followers = await _c
+        .from('follows')
+        .select('follower_id')
+        .eq('target_type', 'club')
+        .eq('target_id', clubId);
 
     var followed = false;
     if (uid != null) {
-      try {
-        final f = await _c
-            .from('follows')
-            .select('target_id')
-            .eq('follower_id', uid)
-            .eq('target_type', 'club')
-            .eq('target_id', clubId)
-            .maybeSingle();
-        followed = f != null;
-      } catch (_) {}
+      final f = await _c
+          .from('follows')
+          .select('target_id')
+          .eq('follower_id', uid)
+          .eq('target_type', 'club')
+          .eq('target_id', clubId)
+          .maybeSingle();
+      followed = f != null;
     }
 
     return SocialProfile(
