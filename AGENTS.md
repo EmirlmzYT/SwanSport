@@ -1,5 +1,13 @@
 # SwanSport — ajanlar için proje kılavuzu
 
+2026-10-20: Ana akış `HomeTodayTraining` kartı planlı bugünkü `events` training
+kayıtları için mevcut `event_rsvps` niyetini yazar; gerçek yoklama değildir.
+0133 dar okuma/yanıt RPC'leri kendi aktif sporcu/gerçek veli ilişkisi ve takım
+kapsamını, İstanbul gününü, başlangıç kilidini ve tam timestamp CAS'ı korur.
+`sport_training_sessions`, veli için ayrıca `parent_hub` kapıları vardır.
+Eventsiz canlı oturuma sahte plan üretilmez. Canlı uygulanmadı; kanıt/sınırlar
+`docs/today-training-rsvp-verification.md`.
+
 2026-10-20: Ana akış hızlı erişimi `app/home/` altında hesap bazlı yerel
 SharedPreferences tercihidir; null liste rol varsayılanı, boş liste bilinçli
 boş seçimdir. Her render SwanAccess/rota projeksiyonu ve mevcut özellik

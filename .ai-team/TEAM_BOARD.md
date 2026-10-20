@@ -593,3 +593,11 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 
 
 2026-10-20 estetik teslim: Ortak beyaz panel yerine dairesel ikonlar ve dengeli etiketler; caption başlık ve tooltip/48px hedefli düzenleme ikonu. Yerel akışta görsel kontrol, 10/10 test ve <=150px bölüm kontrolü geçti. Hesap/yetki/tercih davranışı korunur; Writer serbest.
+
+
+2026-10-20: Bugünkü antrenman katılım kartı devralındı. Mevcut event_rsvps kaynağı korunur; kendi sporcu/bağlı veli kapsamlı bugünkü training okuma ve başlangıç kilitli CAS yanıt RPC'si hazırlanır. Mevcut sport_training_sessions ve veli parent_hub kapıları korunur; gerçek yoklama yazılmaz. Yerel kod/migration/test; canlı SQL/yayın yok.
+
+2026-10-20 kontrol: 0133 gerçek 0001/0003/0033 tablo kaynaklarıyla izole PostgreSQL/PGlite üzerinde 5/5 SQL senaryosu geçti (çocuk/öz/takım/gün/ACL/bayrak/deadline/CAS/idempotence). 26 mobil dar regresyon, 9 veri/veli testi ve 2 gerçek fontlu açık/koyu render geçti. Migration parse temiz; canlıya uygulanmadı. Son kaynak analiz/rapor ve yerel yenileme sürüyor.
+
+
+2026-10-20 antrenman kartı teslimi: Mobil 26/26, veri+veli 9/9, açık/koyu gerçek fontlu render 2/2 ve gerçek PostgreSQL/PGlite 5/5 geçti; 0133 parse ve diff temiz. Son değişen kaynak analizinde error/warning yok (stil info var). 8080 son kodla yenilendi. docs/today-training-rsvp-verification.md kapsam/sınırları kaydeder. 0133 canlıya uygulanmadı; mevcut backend üzerinde gerçek hesapla kullanımdan önce uygulanması gerekir. Canlı/cihaz/two-session kabulü yok. Başlangıç Windows generated dosyaları korunur; Writer serbest.
