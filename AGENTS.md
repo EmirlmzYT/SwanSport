@@ -1,5 +1,12 @@
 # SwanSport — ajanlar için proje kılavuzu
 
+2026-10-20: Ana akış hızlı erişimi `app/home/` altında hesap bazlı yerel
+SharedPreferences tercihidir; null liste rol varsayılanı, boş liste bilinçli
+boş seçimdir. Her render SwanAccess/rota projeksiyonu ve mevcut özellik
+kapılarıyla filtrelenir. Ayarlar → Ana sayfa gizlenen alanı yeniden açar;
+tercihler cihazlar arası eşitlenmez. 0132 yalnız SSS ekler, canlı uygulanmadı.
+Kanıt ve genel test sınırları: `docs/home-quick-access-verification.md`.
+
 Spor kulüpleri için yönetim platformu ve spor ağı. **Flutter/Dart + Supabase.**
 TypeScript değil — 151 Dart dosyası, 32 SQL migration, 14 JS dosyası (o da
 Cloudflare fonksiyonları).

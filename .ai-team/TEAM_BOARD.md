@@ -1,6 +1,6 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-18 Europe/Istanbul
+Son güncelleme: 2026-10-20 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
 
@@ -565,3 +565,13 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 2026-10-18 son kontrol: ilk tam tur 504/505; tek fark eski testin 44 hedef beklemesi. Yeni 36 görünüm/48 dokunma sözleşmesine testte kesin 48 beklentisi güncellendi; eylem/badge testleri korunur. Son tam tur yeniden çalışıyor. Analiz 0 error/warning (3708 info). +46 macOS 39077803292 derleniyor; ürün e987ed5.
 
 2026-10-18 video referanslı +46 teslimi: ürün e987ed5, ortalı düz başlık ve ayrı yuvarlak cam kontroller; tam genişlik tint/panel kaldırıldı, akış filtresi gerçek başlık menüsüne bağlandı. Alt nav kaynağı değişmedi. Son mobil 505/505; analiz 0 error/warning (3708 info), odaklı 30/30 ve 7 yeni referans/piksel testi. macOS 39077803292 success; artifact 12117837572, IPA 0.5.17/46 ZIP/executable/unsigned/Firebase config yokluğu doğrulandı ve masaüstüne aynı hash ile kopyalandı. Genel fatal-infos CI kırmızı; fiziksel cihaz FPS/optik kabulü açık. Video/kişisel kareler yalnız ignored build içinde; repo sentetik Flutter PNG'leri içerir. Kanıt docs/instagram-reference-header-46.md. Main/SQL/Cloudflare/TestFlight değişmedi; Writer serbest.
+
+
+2026-10-20: Codex, kullanıcının talebiyle ana sayfa rol duyarlı hızlı erişim ve Ayarlar üzerinden kişiselleştirme işini üstlendi. Hesap bazlı yerel tercihler, mevcut SwanAccess/özellik kapıları ve yerel web önizlemesi kapsamda. Başlangıç iki Windows generated plugin değişikliği korunur.
+
+2026-10-20 kontrol noktası: Hızlı erişim katalog/provider/editör ve feed/Ayarlar entegrasyonu hazır. İlk 30 odaklı test geçti; değişen kaynak analizinde hata/uyarı yok, stil info var. 0132 yalnız SSS ekler ve parse geçer; genel SSS kontrolü önceden var olan federation_bulletin admins eşleştirmesini eksik raporlar (bu görev bayrak değiştirmiyor). http://127.0.0.1:8080 gerçek geliştirme uygulaması tarayıcıda onboarding ekranına ulaştı. Genel mobil regresyon ve son görsel kontrol sürüyor.
+
+2026-10-20 genel kontrol: Mobil tam koşuda 583 geçti / 13 başarısız. Başarısızlıklar Keşfet duyuru beklentisi, eski header/rozet beklentileri ve athlete_workspace ham token kontrolünde; hızlı erişim dosyası geçti. Bu nedenle genel suite temiz olarak raporlanmaz. İki açık/koyu gerçek widget renderı geçti; font yüklenmesiyle son görsel tekrar alınıyor. SQL çalıştırma için önceki PGlite bağımlılığı bu checkoutta yok; 0132 için şema kaynak kontrolü ve parse var, runtime SQL kabulü yok.
+
+
+2026-10-20 teslim: Hızlı erişim 10/10 ve gerçek fontla açık/koyu görsel 2/2 son kaynakta geçti. 0132, mevcut 0069 tablo tanımından izole PostgreSQL/PGlite üzerinde iki kez çalıştırıldı; tek aktif everyone /settings SSS kaydı doğrulandı. Genel mobil 583 geçti/13 başarısız; token scripti değişmeyen profil/mesaj/sporcu/bildirim ekranlarında 8 bulgu raporladı; bu sınırlar docs/home-quick-access-verification.md içinde. Yerel web 127.0.0.1:8080 son kaynakla çalışır; gerçek hesaplı UAT ve canlı SSS uygulaması yok. Kod codex/home-quick-access dalında kaydedilir; başlangıç iki Windows generated dosyası commit dışında korunur. Canlı SQL/üretim yayını yok. Writer serbest.

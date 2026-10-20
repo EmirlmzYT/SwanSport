@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:swansport_design_system/swansport_design_system.dart';
-
-import '../../app/design/swan_type.dart';
-import 'premium.dart';
+import '../design/swan_palette.dart';
+import '../design/swan_shape.dart';
+import '../design/swan_type.dart';
 
 /// Bir ekrandan ilgili ekranlara geçiş kısayolları.
 ///
@@ -36,13 +35,30 @@ class QuickAction {
 /// Üçten fazla veriliyorsa satır sıkışmasın diye kaydırılabilir olur;
 /// üç ve altı eşit bölünür.
 class QuickActions extends StatelessWidget {
-  const QuickActions({required this.actions, super.key});
+  const QuickActions({required this.actions, this.wrap = false, super.key});
 
   final List<QuickAction> actions;
+  final bool wrap;
 
   @override
   Widget build(BuildContext context) {
     if (actions.isEmpty) return const SizedBox.shrink();
+
+    if (wrap) {
+      return LayoutBuilder(builder: (context, constraints) {
+        final columns = constraints.maxWidth >= 340 &&
+                MediaQuery.textScalerOf(context).scale(12) <= 16
+            ? 4
+            : 2;
+        final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
+        return Wrap(spacing: 10, runSpacing: 10, children: [
+          for (final action in actions)
+            SizedBox(
+                width: width,
+                child: _QuickCard(action: action, reserveLabelSpace: true)),
+        ]);
+      });
+    }
 
     if (actions.length <= 3) {
       return Row(
@@ -71,58 +87,63 @@ class QuickActions extends StatelessWidget {
 }
 
 class _QuickCard extends StatelessWidget {
-  const _QuickCard({required this.action});
+  const _QuickCard({required this.action, this.reserveLabelSpace = false});
   final QuickAction action;
+  final bool reserveLabelSpace;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = isDark ? const Color(0xFF131D2E) : Colors.white;
-    final line = isDark ? const Color(0xFF233149) : const Color(0xFFEAEEF3);
-    final ink = isDark ? Colors.white : SwanColors.textPrimary;
-
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.pushNamed(
-        context,
-        action.route,
-        arguments: action.arguments,
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: line),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: isDark ? .12 : .035),
-              blurRadius: 12,
-              offset: const Offset(0, 5),
-            ),
-          ],
+    final c = context.swan;
+    final caption = SwanType.caption(c.ink, w: FontWeight.w700);
+    final label = Text(
+      action.label,
+      maxLines: 2,
+      textAlign: TextAlign.center,
+      overflow: TextOverflow.ellipsis,
+      style: caption,
+    );
+    return Semantics(
+      button: true,
+      child: Material(
+        color: c.surface,
+        clipBehavior: Clip.antiAlias,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SwanRadius.md),
+          side: BorderSide(color: c.line),
         ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: kTeal.withValues(alpha: .10),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(action.icon, color: kTeal, size: 20),
+        child: InkWell(
+          onTap: () => Navigator.pushNamed(context, action.route,
+              arguments: action.arguments),
+          child: Padding(
+            padding: EdgeInsets.symmetric(
+                horizontal: reserveLabelSpace ? SwanSpace.xs : SwanSpace.sm,
+                vertical: SwanSpace.md),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: c.surfaceAlt,
+                    borderRadius: BorderRadius.circular(SwanRadius.sm),
+                  ),
+                  child: Icon(action.icon, color: c.ink, size: 20),
+                ),
+                const SizedBox(height: 7),
+                if (reserveLabelSpace)
+                  SizedBox(
+                    height: MediaQuery.textScalerOf(context)
+                            .scale(caption.fontSize!) *
+                        caption.height! *
+                        2,
+                    child: label,
+                  )
+                else
+                  label,
+              ],
             ),
-            const SizedBox(height: 7),
-            Text(
-              action.label,
-              maxLines: 2,
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: SwanType.caption(ink, w: FontWeight.w700),
-            ),
-          ],
+          ),
         ),
       ),
     );

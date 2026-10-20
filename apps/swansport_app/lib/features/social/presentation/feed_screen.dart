@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
+import '../../../app/home/home_quick_access.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -131,6 +132,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 slivers: [
                   const SliverToBoxAdapter(child: SwanHeaderSpacer()),
                   if (banner != null) SliverToBoxAdapter(child: banner),
+                  const SliverToBoxAdapter(child: HomeQuickAccess()),
                   const SliverToBoxAdapter(child: LiveMatchStrip()),
                   const SliverToBoxAdapter(
                       child: RefereeEntryCard(today: true)),

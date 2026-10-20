@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/home/home_quick_access.dart';
 import '../../../../app/push/push.dart';
 import '../../../../app/push/push_service.dart';
 import '../../../../app/l10n/app_locale.dart';
@@ -106,6 +107,14 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                 ]),
               ],
 
+              _group('Ana sayfa', [
+                SwanActionCard(
+                  title: 'Hızlı erişim',
+                  subtitle: 'Kısayollarını seç, sırala veya gizle',
+                  icon: Icons.dashboard_customize_outlined,
+                  onTap: () => openQuickAccessSettings(context),
+                ),
+              ]),
               _group('Hesap & Güvenlik', [
                 for (final action in [
                   ('Profilim', '/profil', Icons.person_outline),
