@@ -146,6 +146,8 @@ void main() {
 
   testWidgets('shortcut opens its real named route', (tester) async {
     await pumpHome(tester);
+    expect(tester.getSize(find.byKey(const Key('home-quick-access'))).height,
+        lessThanOrEqualTo(150));
     await tester.tap(find.text('Yoklama Al'));
     await tester.pumpAndSettle();
     expect(find.text('Attendance destination'), findsOneWidget);

@@ -20,8 +20,9 @@ kapılarından geçer. Her render kayıtlı ID'leri güncel izinli katalogla kes
 kayıtlı kısayol yetki veya kapalı özellik açamaz. Muhasebecilik tek başına
 yoklama/kadro/antrenman hedefi sunmaz. Yeni RPC, RLS veya yetki eklenmedi.
 
-Ortak QuickActions kullanılır; ana sayfa iki sütunlu, eşit yükseklikte yatay
-ikon/etiket kartları gösterir; dar ekran/büyük yazıda tek sütuna iner.
+Ortak QuickActions kullanılır; ana sayfa tek ortak yüzeyde dört kompakt
+ikon/etiket gösterir; dar ekran/büyük yazıda iki sütuna iner. Ayrı kart
+çerçeveleri kaldırılmış, başlık body boyutuna indirilmiştir.
 Kartlar ortak palet, tipografi ve biçim jetonlarını kullanır;
 Material/InkWell klavye odağı ve button semantics sağlar. Eski rotalar ve
 beş öğeli alt gezinme korunur.
@@ -33,6 +34,9 @@ beş öğeli alt gezinme korunur.
   renderı 2/2 geçti. 320px ve 1.6 metin ölçeği kontrolü dahil.
 - Yerleşim devamında iki sütunlu hizalama sonrası 10/10 tekrar geçti;
   güncel yerel sayfada eşit kartlar ve yatay etiketler görsel olarak doğrulandı.
+- Kompakt devamında 10/10 tekrar geçti; normal metin ölçeğinde tüm bölümün
+  150px'i aşmaması doğrulandı. Yerel gerçek akışta dört hedefin tek yüzeyde
+  aynı hizada görünmesi kontrol edildi.
 - Mobil tam koşu: 583 geçti, 13 başarısız. Başarısız dosyalar:
   explore_layout_test (duyuru), mobile_ui_cleanup_test (ham token/rozet),
   mobile_glass_chrome_test ve reference_header_test (header beklentileri).

@@ -42,7 +42,9 @@ class HomeQuickAccess extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text('Hızlı erişim', style: SwanType.h3(c.ink))),
+              Expanded(
+                  child: Text('Hızlı erişim',
+                      style: SwanType.body(c.ink, w: FontWeight.w700))),
               TextButton(
                 onPressed: () => openQuickAccessSettings(context),
                 child: const Text('Düzenle'),

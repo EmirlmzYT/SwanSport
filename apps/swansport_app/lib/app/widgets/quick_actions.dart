@@ -45,20 +45,24 @@ class QuickActions extends StatelessWidget {
     if (actions.isEmpty) return const SizedBox.shrink();
 
     if (wrap) {
-      return LayoutBuilder(builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 280 &&
-                MediaQuery.textScalerOf(context).scale(1) <= 1.3
-            ? 2
-            : 1;
-        final width =
-            (constraints.maxWidth - (columns - 1) * SwanSpace.sm) / columns;
-        return Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm, children: [
-          for (final action in actions)
-            SizedBox(
-                width: width,
-                child: _QuickCard(action: action, reserveLabelSpace: true)),
-        ]);
-      });
+      return Material(
+        color: context.swan.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        clipBehavior: Clip.antiAlias,
+        child: LayoutBuilder(builder: (context, constraints) {
+          final columns = constraints.maxWidth >= 320 &&
+                  MediaQuery.textScalerOf(context).scale(1) <= 1.3
+              ? 4
+              : 2;
+          final width = constraints.maxWidth / columns;
+          return Wrap(children: [
+            for (final action in actions)
+              SizedBox(
+                  width: width,
+                  child: _QuickCard(action: action, reserveLabelSpace: true)),
+          ]);
+        }),
+      );
     }
 
     if (actions.length <= 3) {
@@ -95,7 +99,8 @@ class _QuickCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final caption = SwanType.caption(c.ink, w: FontWeight.w700);
+    final caption = SwanType.caption(c.ink,
+        w: reserveLabelSpace ? FontWeight.w600 : FontWeight.w700);
     final label = Text(
       action.label,
       maxLines: 2,
@@ -106,45 +111,31 @@ class _QuickCard extends StatelessWidget {
     return Semantics(
       button: true,
       child: Material(
-        color: c.surface,
+        color: reserveLabelSpace ? Colors.transparent : c.surface,
         clipBehavior: Clip.antiAlias,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(SwanRadius.md),
-          side: BorderSide(color: c.line),
+          side: reserveLabelSpace ? BorderSide.none : BorderSide(color: c.line),
         ),
         child: InkWell(
           onTap: () => Navigator.pushNamed(context, action.route,
               arguments: action.arguments),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: SwanSpace.sm, vertical: SwanSpace.md),
+            padding: EdgeInsets.symmetric(
+                horizontal: reserveLabelSpace ? SwanSpace.xs : SwanSpace.sm,
+                vertical: reserveLabelSpace ? SwanSpace.sm : SwanSpace.md),
             child: reserveLabelSpace
-                ? Row(
+                ? Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Container(
-                        width: SwanSpace.xl + SwanSpace.md,
-                        height: SwanSpace.xl + SwanSpace.md,
-                        decoration: BoxDecoration(
-                          color: c.surfaceAlt,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        ),
-                        child: Icon(action.icon, color: c.ink, size: 20),
-                      ),
-                      const SizedBox(width: SwanSpace.sm),
-                      Expanded(
-                        child: SizedBox(
-                          height: MediaQuery.textScalerOf(context)
-                                  .scale(caption.fontSize!) *
-                              caption.height! *
-                              2,
-                          child: Align(
-                            alignment: Alignment.centerLeft,
-                            child: Text(action.label,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: caption),
-                          ),
-                        ),
+                      Icon(action.icon, color: c.inkMuted, size: SwanSpace.xl),
+                      const SizedBox(height: SwanSpace.xs),
+                      SizedBox(
+                        height: MediaQuery.textScalerOf(context)
+                                .scale(caption.fontSize!) *
+                            caption.height! *
+                            2,
+                        child: label,
                       ),
                     ],
                   )

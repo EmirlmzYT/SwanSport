@@ -581,3 +581,9 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 
 
 2026-10-20 hizalama teslimi: Yalnız ana sayfa wrap düzeni iki sütun, eşit yükseklik ve yatay ikon/etiket olarak düzenlendi; büyük yazı/dar genişlik tek sütun. 10/10 hızlı erişim testi geçti, localhost:8080 sıcak yeniden başlatıldı ve gerçek sayfada görsel kontrol edildi. Diğer QuickActions yerleşimleri ve yetki/tercih davranışı korunur. Writer serbest.
+
+
+2026-10-20: Kullanıcının daha güzel ve az yer kaplayan hızlı erişim isteği: tek ortak yüzeyde dört kompakt ikon/etiket, daha küçük başlık; büyük metin/dar ekran adaptasyonu korunur.
+
+
+2026-10-20 kompakt teslim: Tek yüzeyde dört kısayol, küçük başlık ve sade ikon/etiket düzeni yerelde doğrulandı. 10/10 test; normal ölçekte bölüm <=150px, dar ekran/1.6 metin taşmıyor. Mevcut yetki/tercih işlevleri değişmedi. Yerel 8080 yenilendi; Writer serbest.
