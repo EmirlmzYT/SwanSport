@@ -1,8 +1,10 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-20 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `complete`
+Aktif Writer: Codex
+Durum: `active`
+
+2026-10-20: Kullanıcı IPA ve APK'nın yüklenmesini istedi. Son f3e71af kaynaklı beş iş akışı dahil 1.0.1+58 hazırlanır; Android mevcut GitHub signing secret'larıyla, iOS Apple signing/Firebase config secret'ları bulunmadığından güvenli unsigned preview olarak CI'da derlenir. İki paket denetlenip aynı GitHub Release'e yüklenir. Canlı SQL, web deploy ve TestFlight kapsamda değil. Önceki iki Windows generated değişikliği korunur.
 
 2026-10-20 sonuç: Beş akış yerelde tamamlandı; docs/club-workflows-roadmap.md güncel kabul ve sınırları içerir. Son mobil hedefli+gerçek iki tema görsel koşusu 40/40, veri/erişim 57/57, konsol envanteri (seçilen kısmi adet yazısı dahil) 4/4. Duyuru/sezon/iade/transfer SQL 3+9+2+6=20/20; iade ile önceki bağlı regresyonlar ayrıca 74/74. Geniş ve son dar analiz 0 hata/uyarı; stil info korunur. Migration parse sorunlu 0, push eşleme 42 kayıpsız. Son geliştirme release web derlemesi build/workflows-web başarılı (mevcut CupertinoIcons font bildirimi); 8080 sunucusu yenilendi. Genel konsol 80 geçti/3 kapsam dışı başarısız; genel SSS önceki federation_bulletin eşleştirme eksiğini bildirir. Tam paketler yeşil denmedi. Canlı SQL/yayın, fiziksel takvim uygulaması, iki oturumlu DB yarış kabulü yapılmadı; 0134–0138 canlıda çalışmış sayılmaz. Başlangıçtaki iki Windows generated dosyası korunur ve Git kaydına alınmaz. Görev kaynakları commit/push ile codex/home-quick-access üzerinde kaydedilir; Writer serbest.
 
