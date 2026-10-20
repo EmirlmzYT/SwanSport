@@ -587,3 +587,9 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 
 
 2026-10-20 kompakt teslim: Tek yüzeyde dört kısayol, küçük başlık ve sade ikon/etiket düzeni yerelde doğrulandı. 10/10 test; normal ölçekte bölüm <=150px, dar ekran/1.6 metin taşmıyor. Mevcut yetki/tercih işlevleri değişmedi. Yerel 8080 yenilendi; Writer serbest.
+
+
+2026-10-20: Kullanıcının estetik geri bildirimiyle ortak beyaz panel kaldırılır; bağımsız dairesel ikonlar, dengeli etiketler ve sade düzenleme kontrolü hazırlanır. Kompakt yükseklik ve mevcut davranış korunur.
+
+
+2026-10-20 estetik teslim: Ortak beyaz panel yerine dairesel ikonlar ve dengeli etiketler; caption başlık ve tooltip/48px hedefli düzenleme ikonu. Yerel akışta görsel kontrol, 10/10 test ve <=150px bölüm kontrolü geçti. Hesap/yetki/tercih davranışı korunur; Writer serbest.

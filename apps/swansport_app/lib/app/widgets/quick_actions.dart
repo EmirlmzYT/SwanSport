@@ -46,7 +46,7 @@ class QuickActions extends StatelessWidget {
 
     if (wrap) {
       return Material(
-        color: context.swan.surface,
+        color: Colors.transparent,
         borderRadius: BorderRadius.circular(SwanRadius.md),
         clipBehavior: Clip.antiAlias,
         child: LayoutBuilder(builder: (context, constraints) {
@@ -123,12 +123,21 @@ class _QuickCard extends StatelessWidget {
           child: Padding(
             padding: EdgeInsets.symmetric(
                 horizontal: reserveLabelSpace ? SwanSpace.xs : SwanSpace.sm,
-                vertical: reserveLabelSpace ? SwanSpace.sm : SwanSpace.md),
+                vertical: reserveLabelSpace ? SwanSpace.xs : SwanSpace.md),
             child: reserveLabelSpace
                 ? Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(action.icon, color: c.inkMuted, size: SwanSpace.xl),
+                      Container(
+                        width: SwanSpace.xl + SwanSpace.lg,
+                        height: SwanSpace.xl + SwanSpace.lg,
+                        decoration: BoxDecoration(
+                          color: c.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: c.line),
+                        ),
+                        child: Icon(action.icon, color: c.ink, size: 20),
+                      ),
                       const SizedBox(height: SwanSpace.xs),
                       SizedBox(
                         height: MediaQuery.textScalerOf(context)

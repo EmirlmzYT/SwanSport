@@ -35,7 +35,7 @@ class HomeQuickAccess extends ConsumerWidget {
         SwanSpace.lg,
         SwanSpace.sm,
         SwanSpace.lg,
-        SwanSpace.lg,
+        SwanSpace.sm,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,10 +44,11 @@ class HomeQuickAccess extends ConsumerWidget {
             children: [
               Expanded(
                   child: Text('Hızlı erişim',
-                      style: SwanType.body(c.ink, w: FontWeight.w700))),
-              TextButton(
+                      style: SwanType.caption(c.inkMuted, w: FontWeight.w600))),
+              IconButton(
+                tooltip: 'Hızlı erişimi düzenle',
                 onPressed: () => openQuickAccessSettings(context),
-                child: const Text('Düzenle'),
+                icon: Icon(Icons.tune_rounded, size: 20, color: c.inkMuted),
               ),
             ],
           ),

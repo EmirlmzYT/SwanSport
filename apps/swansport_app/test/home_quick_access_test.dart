@@ -155,7 +155,7 @@ void main() {
 
   testWidgets('edit, remove, add, reorder, save and hide', (tester) async {
     await pumpHome(tester);
-    await tester.tap(find.text('Düzenle'));
+    await tester.tap(find.byTooltip('Hızlı erişimi düzenle'));
     await tester.pumpAndSettle();
     expect(find.byType(QuickAccessScreen), findsOneWidget);
     await tester.tap(find.byTooltip('Yoklama Al kaldır'));
@@ -176,7 +176,7 @@ void main() {
     final saved = QuickAccessPreferences.decode(
         prefs.getString('swan.quick_access.v1.widget-user'));
     expect(saved.ids, ['calendar', 'roster', 'dues', 'partner']);
-    await tester.tap(find.text('Düzenle'));
+    await tester.tap(find.byTooltip('Hızlı erişimi düzenle'));
     await tester.pumpAndSettle();
     await tester.tap(find.byType(Switch));
     await tester.tap(find.text('Kaydet'));
