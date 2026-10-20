@@ -32,6 +32,7 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
   int _step = 0, _duration = 90, _due = 10;
   bool _activate = false, _program = false, _fees = false, _busy = false;
   String? _clubId, _operation, _error;
+  String? _sourceRoster;
   SeasonSetupDraft? _pending;
   SeasonSetupResult? _result;
   static const _steps = [
@@ -363,6 +364,18 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
           ],
         1 => [
             _field(_team, 'Yeni takım adı'),
+            if(_clubId!=null)ref.watch(seasonRosterSourcesProvider(_clubId!)).when(
+              loading:()=>const LinearProgressIndicator(),
+              error:(_,__)=>TextButton(onPressed:()=>ref.invalidate(seasonRosterSourcesProvider(_clubId!)),child:const Text('Önceki kadroları yeniden yükle')),
+              data:(sources)=>DropdownButtonFormField<String>(
+                value:sources.any((s)=>s.key==_sourceRoster)?_sourceRoster:null,
+                isExpanded:true,decoration:const InputDecoration(labelText:'Önceki sezondan kadro seç (isteğe bağlı)'),
+                items:[for(final s in sources)DropdownMenuItem(value:s.key,child:Text('${s.seasonLabel} · ${s.teamName} (${s.athletes.length})',overflow:TextOverflow.ellipsis))],
+                onChanged:(key){
+                  final source=sources.firstWhere((s)=>s.key==key);
+                  if(source.athletes.length>200){setState(()=>_error='Bu kadro 200 kişiden fazla. Sporcuları aşağıdan seç.');return;}
+                  setState((){_sourceRoster=key;_selected..clear()..addAll(source.athletes.map((a)=>a.id));_error=null;});
+                })),
             const Text(
               'Mevcut takım adından farklı bir ad kullan. Kadroyu şimdi seçebilir veya sonra ekleyebilirsin.',
             ),

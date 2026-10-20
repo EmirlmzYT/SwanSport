@@ -30,6 +30,8 @@ class ManagementSection extends ConsumerWidget {
     final access = ref.watch(swanAccessProvider);
 
     final club = <_Item>[
+      if (access.canUseTransferRequests && ref.watch(featureEnabledProvider(FeatureFlags.transferRequests)))
+        const _Item(Icons.swap_horiz_rounded,'Transfer Talepleri','/transfer-talepleri'),
       if (access.isClubStaff) ...[
         const _Item(
           Icons.space_dashboard_rounded,

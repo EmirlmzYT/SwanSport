@@ -23,15 +23,20 @@ class ClubInventoryItem {
 }
 class ClubInventoryAssignment {
   const ClubInventoryAssignment({required this.id,required this.itemName,required this.targetReference,required this.quantity,
-    required this.assignedAt,required this.outcome,this.returnedAt,this.notes});
+    required this.assignedAt,required this.outcome,this.returnedAt,this.notes,this.resolvedQuantity=0,this.damagedReturnQuantity=0,this.missingReturnQuantity=0});
   final String id,itemName,targetReference,outcome;
   final String? notes;
   final int quantity;
+  final int resolvedQuantity,damagedReturnQuantity,missingReturnQuantity;
+  int get remainingQuantity=>quantity-resolvedQuantity;
   final DateTime assignedAt;
   final DateTime? returnedAt;
   factory ClubInventoryAssignment.fromMap(Map<String,dynamic> m)=>ClubInventoryAssignment(id:m['id'] as String,itemName:m['item_name'] as String,
     targetReference:m['target_reference'] as String,quantity:(m['quantity'] as num).toInt(),assignedAt:DateTime.parse(m['assigned_at'] as String),
-    returnedAt:m['returned_at']==null?null:DateTime.parse(m['returned_at'] as String),outcome:m['outcome'] as String,notes:m['notes'] as String?);
+    returnedAt:m['returned_at']==null?null:DateTime.parse(m['returned_at'] as String),outcome:m['outcome'] as String,notes:m['notes'] as String?,
+    damagedReturnQuantity:(m['damaged_return_quantity'] as num?)?.toInt()??(m['outcome']=='damaged'?(m['quantity'] as num).toInt():0),
+    missingReturnQuantity:(m['missing_return_quantity'] as num?)?.toInt()??(m['outcome']=='missing'?(m['quantity'] as num).toInt():0),
+    resolvedQuantity:(m['resolved_quantity'] as num?)?.toInt()??(m['returned_at']!=null?(m['quantity'] as num).toInt():0));
 }
 class ClubInventoryTarget {
   const ClubInventoryTarget({required this.id,required this.kind,required this.label});
@@ -91,7 +96,7 @@ class ClubStaffOperationsService {
   Future<List<ClubHealthOperation>> health(String clubId) async=>List.unmodifiable(_rows(await client.rpc<dynamic>('club_health_operations',params:{'p_club':clubId})).map(ClubHealthOperation.fromMap));
   Future<ClubSportingOverview> sporting(String clubId) async=>ClubSportingOverview.fromMap(Map<String,dynamic>.from(await client.rpc<dynamic>('club_sporting_overview',params:{'p_club':clubId}) as Map));
   Future<void> write(String rpc,Map<String,dynamic> payload) async {
-    if(!const {'inventory_add_item','inventory_assign','inventory_return','set_club_athlete_rest','open_health_restriction','clear_health_restriction'}.contains(rpc))throw ArgumentError('Unsupported club operation');
+    if(!const {'inventory_add_item','inventory_assign','inventory_return','inventory_return_partial','set_club_athlete_rest','open_health_restriction','clear_health_restriction'}.contains(rpc))throw ArgumentError('Unsupported club operation');
     await client.rpc<dynamic>(rpc,params:payload);
   }
 }

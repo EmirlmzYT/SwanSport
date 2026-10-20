@@ -210,6 +210,8 @@ class _ProfileMenu extends ConsumerWidget {
             ),
             entry(Icons.receipt_long_outlined, 'Aidatlarım', '/aidatlarim'),
             entry(Icons.folder_outlined, 'Belgelerim', '/documents'),
+            if(access.canUseTransferRequests && ref.watch(featureEnabledProvider(FeatureFlags.transferRequests)))
+              entry(Icons.swap_horiz_rounded,'Transfer Talepleri','/transfer-talepleri'),
             entry(Icons.verified_user_outlined, 'Doğrulama', '/dogrulama'),
             if (hasTraining)
               entry(Icons.sports_rounded, 'Antrenmanlarım', '/antrenmanlarim'),

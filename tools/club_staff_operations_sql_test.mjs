@@ -6,7 +6,7 @@ import assert from 'node:assert/strict';
 const migration=await readFile(new URL('../supabase/migrations/0114_club_inventory_and_equipment.sql',import.meta.url),'utf8');
 async function owner(db,p=officer){await db.exec('reset role');await actor(db,p);}
 async function auth(db,p){await owner(db,p);await db.exec('set role authenticated');}
-async function setup(){const f=await foundation();try{await owner(f.db);
+export async function setup(){const f=await foundation();try{await owner(f.db);
  const extended=(await readFile(new URL('../supabase/migrations/0003_extended.sql',import.meta.url),'utf8')).replaceAll('\r\n','\n');
  await f.db.exec(extended.slice(extended.indexOf('do $$ begin\n  create type public.attendance_status'),extended.indexOf('do $$ begin\n  create type public.fitness_status')));
  await f.db.exec(extended.slice(extended.indexOf('create table if not exists public.attendance'),extended.indexOf('-- injuries (medical)')));

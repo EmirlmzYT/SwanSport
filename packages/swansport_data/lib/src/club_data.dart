@@ -61,15 +61,18 @@ final currentProfileProvider = FutureProvider<ProfileInfo?>((ref) async {
 // ============================== Satır modelleri ============================
 class AnnouncementRow {
   const AnnouncementRow(
-      {required this.title,
+      {this.id,
+      required this.title,
       required this.body,
       required this.pinned,
       required this.createdAt});
+  final String? id;
   final String title;
   final String body;
   final bool pinned;
   final DateTime createdAt;
   factory AnnouncementRow.fromMap(Map<String, dynamic> m) => AnnouncementRow(
+        id: m['id'] as String?,
         title: (m['title'] as String?) ?? '',
         body: (m['body'] as String?) ?? '',
         pinned: (m['pinned'] as bool?) ?? false,
@@ -287,7 +290,7 @@ class ClubDataService {
   Future<List<AnnouncementRow>> announcements(String clubId) async {
     final rows = await _c
         .from('announcements')
-        .select('title, body, pinned, created_at')
+        .select('id, title, body, pinned, created_at')
         .eq('club_id', clubId)
         .order('pinned', ascending: false)
         .order('created_at', ascending: false);

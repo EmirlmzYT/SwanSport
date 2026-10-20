@@ -13,6 +13,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../features/announcements/presentation/routing/communication_detail_route_args.dart';
 import '../features/announcements/presentation/screens/announcements_screen.dart';
+import '../features/transfers/transfer_requests_screen.dart';
 import '../features/announcements/presentation/screens/communication_detail_screen.dart';
 import '../features/athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 import '../features/athlete_workspace/presentation/screens/athlete_detail_screen.dart';
@@ -230,6 +231,7 @@ class SwanSportApp extends ConsumerWidget {
         '/devam-durumu': (context) => const AttendanceHistoryScreen(),
         '/basvurular': (context) => const ClubApplicationsScreen(),
         '/sezon-acilisi': (context) => const SeasonSetupScreen(),
+        '/transfer-talepleri': (context) => const TransferRequestsScreen(),
         '/configuration': (context) =>
             environment.isProduction || ref.read(isSupabaseEnabledProvider)
                 ? const UnavailableFeatureScreen(

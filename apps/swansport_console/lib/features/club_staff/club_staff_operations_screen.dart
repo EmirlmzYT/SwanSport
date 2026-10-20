@@ -1,3 +1,4 @@
+import 'package:swansport_design_system/swansport_design_system.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -38,17 +39,16 @@ class ConsoleClubStaffOperationsScreen extends ConsumerWidget {
           const SizedBox(height:ConsoleDensity.lg),
           Text('Teslim / İade Kayıtları',style:theme.textTheme.titleLarge),
           for(final a in board.assignments) Card(child:Padding(padding:const EdgeInsets.all(ConsoleDensity.lg),child:Row(children:[
-            Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${a.itemName} · ${a.quantity} adet',style:theme.textTheme.titleMedium),
+            Expanded(child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('${a.itemName} · ${a.remainingQuantity}/${a.quantity} adet zimmette',style:theme.textTheme.titleMedium),
               Text('${a.targetReference} · ${fmtDate(a.assignedAt.toUtc().add(const Duration(hours:3)))}'),if(a.notes!=null)Text(a.notes!)])),
             StatusPill(label:a.outcome,tone:a.outcome=='pending'?PillTone.warning:a.outcome=='returned'?PillTone.good:PillTone.bad),
             if(a.returnedAt==null&&access.canManageClubInventory(id)) PopupMenuButton<String>(enabled:!state.busy&&!state.pending,tooltip:'İade sonucu',
               itemBuilder:(_)=>[for(final kind in ['returned','damaged','missing'])PopupMenuItem(value:kind,child:Text(kind=='returned'?'İade Al':kind=='damaged'?'Hasarlı':'Eksik'))],
               onSelected:(outcome) async {
                 final actor=ref.read(authSessionProvider).valueOrNull?.user.id;
-                final ok=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(title:const Text('Zimmeti Kapat'),content:Text('${a.quantity} adedin tamamı $outcome olarak kapanacak. Geri alınamaz.'),
-                  actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Vazgeç')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Onayla'))]));
-                if(ok==true&&context.mounted&&ref.read(authSessionProvider).valueOrNull?.user.id==actor&&ref.read(activeClubProvider).valueOrNull?.id==id)
-                  await ref.read(clubOperationControllerProvider(id).notifier).submit('inventory_return',{'p_assignment':a.id,'p_outcome':outcome});
+                final quantity=await showDialog<int>(context:context,builder:(_)=>SwanQuantityDialog(maximum:a.remainingQuantity,title:outcome=='returned'?'Sağlam iade':outcome=='damaged'?'Hasarlı teslim':'Kayıp / eksik'));
+                if(quantity!=null&&context.mounted&&ref.read(authSessionProvider).valueOrNull?.user.id==actor&&ref.read(activeClubProvider).valueOrNull?.id==id)
+                  await ref.read(clubOperationControllerProvider(id).notifier).submit('inventory_return_partial',{'p_op':refereeOperationId(),'p_assignment':a.id,'p_quantity':quantity,'p_outcome':outcome});
               })
           ]))),
           const Text('Üye kimliği özel referans koduyla gösterilir. Hesapsız sporcular için takım zimmeti kullanılır.'),
@@ -72,7 +72,7 @@ class ConsoleClubStaffOperationsScreen extends ConsumerWidget {
           for(final license in r.licenses)ListTile(title:Text('${license.reference} · ${license.sportCode}'),trailing:Text(fmtDate(license.expiresOn))),
           if(ref.watch(featureEnabledProvider(FeatureFlags.developmentReport))) Align(alignment:Alignment.centerLeft,child:TextButton.icon(
             onPressed:()=>showDialog<void>(context:context,builder:(_)=>_SportingReportDialog(clubId:id)),icon:const Icon(Icons.assessment_outlined),label:const Text('Dönem Gelişim Raporu'))),
-          const Text('Transfer talebi iş akışı mevcut şemada bulunmuyor; bekleyen talep sayısı üretilmez.'),
+          const Text('Transfer talepleri SwanSport uygulamasında Profil > Transfer Talepleri üzerinden yürütülür. Kulüp kabulü resmî tescil değildir.'),
         ])),
       }),
     ]));

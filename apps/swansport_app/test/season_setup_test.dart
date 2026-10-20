@@ -55,6 +55,9 @@ void main() {
                 AthleteRow(id: 'a', firstName: 'Ada', lastName: 'Sporcu')
               ]),
           clubConfigServiceProvider.overrideWithValue(service),
+          seasonRosterSourcesProvider('c').overrideWith((_)async=>[SeasonRosterSource.fromMap({
+            'season_id':'prior','season_label':'2025 sezonu','team_id':'old','team_name':'U10',
+            'athletes':[{'id':'a','name':'Ada Sporcu'}]})]),
         ],
         child: MaterialApp(home: const SeasonSetupScreen(), routes: {
           '/teams': (_) => const Scaffold(body: Text('Takım kayıtları')),
@@ -84,6 +87,15 @@ void main() {
     await mount(t, enabled: false);
     expect(find.byType(TextField), findsNothing);
     expect(service.drafts, isEmpty);
+  });
+  testWidgets('prior season roster previews selected athletes and reuses atomic opening',(t)async{
+    await mount(t);await t.enterText(find.widgetWithText(TextField,'Sezon adı'),'2026 yeni');await next(t);
+    await t.enterText(find.widgetWithText(TextField,'Yeni takım adı'),'U12 yeni');
+    await t.tap(find.byType(DropdownButtonFormField<String>));await t.pumpAndSettle();
+    await t.tap(find.text('2025 sezonu · U10 (1)').last);await t.pumpAndSettle();
+    expect(find.text('1/200 sporcu seçildi'),findsOneWidget);
+    await next(t);await next(t);await next(t);await t.tap(find.text('Sezonu hazırla'));await t.pumpAndSettle();
+    expect(service.drafts.single.athleteIds,['a']);expect(service.drafts.single.teamName,'U12 yeni');
   });
   testWidgets(
       'five steps save selected athlete with optional steps omitted at mobile width',

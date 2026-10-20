@@ -1,3 +1,4 @@
+import 'package:swansport_design_system/swansport_design_system.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -45,9 +46,10 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
             ]),
             Expanded(child:ListView(padding:const EdgeInsets.only(bottom:SwanSpace.xl*5),children:[
               if(_tab==0) ...[for(final i in board.items) _card(Text('${i.name} · ${i.category}\nKullanılabilir ${i.available}/${i.quantity} · Hasarlı ${i.damaged} · Eksik ${i.missing}',style:SwanType.body(c.ink)))],
-              if(_tab!=0) ...[for(final a in board.assignments.where((a)=>_tab!=2||a.outcome=='damaged'||a.outcome=='missing')) _card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-                Text('${a.itemName} · ${a.quantity} adet',style:SwanType.h3(c.ink)),
+              if(_tab!=0) ...[for(final a in board.assignments.where((a)=>_tab!=2||a.damagedReturnQuantity>0||a.missingReturnQuantity>0)) _card(Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
+                Text('${a.itemName} · ${a.remainingQuantity}/${a.quantity} adet zimmette',style:SwanType.h3(c.ink)),
                 Text('${a.targetReference} · ${fmtDate(a.assignedAt.toUtc().add(const Duration(hours:3)))} · ${a.outcome}',style:SwanType.bodySm(c.inkMuted)),
+                if(a.resolvedQuantity>0)Text('İşlenen ${a.resolvedQuantity} · Hasarlı ${a.damagedReturnQuantity} · Eksik ${a.missingReturnQuantity}',style:SwanType.caption(c.inkMuted)),
                 if(a.notes?.isNotEmpty==true) Text(a.notes!,style:SwanType.bodySm(c.ink)),
                 if(a.returnedAt==null&&access.canManageClubInventory(id)) Wrap(spacing:SwanSpace.sm,children:[for(final status in ['returned','damaged','missing']) TextButton(
                   onPressed:mutation.busy||mutation.pending?null:()=>_confirmReturn(id,a,status),child:Text(switch(status){'returned'=>'İade Al','damaged'=>'Hasarlı','missing'=>'Eksik',_=>status},style:SwanType.bodySm(c.accent)))])])),],
@@ -72,7 +74,7 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
             _card(Text('30 gün: ${overview.lockedLineups} kilitli esame · ${overview.completedTransfers} tescilli transfer\nYoklama: ${overview.attendanceRate==null?'Veri yok':'%${overview.attendanceRate!.toStringAsFixed(1)}'} · ${overview.excused} izinli',style:SwanType.body(c.ink))),
             for(final l in overview.licenses)Text('${l.reference} · ${l.sportCode} · ${fmtDate(l.expiresOn)}',style:SwanType.bodySm(c.ink)),
             if(ref.watch(featureEnabledProvider(FeatureFlags.developmentReport))) TextButton(onPressed:()=>Navigator.pushNamed(context,'/gelisim-raporu'),child:Text('Dönem Gelişim Raporu',style:SwanType.body(c.accent))),
-            Text('Transfer talebi iş akışı mevcut şemada yok; bu ekranda bekleyen talep sayısı üretilmez.',style:SwanType.bodySm(c.inkMuted)),
+            if(access.canUseTransferRequests&&ref.watch(featureEnabledProvider(FeatureFlags.transferRequests)))TextButton.icon(onPressed:()=>Navigator.pushNamed(context,'/transfer-talepleri'),icon:const Icon(Icons.swap_horiz_rounded),label:const Text('Transfer Talepleri')),
           ])),
         }),
       ]);
@@ -86,9 +88,8 @@ class _ClubStaffOperationsScreenState extends ConsumerState<ClubStaffOperationsS
   Future<void> _write(String id,String rpc,Map<String,dynamic> payload) async {await ref.read(clubOperationControllerProvider(id).notifier).submit(rpc,payload);}
   Future<void> _confirmReturn(String id,ClubInventoryAssignment a,String status) async {
     final actor=ref.read(authSessionProvider).valueOrNull?.user.id;
-    final confirmed=await showDialog<bool>(context:context,builder:(context)=>AlertDialog(title:const Text('Zimmeti Kapat'),content:Text('${a.quantity} adedin tamamı "$status" olarak kapanacak. Bu işlem geri alınamaz.'),
-      actions:[TextButton(onPressed:()=>Navigator.pop(context,false),child:const Text('Vazgeç')),FilledButton(onPressed:()=>Navigator.pop(context,true),child:const Text('Onayla'))]));
-    if(confirmed==true&&mounted&&ref.read(authSessionProvider).valueOrNull?.user.id==actor&&ref.read(activeClubProvider).valueOrNull?.id==id)await _write(id,'inventory_return',{'p_assignment':a.id,'p_outcome':status});
+    final quantity=await showDialog<int>(context:context,builder:(_)=>SwanQuantityDialog(maximum:a.remainingQuantity,title:switch(status){'returned'=>'Sağlam iade','damaged'=>'Hasarlı teslim',_=>'Kayıp / eksik'}));
+    if(quantity!=null&&mounted&&ref.read(authSessionProvider).valueOrNull?.user.id==actor&&ref.read(activeClubProvider).valueOrNull?.id==id)await _write(id,'inventory_return_partial',{'p_op':refereeOperationId(),'p_assignment':a.id,'p_quantity':quantity,'p_outcome':status});
   }
   Future<void> _confirmHealth(String id,ClubHealthOperation a) async {
     final actor=ref.read(authSessionProvider).valueOrNull?.user.id;

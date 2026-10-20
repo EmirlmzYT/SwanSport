@@ -77,6 +77,7 @@ void main() {
 
   test('bilinen birkaç anahtar gerçekten okunuyor', () {
     expect(sqlKeys(), contains(FeatureFlags.marketplace));
+    expect(sqlKeys(), contains(FeatureFlags.transferRequests));
     expect(sqlKeys(), contains(FeatureFlags.liveMatchHub));
     expect(sqlKeys(), contains(FeatureFlags.leagueStandings));
     expect(sqlKeys(), contains(FeatureFlags.liveMatchNotifications));

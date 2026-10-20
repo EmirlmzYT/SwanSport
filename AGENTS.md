@@ -1,5 +1,16 @@
 # SwanSport — ajanlar için proje kılavuzu
 
+2026-10-20: Beş kulüp iş akışı yerelde tamamlandı (0134–0138): duyuruda
+ayrı okuma/açık onay ve her metin düzenlemesinde yeni UUID revizyonu; mevcut
+takvimden tek seferlik .ics dışa aktarma; eski kadro önizlemesini mevcut
+open_club_season'a bağlama; özel işlem defteriyle kısmi zimmet iadesi;
+kaynak/hedef/aile ve mevcut federasyon tescil yetkili transfer talepleri.
+Transfer bayrağı admins başlar; kulüp kabulü resmî yazma yetkisi değildir.
+Eski tam-iade RPC'si yalnız kalanı çözer; quantity orijinal miktardır,
+resolved_quantity düşülmeden stok toplanmaz. Eski migration'lar değiştirilmedi.
+Canlı uygulanmadı. Testler ve genel konsoldaki 3 kapsam dışı başarısızlık:
+`docs/club-workflows-roadmap.md`.
+
 2026-10-20: Ana akış `HomeTodayTraining` kartı planlı bugünkü `events` training
 kayıtları için mevcut `event_rsvps` niyetini yazar; gerçek yoklama değildir.
 0133 dar okuma/yanıt RPC'leri kendi aktif sporcu/gerçek veli ilişkisi ve takım

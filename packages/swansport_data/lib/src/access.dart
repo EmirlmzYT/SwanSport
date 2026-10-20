@@ -358,6 +358,8 @@ class SwanAccess {
   /// Bağlı çocuklar; kulüp rolünden bağımsız veli görünürlüğü.
   final Set<String> guardianAthleteIds;
   bool get isParent => clubRole == 'parent' || guardianAthleteIds.isNotEmpty;
+  bool get canUseTransferRequests => hasAccount && (isClubAdmin || isParent || isVerifiedAthlete || clubRole=='athlete' ||
+      federationAppointments.any((a)=>a.authorizes(a.sportCode,a.cityCode,FederationDuty.licenseRegistrar,DateTime.now())));
 
   /// Kademe eşiğini karşılıyor mu?
   ///

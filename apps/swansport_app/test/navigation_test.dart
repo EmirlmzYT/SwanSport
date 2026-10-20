@@ -45,7 +45,7 @@ void main() {
     '/kulup-yonetim',
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
     '/announcements', '/performance-analytics', '/home-command',
-    '/sezon-acilisi', '/veli-izinleri', '/gelisim-raporu', '/saha-islemlerim',
+    '/sezon-acilisi', '/transfer-talepleri', '/veli-izinleri', '/gelisim-raporu', '/saha-islemlerim',
     '/finans', '/gider-ekle', '/medical-center', '/facilities',
     '/onay-paneli', '/haber-kaynaklari', '/federasyon-yetkili',
     '/bagis', '/basvurular', '/veli-bagla', '/rehber', '/settings',

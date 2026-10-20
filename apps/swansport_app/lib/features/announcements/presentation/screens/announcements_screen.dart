@@ -9,6 +9,7 @@ import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../widgets/announcement_receipt_sheet.dart';
 
 class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -149,6 +150,11 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           Text(a.title, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
           const SizedBox(height: 2),
           Text(a.body, style: SwanType.caption(c.inkMuted)),
+          if (a.id != null)
+            Align(alignment: Alignment.centerRight,child: TextButton(
+              onPressed:()=>showModalBottomSheet<void>(context:context,isScrollControlled:true,
+                builder:(_)=>AnnouncementReceiptSheet(id:a.id!)),
+              child:const Text('Oku ve onayla'))),
         ],
       ),
     );

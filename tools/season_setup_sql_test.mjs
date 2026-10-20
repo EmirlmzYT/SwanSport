@@ -47,6 +47,27 @@ async function counts(db) {
     (select count(*)::int from team_memberships) roster,(select count(*)::int from events) events,
     (select count(*)::int from fee_plans) plans,(select count(*)::int from season_setup_runs) runs`)).rows[0];
 }
+
+test('0136 prior roster preview keeps profileless athletes, scopes sources and opens a distinct season atomically',async()=>{
+ const db=await setup();try{
+  await db.exec("alter table athletes add column first_name text default 'Ada',add column last_name text default 'Test'");
+  const sql=await readFile(new URL('../supabase/migrations/0136_season_roster_sources.sql',import.meta.url),'utf8');
+  await db.exec(sql);await db.exec(sql);
+  const prior=await open(db);
+  const sources=(await db.query('select season_roster_sources($1) v',[club])).rows[0].v;
+  assert.equal(sources.length,1);assert.equal(sources[0].athletes[0].id,athlete);
+  const next={...draft(),label:'2027–28',team_name:'U14 yeni',starts_on:'2027-10-01',ends_on:'2028-09-29',athlete_ids:sources[0].athletes.map(a=>a.id)};
+  delete next.schedule;delete next.fee;
+  const created=await open(db,next,id(101));assert.notEqual(created.team_id,prior.team_id);
+  assert.equal((await db.query('select count(*) n from team_memberships where team_id=$1',[prior.team_id])).rows[0].n,1);
+  assert.deepEqual(await open(db,next,id(101)),created);assert.equal((await counts(db)).roster,2);
+  await db.exec(`select set_config('test.actor','${id(7)}',false)`);
+  await assert.rejects(()=>db.query('select season_roster_sources($1)',[club]),/yöneticisi/);
+  await db.exec(`select set_config('test.actor','${actor}',false)`);
+  await assert.rejects(()=>db.query('select season_roster_sources($1)',[other]));
+  await db.exec("select set_config('test.feature','off',false)");await assert.rejects(()=>db.query('select season_roster_sources($1)',[club]));
+ }finally{await db.close();}
+});
 test('full opening includes profileless athlete, Turkey time and inactive fee plan',async()=>{
   const db=await setup();try {
     const r=await open(db);assert.equal(r.roster_count,1);assert.equal(r.event_count,3);

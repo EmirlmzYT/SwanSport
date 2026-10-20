@@ -12,6 +12,7 @@ import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/quick_form.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../widgets/unified_calendar_widgets.dart';
+import '../widgets/calendar_export_button.dart';
 import 'guardian_official_result_screen.dart';
 
 /// Published federation activities and authorized club records in one calendar.
@@ -115,6 +116,7 @@ class _ScheduleCalendarScreenState
               _buildDayHeader(
                 palette,
                 dayEventsCount: entries.valueOrNull?.length ?? 0,
+                events: entries.valueOrNull ?? const [],
                 isToday: _isSameDay(
                   _selectedDate,
                   calendarTurkeyTime(DateTime.now()),
@@ -352,6 +354,7 @@ class _ScheduleCalendarScreenState
   Widget _buildDayHeader(
     SwanPalette palette, {
     required int dayEventsCount,
+    required List<UnifiedCalendarEvent> events,
     required bool isToday,
   }) =>
       Wrap(
@@ -364,6 +367,7 @@ class _ScheduleCalendarScreenState
           if (isToday) Text('Bugün', style: SwanType.caption(palette.accent)),
           Text('($dayEventsCount Etkinlik)',
               style: SwanType.caption(palette.inkMuted)),
+          CalendarExportButton(events:events.where((e)=>e.guardianResult==null).toList()),
           IconButton(
             tooltip: _filterBySelectedDay
                 ? 'Ayın tüm etkinliklerini göster'
