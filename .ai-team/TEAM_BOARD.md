@@ -1,8 +1,10 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-20 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `active`
+Aktif Writer: Yok
+Durum: `complete`
+
+2026-10-20 mobil yayın sonucu: 1.0.1+58 e4d568c kaynağından Android 39361484082 ve iOS 39361486738 başarılı. APK v2 imzası resmî apksig 9.0.1 ile doğrulandı; sertifika önceki 0.5.26+56 ile aynı. Her iki binary sürüm/kimlik, ZIP CRC, IPA executable/config/xcent/imzasızlık denetimi ve Python iOS 7/7 geçti. APK 80,053,226 byte; unsigned IPA 13,988,096 byte. GitHub v1.0.1+58 latest olarak yayımlandı, iki paket ve checksum dosyasının sunucu hash'leri eşleşti. Kanıt/indirme: docs/mobile-release-1.0.1-58.md. iOS push kapalı; Sideloadly/AltStore kullanıcı imzası gerekir. Canlı SQL/web/TestFlight yok; önceki Windows dosyaları korunur. Writer serbest.
 
 2026-10-20: Kullanıcı IPA ve APK'nın yüklenmesini istedi. Son f3e71af kaynaklı beş iş akışı dahil 1.0.1+58 hazırlanır; Android mevcut GitHub signing secret'larıyla, iOS Apple signing/Firebase config secret'ları bulunmadığından güvenli unsigned preview olarak CI'da derlenir. İki paket denetlenip aynı GitHub Release'e yüklenir. Canlı SQL, web deploy ve TestFlight kapsamda değil. Önceki iki Windows generated değişikliği korunur.
 
