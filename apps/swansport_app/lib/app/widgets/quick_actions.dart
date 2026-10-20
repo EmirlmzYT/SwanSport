@@ -46,12 +46,13 @@ class QuickActions extends StatelessWidget {
 
     if (wrap) {
       return LayoutBuilder(builder: (context, constraints) {
-        final columns = constraints.maxWidth >= 340 &&
-                MediaQuery.textScalerOf(context).scale(12) <= 16
-            ? 4
-            : 2;
-        final width = (constraints.maxWidth - (columns - 1) * 10) / columns;
-        return Wrap(spacing: 10, runSpacing: 10, children: [
+        final columns = constraints.maxWidth >= 280 &&
+                MediaQuery.textScalerOf(context).scale(1) <= 1.3
+            ? 2
+            : 1;
+        final width =
+            (constraints.maxWidth - (columns - 1) * SwanSpace.sm) / columns;
+        return Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm, children: [
           for (final action in actions)
             SizedBox(
                 width: width,
@@ -115,34 +116,54 @@ class _QuickCard extends StatelessWidget {
           onTap: () => Navigator.pushNamed(context, action.route,
               arguments: action.arguments),
           child: Padding(
-            padding: EdgeInsets.symmetric(
-                horizontal: reserveLabelSpace ? SwanSpace.xs : SwanSpace.sm,
-                vertical: SwanSpace.md),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  ),
-                  child: Icon(action.icon, color: c.ink, size: 20),
-                ),
-                const SizedBox(height: 7),
-                if (reserveLabelSpace)
-                  SizedBox(
-                    height: MediaQuery.textScalerOf(context)
-                            .scale(caption.fontSize!) *
-                        caption.height! *
-                        2,
-                    child: label,
+            padding: const EdgeInsets.symmetric(
+                horizontal: SwanSpace.sm, vertical: SwanSpace.md),
+            child: reserveLabelSpace
+                ? Row(
+                    children: [
+                      Container(
+                        width: SwanSpace.xl + SwanSpace.md,
+                        height: SwanSpace.xl + SwanSpace.md,
+                        decoration: BoxDecoration(
+                          color: c.surfaceAlt,
+                          borderRadius: BorderRadius.circular(SwanRadius.sm),
+                        ),
+                        child: Icon(action.icon, color: c.ink, size: 20),
+                      ),
+                      const SizedBox(width: SwanSpace.sm),
+                      Expanded(
+                        child: SizedBox(
+                          height: MediaQuery.textScalerOf(context)
+                                  .scale(caption.fontSize!) *
+                              caption.height! *
+                              2,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: Text(action.label,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: caption),
+                          ),
+                        ),
+                      ),
+                    ],
                   )
-                else
-                  label,
-              ],
-            ),
+                : Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: c.surfaceAlt,
+                          borderRadius: BorderRadius.circular(SwanRadius.sm),
+                        ),
+                        child: Icon(action.icon, color: c.ink, size: 20),
+                      ),
+                      const SizedBox(height: 7),
+                      label,
+                    ],
+                  ),
           ),
         ),
       ),

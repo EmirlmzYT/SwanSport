@@ -575,3 +575,9 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 
 
 2026-10-20 teslim: Hızlı erişim 10/10 ve gerçek fontla açık/koyu görsel 2/2 son kaynakta geçti. 0132, mevcut 0069 tablo tanımından izole PostgreSQL/PGlite üzerinde iki kez çalıştırıldı; tek aktif everyone /settings SSS kaydı doğrulandı. Genel mobil 583 geçti/13 başarısız; token scripti değişmeyen profil/mesaj/sporcu/bildirim ekranlarında 8 bulgu raporladı; bu sınırlar docs/home-quick-access-verification.md içinde. Yerel web 127.0.0.1:8080 son kaynakla çalışır; gerçek hesaplı UAT ve canlı SSS uygulaması yok. Kod codex/home-quick-access dalında kaydedilir; başlangıç iki Windows generated dosyası commit dışında korunur. Canlı SQL/üretim yayını yok. Writer serbest.
+
+
+2026-10-20: Kullanıcının yalnız daha düzenli yerleşim isteğiyle hızlı erişim iki sütun, eşit yükseklik ve yatay ikon/etiket hizasına alınır. İşlev/yetki/tercihler aynı kalır. Başlangıç Windows generated değişiklikleri korunur.
+
+
+2026-10-20 hizalama teslimi: Yalnız ana sayfa wrap düzeni iki sütun, eşit yükseklik ve yatay ikon/etiket olarak düzenlendi; büyük yazı/dar genişlik tek sütun. 10/10 hızlı erişim testi geçti, localhost:8080 sıcak yeniden başlatıldı ve gerçek sayfada görsel kontrol edildi. Diğer QuickActions yerleşimleri ve yetki/tercih davranışı korunur. Writer serbest.
