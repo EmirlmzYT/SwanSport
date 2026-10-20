@@ -131,6 +131,7 @@ class _TrainingReplyCard extends ConsumerStatefulWidget {
 
 class _TrainingReplyCardState extends ConsumerState<_TrainingReplyCard> {
   bool _saving = false;
+  bool _details = false;
   String? _error;
 
   Future<void> _respond(String status) async {
@@ -158,111 +159,136 @@ class _TrainingReplyCardState extends ConsumerState<_TrainingReplyCard> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final item = widget.item;
-    final starts = calendarTurkeyTime(item.startsAt);
     String time(DateTime value) =>
         '${value.hour.toString().padLeft(2, '0')}:${value.minute.toString().padLeft(2, '0')}';
     final when =
-        '${time(starts)}${item.endsAt == null ? '' : '–${time(calendarTurkeyTime(item.endsAt!))}'}';
+        '${time(calendarTurkeyTime(item.startsAt))}${item.endsAt == null ? '' : '–${time(calendarTurkeyTime(item.endsAt!))}'}';
     final started = !item.startsAt.isAfter(widget.now);
     final disabled = _saving || widget.refreshing || started;
-    final identity = item.isSelf
-        ? item.clubName
-        : '${item.childName ?? 'Çocuğun'} · ${item.clubName}';
-    Widget button(String status, String text, IconData icon) {
+    final timing = _saving
+        ? 'Kaydediliyor…'
+        : started
+            ? 'Başladı'
+            : when;
+    final subtitle =
+        item.isSelf ? timing : '${item.childName ?? 'Çocuğun'} · $timing';
+    final largeText = MediaQuery.textScalerOf(context).scale(1) > 1.3;
+    final shortTitle = item.title
+        .replaceFirst(
+          RegExp(r'\s+antrenman[ıi]?$', caseSensitive: false),
+          '',
+        )
+        .trim();
+
+    Widget choice(
+        String status, String label, String fullLabel, IconData icon) {
       final selected = item.response == status;
       return Semantics(
-          selected: selected,
-          child: OutlinedButton.icon(
-            onPressed: disabled ? null : () => _respond(status),
-            style: OutlinedButton.styleFrom(
-              backgroundColor: selected ? c.accentSoft : Colors.transparent,
-              foregroundColor: selected ? c.accent : c.inkMuted,
-              side: BorderSide(color: selected ? c.accent : c.line),
-              minimumSize: const Size(0, SwanSpace.xl * 2),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: SwanSpace.sm, vertical: SwanSpace.sm),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(SwanRadius.sm)),
-            ),
-            icon: Icon(selected ? Icons.check_circle_rounded : icon, size: 16),
-            label: Text(text,
-                style: SwanType.caption(selected ? c.accent : c.inkMuted)),
-          ));
+        selected: selected,
+        button: true,
+        label: fullLabel,
+        child: Tooltip(
+            message: fullLabel,
+            child: TextButton.icon(
+              onPressed: disabled ? null : () => _respond(status),
+              style: TextButton.styleFrom(
+                foregroundColor: selected ? c.accent : c.inkMuted,
+                backgroundColor: selected ? c.accentSoft : Colors.transparent,
+                minimumSize: const Size(0, SwanSpace.xl * 2),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.sm),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(SwanRadius.sm)),
+              ),
+              icon:
+                  Icon(selected ? Icons.check_circle_rounded : icon, size: 16),
+              label: Text(label,
+                  style: SwanType.caption(selected ? c.accent : c.inkMuted)),
+            )),
+      );
     }
 
-    final buttons = [
-      button('attending', 'Katılacağım', Icons.check_rounded),
-      button('unavailable', 'Katılamayacağım', Icons.close_rounded)
-    ];
-    return Padding(
-        padding: const EdgeInsets.only(bottom: SwanSpace.sm),
-        child: Material(
-          color: c.surface,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          child: Padding(
-              padding: const EdgeInsets.all(SwanSpace.md),
-              child: Column(
+    final responses = Row(mainAxisSize: MainAxisSize.min, children: [
+      choice('attending', 'Varım', 'Katılacağım', Icons.check_rounded),
+      const SizedBox(width: SwanSpace.xs),
+      choice('unavailable', 'Yokum', 'Katılamayacağım', Icons.close_rounded),
+    ]);
+    final heading = Tooltip(
+        message: 'Antrenman ayrıntıları',
+        child: InkWell(
+          borderRadius: BorderRadius.circular(SwanRadius.sm),
+          onTap: () => setState(() => _details = !_details),
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(minHeight: SwanSpace.xl * 2),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    Expanded(
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                          Text(item.title,
-                              style: SwanType.body(c.ink, w: FontWeight.w700)),
-                          const SizedBox(height: SwanSpace.xs),
-                          Text(identity, style: SwanType.caption(c.inkMuted)),
-                        ])),
-                    const SizedBox(width: SwanSpace.sm),
-                    Text(when,
-                        style: SwanType.caption(c.ink, w: FontWeight.w700)),
+                  Text(_details || shortTitle.isEmpty ? item.title : shortTitle,
+                      maxLines: _details
+                          ? null
+                          : largeText
+                              ? 2
+                              : 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.body(c.ink, w: FontWeight.w600)),
+                  const SizedBox(height: SwanSpace.xs),
+                  Row(children: [
+                    Flexible(
+                        child: Text(subtitle,
+                            style: SwanType.caption(c.inkMuted))),
+                    const SizedBox(width: SwanSpace.xs),
+                    Icon(
+                        _details
+                            ? Icons.keyboard_arrow_up_rounded
+                            : Icons.keyboard_arrow_down_rounded,
+                        size: 16,
+                        color: c.inkMuted),
                   ]),
-                  if (item.place?.trim().isNotEmpty == true) ...[
-                    const SizedBox(height: SwanSpace.sm),
-                    Row(children: [
-                      Icon(Icons.location_on_outlined,
-                          size: 16, color: c.inkMuted),
-                      const SizedBox(width: SwanSpace.xs),
-                      Expanded(
-                          child: Text(item.place!,
-                              style: SwanType.caption(c.inkMuted))),
-                    ]),
-                  ],
-                  const SizedBox(height: SwanSpace.md),
-                  if (started)
-                    Text('Antrenman başladı · Yanıt süresi doldu',
-                        style: SwanType.caption(c.inkMuted))
-                  else if (MediaQuery.textScalerOf(context).scale(1) > 1.3)
-                    Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          buttons[0],
-                          const SizedBox(height: SwanSpace.sm),
-                          buttons[1]
-                        ])
-                  else
-                    Row(children: [
-                      Expanded(child: buttons[0]),
-                      const SizedBox(width: SwanSpace.sm),
-                      Expanded(child: buttons[1])
-                    ]),
-                  const SizedBox(height: SwanSpace.sm),
-                  Semantics(
-                      liveRegion: true,
-                      child: Text(
-                          _error ??
-                              (_saving
-                                  ? 'Yanıtın kaydediliyor…'
-                                  : item.response == 'attending'
-                                      ? 'Katılacağım dedin · Bu yanıt yoklama değildir.'
-                                      : item.response == 'unavailable'
-                                          ? 'Katılamayacağım dedin · Bu yanıt yoklama değildir.'
-                                          : 'Katılımını bildir · Yoklamayı antrenörün alır.'),
-                          style: SwanType.caption(
-                              _error == null ? c.inkMuted : c.danger))),
-                ],
-              )),
+                ]),
+          ),
         ));
+    return Padding(
+      padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+      child: Material(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(
+              horizontal: SwanSpace.md, vertical: SwanSpace.sm),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            if (largeText) ...[
+              heading,
+              if (!started)
+                Align(alignment: Alignment.centerRight, child: responses),
+            ] else
+              Row(children: [
+                Expanded(child: heading),
+                if (!started) ...[
+                  const SizedBox(width: SwanSpace.sm),
+                  responses
+                ],
+              ]),
+            if (_details) ...[
+              const SizedBox(height: SwanSpace.sm),
+              Text(item.clubName, style: SwanType.caption(c.inkMuted)),
+              if (item.place?.trim().isNotEmpty == true) ...[
+                const SizedBox(height: SwanSpace.xs),
+                Text(item.place!, style: SwanType.caption(c.inkMuted)),
+              ],
+              const SizedBox(height: SwanSpace.sm),
+              Text('Bu seçim katılım niyetindir; yoklamayı antrenörün alır.',
+                  style: SwanType.caption(c.inkMuted)),
+            ],
+            if (_error != null)
+              Padding(
+                  padding: const EdgeInsets.only(top: SwanSpace.sm),
+                  child: Semantics(
+                      liveRegion: true,
+                      child: Text(_error!, style: SwanType.caption(c.danger)))),
+          ]),
+        ),
+      ),
+    );
   }
 }

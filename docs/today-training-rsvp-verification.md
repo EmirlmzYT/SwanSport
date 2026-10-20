@@ -1,9 +1,11 @@
 # Bugünkü antrenman katılım kartı — 2026-10-20
 
 Ana akışta hızlı erişimin altında, yalnız ilgili sporcu/veli hesabında ve
-bugünkü planlı antrenman varsa kompakt bir kart gösterilir. Saat, varsa gerçek
-bitiş saati, kulüp/çocuk ve yer bilgisi ile Katılacağım / Katılamayacağım
-seçenekleri bulunur. Birden fazla antrenman varsa diğerleri açılabilir.
+bugünkü planlı antrenman varsa kısa bir şerit gösterilir. Ad/saat ve
+Varım / Yokum seçenekleri ilk görünümde bulunur; veli için çocuğun adı da
+korunur. Başlığa dokununca tam ad, kulüp, yer ve katılım niyeti açıklaması
+açılır. Sondaki tekrar eden “antrenman/antrenmanı” yalnız kısa görünümde
+çıkarılır; kayıt değiştirilmez. Birden fazla antrenman varsa diğerleri açılabilir.
 Yanıt önceden seçilmez; sunucu yenilemesi doğrulamadan başarı gösterilmez.
 Kaydetme sırasında düğmeler kilitlenir; hata/çakışma durumunda kart korunur.
 
@@ -36,6 +38,8 @@ Events kaydı olmayan canlı antrenman oturumuna sahte bir plan/RSVP üretilmez.
 
 - 26 mobil odaklı test geçti: yeni kart (8), hızlı erişim, feed oturum ve
   modernizasyon regresyonları. Ek gerçek fontlu açık/koyu render 2/2 geçti.
+- Sade şerit devamında kart testleri 8/8 ve açık/koyu render 2/2 tekrar geçti.
+  Normal ölçekte bölüm <140px; ayrıntılar açılmadan yer/açıklama gösterilmez.
 - Veri/veli testleri 9/9 geçti: tipli yük, UTC dönüşümü, hassas timestamp
   korunması, dar RPC adları/parametreleri ve kapalı kaynağın okunmaması.
 - 0133 gerçek 0001/0003/0033 şema kaynaklarıyla izole PostgreSQL/PGlite'da

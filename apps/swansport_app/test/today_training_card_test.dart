@@ -96,9 +96,14 @@ void main() {
       (tester) async {
     await render(tester, items: [entry()]);
     expect(find.text('18:00–19:00'), findsOneWidget);
+    expect(find.text('Spor Salonu'), findsNothing);
+    expect(
+        tester.getSize(find.byType(HomeTodayTraining)).height, lessThan(140));
+    expect(find.text('Varım'), findsOneWidget);
+    expect(find.text('Yokum'), findsOneWidget);
+    await tester.tap(find.byTooltip('Antrenman ayrıntıları'));
+    await tester.pumpAndSettle();
     expect(find.text('Spor Salonu'), findsOneWidget);
-    expect(find.text('Katılacağım'), findsOneWidget);
-    expect(find.text('Katılamayacağım'), findsOneWidget);
     expect(find.textContaining('Katılacağım dedin'), findsNothing);
     expect(tester.takeException(), isNull);
   });
@@ -113,9 +118,9 @@ void main() {
       expect(status, 'attending');
       return pending.future;
     });
-    await tester.tap(find.text('Katılacağım'));
+    await tester.tap(find.text('Varım'));
     await tester.pump();
-    await tester.tap(find.text('Katılamayacağım'));
+    await tester.tap(find.text('Yokum'));
     await tester.pump();
     expect(calls, 1);
     expect(find.textContaining('Katılacağım dedin'), findsNothing);
@@ -124,17 +129,17 @@ void main() {
     container.read(fixtureProvider.notifier).state =
         snapshot([entry(response: 'attending')]);
     await tester.pumpAndSettle();
-    expect(find.textContaining('Katılacağım dedin'), findsOneWidget);
+    expect(find.byIcon(Icons.check_circle_rounded), findsOneWidget);
   });
   testWidgets('failed or conflicting reply retains card and reports failure',
       (tester) async {
     await render(tester,
         items: [entry()],
         respond: (_, __) async => throw StateError('conflict'));
-    await tester.tap(find.text('Katılamayacağım'));
+    await tester.tap(find.text('Yokum'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Yanıt kaydedilemedi'), findsOneWidget);
-    expect(find.text('Basketbol antrenmanı'), findsOneWidget);
+    expect(find.text('Basketbol'), findsOneWidget);
     expect(find.textContaining('Katılamayacağım dedin'), findsNothing);
   });
   testWidgets('started training is read only', (tester) async {
@@ -144,7 +149,7 @@ void main() {
         respond: (_, __) async {
       calls++;
     });
-    expect(find.textContaining('Yanıt süresi doldu'), findsOneWidget);
+    expect(find.textContaining('Başladı'), findsOneWidget);
     expect(find.text('Katılacağım'), findsNothing);
     expect(calls, 0);
   });
@@ -153,7 +158,7 @@ void main() {
     await render(tester,
         parent: true,
         items: [entry(self: false), entry(id: 'two', self: false)]);
-    expect(find.text('Ada · Swan Kulübü'), findsOneWidget);
+    expect(find.text('Ada · 18:00–19:00'), findsOneWidget);
     expect(find.text('Basketbol two'), findsNothing);
     await tester.tap(find.text('1 antrenman daha'));
     await tester.pumpAndSettle();
@@ -165,7 +170,7 @@ void main() {
     final container = await render(tester, items: [entry()]);
     container.read(actorProvider.notifier).state = 'other-account';
     await tester.pump();
-    expect(find.text('Basketbol antrenmanı'), findsNothing);
+    expect(find.text('Basketbol'), findsNothing);
   });
   testWidgets('narrow dark card and large text remain bounded', (tester) async {
     tester.view.physicalSize = const Size(320, 1000);
@@ -174,7 +179,7 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
     await render(tester,
         items: [entry()], scale: 1.6, brightness: Brightness.dark);
-    expect(find.text('Katılamayacağım'), findsOneWidget);
+    expect(find.text('Yokum'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 

@@ -601,3 +601,9 @@ Sonuç: 0105–0107 canlıda, Cloudflare swanspor Production/main 2cad676/45da54
 
 
 2026-10-20 antrenman kartı teslimi: Mobil 26/26, veri+veli 9/9, açık/koyu gerçek fontlu render 2/2 ve gerçek PostgreSQL/PGlite 5/5 geçti; 0133 parse ve diff temiz. Son değişen kaynak analizinde error/warning yok (stil info var). 8080 son kodla yenilendi. docs/today-training-rsvp-verification.md kapsam/sınırları kaydeder. 0133 canlıya uygulanmadı; mevcut backend üzerinde gerçek hesapla kullanımdan önce uygulanması gerekir. Canlı/cihaz/two-session kabulü yok. Başlangıç Windows generated dosyaları korunur; Writer serbest.
+
+
+2026-10-20: Kullanıcının zarif/sade antrenman kartı talebi: tek kompakt satırda ad/saat ve Varım/Yokum seçenekleri; kulüp/yer/açıklama dokununca açılır. Veli hedef çocuğu ilk görünümde kalır. Yalnız sunum değişikliği; backend/RSVP kuralları değişmez.
+
+
+2026-10-20 sade şerit teslimi: Antrenman adı/saat ile Varım/Yokum tek kompakt satırda. Kulüp/yer/tam başlık/niyet açıklaması başlığa dokununca açılır; çocuk hedefi ilk görünümde kalır. Tekrarlayan antrenman eki yalnız kısa sunumda çıkarılır. 8/8 kart testi + 2/2 gerçek fontlu açık/koyu render geçti; normal bölüm <140px, büyük yazı/dar ekran kontrolü geçti. 8080 yenilendi. Backend ve 0133 canlı uygulama durumu değişmez. Writer serbest.
