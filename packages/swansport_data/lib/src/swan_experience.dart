@@ -185,14 +185,14 @@ class SwanExperienceService {
       .rpc<void>('set_my_swan_id_visibility', params: {'p_visibility': value});
   Future<String> createShare({String? profileId, int hours = 24}) async =>
       '${await _client.rpc<dynamic>('create_swan_id_share', params: {
-            'p_profile': profileId,
+            if (profileId != null) 'p_profile': profileId,
             'p_hours': hours
           })}';
   Future<Map<String, dynamic>> verify(String token) async => _map(
       await _client.rpc<dynamic>('verify_swan_id', params: {'p_token': token}));
   Future<int> revokeShares({String? profileId}) async =>
       (await _client.rpc<num>('revoke_my_swan_id_shares',
-              params: {'p_profile': profileId}))
+              params: {if (profileId != null) 'p_profile': profileId}))
           .toInt();
   Future<List<SwanShowcaseVideo>> videos() async {
     final rows = _maps(await _client.rpc<dynamic>('my_showcase_videos'));
