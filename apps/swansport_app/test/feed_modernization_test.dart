@@ -21,7 +21,6 @@ void main() {
     expect(header.contains('GoogleFonts'), isFalse);
     expect(header.contains('Color(0x'), isFalse);
     expect(header.contains('unreadNotificationsProvider'), isTrue);
-    expect(header.contains('unreadMessagesProvider'), isTrue);
     expect(header.contains('SwanType.navigationWordmark(c.ink)'), isTrue);
     final type = File('lib/app/design/swan_type.dart').readAsStringSync();
     expect(type.contains('grandHotel'), isFalse);
@@ -47,4 +46,33 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  testWidgets('NewsCarouselCard renders horizontal scroll list with news items', (tester) async {
+    final items = List.generate(
+      5,
+      (i) => NewsItem(
+        title: 'Haber Başlığı $i',
+        sourceName: 'Kaynak $i',
+        publishedAt: DateTime(2026, 10, 18, 12, i),
+        link: 'https://example.com/news/$i',
+      ),
+    );
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: ListView(
+            children: [
+              NewsCarouselCard(items: items, title: 'Günün Spor Gündemi'),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    expect(find.text('Günün Spor Gündemi'), findsOneWidget);
+    expect(find.text('5 Haber'), findsOneWidget);
+    expect(find.text('Haber Başlığı 0'), findsOneWidget);
+    expect(find.byType(ListView), findsNWidgets(2)); // Outer vertical and inner horizontal ListView
+    expect(tester.takeException(), isNull);
+  });
 }

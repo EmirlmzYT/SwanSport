@@ -2,16 +2,15 @@ name: Build Console Web
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - 'apps/swansport_console/**'
-      - 'packages/**'
-      - '.github/workflows/build_console_web.yml'
   workflow_dispatch:
 
 permissions:
   contents: write
+
+concurrency:
+  group: console-web-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-console:

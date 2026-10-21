@@ -7,6 +7,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
 
 /// Fişle hızlı gider girişi.
 ///
@@ -60,7 +61,6 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
               children: [
-
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
@@ -259,7 +259,8 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
                     const SizedBox(width: 6),
                     Text(
                       'Fiş Eklendi',
-                      style: SwanType.caption(palette.accent, w: FontWeight.w700),
+                      style:
+                          SwanType.caption(palette.accent, w: FontWeight.w700),
                     ),
                   ],
                 ),
@@ -557,7 +558,7 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
   }
 
   Future<void> _pick() async {
-    final picked = await pickImage();
+    final picked = await showSingleImagePicker(context);
     if (picked != null && mounted) {
       setState(() => _receipt = picked);
     }

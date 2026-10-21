@@ -9,10 +9,8 @@ import '../../../../app/design/swan_chrome.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/inbox_actions.dart';
 import '../../../../app/widgets/swan_floating_header.dart';
-import '../../../../app/widgets/action_gate.dart';
-import '../../../../app/widgets/create_sheet.dart';
 
-/// Reference-video layout: creation left, compact brand center, inbox right.
+/// Akış seçimi ve bildirimler; oluşturma ile mesajlar alt çubukta.
 class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
   const StitchFeedTopBar(
       {super.key,
@@ -36,8 +34,6 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
     final notifications = hasAccount
         ? ref.watch(unreadNotificationsProvider).valueOrNull ?? 0
         : 0;
-    final messages =
-        hasAccount ? ref.watch(unreadMessagesProvider).valueOrNull ?? 0 : 0;
     final brand = Padding(
         padding: const EdgeInsets.symmetric(horizontal: SwanSpace.xs),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
@@ -63,15 +59,6 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
           ],
         ]));
     return SwanFloatingHeader(
-      leading: SwanHeaderIconButton(
-          icon: Icons.add_rounded,
-          tooltip: 'İçerik oluştur',
-          onPressed: () async {
-            if (await requireSwanAction(context, ref, SwanAction.publish) &&
-                context.mounted) {
-              await showCreateSheet(context);
-            }
-          }),
       title: onFeedChanged == null
           ? brand
           : PopupMenuButton<bool>(
@@ -97,11 +84,6 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
             badge: notifications,
             tooltip: 'Bildirimler',
             onTap: () => Navigator.pushNamed(context, '/bildirimler')),
-        InboxIconButton(
-            icon: Icons.send_outlined,
-            badge: messages,
-            tooltip: 'Mesajlar',
-            onTap: () => Navigator.pushNamed(context, '/mesajlar')),
       ],
     );
   }

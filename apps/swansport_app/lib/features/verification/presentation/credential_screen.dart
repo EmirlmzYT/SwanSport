@@ -1,6 +1,7 @@
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'phone_verification_section.dart';
 import 'mernis_verification_section.dart';
+import 'nfc_identity_sheet.dart';
 import '../../../app/widgets/action_gate.dart';
 import '../../../app/design/swan_shape.dart';
 import 'package:file_picker/file_picker.dart';
@@ -192,6 +193,8 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
                   ),
                   const SizedBox(height: SwanSpace.lg),
                 ] else ...[
+                  _nfcVerificationCard(context),
+                  const SizedBox(height: SwanSpace.lg),
                   const MernisVerificationSection(),
                   const SizedBox(height: SwanSpace.lg),
                   Text(
@@ -376,6 +379,73 @@ class _CredentialScreenState extends ConsumerState<CredentialScreen> {
     );
 
     if (picked != null && mounted) setState(() => _sportCode = picked);
+  }
+
+  Widget _nfcVerificationCard(BuildContext context) {
+    final c = context.swan;
+    return Container(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      decoration: BoxDecoration(
+        color: c.accent.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(SwanRadius.md),
+        border: Border.all(color: c.accent.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: c.accent.withValues(alpha: 0.15),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(Icons.nfc_rounded, color: c.accent, size: 22),
+              ),
+              const SizedBox(width: SwanSpace.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'NFC ile doğrulama (hazırlanıyor)',
+                      style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                    ),
+                    Text(
+                      'Durumu gör veya belge inceleme akışıyla devam et',
+                      style: SwanType.caption(c.inkMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.md),
+          SizedBox(
+            width: double.infinity,
+            height: 42,
+            child: ElevatedButton.icon(
+              onPressed: () => showNfcIdentityVerificationSheet(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.accentFill,
+                foregroundColor: c.onAccent,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(SwanRadius.sm),
+                ),
+                elevation: 0,
+              ),
+              icon: const Icon(Icons.credit_card_rounded, size: 18),
+              label: Text(
+                'NFC doğrulama durumunu gör',
+                style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> _submit() async {

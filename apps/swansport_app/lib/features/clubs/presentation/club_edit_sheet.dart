@@ -8,8 +8,10 @@ import '../../../app/design/swan_brand.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
-import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
+import '../../../app/widgets/action_gate.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_city_picker.dart';
 
 /// Kulüp profilini düzenleme.
 ///
@@ -53,6 +55,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
   final _instagram = TextEditingController();
   final _address = TextEditingController();
   final _founded = TextEditingController();
+  CityRow? _selectedCity;
 
   String? _brand;
   late List<String> _sections = List.of(ClubSection.defaults);
@@ -71,8 +74,15 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
   @override
   void dispose() {
     for (final c in [
-      _name, _shortName, _bio, _phone, _email,
-      _website, _instagram, _address, _founded,
+      _name,
+      _shortName,
+      _bio,
+      _phone,
+      _email,
+      _website,
+      _instagram,
+      _address,
+      _founded,
     ]) {
       c.dispose();
     }
@@ -81,9 +91,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
 
   Future<void> _load() async {
     try {
-      final c = await ref
-          .read(clubConfigServiceProvider)
-          .identity(widget.clubId);
+      final c =
+          await ref.read(clubConfigServiceProvider).identity(widget.clubId);
       if (!mounted) return;
       setState(() {
         _club = c;
@@ -98,18 +107,29 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
           _instagram.text = c.instagram ?? '';
           _address.text = c.address ?? '';
           _founded.text = c.foundedYear?.toString() ?? '';
+          if (c.city != null && c.city!.isNotEmpty) {
+            _selectedCity = kTurkeyCities
+                    .where((ci) =>
+                        ci.name.toLowerCase() == c.city!.toLowerCase())
+                    .firstOrNull ??
+                CityRow(code: '', name: c.city!);
+          }
           _brand = c.brandColor;
           _sections = List.of(c.effectiveSections);
         }
       });
     } catch (e) {
-      if (mounted) setState(() { _error = '$e'; _loading = false; });
+      if (mounted)
+        setState(() {
+          _error = '$e';
+          _loading = false;
+        });
     }
   }
 
   Future<void> _pick(bool cover) async {
     try {
-      final picked = await pickImage();
+      final picked = await showSingleImagePicker(context);
       if (picked == null || !mounted) return;
       setState(() {
         if (cover) {
@@ -133,6 +153,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
         widget.clubId,
         name: _name.text,
         shortName: _shortName.text,
+        city: _selectedCity?.name,
         bio: _bio.text,
         phone: _phone.text,
         email: _email.text,
@@ -163,7 +184,12 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
       ref.invalidate(clubSocialProfileProvider(widget.clubId));
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
-      _snack('Kaydedilemedi: $e');
+      final req = VerificationRequirement.detect(e);
+      if (req != null && mounted) {
+        showVerificationRequiredSheet(context, requirement: req);
+      } else {
+        _snack('Kaydedilemedi: ${cleanPostgresMessage(e)}');
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -194,8 +220,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
           child: _loading
               ? const Padding(
                   padding: EdgeInsets.all(SwanSpace.xl),
-                  child: Center(
-                      child: CircularProgressIndicator(strokeWidth: 2)),
+                  child:
+                      Center(child: CircularProgressIndicator(strokeWidth: 2)),
                 )
               : _error != null
                   ? Padding(
@@ -229,8 +255,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
               onTap: _save,
               child: Container(
                 height: 34,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
+                padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   // Kaydet düğmesi TEAL — marka rengi değil. Teal bu
@@ -240,8 +265,7 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
                   borderRadius: BorderRadius.circular(SwanRadius.sm),
                 ),
                 child: Text('Kaydet',
-                    style:
-                        SwanType.caption(Colors.white, w: FontWeight.w800)),
+                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
               ),
             ),
         ]),
@@ -274,12 +298,20 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
             hint: '1998', keyboard: TextInputType.number),
 
         const SizedBox(height: SwanSpace.xl),
-        _sectionTitle(c, 'İletişim'),
+        _sectionTitle(c, 'İletişim & Konum'),
+        SwanCityFormField(
+          label: 'Şehir (81 İl)',
+          hint: 'Şehir seçiniz',
+          selectedCity: _selectedCity?.name,
+          selectedCode: _selectedCity?.code,
+          onChanged: (city) => setState(() => _selectedCity = city),
+        ),
+        const SizedBox(height: SwanSpace.md),
         _field(c, 'Telefon', _phone, keyboard: TextInputType.phone),
         _field(c, 'E-posta', _email, keyboard: TextInputType.emailAddress),
         _field(c, 'Web sitesi', _website, hint: 'kulup.org'),
         _field(c, 'Instagram', _instagram, hint: 'kulupadi', prefix: '@'),
-        _field(c, 'Adres', _address, maxLines: 2),
+        _field(c, 'Açık Adres', _address, maxLines: 2),
 
         const SizedBox(height: SwanSpace.xl),
         _sectionTitle(c, 'Profil bölümleri'),
@@ -389,8 +421,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
       ),
       const SizedBox(height: 8),
       Wrap(spacing: 8, runSpacing: 8, children: [
-        _swatch(context, null, _brand == null,
-            () => setState(() => _brand = null)),
+        _swatch(
+            context, null, _brand == null, () => setState(() => _brand = null)),
         for (final hex in kBrandSwatches)
           _swatch(context, hex, _brand?.toUpperCase() == hex,
               () => setState(() => _brand = hex)),
@@ -435,8 +467,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
       for (var i = 0; i < _sections.length; i++)
         Container(
           margin: const EdgeInsets.only(bottom: 6),
-          padding: const EdgeInsets.symmetric(
-              horizontal: SwanSpace.md, vertical: 8),
+          padding:
+              const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 8),
           decoration: BoxDecoration(
             color: c.surface,
             borderRadius: BorderRadius.circular(SwanRadius.sm),
@@ -493,8 +525,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
               GestureDetector(
                 onTap: () => setState(() => _sections.add(k)),
                 child: Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 6),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
                     color: c.surfaceAlt,
                     borderRadius: BorderRadius.circular(999),
@@ -543,6 +575,9 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
   }
 
   /// `post-media` public bucket; yol doğrudan URL'e çevriliyor.
-  String _publicUrl(String path) =>
-      ref.read(supabaseClientProvider).storage.from('post-media').getPublicUrl(path);
+  String _publicUrl(String path) => ref
+      .read(supabaseClientProvider)
+      .storage
+      .from('post-media')
+      .getPublicUrl(path);
 }

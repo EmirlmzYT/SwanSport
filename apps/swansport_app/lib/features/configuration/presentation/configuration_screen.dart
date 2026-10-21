@@ -9,6 +9,7 @@ import '../../../app/widgets/quick_form.dart';
 import 'configuration_module_args.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
+import '../../clubs/presentation/club_edit_sheet.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
 
@@ -171,28 +172,11 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
   }
 
   Future<void> _editIdentity(ClubIdentity c) async {
-    final name = FormField_('Kulüp adı', hint: 'Kulüp')
-      ..controller.text = c.name;
-    final short = FormField_('Kısa ad', hint: 'KSK', required: false)
-      ..controller.text = c.shortName ?? '';
-    final city = FormField_('Şehir', hint: 'Konya', required: false)
-      ..controller.text = c.city ?? '';
-
-    await showQuickForm(
-      context,
-      title: 'Kulüp bilgileri',
-      fields: [name, short, city],
-      onSubmit: () => _guard(() async {
-        await ref.read(clubConfigServiceProvider).updateIdentity(
-              c.id,
-              name: name.value,
-              shortName: short.value,
-              city: city.value,
-            );
-        ref.invalidate(clubIdentityProvider);
-        ref.invalidate(myClubsProvider);
-      }, 'Kulüp bilgileri güncellendi'),
-    );
+    final updated = await showClubEditSheet(context, c.id);
+    if (updated == true) {
+      ref.invalidate(clubIdentityProvider);
+      ref.invalidate(myClubsProvider);
+    }
   }
 
   // ------------------------------- üyeler ---------------------------------
@@ -362,6 +346,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
           .read(clubConfigServiceProvider)
           .setMemberRole(m.membershipId, role, coachLevel: level);
       ref.invalidate(clubMembersAdminProvider);
+      ref.invalidateSwanAccess();
     }, 'Rol güncellendi');
   }
 
@@ -386,6 +371,7 @@ class _ConfigurationScreenState extends ConsumerState<ConfigurationScreen> {
     await _guard(() async {
       await ref.read(clubConfigServiceProvider).removeMember(m.membershipId);
       ref.invalidate(clubMembersAdminProvider);
+      ref.invalidateSwanAccess();
     }, 'Üye çıkarıldı');
   }
 

@@ -69,50 +69,95 @@ class AthleteHomeScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 132),
                 children: [
                   // Üst bar
-                  Row(children: [
-                    GradientAvatar(initials: initials, size: 46),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(profile?.fullName ?? 'Sporcu',
-                              style: SwanType.bodySm(ink, w: FontWeight.w800)),
-                          Text(
-                              club?.name != null ? 'Sporcu · ${club!.name}' : 'Sporcu',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-                        ],
+                  Row(
+                    children: [
+                      GradientAvatar(initials: initials, size: 46),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              profile?.fullName ?? 'Sporcu',
+                              style: SwanType.bodySm(ink, w: FontWeight.w800),
+                            ),
+                            Text(
+                              club?.name != null
+                                  ? 'Sporcu · ${club!.name}'
+                                  : 'Sporcu',
+                              style: SwanType.caption(
+                                SwanColors.textSecondary,
+                                w: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const InboxActions(),
-                  ]),
+                      const InboxActions(),
+                    ],
+                  ),
                   const SizedBox(height: 18),
 
-                  Text(_todayLabel().toUpperCase(),
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+                  Text(
+                    _todayLabel().toUpperCase(),
+                    style: SwanType.caption(
+                      SwanColors.textSecondary,
+                      w: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 4),
-                  Text('Merhaba, $name',
-                      style: SwanType.h2(ink)),
+                  Text('Merhaba, $name', style: SwanType.h2(ink)),
                   const SizedBox(height: 16),
 
                   // Sıradaki antrenman/maç — hero
                   events.when(
                     loading: () => _heroSkeleton(surf, line),
-                    error: (_, __) => _heroEmpty(isDark, 'Program yüklenemedi'),
+                    error: (_, __) => _heroEmpty(
+                      isDark,
+                      'Program yüklenemedi',
+                      'Bağlantını kontrol edip tekrar dene.',
+                      actionLabel: 'Tekrar dene',
+                      onAction: () => ref.invalidate(eventsProvider),
+                    ),
                     data: (list) {
                       final now = DateTime.now();
                       final upcoming = list
-                          .where((e) => e.startsAt
-                              .isAfter(now.subtract(const Duration(hours: 3))))
+                          .where(
+                            (e) => e.startsAt.isAfter(
+                              now.subtract(const Duration(hours: 3)),
+                            ),
+                          )
                           .toList()
                         ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
                       if (upcoming.isEmpty) {
-                        return _heroEmpty(isDark, 'Yaklaşan antrenman yok');
+                        return _heroEmpty(
+                          isDark,
+                          'Yaklaşan etkinlik yok',
+                          'Yeni etkinlikler eklendiğinde burada görünür.',
+                          actionLabel: 'Takvimi aç',
+                          onAction: () =>
+                              Navigator.pushNamed(context, '/calendar'),
+                        );
                       }
-                      return _hero(upcoming.first);
+                      return _hero(context, upcoming.first);
                     },
                   ),
                   const SizedBox(height: 20),
+
+                  if (ref.watch(
+                      featureEnabledProvider(FeatureFlags.eventPreparation)))
+                    _preparationCard(context, ref, events.valueOrNull),
+                  if (ref.watch(
+                      featureEnabledProvider(FeatureFlags.swanAssistant))) ...[
+                    const SizedBox(height: 10),
+                    _assistantCard(context),
+                  ],
+                  if (ref
+                      .watch(featureEnabledProvider(FeatureFlags.swanId))) ...[
+                    const SizedBox(height: 10),
+                    _swanIdCard(context),
+                  ],
+                  const SizedBox(height: 10),
 
                   // Brief §10: her bölüm kısa özet + "Tümünü gör".
                   // Eskiden burada dört düğmelik bir kısayol ızgarası vardı;
@@ -134,10 +179,15 @@ class AthleteHomeScreen extends ConsumerWidget {
                     child: _sum(events, (list) {
                       final now = DateTime.now();
                       final up = (list
-                              .where((e) => e.startsAt.isAfter(
-                                  now.subtract(const Duration(hours: 3))))
+                              .where(
+                                (e) => e.startsAt.isAfter(
+                                  now.subtract(const Duration(hours: 3)),
+                                ),
+                              )
                               .toList()
-                            ..sort((a, b) => a.startsAt.compareTo(b.startsAt)))
+                            ..sort(
+                              (a, b) => a.startsAt.compareTo(b.startsAt),
+                            ))
                           .skip(1)
                           .take(3)
                           .toList();
@@ -145,10 +195,17 @@ class AthleteHomeScreen extends ConsumerWidget {
                         return SummaryLine.empty('Başka etkinlik yok');
                       }
                       return Column(
-                          children: up
-                              .map((e) => _agenda(isDark, e.startsAt, e.title,
-                                  e.place ?? _kindLabel(e.kind)))
-                              .toList());
+                        children: up
+                            .map(
+                              (e) => _agenda(
+                                isDark,
+                                e.startsAt,
+                                e.title,
+                                e.place ?? _kindLabel(e.kind),
+                              ),
+                            )
+                            .toList(),
+                      );
                     }),
                   ),
 
@@ -165,8 +222,8 @@ class AthleteHomeScreen extends ConsumerWidget {
                   // sporcuya bütün kadronun katılımını göstermek olurdu.
                   SummarySection(
                     title: 'Gelişim',
-                    onSeeAll: () => Navigator.pushNamed(
-                        context, '/performance-analytics'),
+                    onSeeAll: () =>
+                        Navigator.pushNamed(context, '/performance-analytics'),
                     child: _sum(card, (c) {
                       if (!c.hasData) {
                         return SummaryLine.empty('Henüz kayıt yok');
@@ -185,9 +242,8 @@ class AthleteHomeScreen extends ConsumerWidget {
                         // %80 sportif bir eşik değil, "düzenli sayılır"
                         // sınırı. Altını kırmızı yapmıyoruz: sporcuyu kendi
                         // ana sayfasında suçlamak işe yaramıyor.
-                        tone: c.attendancePct >= 80
-                            ? context.swan.success
-                            : null,
+                        tone:
+                            c.attendancePct >= 80 ? context.swan.success : null,
                       );
                     }),
                   ),
@@ -243,9 +299,12 @@ class AthleteHomeScreen extends ConsumerWidget {
                     onSeeAll: () => Navigator.pushNamed(context, '/documents'),
                     child: _sum(docs, (list) {
                       final mine = list
-                          .where((d) =>
-                              d.ownerId == profile?.id ||
-                              (myAthlete != null && d.ownerId == myAthlete.id))
+                          .where(
+                            (d) =>
+                                d.ownerId == profile?.id ||
+                                (myAthlete != null &&
+                                    d.ownerId == myAthlete.id),
+                          )
                           .toList();
                       if (mine.isEmpty) {
                         return SummaryLine.empty('Belge yüklenmemiş');
@@ -300,11 +359,14 @@ class AthleteHomeScreen extends ConsumerWidget {
                     child: _sum(anns, (list) {
                       if (list.isEmpty) return SummaryLine.empty('Duyuru yok');
                       return Column(
-                          children: list
-                              .take(3)
-                              .map((a) =>
-                                  _annCard(isDark, a.title, a.body, a.pinned))
-                              .toList());
+                        children: list
+                            .take(3)
+                            .map(
+                              (a) =>
+                                  _annCard(isDark, a.title, a.body, a.pinned),
+                            )
+                            .toList(),
+                      );
                     }),
                   ),
                 ],
@@ -323,77 +385,125 @@ class AthleteHomeScreen extends ConsumerWidget {
   /// bir bölüm ile yüklenememiş bir bölüm kullanıcı için aynı şey değil.
   Widget _sum<T>(AsyncValue<T> v, Widget Function(T) build) => v.when(
         loading: () => const SummaryLine(
-            icon: Icons.hourglass_empty_rounded, text: 'Yükleniyor…'),
+          icon: Icons.hourglass_empty_rounded,
+          text: 'Yükleniyor…',
+        ),
         error: (_, __) => const SummaryLine(
             icon: Icons.cloud_off_rounded, text: 'Yüklenemedi'),
         data: build,
       );
 
   // ------------------------------------------------------------- parçalar
-  Widget _hero(EventRow e) {
+  Widget _hero(BuildContext context, EventRow e) {
     final d = e.startsAt;
     final hm =
         '${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [kTealBright, kTeal, kTealDeep],
-        ),
+    return Semantics(
+      button: true,
+      label: 'Sıradaki etkinlik: ${e.title}. Takvimi aç',
+      child: InkWell(
+        onTap: () => Navigator.pushNamed(context, '/calendar'),
         borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-            color: kTeal.withValues(alpha: .3),
-            blurRadius: 22,
-            offset: const Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: .18),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text('SIRADAKİ · ${_kindLabel(e.kind).toUpperCase()}',
-                  style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+        child: Container(
+          padding: const EdgeInsets.all(18),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [kTealBright, kTeal, kTealDeep],
             ),
-            const Spacer(),
-            const Icon(Icons.sports_rounded, color: Colors.white, size: 20),
-          ]),
-          const SizedBox(height: 16),
-          Text(e.title, style: SwanType.h2(Colors.white)),
-          const SizedBox(height: 6),
-          Row(children: [
-            const Icon(Icons.schedule_rounded, size: 15, color: Colors.white70),
-            const SizedBox(width: 6),
-            Text('${_dayLabel(d)} · $hm',
-                style: SwanType.caption(Colors.white, w: FontWeight.w600)),
-            const SizedBox(width: 14),
-            if (e.place != null) ...[
-              const Icon(Icons.place_rounded, size: 15, color: Colors.white70),
-              const SizedBox(width: 6),
-              Flexible(
-                child: Text(e.place!,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(Colors.white, w: FontWeight.w600)),
+            borderRadius: BorderRadius.circular(22),
+            boxShadow: [
+              BoxShadow(
+                color: kTeal.withValues(alpha: .3),
+                blurRadius: 22,
+                offset: const Offset(0, 12),
               ),
             ],
-          ]),
-        ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: .18),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'SIRADAKİ · ${_kindLabel(e.kind).toUpperCase()}',
+                      style: SwanType.caption(Colors.white, w: FontWeight.w800),
+                    ),
+                  ),
+                  const Spacer(),
+                  const Icon(
+                    Icons.sports_rounded,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text(e.title, style: SwanType.h2(Colors.white)),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  const Icon(
+                    Icons.schedule_rounded,
+                    size: 15,
+                    color: Colors.white70,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${_dayLabel(d)} · $hm',
+                    style: SwanType.caption(Colors.white, w: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 14),
+                  if (e.place != null) ...[
+                    const Icon(
+                      Icons.place_rounded,
+                      size: 15,
+                      color: Colors.white70,
+                    ),
+                    const SizedBox(width: 6),
+                    Flexible(
+                      child: Text(
+                        e.place!,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.caption(
+                          Colors.white,
+                          w: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+              const SizedBox(height: 14),
+              Text(
+                'Takvimi aç  →',
+                style: SwanType.caption(Colors.white, w: FontWeight.w700),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  Widget _heroEmpty(bool isDark, String text) {
+  Widget _heroEmpty(
+    bool isDark,
+    String text,
+    String description, {
+    required String actionLabel,
+    required VoidCallback onAction,
+  }) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -404,29 +514,38 @@ class AthleteHomeScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(22),
         border: Border.all(color: line),
       ),
-      child: Row(children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
               color: kTeal.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(14)),
-          child: const Icon(Icons.event_available_rounded,
-              color: kTeal, size: 22),
-        ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(text, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-              const SizedBox(height: 2),
-              Text('Antrenörün program eklediğinde burada görürsün.',
-                  style: SwanType.caption(SwanColors.textSecondary)),
-            ],
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: const Icon(
+              Icons.event_available_rounded,
+              color: kTeal,
+              size: 22,
+            ),
           ),
-        ),
-      ]),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(text, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                const SizedBox(height: 2),
+                Text(
+                  description,
+                  style: SwanType.caption(SwanColors.textSecondary),
+                ),
+                TextButton(onPressed: onAction, child: Text(actionLabel)),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -438,7 +557,71 @@ class AthleteHomeScreen extends ConsumerWidget {
           border: Border.all(color: line),
         ),
         child: const Center(
-            child: CircularProgressIndicator(color: kTeal, strokeWidth: 2)),
+          child: CircularProgressIndicator(color: kTeal, strokeWidth: 2),
+        ),
+      );
+
+  Widget _preparationCard(
+      BuildContext context, WidgetRef ref, List<EventRow>? events) {
+    final now = DateTime.now();
+    final upcoming = (events ?? const <EventRow>[])
+        .where((e) => e.startsAt.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+    if (upcoming.isEmpty) return const SizedBox.shrink();
+    return ref.watch(eventPreparationProvider(upcoming.first.id)).when(
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (p) => Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: context.swan.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: context.swan.line),
+            ),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Hazırlık kartı',
+                  style: SwanType.bodySm(context.swan.ink, w: FontWeight.w800)),
+              const SizedBox(height: 8),
+              if (p.meetingAt != null)
+                Text(
+                    'Buluşma: ${_dayLabel(p.meetingAt!)} · ${p.meetingAt!.hour.toString().padLeft(2, '0')}:${p.meetingAt!.minute.toString().padLeft(2, '0')}'),
+              if (p.equipment.isNotEmpty)
+                Text('Yanına al: ${p.equipment.join(', ')}'),
+              if (p.kitNote != null) Text('Kıyafet: ${p.kitNote}'),
+              if (p.coachNote != null) Text(p.coachNote!),
+              const SizedBox(height: 8),
+              TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/calendar'),
+                child: const Text('Etkinliği aç'),
+              ),
+            ]),
+          ),
+        );
+  }
+
+  Widget _assistantCard(BuildContext context) => ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        tileColor: context.swan.surface,
+        leading: const Icon(Icons.assistant_rounded, color: kTeal),
+        title: Text('Swan Asistan',
+            style: SwanType.bodySm(context.swan.ink, w: FontWeight.w800)),
+        subtitle:
+            const Text('Program, belge ve Swan ID sorularında yardımcı olur.'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => Navigator.pushNamed(context, '/swan-asistan'),
+      );
+
+  Widget _swanIdCard(BuildContext context) => ListTile(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        tileColor: context.swan.surface,
+        leading: const Icon(Icons.qr_code_2_rounded, color: kTeal),
+        title: Text('Swan ID',
+            style: SwanType.bodySm(context.swan.ink, w: FontWeight.w800)),
+        subtitle: const Text('Doğrulanmış spor kimliğini ve gelişimini aç.'),
+        trailing: const Icon(Icons.chevron_right_rounded),
+        onTap: () => Navigator.pushNamed(context, '/swan-id'),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {
@@ -451,32 +634,37 @@ class AthleteHomeScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line)),
-      child: Row(children: [
-        Container(
-          width: 46,
-          height: 46,
-          decoration: BoxDecoration(
+        color: surf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 46,
+            height: 46,
+            decoration: BoxDecoration(
               color: kTeal.withValues(alpha: .10),
-              borderRadius: BorderRadius.circular(12)),
-          alignment: Alignment.center,
-          child: Text(hm, style: SwanType.h3(kTeal)),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
-              Text('${_dayLabel(t)} · $place',
-                  style:
-                      SwanType.caption(SwanColors.textSecondary)),
-            ],
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(hm, style: SwanType.h3(kTeal)),
           ),
-        ),
-      ]),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                Text(
+                  '${_dayLabel(t)} · $place',
+                  style: SwanType.caption(SwanColors.textSecondary),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -488,34 +676,40 @@ class AthleteHomeScreen extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(13),
       decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: line)),
+        color: surf,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: line),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(children: [
-            if (pinned) ...[
-              const Icon(Icons.push_pin_rounded, size: 14, color: kCoral),
-              const SizedBox(width: 6),
-            ],
-            Expanded(
-              child: Text(title,
+          Row(
+            children: [
+              if (pinned) ...[
+                const Icon(Icons.push_pin_rounded, size: 14, color: kCoral),
+                const SizedBox(width: 6),
+              ],
+              Expanded(
+                child: Text(
+                  title,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
-            ),
-          ]),
+                  style: SwanType.bodySm(ink, w: FontWeight.w800),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 4),
-          Text(body,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: SwanType.caption(SwanColors.textSecondary)),
+          Text(
+            body,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: SwanType.caption(SwanColors.textSecondary),
+          ),
         ],
       ),
     );
   }
-
 
   // ------------------------------------------------------------- yardımcılar
   String _todayLabel() {
@@ -541,11 +735,27 @@ class AthleteHomeScreen extends ConsumerWidget {
       };
 
   String _month(int m) => const [
-        'Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz',
-        'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'
+        'Oca',
+        'Şub',
+        'Mar',
+        'Nis',
+        'May',
+        'Haz',
+        'Tem',
+        'Ağu',
+        'Eyl',
+        'Eki',
+        'Kas',
+        'Ara',
       ][m - 1];
 
   String _weekday(int w) => const [
-        'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi', 'Pazar'
+        'Pazartesi',
+        'Salı',
+        'Çarşamba',
+        'Perşembe',
+        'Cuma',
+        'Cumartesi',
+        'Pazar',
       ][w - 1];
 }

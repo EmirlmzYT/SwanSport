@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/media/image_pick.dart';
+import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
@@ -62,7 +63,7 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
   }
 
   Future<void> _pick() async {
-    final picked = await pickImage();
+    final picked = await showSingleImagePicker(context);
     if (picked != null && mounted) setState(() => _image = picked);
   }
 
@@ -72,7 +73,8 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
       return;
     }
     if (_isSale && _price.text.trim().isNotEmpty && _parsedPrice == null) {
-      setState(() => _error = 'Fiyatı anlayamadım — örnek: 1250 ya da 1.250,50');
+      setState(
+          () => _error = 'Fiyatı anlayamadım — örnek: 1250 ya da 1.250,50');
       return;
     }
 
@@ -122,12 +124,12 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    final field = isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA);
+    final field =
+        isDark ? SwanPalette.dark.surfaceAlt : const Color(0xFFF4F7FA);
 
     InputDecoration deco(String hint) => InputDecoration(
           hintText: hint,
-          hintStyle:
-              SwanType.bodySm(SwanColors.textSecondary),
+          hintStyle: SwanType.bodySm(SwanColors.textSecondary),
           filled: true,
           fillColor: field,
           contentPadding:
@@ -156,8 +158,8 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
         color: surf,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      padding: EdgeInsets.fromLTRB(20, 18, 20,
-          20 + MediaQuery.of(context).viewInsets.bottom),
+      padding: EdgeInsets.fromLTRB(
+          20, 18, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
       child: SingleChildScrollView(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           Container(
@@ -168,7 +170,6 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
           ),
           const SizedBox(height: 14),
           Text(widget.kind.label, style: SwanType.h3(ink)),
-
           label('Başlık'),
           TextField(
             controller: _title,
@@ -176,7 +177,6 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
             decoration: deco(
                 _isSale ? '5 kulvar şamandırası' : 'İkinci el kürek arıyoruz'),
           ),
-
           if (_isSale) ...[
             label('Fiyat'),
             TextField(
@@ -190,32 +190,31 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
               decoration: deco('Boş bırakırsan "Pazarlıklı" görünür'),
             ),
           ],
-
           label('Durum'),
           Row(children: [
             for (final c in ListingCondition.values) ...[
               Expanded(
                 child: GestureDetector(
-                  onTap: () => setState(
-                      () => _condition = _condition == c ? null : c),
+                  onTap: () =>
+                      setState(() => _condition = _condition == c ? null : c),
                   child: Container(
                     height: 42,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: _condition == c ? kTeal : field,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                          color: _condition == c ? kTeal : line),
+                      border: Border.all(color: _condition == c ? kTeal : line),
                     ),
                     child: Text(c.label,
-                        style: SwanType.bodySm(_condition == c ? Colors.white : ink, w: FontWeight.w700)),
+                        style: SwanType.bodySm(
+                            _condition == c ? Colors.white : ink,
+                            w: FontWeight.w700)),
                   ),
                 ),
               ),
               if (c != ListingCondition.values.last) const SizedBox(width: 10),
             ],
           ]),
-
           label('Açıklama'),
           TextField(
             controller: _body,
@@ -223,7 +222,6 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
             style: SwanType.bodySm(ink, w: FontWeight.w600),
             decoration: deco('Durumu, kaç yıllık, neden satılıyor…'),
           ),
-
           label('Fotoğraf'),
           GestureDetector(
             onTap: _busy ? null : _pick,
@@ -242,19 +240,19 @@ class _EquipmentListingSheetState extends ConsumerState<EquipmentListingSheet> {
                           size: 18, color: SwanColors.textSecondary),
                       const SizedBox(width: 8),
                       Text('Fotoğraf ekle',
-                          style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w600)),
+                          style: SwanType.bodySm(SwanColors.textSecondary,
+                              w: FontWeight.w600)),
                     ])
                   : Image.memory(_image!.bytes,
                       fit: BoxFit.cover, width: double.infinity),
             ),
           ),
-
           if (_error != null) ...[
             const SizedBox(height: 14),
             Text(_error!,
-                style: SwanType.caption(const Color(0xFFD64545), w: FontWeight.w600)),
+                style: SwanType.caption(const Color(0xFFD64545),
+                    w: FontWeight.w600)),
           ],
-
           const SizedBox(height: 20),
           GestureDetector(
             onTap: _busy ? null : _submit,

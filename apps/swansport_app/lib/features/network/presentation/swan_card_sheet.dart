@@ -54,10 +54,10 @@ class _SwanCard extends ConsumerWidget {
   final String? subtitle;
   final String? avatarUrl;
 
-  /// Kart, uygulamanın herkese açık adresine götürür.
+  /// Kamera bunu standart web bağlantısı olarak tanır. Mobil uygulama bu alan
+  /// adını sahiplenir; uygulama kurulu değilse web görünümü yedek olarak açılır.
   String get _link =>
-      'https://swansport.pages.dev/#/${isClub ? "kulup-profil" : "profil"}/$id';
-
+      'https://swansport.pages.dev/#/${isClub ? "kulup-profil" : "profil"}?id=${Uri.encodeQueryComponent(id)}';
 
   /// Kart üstündeki kariyer şeridi.
   ///
@@ -85,13 +85,10 @@ class _SwanCard extends ConsumerWidget {
             for (final it in items)
               Column(children: [
                 Text(it.$1,
-                    style: SwanType.h3(Colors.white)
-                        .copyWith(fontFeatures: const [
-                      FontFeature.tabularFigures()
-                    ])),
+                    style: SwanType.h3(Colors.white).copyWith(
+                        fontFeatures: const [FontFeature.tabularFigures()])),
                 Text(it.$2,
-                    style: SwanType.caption(
-                        Colors.white.withValues(alpha: .65),
+                    style: SwanType.caption(Colors.white.withValues(alpha: .65),
                         w: FontWeight.w600)),
               ]),
           ],
@@ -99,9 +96,7 @@ class _SwanCard extends ConsumerWidget {
         if (card.teamName != null || card.clubName != null) ...[
           const SizedBox(height: 10),
           Text(
-            [card.clubName, card.teamName]
-                .whereType<String>()
-                .join(' · '),
+            [card.clubName, card.teamName].whereType<String>().join(' · '),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: SwanType.caption(Colors.white.withValues(alpha: .7),
@@ -161,7 +156,9 @@ class _SwanCard extends ConsumerWidget {
                       Text(subtitle!,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: SwanType.caption(Colors.white.withValues(alpha: .75), w: FontWeight.w600)),
+                          style: SwanType.caption(
+                              Colors.white.withValues(alpha: .75),
+                              w: FontWeight.w600)),
                   ],
                 ),
               ),
@@ -196,8 +193,7 @@ class _SwanCard extends ConsumerWidget {
             ),
             const SizedBox(height: 14),
             Text('SwanSport',
-                style: SwanType.caption(
-                    Colors.white.withValues(alpha: .6),
+                style: SwanType.caption(Colors.white.withValues(alpha: .6),
                     w: FontWeight.w800)),
           ]),
         ),

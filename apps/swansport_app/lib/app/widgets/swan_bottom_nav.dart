@@ -81,6 +81,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
     final myId = ref.watch(currentProfileProvider).valueOrNull?.id;
+    final unreadMessages = ref.watch(unreadMessagesProvider).valueOrNull ?? 0;
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
     final chrome = ScrollChromeScope.maybeOf(context);
     final compact = chrome?.compact == true && _scrub == null;
@@ -185,6 +186,7 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
                             ? targets[i].activeIcon
                             : targets[i].inactiveIcon,
                         label: targets[i].label,
+                        badge: i == 2 ? unreadMessages : 0,
                         active: _scrub == null
                             ? route == targets[i].route
                             : _scrub == i,
@@ -236,11 +238,13 @@ class _Tab extends StatelessWidget {
       required this.label,
       required this.active,
       required this.onTap,
+      this.badge = 0,
       this.scrubbing = false});
   final IconData icon;
   final String label;
   final bool active;
   final VoidCallback onTap;
+  final int badge;
   final bool scrubbing;
 
   @override
@@ -250,7 +254,7 @@ class _Tab extends StatelessWidget {
         ? Duration.zero
         : SwanChrome.duration;
     return Semantics(
-      label: label,
+      label: badge > 0 ? '$label, $badge okunmamış' : label,
       button: true,
       selected: active,
       onTap: onTap,
@@ -280,9 +284,28 @@ class _Tab extends StatelessWidget {
                         color: active
                             ? c.accentSoft
                             : c.surface.withValues(alpha: 0)),
-                    child: Icon(icon,
-                        size: SwanChrome.iconSize,
-                        color: active ? c.accent : c.ink),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      clipBehavior: Clip.none,
+                      children: [
+                        Icon(icon,
+                            size: SwanChrome.iconSize,
+                            color: active ? c.accent : c.ink),
+                        if (badge > 0)
+                          Positioned(
+                            top: 5,
+                            right: 5,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: c.danger,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
                 ),
               )),

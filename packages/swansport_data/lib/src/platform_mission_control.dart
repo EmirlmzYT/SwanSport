@@ -209,7 +209,7 @@ class PlatformMissionControlService {
     return rows.map((row) => PlatformAuditLog.fromMap(row)).toList();
   }
   Future<LaunchWaitlistSummary> waitlistSummary() async => LaunchWaitlistSummary.fromMap(
-      Map<String, dynamic>.from(await _client.rpc('public_waitlist_summary') as Map));
+      Map<String, dynamic>.from(await _client.rpc<dynamic>('public_waitlist_summary') as Map));
   Future<List<LaunchWaitlistEntry>> waitlistEntries({int limit = 100, int offset = 0}) async {
     if (limit < 1 || limit > 500 || offset < 0) throw ArgumentError('Invalid waitlist page');
     final rows = await _client.from('launch_waitlist').select()
@@ -218,7 +218,7 @@ class PlatformMissionControlService {
     return rows.map((row) => LaunchWaitlistEntry.fromMap(row)).toList();
   }
   Future<int> markWaitlistNotified({List<String>? emails}) async {
-    final res = await _client.rpc('mark_launch_waitlist_notified', params: {
+    final res = await _client.rpc<dynamic>('mark_launch_waitlist_notified', params: {
       'p_emails': emails,
     });
     onWrite?.call();

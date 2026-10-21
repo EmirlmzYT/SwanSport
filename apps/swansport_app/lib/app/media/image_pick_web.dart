@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:js_interop';
-import 'dart:typed_data';
 
 import 'package:web/web.dart' as web;
 
@@ -19,54 +18,48 @@ const double _jpegQuality = 0.85;
 /// HEIC görmeyince fotoğrafı otomatik olarak JPEG'e çevirerek verir. Ayrıca
 /// seçilen her görsel tuvale çizilip yeniden JPEG olarak kodlanır; bu hem
 /// biçim sorunlarını bitirir hem de dosya boyutunu ciddi şekilde düşürür.
-Future<PickedImage?> pickImage() async {
-  final input =
-      web.document.createElement('input') as web.HTMLInputElement
-        ..type = 'file'
-        ..accept = 'image/jpeg,image/png,image/webp'
-        ..multiple = false
-        ..style.display = 'none';
-
+Future<List<PickedImage>> pickImages({
+  required ImagePickSource source,
+  required int limit,
+}) async {
+  final input = web.HTMLInputElement()
+    ..type = 'file'
+    ..accept = 'image/jpeg,image/png,image/webp'
+    ..multiple = source == ImagePickSource.gallery && limit > 1
+    ..style.display = 'none';
+  if (source == ImagePickSource.camera) {
+    input.setAttribute('capture', 'environment');
+  }
   web.document.body?.append(input);
-
-  final completer = Completer<PickedImage?>();
-
-  void finish(PickedImage? result) {
-    if (!completer.isCompleted) completer.complete(result);
+  final completer = Completer<List<PickedImage>>();
+  void finish(List<PickedImage> images) {
+    if (!completer.isCompleted) completer.complete(images);
     input.remove();
   }
 
-  // NOT: `toJS` yalnızca void dönen işlevleri kabul eder; bu yüzden dinleyici
-  // eşzamanlı, asıl iş ayrı bir async işlevde yapılır.
-  Future<void> handleFile(web.File file) async {
+  Future<void> readSelection() async {
     try {
-      finish(await _toJpeg(file));
-    } catch (_) {
-      // Dönüştürme başarısızsa ham baytlarla devam et.
-      try {
-        final bytes = await _readBytes(file);
-        finish(PickedImage(bytes: bytes, name: file.name));
-      } catch (_) {
-        finish(null);
+      final files = input.files;
+      final images = <PickedImage>[];
+      if (files != null) {
+        for (var i = 0; i < files.length && i < limit; i++) {
+          final file = files.item(i);
+          if (file != null) images.add(await _toJpeg(file));
+        }
       }
+      finish(images);
+    } catch (error, stack) {
+      input.remove();
+      if (!completer.isCompleted) completer.completeError(error, stack);
     }
   }
 
-  void onChange(web.Event _) {
-    final files = input.files;
-    final file = (files == null || files.length == 0) ? null : files.item(0);
-    if (file == null) {
-      finish(null);
-      return;
-    }
-    unawaited(handleFile(file));
-  }
-
-  input.addEventListener('change', onChange.toJS);
-
-  // Kullanıcı vazgeçerse (destekleyen tarayıcılarda) beklemede kalmayalım.
-  input.addEventListener('cancel', ((web.Event _) => finish(null)).toJS);
-
+  input.addEventListener(
+    'change',
+    ((web.Event _) => unawaited(readSelection())).toJS,
+  );
+  input.addEventListener('cancel', ((web.Event _) => finish([])).toJS);
+  // click, kaynak satırına dokunulan aynı kullanıcı olayında çalışır.
   input.click();
   return completer.future;
 }
@@ -117,27 +110,4 @@ String _jpegName(String original) {
   final dot = original.lastIndexOf('.');
   final base = dot > 0 ? original.substring(0, dot) : original;
   return '${base.isEmpty ? 'gorsel' : base}.jpg';
-}
-
-Future<Uint8List> _readBytes(web.File file) {
-  final completer = Completer<Uint8List>();
-  final reader = web.FileReader();
-  reader.addEventListener(
-    'loadend',
-    ((web.Event _) {
-      final buffer = (reader.result as JSArrayBuffer?)?.toDart;
-      if (buffer == null) {
-        completer.completeError(StateError('Dosya okunamadı'));
-      } else {
-        completer.complete(buffer.asUint8List());
-      }
-    }).toJS,
-  );
-  reader.addEventListener(
-    'error',
-    ((web.Event _) => completer.completeError(StateError('Dosya okunamadı')))
-        .toJS,
-  );
-  reader.readAsArrayBuffer(file);
-  return completer.future;
 }

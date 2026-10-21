@@ -2,25 +2,7 @@
 
 Son güncelleme: 2026-10-18 Europe/Istanbul
 Aktif Writer: Yok
-Durum: `ready_for_review`
-
-2026-10-18: Kullanıcı gelişmiş chat a94d102 için IPA istedi. Güncel header46 korunarak 0.5.19+49 preview-only macOS derleme; main/tag/SQL/web/TestFlight yok.
-
-2026-10-18 gelişmiş chat IPA sonucu: Kaynak 9767ae8 / codex/advanced-chat-header46, macOS 39133783901 başarılı. Artifact 12138628100 indirildi, IPA 13,514,881 byte; sürüm/build/executable/CRC ve Firebase plist yokluğu doğrulandı. İndirilenler kopyasının SHA-256 eşliği geçti. Yerel 526 mobil/37 veri ve IPA öncesi 7 iOS config başarılı. Rapor docs/ios-preview-0.5.19-49.md. Yeni cihaz açılış/sohbet teslim kabulü açık; main/tag/web/SQL/TestFlight yok. Writer serbest.
-
-2026-10-18: Gelişmiş DM planı devralındı: güncel header46 tabanı korunur, ortak timeline/balon/tarih, yerel metin arama, kopyalama ve görünür DM okunma kapısı. Backend/RPC/RLS, ortak chrome/feed/konsol/Firebase değişmez. Yeni IPA/main merge/deploy yok.
-
-Kontrol noktası: Ortak ChatTimeline/ChatMessageBubble ve saf presentation adapter bağlı. Timestamp+ID sıralama, beş dakika/aynı gün gruplama, gerçek saat/durum, kopyalama, lazy satırlara Türkçe arama navigasyonu, eski okuma konumunu koruyan yeni mesaj düğmesi mevcut. DM artık bütün konuşmayı işaretlemez; yalnız foreground/current route görünür gelen ID'leri dar RPC'ye yollar. İlk 520 mobil/37 veri başarılı; genişleyen 14 yeni test de geçti. Altı sentetik açık/koyu PNG üretildi ve görsel incelendi; MaterialIcons fontu testte açıkça yüklenir. Nihai tam koşu/analiz sürüyor; üretim/IPA/DB değişmez.
-
-2026-10-18 gelişmiş chat sonucu: Nihai 526/526 mobil, 37/37 veri ve yeni 16/16 test başarılı. Analiz değişen kaynak/testlerde 0 error/warning (stil info mevcut); 620 syntax/24 token, SSS 44/44, push 42, diff temiz. Klavye/viewport ve gizli paylaşım başlığının düşmesi de test edildi. Altı sentetik PNG docs/design/advanced-chat altında; rapor docs/advanced-chat-verification.md. Ortak header/alt bar/feed/Firebase/konsol/data/sürüm diff boş. Ayrı codex/advanced-chat-header46 dalına kayıt; main merge/deploy/SQL/IPA yok. Gerçek iPhone ve iki hesap teslim kabulü açık; Writer serbest.
-
-2026-10-18: Kullanıcı güncel +46 tabanı ve chat b5865f2 için IPA istedi. 0.5.18+48 önizleme; önceki hatalı eski taban +47 ile karışmayacak. Header korunur, main/tag/SQL/web/TestFlight değişmez.
-
-2026-10-18 IPA +48 sonucu: Kaynak 65e9696 / codex/chat-refresh-on-header46, macOS 39131577025 başarı; artifact 12138571137 indirildi. 13,503,146 byte IPA sürüm/build/executable/CRC/Firebase plist yokluğu ve kopya SHA-256 eşliği doğrulandı. +46 header/alt bar/feed diff boş; chat mevcut. İndirilenler'e teslim. Önceki mobil 510/510 ve son iOS config 7/7. Main/tag/SQL/web/TestFlight değişmedi; fiziksel cihaz açılış/görsel/mesaj teslim kabulü açık. Kanıt docs/ios-preview-0.5.18-48.md; Writer serbest.
-
-2026-10-18: Chat yenilemesi doğru 954fc4c / 0.5.17+46 tabanında yeniden devralındı. Eski daldan tüm dosya kopyalanmaz; SwanScaffold, SwanFloatingHeader ve alt gezinme korunarak yalnız chat değişiklikleri uyarlanır. Canlı SQL/deploy/IPA yok.
-
-2026-10-18 chat +46 sonucu: Gerçek konuşma arama/sıralama, Tümü/Birebir/Topluluk pill filtreleri, ortak composer ve sade DM/topluluk balonları uyarlandı. Header/alt bar/feed dosyaları 954fc4c ile birebir; mesajlar floating kabuğu korunur. Sahte ses UI kaldırıldı, okunma/lifecycle ve gönderim esnası yeni taslak korunur. Nihai mobil 510/510, odaklı 65/65 ve son filtre 22/22; kaynak analiz 0 error/warning, 616 syntax/24 token, SSS 44/44, push 42 ve diff temiz. Kanıt docs/chat-refresh-header46.md. Sürüm değişmedi, canlı SQL/deploy/IPA yok; gerçek cihaz/iki hesap teslim kabulü açık. Writer serbest.
+Durum: `complete`
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 

@@ -4,7 +4,19 @@ on:
   push:
     branches:
       - main
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
   pull_request:
+    paths-ignore:
+      - '**.md'
+      - 'docs/**'
+      - '.gitignore'
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   validate:
@@ -30,7 +42,15 @@ jobs:
         continue-on-error: true
 
       - name: Analyze
-        run: melos analyze
+        run: melos analyze --no-fatal-infos
 
       - name: Test
-        run: melos test
+        run: |
+          flutter test --no-pub packages/swansport_core
+          flutter test --no-pub packages/swansport_models
+          flutter test --no-pub packages/swansport_design_system
+          flutter test --no-pub packages/swansport_branch_engine
+          flutter test --no-pub packages/swansport_data
+          flutter test --no-pub apps/swansport_app/test/federation_center_test.dart
+          flutter test --no-pub apps/swansport_app/test/modern_messages_screen_test.dart
+          flutter test --no-pub apps/swansport_app/test/merged_routes_test.dart

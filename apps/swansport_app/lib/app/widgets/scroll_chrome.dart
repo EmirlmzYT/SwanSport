@@ -1,7 +1,12 @@
 import 'dart:ui';
+import 'package:flutter/foundation.dart'
+    show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/material.dart';
 import '../design/swan_chrome.dart';
 import '../design/swan_palette.dart';
+
+bool get _opaqueAndroidChrome =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
 /// Route-local state: no role, route or data-provider responsibilities.
 class ScrollChromeController extends ChangeNotifier {
@@ -65,7 +70,8 @@ class SwanGlassSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     if (!floating) return _SwanHeaderSurface(child: child);
     final c = context.swan;
-    final opaque = MediaQuery.highContrastOf(context) ||
+    final opaque = _opaqueAndroidChrome ||
+        MediaQuery.highContrastOf(context) ||
         MediaQuery.disableAnimationsOf(context);
     final radius =
         BorderRadius.circular(floating ? SwanChrome.capsuleRadius : 0);
@@ -87,12 +93,8 @@ class SwanGlassSurface extends StatelessWidget {
               : null),
       child: ClipRRect(
           borderRadius: radius,
-          child: BackdropFilter(
-            enabled: !opaque,
-            filter: ImageFilter.blur(
-                sigmaX: floating ? SwanChrome.blur : SwanChrome.headerBlur,
-                sigmaY: floating ? SwanChrome.blur : SwanChrome.headerBlur),
-            child: DecoratedBox(
+          child: Builder(builder: (_) {
+            final content = DecoratedBox(
               decoration: BoxDecoration(
                   color: fill,
                   borderRadius: radius,
@@ -104,8 +106,14 @@ class SwanGlassSurface extends StatelessWidget {
                               : c.surface.withValues(alpha: .92))
                       : null),
               child: Material(type: MaterialType.transparency, child: child),
-            ),
-          )),
+            );
+            if (opaque) return content;
+            return BackdropFilter(
+              filter: ImageFilter.blur(
+                  sigmaX: SwanChrome.blur, sigmaY: SwanChrome.blur),
+              child: content,
+            );
+          })),
     );
   }
 }
@@ -119,7 +127,8 @@ class _SwanHeaderSurface extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final opaque = MediaQuery.highContrastOf(context) ||
+    final opaque = _opaqueAndroidChrome ||
+        MediaQuery.highContrastOf(context) ||
         MediaQuery.disableAnimationsOf(context);
     if (opaque) return Material(color: context.swan.surface, child: child);
     return Stack(fit: StackFit.passthrough, children: [

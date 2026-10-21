@@ -10,12 +10,19 @@ class PickedImage {
   final String name;
 }
 
-/// Galeriden/dosyalardan tek bir görsel seçer.
-///
-/// Web'de tarayıcının kendi dosya girdisi kullanılır ve seçilen görsel
-/// JPEG'e çevrilip küçültülür — böylece iPhone'un HEIC fotoğrafları da
-/// çalışır (Flutter HEIC çözemez) ve yükleme çok daha hızlı olur.
-/// Diğer platformlarda sistem dosya seçici kullanılır.
-///
-/// Kullanıcı vazgeçerse `null` döner.
-Future<PickedImage?> pickImage() => impl.pickImage();
+enum ImagePickSource { gallery, camera }
+
+/// UI içermeyen platform adaptörü. Mobilde sistem fotoğraf seçicisi kullanılır.
+Future<List<PickedImage>> pickImages({
+  ImagePickSource source = ImagePickSource.gallery,
+  int limit = 1,
+}) {
+  if (limit < 1 || limit > 8) throw ArgumentError.value(limit, 'limit');
+  return impl.pickImages(source: source, limit: limit);
+}
+
+/// Eski belge seçicilerinin tek görsel sözleşmesini korur.
+Future<PickedImage?> pickImage() async {
+  final images = await pickImages();
+  return images.isEmpty ? null : images.first;
+}

@@ -27,6 +27,7 @@ import '../features/calendar/presentation/screens/race_event_detail_screen.dart'
 import '../features/calendar/presentation/screens/schedule_calendar_screen.dart';
 import '../features/calendar/presentation/screens/guardian_official_result_screen.dart';
 import '../features/clubs/presentation/club_applications_screen.dart';
+import '../features/clubs/presentation/club_cockpit_screen.dart';
 import '../features/clubs/presentation/club_profile_detail_screen.dart';
 import '../features/communities/presentation/community_chat_screen.dart';
 import '../features/communities/presentation/federation_admin_screen.dart';
@@ -44,6 +45,7 @@ import '../features/documents/presentation/screens/document_vault_screen.dart';
 import '../features/equipment/presentation/equipment_tuning_screen.dart';
 import '../features/facilities/presentation/facility_management_screen.dart';
 import '../features/facilities/presentation/facility_reservation_screen.dart';
+import '../features/federation/presentation/federation_center_screen.dart';
 import '../features/financial_management/presentation/accountant_privacy_ledger_screen.dart';
 import '../features/financial_management/presentation/campaigns_screen.dart';
 import '../features/financial_management/presentation/closed_period_reversal_screen.dart';
@@ -91,6 +93,7 @@ import '../features/social/presentation/saved_posts_screen.dart';
 import '../features/social/presentation/search_screen.dart';
 import '../features/support/presentation/help_screen.dart';
 import '../features/support/presentation/support_screen.dart';
+import '../features/swan_identity/presentation/swan_identity_screens.dart';
 import '../features/teams/presentation/screens/team_roster_directory_screen.dart';
 import '../features/teams/presentation/screens/team_roster_screen.dart';
 import '../features/training/presentation/match_simulation_screen.dart';
@@ -151,16 +154,21 @@ class SwanSportApp extends ConsumerWidget {
         SwanLocalizations.delegate,
       ],
       builder: (context, child) => testCenter
-          ? LocalTestCenterFrame(child: child ?? const SizedBox(),
-              onOpen: () => swanNavigatorKey.currentState?.pushNamed(testCenterRoute))
+          ? LocalTestCenterFrame(
+              child: child ?? const SizedBox(),
+              onOpen: () =>
+                  swanNavigatorKey.currentState?.pushNamed(testCenterRoute))
           : AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: testCenter ? ref.watch(localTestInitialRouteProvider) : '/',
       routes: <String, WidgetBuilder>{
         if (testCenter) testCenterRoute: (_) => const TestCenterScreen(),
         '/hakem/gorevler': (context) => const RefereeDutyListScreen(),
-        '/kulup/malzeme-zimmet': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
-        '/kulup/saglik-takibi': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
-        '/kulup/kadro-planlama': (context) => const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
+        '/kulup/malzeme-zimmet': (context) =>
+            const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
+        '/kulup/saglik-takibi': (context) =>
+            const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
+        '/kulup/kadro-planlama': (context) =>
+            const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
         '/': (context) => const AuthGate(),
         '/auth': (context) => const AuthScreen(),
         '/home-command': (context) => const HomeCommandCenterScreen(),
@@ -178,6 +186,8 @@ class SwanSportApp extends ConsumerWidget {
         '/mali-isler': (context) => const FinanceTasksScreen(),
         '/kaydedilenler': (context) => const SavedPostsScreen(),
         '/yardim': (context) => const HelpScreen(),
+        '/swan-id': (context) => const SwanIdScreen(),
+        '/swan-asistan': (context) => const SwanAssistantScreen(),
         '/destek': (context) => const SupportScreen(),
         // 0071-0073. push_route 'training_session' ve 'training_result'
         // bildirimlerini buraya yonlendiriyor.
@@ -201,6 +211,7 @@ class SwanSportApp extends ConsumerWidget {
         '/mesajlar': (context) => const MessagesScreen(),
         '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
         '/federasyon-takvimi': (context) => const PublicSportCalendarScreen(),
+        '/federasyon-merkezi': (context) => const FederationCenterScreen(),
         '/kesfet': (context) => const ExploreScreen(),
         '/kulupler': (context) => const DiscoverScreen(),
         '/pazaryeri': (context) => const MarketplaceScreen(),
@@ -260,17 +271,39 @@ class SwanSportApp extends ConsumerWidget {
         '/beslenme': (context) => const NutritionTrackerScreen(),
         '/yaris-detay': (context) => const RaceEventDetailScreen(),
         '/kulup-detay': (context) => const ClubProfileDetailScreen(),
+        '/kulup-yonetim': (context) => const ClubCockpitScreen(),
       }.map((route, builder) => MapEntry(
           route,
-          (route == testCenterRoute && testCenter) || SwanAccess.isGuestRoute(route)
+          (route == testCenterRoute && testCenter) ||
+                  SwanAccess.isGuestRoute(route)
               ? builder
               : (context) => AccountRouteGate(builder: builder))),
       onGenerateRoute: guardAccountRoutes((settings) {
-        final liveMatch=liveMatchRoute(settings);
-        if(liveMatch!=null)return liveMatch;
+        final liveMatch = liveMatchRoute(settings);
+        if (liveMatch != null) return liveMatch;
         final referee = refereeRoute(settings);
         if (referee != null) return referee;
         final target = Uri.tryParse(settings.name ?? '');
+        if (target != null &&
+            target.pathSegments.length == 3 &&
+            target.pathSegments[0] == 'swan-id' &&
+            target.pathSegments[1] == 'dogrula') {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => SwanIdVerifyScreen(token: target.pathSegments[2]),
+          );
+        }
+        if (target != null &&
+            target.pathSegments.length == 2 &&
+            target.pathSegments[0] == 'mac-kartim' &&
+            RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+                .hasMatch(target.pathSegments[1])) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) =>
+                AthleteMatchCardScreen(matchId: target.pathSegments[1]),
+          );
+        }
         if (target?.path == '/resmi-sonuc') {
           return MaterialPageRoute<void>(
               settings: settings,
@@ -300,13 +333,15 @@ class SwanSportApp extends ConsumerWidget {
           );
         }
         // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
-        if (settings.name == '/profil' || settings.name == '/kulup-profil') {
+        if (settings.name == '/profil' ||
+            settings.name == '/kulup-profil' ||
+            target?.path == '/kulup-profil') {
           final args = settings.arguments;
           return MaterialPageRoute<void>(
             settings: settings,
             builder: (_) => ProfileScreen(
-              id: args is String ? args : null,
-              isClub: settings.name == '/kulup-profil',
+              id: args is String ? args : target?.queryParameters['id'],
+              isClub: settings.name != '/profil',
             ),
           );
         }

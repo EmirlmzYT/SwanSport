@@ -17,7 +17,95 @@ class CityRow {
   const CityRow({required this.code, required this.name});
   final String code;
   final String name;
+
+  @override
+  String toString() => name;
 }
+
+/// Türkiye'nin 81 ili referans listesi — ekosistem genelinde tek ve sabit kaynak.
+const List<CityRow> kTurkeyCities = [
+  CityRow(code: '01', name: 'Adana'),
+  CityRow(code: '02', name: 'Adıyaman'),
+  CityRow(code: '03', name: 'Afyonkarahisar'),
+  CityRow(code: '04', name: 'Ağrı'),
+  CityRow(code: '05', name: 'Amasya'),
+  CityRow(code: '06', name: 'Ankara'),
+  CityRow(code: '07', name: 'Antalya'),
+  CityRow(code: '08', name: 'Artvin'),
+  CityRow(code: '09', name: 'Aydın'),
+  CityRow(code: '10', name: 'Balıkesir'),
+  CityRow(code: '11', name: 'Bilecik'),
+  CityRow(code: '12', name: 'Bingöl'),
+  CityRow(code: '13', name: 'Bitlis'),
+  CityRow(code: '14', name: 'Bolu'),
+  CityRow(code: '15', name: 'Burdur'),
+  CityRow(code: '16', name: 'Bursa'),
+  CityRow(code: '17', name: 'Çanakkale'),
+  CityRow(code: '18', name: 'Çankırı'),
+  CityRow(code: '19', name: 'Çorum'),
+  CityRow(code: '20', name: 'Denizli'),
+  CityRow(code: '21', name: 'Diyarbakır'),
+  CityRow(code: '22', name: 'Edirne'),
+  CityRow(code: '23', name: 'Elazığ'),
+  CityRow(code: '24', name: 'Erzincan'),
+  CityRow(code: '25', name: 'Erzurum'),
+  CityRow(code: '26', name: 'Eskişehir'),
+  CityRow(code: '27', name: 'Gaziantep'),
+  CityRow(code: '28', name: 'Giresun'),
+  CityRow(code: '29', name: 'Gümüşhane'),
+  CityRow(code: '30', name: 'Hakkâri'),
+  CityRow(code: '31', name: 'Hatay'),
+  CityRow(code: '32', name: 'Isparta'),
+  CityRow(code: '33', name: 'Mersin'),
+  CityRow(code: '34', name: 'İstanbul'),
+  CityRow(code: '35', name: 'İzmir'),
+  CityRow(code: '36', name: 'Kars'),
+  CityRow(code: '37', name: 'Kastamonu'),
+  CityRow(code: '38', name: 'Kayseri'),
+  CityRow(code: '39', name: 'Kırklareli'),
+  CityRow(code: '40', name: 'Kırşehir'),
+  CityRow(code: '41', name: 'Kocaeli'),
+  CityRow(code: '42', name: 'Konya'),
+  CityRow(code: '43', name: 'Kütahya'),
+  CityRow(code: '44', name: 'Malatya'),
+  CityRow(code: '45', name: 'Manisa'),
+  CityRow(code: '46', name: 'Kahramanmaraş'),
+  CityRow(code: '47', name: 'Mardin'),
+  CityRow(code: '48', name: 'Muğla'),
+  CityRow(code: '49', name: 'Muş'),
+  CityRow(code: '50', name: 'Nevşehir'),
+  CityRow(code: '51', name: 'Niğde'),
+  CityRow(code: '52', name: 'Ordu'),
+  CityRow(code: '53', name: 'Rize'),
+  CityRow(code: '54', name: 'Sakarya'),
+  CityRow(code: '55', name: 'Samsun'),
+  CityRow(code: '56', name: 'Siirt'),
+  CityRow(code: '57', name: 'Sinop'),
+  CityRow(code: '58', name: 'Sivas'),
+  CityRow(code: '59', name: 'Tekirdağ'),
+  CityRow(code: '60', name: 'Tokat'),
+  CityRow(code: '61', name: 'Trabzon'),
+  CityRow(code: '62', name: 'Tunceli'),
+  CityRow(code: '63', name: 'Şanlıurfa'),
+  CityRow(code: '64', name: 'Uşak'),
+  CityRow(code: '65', name: 'Van'),
+  CityRow(code: '66', name: 'Yozgat'),
+  CityRow(code: '67', name: 'Zonguldak'),
+  CityRow(code: '68', name: 'Aksaray'),
+  CityRow(code: '69', name: 'Bayburt'),
+  CityRow(code: '70', name: 'Karaman'),
+  CityRow(code: '71', name: 'Kırıkkale'),
+  CityRow(code: '72', name: 'Batman'),
+  CityRow(code: '73', name: 'Şırnak'),
+  CityRow(code: '74', name: 'Bartın'),
+  CityRow(code: '75', name: 'Ardahan'),
+  CityRow(code: '76', name: 'Iğdır'),
+  CityRow(code: '77', name: 'Yalova'),
+  CityRow(code: '78', name: 'Karabük'),
+  CityRow(code: '79', name: 'Kilis'),
+  CityRow(code: '80', name: 'Osmaniye'),
+  CityRow(code: '81', name: 'Düzce'),
+];
 
 class CommunityRow {
   const CommunityRow({
@@ -161,13 +249,18 @@ class CommunityService {
   }
 
   Future<List<CityRow>> cities() async {
-    final rows = await _c.from('cities').select('code, name').order('name');
-    return (rows as List)
-        .map((r) => CityRow(
-              code: (r as Map)['code'] as String,
-              name: r['name'] as String,
-            ))
-        .toList();
+    try {
+      final rows = await _c.from('cities').select('code, name').order('name');
+      final list = (rows as List)
+          .map((r) => CityRow(
+                code: (r as Map)['code'] as String,
+                name: r['name'] as String,
+              ))
+          .toList();
+      return list.isNotEmpty ? list : kTurkeyCities;
+    } catch (_) {
+      return kTurkeyCities;
+    }
   }
 
   /// Tüm federasyon kanalları (yönetici ekranı için — üye olmasa da görünür).
@@ -407,9 +500,14 @@ final communityServiceProvider = Provider<CommunityService>((ref) {
   return CommunityService(ref.watch(supabaseClientProvider));
 });
 
-final citiesProvider = FutureProvider<List<CityRow>>((ref) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(communityServiceProvider).cities();
+final citiesProvider = FutureProvider<List<CityRow>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return kTurkeyCities;
+  try {
+    final list = await ref.watch(communityServiceProvider).cities();
+    return list.isNotEmpty ? list : kTurkeyCities;
+  } catch (_) {
+    return kTurkeyCities;
+  }
 });
 
 final federationChannelsProvider =

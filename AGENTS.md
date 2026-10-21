@@ -137,6 +137,24 @@ beş sekmeli yönetim ekranıdır. Mobil FeedScreen public config'i 30 saniyede
 bir yeniler; broadcast ve bakım görünümü Ana Akış kapsamındadır, global/server
 kill-switch değildir. Yeni plan insert, mevcut ID upsert; ayrıntılar aynı raporda.
 
+0126–0131 Federasyon Yayın Merkezi yerel backend ve mobil temeli:
+Resmi takvim, canlı skor, sonuç revizyon akışı, puan durumu, bülten ve bildirimleri
+tek çatı altında birleştirir (`/federasyon`).
+- 0126/0127: Sonuç revizyonlarında operatörün serbest gerekçesi (`r.reason`)
+  kamuya açılmaz; yalnız sabit güvenli etiketler döner (`public._public_result_revision_label`).
+- 0128/0129: Disiplin kararı (`disciplinary_decisions.reason`) kamusal bültenden
+  kesin olarak ayrılmıştır; kamusal bülten yalnız Disiplin Kurulunun
+  `publish_disciplinary_bulletin` ile yayımladığı değiştirilemez `public_summary`
+  üzerinden döner. Çocuk/sporcu gizliliği `athlete_ref` ile maskelenir (`Sporcu (#A3F91C)`).
+  Müsabaka iptal/erteleme duyurusu `publish_federation_match_notice` ile yapılır.
+- 0130/0131: Müsabaka iptal/erteleme duyuruları maç/kulüp takipçilerine
+  `trg_notify_federation_match_notice` ile bildirim iletir; lock-screen metninde
+  çocuk/hakem/rapor özel detayı yer almaz. `_public_match_header` ertelenmiş ve
+  iptal maçları kapsarken `result_version` ve redakte gerekçeyi korur.
+- 5 noktadan bayrak sözleşmesi: `federation_bulletin` SQL, Dart, sync testi, SSS
+  ve ekranda `featureEnabledProvider` ile korunur.
+Canlı uygulanmadı; SDK/üretim sınırları `docs/federation-publishing-center-verification.md`.
+
 ```
 apps/swansport_app        mobil + web uygulaması (Android, Web)
 apps/swansport_console    masaüstü yönetim konsolu (yalnızca Web, ≥900px)

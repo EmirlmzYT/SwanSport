@@ -15,6 +15,7 @@ import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../routing/athlete_detail_route_args.dart';
 import '../widgets/add_athlete_sheet.dart';
 import '../widgets/link_athletes_sheet.dart';
+import '../../../clubs/presentation/club_create_sheet.dart';
 
 /// Sporcu & Antrenör Çalışma Alanı (Stitch Calm Athletic Modernism v3).
 ///
@@ -92,8 +93,10 @@ class _AthleteWorkspaceScreenState
                       clubAsync.valueOrNull),
                   const SizedBox(height: 12),
 
-                  if (clubAsync.valueOrNull != null)
+                  if (clubAsync.valueOrNull != null) ...[
+                    _pendingApplicationsBanner(c),
                     _unlinkedBanner(c, clubAsync.valueOrNull!),
+                  ],
 
                   _buildSearchAndFilters(c),
                   const SizedBox(height: 12),
@@ -222,32 +225,80 @@ class _AthleteWorkspaceScreenState
   // KADRO BÖLÜMÜ BAŞLIK & ARAMA & FİLTRELER
   // ---------------------------------------------------------------------------
   Widget _buildRosterSectionHeader(SwanPalette c, int count, ClubRef? club) {
+    final pendingCount =
+        ref.watch(clubPendingApplicationsProvider).valueOrNull?.length ?? 0;
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Kulüp Kadrosu · $count',
-              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
-            ),
-            Text(
-              'Sporcu listesi ve hesap bağlantıları',
-              style: SwanType.caption(c.inkMuted),
-            ),
-          ],
-        )),
-        if (club != null && ref.watch(swanAccessProvider).isClubStaff)
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Kulüp Kadrosu · $count',
+                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
+              ),
+              Text(
+                'Sporcu listesi ve hesap bağlantıları',
+                style: SwanType.caption(c.inkMuted),
+              ),
+            ],
+          ),
+        ),
+        if (club != null && ref.watch(swanAccessProvider).isClubStaff) ...[
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              IconButton(
+                tooltip: 'Kulüp Başvuruları',
+                onPressed: () => Navigator.pushNamed(context, '/basvurular'),
+                icon: Icon(Icons.how_to_reg_rounded, color: c.accent, size: 20),
+                style: IconButton.styleFrom(
+                  backgroundColor: c.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+              if (pendingCount > 0)
+                Positioned(
+                  right: -2,
+                  top: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints:
+                        const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      '$pendingCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(width: 8),
           IconButton(
+            tooltip: 'Sporcu Ekle',
             onPressed: () => _showAddAthlete(club),
             icon: Icon(Icons.person_add_alt_1, color: c.accent, size: 20),
             style: IconButton.styleFrom(
               backgroundColor: c.surface,
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
           ),
+        ],
       ],
     );
   }
@@ -460,19 +511,107 @@ class _AthleteWorkspaceScreenState
     );
   }
 
+  Widget _pendingApplicationsBanner(SwanPalette c) {
+    final pending = ref.watch(clubPendingApplicationsProvider).valueOrNull;
+    if (pending == null || pending.isEmpty) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: BoxDecoration(
+        color: c.accent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.accent.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: c.accent,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.person_add_rounded,
+                color: Colors.white, size: 20),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${pending.length} bekleyen başvuru var',
+                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                ),
+                Text(
+                  'Öğrenci veya antrenör başvurularını incele',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pushNamed(context, '/basvurular'),
+            style: TextButton.styleFrom(
+              backgroundColor: c.accent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('İncele'),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _noClubState(SwanPalette c) {
     return Padding(
       padding: const EdgeInsets.only(top: 40),
       child: Center(
         child: Column(
           children: [
-            Icon(Icons.add_business_rounded, color: c.accent, size: 36),
-            const SizedBox(height: 12),
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: c.accent.withValues(alpha: 0.12),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.add_business_rounded, color: c.accent, size: 32),
+            ),
+            const SizedBox(height: 16),
             Text('Henüz bir kulübün yok',
                 style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
-            const SizedBox(height: 4),
-            Text('Başlamak için bir kulüp oluştur.',
+            const SizedBox(height: 6),
+            Text('Kadro kurmak ve sporcuları yönetmek için kulübünü oluştur.',
                 style: SwanType.caption(c.inkMuted)),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () => showClubCreateSheet(context),
+              icon: const Icon(Icons.add_circle_outline, size: 18),
+              label: const Text('Kulüp Oluştur'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: c.accent,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            TextButton.icon(
+              onPressed: () => Navigator.pushNamed(context, '/kulupler'),
+              icon: const Icon(Icons.search, size: 18),
+              label: const Text('Bir kulübe katıl / başvur'),
+              style: TextButton.styleFrom(foregroundColor: c.inkMuted),
+            ),
           ],
         ),
       ),

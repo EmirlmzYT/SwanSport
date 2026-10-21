@@ -116,11 +116,17 @@ void main() {
   test(
     'package production source and manifest remain pure Dart',
     () {
-      final manifest = File('pubspec.yaml').readAsStringSync();
+      final pubspecPath = File('pubspec.yaml').existsSync() &&
+              File('pubspec.yaml').readAsStringSync().contains('name: swansport_branch_engine')
+          ? 'pubspec.yaml'
+          : 'packages/swansport_branch_engine/pubspec.yaml';
+      final manifest = File(pubspecPath).readAsStringSync();
       expect(manifest, isNot(contains('flutter:')));
       expect(manifest, isNot(contains('supabase')));
-      for (final file
-          in Directory('lib').listSync(recursive: true).whereType<File>()) {
+      final libDir = Directory('lib').existsSync() && Directory('lib/protocols').existsSync()
+          ? Directory('lib')
+          : Directory('packages/swansport_branch_engine/lib');
+      for (final file in libDir.listSync(recursive: true).whereType<File>()) {
         if (!file.path.endsWith('.dart')) continue;
         final source = file.readAsStringSync();
         expect(source, isNot(contains("'package:flutter/")), reason: file.path);

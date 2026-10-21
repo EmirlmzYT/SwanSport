@@ -7,7 +7,16 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import 'match_follow_button.dart';
 
-String liveSportName(String code)=>switch(code){'futbol'=>'Futbol','basketbol'=>'Basketbol','voleybol'=>'Voleybol','tenis'=>'Tenis',_=>code};
+String liveSportName(String code) => switch (code) {
+      'futbol' => 'Futbol',
+      'basketbol' => 'Basketbol',
+      'voleybol' => 'Voleybol',
+      'tenis' => 'Tenis',
+      'yuzme' => 'Yüzme',
+      'atletizm' => 'Atletizm',
+      'okculuk' => 'Okçuluk',
+      _ => code,
+    };
 String liveClock(int seconds)=>'${(seconds~/60).toString().padLeft(2,'0')}:${(seconds%60).toString().padLeft(2,'0')}';
 String liveStartTime(DateTime instant){final t=calendarTurkeyTime(instant);
   return '${t.day.toString().padLeft(2,'0')}.${t.month.toString().padLeft(2,'0')} · ${t.hour.toString().padLeft(2,'0')}:${t.minute.toString().padLeft(2,'0')}';}
@@ -24,14 +33,32 @@ class LiveMatchCard extends StatelessWidget {
       color:c.surface,borderRadius:BorderRadius.circular(SwanRadius.md),clipBehavior:Clip.antiAlias,
       child:InkWell(onTap:()=>Navigator.pushNamed(context,'/canli-mac/${match.matchId}'),
         child:Padding(padding:const EdgeInsets.all(SwanSpace.lg),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
-          Wrap(spacing:SwanSpace.sm,runSpacing:SwanSpace.xs,children:[
-            Text(match.isLive?'● CANLI · ${match.secondsAt(Duration.zero)~/60}′':match.status=='played'?'SONUÇLANDI':'PLANLANDI',
-              style:SwanType.caption(match.isLive?c.danger:c.inkMuted)),
+          Wrap(spacing:SwanSpace.sm,runSpacing:SwanSpace.xs,crossAxisAlignment:WrapCrossAlignment.center,children:[
+            if(match.isLive)
+              Container(padding:const EdgeInsets.symmetric(horizontal:SwanSpace.sm,vertical:SwanSpace.xs),
+                decoration:BoxDecoration(color:c.danger.withValues(alpha:0.15),borderRadius:BorderRadius.circular(SwanRadius.sm)),
+                child:Text('● CANLI · ${match.secondsAt(Duration.zero)~/60}′',style:SwanType.caption(c.danger,w:FontWeight.w700)))
+            else if(match.isOfficialResult)
+              Container(padding:const EdgeInsets.symmetric(horizontal:SwanSpace.sm,vertical:SwanSpace.xs),
+                decoration:BoxDecoration(
+                  color:(match.isRevisedResult?c.warning:c.accent).withValues(alpha:0.15),
+                  borderRadius:BorderRadius.circular(SwanRadius.sm)),
+                child:Text(match.isRevisedResult?'● REVİZE SONUÇ (V${match.resultVersion})':'✓ TESCİLLİ SONUÇ',
+                  style:SwanType.caption(match.isRevisedResult?c.warning:c.accent,w:FontWeight.w700)))
+            else
+              Text('PLANLANDI',style:SwanType.caption(c.inkMuted)),
             Text(liveSportName(match.sportCode),style:SwanType.caption(c.inkMuted)),
             MatchFollowIndicator(matchId:match.matchId),
           ]),
           const SizedBox(height:SwanSpace.sm),
           LiveScoreboard(match:match,compact:true),
+          if(match.isOfficialResult && match.revisionReason!=null && match.revisionReason!.isNotEmpty)
+            Padding(padding:const EdgeInsets.only(top:SwanSpace.xs),
+              child:Row(children:[
+                Icon(Icons.history_edu_rounded,size:14,color:c.inkMuted),
+                const SizedBox(width:SwanSpace.xs),
+                Expanded(child:Text(match.revisionReason!,maxLines:1,overflow:TextOverflow.ellipsis,style:SwanType.caption(c.inkMuted))),
+              ])),
           if(match.programName!=null) Padding(padding:const EdgeInsets.only(top:SwanSpace.sm),
             child:Text(match.programName!,maxLines:2,overflow:TextOverflow.ellipsis,style:SwanType.caption(c.inkMuted))),
           if(match.location?.isNotEmpty==true) Text(match.location!,maxLines:2,overflow:TextOverflow.ellipsis,style:SwanType.caption(c.inkMuted)),

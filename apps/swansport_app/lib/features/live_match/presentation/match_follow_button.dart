@@ -10,8 +10,13 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/action_gate.dart';
 
 class MatchFollowButton extends ConsumerStatefulWidget {
-  const MatchFollowButton({required this.matchId,super.key});
+  const MatchFollowButton({
+    required this.matchId,
+    this.compact = false,
+    super.key,
+  });
   final String matchId;
+  final bool compact;
   @override ConsumerState<MatchFollowButton> createState()=>_MatchFollowButtonState();
 }
 class _MatchFollowButtonState extends ConsumerState<MatchFollowButton> {
@@ -25,6 +30,14 @@ class _MatchFollowButtonState extends ConsumerState<MatchFollowButton> {
     final state=ref.watch(matchFollowStateProvider(widget.matchId));
     final followed=state.valueOrNull?.isFollowed??false;
     final uncertain=_uncertainDesired!=null&&_uncertainActor==actor;
+    if(widget.compact){
+      return IconButton(
+        tooltip:uncertain?'Tercihi Yeniden Dene':followed?'Bildirimleri Kapat':'Bildirimleri Aç',
+        onPressed:_busy||state.isLoading?null:()=>_set(uncertain?_uncertainDesired!:!followed),
+        icon:_saving?SizedBox(width:SwanSpace.md,height:SwanSpace.md,child:const CircularProgressIndicator(strokeWidth:2))
+          :Icon(followed?Icons.notifications_active_rounded:Icons.notifications_none_rounded,color:followed?c.accent:c.inkMuted),
+      );
+    }
     return Padding(padding:const EdgeInsets.only(top:SwanSpace.md),child:Column(crossAxisAlignment:CrossAxisAlignment.start,children:[
       FilledButton.tonalIcon(onPressed:_busy||state.isLoading?null:()=>_set(uncertain?_uncertainDesired!:!followed),
         icon:_saving?SizedBox(width:SwanSpace.lg,height:SwanSpace.lg,child:const CircularProgressIndicator())

@@ -9,6 +9,8 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
+import '../../../app/widgets/swan_city_picker.dart';
+import '../../clubs/presentation/club_create_sheet.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 
 /// Keşfet — kulüpleri il, ilçe, branş ve doğrulanmışlık filtreleriyle bul.
@@ -44,7 +46,11 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüpler & Akademiler', actions: [
-        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/basvurular'), icon: const Icon(Icons.add_circle_outline), label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent))),
+        TextButton.icon(
+          onPressed: () => showClubCreateSheet(context),
+          icon: const Icon(Icons.add_circle_outline),
+          label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent)),
+        ),
       ]),
       extendBody: true,
       backgroundColor: bg,
@@ -101,7 +107,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
                 async.when(
                   loading: () => premiumLoading(),
-                  error: (e, _) => premiumError(context, '$e'),
+                  error: (e, _) => premiumError(
+                    context,
+                    '$e',
+                    onRetry: () => ref.invalidate(
+                      discoverClubsProvider(_filter),
+                    ),
+                  ),
                   data: (list) => list.isEmpty
                       ? Container(
                           padding: const EdgeInsets.all(24),
@@ -141,7 +153,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
 
   Widget _filterBar(bool isDark, Color ink) {
     final opts = ref.watch(filterOptionsProvider).valueOrNull ?? const [];
-    final cities = opts.where((o) => o.kind == 'city').toList();
     final sports = opts.where((o) => o.kind == 'sport').toList();
 
     Widget chip(String label, bool active, VoidCallback onTap,
@@ -185,8 +196,15 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
           chip(
             _filter.city.isEmpty ? 'Şehir' : _filter.city,
             _filter.city.isNotEmpty,
-            () => _pick('Şehir', cities, _filter.city,
-                (v) => setState(() => _filter = _filter.copyWith(city: v))),
+            () async {
+              final picked = await showSwanCityPicker(
+                context,
+                selectedCity: _filter.city,
+              );
+              if (picked != null) {
+                setState(() => _filter = _filter.copyWith(city: picked.name));
+              }
+            },
             icon: Icons.location_on_rounded,
           ),
           chip(

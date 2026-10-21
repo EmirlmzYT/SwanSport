@@ -19,7 +19,10 @@ import '../../../../app/design/swan_type.dart';
 ///
 /// Yalnızca kendi profilinde ve yalnızca ilgili rolde görünür.
 class ManagementSection extends ConsumerWidget {
-  const ManagementSection({super.key});
+  const ManagementSection({super.key, this.compact = false, this.onNavigate});
+
+  final bool compact;
+  final ValueChanged<String>? onNavigate;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -27,26 +30,20 @@ class ManagementSection extends ConsumerWidget {
     final access = ref.watch(swanAccessProvider);
 
     final club = <_Item>[
-      if (access.isClubAdmin &&
-          ref.watch(featureEnabledProvider(FeatureFlags.seasonSetup)))
-        const _Item(
-          Icons.event_available_rounded,
-          'Sezon Açılışı',
-          '/sezon-acilisi',
-        ),
       if (access.isClubStaff) ...[
-        const _Item(Icons.groups_rounded, 'Sporcular', '/athletes'),
-        const _Item(Icons.shield_rounded, 'Takımlar', '/teams'),
-        const _Item(Icons.calendar_month_rounded, 'Takvim', '/calendar'),
-        const _Item(Icons.checklist_rounded, 'Yoklama Al', '/attendance'),
-        const _Item(Icons.fact_check_rounded, 'Devam Geçmişi', '/devam-durumu'),
-        const _Item(Icons.campaign_rounded, 'Duyurular', '/announcements'),
+        const _Item(
+          Icons.space_dashboard_rounded,
+          'Kulüp Yönetim Kokpiti',
+          '/kulup-yonetim',
+        ),
         const _Item(
           Icons.bar_chart_rounded,
           'Performans',
           '/performance-analytics',
         ),
         const _Item(Icons.dashboard_rounded, 'Komuta Merkezi', '/home-command'),
+        const _Item(
+            Icons.settings_suggest_rounded, 'Kulüp Ayarları', '/settings'),
       ],
       // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
       // görmüyor. Rotalar tanımlı kalıyor.
@@ -59,28 +56,20 @@ class ManagementSection extends ConsumerWidget {
           'Antrenman Oturumu',
           '/antrenman-oturumu',
         ),
-        const _Item(
-          Icons.tune_rounded,
-          'Antrenman Şablonları',
-          '/antrenman-sablonlari',
-        ),
       ],
     ];
 
     final ops = <_Item>[
-      if (ref.watch(featureEnabledProvider(FeatureFlags.clubStaffOperations))) ...[
-        if (access.canOpenClubInventory) const _Item(Icons.inventory_2_outlined, 'Malzeme & Zimmet', '/kulup/malzeme-zimmet'),
-        if (access.canOpenClubHealth) const _Item(Icons.health_and_safety_outlined, 'Sağlık & İdari Dinlendirme', '/kulup/saglik-takibi'),
-        if (access.canOpenClubPlanning) const _Item(Icons.groups_outlined, 'Sportif Kadro Planlama', '/kulup/kadro-planlama'),
-      ],
       if (access.isClubStaff || access.isAccountant) ...[
-        const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
+        if (access.isAccountant)
+          const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
         const _Item(
           Icons.playlist_add_check_rounded,
           'Mali İşler',
           '/mali-isler',
         ),
-        const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
+        if (access.isAccountant)
+          const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
       ],
       if (access.isClubStaff) ...[
         const _Item(
@@ -88,11 +77,15 @@ class ManagementSection extends ConsumerWidget {
           'Medikal',
           '/medical-center',
         ),
-        const _Item(Icons.stadium_rounded, 'Tesisler', '/facilities'),
       ],
     ];
 
     final platform = <_Item>[
+      const _Item(
+        Icons.verified_rounded,
+        'Federasyon Yayın Merkezi',
+        '/federasyon-merkezi',
+      ),
       if (access.isPlatformAdmin) ...[
         const _Item(
           Icons.admin_panel_settings_rounded,
@@ -136,7 +129,7 @@ class ManagementSection extends ConsumerWidget {
       const _Item(Icons.group_add_rounded, 'Başvurular', '/basvurular'),
       const _Item(Icons.vpn_key_rounded, 'Davet Kodu', '/veli-bagla'),
       const _Item(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
-      const _Item(Icons.settings_rounded, 'Ayarlar', '/settings'),
+      if (!compact) const _Item(Icons.settings_rounded, 'Ayarlar', '/settings'),
     ];
 
     final groups = <(String, List<_Item>)>[
@@ -151,9 +144,20 @@ class ManagementSection extends ConsumerWidget {
       children: [
         for (final g in groups) ...[
           const SizedBox(height: SwanSpace.xl),
-          Text(g.$1, style: SwanType.h3(c.ink)),
-          const SizedBox(height: SwanSpace.xs),
-          for (final item in g.$2) _row(context, c, item),
+          if (compact)
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(
+                g.$1,
+                style: SwanType.body(c.ink, w: FontWeight.w700),
+              ),
+              children: [for (final item in g.$2) _row(context, c, item)],
+            )
+          else ...[
+            Text(g.$1, style: SwanType.h3(c.ink)),
+            const SizedBox(height: SwanSpace.xs),
+            for (final item in g.$2) _row(context, c, item),
+          ],
         ],
       ],
     );
@@ -162,16 +166,16 @@ class ManagementSection extends ConsumerWidget {
   Widget _row(BuildContext context, SwanPalette c, _Item item) {
     return GestureDetector(
       behavior: HitTestBehavior.opaque,
-      onTap: () => Navigator.pushNamed(context, item.route),
+      onTap: () => onNavigate != null
+          ? onNavigate!(item.route)
+          : Navigator.pushNamed(context, item.route),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
         child: Row(
           children: [
             Icon(item.icon, size: 20, color: c.inkMuted),
             const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Text(item.label, style: SwanType.body(c.ink)),
-            ),
+            Expanded(child: Text(item.label, style: SwanType.body(c.ink))),
             Icon(Icons.chevron_right_rounded, size: 20, color: c.inkMuted),
           ],
         ),

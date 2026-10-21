@@ -1,14 +1,11 @@
 name: Deploy Landing & Migrations to Server
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'landing/**'
-      - 'supabase/migrations/**'
-      - 'tools/deploy_server.sh'
-      - '.github/workflows/deploy_server.yml'
   workflow_dispatch:
+
+concurrency:
+  group: deploy-server-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   deploy:

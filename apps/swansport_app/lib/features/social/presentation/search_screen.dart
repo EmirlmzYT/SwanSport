@@ -391,7 +391,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           child: Builder(
             builder: (_) {
               if (_loading) return premiumLoading();
-              if (_error != null) return premiumError(context, _error!);
+              if (_error != null) {
+                return premiumError(
+                  context,
+                  _error!,
+                  onRetry: () => _run(_query),
+                );
+              }
               if (list.isEmpty) {
                 return Center(
                   child: Padding(

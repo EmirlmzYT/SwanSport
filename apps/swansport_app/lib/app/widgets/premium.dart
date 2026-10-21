@@ -7,7 +7,10 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
+import 'friendly_error.dart';
 import 'swan_skeleton.dart';
+
+export 'friendly_error.dart';
 
 // Modül kataloğu ayrı dosyada. `import` alt bardaki menü düğmesinin onu
 // çağırabilmesi için; `export` ise mevcut `import 'premium.dart'` satırlarının
@@ -215,8 +218,28 @@ Widget premiumLoading() => const SwanListSkeleton();
 
 Widget premiumCardLoading() => const SwanCardSkeleton();
 
-Widget premiumError(BuildContext context, String msg) {
+Widget premiumError(
+  BuildContext context,
+  Object? error, {
+  VoidCallback? onRetry,
+  String? defaultMessage,
+}) {
   final c = context.swan;
+  final raw = error?.toString();
+  final normalized = raw?.toLowerCase();
+  final isTechnical = normalized != null &&
+      (normalized.contains('exception') ||
+          normalized.contains('42501') ||
+          normalized.contains('pgrst') ||
+          normalized.contains('permission denied') ||
+          normalized.contains('row-level security') ||
+          normalized.contains('failed host lookup') ||
+          normalized.contains('timed out') ||
+          normalized.contains('unauthorized'));
+  final msg = !isTechnical && raw != null && raw.trim().isNotEmpty
+      ? raw
+      : friendlyErrorMessage(error, defaultMessage: defaultMessage);
+
   return Padding(
     padding: const EdgeInsets.only(top: 28),
     child: SwanInfoPanel(
@@ -224,6 +247,8 @@ Widget premiumError(BuildContext context, String msg) {
       title: 'Veri yüklenemedi',
       subtitle: msg,
       tone: c.danger,
+      actionLabel: onRetry != null ? 'Tekrar Dene' : null,
+      onAction: onRetry,
     ),
   );
 }

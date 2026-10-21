@@ -38,6 +38,7 @@ class FeatureFlags {
   static const clubStaffOperations = 'club_staff_operations';
   static const liveMatchHub = 'live_match_hub';
   static const leagueStandings = 'league_standings';
+  static const federationBulletin = 'federation_bulletin';
   static const liveMatchNotifications = 'live_match_notifications';
   static const courts = 'courts';
   static const courtWaitlist = 'court_waitlist';
@@ -47,6 +48,13 @@ class FeatureFlags {
   static const teamHub = 'team_hub';
   static const seasonSetup = 'season_setup';
   static const developmentReport = 'development_report';
+  static const swanId = 'swan_id';
+  static const athleteShowcase = 'athlete_showcase';
+  static const swanAssistant = 'swan_assistant';
+  static const athleteJourney = 'athlete_journey';
+  static const eventPreparation = 'event_preparation';
+  static const teamKudos = 'team_kudos';
+  static const athleteMatchCard = 'athlete_match_card';
 
   /// 0054. Sabiti eksikti; feature_flag_sync_test bunu yakaladı.
   static const coachDiscovery = 'coach_discovery';
@@ -104,7 +112,8 @@ class FeatureFlags {
 /// tutuluyor. Her ekranda yeniden sormak, açılışı ekran sayısı kadar
 /// yavaşlatırdı.
 final featureFlagsProvider = FutureProvider<FeatureFlags>((ref) async {
-  ref.watch(authSessionProvider.select((session) => session.valueOrNull?.user.id));
+  ref.watch(
+      authSessionProvider.select((session) => session.valueOrNull?.user.id));
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return const FeatureFlags.none();
   }
@@ -125,8 +134,7 @@ final featureFlagsProvider = FutureProvider<FeatureFlags>((ref) async {
 });
 
 /// Tek bir bayrağın durumu — ekranların çoğu yalnızca birini soruyor.
-final featureEnabledProvider =
-    Provider.family<bool, String>((ref, key) {
+final featureEnabledProvider = Provider.family<bool, String>((ref, key) {
   final flags = ref.watch(featureFlagsProvider).valueOrNull;
   return flags?.has(key) ?? false;
 });
