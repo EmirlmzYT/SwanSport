@@ -7,6 +7,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../demo/demo_role.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
@@ -43,6 +44,9 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
 
     return SwanScaffold(
       backgroundColor: bg,
+      appBar: Navigator.canPop(context)
+          ? swanModuleAppBar(context, title: 'Kulüp Onayı')
+          : null,
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

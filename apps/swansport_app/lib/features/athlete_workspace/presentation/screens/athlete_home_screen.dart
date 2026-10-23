@@ -73,6 +73,15 @@ class AthleteHomeScreen extends ConsumerWidget {
                   // Üst bar
                   Row(
                     children: [
+                      if (Navigator.canPop(context)) ...[
+                        IconButton(
+                          tooltip: 'Geri dön',
+                          icon: Icon(Icons.arrow_back_ios_new_rounded,
+                              size: 18, color: ink),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       GradientAvatar(initials: initials, size: 46),
                       const SizedBox(width: 12),
                       Expanded(
