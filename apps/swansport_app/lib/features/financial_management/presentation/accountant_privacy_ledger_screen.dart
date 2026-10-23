@@ -6,6 +6,7 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/quick_actions.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 
@@ -48,6 +49,19 @@ class _LedgerState extends ConsumerState<AccountantPrivacyLedgerScreen> {
                 Text('Sporcu kimlikleri sunucuda maskelenir.',
                     style: SwanType.bodySm(c.inkMuted)),
                 const SizedBox(height: SwanSpace.md),
+                const QuickActions(actions: [
+                  QuickAction(
+                    icon: Icons.receipt_long_rounded,
+                    label: 'Gider ekle',
+                    route: '/gider-ekle',
+                  ),
+                  QuickAction(
+                    icon: Icons.undo_rounded,
+                    label: 'Ters kayıt',
+                    route: '/ters-islem',
+                  ),
+                ]),
+                const SizedBox(height: SwanSpace.lg),
                 page.when(
                   loading: premiumLoading,
                   error: (e, _) => premiumError(context, '$e'),

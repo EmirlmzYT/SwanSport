@@ -1,5 +1,6 @@
 import '../../features/platform/diagnostics_screen.dart';
 import '../../features/platform/mission_control_screen.dart';
+import '../../features/referee/referee_cockpit_screen.dart';
 import 'package:flutter/material.dart';
 
 import '../../features/athletes/athletes_screen.dart';
@@ -48,6 +49,8 @@ const List<ConsoleModule> kConsoleModules = [
     audience:{ConsoleAudience.clubStaff},builder:_clubSporting,accessCheck:_clubSportingAccess),
   ConsoleModule(id: 'referee_assignments', label: 'MHK Hakem Atama', icon: Icons.sports_rounded,
     route: '/mhk-atamalar', audience: {ConsoleAudience.federation}, builder: _refereeAssignments, accessCheck: _assignmentsAccess),
+  ConsoleModule(id: 'referee_cockpit', label: 'Hakem Görevleri & Kokpit', icon: Icons.sports_score_rounded,
+    route: '/hakem-gorevleri', audience: {ConsoleAudience.referee}, builder: _refereeCockpit, accessCheck: _refereeAccess),
   ConsoleModule(id: 'provincial_leagues', label: 'İl Lig & Müsabaka', icon: Icons.event_note_rounded,
     route: '/il-ligleri', audience: {ConsoleAudience.federation}, builder: _provincialLeagues, accessCheck: _leaguesAccess),
   ConsoleModule(id: 'disciplinary_board', label: 'Disiplin Kurulu', icon: Icons.gavel_rounded,
@@ -340,12 +343,15 @@ Widget _missionControl(BuildContext _) => const MissionControlScreen();
 Widget _federationResults(BuildContext context) =>
     const FederationResultsScreen();
 Widget _refereeAssignments(BuildContext _) => const RefereeAssignmentsScreen();
+Widget _refereeCockpit(BuildContext _) => const RefereeCockpitScreen();
 Widget _provincialLeagues(BuildContext _) => const ProvincialLeaguesScreen();
 Widget _disciplinaryBoard(BuildContext _) => const DisciplinaryBoardScreen();
 bool _assignmentsAccess(SwanAccess a) => a.canViewRefereeAssignments;
+bool _refereeAccess(SwanAccess a) => a.isReferee || a.isPlatformAdmin;
 bool _leaguesAccess(SwanAccess a) => a.canViewProvincialLeagues;
 bool _disciplineAccess(SwanAccess a) => a.isDisciplinaryBoardMember;
-bool _resultsAccess(SwanAccess a) => a.canPublishFederationResults;
+bool _resultsAccess(SwanAccess a) => a.federationAppointments.any((app) => app.authorizes(
+    app.sportCode, app.cityCode, FederationDuty.resultPublisher, DateTime.now()));
 Widget _clubInventory(BuildContext _) => const ConsoleClubStaffOperationsScreen(mode:ConsoleClubStaffMode.inventory);
 Widget _clubHealth(BuildContext _) => const ConsoleClubStaffOperationsScreen(mode:ConsoleClubStaffMode.health);
 Widget _clubSporting(BuildContext _) => const ConsoleClubStaffOperationsScreen(mode:ConsoleClubStaffMode.sporting);

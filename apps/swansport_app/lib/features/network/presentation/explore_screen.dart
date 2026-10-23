@@ -9,6 +9,8 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_chrome.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_navigation.dart';
 import '../../../app/widgets/inbox_actions.dart';
 import '../../../app/widgets/stitch_components.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -31,7 +33,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
     if (!ref.watch(swanAccessProvider).hasAccount)
       return const GuestExploreScreen();
     final c = context.swan;
-    final access = ref.watch(swanAccessProvider);
 
     return SwanScaffold(
       extendBody: true,
@@ -58,8 +59,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                   child: StitchSearchBar(
                     hint: 'Sporcu, kulüp, etkinlik veya branş ara...',
-                    onTap: () => Navigator.pushNamed(context, '/ara'),
-                    onFilter: () => Navigator.pushNamed(context, '/ara'),
+                    onTap: () => context.swanPush(AppRoutes.search),
+                    onFilter: () => context.swanPush(AppRoutes.search),
                   ),
                 ),
 
@@ -73,8 +74,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               StitchSectionTitle(
                                 title: 'Duyurular',
                                 actionLabel: 'Tümü',
-                                onAction: () => Navigator.pushNamed(
-                                    context, '/announcements'),
+                                onAction: () =>
+                                    context.swanPush(AppRoutes.announcements),
                               ),
                               SingleChildScrollView(
                                 scrollDirection: Axis.horizontal,
@@ -98,8 +99,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                                 : 'Kulüp duyurusu',
                                             meta: shortAgo(item.createdAt),
                                             actionLabel: 'Detayları Gör',
-                                            onAction: () => Navigator.pushNamed(
-                                                context, '/announcements'),
+                                            onAction: () => context
+                                                .swanPush(AppRoutes.announcements),
                                             tone:
                                                 item.pinned ? c.warning : null,
                                           ),
@@ -117,7 +118,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 StitchSectionTitle(
                   title: 'Sporcular ve antrenörler',
                   actionLabel: 'Tümü',
-                  onAction: () => Navigator.pushNamed(context, '/ara'),
+                  onAction: () => context.swanPush(AppRoutes.search),
                 ),
                 const Padding(
                   padding: EdgeInsets.symmetric(horizontal: SwanSpace.lg),
@@ -133,7 +134,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 StitchSectionTitle(
                   title: 'Spor yap',
                   actionLabel: 'Tüm Tesisler',
-                  onAction: () => Navigator.pushNamed(context, '/kortlar'),
+                  onAction: () => context.swanPush(AppRoutes.venues),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
@@ -153,7 +154,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               iconColor: context.swan.accent,
                               badge: 'Rezervasyon',
                               onTap: () =>
-                                  Navigator.pushNamed(context, '/kortlar'),
+                                  context.swanPush(AppRoutes.venues),
                             ),
                           ),
                           SizedBox(
@@ -165,7 +166,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               iconColor: context.swan.accent,
                               badge: 'Eşleş',
                               onTap: () =>
-                                  Navigator.pushNamed(context, '/partner-ara'),
+                                  context.swanPush(AppRoutes.partnerSearch),
                             ),
                           ),
                           SizedBox(
@@ -176,20 +177,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               subtitle: 'Turnuva, kamp & etkinlik',
                               iconColor: context.swan.warning,
                               badge: 'Turnuva',
-                              onTap: () => Navigator.pushNamed(
-                                  context, '/organizasyonlar'),
-                            ),
-                          ),
-                          SizedBox(
-                            width: itemWidth,
-                            child: _ModuleGridCard(
-                              icon: Icons.military_tech_rounded,
-                              title: 'Antrenmanlarım',
-                              subtitle: 'Kendi antrenman geçmişin',
-                              iconColor: context.swan.accent,
-                              badge: 'Geçmiş',
-                              onTap: () => Navigator.pushNamed(
-                                  context, '/antrenmanlarim'),
+                              onTap: () => context.swanPush(
+                                  AppRoutes.organizations),
                             ),
                           ),
                         ],
@@ -204,7 +193,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 StitchSectionTitle(
                   title: 'Topluluğa katıl',
                   actionLabel: 'Kulüpler',
-                  onAction: () => Navigator.pushNamed(context, '/kulupler'),
+                  onAction: () => context.swanPush(AppRoutes.clubs),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
@@ -224,7 +213,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               iconColor: context.swan.accent,
                               badge: 'Keşfet',
                               onTap: () =>
-                                  Navigator.pushNamed(context, '/kulupler'),
+                                  context.swanPush(AppRoutes.clubs),
                             ),
                           ),
                           SizedBox(
@@ -236,22 +225,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               iconColor: context.swan.accent,
                               badge: 'Sohbet',
                               onTap: () =>
-                                  Navigator.pushNamed(context, '/topluluklar'),
+                                  context.swanPush(AppRoutes.communities),
                             ),
                           ),
-                          if (access.isClubStaff)
-                            SizedBox(
-                              width: itemWidth,
-                              child: _ModuleGridCard(
-                                icon: Icons.shield_rounded,
-                                title: 'Takımlar',
-                                subtitle: 'Kadrolar ve takım sayfaları',
-                                iconColor: context.swan.accent,
-                                badge: 'Kulüp',
-                                onTap: () =>
-                                    Navigator.pushNamed(context, '/teams'),
-                              ),
-                            ),
                         ],
                       );
                     },
@@ -264,7 +240,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 StitchSectionTitle(
                   title: 'İhtiyacını bul',
                   actionLabel: 'İlanlar',
-                  onAction: () => Navigator.pushNamed(context, '/ilanlar'),
+                  onAction: () => context.swanPush(AppRoutes.listings),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
@@ -286,7 +262,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 iconColor: context.swan.warning,
                                 badge: 'Pazar',
                                 onTap: () =>
-                                    Navigator.pushNamed(context, '/pazaryeri'),
+                                    context.swanPush(AppRoutes.marketplace),
                               ),
                             ),
                           if (ref.watch(featureEnabledProvider(
@@ -299,8 +275,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                   subtitle: 'Resmi maçları takip et',
                                   iconColor: context.swan.ink,
                                   badge: 'Müsabaka',
-                                  onTap: () => Navigator.pushNamed(
-                                      context, '/canli-skor'),
+                                  onTap: () => context.swanPush(
+                                      AppRoutes.liveScore),
                                 )),
                           SizedBox(
                             width: itemWidth,
@@ -310,9 +286,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               subtitle: 'Fikstür, sonuç, takvim',
                               iconColor: context.swan.accent,
                               badge: 'Resmi',
-                              onTap: () => Navigator.pushNamed(
-                                context,
-                                '/federasyon-merkezi',
+                              onTap: () => context.swanPush(
+                                AppRoutes.federationCenter,
                               ),
                             ),
                           ),
@@ -326,8 +301,8 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                                 subtitle: 'Onaylı antrenör kadrosu',
                                 iconColor: context.swan.accent,
                                 badge: 'Eğitmen',
-                                onTap: () => Navigator.pushNamed(
-                                    context, '/antrenor-bul'),
+                                onTap: () => context.swanPush(
+                                    AppRoutes.coachDiscovery),
                               ),
                             ),
                           SizedBox(
@@ -339,7 +314,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                               iconColor: context.swan.accent,
                               badge: 'Duyuru',
                               onTap: () =>
-                                  Navigator.pushNamed(context, '/ilanlar'),
+                                  context.swanPush(AppRoutes.listings),
                             ),
                           ),
                         ],

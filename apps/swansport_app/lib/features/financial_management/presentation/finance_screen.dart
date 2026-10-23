@@ -1,5 +1,7 @@
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_navigation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -58,7 +60,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüp Finansı', actions: [
         IconButton(tooltip: 'Banka bilgileri', icon: Icon(Icons.account_balance_outlined, color: context.swan.inkMuted), onPressed: _editBank),
-        IconButton(tooltip: 'Mali iş kuyruğu', icon: Icon(Icons.notifications_active_outlined, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/mali-isler')),
+        IconButton(tooltip: 'Mali iş kuyruğu', icon: Icon(Icons.notifications_active_outlined, color: context.swan.inkMuted), onPressed: () => context.swanPush(AppRoutes.financeTasks)),
       ]),
       extendBody: true,
       backgroundColor: bg,
@@ -445,7 +447,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 icon: Icons.forward_to_inbox_rounded,
                 label: 'Toplu Hatırlat',
                 isPrimary: true,
-                onTap: () => Navigator.pushNamed(context, '/mali-isler'),
+                onTap: () => context.swanPush(AppRoutes.financeTasks),
                 palette: palette,
               ),
               const SizedBox(width: 8),
@@ -453,7 +455,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 icon: Icons.receipt_long_rounded,
                 label: 'Masraf Ekle',
                 isPrimary: false,
-                onTap: () => Navigator.pushNamed(context, '/gider-ekle'),
+                onTap: () => context.swanPush(AppRoutes.quickExpense),
                 palette: palette,
               ),
               const SizedBox(width: 8),
@@ -561,7 +563,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 ],
               )),
               GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/mali-isler'),
+                onTap: () => context.swanPush(AppRoutes.financeTasks),
                 child: Text(
                   'Tümünü Yönet',
                   style: SwanType.caption(palette.accent, w: FontWeight.w700),
@@ -613,7 +615,7 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     ),
                   ),
                   GestureDetector(
-                    onTap: () => Navigator.pushNamed(context, '/mali-isler'),
+                    onTap: () => context.swanPush(AppRoutes.financeTasks),
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,

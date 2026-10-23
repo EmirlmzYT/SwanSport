@@ -28,9 +28,11 @@ class ManagementSection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = context.swan;
     final access = ref.watch(swanAccessProvider);
+    final hasParentHub =
+        ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
 
     final club = <_Item>[
-      if (access.isClubStaff) ...[
+      if (access.hasActiveClubStaffMembership) ...[
         const _Item(
           Icons.space_dashboard_rounded,
           'Kulüp Yönetim Kokpiti',
@@ -47,7 +49,7 @@ class ManagementSection extends ConsumerWidget {
       ],
       // Kademeli yayın: bayrak kapalıyken antrenör bu iki girişi
       // görmüyor. Rotalar tanımlı kalıyor.
-      if (access.isClubStaff &&
+      if (access.hasActiveClubStaffMembership &&
           ref.watch(
             featureEnabledProvider(FeatureFlags.sportTrainingSessions),
           )) ...[
@@ -60,18 +62,18 @@ class ManagementSection extends ConsumerWidget {
     ];
 
     final ops = <_Item>[
-      if (access.isClubStaff || access.isAccountant) ...[
-        if (access.isAccountant)
-          const _Item(Icons.payments_rounded, 'Aidat Yönetimi', '/finans'),
+      if (access.isAccountant && !access.hasActiveClubStaffMembership)
+        const _Item(
+          Icons.account_balance_rounded,
+          'Muhasebe Merkezi',
+          '/muhasebeci-defter',
+        ),
+      if (access.hasActiveClubStaffMembership) ...[
         const _Item(
           Icons.playlist_add_check_rounded,
           'Mali İşler',
           '/mali-isler',
         ),
-        if (access.isAccountant)
-          const _Item(Icons.receipt_long_rounded, 'Gider Ekle', '/gider-ekle'),
-      ],
-      if (access.isClubStaff) ...[
         const _Item(
           Icons.medical_services_rounded,
           'Medikal',
@@ -81,11 +83,12 @@ class ManagementSection extends ConsumerWidget {
     ];
 
     final platform = <_Item>[
-      const _Item(
-        Icons.verified_rounded,
-        'Federasyon Yayın Merkezi',
-        '/federasyon-merkezi',
-      ),
+      if (access.canOpenFederationOperations)
+        const _Item(
+          Icons.verified_rounded,
+          'Federasyon Merkezi',
+          '/federasyon-merkezi',
+        ),
       if (access.isPlatformAdmin) ...[
         const _Item(
           Icons.admin_panel_settings_rounded,
@@ -106,8 +109,9 @@ class ManagementSection extends ConsumerWidget {
     ];
 
     final account = <_Item>[
-      if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
-          ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation)))
+      if (access.canOpenTurfCenter &&
+          (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
+              ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation))))
         const _Item(
           Icons.sports_tennis_rounded,
           'Saha İşlemlerim',
@@ -119,17 +123,20 @@ class ManagementSection extends ConsumerWidget {
           'Gelişim Raporu',
           '/gelisim-raporu',
         ),
-      if (ref.watch(featureEnabledProvider(FeatureFlags.parentHub)))
-        const _Item(
+      if (hasParentHub)
+        _Item(
           Icons.family_restroom_rounded,
-          'Veli İşlem Merkezi',
-          '/veli-izinleri',
+          access.isParent ? 'Veli İşlem Merkezi' : 'Çocuk bağla',
+          access.isParent ? '/veli-izinleri' : '/veli-bagla',
         ),
-      const _Item(Icons.volunteer_activism_rounded, 'Bağış', '/bagis'),
       const _Item(Icons.group_add_rounded, 'Başvurular', '/basvurular'),
-      const _Item(Icons.vpn_key_rounded, 'Davet Kodu', '/veli-bagla'),
       const _Item(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
-      if (!compact) const _Item(Icons.settings_rounded, 'Ayarlar', '/settings'),
+      if (!compact)
+        const _Item(Icons.settings_rounded, 'Hesap ve Uygulama', '/hesap'),
+    ];
+
+    const support = <_Item>[
+      _Item(Icons.volunteer_activism_rounded, 'Bağış ve Destek', '/bagis'),
     ];
 
     final groups = <(String, List<_Item>)>[
@@ -137,6 +144,7 @@ class ManagementSection extends ConsumerWidget {
       if (ops.isNotEmpty) ('Kulüp işleri', ops),
       if (platform.isNotEmpty) ('Platform', platform),
       ('Hesabım', account),
+      ('Destek', support),
     ];
 
     return Column(

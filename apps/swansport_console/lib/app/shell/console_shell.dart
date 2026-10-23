@@ -83,12 +83,27 @@ class _Sidebar extends ConsumerWidget {
     // yetkilisine hem muhasebeciye). Başlık, kullanıcının **kendi** sahip
     // olduğu kitleden seçiliyor: dışarıdan gelen muhasebeci mali modülleri
     // "Kulüp" başlığı altında görmesin, "Muhasebe" altında görsün.
+    // Kitleye ve role göre temiz, düzenli gruplama.
     final groups = <String, List<ConsoleModule>>{};
     for (final m in visible) {
-      final group = m.audience.contains(ConsoleAudience.accountant)
-          ? 'MALİ İŞLER'
-          : m.audience.contains(ConsoleAudience.clubStaff)
-              ? 'KULÜP YÖNETİMİ' : 'PLATFORM & FEDERASYON';
+      String group;
+      if (m.audience.contains(ConsoleAudience.federation)) {
+        group = 'FEDERASYON YÖNETİMİ';
+      } else if (m.audience.contains(ConsoleAudience.referee)) {
+        group = 'HAKEM KOKPİTİ';
+      } else if (m.audience.contains(ConsoleAudience.accountant) && !access.isClubStaff) {
+        group = 'MALİ İŞLER';
+      } else if (m.audience.contains(ConsoleAudience.clubStaff)) {
+        if (m.audience.contains(ConsoleAudience.accountant)) {
+          group = 'MALİ İŞLER';
+        } else {
+          group = 'KULÜP YÖNETİMİ';
+        }
+      } else if (m.audience.contains(ConsoleAudience.platformAdmin)) {
+        group = 'PLATFORM YÖNETİMİ';
+      } else {
+        group = 'DİĞER MODÜLLER';
+      }
       groups.putIfAbsent(group, () => []).add(m);
     }
 
@@ -192,14 +207,29 @@ class _Sidebar extends ConsumerWidget {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.shield_outlined,
+                      club != null
+                          ? Icons.shield_outlined
+                          : access.isReferee
+                              ? Icons.sports_score_rounded
+                              : (access.hasActiveFederationRole || access.canPublishFederationResults)
+                                  ? Icons.verified_user_rounded
+                                  : access.isPlatformAdmin
+                                      ? Icons.admin_panel_settings_rounded
+                                      : Icons.shield_outlined,
                       size: 17,
                       color: t.colorScheme.primary,
                     ),
                     const SizedBox(width: ConsoleDensity.sm),
                     Expanded(
                       child: Text(
-                        club?.name ?? 'Kulüp seçilmedi',
+                        club?.name ??
+                            (access.isReferee
+                                ? 'Hakem Kokpiti'
+                                : (access.hasActiveFederationRole || access.canPublishFederationResults)
+                                    ? 'Federasyon Yönetimi'
+                                    : access.isPlatformAdmin
+                                        ? 'Platform Yönetimi'
+                                        : 'Kulüp seçilmedi'),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: t.textTheme.bodySmall?.copyWith(
@@ -686,17 +716,19 @@ class _TopBar extends ConsumerWidget {
   }
 }
 
-String _roleLabel(SwanAccess access) => access.isClubAdmin
-    ? 'Kulüp yöneticisi'
-    : access.isClubStaff
-        ? 'Kulüp personeli'
-        : access.isAccountant
-            ? 'Muhasebeci'
-            : access.isPlatformAdmin
-                ? 'Platform yöneticisi'
-                : access.canPublishFederationResults
-                    ? 'Federasyon yetkilisi'
-                    : 'Hesap';
+String _roleLabel(SwanAccess access) {
+  if (access.isPlatformAdmin) return 'Platform yöneticisi';
+  if (access.isFederationPresident) return 'Federasyon başkanı';
+  if (access.isRefereeCommitteeMember) return 'MHK üyesi';
+  if (access.isDisciplinaryBoardMember) return 'Disiplin kurulu üyesi';
+  if (access.hasActiveFederationRole) return 'Federasyon yetkilisi';
+  if (access.isReferee) return 'Müsabaka hakemi';
+  if (access.isClubAdmin) return 'Kulüp yöneticisi';
+  if (access.isClubStaff) return 'Kulüp personeli';
+  if (access.isAccountant) return 'Muhasebeci';
+  if (access.canPublishFederationResults) return 'Federasyon yetkilisi';
+  return 'Hesap';
+}
 
 Future<void> _signOut(BuildContext context, WidgetRef ref) async {
   try {

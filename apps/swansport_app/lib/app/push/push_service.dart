@@ -328,14 +328,19 @@ StreamSubscription<String>? listenPushTokenChanges(WidgetRef ref) {
   try {
     return pushTokenChanges().listen(
       (token) {
-        if(!pushPermissionGranted||!ref.read(isSupabaseEnabledProvider))return;
+        if (!pushPermissionGranted || !ref.read(isSupabaseEnabledProvider))
+          return;
         unawaited(
           ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
-                (Object e) {lastPushError = '$e';},
-              ),
+            (Object e) {
+              lastPushError = '$e';
+            },
+          ),
         );
       },
-      onError: (Object error, StackTrace stackTrace) {lastPushError='$error';},
+      onError: (Object error, StackTrace stackTrace) {
+        lastPushError = '$error';
+      },
     );
   } catch (error) {
     debugPrint('SwanSport: push token dinleyicisi başlatılamadı — $error');
@@ -364,27 +369,34 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   @override
   void initState() {
     super.initState();
-    _tokenSub=listenPushTokenChanges(ref);
-    _foregroundSub = pushForegroundMessages().listen(_showForegroundMessage,onError:_pushError);
-    _openedSub = pushOpenedMessages().listen(_openMessage,onError:_pushError);
+    _tokenSub = listenPushTokenChanges(ref);
+    _foregroundSub = pushForegroundMessages()
+        .listen(_showForegroundMessage, onError: _pushError);
+    _openedSub = pushOpenedMessages().listen(_openMessage, onError: _pushError);
     Future.microtask(() async {
-      try{
-        if(!mounted||!ref.read(isSupabaseEnabledProvider))return;
+      try {
+        if (!mounted || !ref.read(isSupabaseEnabledProvider)) return;
         await refreshPushSilently(ref);
-        if(!mounted)return;
+        if (!mounted) return;
         final initial = await pushInitialMessage();
-        if (mounted&&initial != null) _openMessage(initial);
-      }catch(error){_pushError(error);}
+        if (mounted && initial != null) _openMessage(initial);
+      } catch (error) {
+        _pushError(error);
+      }
     });
   }
 
-  void _pushError(Object error){lastPushError='$error';}
+  void _pushError(Object error) {
+    lastPushError = '$error';
+  }
 
   void _showForegroundMessage(PushMessage message) {
-    if(!mounted)return;
-    if(message.route?.startsWith('/canli-mac/')??false){
-      ref.invalidate(publicLiveMatchesProvider);ref.invalidate(publicLiveMatchesForSportProvider);
-      ref.invalidate(publicMatchLiveStateProvider);ref.invalidate(leagueStandingsProvider);
+    if (!mounted) return;
+    if (message.route?.startsWith('/canli-mac/') ?? false) {
+      ref.invalidate(publicLiveMatchesProvider);
+      ref.invalidate(publicLiveMatchesForSportProvider);
+      ref.invalidate(publicMatchLiveStateProvider);
+      ref.invalidate(leagueStandingsProvider);
     }
     if (message.route?.startsWith('/resmi-sonuc') ?? false) {
       ref.read(officialResultRefreshProvider)();
@@ -410,12 +422,13 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   void _openMessage(PushMessage message) {
-    if(!mounted)return;
+    if (!mounted) return;
     if (message.route?.startsWith('/resmi-sonuc') ?? false) {
       ref.read(officialResultRefreshProvider)();
     }
+    final router = swanGoRouter;
     final navigator = swanNavigatorKey.currentState;
-    if (navigator == null) {
+    if (router == null && navigator == null) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _openMessage(message));
       return;
@@ -424,7 +437,11 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
     final target = pushRouteOrNotifications(message.route);
     final trace = diagnosticId();
     recorder.record('start', operation: 'action:push_open', traceId: trace);
-    navigator.pushNamed(target);
+    if (router != null) {
+      router.go(target);
+    } else {
+      navigator!.pushNamed(target);
+    }
     recorder.record('success', operation: 'action:push_open', traceId: trace);
   }
 

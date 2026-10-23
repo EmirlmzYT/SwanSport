@@ -46,6 +46,24 @@ void main() {
         athleteKind: null,
       );
       expect(a.isClubStaff, isTrue);
+      expect(a.hasActiveClubStaffMembership, isFalse);
+    });
+
+    test('kulüp merkezi aktif üyelik rolü ister', () {
+      const coach = SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: 'coach',
+        coachLevel: 0,
+        athleteKind: null,
+      );
+      const credentialOnly = SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: 'member',
+        coachLevel: 5,
+        athleteKind: null,
+      );
+      expect(coach.hasActiveClubStaffMembership, isTrue);
+      expect(credentialOnly.hasActiveClubStaffMembership, isFalse);
     });
 
     test('sporcu ya da veli kulüp yetkilisi değildir', () {

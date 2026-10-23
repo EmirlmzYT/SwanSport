@@ -376,6 +376,8 @@ class SwanAccess {
 
   bool isTurfManagerOf(String fieldId) => managedTurfFieldIds.contains(fieldId);
   final Set<String> delegatedTurfFieldIds;
+  bool get canOpenTurfCenter =>
+      managedTurfFieldIds.isNotEmpty || delegatedTurfFieldIds.isNotEmpty;
   bool canEditTurfOccupancy(String fieldId) =>
       isTurfManagerOf(fieldId) || delegatedTurfFieldIds.contains(fieldId);
 
@@ -390,6 +392,37 @@ class SwanAccess {
         'club_admin' || 'coach' || 'official' => true,
         _ => false,
       };
+
+  /// Active club membership scope for navigation and club operations.
+  /// A verified coach credential alone does not expose a club management
+  /// center; server-side RLS remains authoritative for every operation.
+  bool get hasActiveClubStaffMembership => switch (clubRole) {
+        'club_admin' || 'coach' || 'official' => true,
+        _ => false,
+      };
+
+  bool get hasActiveFederationAppointment {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final day = DateTime.utc(now.year, now.month, now.day);
+    return federationAppointments.any((appointment) {
+      final starts = DateTime.utc(
+        appointment.startsOn.year,
+        appointment.startsOn.month,
+        appointment.startsOn.day,
+      );
+      final ends = DateTime.utc(
+        appointment.endsOn.year,
+        appointment.endsOn.month,
+        appointment.endsOn.day,
+      );
+      return appointment.revokedAt == null &&
+          !day.isBefore(starts) &&
+          !day.isAfter(ends);
+    });
+  }
+
+  bool get canOpenFederationOperations =>
+      hasActiveFederationRole || hasActiveFederationAppointment;
 
   /// Matches can_post_for_club: a credential alone does not grant club publishing.
   bool get canPublishClubPosts =>

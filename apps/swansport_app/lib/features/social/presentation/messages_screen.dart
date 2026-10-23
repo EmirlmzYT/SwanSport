@@ -1,4 +1,6 @@
-import 'package:swansport_app/app/widgets/swan_scaffold.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_navigation.dart';
+import '../../../app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -150,13 +152,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 children: [
                   const SwanHeaderSpacer(),
                   const SizedBox(height: SwanSpace.xs),
-
                   _buildSearchField(c),
                   const SizedBox(height: 12),
-
                   _buildCategoryFilters(c),
                   const SizedBox(height: 10),
-
                   dms.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(SwanSpace.lg),
@@ -180,7 +179,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             ? SwanHeaderIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
                 tooltip: 'Geri dön',
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => context.swanPop(),
               )
             : null,
         title: Text(
@@ -202,7 +201,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               icon: Icon(Icons.person_add_alt_1_outlined,
                   size: 20, color: c.accent),
               tooltip: 'Yeni Grup veya Kişi',
-              onPressed: () => Navigator.pushNamed(context, '/ara'),
+              onPressed: () => context.swanPush(AppRoutes.search),
             ),
           ),
           const SizedBox(width: 8),
@@ -217,7 +216,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               padding: EdgeInsets.zero,
               icon: Icon(Icons.edit_square, size: 19, color: c.accent),
               tooltip: 'Yeni Sohbet',
-              onPressed: () => Navigator.pushNamed(context, '/ara'),
+              onPressed: () => context.swanPush(AppRoutes.search),
             ),
           ),
         ],
@@ -243,8 +242,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             suffixIcon: _query.isEmpty
                 ? null
                 : IconButton(
-                    icon: Icon(Icons.close_rounded,
-                        size: 16, color: c.inkMuted),
+                    icon:
+                        Icon(Icons.close_rounded, size: 16, color: c.inkMuted),
                     onPressed: () {
                       _searchCtrl.clear();
                       setState(() => _query = '');
@@ -302,6 +301,28 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       SwanPalette c, List<ConversationRow> dms, List<CommunityRow> groups) {
     final List<_ChatItemDisplay> items = [];
 
+    if (ref.watch(featureEnabledProvider(FeatureFlags.swanAssistant))) {
+      items.add(
+        _ChatItemDisplay(
+          id: 'swan-assistant',
+          title: 'Swan Asistan',
+          subtitle: 'Uygulama, etkinlik ve sporcu işlemlerinde yardım',
+          time: '',
+          kind: 'assistant',
+          avatarWidget: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: c.accent.withValues(alpha: .12),
+            ),
+            child: Center(
+              child: Icon(Icons.assistant_rounded, color: c.accent, size: 24),
+            ),
+          ),
+          onTap: () => context.swanPush(AppRoutes.aiAssistant),
+        ),
+      );
+    }
+
     // Real Supabase DMs
     for (final dm in dms) {
       items.add(_ChatItemDisplay(
@@ -313,7 +334,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         kind: 'coach',
         avatarUrl: dm.otherAvatarUrl,
         initials: dm.initials,
-        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
+        onTap: () => context.swanPush(AppRoutes.directMessage, extra: {
           'id': dm.otherId,
           'name': dm.otherName,
         }),
@@ -335,25 +356,20 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: g.isFederation ? Colors.white : c.surfaceAlt,
-            border: Border.all(
-                color: c.accent.withValues(alpha: 0.3), width: 1),
+            border:
+                Border.all(color: c.accent.withValues(alpha: 0.3), width: 1),
           ),
           child: Center(
             child: Icon(
-              g.isFederation
-                  ? Icons.shield_outlined
-                  : Icons.group_rounded,
-              color: g.isFederation
-                  ? const Color(0xFF131D2E)
-                  : c.accent,
+              g.isFederation ? Icons.shield_outlined : Icons.group_rounded,
+              color: g.isFederation ? const Color(0xFF131D2E) : c.accent,
               size: 24,
             ),
           ),
         ),
-        onTap: () => Navigator.pushNamed(
-          context,
-          g.isFederation ? '/federasyon' : '/topluluk',
-          arguments: {'id': g.id, 'name': g.name},
+        onTap: () => context.swanPush(
+          g.isFederation ? AppRoutes.federation : AppRoutes.community,
+          extra: {'id': g.id, 'name': g.name},
         ),
       ));
     }
@@ -380,7 +396,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     if (filtered.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
+        padding:
+            const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
         child: Center(
           child: Column(
             children: [
@@ -411,8 +428,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               ),
               const SizedBox(height: 18),
               FilledButton.icon(
-                onPressed: () => Navigator.pushNamed(context, '/ara'),
-                icon: Icon(Icons.person_search_rounded, size: 16, color: c.onAccent),
+                onPressed: () => context.swanPush(AppRoutes.search),
+                icon: Icon(Icons.person_search_rounded,
+                    size: 16, color: c.onAccent),
                 label: const Text('Kullanıcı Ara & Sohbet Başlat'),
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accentFill,
@@ -770,7 +788,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
               child: Row(
             children: [
               IconButton(
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => context.swanPop(),
                 icon: Icon(Icons.arrow_back_ios_new_rounded,
                     size: 18, color: c.ink),
                 tooltip: 'Geri',
@@ -800,8 +818,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           Row(
             children: [
               IconButton(
-                onPressed: () => Navigator.pushNamed(context, '/profil',
-                    arguments: widget.otherId),
+                onPressed: () => context.swanPush(AppRoutes.profile,
+                    extra: widget.otherId),
                 icon: Icon(Icons.info_outline_rounded, size: 20, color: c.ink),
                 tooltip: 'Profil',
               ),

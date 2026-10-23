@@ -1,14 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'action_gate.dart';
 
+import '../design/swan_chrome.dart';
 import '../design/swan_palette.dart';
 import '../design/swan_shape.dart';
+import '../navigation/shell_navigation_scope.dart';
+import '../navigation/app_routes.dart';
+import '../navigation/swan_destination.dart';
+import 'action_gate.dart';
 import 'create_sheet.dart';
 import 'scroll_chrome.dart';
-import '../design/swan_chrome.dart';
 
 /// Sabit beş öğeli alt gezinme.
 ///
@@ -77,9 +81,17 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
 
   @override
   Widget build(BuildContext context) {
-    final current = ModalRoute.of(context)?.settings.name;
+    if (SwanShellNavigationScope.suppressEmbeddedOf(context)) {
+      return const SizedBox.shrink();
+    }
+    final goRouter = GoRouter.maybeOf(context);
+    final current = goRouter?.routeInformationProvider.value.uri.path ??
+        ModalRoute.of(context)?.settings.name;
     // Açılış kapısı akışı gösteriyor.
     final route = current == '/' ? '/akis' : current;
+    if (SwanDestination.shouldHideBottomNav(route)) {
+      return const SizedBox.shrink();
+    }
     final myId = ref.watch(currentProfileProvider).valueOrNull?.id;
     final unreadMessages = ref.watch(unreadMessagesProvider).valueOrNull ?? 0;
     final isIos = Theme.of(context).platform == TargetPlatform.iOS;
@@ -210,9 +222,30 @@ class _SwanBottomNavState extends ConsumerState<SwanBottomNav> {
     if (!SwanAccess.isGuestRoute(route) &&
         !await requireSwanAction(context, ref, SwanAction.message)) return;
     if (!context.mounted) return;
-    if (ModalRoute.of(context)?.settings.name == route) return;
-    Navigator.pushReplacementNamed(context, route,
-        arguments: route == '/profil' ? profileId : null);
+    final goRouter = GoRouter.maybeOf(context);
+    final shellScope = SwanShellNavigationScope.maybeOf(context);
+    final branchIndex = AppRoutes.shellRoots.indexOf(route);
+    if (shellScope?.navigationShell != null && branchIndex >= 0) {
+      shellScope!.goBranch(branchIndex);
+      return;
+    }
+    final current = goRouter?.routeInformationProvider.value.uri.path ??
+        ModalRoute.of(context)?.settings.name;
+    if (current == route) {
+      return;
+    }
+    if (goRouter != null) {
+      goRouter.go(
+        route,
+        extra: route == '/profil' ? profileId : null,
+      );
+      return;
+    }
+    Navigator.pushReplacementNamed(
+      context,
+      route,
+      arguments: route == '/profil' ? profileId : null,
+    );
   }
 }
 

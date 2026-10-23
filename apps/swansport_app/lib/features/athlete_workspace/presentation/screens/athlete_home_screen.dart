@@ -10,6 +10,8 @@ import '../../../../app/widgets/summary_section.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_palette.dart';
+import '../../../../app/navigation/app_routes.dart';
+import '../../../../app/navigation/swan_navigation.dart';
 import '../widgets/getting_started_card.dart';
 
 /// Sporcu Ana Ekranı — sporcunun kendi gözünden (premium v3).
@@ -136,7 +138,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                           'Yeni etkinlikler eklendiğinde burada görünür.',
                           actionLabel: 'Takvimi aç',
                           onAction: () =>
-                              Navigator.pushNamed(context, '/calendar'),
+                              context.swanPush(AppRoutes.calendar),
                         );
                       }
                       return _hero(context, upcoming.first);
@@ -175,7 +177,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                   // haftaki maçın üstüne "Bugün" yazmak yanlış bilgi olurdu.
                   SummarySection(
                     title: 'Program',
-                    onSeeAll: () => Navigator.pushNamed(context, '/calendar'),
+                    onSeeAll: () => context.swanPush(AppRoutes.calendar),
                     child: _sum(events, (list) {
                       final now = DateTime.now();
                       final up = (list
@@ -223,7 +225,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                   SummarySection(
                     title: 'Gelişim',
                     onSeeAll: () =>
-                        Navigator.pushNamed(context, '/performance-analytics'),
+                        context.swanPush(AppRoutes.performanceAnalytics),
                     child: _sum(card, (c) {
                       if (!c.hasData) {
                         return SummaryLine.empty('Henüz kayıt yok');
@@ -250,7 +252,7 @@ class AthleteHomeScreen extends ConsumerWidget {
 
                   SummarySection(
                     title: 'Takımım',
-                    onSeeAll: () => Navigator.pushNamed(context, '/teams'),
+                    onSeeAll: () => context.swanPush(AppRoutes.teams),
                     child: _sum(teams, (list) {
                       if (list.isEmpty) return SummaryLine.empty('Takım yok');
                       final t = list.first;
@@ -267,7 +269,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                   SummarySection(
                     title: 'Sağlık',
                     onSeeAll: () =>
-                        Navigator.pushNamed(context, '/medical-center'),
+                        context.swanPush(AppRoutes.medicalCenter),
                     child: _sum(injuries, (list) {
                       final mine = myAthlete == null
                           ? null
@@ -296,7 +298,7 @@ class AthleteHomeScreen extends ConsumerWidget {
 
                   SummarySection(
                     title: 'Belgeler',
-                    onSeeAll: () => Navigator.pushNamed(context, '/documents'),
+                    onSeeAll: () => context.swanPush(AppRoutes.documents),
                     child: _sum(docs, (list) {
                       final mine = list
                           .where(
@@ -326,7 +328,7 @@ class AthleteHomeScreen extends ConsumerWidget {
 
                   SummarySection(
                     title: 'Finans',
-                    onSeeAll: () => Navigator.pushNamed(context, '/aidatlarim'),
+                    onSeeAll: () => context.swanPush(AppRoutes.myFees),
                     child: _sum(fees, (list) {
                       final open =
                           list.where((f) => f.status != 'paid').toList();
@@ -355,7 +357,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                   SummarySection(
                     title: 'Duyurular',
                     onSeeAll: () =>
-                        Navigator.pushNamed(context, '/announcements'),
+                        context.swanPush(AppRoutes.announcements),
                     child: _sum(anns, (list) {
                       if (list.isEmpty) return SummaryLine.empty('Duyuru yok');
                       return Column(
@@ -402,7 +404,7 @@ class AthleteHomeScreen extends ConsumerWidget {
       button: true,
       label: 'Sıradaki etkinlik: ${e.title}. Takvimi aç',
       child: InkWell(
-        onTap: () => Navigator.pushNamed(context, '/calendar'),
+        onTap: () => context.swanPush(AppRoutes.calendar),
         borderRadius: BorderRadius.circular(22),
         child: Container(
           padding: const EdgeInsets.all(18),
@@ -593,7 +595,7 @@ class AthleteHomeScreen extends ConsumerWidget {
               if (p.coachNote != null) Text(p.coachNote!),
               const SizedBox(height: 8),
               TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/calendar'),
+                onPressed: () => context.swanPush(AppRoutes.calendar),
                 child: const Text('Etkinliği aç'),
               ),
             ]),
@@ -610,7 +612,7 @@ class AthleteHomeScreen extends ConsumerWidget {
         subtitle:
             const Text('Program, belge ve Swan ID sorularında yardımcı olur.'),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => Navigator.pushNamed(context, '/swan-asistan'),
+        onTap: () => context.swanPush(AppRoutes.assistant),
       );
 
   Widget _swanIdCard(BuildContext context) => ListTile(
@@ -621,7 +623,7 @@ class AthleteHomeScreen extends ConsumerWidget {
             style: SwanType.bodySm(context.swan.ink, w: FontWeight.w800)),
         subtitle: const Text('Doğrulanmış spor kimliğini ve gelişimini aç.'),
         trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: () => Navigator.pushNamed(context, '/swan-id'),
+        onTap: () => context.swanPush(AppRoutes.swanId),
       );
 
   Widget _agenda(bool isDark, DateTime t, String title, String place) {

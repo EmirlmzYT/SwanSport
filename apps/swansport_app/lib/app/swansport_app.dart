@@ -1,4 +1,3 @@
-import 'widgets/action_gate.dart';
 import '../features/test_center/test_center_screen.dart';
 import 'router.dart';
 import '../features/live_match/presentation/live_match_hub_screen.dart';
@@ -8,6 +7,7 @@ import '../features/network/presentation/guest_explore_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
@@ -111,18 +111,625 @@ import 'config/app_environment.dart';
 import 'diagnostics/diagnostic_runtime.dart';
 import 'l10n/app_locale.dart';
 import 'l10n/swan_localizations.dart';
+import 'navigation/legacy_route_registry.dart';
+import 'navigation/app_router.dart';
+import 'navigation/app_routes.dart';
+import 'navigation/legacy_navigation_bridge.dart';
 import 'theme/theme_mode_controller.dart';
 import 'update/update_gate.dart';
 import 'widgets/page_transitions.dart';
+import 'widgets/app_shell.dart';
 import 'widgets/unavailable_feature_screen.dart';
 
-class SwanSportApp extends ConsumerWidget {
+/// Controls whether the modern staged GoRouter shell is active.
+///
+/// Router migration is exercised on development builds first. Production,
+/// the isolated Test Center, and legacy widget test bindings keep the proven
+/// Navigator 1 entry until device/deep-link UAT is complete.
+final stagedRouterEnabledProvider = Provider<bool>((ref) {
+  final environment = ref.watch(appEnvironmentProvider);
+  final testCenter = ref.watch(localTestCenterEnabledProvider);
+  if (testCenter || environment.isProduction) return false;
+  // Preserve single-Navigator contract for legacy widget tests unless explicitly overridden
+  if (WidgetsBinding.instance.runtimeType.toString().contains('Test')) {
+    return false;
+  }
+  return true;
+});
+
+class SwanSportApp extends ConsumerStatefulWidget {
   const SwanSportApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SwanSportApp> createState() => _SwanSportAppState();
+}
+
+class _SwanSportAppState extends ConsumerState<SwanSportApp> {
+  GoRouter? _router;
+  final _branchNavigatorKeys = List<GlobalKey<NavigatorState>>.generate(
+    4,
+    (_) => GlobalKey<NavigatorState>(),
+  );
+
+  @override
+  void dispose() {
+    if (identical(swanGoRouter, _router)) {
+      swanGoRouter = null;
+    }
+    _router?.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final environment = ref.watch(appEnvironmentProvider);
     final testCenter = ref.watch(localTestCenterEnabledProvider);
+
+    final legacyStaticRoutes = <String, WidgetBuilder>{
+      if (testCenter) testCenterRoute: (_) => const TestCenterScreen(),
+      '/hakem/gorevler': (context) => const RefereeDutyListScreen(),
+      '/kulup/malzeme-zimmet': (context) =>
+          const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
+      '/kulup/saglik-takibi': (context) =>
+          const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
+      '/kulup/kadro-planlama': (context) =>
+          const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
+      '/': (context) => const AuthGate(),
+      '/auth': (context) => const AuthScreen(),
+      '/home-command': (context) => const HomeCommandCenterScreen(),
+      '/landing': (context) => const PublicLandingScreen(),
+      '/dashboard': (context) => const CoachDashboardScreen(),
+      '/athletes': (context) => const AthleteWorkspaceScreen(),
+      '/attendance': (context) => const LiveAttendanceScreen(),
+      '/calendar': (context) => const ScheduleCalendarScreen(),
+      '/announcements': (context) => const AnnouncementsScreen(),
+      '/teams': (context) => const TeamRosterDirectoryScreen(),
+      '/documents': (context) => const DocumentVaultScreen(),
+      '/hesap': (context) => const ClubSettingsScreen(accountOnly: true),
+      '/settings': (context) => const ClubSettingsRouteGate(),
+      '/gider-ekle': (context) => const QuickExpenseScreen(),
+      // push_route yedi mali bildirim türünü buraya yönlendiriyor.
+      '/mali-isler': (context) => const FinanceTasksScreen(),
+      '/kaydedilenler': (context) => const SavedPostsScreen(),
+      '/yardim': (context) => const HelpScreen(),
+      '/swan-id': (context) => const SwanIdScreen(),
+      '/swan-asistan': (context) => const SwanAssistantScreen(),
+      '/destek': (context) => const SupportScreen(),
+      // 0071-0073. push_route 'training_session' ve 'training_result'
+      // bildirimlerini buraya yonlendiriyor.
+      '/antrenman-oturumu': (context) => const TrainingSessionScreen(),
+      '/antrenman-sonuc': (context) => const SessionResultScreen(),
+      '/antrenman-sablonlari': (context) => const ProtocolListScreen(),
+      '/antrenman-olustur': (context) => const WorkoutProtocolBuilderScreen(),
+      '/antrenmanlarim': (context) => const MyTrainingScreen(),
+      '/dogrulama': (context) => const CredentialScreen(),
+      '/canli-skor': (context) => const LiveMatchHubScreen(),
+      '/veli-bagla': (context) => const GuardianLinkScreen(),
+      '/rehber': (context) => const SetupWizardScreen(),
+      '/onay-paneli': (context) => const AdminReviewScreen(),
+      '/demo-rol': (context) =>
+          ref.watch(appEnvironmentProvider).enableDebugTools
+              ? const DemoRoleScreen()
+              : const AuthScreen(),
+      '/akis': (context) => const FeedScreen(),
+      '/ara': (context) => const SearchScreen(),
+      '/bildirimler': (context) => const NotificationsScreen(),
+      '/mesajlar': (context) => const MessagesScreen(),
+      '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
+      '/federasyon-takvimi': (context) => const PublicSportCalendarScreen(),
+      '/federasyon-merkezi': (context) => const FederationCenterScreen(),
+      '/kesfet': (context) => const ExploreScreen(),
+      '/kulupler': (context) => const DiscoverScreen(),
+      '/pazaryeri': (context) => const MarketplaceScreen(),
+      '/antrenor-bul': (context) => const CoachDiscoveryScreen(),
+      '/ilan-ver': (context) => const CreateListingScreen(),
+      '/magaza-basvuru': (context) => const StoreApplicationScreen(),
+      '/ilanlar': (context) => const ListingsScreen(),
+      '/kortlar': (context) => const VenuesScreen(),
+      '/oyuncu-aranan': (context) => const FindPartnerScreen(initialTab: 1),
+      '/partner-ara': (context) => const FindPartnerScreen(),
+      '/halisahalar': (context) => const VenuesScreen(initialTab: 1),
+      '/organizasyonlar': (context) => const OrganizationsScreen(),
+      '/finans': (context) => const FinanceScreen(),
+      '/aidatlarim': (context) => const MyFeesScreen(),
+      '/bagis': (context) => const CampaignsScreen(),
+      '/federasyon-yetkili': (context) => const FederationAdminScreen(),
+      '/haber-kaynaklari': (context) => const RssAdminScreen(),
+      '/gizlilik': (context) => const PrivacyScreen(),
+      '/devam-durumu': (context) => const AttendanceHistoryScreen(),
+      '/basvurular': (context) => const ClubApplicationsScreen(),
+      '/sezon-acilisi': (context) => const SeasonSetupScreen(),
+      '/configuration': (context) =>
+          environment.isProduction || ref.read(isSupabaseEnabledProvider)
+              ? const UnavailableFeatureScreen(
+                  title: 'Kulüp yapılandırması',
+                  message:
+                      'Bu gelişmiş yapılandırma ekranı henüz kullanıma açık değil. Kulüp profilini Ayarlar üzerinden düzenleyebilirsin.',
+                  route: '/settings',
+                  actionLabel: 'Ayarları aç',
+                )
+              : const ConfigurationScreen(),
+      '/facilities': (context) => const FacilityManagementScreen(),
+      '/rezervasyon': (context) => const FacilityReservationScreen(),
+      '/medical-center': (context) => const MedicalCenterScreen(),
+      '/reports': (context) =>
+          environment.isProduction || ref.read(isSupabaseEnabledProvider)
+              ? const UnavailableFeatureScreen(
+                  title: 'Raporlar',
+                  message:
+                      'Bu rapor arşivi henüz kullanıma açık değil. Mevcut mali kayıtlarını finans ekranından takip edebilirsin.',
+                  route: '/finans',
+                  actionLabel: 'Finansı aç',
+                )
+              : const ReportsScreen(),
+      '/performance-analytics': (context) => const PerformanceAnalyticsScreen(),
+      '/hazirbulunusluk': (context) => const ReadinessRpeScreen(),
+      '/ekipman-tuning': (context) => const EquipmentTuningScreen(),
+      '/veli-izinleri': (context) => const ParentConsentCenterScreen(),
+      '/sepet': (context) => const CartCheckoutScreen(),
+      '/musabaka-simulasyonu': (context) => const MatchSimulationScreen(),
+      '/etkinlik-detay': (context) => const EventRosterDetailScreen(),
+      '/ters-islem': (context) => Consumer(
+            builder: (_, ref, __) => ref.watch(swanAccessProvider).isAccountant
+                ? const ClosedPeriodReversalScreen()
+                : const UnavailableFeatureScreen(
+                    title: 'Muhasebe yetkisi gerekli',
+                    message:
+                        'Bu işlem yalnız aktif muhasebeci yetkisiyle açılır.',
+                    route: '/hesap',
+                    actionLabel: 'Hesaba dön',
+                  ),
+          ),
+      '/muhasebeci-defter': (context) => Consumer(
+            builder: (_, ref, __) => ref.watch(swanAccessProvider).isAccountant
+                ? const AccountantPrivacyLedgerScreen()
+                : const UnavailableFeatureScreen(
+                    title: 'Muhasebe yetkisi gerekli',
+                    message:
+                        'Bu merkez yalnız aktif muhasebeci yetkisiyle açılır.',
+                    route: '/hesap',
+                    actionLabel: 'Hesaba dön',
+                  ),
+          ),
+      '/liderlik': (context) => const LeaderboardScreen(),
+      '/beslenme': (context) => const NutritionTrackerScreen(),
+      '/yaris-detay': (context) => const RaceEventDetailScreen(),
+      '/kulup-detay': (context) => const ClubProfileDetailScreen(),
+      '/kulup-yonetim': (context) => const ClubCockpitScreen(),
+    };
+    final protectedStaticRoutes = LegacyRouteRegistry.protectStaticRoutes(
+      legacyStaticRoutes,
+      testCenterEnabled: testCenter,
+      testCenterRoute: testCenterRoute,
+    );
+    final protectedDynamicRoutes =
+        LegacyRouteRegistry.protectDynamicRoutes((settings) {
+      final liveMatch = liveMatchRoute(settings);
+      if (liveMatch != null) return liveMatch;
+      final referee = refereeRoute(settings);
+      if (referee != null) return referee;
+      final target = Uri.tryParse(settings.name ?? '');
+      if (target != null &&
+          target.pathSegments.length == 3 &&
+          target.pathSegments[0] == 'swan-id' &&
+          target.pathSegments[1] == 'dogrula') {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => SwanIdVerifyScreen(token: target.pathSegments[2]),
+        );
+      }
+      if (target != null &&
+          target.pathSegments.length == 2 &&
+          target.pathSegments[0] == 'mac-kartim' &&
+          RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
+              .hasMatch(target.pathSegments[1])) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) =>
+              AthleteMatchCardScreen(matchId: target.pathSegments[1]),
+        );
+      }
+      if (target?.path == '/resmi-sonuc') {
+        return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => GuardianOfficialResultScreen(
+                notificationId: target!.queryParameters['notification'] ?? '',
+                matchId: target.queryParameters['match'],
+                childId: target.queryParameters['child']));
+      }
+      // These secondary design previews still use fixture repositories.
+      // Preserve their URLs, but never expose fabricated records on a live backend.
+      final previewRoute = settings.name;
+      if ((environment.isProduction || ref.read(isSupabaseEnabledProvider)) &&
+          (previewRoute == '/communication-detail' ||
+              previewRoute == '/admin-user-detail' ||
+              previewRoute == '/configuration-module' ||
+              previewRoute == '/report-detail' ||
+              (previewRoute?.startsWith('/performance-') ?? false))) {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const UnavailableFeatureScreen(
+            title: 'Ayrıntı görünümü kullanılamıyor',
+            message:
+                'Bu ayrıntı görünümü henüz kullanıma açık değil. Kulübünün mevcut kayıtlarına yönetim ekranlarından ulaşabilirsin.',
+            route: '/profil',
+            actionLabel: 'Profil ve yönetime git',
+          ),
+        );
+      }
+      // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
+      if (settings.name == '/profil' ||
+          settings.name == '/kulup-profil' ||
+          target?.path == '/kulup-profil') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ProfileScreen(
+            id: args is String ? args : target?.queryParameters['id'],
+            isClub: settings.name != '/profil',
+          ),
+        );
+      }
+      if (settings.name == '/saha-islemlerim') {
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => const SahaOperationsScreen(),
+        );
+      }
+      if (settings.name == '/gelisim-raporu') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => DevelopmentReportScreen(
+            athleteId: args is Map && args['id'] is String
+                ? args['id'] as String
+                : null,
+          ),
+        );
+      }
+      if (settings.name == '/sporcu-performans') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => AthletePerformanceScreen(
+            athleteId: '${m['id'] ?? ''}',
+            athleteName: '${m['name'] ?? 'Sporcu'}',
+          ),
+        );
+      }
+      if (settings.name == '/baglantilar') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ConnectionsScreen(
+            profileId: '${m['id'] ?? ''}',
+            initialTab: (m['tab'] as int?) ?? 0,
+            title: m['name'] as String?,
+          ),
+        );
+      }
+      if (settings.name == '/takim-kadro') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => TeamRosterScreen(
+            teamId: '${m['id'] ?? ''}',
+            teamName: '${m['name'] ?? 'Takım'}',
+          ),
+        );
+      }
+      if (settings.name == '/federasyon') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => FederationChannelScreen(
+            communityId: '${m['id'] ?? ''}',
+            title: '${m['name'] ?? 'Federasyon'}',
+          ),
+        );
+      }
+      if (settings.name == '/topluluk') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => CommunityChatScreen(
+            communityId: '${m['id'] ?? ''}',
+            title: '${m['name'] ?? 'Topluluk'}',
+          ),
+        );
+      }
+      if (settings.name == '/urun') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ListingDetailScreen(listingId: '${m['id'] ?? ''}'),
+        );
+      }
+      if (settings.name == '/sohbet') {
+        final args = settings.arguments;
+        final m = args is Map ? args : const <Object?, Object?>{};
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ChatScreen(
+            otherId: '${m['id'] ?? ''}',
+            otherName: '${m['name'] ?? 'Sohbet'}',
+          ),
+        );
+      }
+      if (settings.name == '/athlete-detail') {
+        final args = settings.arguments;
+
+        if (args is AthleteDetailRouteArgs) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (context) => AthleteDetailScreen(args: args),
+          );
+        }
+
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (context) => const AthleteDetailScreen.invalidRoute(),
+        );
+      }
+      if (settings.name == '/communication-detail') {
+        final args = settings.arguments;
+
+        if (args is CommunicationDetailRouteArgs) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (context) => CommunicationDetailScreen(args: args),
+          );
+        }
+
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (context) => const CommunicationDetailScreen.invalidRoute(),
+        );
+      }
+      if (settings.name == '/document-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (context) => args is DocumentDetailRouteArgs
+              ? DocumentDetailScreen(args: args)
+              : const DocumentDetailScreen.invalidRoute(),
+        );
+      }
+      if (settings.name == '/admin-user-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => AdminUserDetailScreen(
+            args: args is AdminUserDetailArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/configuration-module') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ConfigurationModuleScreen(
+            args: args is ConfigurationModuleArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-test-session') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => TestSessionScreen(
+            args: args is TestSessionArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-team-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => TeamPerformanceScreen(
+            args: args is TeamPerformanceArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-development-plan') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => DevelopmentPlanScreen(
+            args: args is DevelopmentPlanArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-review-session') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ReviewSessionScreen(
+            args: args is ReviewSessionArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-match-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => MatchPerformanceScreen(
+            args: args is MatchPerformanceArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-training-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => TrainingPerformanceScreen(
+            args: args is TrainingPerformanceArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-position-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => PositionAnalysisScreen(
+            args: args is PositionAnalysisArgs ? args : null,
+          ),
+        );
+      }
+      if (settings.name == '/performance-test-session-editor') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => TestSessionEditorScreen(
+            args: args is TestSessionEditorArgs
+                ? args
+                : const TestSessionEditorArgs(),
+          ),
+        );
+      }
+      if (settings.name == '/performance-development-plan-editor') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => DevelopmentPlanEditorScreen(
+            args: args is DevelopmentPlanEditorArgs
+                ? args
+                : const DevelopmentPlanEditorArgs(),
+          ),
+        );
+      }
+      if (settings.name == '/performance-self-assessment-editor') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => SelfAssessmentEditorScreen(
+            args: args is SelfAssessmentEditorArgs
+                ? args
+                : const SelfAssessmentEditorArgs(),
+          ),
+        );
+      }
+      if (settings.name == '/performance-review-session-editor') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ReviewSessionEditorScreen(
+            args: args is ReviewSessionEditorArgs
+                ? args
+                : const ReviewSessionEditorArgs(),
+          ),
+        );
+      }
+      if (settings.name == '/report-detail') {
+        final args = settings.arguments;
+        return MaterialPageRoute<void>(
+          settings: settings,
+          builder: (_) => ReportDetailScreen(
+            args: args is ReportDetailArgs ? args : null,
+          ),
+        );
+      }
+
+      return null;
+    });
+
+    // Router migration is exercised on development builds first. Production
+    // and the isolated Test Center keep the proven Navigator 1 entry until
+    // device/deep-link UAT is complete.
+    final useStagedRouter = ref.watch(stagedRouterEnabledProvider);
+    if (useStagedRouter) {
+      final legacyFactory = LegacyRouteRegistry.branchFactory(
+        routes: protectedStaticRoutes,
+        onGenerateRoute: protectedDynamicRoutes,
+      );
+      Widget legacyBranch(String initialRoute, int branchIndex) =>
+          LegacyNavigationBridge(
+            initialRoute: initialRoute,
+            onGenerateRoute: legacyFactory,
+            navigatorKey: _branchNavigatorKeys[branchIndex],
+            suppressEmbeddedBottomNavigation: true,
+          );
+
+      _router ??= buildSwanRouter(
+        navigatorKey: swanNavigatorKey,
+        observers: <NavigatorObserver>[
+          ref.read(diagnosticNavigationObserverProvider),
+        ],
+        rootBuilder: (_, __) => AuthGate(
+          onAuthenticatedHomeReady: () => swanGoRouter?.go(AppRoutes.feed),
+        ),
+        feedBuilder: (_, __) => legacyBranch('/akis', 0),
+        exploreBuilder: (_, __) => legacyBranch('/kesfet', 1),
+        messagesBuilder: (_, state) => legacyBranch(
+          state.uri.queryParameters['tab'] == 'communities'
+              ? '/topluluklar'
+              : '/mesajlar',
+          2,
+        ),
+        profileBuilder: (_, state) => LegacyNavigationBridge(
+          initialRoute: '/profil',
+          navigatorKey: _branchNavigatorKeys[3],
+          suppressEmbeddedBottomNavigation: true,
+          onGenerateRoute: (settings) => legacyFactory(
+            RouteSettings(
+              name: settings.name,
+              arguments: state.extra,
+            ),
+          ),
+        ),
+        shellBuilder: (_, __, navigationShell) => SwanAppShell(
+          navigationShell: navigationShell,
+          onReselect: (index) {
+            _branchNavigatorKeys[index]
+                .currentState
+                ?.popUntil((route) => route.isFirst);
+          },
+        ),
+        legacyFallbackBuilder: (_, state) => LegacyNavigationBridge(
+          initialRoute: state.uri.toString(),
+          onGenerateRoute: legacyFactory,
+        ),
+      );
+      swanGoRouter = _router;
+
+      return MaterialApp.router(
+        scrollBehavior: const MaterialScrollBehavior().copyWith(
+          physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics(),
+          ),
+        ),
+        title: environment.appName,
+        debugShowCheckedModeBanner: false,
+        routerConfig: _router,
+        scaffoldMessengerKey: swanMessengerKey,
+        theme: SwanTheme.light().copyWith(
+          pageTransitionsTheme: kSwanPageTransitions,
+        ),
+        darkTheme: SwanTheme.dark().copyWith(
+          pageTransitionsTheme: kSwanPageTransitions,
+        ),
+        themeMode: ref.watch(themeModeProvider),
+        locale: ref.watch(appLocaleProvider).locale,
+        supportedLocales: AppLanguage.supportedLocales,
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+          SwanLocalizations.delegate,
+        ],
+        builder: (context, child) => AppUpdateGate(
+          child: child ?? const SizedBox(),
+        ),
+      );
+    }
+
+    swanGoRouter = null;
 
     return MaterialApp(
       scrollBehavior: const MaterialScrollBehavior().copyWith(
@@ -160,460 +767,8 @@ class SwanSportApp extends ConsumerWidget {
                   swanNavigatorKey.currentState?.pushNamed(testCenterRoute))
           : AppUpdateGate(child: child ?? const SizedBox()),
       initialRoute: testCenter ? ref.watch(localTestInitialRouteProvider) : '/',
-      routes: <String, WidgetBuilder>{
-        if (testCenter) testCenterRoute: (_) => const TestCenterScreen(),
-        '/hakem/gorevler': (context) => const RefereeDutyListScreen(),
-        '/kulup/malzeme-zimmet': (context) =>
-            const ClubStaffOperationsScreen(mode: ClubStaffMode.inventory),
-        '/kulup/saglik-takibi': (context) =>
-            const ClubStaffOperationsScreen(mode: ClubStaffMode.health),
-        '/kulup/kadro-planlama': (context) =>
-            const ClubStaffOperationsScreen(mode: ClubStaffMode.sporting),
-        '/': (context) => const AuthGate(),
-        '/auth': (context) => const AuthScreen(),
-        '/home-command': (context) => const HomeCommandCenterScreen(),
-        '/landing': (context) => const PublicLandingScreen(),
-        '/dashboard': (context) => const CoachDashboardScreen(),
-        '/athletes': (context) => const AthleteWorkspaceScreen(),
-        '/attendance': (context) => const LiveAttendanceScreen(),
-        '/calendar': (context) => const ScheduleCalendarScreen(),
-        '/announcements': (context) => const AnnouncementsScreen(),
-        '/teams': (context) => const TeamRosterDirectoryScreen(),
-        '/documents': (context) => const DocumentVaultScreen(),
-        '/settings': (context) => const ClubSettingsScreen(),
-        '/gider-ekle': (context) => const QuickExpenseScreen(),
-        // push_route yedi mali bildirim türünü buraya yönlendiriyor.
-        '/mali-isler': (context) => const FinanceTasksScreen(),
-        '/kaydedilenler': (context) => const SavedPostsScreen(),
-        '/yardim': (context) => const HelpScreen(),
-        '/swan-id': (context) => const SwanIdScreen(),
-        '/swan-asistan': (context) => const SwanAssistantScreen(),
-        '/destek': (context) => const SupportScreen(),
-        // 0071-0073. push_route 'training_session' ve 'training_result'
-        // bildirimlerini buraya yonlendiriyor.
-        '/antrenman-oturumu': (context) => const TrainingSessionScreen(),
-        '/antrenman-sonuc': (context) => const SessionResultScreen(),
-        '/antrenman-sablonlari': (context) => const ProtocolListScreen(),
-        '/antrenman-olustur': (context) => const WorkoutProtocolBuilderScreen(),
-        '/antrenmanlarim': (context) => const MyTrainingScreen(),
-        '/dogrulama': (context) => const CredentialScreen(),
-        '/canli-skor': (context) => const LiveMatchHubScreen(),
-        '/veli-bagla': (context) => const GuardianLinkScreen(),
-        '/rehber': (context) => const SetupWizardScreen(),
-        '/onay-paneli': (context) => const AdminReviewScreen(),
-        '/demo-rol': (context) =>
-            ref.watch(appEnvironmentProvider).enableDebugTools
-                ? const DemoRoleScreen()
-                : const AuthScreen(),
-        '/akis': (context) => const FeedScreen(),
-        '/ara': (context) => const SearchScreen(),
-        '/bildirimler': (context) => const NotificationsScreen(),
-        '/mesajlar': (context) => const MessagesScreen(),
-        '/topluluklar': (context) => const MessagesScreen(initialTab: 1),
-        '/federasyon-takvimi': (context) => const PublicSportCalendarScreen(),
-        '/federasyon-merkezi': (context) => const FederationCenterScreen(),
-        '/kesfet': (context) => const ExploreScreen(),
-        '/kulupler': (context) => const DiscoverScreen(),
-        '/pazaryeri': (context) => const MarketplaceScreen(),
-        '/antrenor-bul': (context) => const CoachDiscoveryScreen(),
-        '/ilan-ver': (context) => const CreateListingScreen(),
-        '/magaza-basvuru': (context) => const StoreApplicationScreen(),
-        '/ilanlar': (context) => const ListingsScreen(),
-        '/kortlar': (context) => const VenuesScreen(),
-        '/oyuncu-aranan': (context) => const FindPartnerScreen(initialTab: 1),
-        '/partner-ara': (context) => const FindPartnerScreen(),
-        '/halisahalar': (context) => const VenuesScreen(initialTab: 1),
-        '/organizasyonlar': (context) => const OrganizationsScreen(),
-        '/finans': (context) => const FinanceScreen(),
-        '/aidatlarim': (context) => const MyFeesScreen(),
-        '/bagis': (context) => const CampaignsScreen(),
-        '/federasyon-yetkili': (context) => const FederationAdminScreen(),
-        '/haber-kaynaklari': (context) => const RssAdminScreen(),
-        '/gizlilik': (context) => const PrivacyScreen(),
-        '/devam-durumu': (context) => const AttendanceHistoryScreen(),
-        '/basvurular': (context) => const ClubApplicationsScreen(),
-        '/sezon-acilisi': (context) => const SeasonSetupScreen(),
-        '/configuration': (context) =>
-            environment.isProduction || ref.read(isSupabaseEnabledProvider)
-                ? const UnavailableFeatureScreen(
-                    title: 'Kulüp yapılandırması',
-                    message:
-                        'Bu gelişmiş yapılandırma ekranı henüz kullanıma açık değil. Kulüp profilini Ayarlar üzerinden düzenleyebilirsin.',
-                    route: '/settings',
-                    actionLabel: 'Ayarları aç',
-                  )
-                : const ConfigurationScreen(),
-        '/facilities': (context) => const FacilityManagementScreen(),
-        '/rezervasyon': (context) => const FacilityReservationScreen(),
-        '/medical-center': (context) => const MedicalCenterScreen(),
-        '/reports': (context) =>
-            environment.isProduction || ref.read(isSupabaseEnabledProvider)
-                ? const UnavailableFeatureScreen(
-                    title: 'Raporlar',
-                    message:
-                        'Bu rapor arşivi henüz kullanıma açık değil. Mevcut mali kayıtlarını finans ekranından takip edebilirsin.',
-                    route: '/finans',
-                    actionLabel: 'Finansı aç',
-                  )
-                : const ReportsScreen(),
-        '/performance-analytics': (context) =>
-            const PerformanceAnalyticsScreen(),
-        '/hazirbulunusluk': (context) => const ReadinessRpeScreen(),
-        '/ekipman-tuning': (context) => const EquipmentTuningScreen(),
-        '/veli-izinleri': (context) => const ParentConsentCenterScreen(),
-        '/sepet': (context) => const CartCheckoutScreen(),
-        '/musabaka-simulasyonu': (context) => const MatchSimulationScreen(),
-        '/etkinlik-detay': (context) => const EventRosterDetailScreen(),
-        '/ters-islem': (context) => const ClosedPeriodReversalScreen(),
-        '/muhasebeci-defter': (context) =>
-            const AccountantPrivacyLedgerScreen(),
-        '/liderlik': (context) => const LeaderboardScreen(),
-        '/beslenme': (context) => const NutritionTrackerScreen(),
-        '/yaris-detay': (context) => const RaceEventDetailScreen(),
-        '/kulup-detay': (context) => const ClubProfileDetailScreen(),
-        '/kulup-yonetim': (context) => const ClubCockpitScreen(),
-      }.map((route, builder) => MapEntry(
-          route,
-          (route == testCenterRoute && testCenter) ||
-                  SwanAccess.isGuestRoute(route)
-              ? builder
-              : (context) => AccountRouteGate(builder: builder))),
-      onGenerateRoute: guardAccountRoutes((settings) {
-        final liveMatch = liveMatchRoute(settings);
-        if (liveMatch != null) return liveMatch;
-        final referee = refereeRoute(settings);
-        if (referee != null) return referee;
-        final target = Uri.tryParse(settings.name ?? '');
-        if (target != null &&
-            target.pathSegments.length == 3 &&
-            target.pathSegments[0] == 'swan-id' &&
-            target.pathSegments[1] == 'dogrula') {
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => SwanIdVerifyScreen(token: target.pathSegments[2]),
-          );
-        }
-        if (target != null &&
-            target.pathSegments.length == 2 &&
-            target.pathSegments[0] == 'mac-kartim' &&
-            RegExp(r'^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$')
-                .hasMatch(target.pathSegments[1])) {
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) =>
-                AthleteMatchCardScreen(matchId: target.pathSegments[1]),
-          );
-        }
-        if (target?.path == '/resmi-sonuc') {
-          return MaterialPageRoute<void>(
-              settings: settings,
-              builder: (_) => GuardianOfficialResultScreen(
-                  notificationId: target!.queryParameters['notification'] ?? '',
-                  matchId: target.queryParameters['match'],
-                  childId: target.queryParameters['child']));
-        }
-        // These secondary design previews still use fixture repositories.
-        // Preserve their URLs, but never expose fabricated records on a live backend.
-        final previewRoute = settings.name;
-        if ((environment.isProduction || ref.read(isSupabaseEnabledProvider)) &&
-            (previewRoute == '/communication-detail' ||
-                previewRoute == '/admin-user-detail' ||
-                previewRoute == '/configuration-module' ||
-                previewRoute == '/report-detail' ||
-                (previewRoute?.startsWith('/performance-') ?? false))) {
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => const UnavailableFeatureScreen(
-              title: 'Ayrıntı görünümü kullanılamıyor',
-              message:
-                  'Bu ayrıntı görünümü henüz kullanıma açık değil. Kulübünün mevcut kayıtlarına yönetim ekranlarından ulaşabilirsin.',
-              route: '/profil',
-              actionLabel: 'Profil ve yönetime git',
-            ),
-          );
-        }
-        // Sosyal profiller — argüman: profil/kulüp id'si (yoksa kendi profilin)
-        if (settings.name == '/profil' ||
-            settings.name == '/kulup-profil' ||
-            target?.path == '/kulup-profil') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ProfileScreen(
-              id: args is String ? args : target?.queryParameters['id'],
-              isClub: settings.name != '/profil',
-            ),
-          );
-        }
-        if (settings.name == '/saha-islemlerim') {
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => const SahaOperationsScreen(),
-          );
-        }
-        if (settings.name == '/gelisim-raporu') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => DevelopmentReportScreen(
-              athleteId: args is Map && args['id'] is String
-                  ? args['id'] as String
-                  : null,
-            ),
-          );
-        }
-        if (settings.name == '/sporcu-performans') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => AthletePerformanceScreen(
-              athleteId: '${m['id'] ?? ''}',
-              athleteName: '${m['name'] ?? 'Sporcu'}',
-            ),
-          );
-        }
-        if (settings.name == '/baglantilar') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ConnectionsScreen(
-              profileId: '${m['id'] ?? ''}',
-              initialTab: (m['tab'] as int?) ?? 0,
-              title: m['name'] as String?,
-            ),
-          );
-        }
-        if (settings.name == '/takim-kadro') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => TeamRosterScreen(
-              teamId: '${m['id'] ?? ''}',
-              teamName: '${m['name'] ?? 'Takım'}',
-            ),
-          );
-        }
-        if (settings.name == '/federasyon') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => FederationChannelScreen(
-              communityId: '${m['id'] ?? ''}',
-              title: '${m['name'] ?? 'Federasyon'}',
-            ),
-          );
-        }
-        if (settings.name == '/topluluk') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => CommunityChatScreen(
-              communityId: '${m['id'] ?? ''}',
-              title: '${m['name'] ?? 'Topluluk'}',
-            ),
-          );
-        }
-        if (settings.name == '/urun') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ListingDetailScreen(listingId: '${m['id'] ?? ''}'),
-          );
-        }
-        if (settings.name == '/sohbet') {
-          final args = settings.arguments;
-          final m = args is Map ? args : const <Object?, Object?>{};
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ChatScreen(
-              otherId: '${m['id'] ?? ''}',
-              otherName: '${m['name'] ?? 'Sohbet'}',
-            ),
-          );
-        }
-        if (settings.name == '/athlete-detail') {
-          final args = settings.arguments;
-
-          if (args is AthleteDetailRouteArgs) {
-            return MaterialPageRoute<void>(
-              settings: settings,
-              builder: (context) => AthleteDetailScreen(args: args),
-            );
-          }
-
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (context) => const AthleteDetailScreen.invalidRoute(),
-          );
-        }
-        if (settings.name == '/communication-detail') {
-          final args = settings.arguments;
-
-          if (args is CommunicationDetailRouteArgs) {
-            return MaterialPageRoute<void>(
-              settings: settings,
-              builder: (context) => CommunicationDetailScreen(args: args),
-            );
-          }
-
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (context) =>
-                const CommunicationDetailScreen.invalidRoute(),
-          );
-        }
-        if (settings.name == '/document-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (context) => args is DocumentDetailRouteArgs
-                ? DocumentDetailScreen(args: args)
-                : const DocumentDetailScreen.invalidRoute(),
-          );
-        }
-        if (settings.name == '/admin-user-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => AdminUserDetailScreen(
-              args: args is AdminUserDetailArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/configuration-module') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ConfigurationModuleScreen(
-              args: args is ConfigurationModuleArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-test-session') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => TestSessionScreen(
-              args: args is TestSessionArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-team-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => TeamPerformanceScreen(
-              args: args is TeamPerformanceArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-development-plan') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => DevelopmentPlanScreen(
-              args: args is DevelopmentPlanArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-review-session') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ReviewSessionScreen(
-              args: args is ReviewSessionArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-match-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => MatchPerformanceScreen(
-              args: args is MatchPerformanceArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-training-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => TrainingPerformanceScreen(
-              args: args is TrainingPerformanceArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-position-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => PositionAnalysisScreen(
-              args: args is PositionAnalysisArgs ? args : null,
-            ),
-          );
-        }
-        if (settings.name == '/performance-test-session-editor') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => TestSessionEditorScreen(
-              args: args is TestSessionEditorArgs
-                  ? args
-                  : const TestSessionEditorArgs(),
-            ),
-          );
-        }
-        if (settings.name == '/performance-development-plan-editor') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => DevelopmentPlanEditorScreen(
-              args: args is DevelopmentPlanEditorArgs
-                  ? args
-                  : const DevelopmentPlanEditorArgs(),
-            ),
-          );
-        }
-        if (settings.name == '/performance-self-assessment-editor') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => SelfAssessmentEditorScreen(
-              args: args is SelfAssessmentEditorArgs
-                  ? args
-                  : const SelfAssessmentEditorArgs(),
-            ),
-          );
-        }
-        if (settings.name == '/performance-review-session-editor') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ReviewSessionEditorScreen(
-              args: args is ReviewSessionEditorArgs
-                  ? args
-                  : const ReviewSessionEditorArgs(),
-            ),
-          );
-        }
-        if (settings.name == '/report-detail') {
-          final args = settings.arguments;
-          return MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => ReportDetailScreen(
-              args: args is ReportDetailArgs ? args : null,
-            ),
-          );
-        }
-
-        return null;
-      }),
+      routes: protectedStaticRoutes,
+      onGenerateRoute: protectedDynamicRoutes,
     );
   }
 }

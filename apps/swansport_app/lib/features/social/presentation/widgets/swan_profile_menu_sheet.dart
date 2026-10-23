@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/navigation/swan_navigation.dart';
 import '../../../network/presentation/swan_card_sheet.dart';
 
 Future<void> showSwanProfileMenu(
@@ -13,6 +14,7 @@ Future<void> showSwanProfileMenu(
 ) async {
   final route = await showModalBottomSheet<String>(
     context: context,
+    useRootNavigator: true,
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
@@ -33,7 +35,7 @@ Future<void> showSwanProfileMenu(
       avatarUrl: profile.avatarUrl,
     );
   } else {
-    await Navigator.pushNamed(context, route);
+    context.swanPush(route);
   }
 }
 
@@ -77,19 +79,20 @@ class _ProfileMenu extends ConsumerWidget {
           ),
         );
 
-    final isStaff = access.isClubStaff;
+    final isStaff = access.hasActiveClubStaffMembership;
     final isAccountant = access.isAccountant && !isStaff;
-    final isParent = access.isParent &&
+    final hasParentHub =
         ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
+    final isParent = access.isParent && hasParentHub;
     final isReferee = !profile.isClub &&
         access.isReferee &&
         ref.watch(featureEnabledProvider(FeatureFlags.refereeCockpit));
     final hasTraining = ref.watch(
       featureEnabledProvider(FeatureFlags.sportTrainingSessions),
     );
-    final hasTurf =
-        ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
-            ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation));
+    final hasTurf = access.canOpenTurfCenter &&
+        (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
+            ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation)));
     final hasDevReport =
         ref.watch(featureEnabledProvider(FeatureFlags.developmentReport));
     final hasSwanId = ref.watch(featureEnabledProvider(FeatureFlags.swanId));
@@ -98,16 +101,18 @@ class _ProfileMenu extends ConsumerWidget {
 
     return FractionallySizedBox(
       heightFactor: .85,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(
-          SwanSpace.lg,
-          0,
-          SwanSpace.lg,
-          SwanSpace.xl,
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      child: SafeArea(
+        top: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(
+            SwanSpace.lg,
+            0,
+            SwanSpace.lg,
+            SwanSpace.xl * 3,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
             // Başlık ve kullanıcı kimliği
             Row(
               children: [
@@ -190,10 +195,10 @@ class _ProfileMenu extends ConsumerWidget {
               const SizedBox(height: SwanSpace.md),
             ] else if (isAccountant) ...[
               entry(
-                Icons.payments_rounded,
-                'Mali İşler & Aidat',
-                '/finans',
-                subtitle: 'Kulüp aidat ve tahsilat takibi',
+                Icons.account_balance_rounded,
+                'Muhasebe Merkezi',
+                '/muhasebeci-defter',
+                subtitle: 'Kimlikleri maskelenmiş mali kayıtlar',
               ),
               const SizedBox(height: SwanSpace.sm),
             ],
@@ -203,9 +208,9 @@ class _ProfileMenu extends ConsumerWidget {
             if (hasSwanId)
               entry(
                 Icons.qr_code_2_rounded,
-                'Swan ID',
+                'Sporcu Merkezi · Swan ID',
                 '/swan-id',
-                subtitle: 'Doğrulanmış dijital spor kimliğin',
+                subtitle: 'Kimlik, vitrin, gelişim, rozet ve maç kartları',
               )
             else
               entry(
@@ -230,6 +235,12 @@ class _ProfileMenu extends ConsumerWidget {
                 'Hakem Görevlerim',
                 '/hakem/gorevler',
               ),
+            if (access.canOpenFederationOperations)
+              entry(
+                Icons.account_balance_rounded,
+                'Federasyon Merkezi',
+                '/federasyon-merkezi',
+              ),
             if (hasDevReport)
               entry(
                 Icons.insights_rounded,
@@ -242,24 +253,30 @@ class _ProfileMenu extends ConsumerWidget {
                 'Saha İşlemlerim',
                 '/saha-islemlerim',
               ),
-            if (isParent)
+            if (hasParentHub)
               entry(
                 Icons.family_restroom_rounded,
-                'Veli İşlem Merkezi',
-                '/veli-izinleri',
+                isParent ? 'Veli İşlem Merkezi' : 'Çocuk bağla',
+                isParent ? '/veli-izinleri' : '/veli-bagla',
               ),
 
             Divider(color: c.line, height: SwanSpace.xl),
 
-            // 3. HESAP VE DESTEK
-            sectionHeader('HESAP VE DESTEK'),
-            entry(Icons.settings_outlined, 'Ayarlar', '/settings'),
+            // 3. HESAP
+            sectionHeader('HESAP'),
+            entry(
+              Icons.settings_outlined,
+              'Hesap ve Uygulama',
+              '/hesap',
+            ),
+            entry(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
+            entry(Icons.group_add_rounded, 'Başvurularım', '/basvurular'),
+
+            Divider(color: c.line, height: SwanSpace.xl),
+            sectionHeader('DESTEK'),
             if (hasAssistant)
               entry(Icons.assistant_rounded, 'Swan Asistan', '/swan-asistan'),
-            entry(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
             entry(Icons.volunteer_activism_rounded, 'Bağış & Destek', '/bagis'),
-            entry(Icons.group_add_rounded, 'Başvurularım', '/basvurular'),
-            entry(Icons.vpn_key_rounded, 'Davet Kodu Ekle', '/veli-bagla'),
 
             // 4. PLATFORM (Yalnızca platform admin)
             if (access.isPlatformAdmin) ...[
@@ -284,6 +301,6 @@ class _ProfileMenu extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ),);
   }
 }

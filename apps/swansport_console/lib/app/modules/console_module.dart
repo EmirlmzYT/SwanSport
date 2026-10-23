@@ -16,6 +16,7 @@ enum ConsoleAudience {
   platformAdmin,
   federation,
   accountant,
+  referee,
   marketplace,
 }
 
@@ -25,6 +26,7 @@ extension ConsoleAudienceX on ConsoleAudience {
         ConsoleAudience.platformAdmin => 'Platform',
         ConsoleAudience.federation => 'Federasyon',
         ConsoleAudience.accountant => 'Muhasebe',
+        ConsoleAudience.referee => 'Hakem',
         ConsoleAudience.marketplace => 'Pazar Yeri',
       };
 }
@@ -41,8 +43,13 @@ extension ConsoleAudienceAccess on SwanAccess {
         ConsoleAudience.clubStaff => isClubStaff || hasOperationalClubRole,
         ConsoleAudience.platformAdmin => isPlatformAdmin,
         ConsoleAudience.accountant => isAccountant,
-        // Henüz kimseye açılmadı — modül yazıldığında burası dolacak.
-        ConsoleAudience.federation => canPublishFederationResults || hasActiveFederationRole,
+        ConsoleAudience.federation => hasActiveFederationRole ||
+            federationAppointments.any((app) => app.authorizes(
+                app.sportCode,
+                app.cityCode,
+                FederationDuty.resultPublisher,
+                DateTime.now())),
+        ConsoleAudience.referee => isReferee,
         ConsoleAudience.marketplace => false,
       };
 

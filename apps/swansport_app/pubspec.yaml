@@ -1,7 +1,7 @@
 name: swansport_app
 description: SwanSport MVP Flutter application shell.
 publish_to: none
-version: 1.0.3+60
+version: 1.0.4+1
 
 environment:
   sdk: ">=3.5.0 <4.0.0"
@@ -37,6 +37,7 @@ dependencies:
   apk_sideload: ^0.0.2
   shared_preferences: ^2.5.0
   nfc_manager: ^4.2.1
+  go_router: ^14.8.1
 
 dev_dependencies:
   sembast: ^3.8.11

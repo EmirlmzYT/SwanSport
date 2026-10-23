@@ -196,12 +196,36 @@ void main() {
   });
 
   group('gelecek kitleler', () {
-    test('federasyon ve pazar yeri henüz kimseye açık değil', () {
-      // Yuvalar bilerek boş: modül yazılana kadar kimse görmemeli.
+    test('pazar yeri henüz kimseye açık değil', () {
       for (final a in [platformAdmin, clubAdmin, coach4, athlete, accountant]) {
-        expect(a.allows(ConsoleAudience.federation), isFalse);
         expect(a.allows(ConsoleAudience.marketplace), isFalse);
+      }
+    });
+
+    test('hakem kokpiti yalnızca hakeme görünür', () {
+      const referee = SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: null,
+        coachLevel: 0,
+        athleteKind: null,
+        refereeProfile: RefereeProfile(
+          id: 'ref-1',
+          profileId: 'prof-1',
+          licenseNumber: 'HAK-1234',
+          badgeTier: RefereeBadgeTier.national,
+          sportCode: 'football',
+          cityCode: '34',
+          isActive: true,
+        ),
+      );
+      expect(referee.allows(ConsoleAudience.referee), isTrue);
+      expect(visibleIds(referee), contains('referee_cockpit'));
+
+      for (final a in [platformAdmin, clubAdmin, coach4, athlete, accountant]) {
+        expect(a.allows(ConsoleAudience.referee), isFalse);
+        expect(visibleIds(a), isNot(contains('referee_cockpit')));
       }
     });
   });
 }
+

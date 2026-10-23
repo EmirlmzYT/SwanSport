@@ -371,6 +371,19 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - `SwanBottomNav`: Ana Sayfa · Keşfet · + · Mesajlar · Profil. Parametre
   almaz; aktif sekmeyi açık rotadan çıkarır. Eskisi
   `selectedIndex/onSelect/onAction` istiyordu ve 31 ekranın 25'i boş geçiyordu.
+- **Dört sabit branch (GoRouter + StatefulShellRoute):**
+  `/akis`, `/kesfet`, `/mesajlar`, `/profil`. Durum ve branch yığını
+  `SwanAppShell` içinde korunur. Aktif sekmeye tekrar basıldığında branch
+  köküne dönülür; Android sistem geri tuşunda (`PopScope`) kök olmayan
+  branch'ten Ana Sayfa'ya dönülür.
+- **Ortak gezinme ve uyumluluk köprüsü:**
+  `LegacyNavigationBridge` mevcut named route yığınlarını branch bazlı izole
+  çalıştırır. Dış sözleşmeler, bildirim rotaları (`/topluluklar`, `/halisahalar`,
+  `/oyuncu-aranan`), QR ve derin bağlantılar `RouteLinkAdapter` ile çözülür;
+  hiçbir rota silinmez. Yeni rotalar ve dinamik parametreler `app_routes.dart`
+  ve `swan_destination.dart` metadata haritasında tanımlanır. Ekran içi
+  gezinmelerde `context.swanGo` / `context.swanPush` (`swan_navigation.dart`)
+  kullanılır.
 - **Rol-uyarlamalı yuvalar kaldırıldı** — aynı konum kişiden kişiye farklı
   şey açıyordu, kas hafızası kurulamıyordu. Rol farkı artık sekmede değil
   **içerikte**: antrenörün yoklaması Ana Sayfa'daki "Bugün" ve

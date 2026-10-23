@@ -27,25 +27,41 @@ final onboardingSeenProvider = FutureProvider<bool>((ref) => onboardingSeen());
 /// kimlik sorulmadan önce anlatılmalı. Oturumu olan kullanıcı tanıtımı hiç
 /// görmüyor — ona anlatacak bir şey yok.
 class AuthGate extends ConsumerWidget {
-  const AuthGate({super.key});
+  const AuthGate({super.key, this.onAuthenticatedHomeReady});
+
+  /// Lets Router-based hosts move authenticated users into the persistent
+  /// application shell after the setup wizard gate has completed.
+  final VoidCallback? onAuthenticatedHomeReady;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return ref.watch(authSessionProvider).when(
           loading: () => const _Blank(),
           // An Auth failure is not evidence of a signed-out session.
-          error: (error, _) => SwanScaffold(body: Center(child: TextButton(
+          error: (error, _) => SwanScaffold(
+              body: Center(
+                  child: TextButton(
             onPressed: () => ref.invalidate(authSessionProvider),
             child: const Text('Oturumu yeniden kontrol et'),
           ))),
           data: (session) {
             if (session != null) {
-              return ref.watch(setupWizardRequiredProvider(session.user.id)).when(
+              return ref
+                  .watch(setupWizardRequiredProvider(session.user.id))
+                  .when(
                     loading: () => const _Blank(),
-                    error: (_, __) => const FeedScreen(),
+                    error: (_, __) => onAuthenticatedHomeReady == null
+                        ? const FeedScreen()
+                        : _OpenAuthenticatedHome(
+                            onOpen: onAuthenticatedHomeReady!,
+                          ),
                     data: (needsGuide) => needsGuide
                         ? const SetupWizardScreen()
-                        : const FeedScreen(),
+                        : onAuthenticatedHomeReady == null
+                            ? const FeedScreen()
+                            : _OpenAuthenticatedHome(
+                                onOpen: onAuthenticatedHomeReady!,
+                              ),
                   );
             }
             return ref.watch(onboardingSeenProvider).when(
@@ -58,6 +74,30 @@ class AuthGate extends ConsumerWidget {
                 );
           },
         );
+  }
+}
+
+class _OpenAuthenticatedHome extends StatefulWidget {
+  const _OpenAuthenticatedHome({required this.onOpen});
+
+  final VoidCallback onOpen;
+
+  @override
+  State<_OpenAuthenticatedHome> createState() => _OpenAuthenticatedHomeState();
+}
+
+class _OpenAuthenticatedHomeState extends State<_OpenAuthenticatedHome> {
+  bool _scheduled = false;
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_scheduled) {
+      _scheduled = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) widget.onOpen();
+      });
+    }
+    return const _Blank();
   }
 }
 
