@@ -25,7 +25,9 @@ class SwanIdScreen extends ConsumerWidget {
       body: SafeArea(
           child: card.when(
         loading: premiumLoading,
-        error: (e, _) => premiumError(context, '$e'),
+        error: (e, _) => premiumError(context, e,
+            defaultMessage: 'Swan ID kartın şu anda yüklenemedi.',
+            onRetry: () => ref.invalidate(mySwanIdProvider)),
         data: (value) => RefreshIndicator(
           onRefresh: () async {
             ref.invalidate(mySwanIdProvider);
@@ -98,7 +100,7 @@ class SwanIdScreen extends ConsumerWidget {
     try {
       final token = await ref.read(swanExperienceServiceProvider).createShare();
       if (!context.mounted) return;
-      final payload = 'https://swansport.pages.dev/#/swan-id/dogrula/$token';
+      final payload = 'https://swansport.com.tr/#/swan-id/dogrula/$token';
       await showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
@@ -348,6 +350,7 @@ class _SwanAssistantScreenState extends ConsumerState<SwanAssistantScreen> {
   Widget build(BuildContext context) {
     if (!ref.watch(featureEnabledProvider(FeatureFlags.swanAssistant)))
       return const _ClosedFeature(title: 'Swan Asistan');
+    final suggestions = ref.watch(swanAssistantProvider(''));
     final rows = ref.watch(swanAssistantProvider(query));
     return SwanScaffold(
         appBar: swanModuleAppBar(context, title: 'Swan Asistan'),
@@ -359,6 +362,29 @@ class _SwanAssistantScreenState extends ConsumerState<SwanAssistantScreen> {
               const _Info(
                   'Hazır yanıtlar ve güvenli uygulama kısayolları kullanır; cevap uydurmaz.'),
               const SizedBox(height: 12),
+              Text('Hazır sorular', style: SwanType.h3(context.swan.ink)),
+              const SizedBox(height: 8),
+              suggestions.when(
+                loading: () => const LinearProgressIndicator(),
+                error: (_, __) => const SizedBox.shrink(),
+                data: (items) => Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    for (final item in items.take(6))
+                      ActionChip(
+                        avatar:
+                            const Icon(Icons.auto_awesome_rounded, size: 17),
+                        label: Text(item.title),
+                        onPressed: () {
+                          controller.text = item.title;
+                          setState(() => query = item.title);
+                        },
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
               TextField(
                   controller: controller,
                   decoration: InputDecoration(
@@ -371,43 +397,51 @@ class _SwanAssistantScreenState extends ConsumerState<SwanAssistantScreen> {
               const SizedBox(height: 16),
               rows.when(
                   loading: premiumLoading,
-                  error: (e, _) => premiumError(context, '$e'),
-                  data: (items) => items.isEmpty
-                      ? Column(children: [
-                          const _Info('Bu soruya hazır bir yanıt bulamadım.'),
-                          TextButton(
-                              onPressed: () =>
-                                  Navigator.pushNamed(context, '/yardim'),
-                              child: const Text('Yardım merkezinde ara'))
-                        ])
-                      : Column(children: [
-                          for (final item in items)
-                            Card(
-                                child: Column(children: [
-                              ListTile(
-                                  title: Text(item.title),
-                                  subtitle: Text(item.answer),
-                                  trailing:
-                                      const Icon(Icons.arrow_forward_rounded),
-                                  onTap: () => _act(context, item.actionKey)),
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.end,
-                                  children: [
-                                    IconButton(
-                                        tooltip: 'Yardımcı oldu',
-                                        icon: const Icon(
-                                            Icons.thumb_up_alt_outlined),
-                                        onPressed: () =>
-                                            _feedback(item.key, true)),
-                                    IconButton(
-                                        tooltip: 'Yardımcı olmadı',
-                                        icon: const Icon(
-                                            Icons.thumb_down_alt_outlined),
-                                        onPressed: () =>
-                                            _feedback(item.key, false)),
-                                  ])
+                  error: (e, _) => premiumError(context, e,
+                      defaultMessage: 'Hazır yanıtlar yüklenemedi.',
+                      onRetry: () =>
+                          ref.invalidate(swanAssistantProvider(query))),
+                  data: (items) => query.isEmpty
+                      ? const _Info(
+                          'Bir hazır soru seçebilir veya kendi sorunu yazabilirsin.')
+                      : items.isEmpty
+                          ? Column(children: [
+                              const _Info(
+                                  'Bu soruya hazır bir yanıt bulamadım.'),
+                              TextButton(
+                                  onPressed: () =>
+                                      Navigator.pushNamed(context, '/yardim'),
+                                  child: const Text('Yardım merkezinde ara'))
+                            ])
+                          : Column(children: [
+                              for (final item in items)
+                                Card(
+                                    child: Column(children: [
+                                  ListTile(
+                                      title: Text(item.title),
+                                      subtitle: Text(item.answer),
+                                      trailing: const Icon(
+                                          Icons.arrow_forward_rounded),
+                                      onTap: () =>
+                                          _act(context, item.actionKey)),
+                                  Row(
+                                      mainAxisAlignment: MainAxisAlignment.end,
+                                      children: [
+                                        IconButton(
+                                            tooltip: 'Yardımcı oldu',
+                                            icon: const Icon(
+                                                Icons.thumb_up_alt_outlined),
+                                            onPressed: () =>
+                                                _feedback(item.key, true)),
+                                        IconButton(
+                                            tooltip: 'Yardımcı olmadı',
+                                            icon: const Icon(
+                                                Icons.thumb_down_alt_outlined),
+                                            onPressed: () =>
+                                                _feedback(item.key, false)),
+                                      ])
+                                ]))
                             ]))
-                        ]))
             ])));
   }
 
@@ -493,8 +527,8 @@ class _ClosedFeature extends StatelessWidget {
   const _ClosedFeature({required this.title});
   final String title;
   @override
-  Widget build(BuildContext context) => Scaffold(
-      appBar: AppBar(title: Text(title)),
+  Widget build(BuildContext context) => SwanScaffold(
+      appBar: swanModuleAppBar(context, title: title),
       body: const Center(child: Text('Bu özellik henüz hesabına açık değil.')));
 }
 

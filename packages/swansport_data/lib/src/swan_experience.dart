@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'access.dart';
 import 'feature_flags.dart';
 import 'supabase_scope.dart';
 
@@ -338,8 +339,16 @@ final swanAssistantProvider = FutureProvider.autoDispose
     .family<List<SwanAssistantIntent>, String>((ref, query) async {
   final flags =
       ref.watch(featureFlagsProvider).valueOrNull?.enabled ?? const <String>[];
-  return ref.watch(swanExperienceServiceProvider).assistant(
-      query: query,
-      features: flags,
-      audience: const ['everyone', 'athlete', 'coach', 'parent']);
+  final access = ref.watch(swanAccessProvider);
+  final audience = <String>['everyone'];
+  if (access.athleteKind != null || access.clubRole == 'athlete') {
+    audience.add('athlete');
+  }
+  if (access.coachLevel > 0 || access.clubRole == 'coach') {
+    audience.add('coach');
+  }
+  if (access.isParent) audience.add('parent');
+  return ref
+      .watch(swanExperienceServiceProvider)
+      .assistant(query: query, features: flags, audience: audience);
 });

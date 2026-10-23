@@ -355,14 +355,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         avatarWidget: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: g.isFederation ? Colors.white : c.surfaceAlt,
+            color: g.isFederation ? c.onAccent : c.surfaceAlt,
             border:
                 Border.all(color: c.accent.withValues(alpha: 0.3), width: 1),
           ),
           child: Center(
             child: Icon(
               g.isFederation ? Icons.shield_outlined : Icons.group_rounded,
-              color: g.isFederation ? const Color(0xFF131D2E) : c.accent,
+              color: g.isFederation ? SwanPalette.light.ink : c.accent,
               size: 24,
             ),
           ),
@@ -550,10 +550,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                               '${item.unread}',
                               style: SwanType.caption(c.onAccent,
                                       w: FontWeight.w800)
-                                  .copyWith(
-                                fontSize: 11,
-                                height: 1.1,
-                              ),
+                                  .copyWith(height: 1.1),
                             ),
                           ),
                       ],

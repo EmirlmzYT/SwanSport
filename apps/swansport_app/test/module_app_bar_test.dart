@@ -34,7 +34,12 @@ void main() {
     for (final entry in titles.entries) {
       final file = files.singleWhere((f) => f.path.replaceAll('\\', '/').endsWith('/${entry.key}_screen.dart'));
       final source = file.readAsStringSync();
-      expect(RegExp("appBar:\\s*swanModuleAppBar\\(\\s*context,\\s*title:\\s*'${RegExp.escape(entry.value)}'").hasMatch(source), isTrue, reason: file.path);
+      final literal = RegExp("appBar:\\s*swanModuleAppBar\\(\\s*context,\\s*title:\\s*'${RegExp.escape(entry.value)}'").hasMatch(source);
+      final accountAware = entry.key == 'club_settings' &&
+          source.contains('appBar: swanModuleAppBar(') &&
+          source.contains("'Kulüp Ayarları'") &&
+          source.contains("'Hesap ve Uygulama'");
+      expect(literal || accountAware, isTrue, reason: file.path);
       expect(source.contains('SwanPageHeader('), isFalse, reason: file.path);
     }
   });

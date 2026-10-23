@@ -113,11 +113,16 @@ void main() {
           pushDiagnosticsProvider.overrideWith((_) async => const PushDiagnostics(
             supported: true, permission: true, token: 'test', state: PushSubState.mine)),
         ]);
-        expect(find.text('$count Yeni'), count == 0 ? findsNothing : findsOneWidget);
-        expect(find.byIcon(Icons.done_all_rounded), findsOneWidget);
-        await tester.tap(find.byTooltip('Tümünü okundu işaretle'));
-        await tester.pump();
-        expect(service.marks, 2); // Existing open-as-read behavior + explicit action.
+        expect(find.text('$count yeni'), count == 0 ? findsNothing : findsOneWidget);
+        expect(find.byIcon(Icons.done_all_rounded),
+            count == 0 ? findsNothing : findsOneWidget);
+        if (count > 0) {
+          await tester.tap(find.byTooltip('Tümünü okundu işaretle'));
+          await tester.pump();
+          expect(service.marks, 1);
+        } else {
+          expect(service.marks, 0);
+        }
         expect(tester.takeException(), isNull);
       });
     }

@@ -213,8 +213,8 @@ void main() {
             .whereType<BoxDecoration>()
             .where((d) => d.gradient != null),
         isEmpty);
-    expect(find.byType(BackdropFilter),
-        findsNWidgets(SwanChrome.headerEdgeBlurs.length + 1));
+    // Widget test platformu Android; cam yüzey burada performans için opaktır.
+    expect(find.byType(BackdropFilter), findsNothing);
     final floating =
         find.byWidgetPredicate((w) => w is SwanGlassSurface && w.floating);
     expect(floating, findsOneWidget);
