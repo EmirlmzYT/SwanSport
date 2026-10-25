@@ -454,10 +454,19 @@ class _SwanSportAppState extends ConsumerState<SwanSportApp> {
       if (settings.name == '/sohbet') {
         final args = settings.arguments;
         final m = args is Map ? args : const <Object?, Object?>{};
+        final otherId = '${m['id'] ?? ''}'.trim();
+        // Web yenilemesinde Navigator arguments korunmaz. Boş kimlikle
+        // Supabase sorgusu başlatmak yerine kullanıcıyı güvenli listeye al.
+        if (otherId.isEmpty) {
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => const MessagesScreen(),
+          );
+        }
         return MaterialPageRoute<void>(
           settings: settings,
           builder: (_) => ChatScreen(
-            otherId: '${m['id'] ?? ''}',
+            otherId: otherId,
             otherName: '${m['name'] ?? 'Sohbet'}',
           ),
         );
@@ -693,7 +702,12 @@ class _SwanSportAppState extends ConsumerState<SwanSportApp> {
         ),
         legacyFallbackBuilder: (_, state) => LegacyNavigationBridge(
           initialRoute: state.uri.toString(),
-          onGenerateRoute: legacyFactory,
+          onGenerateRoute: (settings) => legacyFactory(
+            RouteSettings(
+              name: settings.name,
+              arguments: state.extra ?? settings.arguments,
+            ),
+          ),
         ),
       );
       swanGoRouter = _router;

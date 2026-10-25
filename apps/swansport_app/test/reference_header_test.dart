@@ -6,7 +6,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_app/app/design/swan_chrome.dart';
-import 'package:swansport_app/app/widgets/action_gate.dart';
 import 'package:swansport_app/app/widgets/swan_floating_header.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_app/app/widgets/scroll_chrome.dart';
@@ -58,22 +57,16 @@ void main() {
         await tester.pumpAndSettle();
         final title = find.byTooltip('Akış seçimi');
         expect(tester.getCenter(title).dx, closeTo(width / 2, .1));
-        final plus = find.byTooltip('İçerik oluştur');
         final inbox = find.byTooltip('Bildirimler');
-        final messages = find.byTooltip('Mesajlar');
-        expect(tester.getRect(plus).right,
-            lessThanOrEqualTo(tester.getRect(title).left));
         expect(tester.getRect(title).right,
             lessThanOrEqualTo(tester.getRect(inbox).left));
-        expect(tester.getRect(inbox).right,
-            lessThanOrEqualTo(tester.getRect(messages).left));
-        for (final button in [plus, inbox, messages]) {
+        for (final button in [inbox]) {
           expect(tester.getSize(button).width,
               greaterThanOrEqualTo(SwanChrome.touchTarget));
           expect(tester.getSize(button).height,
               greaterThanOrEqualTo(SwanChrome.touchTarget));
         }
-        expect(find.byType(SwanHeaderControl), findsNWidgets(3));
+        expect(find.byType(SwanHeaderControl), findsOneWidget);
         expect(tester.takeException(), isNull);
       });
     }
@@ -96,14 +89,11 @@ void main() {
     expect(selections, [true, false]);
   });
 
-  testWidgets('header create uses the existing guest action gate',
+  testWidgets('create action remains outside the feed header',
       (tester) async {
     await tester.pumpWidget(referenceHost(brightness: Brightness.light));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('İçerik oluştur'));
-    await tester.pumpAndSettle();
-    expect(find.byType(SwanActionGateBottomSheet), findsOneWidget);
-    expect(find.text('Hesap gerekli'), findsOneWidget);
+    expect(find.byTooltip('İçerik oluştur'), findsNothing);
   });
 
   testWidgets('scroll-edge has no tinted full-width panel over uniform content',
@@ -133,8 +123,7 @@ void main() {
       pixel = rgba!.buffer.asUint8List().sublist(index, index + 4);
       image.dispose();
     });
-    expect(pixel, [255, 152, 0, 255]);
-    expect(find.byType(BackdropFilter),
-        findsNWidgets(SwanChrome.headerEdgeBlurs.length));
+    expect(pixel, [255, 255, 255, 255]);
+    expect(find.byType(BackdropFilter), findsNothing);
   });
 }

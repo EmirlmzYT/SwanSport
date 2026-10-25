@@ -1,7 +1,7 @@
 // Offline PostgreSQL only. Real application DDL/C1 triggers, reduced Auth schema.
 // This does NOT test GoTrue login, production schema drift or real-user verification.
-import {PGlite} from '../build/finance-sql-tests/node_modules/@electric-sql/pglite/dist/index.js';
-import {pgcrypto} from '../build/finance-sql-tests/node_modules/@electric-sql/pglite/dist/contrib/pgcrypto.js';
+import {PGlite} from '@electric-sql/pglite';
+import {pgcrypto} from '@electric-sql/pglite/contrib/pgcrypto';
 import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';

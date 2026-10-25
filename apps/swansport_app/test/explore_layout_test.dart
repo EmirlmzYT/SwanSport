@@ -80,8 +80,8 @@ void main() {
     await tester.runAsync(() => GoogleFonts.pendingFonts());
     await tester.pumpAndSettle();
     final layoutError = tester.takeException();
-    expect(find.text('Öne Çıkan Duyurular'), findsOneWidget);
-    expect(find.text('Popüler Sporcular & Antrenörler'), findsOneWidget);
+    expect(find.text('Duyurular'), findsOneWidget);
+    expect(find.text('Sporcular ve antrenörler'), findsOneWidget);
     expect(find.text('Yeni sezon antrenman programı'), findsOneWidget);
     final render =
         boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;

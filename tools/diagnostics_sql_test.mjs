@@ -1,7 +1,7 @@
 // Executes the real 0086 migration/functions in isolated PostgreSQL (PGlite).
 // npm install --prefix build/finance-sql-tests @electric-sql/pglite@0.5.8
 // node --test tools/diagnostics_sql_test.mjs
-import {PGlite} from '../build/finance-sql-tests/node_modules/@electric-sql/pglite/dist/index.js';
+import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';

@@ -4,6 +4,11 @@ on:
   push:
     tags: ['v*']
   workflow_dispatch:
+    inputs:
+      publish_update:
+        description: 'Publish this Android APK as the latest GitHub release'
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -13,7 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
   release:
+    needs: verify
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -88,6 +96,17 @@ jobs:
           path: apps/swansport_app/build/release/*.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Publish Android update from manual run
+        if: github.event_name == 'workflow_dispatch' && inputs.publish_update
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          VERSION='${{ steps.version.outputs.value }}'
+          gh release create "v${VERSION}" \
+            "apps/swansport_app/build/release/SwanSport-${VERSION}.apk" \
+            --target "$GITHUB_SHA" --title "SwanSport ${VERSION}" \
+            --notes 'Android güncellemesi: önceki sürüm üzerine kurulum için sürüm kodu yükseltildi.' \
+            --latest
       - name: Publish GitHub Release
         if: github.ref_type == 'tag'
         uses: softprops/action-gh-release@v2

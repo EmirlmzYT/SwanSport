@@ -468,7 +468,7 @@ class CommunityService {
         .from('community_messages')
         .stream(primaryKey: ['id'])
         .eq('community_id', communityId)
-        .order('created_at')
+        .order('created_at', ascending: true)
         .map((rows) => rows.map((m) {
               return CommunityMessageRow(
                 id: m['id'] as String,

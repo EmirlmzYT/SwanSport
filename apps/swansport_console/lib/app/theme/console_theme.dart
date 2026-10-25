@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../preferences/console_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
-final consoleThemeModeProvider =
-    StateProvider<ThemeMode>((ref) => ThemeMode.dark);
+final consoleThemeModeProvider = consolePreference<ThemeMode>('theme',
+    fallback: () => ThemeMode.light,
+    decode: (v) => ThemeMode.values
+        .firstWhere((m) => m.name == v, orElse: () => ThemeMode.light),
+    encode: (v) => v.name);
 
 /// Konsolun görsel dili.
 ///
@@ -21,9 +24,9 @@ class ConsoleDensity {
   static const double headerHeight = 38;
 
   /// Kabuk ölçüleri.
-  static const double sidebarWidth = 264;
+  static const double sidebarWidth = 248;
   static const double sidebarCollapsedWidth = 68;
-  static const double topBarHeight = 60;
+  static const double topBarHeight = 68;
 
   /// Konsolun çalışabildiği en dar ekran.
   ///
@@ -47,12 +50,12 @@ class ConsoleDensity {
   static const double xl = 24;
   static const double xxl = 32;
 
-  static const double radius = 12;
+  static const double radius = 10;
   static const double loginCardWidth = 430;
   static const double dashboardKpiMinWidth = 210;
   static const double dashboardQueueMinWidth = 420;
   static const double dashboardActionMinWidth = 280;
-  static const double dashboardKpiHeight = 250;
+  static const double dashboardKpiHeight = 212;
   static const double logoPreviewSize = 80;
   static const double brandMarkSize = 22;
   static const double loginBrandMarkSize = 48;
@@ -63,20 +66,20 @@ class ConsoleTheme {
 
   // Console-owned athletic dark palette aligned with swansport.com.tr;
   // widgets consume ThemeData, not hex.
-  static const Color commandBackground = Color(0xFF070D19);
-  static const Color commandSurface = Color(0xFF0F172A);
-  static const Color commandSurfaceAlt = Color(0xFF17233B);
+  static const Color commandBackground = Color(0xFF101722);
+  static const Color commandSurface = Color(0xFF17202D);
+  static const Color commandSurfaceAlt = Color(0xFF202B3A);
   static const Color commandAccent = Color(0xFF00C7B1);
   static const Color commandSecondary = Color(0xFFF59E0B);
-  static const Color commandOutline = Color(0xFF22324F);
+  static const Color commandOutline = Color(0xFF2C3848);
   static const Color commandMuted = Color(0xFF94A3B8);
 
   static ThemeData light() => _build(
         brightness: Brightness.light,
-        background: const Color(0xFFF4F7FB),
+        background: const Color(0xFFF5F6F8),
         surface: SwanColors.surface,
-        surfaceAlt: const Color(0xFFEEF3F9),
-        outline: const Color(0xFFD8E2EE),
+        surfaceAlt: const Color(0xFFF0F2F5),
+        outline: const Color(0xFFE4E7EC),
         ink: SwanColors.textPrimary,
         inkMuted: SwanColors.textSecondary,
         primary: SwanColors.primary,

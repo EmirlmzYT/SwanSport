@@ -14,6 +14,10 @@ const container='supabase_db_'+project;
 const cli=process.platform==='win32'?'npx.cmd':'npx';
 const flutter=process.platform==='win32'?'flutter.bat':'flutter';
 
+export function migrationNames(entries) {
+ return entries.filter(name=>/^(?:\d{4}|\d{14})_[a-z0-9_]+\.sql$/.test(name)).sort();
+}
+
 export function assertLocalDocker(endpoint) {
  if(!/^(?:npipe:\/{4}\.\/pipe\/[A-Za-z0-9_.-]+|unix:\/\/\/[^\s]+)$/.test(endpoint)) {
   throw Error('Yalnız yerel Docker socket/context kullanılabilir.');
@@ -86,7 +90,7 @@ async function main() {
   create table if not exists public._local_test_center_migrations(name text primary key,sha text not null);
   alter table public._local_test_center_migrations enable row level security;
   revoke all on public._local_test_center_migrations from public,anon,authenticated;`);
- for(const name of readdirSync(resolve(root,'supabase/migrations')).filter(n=>/^\d{4}_[a-z0-9_]+\.sql$/.test(n)).sort()) {
+ for(const name of migrationNames(readdirSync(resolve(root,'supabase/migrations')))) {
   const source=readFileSync(resolve(root,'supabase/migrations',name),'utf8');
   const hash=createHash('sha256').update(source).digest('hex');
   const previous=sql(`select sha from public._local_test_center_migrations where name='${name}'`);

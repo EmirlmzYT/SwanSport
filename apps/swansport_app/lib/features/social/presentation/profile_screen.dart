@@ -12,6 +12,7 @@ import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/quick_actions.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_tabs.dart';
@@ -60,8 +61,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text(
-                  'Profil fotoğrafı kaydedilemedi. Tekrar deneyebilirsin.',),),
+            content: Text(
+              'Profil fotoğrafı kaydedilemedi. Tekrar deneyebilirsin.',
+            ),
+          ),
         );
       }
     } finally {
@@ -204,396 +207,455 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               const SwanHeaderSpacer(),
                               const SizedBox(height: 16),
 
-                      // Identity & Social Stats Row (Stitch Screen 26)
-                      Row(
-                        children: [
-                          // Kendi fotoğrafına dokunarak doğrudan değiştirebilir.
-                          Semantics(
-                            button: p.isMe && !p.isClub,
-                            label: p.isMe && !p.isClub
-                                ? 'Profil fotoğrafını değiştir'
-                                : 'Profil fotoğrafı',
-                            child: GestureDetector(
-                              onTap: p.isMe && !p.isClub && !_changingAvatar
-                                  ? () => _changeAvatar(p)
-                                  : null,
-                              child: Stack(
-                                clipBehavior: Clip.none,
+                              // Identity & Social Stats Row (Stitch Screen 26)
+                              Row(
                                 children: [
-                                  Container(
-                                    width: 80,
-                                    height: 80,
-                                    padding: const EdgeInsets.all(3),
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: line),
-                                    ),
-                                    child: ClipOval(
-                                      child: p.avatarUrl != null &&
-                                              p.avatarUrl!.isNotEmpty
-                                          ? Image.network(
-                                              p.avatarUrl!,
-                                              fit: BoxFit.cover,
-                                              cacheWidth: (80 *
-                                                      MediaQuery.devicePixelRatioOf(
-                                                          context,))
-                                                  .round(),
-                                              cacheHeight: (80 *
-                                                      MediaQuery.devicePixelRatioOf(
-                                                          context,))
-                                                  .round(),
-                                            )
-                                          : Container(
-                                              color: surfHigh,
-                                              alignment: Alignment.center,
-                                              child: Text(
-                                                p.initials,
-                                                style: SwanType.h1(
-                                                  context.swan.accent,
-                                                ).copyWith(
-                                                  fontWeight: FontWeight.w800,
+                                  // Kendi fotoğrafına dokunarak doğrudan değiştirebilir.
+                                  Semantics(
+                                    button: p.isMe && !p.isClub,
+                                    label: p.isMe && !p.isClub
+                                        ? 'Profil fotoğrafını değiştir'
+                                        : 'Profil fotoğrafı',
+                                    child: GestureDetector(
+                                      onTap: p.isMe &&
+                                              !p.isClub &&
+                                              !_changingAvatar
+                                          ? () => _changeAvatar(p)
+                                          : null,
+                                      child: Stack(
+                                        clipBehavior: Clip.none,
+                                        children: [
+                                          Container(
+                                            width: 80,
+                                            height: 80,
+                                            padding: const EdgeInsets.all(3),
+                                            decoration: BoxDecoration(
+                                              shape: BoxShape.circle,
+                                              border: Border.all(color: line),
+                                            ),
+                                            child: ClipOval(
+                                              child: p.avatarUrl != null &&
+                                                      p.avatarUrl!.isNotEmpty
+                                                  ? Image.network(
+                                                      p.avatarUrl!,
+                                                      fit: BoxFit.cover,
+                                                      cacheWidth: (80 *
+                                                              MediaQuery
+                                                                  .devicePixelRatioOf(
+                                                                context,
+                                                              ))
+                                                          .round(),
+                                                      cacheHeight: (80 *
+                                                              MediaQuery
+                                                                  .devicePixelRatioOf(
+                                                                context,
+                                                              ))
+                                                          .round(),
+                                                    )
+                                                  : Container(
+                                                      color: surfHigh,
+                                                      alignment:
+                                                          Alignment.center,
+                                                      child: Text(
+                                                        p.initials,
+                                                        style: SwanType.h1(
+                                                          context.swan.accent,
+                                                        ).copyWith(
+                                                          fontWeight:
+                                                              FontWeight.w800,
+                                                        ),
+                                                      ),
+                                                    ),
+                                            ),
+                                          ),
+                                          if (p.isVerified ||
+                                              (p.isMe && !p.isClub))
+                                            Positioned(
+                                              bottom: -2,
+                                              right: -2,
+                                              child: Container(
+                                                width: 24,
+                                                height: 24,
+                                                decoration: BoxDecoration(
+                                                  color: context.swan.accent,
+                                                  shape: BoxShape.circle,
+                                                  border: Border.all(
+                                                      color: bg, width: 2),
                                                 ),
+                                                child: _changingAvatar
+                                                    ? const Padding(
+                                                        padding:
+                                                            EdgeInsets.all(3),
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                        ),
+                                                      )
+                                                    : Icon(
+                                                        p.isMe && !p.isClub
+                                                            ? Icons
+                                                                .photo_camera_rounded
+                                                            : Icons
+                                                                .check_rounded,
+                                                        size: 14,
+                                                        color: context
+                                                            .swan.onAccent,
+                                                      ),
                                               ),
                                             ),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  if (p.isVerified || (p.isMe && !p.isClub))
-                                    Positioned(
-                                      bottom: -2,
-                                      right: -2,
-                                      child: Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: context.swan.accent,
-                                          shape: BoxShape.circle,
-                                          border:
-                                              Border.all(color: bg, width: 2),
-                                        ),
-                                        child: _changingAvatar
-                                            ? const Padding(
-                                                padding: EdgeInsets.all(3),
-                                                child:
-                                                    CircularProgressIndicator(
-                                                        strokeWidth: 2,),
-                                              )
-                                            : Icon(
-                                                p.isMe && !p.isClub
-                                                    ? Icons.photo_camera_rounded
-                                                    : Icons.check_rounded,
-                                                size: 14,
-                                                color: context.swan.onAccent,
+                                  const SizedBox(width: 16),
+
+                                  // Compact Numbers Matrix (Gönderi, Takipçi, Takip)
+                                  Expanded(
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 12,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: surfContainer.withValues(
+                                            alpha: 0.85),
+                                        borderRadius: BorderRadius.circular(16),
+                                        border: Border.all(color: line),
+                                      ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceAround,
+                                        children: [
+                                          Expanded(
+                                            child: _statColumn(
+                                              label: 'Gönderi',
+                                              value: '${p.postCount}',
+                                              ink: ink,
+                                              isHighlight: false,
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () => Navigator.pushNamed(
+                                                context,
+                                                '/baglantilar',
+                                                arguments: {
+                                                  'id': p.id,
+                                                  'tab': 0,
+                                                  'name': p.name,
+                                                },
                                               ),
+                                              child: _statColumn(
+                                                label: 'Takipçi',
+                                                value: '${p.followerCount}',
+                                                ink: ink,
+                                                isHighlight: true,
+                                              ),
+                                            ),
+                                          ),
+                                          Expanded(
+                                            child: GestureDetector(
+                                              onTap: () => Navigator.pushNamed(
+                                                context,
+                                                '/baglantilar',
+                                                arguments: {
+                                                  'id': p.id,
+                                                  'tab': 1,
+                                                  'name': p.name,
+                                                },
+                                              ),
+                                              child: _statColumn(
+                                                label: 'Takip',
+                                                value: '${p.followingCount}',
+                                                ink: ink,
+                                                isHighlight: false,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
+                                  ),
                                 ],
                               ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
 
-                          // Compact Numbers Matrix (Gönderi, Takipçi, Takip)
-                          Expanded(
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 12,
-                              ),
-                              decoration: BoxDecoration(
-                                color: surfContainer.withValues(alpha: 0.85),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: line),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceAround,
+                              const SizedBox(height: 14),
+
+                              // Name, PRO badge, affiliation & Bio
+                              Row(
                                 children: [
-                                  Expanded(
-                                    child: _statColumn(
-                                      label: 'Gönderi',
-                                      value: '${p.postCount}',
-                                      ink: ink,
-                                      isHighlight: false,
+                                  Flexible(
+                                    child: Text(
+                                      p.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: SwanType.h2(
+                                        ink,
+                                      ).copyWith(fontWeight: FontWeight.w800),
                                     ),
                                   ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => Navigator.pushNamed(
-                                        context,
-                                        '/baglantilar',
-                                        arguments: {
-                                          'id': p.id,
-                                          'tab': 0,
-                                          'name': p.name,
-                                        },
-                                      ),
-                                      child: _statColumn(
-                                        label: 'Takipçi',
-                                        value: '${p.followerCount}',
-                                        ink: ink,
-                                        isHighlight: true,
-                                      ),
+                                  if (p.isVerified) ...[
+                                    const SizedBox(width: 6),
+                                    Icon(
+                                      Icons.verified_rounded,
+                                      size: 19,
+                                      color: context.swan.accent,
                                     ),
-                                  ),
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () => Navigator.pushNamed(
-                                        context,
-                                        '/baglantilar',
-                                        arguments: {
-                                          'id': p.id,
-                                          'tab': 1,
-                                          'name': p.name,
-                                        },
-                                      ),
-                                      child: _statColumn(
-                                        label: 'Takip',
-                                        value: '${p.followingCount}',
-                                        ink: ink,
-                                        isHighlight: false,
-                                      ),
-                                    ),
-                                  ),
+                                  ],
                                 ],
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-
-                      const SizedBox(height: 14),
-
-                      // Name, PRO badge, affiliation & Bio
-                      Row(
-                        children: [
-                          Flexible(
-                            child: Text(
-                              p.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: SwanType.h2(
-                                ink,
-                              ).copyWith(fontWeight: FontWeight.w800),
-                            ),
-                          ),
-                          if (p.isVerified) ...[
-                            const SizedBox(width: 6),
-                            Icon(
-                              Icons.verified_rounded,
-                              size: 19,
-                              color: context.swan.accent,
-                            ),
-                          ],
-                        ],
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')}',
-                        style: SwanType.bodySm(context.swan.inkMuted),
-                      ),
-                      const SizedBox(height: 8),
-
-                      if ((p.roleLabel != null && p.roleLabel!.isNotEmpty) ||
-                          (p.primarySport != null &&
-                              p.primarySport!.trim().isNotEmpty) ||
-                          p.credentials.isNotEmpty) ...[
-                        Wrap(
-                          spacing: 6,
-                          runSpacing: 6,
-                          children: [
-                            if (p.roleLabel != null && p.roleLabel!.isNotEmpty)
-                              _roleBadge(context, p.roleLabel!),
-                            if (p.primarySport != null &&
-                                p.primarySport!.trim().isNotEmpty)
-                              _sportBadge(context, p.primarySport!, p.position),
-                            ...p.credentials
-                                .map((cred) => _credentialBadge(context, cred)),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                      ],
-                      if (p.heightCm != null ||
-                          p.weightKg != null ||
-                          (p.dominantSide != null &&
-                              p.dominantSide!.trim().isNotEmpty)) ...[
-                        const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            if (p.heightCm != null) ...[
+                              const SizedBox(height: 2),
                               Text(
-                                '${p.heightCm} cm',
-                                style: SwanType.caption(
-                                  context.swan.ink,
-                                  w: FontWeight.w600,
-                                ),
+                                '@${p.username ?? p.name.toLowerCase().replaceAll(' ', '')}',
+                                style: SwanType.bodySm(context.swan.inkMuted),
                               ),
-                              if (p.weightKg != null ||
+                              const SizedBox(height: 8),
+
+                              if ((p.roleLabel != null &&
+                                      p.roleLabel!.isNotEmpty) ||
+                                  (p.primarySport != null &&
+                                      p.primarySport!.trim().isNotEmpty) ||
+                                  p.credentials.isNotEmpty) ...[
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: [
+                                    if (p.roleLabel != null &&
+                                        p.roleLabel!.isNotEmpty)
+                                      _roleBadge(context, p.roleLabel!),
+                                    if (p.primarySport != null &&
+                                        p.primarySport!.trim().isNotEmpty)
+                                      _sportBadge(
+                                          context, p.primarySport!, p.position),
+                                    ...p.credentials.map((cred) =>
+                                        _credentialBadge(context, cred)),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                              if (p.heightCm != null ||
+                                  p.weightKg != null ||
                                   (p.dominantSide != null &&
-                                      p.dominantSide!.trim().isNotEmpty))
-                                Text(
-                                  '  ·  ',
-                                  style: SwanType.caption(context.swan.inkMuted),
+                                      p.dominantSide!.trim().isNotEmpty)) ...[
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    if (p.heightCm != null) ...[
+                                      Text(
+                                        '${p.heightCm} cm',
+                                        style: SwanType.caption(
+                                          context.swan.ink,
+                                          w: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (p.weightKg != null ||
+                                          (p.dominantSide != null &&
+                                              p.dominantSide!
+                                                  .trim()
+                                                  .isNotEmpty))
+                                        Text(
+                                          '  ·  ',
+                                          style: SwanType.caption(
+                                              context.swan.inkMuted),
+                                        ),
+                                    ],
+                                    if (p.weightKg != null) ...[
+                                      Text(
+                                        '${p.weightKg} kg',
+                                        style: SwanType.caption(
+                                          context.swan.ink,
+                                          w: FontWeight.w600,
+                                        ),
+                                      ),
+                                      if (p.dominantSide != null &&
+                                          p.dominantSide!.trim().isNotEmpty)
+                                        Text(
+                                          '  ·  ',
+                                          style: SwanType.caption(
+                                              context.swan.inkMuted),
+                                        ),
+                                    ],
+                                    if (p.dominantSide != null &&
+                                        p.dominantSide!.trim().isNotEmpty)
+                                      Text(
+                                        '${p.dominantSide!} Ayak/El',
+                                        style: SwanType.caption(
+                                          context.swan.ink,
+                                          w: FontWeight.w600,
+                                        ),
+                                      ),
+                                  ],
                                 ),
-                            ],
-                            if (p.weightKg != null) ...[
+                              ],
+                              const SizedBox(height: 6),
                               Text(
-                                '${p.weightKg} kg',
-                                style: SwanType.caption(
-                                  context.swan.ink,
-                                  w: FontWeight.w600,
-                                ),
+                                p.bio != null && p.bio!.trim().isNotEmpty
+                                    ? p.bio!
+                                    : 'Henüz bir biyografi eklenmedi.',
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: SwanType.bodySm(context.swan.inkMuted),
                               ),
-                              if (p.dominantSide != null &&
-                                  p.dominantSide!.trim().isNotEmpty)
-                                Text(
-                                  '  ·  ',
-                                  style: SwanType.caption(context.swan.inkMuted),
+
+                              if (_hasLinksOrContact(p)) ...[
+                                const SizedBox(height: 10),
+                                _socialAndContactChips(context, p),
+                              ],
+
+                              const SizedBox(height: 14),
+
+                              // Profile Action Controls (Stitch Screen 26)
+                              _actions(
+                                context,
+                                ref,
+                                p,
+                                isDark,
+                                ink,
+                                surfContainer,
+                                line,
+                              ),
+
+                              if (p.isMe && !p.isClub) ...[
+                                const SizedBox(height: 14),
+                                QuickActions(actions: [
+                                  if (ref.watch(featureEnabledProvider(
+                                      FeatureFlags.swanId)))
+                                    const QuickAction(
+                                      icon: Icons.badge_outlined,
+                                      label: 'Swan ID',
+                                      route: '/swan-id',
+                                    ),
+                                  const QuickAction(
+                                    icon: Icons.verified_user_outlined,
+                                    label: 'Doğrulama',
+                                    route: '/dogrulama',
+                                  ),
+                                  const QuickAction(
+                                    icon: Icons.description_outlined,
+                                    label: 'Belgelerim',
+                                    route: '/documents',
+                                  ),
+                                  const QuickAction(
+                                    icon: Icons.payments_outlined,
+                                    label: 'Aidatlarım',
+                                    route: '/aidatlarim',
+                                  ),
+                                  const QuickAction(
+                                    icon: Icons.calendar_month_outlined,
+                                    label: 'Antrenmanlarım',
+                                    route: '/antrenmanlarim',
+                                  ),
+                                ]),
+                              ],
+
+                              if (p.isMe &&
+                                  !p.isClub &&
+                                  ref
+                                      .watch(swanAccessProvider)
+                                      .isClubStaff) ...[
+                                const SizedBox(height: 14),
+                                _clubCockpitBanner(context, ref),
+                              ],
+
+                              const SizedBox(height: 18),
+
+                              SwanSegmentedTabs(
+                                labels: const ['Gönderiler', 'Hakkında'],
+                                selected: _selectedTab,
+                                onSelect: (index) =>
+                                    setState(() => _selectedTab = index),
+                              ),
+                              const SizedBox(height: SwanSpace.md),
+                              if (_selectedTab == 0) ...[
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.end,
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.grid_on_rounded,
+                                        size: 20,
+                                        color: _isGridView
+                                            ? context.swan.accent
+                                            : context.swan.inkMuted,
+                                      ),
+                                      onPressed: () =>
+                                          setState(() => _isGridView = true),
+                                      tooltip: 'Kare Izgara',
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.view_agenda_outlined,
+                                        size: 20,
+                                        color: !_isGridView
+                                            ? context.swan.accent
+                                            : context.swan.inkMuted,
+                                      ),
+                                      onPressed: () =>
+                                          setState(() => _isGridView = false),
+                                      tooltip: 'Akış Görünümü',
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ],
                                 ),
+                                const SizedBox(height: 4),
+                              ],
                             ],
-                            if (p.dominantSide != null &&
-                                p.dominantSide!.trim().isNotEmpty)
-                              Text(
-                                '${p.dominantSide!} Ayak/El',
-                                style: SwanType.caption(
-                                  context.swan.ink,
-                                  w: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                      if (_selectedTab == 0)
+                        ..._buildKineticGridSlivers(
+                          postsAsync,
+                          ink,
+                          surfHigh,
+                          isMe: p.isMe,
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                          sliver: SliverToBoxAdapter(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Profil bilgileri',
+                                    style: SwanType.h3(ink)),
+                                const SizedBox(height: SwanSpace.sm),
+                                Text(
+                                  p.roleLabel ?? 'Üye',
+                                  style: SwanType.bodySm(context.swan.inkMuted),
                                 ),
-                              ),
-                          ],
-                        ),
-                      ],
-                      const SizedBox(height: 6),
-                      Text(
-                        p.bio != null && p.bio!.trim().isNotEmpty
-                            ? p.bio!
-                            : 'Henüz bir biyografi eklenmedi.',
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: SwanType.bodySm(context.swan.inkMuted),
-                      ),
-
-                      if (_hasLinksOrContact(p)) ...[
-                        const SizedBox(height: 10),
-                        _socialAndContactChips(context, p),
-                      ],
-
-                      const SizedBox(height: 14),
-
-                      // Profile Action Controls (Stitch Screen 26)
-                      _actions(
-                        context,
-                        ref,
-                        p,
-                        isDark,
-                        ink,
-                        surfContainer,
-                        line,
-                      ),
-
-                      if (p.isMe &&
-                          !p.isClub &&
-                          ref.watch(swanAccessProvider).isClubStaff) ...[
-                        const SizedBox(height: 14),
-                        _clubCockpitBanner(context, ref),
-                      ],
-
-                      const SizedBox(height: 18),
-
-                      SwanSegmentedTabs(
-                        labels: const ['Gönderiler', 'Hakkında'],
-                        selected: _selectedTab,
-                        onSelect: (index) =>
-                            setState(() => _selectedTab = index),
-                      ),
-                      const SizedBox(height: SwanSpace.md),
-                      if (_selectedTab == 0) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            IconButton(
-                              icon: Icon(
-                                Icons.grid_on_rounded,
-                                size: 20,
-                                color: _isGridView
-                                    ? context.swan.accent
-                                    : context.swan.inkMuted,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _isGridView = true),
-                              tooltip: 'Kare Izgara',
-                              visualDensity: VisualDensity.compact,
+                                if (p.bio != null && p.bio!.trim().isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: SwanSpace.md,
+                                    ),
+                                    child:
+                                        Text(p.bio!, style: SwanType.body(ink)),
+                                  ),
+                                if (!p.isClub) ...[
+                                  AthleteProfileSection(profileId: p.id),
+                                  CoachProfileSection(profileId: p.id),
+                                ] else ...[
+                                  ClubIdentitySection(clubId: p.id),
+                                  ClubCoachesSection(clubId: p.id),
+                                  ClubAchievementsSection(clubId: p.id),
+                                  ClubMembersSection(clubId: p.id),
+                                ],
+                              ],
                             ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.view_agenda_outlined,
-                                size: 20,
-                                color: !_isGridView
-                                    ? context.swan.accent
-                                    : context.swan.inkMuted,
-                              ),
-                              onPressed: () =>
-                                  setState(() => _isGridView = false),
-                              tooltip: 'Akış Görünümü',
-                              visualDensity: VisualDensity.compact,
-                            ),
-                          ],
+                          ),
                         ),
-                        const SizedBox(height: 4),
-                      ],
+                      const SliverToBoxAdapter(
+                        child: SizedBox(height: SwanSpace.xl * 5),
+                      ),
                     ],
                   ),
-                ),
-              ),
-              if (_selectedTab == 0)
-                ..._buildKineticGridSlivers(
-                  postsAsync,
-                  ink,
-                  surfHigh,
-                  isMe: p.isMe,
-                )
-              else
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                  sliver: SliverToBoxAdapter(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Profil bilgileri', style: SwanType.h3(ink)),
-                        const SizedBox(height: SwanSpace.sm),
-                        Text(
-                          p.roleLabel ?? 'Üye',
-                          style: SwanType.bodySm(context.swan.inkMuted),
-                        ),
-                        if (p.bio != null && p.bio!.trim().isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(
-                              vertical: SwanSpace.md,
-                            ),
-                            child: Text(p.bio!, style: SwanType.body(ink)),
-                          ),
-                        if (!p.isClub) ...[
-                          AthleteProfileSection(profileId: p.id),
-                          CoachProfileSection(profileId: p.id),
-                        ] else ...[
-                          ClubIdentitySection(clubId: p.id),
-                          ClubCoachesSection(clubId: p.id),
-                          ClubAchievementsSection(clubId: p.id),
-                          ClubMembersSection(clubId: p.id),
-                        ],
-                      ],
-                    ),
-                  ),
-                ),
-              const SliverToBoxAdapter(
-                child: SizedBox(height: SwanSpace.xl * 5),
-              ),
-            ],
+                );
+              },
+            ),
           ),
-        );
-      },
-    ),
-  ),
-),
+        ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
     );
@@ -624,9 +686,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 color: c.accent,
                 borderRadius: BorderRadius.circular(SwanRadius.md),
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.space_dashboard_rounded,
-                color: Colors.white,
+                color: c.onAccent,
                 size: 24,
               ),
             ),
@@ -662,7 +724,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 ),
                 child: Text(
                   '$pendingApps',
-                  style: SwanType.caption(Colors.white, w: FontWeight.w700),
+                  style: SwanType.caption(c.onAccent, w: FontWeight.w700),
                 ),
               ),
               const SizedBox(width: SwanSpace.xs),
@@ -897,7 +959,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 var numClean = p.phone!.replaceAll(RegExp(r'[^0-9]'), '');
                 if (numClean.startsWith('0')) {
                   numClean = '90${numClean.substring(1)}';
-                } else if (!numClean.startsWith('90') && numClean.length == 10) {
+                } else if (!numClean.startsWith('90') &&
+                    numClean.length == 10) {
                   numClean = '90$numClean';
                 }
                 launchSafe('https://wa.me/$numClean');
@@ -981,7 +1044,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              friendlyErrorMessage(e, defaultMessage: 'Gönderiler yüklenemedi.'),
+              friendlyErrorMessage(e,
+                  defaultMessage: 'Gönderiler yüklenemedi.'),
               style: SwanType.caption(context.swan.inkMuted),
             ),
           ),
@@ -990,9 +1054,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       data: (posts) {
         if (posts.isNotEmpty) {
           if (_isGridView) {
-            final cacheWidth = ((MediaQuery.sizeOf(context).width.clamp(320.0, 620.0) / 3) *
-                    MediaQuery.devicePixelRatioOf(context))
-                .round();
+            final cacheWidth =
+                ((MediaQuery.sizeOf(context).width.clamp(320.0, 620.0) / 3) *
+                        MediaQuery.devicePixelRatioOf(context))
+                    .round();
             return [
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -1017,7 +1082,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           child: Stack(
                             fit: StackFit.expand,
                             children: [
-                              if (post.imageUrl != null && post.imageUrl!.isNotEmpty)
+                              if (post.imageUrl != null &&
+                                  post.imageUrl!.isNotEmpty)
                                 Image.network(
                                   post.imageUrl!,
                                   fit: BoxFit.cover,
@@ -1043,7 +1109,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   child: Icon(
                                     Icons.repeat_rounded,
                                     size: 14,
-                                    color: Colors.white.withValues(alpha: .9),
+                                    color: context.swan.onAccent
+                                        .withValues(alpha: .9),
                                   ),
                                 ),
                             ],

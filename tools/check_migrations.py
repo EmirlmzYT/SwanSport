@@ -56,3 +56,4 @@ for path in targets:
 
 print()
 print("sorunlu dosya:", bad)
+sys.exit(1 if bad else 0)

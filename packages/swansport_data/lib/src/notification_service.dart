@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -32,14 +34,21 @@ class NotificationRow {
   final DateTime? readAt;
 
   bool get isUnread => readAt == null;
-  String? get refereeRoute => kind == 'referee_assignment' && entityType == 'match'
-      ? '/hakem/gorevler' : null;
-  String? get liveMatchRoute => kind=='match_live' && entityType=='match' && entityId!=null && isPublicMatchId(entityId!)
-    ? '/canli-mac/$entityId' : null;
-
-  String? get resultRoute => kind == 'match_result' && entityType == 'official_result'
-      ? '/resmi-sonuc?notification=${Uri.encodeQueryComponent(id)}'
+  String? get refereeRoute =>
+      kind == 'referee_assignment' && entityType == 'match'
+          ? '/hakem/gorevler'
+          : null;
+  String? get liveMatchRoute => kind == 'match_live' &&
+          entityType == 'match' &&
+          entityId != null &&
+          isPublicMatchId(entityId!)
+      ? '/canli-mac/$entityId'
       : null;
+
+  String? get resultRoute =>
+      kind == 'match_result' && entityType == 'official_result'
+          ? '/resmi-sonuc?notification=${Uri.encodeQueryComponent(id)}'
+          : null;
 
   factory NotificationRow.fromMap(Map<String, dynamic> m) => NotificationRow(
         id: m['id'] as String,
@@ -145,7 +154,6 @@ class MessageRow {
 /// başarısız olursa yerinde duruyor ve tekrar denenebiliyor.
 enum MessageStatus { sending, sent, failed }
 
-
 /// Velinin bir çocuğuna ait özet.
 ///
 /// Veri modeli çoklu çocuğu zaten destekliyordu; eksik olan, çocukların farklı
@@ -180,7 +188,8 @@ class ChildOverview {
   bool get hasDebt => openFeeCount > 0;
   bool get isInjured => healthStatus == 'injured';
 
-  String get initials => name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
+  String get initials =>
+      name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
 
   factory ChildOverview.fromMap(Map<String, dynamic> m) => ChildOverview(
         athleteId: m['athlete_id'] as String,
@@ -353,8 +362,8 @@ class NotificationService {
             ? 'Kullanıcı'
             : m['other_name'] as String,
         lastBody: (m['last_body'] as String?) ?? '',
-        lastAt: DateTime.tryParse('${m['last_at']}')?.toLocal() ??
-            DateTime.now(),
+        lastAt:
+            DateTime.tryParse('${m['last_at']}')?.toLocal() ?? DateTime.now(),
         unread: (m['unread'] as int?) ?? 0,
         otherAvatarUrl: (avatar == null || avatar.isEmpty)
             ? null
@@ -368,7 +377,8 @@ class NotificationService {
     if (uid == null) return const [];
     final rows = await _c
         .from('direct_messages')
-        .select('id, sender_id, body, created_at, read_at, content_type, shared_kind, shared_id')
+        .select(
+            'id, sender_id, body, created_at, read_at, content_type, shared_kind, shared_id')
         .or('and(sender_id.eq.$uid,recipient_id.eq.$otherId),'
             'and(sender_id.eq.$otherId,recipient_id.eq.$uid)')
         .order('created_at');
@@ -447,18 +457,61 @@ class NotificationService {
     return (n as num?)?.toInt() ?? 0;
   }
 
-  Future<void> send(String otherId, String body) async {
+  static String newMessageId() {
+    final random = Random.secure();
+    final bytes = List<int>.generate(16, (_) => random.nextInt(256));
+    bytes[6] = (bytes[6] & 0x0f) | 0x40;
+    bytes[8] = (bytes[8] & 0x3f) | 0x80;
+    final hex = bytes.map((b) => b.toRadixString(16).padLeft(2, '0')).join();
+    return '${hex.substring(0, 8)}-${hex.substring(8, 12)}-'
+        '${hex.substring(12, 16)}-${hex.substring(16, 20)}-'
+        '${hex.substring(20)}';
+  }
+
+  Future<MessageRow> send(String otherId, String body,
+      {String? messageId}) async {
     final uid = _uid;
-    if (uid == null || body.trim().isEmpty) return;
-    await _c.from('direct_messages').insert({
-      'sender_id': uid,
-      'recipient_id': otherId,
-      'body': body.trim(),
-    });
+    if (uid == null || body.trim().isEmpty) {
+      throw StateError('Mesaj göndermek için oturum gerekli.');
+    }
+    final id = messageId ?? newMessageId();
+    Map<String, dynamic> row;
+    try {
+      row = await _c
+          .from('direct_messages')
+          .insert({
+            'id': id,
+            'sender_id': uid,
+            'recipient_id': otherId,
+            'body': body.trim(),
+          })
+          .select(
+              'id, sender_id, body, created_at, read_at, content_type, shared_kind, shared_id')
+          .single();
+    } catch (_) {
+      row = await _c
+          .from('direct_messages')
+          .select(
+              'id, sender_id, body, created_at, read_at, content_type, shared_kind, shared_id')
+          .eq('id', id)
+          .eq('sender_id', uid)
+          .single();
+    }
+    return _message(row, uid);
   }
 
   Future<void> markConversationRead(String otherId) async {
     await _c.rpc<void>('mark_conversation_read', params: {'p_other': otherId});
+  }
+
+  Future<void> deleteOwnMessage(String messageId) async {
+    final uid = _uid;
+    if (uid == null) throw StateError('Mesaj silmek için oturum gerekli.');
+    await _c
+        .from('direct_messages')
+        .delete()
+        .eq('id', messageId)
+        .eq('sender_id', uid);
   }
 }
 
@@ -483,7 +536,6 @@ final unreadMessagesProvider = FutureProvider.autoDispose<int>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(0);
   return ref.watch(notificationServiceProvider).unreadMessageCount();
 });
-
 
 final childrenOverviewProvider =
     FutureProvider.autoDispose<List<ChildOverview>>((ref) {
@@ -552,8 +604,8 @@ Stream<List<MessageRow>> mergeChat({
       : first.last.createdAt;
 
   final byId = {for (final m in first) m.id: m};
-  List<MessageRow> merged() => byId.values.toList()
-    ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+  List<MessageRow> merged() =>
+      byId.values.toList()..sort((a, b) => a.createdAt.compareTo(b.createdAt));
 
   try {
     await for (final batch in live(since)) {
@@ -585,8 +637,7 @@ Stream<List<MessageRow>> mergeChat({
 
 /// Sohbet — geçmiş + canlı, tek akışta.
 final chatProvider =
-    StreamProvider.autoDispose.family<List<MessageRow>, String>(
-        (ref, otherId) {
+    StreamProvider.autoDispose.family<List<MessageRow>, String>((ref, otherId) {
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Stream.value(const <MessageRow>[]);
   }

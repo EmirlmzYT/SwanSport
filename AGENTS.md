@@ -12,6 +12,18 @@ bulunamayacak** şeyleri anlatıyor.
 
 ## Yapı
 
+2026-10-25 güvenilirlik temeli yereldir: CLI timestamp migration'ları hesap
+silmede 0132 aktör referanslarını anonimleştirir; private cihaz bazlı
+`push_delivery_attempts` pg_net sonucunu izler. `accepted` telefon teslimi
+değildir; belirsiz yanıt yeniden gönderilmez, geçici ret en fazla üç denemedir.
+Retry öncesi cihaz revizyonu/hesap, tercih, maç takibi, DM engeli ve veli bağı
+yeniden denetlenir. `process_push_deliveries` yalnız backend/scheduler'dır;
+pg_cron yoksa scheduler ayrıca gerekir. Canlı uygulanmadı. Kilitli test
+bağımlılıkları `tools/package.json` / `tools/requirements-test.txt`; Flutter
+testleri paket dizininden koşar. Sürüm/kabul matrisi `docs/release-status.md`,
+kanıt/sınırlar `docs/reliability-foundation-verification.md`. Ana Sayfa
+görünümü ve sosyal spor ağı odağı kullanıcı tercihiyle korunur.
+
 0121 kulüp antrenman branşları resmi `club_sport_registrations` değildir.
 `club_training_sports` yalnız aktif kulüpte aktif `club_admin`/`coach` üyeliğiyle
 dar RPC üzerinden değiştirilir; tabloya doğrudan istemci yazısı yoktur.

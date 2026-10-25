@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-import '../../app/modules/console_module.dart';
 import '../../app/theme/console_theme.dart';
 import 'disciplinary_board_screen.dart';
 import 'referee_assignments_screen.dart';
@@ -45,11 +44,10 @@ class _FederationCommandCenterViewState
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    final isDark = t.brightness == Brightness.dark;
 
-    final bgCard = isDark ? const Color(0xFF131A2B) : Colors.white;
-    final bgInput = isDark ? const Color(0xFF090D15) : const Color(0xFFF1F5F9);
-    final borderColor = isDark ? const Color(0xFF1F2937) : const Color(0xFFE2E8F0);
+    final bgCard = t.colorScheme.surface;
+    final bgInput = t.colorScheme.surfaceContainerHighest;
+    final borderColor = t.colorScheme.outline;
     const cyanColor = Color(0xFF06B6D4);
     const amberColor = Color(0xFFF59E0B);
     const roseColor = Color(0xFFF43F5E);

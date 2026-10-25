@@ -1,30 +1,19 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-import '../features/finance/work_queue.dart';
 import '../features/finance/expense_dialog.dart';
 import '../features/federation/federation_command_center_view.dart';
 import 'modules/console_module.dart';
 import 'modules/module_registry.dart';
+import 'modules/console_workspace.dart';
 import 'theme/console_theme.dart';
 import 'console_kpi_status.dart';
+import 'today/console_today.dart';
+import 'today/console_today_referee.dart';
 
 typedef _Metric = ({String value, String detail});
-
-/// Only permitted data sources are watched. An accountant never subscribes
-/// to roster, attendance or medical providers through this dashboard.
-enum ConsoleDashboardRole {
-  club,
-  federation,
-  referee,
-  platform,
-}
-
-final consoleDashboardRoleProvider = StateProvider<ConsoleDashboardRole?>((ref) => null);
 
 /// Only permitted data sources are watched. An accountant never subscribes
 /// to roster, attendance or medical providers through this dashboard.
@@ -38,106 +27,45 @@ class ConsoleDashboard extends ConsumerWidget {
     final profile = ref.watch(currentProfileProvider);
     final club = ref.watch(activeClubProvider);
     final hasClub = club.valueOrNull != null;
-    final showOps = access.isClubStaff;
-    final showFinance = access.isClubStaff || access.isAccountant;
-    final finance = showFinance && hasClub ? ref.watch(financeOperationsSummaryProvider) : null;
-    final ops = showOps && hasClub ? ref.watch(clubOperationsSummaryProvider) : null;
-    final roster = showOps && hasClub ? ref.watch(clubRosterCountsProvider) : null;
-    final today = showOps && hasClub ? ref.watch(clubTodayAttendanceProvider) : null;
-    final risk = showOps && hasClub ? ref.watch(eligibilityBoardProvider) : null;
+    final activeWorkspace = resolveConsoleWorkspace(
+        access, ref.watch(consoleWorkspaceProvider), '/');
+    final showOps =
+        activeWorkspace == ConsoleWorkspace.club && access.isClubStaff;
+    final showFinance = activeWorkspace == ConsoleWorkspace.club &&
+        (access.isClubStaff || access.isAccountant);
+    final finance = showFinance && hasClub
+        ? ref.watch(financeOperationsSummaryProvider)
+        : null;
+    final ops =
+        showOps && hasClub ? ref.watch(clubOperationsSummaryProvider) : null;
+    final roster =
+        showOps && hasClub ? ref.watch(clubRosterCountsProvider) : null;
+    final today =
+        showOps && hasClub ? ref.watch(clubTodayAttendanceProvider) : null;
+    final risk =
+        showOps && hasClub ? ref.watch(eligibilityBoardProvider) : null;
     final expiringDocs = ops?.valueOrNull?.expiringDocumentCount;
     final documentStatus = expiringDocs != null
         ? '$expiringDocs yaklaşan belge'
-        : ops?.hasError == true ? 'Belge özeti alınamadı' : 'Belge özeti bekleniyor';
-    final now = ref.watch(clubDashboardDayProvider).add(const Duration(hours: 3));
-    final visible = kConsoleModules.where((m) => m.visibleTo(access)).toList();
-
-    final availableRoles = <ConsoleDashboardRole>[
-      if (access.isClubStaff || access.isAccountant) ConsoleDashboardRole.club,
-      if (access.hasActiveFederationRole || access.canPublishFederationResults) ConsoleDashboardRole.federation,
-      if (access.isReferee) ConsoleDashboardRole.referee,
-      if (access.isPlatformAdmin) ConsoleDashboardRole.platform,
-    ];
-
-    if (availableRoles.isEmpty && visible.isEmpty) {
+        : ops?.hasError == true
+            ? 'Belge özeti alınamadı'
+            : 'Belge özeti bekleniyor';
+    final now =
+        ref.watch(clubDashboardDayProvider).add(const Duration(hours: 3));
+    if (activeWorkspace == null) {
       return Center(
-        child: Padding(
-          padding: const EdgeInsets.all(ConsoleDensity.xl),
-          child: Text('Bu hesabın yönetebileceği bir alan görünmüyor.', style: t.textTheme.titleMedium),
-        ),
-      );
+          child: Text('Bu hesabın yönetebileceği bir alan görünmüyor.',
+              style: t.textTheme.titleMedium));
     }
-
-    final selectedOverride = ref.watch(consoleDashboardRoleProvider);
-    final activeRole = (selectedOverride != null && availableRoles.contains(selectedOverride))
-        ? selectedOverride
-        : (availableRoles.contains(ConsoleDashboardRole.club) && hasClub
-            ? ConsoleDashboardRole.club
-            : (availableRoles.contains(ConsoleDashboardRole.federation)
-                ? ConsoleDashboardRole.federation
-                : (availableRoles.contains(ConsoleDashboardRole.referee)
-                    ? ConsoleDashboardRole.referee
-                    : (availableRoles.contains(ConsoleDashboardRole.club)
-                        ? ConsoleDashboardRole.club
-                        : (availableRoles.contains(ConsoleDashboardRole.platform)
-                            ? ConsoleDashboardRole.platform
-                            : (availableRoles.isNotEmpty ? availableRoles.first : ConsoleDashboardRole.club))))));
 
     return ListView(
       padding: const EdgeInsets.all(ConsoleDensity.xl),
       children: [
-        if (availableRoles.length > 1) ...[
-          Container(
-            padding: const EdgeInsets.symmetric(
-              horizontal: ConsoleDensity.lg,
-              vertical: ConsoleDensity.sm,
-            ),
-            decoration: BoxDecoration(
-              color: t.colorScheme.surfaceContainerHighest,
-              borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-              border: Border.all(color: t.colorScheme.outlineVariant),
-            ),
-            child: Wrap(
-              spacing: ConsoleDensity.sm,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  'Görünüm Seçimi:',
-                  style: t.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                for (final role in availableRoles)
-                  ChoiceChip(
-                    selected: activeRole == role,
-                    avatar: Icon(
-                      switch (role) {
-                        ConsoleDashboardRole.club => Icons.shield_outlined,
-                        ConsoleDashboardRole.federation => Icons.verified_user_outlined,
-                        ConsoleDashboardRole.referee => Icons.sports_score_rounded,
-                        ConsoleDashboardRole.platform => Icons.admin_panel_settings_outlined,
-                      },
-                      size: 16,
-                    ),
-                    label: Text(switch (role) {
-                      ConsoleDashboardRole.club => 'Kulüp Yönetimi',
-                      ConsoleDashboardRole.federation => 'Federasyon Komuta',
-                      ConsoleDashboardRole.referee => 'Hakem Kokpiti',
-                      ConsoleDashboardRole.platform => 'Platform Yönetimi',
-                    }),
-                    onSelected: (_) => ref.read(consoleDashboardRoleProvider.notifier).state = role,
-                  ),
-              ],
-            ),
-          ),
-          const SizedBox(height: ConsoleDensity.lg),
-        ],
-
-        if (activeRole == ConsoleDashboardRole.federation)
+        if (activeWorkspace == ConsoleWorkspace.federation)
           ..._buildFederationWidgets(context, ref, t, access, profile, now)
-        else if (activeRole == ConsoleDashboardRole.referee)
+        else if (activeWorkspace == ConsoleWorkspace.referee)
           ..._buildRefereeWidgets(context, ref, t, access, profile, now)
-        else if (activeRole == ConsoleDashboardRole.platform)
+        else if (activeWorkspace == ConsoleWorkspace.platform)
           ..._buildPlatformWidgets(context, ref, t, access, profile, now)
         else
           ..._buildClubWidgets(
@@ -188,133 +116,17 @@ class ConsoleDashboard extends ConsumerWidget {
     DateTime now,
   ) {
     return [
-      Container(
-        padding: const EdgeInsets.all(ConsoleDensity.xl),
-        decoration: BoxDecoration(
-          color: t.colorScheme.surface,
-          borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          border: Border.all(color: t.colorScheme.outline),
-        ),
-        child: Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: ConsoleDensity.xl,
-          runSpacing: ConsoleDensity.md,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: t.colorScheme.primary.withValues(alpha: .14),
-                    borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-                    border: Border.all(color: t.colorScheme.primary.withValues(alpha: .32)),
-                  ),
-                  child: Icon(Icons.sports_score_rounded, color: t.colorScheme.primary, size: 22),
-                ),
-                const SizedBox(width: ConsoleDensity.md),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
-                        style: t.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: ConsoleDensity.xs),
-                      Text(
-                        'Hakem Komuta & Görev Merkezi · ${fmtDate(now)}',
-                        style: t.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: ConsoleDensity.sm,
-              runSpacing: ConsoleDensity.sm,
-              children: [
-                Chip(
-                  avatar: Icon(Icons.badge_outlined, size: 17, color: t.colorScheme.primary),
-                  label: Text(
-                    access.refereeProfile != null
-                        ? 'Lisanslı Müsabaka Hakemi'
-                        : 'Hakem Görev Alanı',
-                  ),
-                ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.refresh_rounded, size: 17),
-                  label: const Text('Görevleri yenile'),
-                  onPressed: () {
-                    ref.invalidate(refereeDutyMatchesProvider);
-                    ref.invalidate(myRefereeProfileProvider);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+      _DashboardHeading(
+        title:
+            'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
+        detail: 'Görev özeti · ${fmtDate(now)}',
+        action: OutlinedButton.icon(
+            onPressed: () => context.go('/hakem-gorevleri'),
+            icon: const Icon(Icons.arrow_forward_rounded, size: 17),
+            label: const Text('Görevlerime git')),
       ),
       const SizedBox(height: ConsoleDensity.xl),
-      _buildKpiGrid([
-        const _KpiCard(
-          title: 'Müsabaka Görevlerim',
-          icon: Icons.sports_score_rounded,
-          route: '/hakem-gorevleri',
-          enabled: true,
-          data: AsyncData((value: 'Görevler', detail: 'Yaklaşan ve bugünkü müsabaka görevleri')),
-        ),
-        const _KpiCard(
-          title: 'Dijital Esame Onayı',
-          icon: Icons.fact_check_rounded,
-          route: '/hakem-gorevleri',
-          enabled: true,
-          data: AsyncData((value: 'Esame', detail: 'Müsabaka öncesi esame listesi kontrolleri')),
-        ),
-        const _KpiCard(
-          title: 'Canlı Skor & Maç Kokpiti',
-          icon: Icons.bolt_rounded,
-          route: '/hakem-gorevleri',
-          enabled: true,
-          data: AsyncData((value: 'Canlı', detail: 'Canlı periyot, skor ve kart yönetimi')),
-        ),
-        const _KpiCard(
-          title: 'Hakem Maç Raporları',
-          icon: Icons.assignment_turned_in_rounded,
-          route: '/hakem-gorevleri',
-          enabled: true,
-          data: AsyncData((value: 'Rapor', detail: 'İmzalı maç raporu teslimi')),
-        ),
-      ]),
-      const SizedBox(height: ConsoleDensity.xl),
-      Row(
-        children: [
-          Icon(Icons.bolt_rounded, size: 19, color: t.colorScheme.primary),
-          const SizedBox(width: ConsoleDensity.xs),
-          Text('Hakem Hızlı Aksiyonları', style: t.textTheme.titleMedium),
-        ],
-      ),
-      const SizedBox(height: ConsoleDensity.md),
-      _buildActionGroupsGrid(context, [
-        (
-          'Müsabaka Yönetimi',
-          [
-            (Icons.sports_score_rounded, 'Görevli Maçlarım', '/hakem-gorevleri'),
-            (Icons.fact_check_outlined, 'Esame Kontrolü', '/hakem-gorevleri'),
-          ]
-        ),
-        (
-          'Saha & Rapor İşlemleri',
-          [
-            (Icons.bolt_rounded, 'Canlı Maç Kokpiti', '/hakem-gorevleri'),
-            (Icons.assignment_turned_in_outlined, 'Hakem Raporu Teslim Et', '/hakem-gorevleri'),
-          ]
-        ),
-      ]),
+      const ConsoleTodayReferee(),
     ];
   }
 
@@ -327,72 +139,14 @@ class ConsoleDashboard extends ConsumerWidget {
     DateTime now,
   ) {
     return [
-      Container(
-        padding: const EdgeInsets.all(ConsoleDensity.xl),
-        decoration: BoxDecoration(
-          color: t.colorScheme.surface,
-          borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          border: Border.all(color: t.colorScheme.outline),
-        ),
-        child: Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: ConsoleDensity.xl,
-          runSpacing: ConsoleDensity.md,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: t.colorScheme.primary.withValues(alpha: .14),
-                    borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-                    border: Border.all(color: t.colorScheme.primary.withValues(alpha: .32)),
-                  ),
-                  child: Icon(Icons.admin_panel_settings_rounded, color: t.colorScheme.primary, size: 22),
-                ),
-                const SizedBox(width: ConsoleDensity.md),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
-                        style: t.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: ConsoleDensity.xs),
-                      Text(
-                        'Platform Yönetim Komuta Merkezi · ${fmtDate(now)}',
-                        style: t.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: ConsoleDensity.sm,
-              runSpacing: ConsoleDensity.sm,
-              children: [
-                Chip(
-                  avatar: Icon(Icons.admin_panel_settings_outlined, size: 17, color: t.colorScheme.primary),
-                  label: const Text('Platform Yöneticisi'),
-                ),
-                OutlinedButton.icon(
-                  icon: const Icon(Icons.refresh_rounded, size: 17),
-                  label: const Text('Verileri yenile'),
-                  onPressed: () {
-                    ref.invalidate(platformConfigProvider);
-                    ref.invalidate(platformPlansProvider);
-                  },
-                ),
-              ],
-            ),
-          ],
-        ),
+      _DashboardHeading(
+        title:
+            'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
+        detail: 'Platform özeti · ${fmtDate(now)}',
+        action: OutlinedButton.icon(
+            onPressed: () => context.go('/onaylar'),
+            icon: const Icon(Icons.fact_check_outlined, size: 17),
+            label: const Text('Onayları incele')),
       ),
       const SizedBox(height: ConsoleDensity.xl),
       _buildKpiGrid([
@@ -401,28 +155,38 @@ class ConsoleDashboard extends ConsumerWidget {
           icon: Icons.admin_panel_settings_rounded,
           route: '/mission-control',
           enabled: true,
-          data: AsyncData((value: 'Sistem', detail: 'Şalterler, paketler, komisyon & marka')),
+          data: AsyncData((
+            value: 'Sistem',
+            detail: 'Şalterler, paketler, komisyon & marka'
+          )),
         ),
         const _KpiCard(
           title: 'Onay & Belge Kuyruğu',
           icon: Icons.verified_rounded,
           route: '/onaylar',
           enabled: true,
-          data: AsyncData((value: 'Onaylar', detail: 'Kulüp başvuruları ve belge onayları')),
+          data: AsyncData((
+            value: 'Onaylar',
+            detail: 'Kulüp başvuruları ve belge onayları'
+          )),
         ),
         const _KpiCard(
           title: 'Kullanıcı & Moderasyon',
           icon: Icons.badge_rounded,
           route: '/kullanicilar',
           enabled: true,
-          data: AsyncData((value: 'Kullanıcı', detail: 'Platform hesapları ve içerik denetimi')),
+          data: AsyncData((
+            value: 'Kullanıcı',
+            detail: 'Platform hesapları ve içerik denetimi'
+          )),
         ),
         const _KpiCard(
           title: 'Hata & Teşhis Masası',
           icon: Icons.bug_report_outlined,
           route: '/hata-merkezi',
           enabled: true,
-          data: AsyncData((value: 'Teşhis', detail: 'Hata logları ve otomatik onarım')),
+          data: AsyncData(
+              (value: 'Teşhis', detail: 'Hata logları ve otomatik onarım')),
         ),
       ]),
       const SizedBox(height: ConsoleDensity.xl),
@@ -438,7 +202,11 @@ class ConsoleDashboard extends ConsumerWidget {
         (
           'Sistem ve Yapılandırma',
           [
-            (Icons.admin_panel_settings_outlined, 'Mission Control', '/mission-control'),
+            (
+              Icons.admin_panel_settings_outlined,
+              'Mission Control',
+              '/mission-control'
+            ),
             (Icons.toggle_on_outlined, 'Özellik Bayrakları', '/bayraklar'),
             (Icons.bug_report_outlined, 'Hata Merkezi', '/hata-merkezi'),
           ]
@@ -475,81 +243,111 @@ class ConsoleDashboard extends ConsumerWidget {
     DateTime now,
   ) {
     AsyncValue<_Metric>? metric(bool allowed, AsyncValue<_Metric>? source) {
-      if (!allowed) return null;
-      if (club.isLoading) return const AsyncLoading();
-      if (club.hasError) return AsyncError(club.error!, club.stackTrace ?? StackTrace.empty);
-      if (!hasClub) return const AsyncData((value: '—', detail: 'Kulüp seçilmedi'));
+      if (!allowed) {
+        return null;
+      }
+      if (club.isLoading) {
+        return const AsyncLoading();
+      }
+      if (club.hasError) {
+        return AsyncError(club.error!, club.stackTrace ?? StackTrace.empty);
+      }
+      if (!hasClub) {
+        return const AsyncData((value: '—', detail: 'Kulüp seçilmedi'));
+      }
       return source;
     }
 
-    final r = roster?.isLoading == false && roster?.hasError == false ? roster?.valueOrNull : null;
-    final a = today?.isLoading == false && today?.hasError == false ? today?.valueOrNull : null;
-    final f = finance?.isLoading == false && finance?.hasError == false ? finance?.valueOrNull : null;
-    final e = risk?.isLoading == false && risk?.hasError == false ? risk?.valueOrNull : null;
+    final r = roster?.isLoading == false && roster?.hasError == false
+        ? roster?.valueOrNull
+        : null;
+    final a = today?.isLoading == false && today?.hasError == false
+        ? today?.valueOrNull
+        : null;
+    final f = finance?.isLoading == false && finance?.hasError == false
+        ? finance?.valueOrNull
+        : null;
+    final e = risk?.isLoading == false && risk?.hasError == false
+        ? risk?.valueOrNull
+        : null;
 
     final cards = [
-      _KpiCard(
-        title: 'Kadro & Sporcular',
-        icon: Icons.groups_rounded,
-        route: '/sporcular',
-        enabled: showOps && hasClub,
-        status: r == null ? null : ConsoleKpiStatus.roster(r.total, r.active),
-        data: metric(
-          showOps,
-          roster?.whenData(
-            (s) => s == null
-                ? (value: '—', detail: 'Kulüp seçilmedi')
-                : (value: '${s.total}', detail: '${s.active} aktif sporcu'),
+      if (showOps)
+        _KpiCard(
+          title: 'Kadro & Sporcular',
+          icon: Icons.groups_rounded,
+          route: '/sporcular',
+          enabled: showOps && hasClub,
+          status: r == null ? null : ConsoleKpiStatus.roster(r.total, r.active),
+          data: metric(
+            showOps,
+            roster?.whenData(
+              (s) => s == null
+                  ? (value: '—', detail: 'Kulüp seçilmedi')
+                  : (value: '${s.total}', detail: '${s.active} aktif sporcu'),
+            ),
           ),
         ),
-      ),
       _KpiCard(
         title: 'Mali Kuyruk & Kasa',
         icon: Icons.account_balance_wallet_outlined,
         route: '/mali-isler',
         enabled: showFinance && hasClub,
-        status: f == null ? null : ConsoleKpiStatus.finance(f.pendingApprovalCount + f.pendingPaymentCount),
+        status: f == null
+            ? null
+            : ConsoleKpiStatus.finance(
+                f.pendingApprovalCount + f.pendingPaymentCount),
         data: metric(
           showFinance,
           finance?.whenData(
             (s) => (
               value: '${s.pendingApprovalCount + s.pendingPaymentCount}',
-              detail: '${s.pendingApprovalCount} gider onayı · ${s.pendingPaymentCount} tahsilat onayı',
+              detail:
+                  '${s.pendingApprovalCount} gider onayı · ${s.pendingPaymentCount} tahsilat onayı',
             ),
           ),
         ),
       ),
-      _KpiCard(
-        title: 'Oturumlar & Yoklama',
-        icon: Icons.event_available_outlined,
-        route: '/yoklama',
-        enabled: showOps && hasClub,
-        status: a == null ? null : ConsoleKpiStatus.attendance(a.trainingCount, a.markedCount),
-        data: metric(
-          showOps,
-          today?.whenData(
-            (s) => s == null
-                ? (value: '—', detail: 'Kulüp seçilmedi')
-                : (value: '${s.trainingCount}', detail: 'Bugün · ${s.markedCount} oturumda yoklama kaydı'),
-          ),
-        ),
-      ),
-      _KpiCard(
-        title: 'Risk & Uygunluk',
-        icon: Icons.health_and_safety_outlined,
-        route: '/uygunluk',
-        enabled: showOps && hasClub,
-        status: e == null ? null : ConsoleKpiStatus.risk(e.where((r) => r.isRestricted).length),
-        data: metric(
-          showOps,
-          risk?.whenData(
-            (rows) => (
-              value: '${rows.where((r) => r.isRestricted).length}',
-              detail: 'Uygunluk kısıtı · $documentStatus',
+      if (showOps)
+        _KpiCard(
+          title: 'Oturumlar & Yoklama',
+          icon: Icons.event_available_outlined,
+          route: '/yoklama',
+          enabled: showOps && hasClub,
+          status: a == null
+              ? null
+              : ConsoleKpiStatus.attendance(a.trainingCount, a.markedCount),
+          data: metric(
+            showOps,
+            today?.whenData(
+              (s) => s == null
+                  ? (value: '—', detail: 'Kulüp seçilmedi')
+                  : (
+                      value: '${s.trainingCount}',
+                      detail: 'Bugün · ${s.markedCount} oturumda yoklama kaydı'
+                    ),
             ),
           ),
         ),
-      ),
+      if (showOps)
+        _KpiCard(
+          title: 'Risk & Uygunluk',
+          icon: Icons.health_and_safety_outlined,
+          route: '/uygunluk',
+          enabled: showOps && hasClub,
+          status: e == null
+              ? null
+              : ConsoleKpiStatus.risk(e.where((r) => r.isRestricted).length),
+          data: metric(
+            showOps,
+            risk?.whenData(
+              (rows) => (
+                value: '${rows.where((r) => r.isRestricted).length}',
+                detail: 'Uygunluk kısıtı · $documentStatus',
+              ),
+            ),
+          ),
+        ),
     ];
 
     const groups = [
@@ -586,104 +384,62 @@ class ConsoleDashboard extends ConsumerWidget {
         .toList();
 
     return [
-      Container(
-        padding: const EdgeInsets.all(ConsoleDensity.xl),
-        decoration: BoxDecoration(
-          color: t.colorScheme.surface,
-          borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-          border: Border.all(color: t.colorScheme.outline),
-        ),
-        child: Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: ConsoleDensity.xl,
-          runSpacing: ConsoleDensity.md,
-          children: [
-            Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: t.colorScheme.primary.withValues(alpha: .14),
-                    borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-                    border: Border.all(color: t.colorScheme.primary.withValues(alpha: .32)),
-                  ),
-                  child: Icon(Icons.space_dashboard_rounded, color: t.colorScheme.primary, size: 22),
-                ),
-                const SizedBox(width: ConsoleDensity.md),
-                Flexible(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
-                        style: t.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
-                      ),
-                      const SizedBox(height: ConsoleDensity.xs),
-                      Text('Spor Kulübü Komuta Merkezi · ${fmtDate(now)}', style: t.textTheme.bodySmall),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              spacing: ConsoleDensity.sm,
-              runSpacing: ConsoleDensity.sm,
-              children: [
-                Chip(
-                  avatar: Icon(Icons.shield_outlined, size: 17, color: t.colorScheme.primary),
-                  label: Text(
-                    club.isLoading
-                        ? 'Kulüp yükleniyor…'
-                        : club.hasError
-                            ? 'Kulüp alınamadı'
-                            : club.valueOrNull?.name ?? 'Kulüp seçilmedi',
-                  ),
-                ),
-                if (showFinance && hasClub)
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.refresh_rounded, size: 17),
-                    label: const Text('Özeti yenile'),
-                    onPressed: () {
-                      ref.invalidate(financeOperationsSummaryProvider);
-                      if (showOps) {
-                        ref.invalidate(clubOperationsSummaryProvider);
-                        ref.invalidate(clubRosterCountsProvider);
-                        ref.invalidate(clubTodayAttendanceProvider);
-                        ref.invalidate(eligibilityBoardProvider);
-                        ref.invalidate(clubDashboardDayProvider);
-                      }
-                    },
-                  ),
-              ],
-            ),
-          ],
-        ),
+      _DashboardHeading(
+        title:
+            'Hoş Geldin${profile.valueOrNull == null ? '' : ', ${profile.valueOrNull!.firstName}'}',
+        detail: 'Kulüp özeti · ${fmtDate(now)}',
+        action: OutlinedButton.icon(
+            icon: const Icon(Icons.refresh_rounded, size: 17),
+            label: const Text('Özeti yenile'),
+            onPressed: () {
+              ref.invalidate(financeOperationsSummaryProvider);
+              if (showOps) {
+                ref.invalidate(clubOperationsSummaryProvider);
+                ref.invalidate(clubRosterCountsProvider);
+                ref.invalidate(clubTodayAttendanceProvider);
+                ref.invalidate(eligibilityBoardProvider);
+                ref.invalidate(clubDashboardDayProvider);
+              }
+            }),
       ),
       const SizedBox(height: ConsoleDensity.xl),
-      _buildKpiGrid(cards),
+      if (!hasClub && (showFinance || showOps))
+        Text(club.hasError
+            ? 'Kulüp bilgisi alınamadı; kuyruk yüklenemiyor.'
+            : club.isLoading
+                ? 'Kulüp yükleniyor…'
+                : 'Operasyonları görmek için aktif kulüp seç.'),
+      if (hasClub)
+        ConsoleToday(
+            access: access,
+            finance: finance,
+            operations: ops,
+            attendance: today),
       const SizedBox(height: ConsoleDensity.xl),
+      _buildKpiGrid(cards),
+      const SizedBox(height: ConsoleDensity.xxl),
       Row(
         children: [
           Icon(Icons.bolt_rounded, size: 19, color: t.colorScheme.primary),
           const SizedBox(width: ConsoleDensity.xs),
-          Text('Hızlı Aksiyonlar', style: t.textTheme.titleMedium),
+          Text('Sık kullanılanlar', style: t.textTheme.titleMedium),
         ],
       ),
       const SizedBox(height: ConsoleDensity.md),
       LayoutBuilder(
         builder: (context, constraints) {
           final columns = constraints.maxWidth >=
-                  ConsoleDensity.dashboardActionMinWidth * 3 + ConsoleDensity.lg * 2
+                  ConsoleDensity.dashboardActionMinWidth * 3 +
+                      ConsoleDensity.lg * 2
               ? 3
               : constraints.maxWidth >=
-                      ConsoleDensity.dashboardActionMinWidth * 2 + ConsoleDensity.lg
+                      ConsoleDensity.dashboardActionMinWidth * 2 +
+                          ConsoleDensity.lg
                   ? 2
                   : 1;
-          final width = (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) / columns;
+          final width =
+              (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) /
+                  columns;
           return Wrap(
             spacing: ConsoleDensity.lg,
             runSpacing: ConsoleDensity.lg,
@@ -695,16 +451,19 @@ class ConsoleDashboard extends ConsumerWidget {
                     title: group.$1,
                     actions: [
                       for (final action in group.$2)
-                        if (moduleForRoute(action.$3)?.visibleTo(access) ?? false)
+                        if (moduleForRoute(action.$3)?.visibleTo(access) ??
+                            false)
                           OutlinedButton.icon(
-                            onPressed: hasClub && (action.$2 != 'Kadro Dağılımı' || r != null)
+                            onPressed: hasClub &&
+                                    (action.$2 != 'Kadro Dağılımı' || r != null)
                                 ? () {
                                     if (action.$2 == 'Gider Gir') {
                                       showExpenseDialog(context, ref);
                                     } else if (action.$2 == 'Kadro Dağılımı') {
                                       showDialog<void>(
                                         context: context,
-                                        builder: (_) => _RosterDistribution(counts: r!),
+                                        builder: (_) =>
+                                            _RosterDistribution(counts: r!),
                                       );
                                     } else {
                                       context.go(action.$3);
@@ -721,98 +480,6 @@ class ConsoleDashboard extends ConsumerWidget {
           );
         },
       ),
-      const SizedBox(height: ConsoleDensity.xxl),
-      Row(
-        children: [
-          Icon(Icons.playlist_add_check_circle_outlined, size: 20, color: t.colorScheme.primary),
-          const SizedBox(width: ConsoleDensity.sm),
-          Text('Operasyon Kuyruğu', style: t.textTheme.titleLarge),
-        ],
-      ),
-      const SizedBox(height: ConsoleDensity.md),
-      if (!hasClub && (showFinance || showOps))
-        Text(
-          club.hasError
-              ? 'Kulüp bilgisi alınamadı; kuyruk yüklenemiyor.'
-              : club.isLoading
-                  ? 'Kulüp yükleniyor…'
-                  : 'Operasyonları görmek için aktif kulüp seç.',
-          style: t.textTheme.bodySmall,
-        ),
-      LayoutBuilder(
-        builder: (context, constraints) {
-          final two = showFinance &&
-              showOps &&
-              constraints.maxWidth >= ConsoleDensity.dashboardQueueMinWidth * 2 + ConsoleDensity.lg;
-          final width = two ? (constraints.maxWidth - ConsoleDensity.lg) / 2 : constraints.maxWidth;
-          return Wrap(
-            spacing: ConsoleDensity.lg,
-            runSpacing: ConsoleDensity.lg,
-            children: [
-              if (finance != null)
-                SizedBox(
-                  width: width,
-                  child: _QueuePanel(
-                    title: 'Mali İşler',
-                    icon: Icons.account_balance_wallet_outlined,
-                    child: AsyncSection<FinanceOperationsSummary>(
-                      value: finance,
-                      errorPrefix: 'Mali özet alınamadı',
-                      builder: (s) => WorkQueue(
-                        top: s.topItems,
-                        others: s.otherItems,
-                        emptyTitle: 'Şu anda mali işlem beklemiyor',
-                        emptyBody: 'Bekleyen mali işlemler burada listelenir.',
-                      ),
-                    ),
-                  ),
-                ),
-              if (ops != null)
-                SizedBox(
-                  width: width,
-                  child: _QueuePanel(
-                    title: 'Kulüp İşleri',
-                    icon: Icons.assignment_outlined,
-                    child: AsyncSection<ClubOperationsSummary>(
-                      value: ops,
-                      errorPrefix: 'Operasyon özeti alınamadı',
-                      builder: (s) => Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${s.expiringDocumentCount} belge 30 gün içinde sona eriyor.',
-                            style: t.textTheme.bodySmall,
-                          ),
-                          const SizedBox(height: ConsoleDensity.md),
-                          WorkQueue(
-                            top: s.items
-                                .where(
-                                  (i) =>
-                                      moduleForRoute(Uri.parse(i.route).path)?.visibleTo(access) ??
-                                      false,
-                                )
-                                .take(5)
-                                .toList(),
-                            others: s.items
-                                .where(
-                                  (i) =>
-                                      moduleForRoute(Uri.parse(i.route).path)?.visibleTo(access) ??
-                                      false,
-                                )
-                                .skip(5)
-                                .toList(),
-                            emptyTitle: 'Erişebildiğin kuyruklarda bekleyen kulüp işi yok',
-                            emptyBody: 'Üyelik, belge ve yoklama işleri yetki kapsamına göre gösterilir.',
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          );
-        },
-      ),
     ];
   }
 
@@ -823,7 +490,9 @@ class ConsoleDashboard extends ConsumerWidget {
                 ConsoleDensity.dashboardKpiMinWidth * 4 + ConsoleDensity.lg * 3
             ? 4
             : 2;
-        final width = (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) / columns;
+        final width =
+            (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) /
+                columns;
         return Wrap(
           spacing: ConsoleDensity.lg,
           runSpacing: ConsoleDensity.lg,
@@ -842,13 +511,17 @@ class ConsoleDashboard extends ConsumerWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final columns = constraints.maxWidth >=
-                ConsoleDensity.dashboardActionMinWidth * 3 + ConsoleDensity.lg * 2
+                ConsoleDensity.dashboardActionMinWidth * 3 +
+                    ConsoleDensity.lg * 2
             ? 3
             : constraints.maxWidth >=
-                    ConsoleDensity.dashboardActionMinWidth * 2 + ConsoleDensity.lg
+                    ConsoleDensity.dashboardActionMinWidth * 2 +
+                        ConsoleDensity.lg
                 ? 2
                 : 1;
-        final width = (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) / columns;
+        final width =
+            (constraints.maxWidth - ConsoleDensity.lg * (columns - 1)) /
+                columns;
         return Wrap(
           spacing: ConsoleDensity.lg,
           runSpacing: ConsoleDensity.lg,
@@ -1093,59 +766,31 @@ class _RosterDistribution extends StatelessWidget {
   }
 }
 
-class _QueuePanel extends StatelessWidget {
-  const _QueuePanel({
-    required this.title,
-    required this.icon,
-    required this.child,
-  });
+class _DashboardHeading extends StatelessWidget {
+  const _DashboardHeading(
+      {required this.title, required this.detail, required this.action});
   final String title;
-  final IconData icon;
-  final Widget child;
+  final String detail;
+  final Widget action;
+
   @override
   Widget build(BuildContext context) {
     final t = Theme.of(context);
-    return Card(
-      margin: EdgeInsets.zero,
-      child: Padding(
-        padding: const EdgeInsets.all(ConsoleDensity.lg),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: ConsoleDensity.md),
+      child: Wrap(
+          alignment: WrapAlignment.spaceBetween,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: ConsoleDensity.xl,
+          runSpacing: ConsoleDensity.lg,
           children: [
-            Container(
-              padding: const EdgeInsets.all(ConsoleDensity.md),
-              decoration: BoxDecoration(
-                color: t.colorScheme.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(ConsoleDensity.radius),
-                border: Border.all(color: t.colorScheme.outline),
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    width: 30,
-                    height: 30,
-                    decoration: BoxDecoration(
-                      color: t.colorScheme.primary.withValues(alpha: .14),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Icon(
-                      icon,
-                      size: 17,
-                      color: t.colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: ConsoleDensity.sm),
-                  Expanded(
-                    child: Text(title, style: t.textTheme.titleMedium),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: ConsoleDensity.lg),
-            child,
-          ],
-        ),
-      ),
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(title, style: t.textTheme.headlineMedium),
+              const SizedBox(height: ConsoleDensity.sm),
+              Text(detail, style: t.textTheme.bodySmall),
+            ]),
+            action,
+          ]),
     );
   }
 }

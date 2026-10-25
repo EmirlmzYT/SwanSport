@@ -107,3 +107,24 @@ Kenar çubuğunda modül gizlemek **güvenlik değildir** — kullanıcı adresi
 doğrudan yazabilir. `_Guarded` sarmalayıcısı yetkisi olmayana anlaşılır bir
 mesaj gösterir, ama veriyi koruyan şey Supabase'deki RLS politikalarıdır.
 Konsol anon anahtarla çalışır; tarayıcıya service-role anahtarı konmaz.
+
+
+## Yerel konsol önizlemesi
+
+Konsolun yeni kabuğunda çalışma alanı seçimi hem sol menüyü hem ana sayfayı
+birlikte değiştirir. Yalnız `SwanAccess` tarafından izin verilen alanlar ve
+modüller görünür. Doğrudan bağlantılar kendi çalışma alanını açar. Üstteki
+arama yalnız seçili alandaki erişilebilir sayfaları listeler.
+
+Yerel web derlemesini uygulama klasöründe `--base-href=/` ve
+`--output=build/local-console` ile oluştur. Supabase ayarlarını mevcut
+`--dart-define` / `--dart-define-from-file` yöntemiyle sağla. Sonra depo kökünde:
+
+```bash
+python3 tools/serve_console_preview.py
+```
+
+Adres: `http://localhost:55440`. Sunucu yalnız loopback üzerinde dinler ve
+GoRouter doğrudan bağlantılarını destekler. Bu, gerçek konsolun yerel
+arayüzüdür: giriş ve veriler derlemede seçilen Supabase ortamına bağlıdır;
+örnek yönetim verisi veya yetki atlama yolu içermez. Canlı dağıtım yapmaz.

@@ -7,7 +7,7 @@ import '../../app/modules/console_module.dart';
 import '../../app/shell/too_narrow_notice.dart';
 import '../../app/theme/console_theme.dart';
 import '../../app/widgets/status_pill.dart';
-import '../federation/referee_assignments_screen.dart' show federationDate, officialDuty;
+import '../federation/referee_assignments_screen.dart' show federationDate;
 
 String _dutyLabel(MatchOfficialDuty d) => switch (d) {
   MatchOfficialDuty.headReferee => 'Başhakem',

@@ -1,8 +1,16 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-18 Europe/Istanbul
+Son güncelleme: 2026-10-25 Europe/Istanbul
 Aktif Writer: Yok
 Durum: `complete`
+
+2026-10-25: Kullanıcı analizdeki ilk güvenilirlik paketini yetkilendirdi. Hesap silme, CI/test kurulumu, sürüm matrisi, günlük akış kabulü ve push teslimi ele alınıyor. Ana Sayfa görünümü ve sosyal spor ağı odağı korunacak. Başlangıçtaki kullanıcı değişiklikleri korunur; canlı SQL/deploy yapılmaz. Başlangıç kanıtı: konsol 107 geçer; mobil 617 geçer/1 tasarım sözleşmesi hatası; JS genel revizyon 3/5. Plan: docs/superpowers/plans/2026-10-25-reliability-foundation.md.
+
+Kontrol noktası: 0132 FK hesap silme hatası kırmızı→yeşil 3/3; tek yönetici/anon engeli korunur. Kilitli tools npm/PGlite ve Python/pglast kurulumu, eski build importlarının kaldırılması, CI yedi Flutter hedefi/iki web derlemesi/backend kapıları ve release önkoşulu bağlı. Genel revizyon 5/5, SSS 52/52; migration parser hatada artık exit 1. Push ilk 4 SQL ve 2 sınıflandırma/5 gönderici testi geçti; tercihin/ilişkinin retry öncesi yeniden denetlenmesi ekleniyor. İlk mobil kök dizinden koşulduğunda asset/relative-path hataları görüldü; CI ve son yerel koşu paket dizinine düzeltildi, ürün ekranları değiştirilmedi. Son tam Flutter/JS regresyonu sürüyor. Sürüm matrisi ve gerçek rol/cihaz kabul şablonu eklendi; Docker/fiziksel cihaz yok, UAT bekliyor.
+
+Son Flutter kontrolü: mobil 618, konsol 107, data 510, core 26, models 1, design 7, motor 197 (toplam 1466) geçer. Genel analiz son koşu exit 0, 0 hata/uyarı, 4813 info. Production app/konsol web build 71,9s/54,3s geçti; yayın yok. Ana akış/başlık/alt nav kaynakları değişmedi. Son push yetki değişimi/bozuk yanıt dahil dar SQL/JS 11/11, migration isim seçimi 1/1, Python 10/10, SSS 52/52, 138 SQL parse temiz, push42, mobil24 sözleşmesi temiz. Bağımsız inceleme önemli/kritik bulgu bildirmedi. Toplu SQL/JS son koşusu sürüyor.
+
+2026-10-25 sonuç: Sabit kaynakta tam SQL/JS 317/317, sıfır hata/skip (557s). Kademeli yayında eski sender 404 cevabının token silmesini engelleyen ek kırmızı→yeşil regresyonla push paketi 7/7; bağımsız inceleme de doğruladı. Yeni migration'lar canlıya uygulanmadı; Cloudflare sender SQL'den önce yayımlanır. Docker/GoTrue/PostgREST/gerçek iki oturum ve Android/iOS fiziksel kabulü bekliyor; şablon docs/reliability-acceptance.md. Kanıt docs/reliability-foundation-verification.md, matris docs/release-status.md. Projenin GitHub kayıt tercihi gereği mevcut test edilmiş mobil/konsol revizyonları korunarak aynı geliştirme dalında kaynak kaydı hazırlanır; main/tag/SQL/deploy yok. Writer serbest.
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 

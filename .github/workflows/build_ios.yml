@@ -18,7 +18,10 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
   build-ios:
+    needs: verify
     name: Build iOS IPA
     runs-on: macos-latest
     defaults:

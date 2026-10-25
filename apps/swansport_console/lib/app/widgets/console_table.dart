@@ -102,6 +102,7 @@ class ConsoleTable<T> extends StatelessWidget {
     this.selected = const {},
     this.onSelectionChanged,
     this.onRowTap,
+    this.onRetry,
     this.loading = false,
     this.error,
     this.emptyMessage = 'Kayıt yok.',
@@ -124,6 +125,7 @@ class ConsoleTable<T> extends StatelessWidget {
   final Set<String> selected;
   final ValueChanged<Set<String>>? onSelectionChanged;
   final void Function(T row)? onRowTap;
+  final VoidCallback? onRetry;
 
   final bool loading;
   final Object? error;
@@ -254,7 +256,14 @@ class ConsoleTable<T> extends StatelessWidget {
         icon: Icons.error_outline_rounded,
         color: t.colorScheme.error,
         title: 'Veri alınamadı',
-        detail: '$error',
+        detail: 'Bağlantınızı kontrol edip tekrar deneyin.',
+        action: onRetry == null
+            ? null
+            : TextButton.icon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh),
+                label: const Text('Tekrar dene'),
+              ),
       );
     }
     if (loading && rows.isEmpty) {
@@ -472,12 +481,14 @@ class _Message extends StatelessWidget {
     required this.color,
     required this.title,
     this.detail,
+    this.action,
   });
 
   final IconData icon;
   final Color color;
   final String title;
   final String? detail;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -518,6 +529,10 @@ class _Message extends StatelessWidget {
                   style: t.textTheme.bodySmall,
                 ),
               ],
+              if (action != null) ...[
+                const SizedBox(height: ConsoleDensity.sm),
+                action!,
+              ],
             ],
           ),
         ),
@@ -527,23 +542,48 @@ class _Message extends StatelessWidget {
 }
 
 /// Tablonun üstündeki araç çubuğu — arama, süzgeçler, dışa aktarma.
-class ConsoleToolbar extends StatelessWidget {
+class ConsoleToolbar extends StatefulWidget {
   const ConsoleToolbar({
     required this.query,
     required this.onQueryChanged,
     this.searchHint = 'Ara…',
+    this.showSearch = true,
     this.filters = const [],
     this.onExport,
     this.trailing,
+    this.onResetFilters,
     super.key,
   });
 
   final ConsoleTableQuery query;
   final ValueChanged<ConsoleTableQuery> onQueryChanged;
   final String searchHint;
+  final bool showSearch;
   final List<Widget> filters;
   final Future<void> Function()? onExport;
   final Widget? trailing;
+  final VoidCallback? onResetFilters;
+
+  @override
+  State<ConsoleToolbar> createState() => _ConsoleToolbarState();
+}
+
+class _ConsoleToolbarState extends State<ConsoleToolbar> {
+  bool _exporting = false;
+
+  Future<void> _export() async {
+    setState(() => _exporting = true);
+    try {
+      await widget.onExport!();
+    } catch (_) {
+      if (mounted)
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Dışa aktarılamadı. Tekrar deneyin.')),
+        );
+    } finally {
+      if (mounted) setState(() => _exporting = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -554,32 +594,44 @@ class ConsoleToolbar extends StatelessWidget {
         horizontal: ConsoleDensity.lg,
         vertical: ConsoleDensity.md,
       ),
-      child: Row(
+      child: Wrap(
+        spacing: ConsoleDensity.sm,
+        runSpacing: ConsoleDensity.sm,
+        crossAxisAlignment: WrapCrossAlignment.center,
         children: [
-          SizedBox(
+          if (widget.showSearch) SizedBox(
             width: 280,
             child: _SearchField(
-              hint: searchHint,
-              initial: query.search,
-              onSubmitted: (v) =>
-                  onQueryChanged(query.copyWith(search: v, page: 0)),
+              hint: widget.searchHint,
+              initial: widget.query.search,
+              onSubmitted: (v) => widget
+                  .onQueryChanged(widget.query.copyWith(search: v, page: 0)),
             ),
           ),
-          const SizedBox(width: ConsoleDensity.md),
-          for (final f in filters) ...[
+          if (widget.showSearch) const SizedBox(width: ConsoleDensity.md),
+          for (final f in widget.filters) ...[
             f,
             const SizedBox(width: ConsoleDensity.sm),
           ],
-          const Spacer(),
-          if (trailing != null) ...[
-            trailing!,
+          if (widget.onResetFilters != null)
+            TextButton.icon(
+                onPressed: widget.onResetFilters,
+                icon: const Icon(Icons.filter_alt_off_outlined, size: 17),
+                label: const Text('Filtreleri sıfırla')),
+          if (widget.trailing != null) ...[
+            widget.trailing!,
             const SizedBox(width: ConsoleDensity.sm),
           ],
-          if (onExport != null)
+          if (widget.onExport != null)
             OutlinedButton.icon(
-              onPressed: onExport,
-              icon: const Icon(Icons.download_rounded, size: 17),
-              label: const Text('CSV'),
+              onPressed: _exporting ? null : _export,
+              icon: _exporting
+                  ? const SizedBox(
+                      width: 17,
+                      height: 17,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.download_rounded, size: 17),
+              label: Text(_exporting ? 'Hazırlanıyor…' : 'CSV'),
             ),
         ],
       ),
@@ -607,6 +659,14 @@ class _SearchFieldState extends State<_SearchField> {
       TextEditingController(text: widget.initial);
 
   @override
+  void didUpdateWidget(covariant _SearchField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initial != widget.initial && _c.text != widget.initial) {
+      _c.text = widget.initial;
+    }
+  }
+
+  @override
   void dispose() {
     _c.dispose();
     super.dispose();
@@ -616,19 +676,22 @@ class _SearchFieldState extends State<_SearchField> {
   Widget build(BuildContext context) {
     return TextField(
       controller: _c,
+      onChanged: (_) => setState(() {}),
       // Her tuşta sunucuya gitmiyoruz; enter'a basınca arıyor. Yoğun tabloda
       // her harf için sorgu atmak hem sunucuyu hem kullanıcıyı yorar.
       onSubmitted: widget.onSubmitted,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
+        labelText: widget.hint,
         hintText: widget.hint,
         prefixIcon: const Icon(Icons.search_rounded, size: 18),
         suffixIcon: _c.text.isEmpty
             ? null
             : IconButton(
+                tooltip: 'Aramayı temizle',
                 icon: const Icon(Icons.close_rounded, size: 16),
                 onPressed: () {
-                  _c.clear();
+                  setState(_c.clear);
                   widget.onSubmitted('');
                 },
               ),

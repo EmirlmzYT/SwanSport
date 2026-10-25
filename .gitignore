@@ -38,6 +38,9 @@ Thumbs.db
 
 # Wrangler yerel onbellegi
 .wrangler/
+node_modules/
+.venv/
+__pycache__/
 
 # Serena yerel proje verisi (yapilandirma paylasilir, onbellek paylasilmaz)
 .serena/cache/

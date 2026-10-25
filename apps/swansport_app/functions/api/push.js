@@ -205,6 +205,13 @@ export function fcmMessage(sub, job) {
     },
   };
 }
+export function classifyFcmResult(status, payload) {
+  const details = payload?.error?.details;
+  const gone = status === 404 && Array.isArray(details) &&
+    details.some(detail => detail?.errorCode === 'UNREGISTERED');
+  return {gone, retryable: !gone && [429, 500, 503].includes(status)};
+}
+
 async function sendFcm(token, projectId, sub, job) {
   const res = await fetch(
     `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`,
@@ -219,8 +226,9 @@ async function sendFcm(token, projectId, sub, job) {
       }),
     },
   );
-  // 404: token artık geçerli değil (uygulama silinmiş).
-  return { endpoint: sub.endpoint, status: res.status, gone: res.status === 404 };
+  const payload = await res.json().catch(() => null);
+  return {endpoint: sub.endpoint, status: res.status,
+    ...classifyFcmResult(res.status, payload)};
 }
 
 // ------------------------------------------------------------------ handler
@@ -291,7 +299,9 @@ export async function onRequestPost({ request, env }) {
         body,
       });
       // 404/410: abonelik ölmüş — istemci bir sonraki açılışta yenisini yazar.
-      return { endpoint: s.endpoint, status: res.status, gone: res.status === 404 || res.status === 410 };
+      return {endpoint: s.endpoint, status: res.status,
+        gone: res.status === 404 || res.status === 410,
+        retryable: [429, 500, 503].includes(res.status)};
     } catch (e) {
       return { endpoint: s.endpoint, status: 0, error: String(e) };
     }

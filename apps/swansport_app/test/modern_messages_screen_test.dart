@@ -68,7 +68,8 @@ void main() {
           isSupabaseEnabledProvider.overrideWithValue(false),
           currentProfileProvider.overrideWith((_) async => null),
           conversationsProvider.overrideWith((_) async => dms ?? sampleDms),
-          communityListProvider.overrideWith((_) async => groups ?? sampleGroups),
+          communityListProvider
+              .overrideWith((_) async => groups ?? sampleGroups),
           ...overrides,
         ],
         child: MaterialApp(
@@ -80,7 +81,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Modern mesajlar arayüzü başlık, aksiyonlar, arama ve filtre jetonlarını gösterir', (tester) async {
+  testWidgets(
+      'Modern mesajlar arayüzü başlık, aksiyonlar, arama ve filtre jetonlarını gösterir',
+      (tester) async {
     await render(tester);
 
     expect(find.text('Mesajlar'), findsOneWidget);
@@ -90,9 +93,8 @@ void main() {
     expect(find.text('Kişi, grup veya kulüp ara...'), findsOneWidget);
 
     expect(find.text('Tümü'), findsOneWidget);
+    expect(find.text('Kişiler'), findsOneWidget);
     expect(find.text('Gruplar'), findsOneWidget);
-    expect(find.text('Kulüpler'), findsOneWidget);
-    expect(find.text('Antrenörler'), findsOneWidget);
 
     // Gerçek konuşmalar ve gruplar listelenir
     expect(find.text('Başantrenör Ali'), findsOneWidget);
@@ -104,36 +106,27 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
-  testWidgets('Kategori filtreleri gerçek grupları ve diyalogları doğru ayırır', (tester) async {
+  testWidgets('Kategori filtreleri gerçek grupları ve diyalogları doğru ayırır',
+      (tester) async {
     await render(tester);
 
-    // Gruplar filtresine tıkla
-    await tester.tap(find.text('Gruplar'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Yüzme Takımı Grubu'), findsOneWidget);
-    expect(find.text('Başantrenör Ali'), findsNothing);
-    expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsNothing);
-
-    // Kulüpler/Federasyon filtresine tıkla
-    await tester.tap(find.text('Kulüpler'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsOneWidget);
-    expect(find.text('Yüzme Takımı Grubu'), findsNothing);
-    expect(find.text('Başantrenör Ali'), findsNothing);
-
-    // Antrenörler/Diyalog filtresine tıkla
-    await tester.ensureVisible(find.text('Antrenörler'));
-    await tester.tap(find.text('Antrenörler'));
+    await tester.tap(find.text('Kişiler'));
     await tester.pumpAndSettle();
 
     expect(find.text('Başantrenör Ali'), findsOneWidget);
-    expect(find.text('Can Yılmaz'), findsOneWidget);
     expect(find.text('Yüzme Takımı Grubu'), findsNothing);
+    expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsNothing);
+
+    await tester.tap(find.text('Gruplar'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsOneWidget);
+    expect(find.text('Yüzme Takımı Grubu'), findsOneWidget);
+    expect(find.text('Başantrenör Ali'), findsNothing);
   });
 
-  testWidgets('Arama kutusu anlık olarak gerçek sohbetleri filtreler', (tester) async {
+  testWidgets('Arama kutusu anlık olarak gerçek sohbetleri filtreler',
+      (tester) async {
     await render(tester);
 
     await tester.enterText(find.byType(TextField), 'Ali');
