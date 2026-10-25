@@ -99,7 +99,7 @@ async function main() {
   -- A fresh disposable DB needs its signature; it can never seed or grant roles.
   do $compat$begin if to_regprocedure('public.seed_demo_data(text)') is null then
    execute $ddl$create function public.seed_demo_data(text) returns void language plpgsql as
-    $legacy$begin raise exception 'Retired demo seed is unavailable';end$legacy$$ddl$;
+    $legacy$begin raise exception 'Retired demo seed is unavailable';end;$legacy$$ddl$;
   end if;end$compat$;
   revoke all on function public.seed_demo_data(text) from public,anon,authenticated;`);
  for(const name of migrationNames(readdirSync(resolve(root,'supabase/migrations')))) {
