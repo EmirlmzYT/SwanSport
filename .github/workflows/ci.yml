@@ -21,6 +21,27 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  phase2-acceptance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Disposable local Supabase and real Auth fixtures
+        run: node tools/start_local_test_center.mjs --backend-only
+      - name: Real role, RLS and multi-session acceptance
+        run: node tools/run_phase2_acceptance.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase2-acceptance-${{ github.run_id }}
+          path: build/phase2-acceptance.json
+          if-no-files-found: warn
+      - name: Stop disposable backend
+        if: always()
+        run: npx --yes supabase@2.121.0 stop --workdir tools/local-test-center
   validate:
     runs-on: ubuntu-latest
     timeout-minutes: 30

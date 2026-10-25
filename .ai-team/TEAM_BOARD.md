@@ -1,8 +1,10 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-25 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `complete`
+Aktif Writer: Codex
+Durum: `active`
+
+2026-10-25 Aşama 2: Kullanıcı günlük akış kabulünü ve GitHub'da indirilebilir APK/IPA istedi. Ana Sayfa korunur. Yerelde Docker/telefon yok; mevcut yerel Supabase kurucusuna headless CI yolu ve gerçek GoTrue/PostgREST/RLS sentetik kabulü ekleniyor. Gerçek fiziksel cihaz kabulü uydurulmaz. GitHub APK signing/Firebase yapılandırma adları mevcut; değerler okunmadı/raporlanmadı. Paketler mağaza/TestFlight yerine GitHub test yayını olarak hazırlanır.
 
 2026-10-25: Kullanıcı analizdeki ilk güvenilirlik paketini yetkilendirdi. Hesap silme, CI/test kurulumu, sürüm matrisi, günlük akış kabulü ve push teslimi ele alınıyor. Ana Sayfa görünümü ve sosyal spor ağı odağı korunacak. Başlangıçtaki kullanıcı değişiklikleri korunur; canlı SQL/deploy yapılmaz. Başlangıç kanıtı: konsol 107 geçer; mobil 617 geçer/1 tasarım sözleşmesi hatası; JS genel revizyon 3/5. Plan: docs/superpowers/plans/2026-10-25-reliability-foundation.md.
 

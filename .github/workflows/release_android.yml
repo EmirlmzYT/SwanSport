@@ -36,6 +36,7 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+          flutter-version: '3.47.7'
           cache: true
       - name: Bootstrap workspace
         run: |
@@ -44,7 +45,7 @@ jobs:
       - name: Read and validate version
         id: version
         run: |
-          VERSION="$(sed -n 's/^version: //p' apps/swansport_app/pubspec.yaml)"
+          VERSION="$(sed -n 's/^version: //p' apps/swansport_app/pubspec.yaml | tr -d '\r')"
           test -n "$VERSION"
           if [[ "${GITHUB_REF_TYPE}" == "tag" && "${GITHUB_REF_NAME}" != "v${VERSION}" ]]; then
             echo "Tag v${VERSION} bekleniyordu; gelen etiket: ${GITHUB_REF_NAME}" >&2
