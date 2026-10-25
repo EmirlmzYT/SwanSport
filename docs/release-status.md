@@ -10,12 +10,12 @@ fiziksel cihazda kabul edildiğini kendiliğinden iddia etmez.
 
 | Katman | Bilinen kaynak/kanıt | Güncel kabul |
 |---|---|---|
-| Mobil kaynak | pubspec sürümü 1.0.5+62; paket kaynak commit'i `be679154` | CI kabulü `40212637923` başarılı |
+| Mobil kaynak | pubspec sürümü 1.0.5+62; paket kaynak commit'i `217e84bc` | Android `40214737143`, iOS `40214771539` başarılı |
 | Konsol kaynak | Aynı workspace; hesap/kulüp izolasyon testleri | Yerel test/build sonucu güvenilirlik raporunda |
 | SQL kaynak | 139 migration; son dosya mali dönem tetikleyicisi düzeltmesi | Parse ve temiz PostgreSQL zinciri geçti; canlı karşılaştırılmadı |
 | Üretim SQL | Son açık tarihsel kanıt: 0107, 2026-10-10 | Güncel durum **doğrulanmadı**; eski kayıt güncel ledger değildir |
 | Üretim web/konsol | Son tarihsel dağıtım kanıtı docs/production-rollout-0107.md | Güncel uzak JS/hash **doğrulanmadı** |
-| Android/iOS kurulu paket | Yerel kaynak sürümü kurulu sürüm kanıtı değildir | Güncel paket/cihaz **doğrulanmadı** |
+| Android/iOS paket | GitHub prerelease `preview-1.0.5-62` | APK/IPA üretim ve paket bütünlüğü geçti; fiziksel cihaz **doğrulanmadı** |
 | İzole gerçek Auth/roller | Beş GoTrue hesabı + PostgREST/RLS, CI `40212637923` | Altı Aşama 2 senaryosu **geçti**; harici gerçek kulüp UAT'si bekliyor |
 | Fiziksel push teslimi | Sağlayıcı kabulü telefon teslimi değildir | Android/iOS cihaz kabulü **bekliyor** |
 
@@ -54,3 +54,13 @@ Kuyruktaki tercihler, maç takibi, DM engeli ve resmi sonuç veli bağı tekrar
 kontrol edilir; taşıyıcıya zaten verilmiş bir push
 sonraki hesap değişiminde geri çağrılamaz. Terminal ledger kayıtları 30 gün
 sonra temizlenir; gövde/token/anahtar ledger'a yazılmaz.
+
+## 1.0.5+62 test paketleri
+
+GitHub prerelease: `preview-1.0.5-62`. İmzalı APK SHA-256
+`8cca4d8385d7331908139410a13404b67556d20c9f8746ed3cc82fbf57cc27ce`;
+imzasız IPA SHA-256
+`82d23938a313439a249d61b9c8bd8762e83f9b83c854a7a29da72fb5bcfe8776`.
+IPA `com.swansport.app`, sürüm `1.0.5`, build `62`; Mach-O ve ZIP sağlam,
+GoogleService yer tutucusu ve dağıtım imzası yok. IPA yalnız sideload testidir;
+TestFlight/App Store veya çalışan APNs kanıtı değildir.

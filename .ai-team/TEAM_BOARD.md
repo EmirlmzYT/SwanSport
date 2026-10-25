@@ -1,8 +1,19 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-25 Europe/Istanbul
-Aktif Writer: Codex
-Durum: `active`
+Aktif Writer: —
+Durum: `free`
+
+2026-10-25 Aşama 2 sonuç: Temiz 139 migration zinciri, beş gerçek GoTrue
+oturumu ve PostgREST/RLS ile altı kabul akışı GitHub Actions `40212637923`te
+geçti. Kabul sırasında `block_closed_period` polimorfik trigger alan hatası
+bulundu; yeni timestamp migration ve PGlite regresyonuyla düzeltildi. Mobil
+CI'daki AppLinks eklentisiz ortam sızıntısı yalnız kesin kanal hatasını ayıran
+test ve uygulama observer korumasıyla kapatıldı. Son kaynak `217e84bc`; tam
+Android `40214737143` ve iOS `40214771539` koşuları başarılı. İmzalı APK ve
+imzasız preview IPA, `preview-1.0.5-62` GitHub prerelease'inde yayınlandı.
+Paket hashleri `docs/release-status.md` içinde. Ana Sayfa görünümü değişmedi;
+canlı SQL, TestFlight/App Store ve fiziksel cihaz/push kabulü yapılmadı.
 
 2026-10-25 Aşama 2: Kullanıcı günlük akış kabulünü ve GitHub'da indirilebilir APK/IPA istedi. Ana Sayfa korunur. Yerelde Docker/telefon yok; mevcut yerel Supabase kurucusuna headless CI yolu ve gerçek GoTrue/PostgREST/RLS sentetik kabulü ekleniyor. Gerçek fiziksel cihaz kabulü uydurulmaz. GitHub APK signing/Firebase yapılandırma adları mevcut; değerler okunmadı/raporlanmadı. Paketler mağaza/TestFlight yerine GitHub test yayını olarak hazırlanır.
 
