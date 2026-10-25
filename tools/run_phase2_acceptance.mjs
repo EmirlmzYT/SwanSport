@@ -26,7 +26,7 @@ async function main(){
  async function api(path,{token,body,method=body===undefined?'GET':'POST',allowError=false}={}){
   const response=await fetch(backend+path,{method,headers:{apikey:anon,Authorization:'Bearer '+(token||anon),'Content-Type':'application/json',Prefer:'return=representation'},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(20000)});
   const data=await response.json().catch(()=>null);
-  if(!response.ok&&!allowError)throw Error('Local API '+path.split('?')[0]+' HTTP '+response.status+' '+(data?.code||data?.error_code||''));
+  if(!response.ok&&!allowError)throw Error('Local API '+path.split('?')[0]+' HTTP '+response.status+' '+(data?.code||data?.error_code||'')+' '+(data?.message||''));
   return {ok:response.ok,data,status:response.status};
  }
  const login=async slug=>(await api('/auth/v1/token?grant_type=password',{body:{email:slug+'@test.swansport.invalid',password:'test1234'}})).data;
@@ -39,8 +39,13 @@ async function main(){
    assert.equal(rows.length,session===coach?1:0);
   }
  });
- await check('active member resolves to the existing athlete and team',async()=>{
-  const result=await rpc(manager,'create_athlete_from_member',{p_club:club,p_profile:student.user.id});assert.equal(result.data,athlete);
+ await check('linked athlete is not duplicated and remains on the assigned team',async()=>{
+  await assert.rejects(
+   rpc(manager,'create_athlete_from_member',{p_club:club,p_profile:student.user.id}),
+   /zaten bir sporcu kaydı var/,
+  );
+  const linked=(await api('/rest/v1/athletes?select=id&club_id=eq.'+club+'&profile_id=eq.'+student.user.id,{token:coach.access_token})).data;
+  assert.deepEqual(linked,[{id:athlete}]);
   const rows=(await api('/rest/v1/team_memberships?select=athlete_id&athlete_id=eq.'+athlete,{token:coach.access_token})).data;
   assert.equal(rows.length,1);
  });
