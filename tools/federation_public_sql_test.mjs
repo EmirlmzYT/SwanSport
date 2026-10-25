@@ -50,7 +50,7 @@ test('B: publication requires official program and scoped active duty, without a
  for(const person of [admin,coach]){await actor(db,person);await db.exec('set role authenticated');
   await assert.rejects(call(db,'federation_publish_program',[org,true]),/görev/);await db.exec('reset role');}
  await official(db);
- for(const change of ["duty='result_publisher'","ends_on=current_date-1,starts_on=current_date-10","starts_on=current_date+1","revoked_at=now()"]){
+ for(const change of ["duty='result_publisher'","ends_on=(now() at time zone 'Europe/Istanbul')::date-1,starts_on=(now() at time zone 'Europe/Istanbul')::date-10","starts_on=(now() at time zone 'Europe/Istanbul')::date+1","revoked_at=now()"]){
   await db.exec('begin');await db.exec(`update federation_appointments set ${change} where profile_id='${officer}'`);
   await assert.rejects(call(db,'federation_publish_program',[org,true]),/görev/);await db.exec('rollback');}
  for(const [table,change,key] of [['federation_offices',"city_code='06'",office],['federations',"sport_code='yuzme'",(await db.query('select federation_id from federation_offices where id=$1',[office])).rows[0].federation_id]]){
@@ -143,7 +143,7 @@ test('B: unknown birth is private, registered adult is named, result entries nev
 test('B: published history survives ended appointments and club deletion with no private snapshots',async()=>{
  const {db,org,match}=await phaseB();try{
  await publish(db,org);await result(db,match,{type:'rank',entries:[{athlete_id:child,value:1,placement:1}]});
- await db.query('update federation_appointments set ends_on=current_date-1,starts_on=current_date-10 where profile_id=$1',[officer]);
+ await db.query("update federation_appointments set ends_on=(now() at time zone 'Europe/Istanbul')::date-1,starts_on=(now() at time zone 'Europe/Istanbul')::date-10 where profile_id=$1",[officer]);
  assert.equal((await guestResult(db,match))[0].protocol.entries[0].name,'sporcu');
  await db.exec('reset role');await actor(db,admin);await db.query('delete from clubs where id=$1',[club]);
  const rows=await guestResult(db,match);assert.equal(rows[0].protocol.entries[0].name,'sporcu');noIdentity(rows);

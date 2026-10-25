@@ -92,7 +92,7 @@ test('platform admin and club admin cannot publish results or license expiry',as
 test('wrong sport, province, duty, expired, future and revoked appointments all fail closed',async()=>{
  const {db,match,office}=await setup();try{
  const initial=(await db.query('select count(*) n from federation_audit')).rows[0].n;
- for(const mutation of ["duty='license_registrar'","ends_on=current_date-1,starts_on=current_date-10","starts_on=current_date+1","revoked_at=now()"]){
+ for(const mutation of ["duty='license_registrar'","ends_on=(now() at time zone 'Europe/Istanbul')::date-1,starts_on=(now() at time zone 'Europe/Istanbul')::date-10","starts_on=(now() at time zone 'Europe/Istanbul')::date+1","revoked_at=now()"]){
  await db.exec('begin');await db.exec(`update federation_appointments set ${mutation} where profile_id='${officer}'`);
  await assert.rejects(call(db,'federation_publish_result',[match,{type:'score',home:1,away:0},'result',0]),/görev/);await db.exec('rollback');}
  for(const mutation of ["update federation_offices set city_code='06'","update federations set sport_code='yuzme'"]){
