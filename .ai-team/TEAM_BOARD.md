@@ -4,6 +4,23 @@ Son güncelleme: 2026-10-25 Europe/Istanbul
 Aktif Writer: —
 Durum: `free`
 
+2026-10-25 Aşama 3 başlangıç: Üretim verisine dokunmadan ayrı Supabase staging
+hedefi, yanlış üretim hedefini reddeden CI kapısı ve Android/iOS fiziksel cihaz
+kabul protokolü hazırlanıyor. Mevcut Ana Sayfa görünümü değiştirilmeyecek.
+Staging hesabı/sırları, Apple imzası ve fiziksel cihaz gerektiren son adımlar
+kullanıcı kontrol listesi olarak ayrılacak; canlı SQL ve mağaza yayını yok.
+
+2026-10-25 Aşama 3 hazırlık sonucu: Kaynak ve iOS/konsol workflow canlı
+Supabase fallback'leri kaldırıldı; ayar yoksa fixture modu korunuyor. GitHub'da
+`staging` environment oluşturuldu. Elle çalışan workflow canlı Supabase ref'ini
+ve production Firebase projesini reddediyor, migration için zorunlu dry-run ve
+ayrı apply seçimi sunuyor; imzalı Android staging APK ile push kapalı unsigned
+iOS preview üretimi hazır. Gizlilik güvenli 22 maddelik fiziksel cihaz rapor
+kapısı eklendi. 16 Python sözleşme testi, core 27/27 ve tüm workflow actionlint
+kontrolü geçti. Staging sırları eklenmedi, migration çalıştırılmadı, mobil paket
+üretilmedi; fiziksel Android/iPhone ve imzalı iOS/APNs kabulü kullanıcı girdisi
+bekliyor. Ana Sayfa görünümü değişmedi.
+
 2026-10-25 Aşama 2 sonuç: Temiz 139 migration zinciri, beş gerçek GoTrue
 oturumu ve PostgREST/RLS ile altı kabul akışı GitHub Actions `40212637923`te
 geçti. Kabul sırasında `block_closed_period` polimorfik trigger alan hatası

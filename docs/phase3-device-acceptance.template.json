@@ -1,0 +1,44 @@
+{
+  "app_version": "1.0.5+62",
+  "backend_environment": "staging",
+  "tester_alias": "tester-1",
+  "observed_at": "2026-10-25T12:00:00+03:00",
+  "devices": [
+    {
+      "platform": "android",
+      "device_alias": "android-1",
+      "os_version": "android-version",
+      "checks": {
+        "install_upgrade": {"status": "pending", "evidence": "artifact-id"},
+        "cold_start": {"status": "pending", "evidence": "artifact-id"},
+        "auth_role_switch": {"status": "pending", "evidence": "artifact-id"},
+        "navigation_deep_links": {"status": "pending", "evidence": "artifact-id"},
+        "offline_recovery": {"status": "pending", "evidence": "artifact-id"},
+        "direct_message_badges": {"status": "pending", "evidence": "artifact-id"},
+        "accountant_privacy": {"status": "pending", "evidence": "artifact-id"},
+        "guardian_child_isolation": {"status": "pending", "evidence": "artifact-id"},
+        "push_foreground": {"status": "pending", "evidence": "artifact-id"},
+        "push_background": {"status": "pending", "evidence": "artifact-id"},
+        "push_terminated": {"status": "pending", "evidence": "artifact-id"}
+      }
+    },
+    {
+      "platform": "ios",
+      "device_alias": "ios-1",
+      "os_version": "ios-version",
+      "checks": {
+        "install_upgrade": {"status": "pending", "evidence": "artifact-id"},
+        "cold_start": {"status": "pending", "evidence": "artifact-id"},
+        "auth_role_switch": {"status": "pending", "evidence": "artifact-id"},
+        "navigation_deep_links": {"status": "pending", "evidence": "artifact-id"},
+        "offline_recovery": {"status": "pending", "evidence": "artifact-id"},
+        "direct_message_badges": {"status": "pending", "evidence": "artifact-id"},
+        "accountant_privacy": {"status": "pending", "evidence": "artifact-id"},
+        "guardian_child_isolation": {"status": "pending", "evidence": "artifact-id"},
+        "push_foreground": {"status": "blocked", "evidence": "unsigned-no-apns"},
+        "push_background": {"status": "blocked", "evidence": "unsigned-no-apns"},
+        "push_terminated": {"status": "blocked", "evidence": "unsigned-no-apns"}
+      }
+    }
+  ]
+}
