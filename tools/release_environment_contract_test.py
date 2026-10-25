@@ -27,6 +27,13 @@ class ReleaseEnvironmentContractTest(unittest.TestCase):
         self.assertIn('STAGING_GOOGLE_SERVICES_JSON_BASE64', workflow)
         self.assertIn('validate_android_staging_firebase.py', workflow)
         self.assertIn('IOS_FIREBASE_ENABLED=false', workflow)
+        placeholder = workflow.index('python tools/configure_ios_firebase.py')
+        ios_build = workflow.index('flutter build ios')
+        self.assertLess(placeholder, ios_build)
+        self.assertNotIn(
+            'rm -f apps/swansport_app/ios/Runner/GoogleService-Info.plist',
+            workflow[:ios_build],
+        )
 
 
 if __name__ == '__main__':

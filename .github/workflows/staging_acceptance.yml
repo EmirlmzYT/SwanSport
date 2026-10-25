@@ -138,7 +138,7 @@ jobs:
           melos bootstrap
       - name: Configure unsigned build
         run: |
-          rm -f apps/swansport_app/ios/Runner/GoogleService-Info.plist
+          python tools/configure_ios_firebase.py
           printf '%s\n' 'DEVELOPMENT_TEAM = 0000000000' 'CODE_SIGN_IDENTITY =' \
             'CODE_SIGNING_REQUIRED = NO' 'CODE_SIGNING_ALLOWED = NO' \
             'CODE_SIGN_ENTITLEMENTS =' > apps/swansport_app/ios/Flutter/Signing.xcconfig

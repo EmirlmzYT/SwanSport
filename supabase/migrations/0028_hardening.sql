@@ -26,18 +26,28 @@
 -- Bu fonksiyon tamamen kaldırıldı; yönetici atama SQL editöründen yapılır.
 drop function if exists public.seed_make_me_platform_admin(text);
 
--- Demo kurulumu ve temizliği — uygulamadan çağrılmasına gerek yok.
--- clear_demo_data dışarıya açık kalırsa veri kaybı kapısıdır.
-revoke execute on function public.seed_demo_data(text) from public, anon, authenticated;
-revoke execute on function public.clear_demo_data(text) from public, anon, authenticated;
-revoke execute on function public.demo_target_user(text) from public, anon, authenticated;
-
--- Serbest bildirim yazıcısı — dışarıdan çağrılabilir olması sahte
--- bildirim/oltalama kapısıdır. Tetikleyiciler bunu içeriden çağırır.
-revoke execute on function public.push_notification(uuid, text, text, text, uuid, text, uuid) from public, anon, authenticated;
-
--- Zamanlanmış hatırlatma işleri — bunları pg_cron çalıştırır.
--- Dışarıdan tetiklenirse kullanıcılara tekrar tekrar bildirim gider.
-revoke execute on function public.send_fee_reminders() from public, anon, authenticated;
-revoke execute on function public.send_attendance_reminders() from public, anon, authenticated;
-revoke execute on function public.send_document_expiry_reminders() from public, anon, authenticated;
+-- Bazı eski kurulumlarda bakım/demo fonksiyonları SQL Editor seed'inden gelir;
+-- temiz kurulumda hiç bulunmaz. REVOKE eksik imzada 42883 verdiği için yalnız
+-- gerçekten var olan imzaları kapat. Retired yardımcıları yeniden oluşturma.
+do $$
+declare
+  signature text;
+begin
+  foreach signature in array array[
+    'public.seed_demo_data(text)',
+    'public.clear_demo_data(text)',
+    'public.demo_target_user(text)',
+    'public.push_notification(uuid,text,text,text,uuid,text,uuid)',
+    'public.send_fee_reminders()',
+    'public.send_attendance_reminders()',
+    'public.send_document_expiry_reminders()'
+  ] loop
+    if to_regprocedure(signature) is not null then
+      execute format(
+        'revoke execute on function %s from public, anon, authenticated',
+        signature
+      );
+    end if;
+  end loop;
+end
+$$;
