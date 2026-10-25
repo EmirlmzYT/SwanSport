@@ -97,11 +97,15 @@ async function main() {
   revoke all on public._local_test_center_migrations from public,anon,authenticated;
   -- 0028 revokes a retired helper originally installed outside migrations.
   -- A fresh disposable DB needs its signature; it can never seed or grant roles.
-  do $compat$begin if to_regprocedure('public.seed_demo_data(text)') is null then
-   execute $ddl$create function public.seed_demo_data(text) returns void language plpgsql as
-    $legacy$begin raise exception 'Retired demo seed is unavailable';end;$legacy$$ddl$;
-  end if;end$compat$;
-  revoke all on function public.seed_demo_data(text) from public,anon,authenticated;`);
+  do $compat$declare retired text;begin
+   foreach retired in array array['seed_demo_data','clear_demo_data','demo_target_user'] loop
+    if to_regprocedure(format('public.%I(text)',retired)) is null then
+     execute format($ddl$create function public.%I(text) returns void language plpgsql as
+      $legacy$begin raise exception 'Retired demo helper is unavailable';end;$legacy$$ddl$,retired);
+    end if;
+    execute format('revoke all on function public.%I(text) from public,anon,authenticated',retired);
+   end loop;
+  end$compat$;`);
  for(const name of migrationNames(readdirSync(resolve(root,'supabase/migrations')))) {
   const source=readFileSync(resolve(root,'supabase/migrations',name),'utf8');
   const hash=createHash('sha256').update(source).digest('hex');
