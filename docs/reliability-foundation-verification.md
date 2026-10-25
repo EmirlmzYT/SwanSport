@@ -94,3 +94,9 @@ bu dar 0132 regresyonunun kanıtı olarak sunulmaz.
 
 Yerel Flutter günlükleri `build/reliability-*` ve uygulama build dizinlerinde,
 Node günlükleri `/tmp/swansport-reliability-*` altındadır; kişisel veri içermez.
+
+Ürün kaynağı `5225943`, GitHub `codex/advanced-chat-header46` dalına kaydedildi
+ve push doğrulandı. Başlangıçtaki test edilmiş mobil/konsol revizyonları aynı
+kaynak kaydında korunur; Ana Sayfa/alt gezinme görünüm kaynakları değişmez.
+GitHub Actions'ta bu yeni CI tanımının gerçek uzak koşusu bu oturumda kabul
+edilmiş sayılmaz; yukarıdaki sonuçlar yerel doğrulamadır.
