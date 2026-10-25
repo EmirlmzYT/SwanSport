@@ -1,8 +1,8 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-25 Europe/Istanbul
-Aktif Writer: Codex `/root`
-Durum: `busy` — Aşama 3 staging clean-install ve iOS preview düzeltmesi
+Aktif Writer: —
+Durum: `free`
 
 2026-10-26 Aşama 3 staging kabulü: Ayrı staging hedefi ve migration dry-run
 başarılı. İmzalı Android staging APK üretildi. Gerçek apply, temiz zincirde
@@ -11,6 +11,17 @@ başarılı. İmzalı Android staging APK üretildi. Gerçek apply, temiz zincir
 iOS preview Xcode'un build girdisi olarak beklediği disabled Firebase plist'i
 derlemeden önce silindiği için durdu. Her iki kök neden dar regresyonlarla
 kırmızı doğrulandı; ürün arayüzü/Ana Sayfa kapsam dışı.
+
+2026-10-26 Aşama 3 staging sonucu: 0028 temiz kurulumda eksik retired helper
+imzalarını yeniden yaratmadan koşullu kapatıyor; local test-center uyumluluk
+stub'ı kaldırıldı. iOS preview build sırasında disabled plist üretip son IPA'dan
+çıkarıyor. Staging migration koşusu `40235896424` başarılı; takip dry-run'ı
+`40237030025` "Remote database is up to date" verdi. Android staging APK ve
+unsigned iOS staging IPA `staging-preview-1.0.5-62` prerelease'inde yayımlandı;
+paketlerde staging ref var, production ref yok, arşiv CRC temiz. Gece yarısı
+UTC/İstanbul ayrışan üç federasyon testi ürün saatiyle hizalandı; odaklı 67/67
+ve son tam CI `40237643738` başarılı. Fiziksel cihaz ve iOS APNs kabulü açık;
+Ana Sayfa görünümü değişmedi.
 
 2026-10-25 Aşama 3 başlangıç: Üretim verisine dokunmadan ayrı Supabase staging
 hedefi, yanlış üretim hedefini reddeden CI kapısı ve Android/iOS fiziksel cihaz

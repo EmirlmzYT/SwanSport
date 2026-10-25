@@ -52,3 +52,26 @@ erişimi dışarıdan sağlanmadan cihaz sonucu üretilemez.
 
 Kaynak commit'i üzerindeki tam GitHub CI koşusu `40223132867` başarılıdır;
 staging sırları olmadığı için staging workflow'u bilerek çalıştırılmamıştır.
+
+## 2026-10-26 uygulama sonucu
+
+- Ayrı Supabase staging projesi `hsfobmghsbtegiiqphpc` doğrulandı ve migration
+  zinciri `40235896424` koşusunda başarıyla uygulandı.
+- Dağıtım sonrası `40237030025` dry-run'ı `Remote database is up to date`
+  sonucunu verdi.
+- İlk temiz kurulumda 0028'in artık bulunmayan demo yardımcılarına koşulsuz
+  `REVOKE` vermesi yakalandı. Eksik yardımcıları yeniden oluşturmadan koşullu
+  kapatan regresyon eklendi.
+- Android staging APK ve unsigned iOS staging IPA şu prerelease'tedir:
+  <https://github.com/EmirlmzYT/SwanSport/releases/tag/staging-preview-1.0.5-62>
+- APK SHA-256:
+  `51ed1bc4c8ad09fdbafa4abb8c6a8bdce1984a6ecbb8942caaf58d448a66129a`
+- IPA SHA-256:
+  `5166526a8cf38a290d904ce7e7f51c3c53f184ab8e08a856994423cd37510a32`
+- Her iki paket içinde staging URL'si bulundu, production Supabase ref'i
+  bulunmadı. IPA `1.0.5+62`, CRC temiz ve Firebase plist içermiyor.
+- Son tam CI `40237643738` başarılıdır. Gece yarısı UTC/İstanbul ayrışmasıyla
+  kararsızlaşan federasyon tarih testleri ürünün İstanbul saatiyle hizalandı.
+
+Fiziksel Android/iPhone kabulü yapılmadı. iOS IPA imzasızdır ve APNs/push kapalı
+olduğu için iOS push kabulünün yerine geçmez.
