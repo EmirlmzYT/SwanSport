@@ -10,13 +10,13 @@ fiziksel cihazda kabul edildiğini kendiliğinden iddia etmez.
 
 | Katman | Bilinen kaynak/kanıt | Güncel kabul |
 |---|---|---|
-| Mobil kaynak | pubspec sürümü 1.0.4+61; kesin commit/hash JSON'da | Yerel test sonucu güvenilirlik raporunda |
+| Mobil kaynak | pubspec sürümü 1.0.5+62; paket kaynak commit'i `be679154` | CI kabulü `40212637923` başarılı |
 | Konsol kaynak | Aynı workspace; hesap/kulüp izolasyon testleri | Yerel test/build sonucu güvenilirlik raporunda |
-| SQL kaynak | 0001–0134, yorum yanıtı timestamp migration'ı ve yeni güvenilirlik migration'ları | Parse/fixture sonucu raporda; canlı karşılaştırılmadı |
+| SQL kaynak | 139 migration; son dosya mali dönem tetikleyicisi düzeltmesi | Parse ve temiz PostgreSQL zinciri geçti; canlı karşılaştırılmadı |
 | Üretim SQL | Son açık tarihsel kanıt: 0107, 2026-10-10 | Güncel durum **doğrulanmadı**; eski kayıt güncel ledger değildir |
 | Üretim web/konsol | Son tarihsel dağıtım kanıtı docs/production-rollout-0107.md | Güncel uzak JS/hash **doğrulanmadı** |
 | Android/iOS kurulu paket | Yerel kaynak sürümü kurulu sürüm kanıtı değildir | Güncel paket/cihaz **doğrulanmadı** |
-| Gerçek kulüp/roller | docs/reliability-acceptance.md senaryoları | Gerçek hesap kabulü **bekliyor** |
+| İzole gerçek Auth/roller | Beş GoTrue hesabı + PostgREST/RLS, CI `40212637923` | Altı Aşama 2 senaryosu **geçti**; harici gerçek kulüp UAT'si bekliyor |
 | Fiziksel push teslimi | Sağlayıcı kabulü telefon teslimi değildir | Android/iOS cihaz kabulü **bekliyor** |
 
 ## Yayın kaydı doldurma sözleşmesi

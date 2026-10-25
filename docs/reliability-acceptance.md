@@ -5,15 +5,20 @@ uygulama build'i, ortam ve kişisel veri içermeyen sonuç/kanıt eklenir. Sente
 fixture veya widget override sonucu gerçek hesap kabulünün yerine yazılmaz.
 Ana Sayfa düzeni bu çalışma kapsamında değiştirilmez.
 
+2026-10-25'te GitHub Actions `40212637923`, temiz migration zinciri üzerinde
+beş gerçek GoTrue oturumu ve PostgREST/RLS ile altı sentetik Aşama 2 akışını
+geçti. Bu kanıt widget override değildir; yine de fiziksel cihaz ve gerçek kişi
+UAT'sinin yerine geçmez.
+
 | Senaryo | Beklenen sonuç | Otomatik karşılık | Gerçek kabul |
 |---|---|---|---|
-| Üye daveti → sporcu → takım → takvim | Aynı kulüp ve doğru kişi; hesapsız çocuk kadroda kalır | athlete_account_link, access, identity_membership testleri | Bekliyor |
+| Üye daveti → sporcu → takım → takvim | Aynı kulüp ve doğru kişi; hesapsız çocuk kadroda kalır | Gerçek Auth/RLS ile bağlı sporcu, çift kayıt reddi ve takım bağı geçti | Fiziksel UAT bekliyor |
 | Antrenör günlük yoklama, offline kapanış ve tekrar açılış | Yalnız işaretlenen satırlar; kuyruk hesap bazlı; tekrar gönderim tekil | offline_attendance veri/widget/SQL | Bekliyor |
-| İki cihaz aynı yoklamayı değiştirir | Çakışma açıkça gösterilir; son yazan sessizce kazanmaz | offline SQL sürüm senaryoları; gerçek iki bağlantı ayrıca | Bekliyor |
-| Veli iki çocuk/iki kulüp | Her çocuğun doğru takvimi/belgesi; ilişki kaldırılınca erişim kapanır | parent_actions, coach_guardian SQL/veri | Bekliyor |
-| Muhasebeci aidat/defter | Mali kayıt görünür; sporcu adı/sağlık bilgisi dönmez | finance_rpc ve console_today/ledger testleri | Bekliyor |
+| İki cihaz aynı yoklamayı değiştirir | Çakışma açıkça gösterilir; son yazan sessizce kazanmaz | İki bağımsız GoTrue oturumu: 1 uygulama + 1 açık çakışma; retry idempotent geçti | Fiziksel UAT bekliyor |
+| Veli iki çocuk/iki kulüp | Her çocuğun doğru takvimi/belgesi; ilişki kaldırılınca erişim kapanır | Gerçek davet/redeem ve canlı bağ kaldırma sonrası erişim kesilmesi geçti | Fiziksel UAT bekliyor |
+| Muhasebeci aidat/defter | Mali kayıt görünür; sporcu adı/sağlık bilgisi dönmez | Gerçek ledger satırı yalnız `athlete_ref`; ham sporcu adı RLS ile 0 satır geçti | Fiziksel UAT bekliyor |
 | Aynı cihazda A → B hesabı | Liste/tercih/önbellek ve kayıt doğru hesaba geçer | console_account_scope, push_delivery_sql | Bekliyor |
-| DM gönder/oku/engelle | Doğru sıra, mesaj rozeti temizlenir, zil çift saymaz | chat_order, community_chat_order, dm, inbox testleri | Bekliyor |
+| DM gönder/oku/engelle | Doğru sıra, mesaj rozeti temizlenir, zil çift saymaz | Gerçek REST yaz/oku, mesaj bildirimi ayrımı ve engel sonrası ret geçti | Fiziksel UAT bekliyor |
 | Rozet/etkinlik hazırlığı/video onayından sonra hesap sil | Silme tamamlanır; başka kişinin geçmişi kalır; tek yönetici önce devir ister | account_deletion_sql | Bekliyor |
 | Android/iOS ön plan, arka plan, kapalı uygulama push | Tek bildirim; doğru hesap/rota; hassas detay yok | push_ios + match_following fixture; fiziksel teslim ayrıca | Bekliyor |
 | FCM proje hatası, UNREGISTERED ve geçici 503 | Proje hatasında token korunur; gerçek ölü token temizlenir; sınırlı retry | push_delivery + push_delivery_sql | Bekliyor |
@@ -25,8 +30,7 @@ Ana Sayfa düzeni bu çalışma kapsamında değiştirilmez.
 gereklidir; test fixture'ları canlıya taşınmaz. Gerçek GoTrue/PostgREST/RLS
 akışları önce bu ortamda, sonra açıkça yetkilendirilmiş staging kullanıcılarıyla
 denenir. Başkasının canlı hesabı kullanılmaz, gerçek kişilere yapay bildirim
-gönderilmez. Buradaki oturumda Docker ve fiziksel cihaz bulunmadığından bu
-satırlar otomatik olarak doldurulmamıştır.
+gönderilmez. Docker kabulü CI'da tamamlandı; fiziksel cihaz kabulü yapılmadı.
 
 Push staging kabulünde ayrıca net._http_response -> ledger geçişi, cron'un
 dakikada çalışması, preference/feature kapıları ve iki worker'ın SKIP LOCKED
