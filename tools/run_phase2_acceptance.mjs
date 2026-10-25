@@ -61,16 +61,28 @@ async function main(){
  });
  await check('direct messages, read state and bell exclusion use real RLS',async()=>{
   const message=randomUUID();
+  const control=randomUUID();
+  sql(`insert into public.notifications(id,profile_id,kind,title) values('${control}','${student.user.id}','application','LOCAL acceptance control')`);
   await api('/rest/v1/direct_messages',{token:coach.access_token,body:{id:message,sender_id:coach.user.id,recipient_id:student.user.id,body:'LOCAL phase two acceptance'}});
   let rows=(await api('/rest/v1/direct_messages?select=id,read_at&id=eq.'+message,{token:student.access_token})).data;
   assert.equal(rows.length,1);
   await rpc(student,'mark_messages_read',{p_ids:[message]});
   rows=(await api('/rest/v1/direct_messages?select=id,read_at&id=eq.'+message,{token:student.access_token})).data;assert.ok(rows[0].read_at);
-  const inbox=(await rpc(student,'my_notifications',{p_category:'',p_limit:60})).data;assert.ok(inbox.every(n=>n.kind!=='message'));
+  const dmNotices=(await api('/rest/v1/notifications?select=id&kind=eq.message&entity_id=eq.'+message,{token:student.access_token})).data;assert.equal(dmNotices.length,1);
+  const inbox=(await rpc(student,'my_notifications',{p_category:'',p_limit:60})).data;assert.ok(inbox.some(n=>n.id===control));assert.ok(inbox.every(n=>n.kind!=='message'));
   assert.equal((await api('/rest/v1/direct_messages?select=id&id=eq.'+message,{token:outsider.access_token})).data.length,0);
+  await api('/rest/v1/blocks',{token:student.access_token,body:{blocker_id:student.user.id,blocked_id:coach.user.id}});
+  assert.equal((await api('/rest/v1/direct_messages',{token:coach.access_token,body:{id:randomUUID(),sender_id:coach.user.id,recipient_id:student.user.id,body:'LOCAL blocked message'},allowError:true})).ok,false);
  });
  await check('accountant ledger has no athlete name access',async()=>{
+  const payment=randomUUID(),account=randomUUID();
+  sql(`begin;select set_config('request.jwt.claim.sub','${manager.user.id}',true);
+   insert into public.cash_accounts(id,club_id,name,kind) values('${account}','${club}','LOCAL fixture account','cash');
+   insert into public.payments(id,club_id,athlete_id,amount,status,account_id,declared_by,confirmed_by,confirmed_at)
+   values('${payment}','${club}','${athlete}',100,'confirmed','${account}','${student.user.id}','${manager.user.id}',now());commit;`);
   const rows=(await rpc(accountant,'acc_ledger',{p_club:club,p_limit:20,p_offset:0})).data;
+  const row=rows.find(r=>r.entry_id===payment);assert.ok(row,'fixture payment must be visible');
+  assert.equal(row.counterpart,sql(`select public.athlete_ref('${athlete}')`));
   const name=sql(`select first_name||' '||last_name from public.athletes where id='${athlete}'`);
   assert.ok(!JSON.stringify(rows).includes(name));
   assert.equal((await api('/rest/v1/athletes?select=first_name,last_name',{token:accountant.access_token})).data.length,0);
@@ -80,18 +92,26 @@ async function main(){
   await api('/auth/v1/signup',{body:{email,password:'test1234'}});
   const parent=(await api('/auth/v1/token?grant_type=password',{body:{email,password:'test1234'}})).data;
   const p=parent.user.id;assert.match(p,/^[a-f0-9-]{36}$/);
+  const sibling='53570000-0000-4000-8000-000000000022',otherClub='53570000-0000-4000-8000-000000000021';
   // Synthetic approval is restricted to the disposable marker-controlled DB.
   sql(`begin;select set_config('request.jwt.claim.sub','${manager.user.id}',true);
    update public.profiles set is_platform_admin=true where id='${manager.user.id}';
+   insert into public.clubs(id,name,status,sport_code) values('${otherClub}','LOCAL second club','active','futbol');
+   insert into public.club_memberships(club_id,profile_id,role,status) values('${otherClub}','${manager.user.id}','club_admin','active');
+   insert into public.athletes(id,club_id,first_name,last_name,birth_date) values('${sibling}','${otherClub}','LOCAL','Sibling',current_date-interval '20 years');
+   insert into public.events(club_id,title,kind,starts_at) values('${otherClub}','LOCAL sibling training','training',now()+interval '2 hours');
    do $$declare c uuid;begin insert into public.profile_credentials(profile_id,kind) values('${p}','identity') returning id into c;
    insert into public.verification_documents(owner_type,owner_id,doc_type,storage_path,uploaded_by) values('credential',c,'kimlik','${p}/LOCAL-SYNTHETIC-FIXTURE.txt','${p}');
    perform public.review_credential(c,true,'LOCAL SYNTHETIC FIXTURE',null,null,'44444444440',null);end$$;
    update public.profiles set is_platform_admin=false where id='${manager.user.id}';commit;`);
   const code=(await rpc(manager,'create_guardian_invite',{p_athlete:athlete})).data;
   await rpc(parent,'redeem_invite_code',{p_code:code});
-  assert.ok(JSON.stringify((await rpc(parent,'my_parent_actions',{})).data).includes(athlete));
+  const secondCode=(await rpc(manager,'create_guardian_invite',{p_athlete:sibling})).data;
+  await rpc(parent,'redeem_invite_code',{p_code:secondCode});
+  const before=JSON.stringify((await rpc(parent,'my_parent_actions',{})).data);assert.ok(before.includes(athlete));assert.ok(before.includes(sibling));
+  const foreign=JSON.stringify((await rpc(outsider,'my_parent_actions',{})).data);assert.ok(!foreign.includes(athlete));assert.ok(!foreign.includes(sibling));
   sql(`delete from public.guardians where profile_id='${p}' and athlete_id='${athlete}'`);
-  assert.ok(!JSON.stringify((await rpc(parent,'my_parent_actions',{})).data).includes(athlete));
+  const after=JSON.stringify((await rpc(parent,'my_parent_actions',{})).data);assert.ok(!after.includes(athlete));assert.ok(after.includes(sibling));
  });
  return {status:'passed',backend:'disposable-local-supabase',checks,physical_device:'not_verified',offline_device_restart:'covered_by_existing_persistence_tests_not_physical_UAT'};
 }

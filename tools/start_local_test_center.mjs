@@ -94,7 +94,14 @@ async function main() {
   insert into public._local_test_center_install values('${project}') on conflict do nothing;
   create table if not exists public._local_test_center_migrations(name text primary key,sha text not null);
   alter table public._local_test_center_migrations enable row level security;
-  revoke all on public._local_test_center_migrations from public,anon,authenticated;`);
+  revoke all on public._local_test_center_migrations from public,anon,authenticated;
+  -- 0028 revokes a retired helper originally installed outside migrations.
+  -- A fresh disposable DB needs its signature; it can never seed or grant roles.
+  do $compat$begin if to_regprocedure('public.seed_demo_data(text)') is null then
+   execute $ddl$create function public.seed_demo_data(text) returns void language plpgsql as
+    $legacy$begin raise exception 'Retired demo seed is unavailable';end$legacy$$ddl$;
+  end if;end$compat$;
+  revoke all on function public.seed_demo_data(text) from public,anon,authenticated;`);
  for(const name of migrationNames(readdirSync(resolve(root,'supabase/migrations')))) {
   const source=readFileSync(resolve(root,'supabase/migrations',name),'utf8');
   const hash=createHash('sha256').update(source).digest('hex');
