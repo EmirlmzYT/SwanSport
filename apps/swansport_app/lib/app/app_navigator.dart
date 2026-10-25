@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:app_links/app_links.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import 'navigation/route_link_adapter.dart';
@@ -42,12 +43,24 @@ class _SwanDeepLinkObserverState extends State<SwanDeepLinkObserver> {
   @override
   void initState() {
     super.initState();
-    _subscription = _links.uriLinkStream.listen(_open);
-    unawaited(
-      _links.getInitialLink().then((uri) {
-        if (uri != null) _open(uri);
-      }),
+    _subscription = _links.uriLinkStream.listen(
+      _open,
+      onError: (Object error, StackTrace stack) {
+        if (error is! MissingPluginException) {
+          Error.throwWithStackTrace(error, stack);
+        }
+      },
     );
+    unawaited(_openInitialLink());
+  }
+
+  Future<void> _openInitialLink() async {
+    try {
+      final uri = await _links.getInitialLink();
+      if (uri != null) _open(uri);
+    } on MissingPluginException {
+      // Tests and intentionally plugin-free previews have no native channel.
+    }
   }
 
   void _open(Uri uri) {

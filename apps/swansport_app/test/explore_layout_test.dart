@@ -14,13 +14,6 @@ import 'package:swansport_data/swansport_data.dart';
 void main() {
   testWidgets('Keşfet telefon boyutunda içerik ve bağlantıları gösterir',
       (tester) async {
-    const appLinksEvents = MethodChannel('com.llfbandit.app_links/events');
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(appLinksEvents, (_) async => null);
-    addTearDown(() {
-      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-          .setMockMethodCallHandler(appLinksEvents, null);
-    });
     GoogleFonts.config.allowRuntimeFetching = false;
     await (FontLoader('MaterialIcons')
           ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))

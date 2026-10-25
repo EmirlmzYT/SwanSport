@@ -1,7 +1,19 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/app/app_navigator.dart';
 
 void main() {
+  testWidgets('observer tolerates an unavailable native links plugin',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: SwanDeepLinkObserver(child: SizedBox()),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+  });
+
   test('Swan ID uygulama bağlantısını doğrulama rotasına çevirir', () {
     const token = '0123456789abcdef0123456789abcdef0123456789abcdef';
     expect(
