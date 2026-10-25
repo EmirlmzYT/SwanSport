@@ -19,7 +19,9 @@ iOS preview üretimi hazır. Gizlilik güvenli 22 maddelik fiziksel cihaz rapor
 kapısı eklendi. 16 Python sözleşme testi, core 27/27 ve tüm workflow actionlint
 kontrolü geçti. Staging sırları eklenmedi, migration çalıştırılmadı, mobil paket
 üretilmedi; fiziksel Android/iPhone ve imzalı iOS/APNs kabulü kullanıcı girdisi
-bekliyor. Ana Sayfa görünümü değişmedi.
+bekliyor. Tam GitHub CI `40223132867` başarılı: gerçek yerel Supabase kabulü,
+yedi Flutter hedefi, backend sözleşmeleri ve iki web build'i geçti. Ana Sayfa
+görünümü değişmedi.
 
 2026-10-25 Aşama 2 sonuç: Temiz 139 migration zinciri, beş gerçek GoTrue
 oturumu ve PostgREST/RLS ile altı kabul akışı GitHub Actions `40212637923`te

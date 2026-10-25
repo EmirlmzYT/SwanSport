@@ -49,3 +49,6 @@ imzalı TestFlight paketiyle gerçek cihazda geçebilir.
 Canlı Supabase'e migration uygulanmadı, production release üretilmedi ve mevcut
 Ana Sayfa görünümü değiştirilmedi. Staging hesabı ile fiziksel Android/iPhone
 erişimi dışarıdan sağlanmadan cihaz sonucu üretilemez.
+
+Kaynak commit'i üzerindeki tam GitHub CI koşusu `40223132867` başarılıdır;
+staging sırları olmadığı için staging workflow'u bilerek çalıştırılmamıştır.
