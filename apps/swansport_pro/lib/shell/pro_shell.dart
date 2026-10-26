@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../workspaces/pro_workspace_switcher.dart';
+import '../workspaces/pro_workspace_controller.dart';
+import '../features/operations/pro_club_context_selector.dart';
 import 'pro_navigation.dart';
 
-class ProShell extends StatelessWidget {
+class ProShell extends ConsumerWidget {
   const ProShell({
     super.key,
     required this.navigationShell,
@@ -12,7 +15,8 @@ class ProShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final workspace = ref.watch(selectedProWorkspaceProvider);
     return Scaffold(
       backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
@@ -41,8 +45,13 @@ class ProShell extends StatelessWidget {
             ),
           ],
         ),
-        actions: const [
-          Padding(
+        actions: [
+          if (workspace?.supportsClubOperations ?? false)
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 160),
+              child: const ProClubContextSelector(),
+            ),
+          const Padding(
             padding: EdgeInsets.only(right: 12),
             child: ProWorkspaceSwitcher(),
           ),

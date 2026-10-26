@@ -1,145 +1,167 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:swansport_data/swansport_data.dart';
+
 import '../../workspaces/pro_workspace_controller.dart';
+import '../operations/pro_club_context_selector.dart';
 
 class ProDashboardScreen extends ConsumerWidget {
   const ProDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final selectedWorkspace = ref.watch(selectedProWorkspaceProvider);
-
-    if (selectedWorkspace == null) {
+    final workspace = ref.watch(selectedProWorkspaceProvider);
+    if (workspace == null) {
       return const Scaffold(
-        body: Center(
-          child: Text('Çalışma alanı bulunamadı.'),
+          body: Center(child: Text('Çalışma alanı bulunamadı.')));
+    }
+    final flags = ref.watch(featureFlagsProvider).valueOrNull;
+    final supportsOperations = workspace.supportsClubOperations;
+    final clubs = ref.watch(proAuthorizedClubsProvider);
+    return Scaffold(
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Text(
+            '${workspace.label} Paneli',
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'Seçili çalışma alanı: ${workspace.label}',
+            style: const TextStyle(color: Color(0xFF94A3B8)),
+          ),
+          const SizedBox(height: 20),
+          if (!supportsOperations)
+            const _InfoCard(
+              icon: Icons.schedule_outlined,
+              title: 'Bu çalışma alanı sonraki fazda açılacak',
+              body:
+                  'Takvim ve Gelen Kutusu yerleri korunuyor. Bu fazda gerçek kulüp ve antrenör operasyonları açılıyor.',
+            )
+          else
+            clubs.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (error, _) =>
+                  Text(classifyOperationError(error).userMessage),
+              data: (items) {
+                if (items.isEmpty) {
+                  return const _InfoCard(
+                    icon: Icons.lock_person_outlined,
+                    title: 'Aktif kulüp operasyon yetkisi yok',
+                    body:
+                        'Bu çalışma alanını açan kimliğin var ancak aktif kulüp yöneticisi veya antrenör üyeliğin bulunmuyor.',
+                  );
+                }
+                final coachEnabled =
+                    flags?.has(FeatureFlags.coachWorkspace) ?? false;
+                if (!coachEnabled) {
+                  return const _InfoCard(
+                    icon: Icons.lock_clock_outlined,
+                    title: 'Operasyonlar kademeli yayında',
+                    body:
+                        'Kulüp ve antrenör operasyonları hesabın için henüz açılmadı.',
+                  );
+                }
+                return Column(
+                  children: [
+                    if (flags?.has(FeatureFlags.teamHub) ?? false)
+                      _OperationCard(
+                        icon: Icons.groups_outlined,
+                        title: 'Takımlar ve Kadrolar',
+                        body: 'Takımları görüntüle, kadro operasyonlarına geç.',
+                        onTap: () => context.push('/operasyon/takimlar'),
+                      ),
+                    if (flags?.has(FeatureFlags.attendanceOperations) ??
+                        false) ...[
+                      const SizedBox(height: 12),
+                      _OperationCard(
+                        icon: Icons.fact_check_outlined,
+                        title: 'Canlı Yoklama',
+                        body: 'İyimser sürüm ve güvenli tekrar ile yoklama al.',
+                        onTap: () => context.push('/operasyon/yoklama'),
+                      ),
+                      const SizedBox(height: 12),
+                      _OperationCard(
+                        icon: Icons.analytics_outlined,
+                        title: 'Yoklama Geçmişi',
+                        body: 'Katılım oranlarını ve riskli sporcuları incele.',
+                        onTap: () => context.push('/operasyon/devam'),
+                      ),
+                    ],
+                  ],
+                );
+              },
+            ),
+          const SizedBox(height: 16),
+          const _InfoCard(
+            icon: Icons.security_outlined,
+            title: 'Sunucu Yetkisi Korunuyor',
+            body:
+                'Ekran görünürlüğü özellik bayraklarıyla, gerçek veri ve işlem yetkisi mevcut RLS ve RPC kontrolleriyle korunur.',
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OperationCard extends StatelessWidget {
+  const _OperationCard({
+    required this.icon,
+    required this.title,
+    required this.body,
+    required this.onTap,
+  });
+  final IconData icon;
+  final String title;
+  final String body;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: ListTile(
+          minVerticalPadding: 16,
+          leading: Icon(icon, color: const Color(0xFF38BDF8)),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w700)),
+          subtitle: Text(body),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: onTap,
         ),
       );
-    }
+}
 
-    final workspaceTitle = '${selectedWorkspace.label} Paneli';
+class _InfoCard extends StatelessWidget {
+  const _InfoCard(
+      {required this.icon, required this.title, required this.body});
+  final IconData icon;
+  final String title;
+  final String body;
 
-    return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
-      body: SafeArea(
-        child: SingleChildScrollView(
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                workspaceTitle,
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                  letterSpacing: -0.5,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                'Seçili çalışma alanı: ${selectedWorkspace.label}',
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Color(0xFF94A3B8),
-                ),
-              ),
-              const SizedBox(height: 20),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF334155)),
-                ),
+              Icon(icon, color: const Color(0xFF38BDF8)),
+              const SizedBox(width: 12),
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.verified_outlined,
-                          size: 20,
-                          color: Color(0xFF38BDF8),
-                        ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            'Faz 1 Altyapısı Aktif',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      '${selectedWorkspace.label} için profesyonel kimlik doğrulandı ve yetkili oturum açıldı. '
-                      'Operasyon modülleri (kadro, antrenman, atamalar, mali tablolar) '
-                      'onaylı takvim uyarınca aşamalı olarak ortak paketten taşınacaktır.',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFFCBD5E1),
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: const Color(0xFF334155)),
-                ),
-                child: const Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.security_outlined,
-                          size: 20,
-                          color: Color(0xFF10B981),
-                        ),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Doğrudan Veritabanı Yetkisi (RLS)',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.white,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 10),
-                    Text(
-                      'SwanSport Pro arayüzü yalnızca SwanAccess yetki motorunun belirlediği '
-                      'çalışma alanlarını gösterir. Tüm veri erişimleri ve işlemler doğrudan '
-                      'sunucu taraflı RLS ve RPC kontrolleri ile korunur.',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Color(0xFFCBD5E1),
-                        height: 1.5,
-                      ),
-                    ),
+                    Text(title,
+                        style: const TextStyle(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 6),
+                    Text(body),
                   ],
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
+      );
 }

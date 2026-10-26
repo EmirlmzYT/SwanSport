@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/auth/pro_auth_gate.dart';
+import '../features/operations/pro_feature_host.dart';
 import 'pro_router.dart';
 import 'pro_theme.dart';
 
@@ -18,7 +19,9 @@ class ProApp extends ConsumerWidget {
       routerConfig: router,
       builder: (context, child) {
         return ProAuthGate(
-          child: child ?? const SizedBox.shrink(),
+          child: ProOperationsFeatureHost(
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

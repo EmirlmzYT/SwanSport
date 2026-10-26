@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'pro_workspace.dart';
 import 'pro_workspace_controller.dart';
 
@@ -51,10 +53,24 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
     return PopupMenuButton<ProWorkspace>(
       key: const ValueKey('pro_workspace_dropdown_button'),
       tooltip: 'Çalışma Alanı Değiştir',
-      onSelected: (workspace) {
-        ref
-            .read(selectedProWorkspaceProvider.notifier)
-            .selectWorkspace(workspace);
+      onSelected: (workspace) async {
+        await ref.read(proDirtyStateCoordinatorProvider).runGuardedTransition(
+              confirmDiscard: () =>
+                  ProFeatureHostScope.of(context).chrome.confirm(
+                        context,
+                        title: 'Kaydedilmemiş değişiklikler var',
+                        message:
+                            'Çalışma alanı değiştirildiğinde kaydedilmemiş operasyon verileri bırakılır.',
+                        confirmLabel: 'Alanı değiştir',
+                      ),
+              invalidate: () => invalidateProFeatureState(ref),
+              transition: () {
+                ref
+                    .read(selectedProWorkspaceProvider.notifier)
+                    .selectWorkspace(workspace);
+                ref.read(selectedClubIdProvider.notifier).state = null;
+              },
+            );
       },
       color: const Color(0xFF1E293B),
       shape: RoundedRectangleBorder(

@@ -14,6 +14,9 @@ enum ProWorkspace {
   const ProWorkspace(this.label);
 
   final String label;
+
+  bool get supportsClubOperations =>
+      this == ProWorkspace.club || this == ProWorkspace.coaching;
 }
 
 /// SwanAccess yetki sonucunu Pro çalışma alanları listesine dönüştürür.

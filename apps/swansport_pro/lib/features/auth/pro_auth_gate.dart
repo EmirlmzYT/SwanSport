@@ -19,6 +19,7 @@ class ProAuthGate extends ConsumerWidget {
       authSessionProvider.select((value) => value.valueOrNull?.user.id),
       (previousUserId, nextUserId) {
         if (previousUserId != nextUserId) {
+          ref.read(selectedClubIdProvider.notifier).state = null;
           ref.invalidateSwanAccess();
         }
       },

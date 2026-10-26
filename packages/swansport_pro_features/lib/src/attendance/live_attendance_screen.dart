@@ -221,7 +221,7 @@ class _SharedLiveAttendanceScreenState
         ? (snapshot['rows'] as List)
             .map(
               (row) => RosterEntry.fromVersionedMap(
-                Map<String, dynamic>.from(row as Map),
+                (row as Map).cast<String, dynamic>(),
               ),
             )
             .toList()

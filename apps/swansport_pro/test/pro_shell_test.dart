@@ -10,6 +10,7 @@ import 'package:swansport_pro/features/account/pro_account_screen.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/placeholders/pro_placeholder_screen.dart';
+import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
 import 'package:swansport_pro/shell/pro_shell.dart';
 import 'package:swansport_pro/workspaces/pro_workspace_switcher.dart';
 
@@ -105,8 +106,8 @@ void main() {
       // Tap Görevler
       await tester.tap(find.text('Görevler'));
       await tester.pumpAndSettle();
-      expect(find.byType(ProPlaceholderScreen), findsOneWidget);
-      expect(find.textContaining('Yakında'), findsOneWidget);
+      expect(find.byType(ProTasksScreen), findsOneWidget);
+      expect(find.textContaining('operasyon görevi'), findsOneWidget);
 
       // Tap Takvim
       await tester.tap(find.text('Takvim'));
