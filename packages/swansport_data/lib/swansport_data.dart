@@ -49,6 +49,7 @@ export 'src/news_service.dart';
 export 'src/notification_service.dart';
 export 'src/nutrition_service.dart';
 export 'src/offline_attendance.dart';
+export 'src/operation_error.dart';
 export 'src/parent_actions.dart';
 export 'src/platform_mission_control.dart';
 export 'src/performance_service.dart';
