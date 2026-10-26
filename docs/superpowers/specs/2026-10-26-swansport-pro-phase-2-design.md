@@ -1,7 +1,7 @@
 # SwanSport Pro Faz 2 — Kulüp ve Antrenörlük Tasarımı
 
 **Tarih:** 2026-10-26
-**Durum:** Kullanıcı onayı bekliyor
+**Durum:** Kullanıcı tarafından onaylandı
 **Üst tasarım:** `docs/superpowers/specs/2026-10-26-swansport-pro-app-design.md`
 
 ## 1. Amaç
