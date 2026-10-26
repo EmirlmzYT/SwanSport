@@ -1,6 +1,9 @@
 name: Build SwanSport Pro Preview
 
 on:
+  push:
+    branches:
+      - codex/pro-phase1-artifacts
   workflow_dispatch:
     inputs:
       build_ios:
@@ -73,7 +76,7 @@ jobs:
 
   build-pro-ios:
     name: Build SwanSport Pro Unsigned iOS Preview
-    if: inputs.build_ios == true
+    if: github.event_name == 'push' || inputs.build_ios == true
     needs: verify-pro
     runs-on: macos-latest
     environment: staging
