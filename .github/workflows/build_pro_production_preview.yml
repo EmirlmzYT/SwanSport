@@ -1,0 +1,146 @@
+name: Build SwanSport Pro Production Preview
+
+on:
+  push:
+    tags: ['swansport-pro-v*']
+  workflow_dispatch:
+    inputs:
+      build_ios:
+        description: 'Build unsigned iOS production preview on macOS'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-production-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-pro:
+    name: Verify Pro Production Target & Tests
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - name: Accept only the known production backend
+        run: python tools/production_target.py
+      - run: flutter pub get --enforce-lockfile
+      - name: Pro Dart Analyze
+        working-directory: apps/swansport_pro
+        run: flutter analyze --no-pub --no-fatal-infos
+      - name: Pro Tests
+        working-directory: apps/swansport_pro
+        run: flutter test --no-pub
+      - name: Run Pro and target contract tests
+        run: python -m unittest tools.production_target_test tools.pro_app_contract_test -v
+
+  build-pro-android:
+    name: Build SwanSport Pro Production Android APK
+    needs: verify-pro
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      PRODUCTION_PROJECT_REF: gokkimnokigqxmbppvle
+      STAGING_PROJECT_REF: hsfobmghsbtegiiqphpc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - run: python tools/production_target.py
+      - run: flutter pub get --enforce-lockfile
+      - name: Read Pro version
+        id: version
+        run: |
+          echo "value=$(sed -n 's/^version: //p' apps/swansport_pro/pubspec.yaml | tr -d '\r')" >> "$GITHUB_OUTPUT"
+      - name: Build production-connected Pro APK
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build apk --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+          mkdir -p build/release
+          cp build/app/outputs/flutter-apk/app-release.apk \
+            "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk"
+      - name: Verify embedded backend target
+        working-directory: apps/swansport_pro
+        run: |
+          unzip -p build/app/outputs/flutter-apk/app-release.apk lib/arm64-v8a/libapp.so > "$RUNNER_TEMP/pro-libapp.so"
+          strings "$RUNNER_TEMP/pro-libapp.so" | grep -F "$PRODUCTION_PROJECT_REF"
+          if strings "$RUNNER_TEMP/pro-libapp.so" | grep -Fq "$STAGING_PROJECT_REF"; then
+            echo 'Staging project ref found in production preview' >&2
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-Android-production-${{ steps.version.outputs.value }}
+          path: apps/swansport_pro/build/release/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  build-pro-ios:
+    name: Build SwanSport Pro Production Unsigned iOS Preview
+    if: github.event_name == 'push' || inputs.build_ios == true
+    needs: verify-pro
+    runs-on: macos-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      PRODUCTION_PROJECT_REF: gokkimnokigqxmbppvle
+      STAGING_PROJECT_REF: hsfobmghsbtegiiqphpc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - run: python tools/production_target.py
+      - run: flutter pub get --enforce-lockfile
+      - name: Read Pro version
+        id: version
+        run: |
+          echo "value=$(sed -n 's/^version: //p' apps/swansport_pro/pubspec.yaml | tr -d '\r')" >> "$GITHUB_OUTPUT"
+      - name: Configure unsigned Pro build
+        run: |
+          printf '%s\n' 'DEVELOPMENT_TEAM = 0000000000' 'CODE_SIGN_IDENTITY =' \
+            'CODE_SIGNING_REQUIRED = NO' 'CODE_SIGNING_ALLOWED = NO' \
+            'CODE_SIGN_ENTITLEMENTS =' > apps/swansport_pro/ios/Flutter/Signing.xcconfig
+      - name: Build production-connected unsigned Pro IPA
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build ios --release --no-codesign -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+          strings build/ios/iphoneos/Runner.app/Frameworks/App.framework/App | grep -F "$PRODUCTION_PROJECT_REF"
+          if strings build/ios/iphoneos/Runner.app/Frameworks/App.framework/App | grep -Fq "$STAGING_PROJECT_REF"; then
+            echo 'Staging project ref found in production preview' >&2
+            exit 1
+          fi
+          mkdir -p build/ios/release/Payload
+          cp -R build/ios/iphoneos/Runner.app build/ios/release/Payload/
+          rm -f build/ios/release/Payload/Runner.app/GoogleService-Info.plist
+          find build/ios/release/Payload/Runner.app -name '*.xcent' -delete
+          python ../../tools/verify_ios_preview_bundle.py build/ios/release/Payload/Runner.app --firebase-enabled false
+          cd build/ios/release
+          zip -qry "SwanSport-Pro-${{ steps.version.outputs.value }}-production-unsigned.ipa" Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-iOS-production-unsigned-${{ steps.version.outputs.value }}
+          path: apps/swansport_pro/build/ios/release/*.ipa
+          if-no-files-found: error
+          retention-days: 30

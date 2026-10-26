@@ -19,7 +19,7 @@ class ProAppContractTest(unittest.TestCase):
         content = pro_pubspec.read_text(encoding='utf-8')
 
         self.assertRegex(content, r'(?m)^name:\s*swansport_pro\s*$')
-        self.assertRegex(content, r'(?m)^version:\s*0\.1\.0\+1\s*$')
+        self.assertRegex(content, r'(?m)^version:\s*0\.1\.0\+2\s*$')
         self.assertRegex(content, r'(?m)^resolution:\s*workspace\s*$')
 
         # Must have required shared/runtime dependencies
@@ -125,6 +125,24 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('verify_ios_preview_bundle.py', content)
         self.assertIn('--firebase-enabled false', content)
         self.assertNotIn('aps-environment', content)
+
+    def test_build_pro_production_preview_workflow_contract(self):
+        workflow = ROOT / '.github' / 'workflows' / 'build_pro_production_preview.yml'
+        self.assertTrue(
+            workflow.is_file(),
+            'build_pro_production_preview.yml must exist',
+        )
+        content = workflow.read_text(encoding='utf-8')
+
+        self.assertIn('workflow_dispatch:', content)
+        self.assertIn("tags: ['swansport-pro-v*']", content)
+        self.assertIn('apps/swansport_pro', content)
+        self.assertIn('python tools/production_target.py', content)
+        self.assertIn('secrets.SUPABASE_URL', content)
+        self.assertIn('secrets.SUPABASE_ANON_KEY', content)
+        self.assertIn('SwanSport-Pro', content)
+        self.assertIn('verify_ios_preview_bundle.py', content)
+        self.assertNotIn('STAGING_SUPABASE', content)
 
     def test_open_swansport_action_uses_real_supported_fallback(self):
         account_source = (
