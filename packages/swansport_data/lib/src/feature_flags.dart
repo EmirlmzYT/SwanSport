@@ -101,6 +101,9 @@ class FeatureFlags {
   /// kaybettiriyor. Sunucuda da `off` kademesinde.
   static const offlineAttendance = 'offline_attendance';
 
+  /// Faz 2 çevrimiçi yoklama ekranı. Yazma yetkisi yine mevcut RLS/RPC'dedir.
+  static const attendanceOperations = 'attendance_operations';
+
   /// 0071–0073. Branşa özel canlı antrenman oturumu: set, süre, skor ve
   /// antrenör onayı. İlk çalışan branş okçuluk.
   static const sportTrainingSessions = 'sport_training_sessions';
@@ -113,7 +116,8 @@ class FeatureFlags {
 /// yavaşlatırdı.
 final featureFlagsProvider = FutureProvider<FeatureFlags>((ref) async {
   ref.watch(
-      authSessionProvider.select((session) => session.valueOrNull?.user.id));
+    authSessionProvider.select((session) => session.valueOrNull?.user.id),
+  );
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return const FeatureFlags.none();
   }

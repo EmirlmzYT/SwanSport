@@ -26,9 +26,12 @@ void main() {
     // `('anahtar', 'kademe', ...` biçimindeki satırlar. Yalnızca
     // feature_flags insert'lerinin içindekiler sayılıyor.
     final insert = RegExp(
-        r'insert\s+into\s+public\.feature_flags[^;]*;',
-        caseSensitive: false, dotAll: true);
-    final row = RegExp(r"\(\s*'([a-z0-9_]+)'\s*,\s*'(off|admins|testers|everyone)'");
+      r'insert\s+into\s+public\.feature_flags[^;]*;',
+      caseSensitive: false,
+      dotAll: true,
+    );
+    final row =
+        RegExp(r"\(\s*'([a-z0-9_]+)'\s*,\s*'(off|admins|testers|everyone)'");
 
     for (final f in dir.listSync().whereType<File>()) {
       if (!f.path.endsWith('.sql')) continue;
@@ -52,19 +55,25 @@ void main() {
 
   test('SQL bayraklarının hepsinin Dart sabiti var', () {
     final missing = sqlKeys().difference(dartKeys());
-    expect(missing, isEmpty,
-        reason: 'Bu anahtarlar SQL\'de tanımlı ama Dart sabiti yok. '
-            'Sabitsiz kullanım yazım hatasını derlemede yakalamıyor: '
-            '$missing');
+    expect(
+      missing,
+      isEmpty,
+      reason: 'Bu anahtarlar SQL\'de tanımlı ama Dart sabiti yok. '
+          'Sabitsiz kullanım yazım hatasını derlemede yakalamıyor: '
+          '$missing',
+    );
   });
 
   test('Dart sabitlerinin hepsi SQL\'de tanımlı', () {
     final missing = dartKeys().difference(sqlKeys());
-    expect(missing, isEmpty,
-        reason: 'Bu sabitler Dart\'ta var ama hiçbir migration onları '
-            'feature_flags tablosuna yazmıyor. Bayrak sunucuda yoksa '
-            'my_feature_flags onu hiç döndürmez ve özellik hiç açılmaz: '
-            '$missing');
+    expect(
+      missing,
+      isEmpty,
+      reason: 'Bu sabitler Dart\'ta var ama hiçbir migration onları '
+          'feature_flags tablosuna yazmıyor. Bayrak sunucuda yoksa '
+          'my_feature_flags onu hiç döndürmez ve özellik hiç açılmaz: '
+          '$missing',
+    );
   });
 
   test('en az yirmi bayrak tanımlı — regex boşa çalışmıyor', () {
@@ -82,5 +91,6 @@ void main() {
     expect(sqlKeys(), contains(FeatureFlags.liveMatchNotifications));
     expect(sqlKeys(), contains(FeatureFlags.eligibilityGate));
     expect(sqlKeys(), contains(FeatureFlags.offlineAttendance));
+    expect(sqlKeys(), contains(FeatureFlags.attendanceOperations));
   });
 }
