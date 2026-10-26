@@ -110,6 +110,19 @@ git diff -- apps/swansport_app
 ```
 **Sonuç:** Boş (0 değişiklik).
 
+### H. GitHub Android/iOS Önizleme Kabulü
+
+- GitHub Actions: [Build SwanSport Pro Preview #40254315897](https://github.com/EmirlmzYT/SwanSport/actions/runs/40254315897)
+- Sonuç: Pro doğrulama, Android release APK ve unsigned iOS preview işlerinin
+  üçü de `success`.
+- Ön sürüm: [SwanSport Pro Phase 1 Preview 0.1.0+1](https://github.com/EmirlmzYT/SwanSport/releases/tag/swansport-pro-phase1-preview-0.1.0-1)
+- APK: 53,176,986 byte; SHA-256
+  `215e19df64e65804457c2d4ae54d417445f36b1a94240518117b43c01aca345d`
+- IPA: 7,624,966 byte; SHA-256
+  `768f8e310c5c13481c754e8ab2a23de3ec17e446aa007c8d448cecadab23e01b`
+- Her iki arşiv CRC kontrolünden geçti. IPA `com.swansport.pro`, `SwanSport Pro`,
+  `0.1.0+1` değerlerini taşır ve `GoogleService-Info.plist` içermez.
+
 ---
 
 ## 4. Kalan Sınırlar ve Bilinçli Olarak Yapılmayanlar
@@ -117,6 +130,6 @@ git diff -- apps/swansport_app
 - **Operasyon Modülleri:** Faz 1 kapsamında operasyon ekranları taşınmamıştır; Görevler, Takvim ve Gelen Kutusu güvenli "Yakında" durumundadır. Sosyal veri kaynakları sorgulanmaz.
 - **Push & Bildirim:** Push altyapısı, `app_target` migration'ı ve APNs/FCM bildirimleri Faz 5 kapsamındadır.
 - **Canlı Yayın:** Canlı SQL migration, üretim deploy'u, imzalı mağaza paketleri ve cross-app silent SSO Faz 1'e dahil değildir.
-- **Yerel mobil paket sınırı:** Bu makinede Android SDK/Xcode olmadığı için APK
-  ve IPA yerel olarak doğrulanmadı. Android ve unsigned iOS önizleme işleri
-  `build_pro_preview.yml` üzerinden GitHub Actions kabulüne bağlıdır.
+- **İmzalama sınırı:** APK staging release paketidir. IPA imzasız önizlemedir;
+  TestFlight/App Store dağıtımı veya fiziksel cihaz kabulü değildir. İmzalı iOS
+  dağıtımı gerçek Apple takım/sertifika/provisioning kurulumu ister.

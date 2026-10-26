@@ -2,8 +2,16 @@
 
 Son güncelleme: 2026-10-26 Europe/Istanbul
 Aktif Writer: Codex `/root`
-Durum: `busy` — Gemini SwanSport Pro Faz 1 denetim düzeltmeleri tamamlandı;
-commit/push ve GitHub Android/iOS önizleme kabulü sürüyor. SwanSport değişmez.
+Durum: `busy` — SwanSport Pro Faz 1 denetimi ve paket kabulü tamamlandı;
+son kanıt commit/push işlemi sürüyor. SwanSport değişmez.
+
+2026-10-26 Pro Faz 1 paket sonucu: kaynak/düzeltmeler `441c0fd` ile
+`codex/advanced-chat-header46` dalına pushlandı. GitHub Actions `40254315897`
+üç işi de geçti: Pro doğrulama, staging Android release APK ve unsigned iOS IPA.
+Arşiv CRC'leri temiz; IPA `com.swansport.pro`, `SwanSport Pro`, `0.1.0+1` ve
+Firebase plist yokluğu doğrulandı. APK/IPA doğrudan indirilebilir prerelease
+`swansport-pro-phase1-preview-0.1.0-1` altında yayımlandı. İmzalı iOS/TestFlight
+ve fiziksel cihaz kabulü yapılmadı; canlı SQL/production deploy yok.
 
 2026-10-26 Codex Faz 1 bağımsız denetimi: Gemini'nin beş commit'i korunarak
 dört çalışma zamanı açığı kapatıldı: development bootstrap hatası artık canlı
