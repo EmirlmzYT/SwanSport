@@ -13,6 +13,8 @@ STAGING_REF = 'hsfobmghsbtegiiqphpc'
 class ProductionTargetTest(unittest.TestCase):
     def run_validator(self, **values):
         env = os.environ.copy()
+        env.pop('SUPABASE_URL', None)
+        env.pop('SUPABASE_ANON_KEY', None)
         env.update(values)
         return subprocess.run(
             [sys.executable, str(SCRIPT)],
