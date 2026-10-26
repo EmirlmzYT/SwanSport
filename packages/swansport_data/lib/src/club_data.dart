@@ -784,6 +784,22 @@ final teamCreateCommandProvider = Provider<TeamCreateCommand>((ref) {
       );
 });
 
+typedef TeamRosterAddCommand = Future<void> Function(
+  String teamId,
+  String athleteId,
+);
+typedef TeamRosterRemoveCommand = Future<void> Function(String membershipId);
+
+final teamRosterAddCommandProvider = Provider<TeamRosterAddCommand>((ref) {
+  final service = ref.watch(clubDataServiceProvider);
+  return (teamId, athleteId) => service.addToTeam(teamId, athleteId);
+});
+
+final teamRosterRemoveCommandProvider =
+    Provider<TeamRosterRemoveCommand>((ref) {
+  return ref.watch(clubDataServiceProvider).removeFromTeam;
+});
+
 Future<T> _forClub<T>(Ref ref,
     Future<T> Function(ClubDataService s, String clubId) run, T empty) async {
   final club = await ref.watch(activeClubProvider.future);

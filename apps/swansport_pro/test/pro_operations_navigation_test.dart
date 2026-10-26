@@ -95,5 +95,11 @@ void main() {
     expect(find.byType(SharedLiveAttendanceScreen), findsOneWidget);
     expect(find.textContaining('Etkinlik yüklenemedi'), findsOneWidget);
     expect(find.text('Takvimi aç'), findsNothing);
+
+    router.go('/operasyon/takim/team-1');
+    await tester.pumpAndSettle();
+    expect(find.byType(SharedTeamRosterScreen), findsOneWidget);
+    expect(find.text('Kadro boş. Kulüp sporcularından ekleyebilirsin.'),
+        findsOneWidget);
   });
 }

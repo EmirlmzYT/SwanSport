@@ -395,6 +395,26 @@ final athleteServiceProvider = Provider<SupabaseAthleteService>((ref) {
   return SupabaseAthleteService(ref.watch(supabaseClientProvider));
 });
 
+typedef AthleteFromMemberCommand = Future<String> Function({
+  required String clubId,
+  required String profileId,
+});
+typedef AthleteLinkCommand = Future<void> Function(
+  String athleteId,
+  String profileId,
+);
+
+final athleteFromMemberCommandProvider =
+    Provider<AthleteFromMemberCommand>((ref) {
+  final service = ref.watch(athleteServiceProvider);
+  return ({required clubId, required profileId}) =>
+      service.createAthleteFromMember(clubId: clubId, profileId: profileId);
+});
+
+final athleteLinkCommandProvider = Provider<AthleteLinkCommand>((ref) {
+  return ref.watch(athleteServiceProvider).linkAthleteToMember;
+});
+
 /// Kullanıcının kulüpleri.
 final myClubsProvider = FutureProvider<List<ClubRef>>((ref) {
   return ref.watch(athleteServiceProvider).fetchMyClubs();

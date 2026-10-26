@@ -101,9 +101,16 @@ final proRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: '/operasyon/takim/:id',
-        builder: (context, state) => const ProPlaceholderScreen(
-          title: 'Takım Kadrosu',
-        ),
+        builder: (context, state) {
+          final extra = state.extra;
+          final id = state.pathParameters['id'] ?? '';
+          final target = extra is TeamRouteTarget
+              ? extra
+              : TeamRouteTarget(teamId: id, teamName: 'Takım');
+          return ProOperationsGate(
+            child: SharedTeamRosterScreen(target: target),
+          );
+        },
       ),
     ],
   );
