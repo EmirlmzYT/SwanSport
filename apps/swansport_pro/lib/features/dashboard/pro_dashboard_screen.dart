@@ -90,6 +90,17 @@ class ProDashboardScreen extends ConsumerWidget {
                         onTap: () => context.push('/operasyon/devam'),
                       ),
                     ],
+                    if (flags?.has(FeatureFlags.sportTrainingSessions) ??
+                        false) ...[
+                      const SizedBox(height: 12),
+                      _OperationCard(
+                        icon: Icons.sports_outlined,
+                        title: 'Antrenman Operasyonları',
+                        body:
+                            'Şablonları, canlı oturumları ve sonuçları yönet.',
+                        onTap: () => context.push('/operasyon/antrenmanlar'),
+                      ),
+                    ],
                   ],
                 );
               },

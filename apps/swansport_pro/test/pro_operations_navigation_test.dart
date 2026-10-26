@@ -32,6 +32,7 @@ void main() {
               FeatureFlags.coachWorkspace,
               FeatureFlags.teamHub,
               FeatureFlags.attendanceOperations,
+              FeatureFlags.sportTrainingSessions,
             }),
           ),
         ],
@@ -42,6 +43,7 @@ void main() {
     expect(find.text('Takımlar ve Kadrolar'), findsOneWidget);
     expect(find.text('Canlı Yoklama'), findsOneWidget);
     expect(find.text('Yoklama Geçmişi'), findsOneWidget);
+    expect(find.text('Antrenman Operasyonları'), findsOneWidget);
   });
 
   testWidgets('typed Pro routes open shared team and attendance screens',
@@ -62,6 +64,7 @@ void main() {
             FeatureFlags.coachWorkspace,
             FeatureFlags.teamHub,
             FeatureFlags.attendanceOperations,
+            FeatureFlags.sportTrainingSessions,
           }),
         ),
         teamsProvider.overrideWith((ref) async => const []),
@@ -72,6 +75,9 @@ void main() {
             const {'cache': [], 'drafts': [], 'ops': []},
           ),
         ),
+        myLiveSessionProvider.overrideWith((ref) async => null),
+        myTrainingHistoryProvider.overrideWith((ref) async => const []),
+        trainingProtocolsProvider.overrideWith((ref) async => const []),
       ],
     );
     addTearDown(container.dispose);
@@ -101,5 +107,15 @@ void main() {
     expect(find.byType(SharedTeamRosterScreen), findsOneWidget);
     expect(find.text('Kadro boş. Kulüp sporcularından ekleyebilirsin.'),
         findsOneWidget);
+
+    router.go('/operasyon/antrenmanlar');
+    await tester.pumpAndSettle();
+    expect(find.byType(SharedTrainingListScreen), findsOneWidget);
+    expect(find.text('Henüz antrenman kaydı yok.'), findsOneWidget);
+
+    router.go('/operasyon/antrenman-sablonlari');
+    await tester.pumpAndSettle();
+    expect(find.byType(SharedProtocolListScreen), findsOneWidget);
+    expect(find.text('Kullanılabilir şablon bulunamadı.'), findsOneWidget);
   });
 }

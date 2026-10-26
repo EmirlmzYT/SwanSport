@@ -112,6 +112,51 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/antrenmanlar',
+        builder: (context, state) => const ProOperationsGate(
+          child: SharedTrainingListScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/antrenman-sablonlari',
+        builder: (context, state) => const ProOperationsGate(
+          child: SharedProtocolListScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/antrenman-olustur',
+        builder: (context, state) => const ProOperationsGate(
+          child: SharedWorkoutBuilderScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/antrenman-oturumu',
+        builder: (context, state) {
+          final extra = state.extra;
+          return ProOperationsGate(
+            child: SharedTrainingSessionScreen(
+              sessionId: extra is String ? extra : null,
+            ),
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/antrenman-sonuc',
+        builder: (context, state) {
+          final extra = state.extra;
+          return ProOperationsGate(
+            child: SharedSessionResultScreen(
+              sessionId: extra is String ? extra : '',
+            ),
+          );
+        },
+      ),
     ],
   );
 });

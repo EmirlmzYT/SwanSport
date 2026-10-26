@@ -15,6 +15,7 @@ class ProTasksScreen extends ConsumerWidget {
     final flags = ref.watch(featureFlagsProvider).valueOrNull;
     final operational =
         workspace == ProWorkspace.club || workspace == ProWorkspace.coaching;
+    final coachEnabled = flags?.has(FeatureFlags.coachWorkspace) ?? false;
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -25,13 +26,16 @@ class ProTasksScreen extends ConsumerWidget {
           if (!operational ||
               !(flags?.has(FeatureFlags.coachWorkspace) ?? false))
             const Text('Bu çalışma alanı için operasyon görevi bulunmuyor.'),
-          if (operational && (flags?.has(FeatureFlags.teamHub) ?? false))
+          if (operational &&
+              coachEnabled &&
+              (flags?.has(FeatureFlags.teamHub) ?? false))
             ListTile(
               leading: const Icon(Icons.groups_outlined),
               title: const Text('Takımları ve kadroları yönet'),
               onTap: () => context.push('/operasyon/takimlar'),
             ),
           if (operational &&
+              coachEnabled &&
               (flags?.has(FeatureFlags.attendanceOperations) ?? false)) ...[
             ListTile(
               leading: const Icon(Icons.fact_check_outlined),
@@ -44,6 +48,14 @@ class ProTasksScreen extends ConsumerWidget {
               onTap: () => context.push('/operasyon/devam'),
             ),
           ],
+          if (operational &&
+              coachEnabled &&
+              (flags?.has(FeatureFlags.sportTrainingSessions) ?? false))
+            ListTile(
+              leading: const Icon(Icons.sports_outlined),
+              title: const Text('Antrenman operasyonlarını aç'),
+              onTap: () => context.push('/operasyon/antrenmanlar'),
+            ),
         ],
       ),
     );
