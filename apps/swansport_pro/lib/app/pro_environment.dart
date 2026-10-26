@@ -52,20 +52,34 @@ class ProEnvironment {
       defaultValue: '',
     ),
   }) {
-    final type = switch (environmentName.toLowerCase()) {
+    final normalizedEnvironment = environmentName.trim().toLowerCase();
+    final normalizedAppName = appName.trim();
+
+    if (normalizedAppName.isEmpty) {
+      throw const ProEnvironmentException('APP_NAME cannot be empty.');
+    }
+
+    final type = switch (normalizedEnvironment) {
+      'development' || 'dev' => ProEnvironmentType.development,
       'production' || 'prod' => ProEnvironmentType.production,
-      _ => ProEnvironmentType.development,
+      _ => throw const ProEnvironmentException(
+          'APP_ENV must be either development or production.',
+        ),
     };
 
-    final debugEnabled = switch (enableDebugTools.toLowerCase()) {
-      'true' || '1' => true,
-      'false' || '0' => false,
-      _ => type == ProEnvironmentType.development,
+    final normalizedDebugTools = enableDebugTools.trim().toLowerCase();
+    final debugEnabled = switch (normalizedDebugTools) {
+      '' => type == ProEnvironmentType.development,
+      'true' => true,
+      'false' => false,
+      _ => throw const ProEnvironmentException(
+          'ENABLE_DEBUG_TOOLS must be true or false.',
+        ),
     };
 
     return ProEnvironment(
       type: type,
-      appName: appName,
+      appName: normalizedAppName,
       enableDebugTools: debugEnabled,
     );
   }

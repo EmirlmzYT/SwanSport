@@ -1,8 +1,19 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-26 Europe/Istanbul
-Aktif Writer: —
-Durum: `free`
+Aktif Writer: Codex `/root`
+Durum: `busy` — Gemini SwanSport Pro Faz 1 denetim düzeltmeleri tamamlandı;
+commit/push ve GitHub Android/iOS önizleme kabulü sürüyor. SwanSport değişmez.
+
+2026-10-26 Codex Faz 1 bağımsız denetimi: Gemini'nin beş commit'i korunarak
+dört çalışma zamanı açığı kapatıldı: development bootstrap hatası artık canlı
+uygulamaya sızmıyor; APP_ENV/debug değerleri fail-closed; hesap değişimi tüm
+SwanAccess girdilerini sıfırlıyor; yetki kaynaklarının yükleme/hata hali gerçek
+erişim reddinden ayrılıyor. Hesaptaki SwanSport eylemi uydurma URL/dialog yerine
+gerçek `https://swansport.pages.dev/` adresini açıyor. Python sözleşme 8/8,
+Pro testleri 43/43, data access 14/14, analyzer 0 issue, enforce-lockfile ve web
+release build geçti. Ana SwanSport kaynak diff'i boş. Yerel Android SDK/Xcode
+yok; mobil artifact kabulü GitHub Actions'ta çalıştırılacak.
 
 2026-10-26 SwanSport Pro Faz 1 sonucu: Gemini worker tarafından 5 görevlik TDD
 planı eksiksiz tamamlandı. `apps/swansport_pro` bağımsız Flutter uygulaması
@@ -13,7 +24,8 @@ planı eksiksiz tamamlandı. `apps/swansport_pro` bağımsız Flutter uygulamas�
 Python sözleşme 7/7, Dart format exit 0, analyzer exit 0 (0 issue), Pro testleri 38/38,
 web release build 42s başarılı, data access_test 14/14 geçti. CI matrix ve staging
 preview workflow'u eklendi; canlı SQL, push, deploy yapılmadı. Rapor:
-`docs/swansport-pro-phase-1-verification.md`. Writer serbest; Codex denetimi bekliyor.
+`docs/swansport-pro-phase-1-verification.md`. Codex denetiminin sonucu yukarıdaki
+güncel kayıttadır.
 
 2026-10-26 SwanSport Pro tasarımı: Gerçek ayrı Flutter uygulaması, aynı
 Supabase/Auth ve tek SwanAccess otoritesi; rol bazlı yedi çalışma alanı ve

@@ -126,6 +126,17 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('--firebase-enabled false', content)
         self.assertNotIn('aps-environment', content)
 
+    def test_open_swansport_action_uses_real_supported_fallback(self):
+        account_source = (
+            PRO_DIR / 'lib' / 'features' / 'account' / 'pro_account_screen.dart'
+        ).read_text(encoding='utf-8')
+        pubspec = (PRO_DIR / 'pubspec.yaml').read_text(encoding='utf-8')
+
+        self.assertIn('url_launcher:', pubspec)
+        self.assertIn('https://swansport.pages.dev/', account_source)
+        self.assertIn('launchUrl', account_source)
+        self.assertNotIn('https://swansport.app', account_source)
+
 
 if __name__ == '__main__':
     unittest.main()

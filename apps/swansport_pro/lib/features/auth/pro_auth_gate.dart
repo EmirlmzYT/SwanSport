@@ -15,6 +15,14 @@ class ProAuthGate extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen<String?>(
+      authSessionProvider.select((value) => value.valueOrNull?.user.id),
+      (previousUserId, nextUserId) {
+        if (previousUserId != nextUserId) {
+          ref.invalidateSwanAccess();
+        }
+      },
+    );
     final sessionAsync = ref.watch(authSessionProvider);
 
     return sessionAsync.when(
@@ -55,6 +63,17 @@ class ProAuthGate extends ConsumerWidget {
           return const ProLoginScreen();
         }
 
+        final accessReadiness = ref.watch(proAccessReadinessProvider);
+        if (accessReadiness.isLoading) {
+          return const _ProLoadingScreen();
+        }
+        if (accessReadiness.hasError) {
+          return _ProAccessErrorScreen(
+            error: accessReadiness.error!,
+            onRetry: ref.invalidateSwanAccess,
+          );
+        }
+
         final availableWorkspaces = ref.watch(availableProWorkspacesProvider);
 
         if (availableWorkspaces.isEmpty) {
@@ -71,6 +90,69 @@ class ProAuthGate extends ConsumerWidget {
           child: child,
         );
       },
+    );
+  }
+}
+
+class _ProLoadingScreen extends StatelessWidget {
+  const _ProLoadingScreen();
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      backgroundColor: Color(0xFF0F172A),
+      body: Center(
+        child: CircularProgressIndicator(color: Color(0xFF38BDF8)),
+      ),
+    );
+  }
+}
+
+class _ProAccessErrorScreen extends StatelessWidget {
+  const _ProAccessErrorScreen({
+    required this.error,
+    required this.onRetry,
+  });
+
+  final Object error;
+  final VoidCallback onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFF0F172A),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.error_outline,
+                size: 48,
+                color: Color(0xFFEF4444),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Profesyonel yetkiler yüklenemedi.',
+                style: TextStyle(color: Colors.white, fontSize: 18),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '$error',
+                style: const TextStyle(color: Color(0xFF94A3B8)),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: onRetry,
+                child: const Text('Tekrar Dene'),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 }

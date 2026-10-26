@@ -48,24 +48,22 @@ Future<void> bootstrapPro(
         }
       }
     } catch (error) {
-      if (environment.isProduction) {
-        runner(
-          MaterialApp(
-            debugShowCheckedModeBanner: false,
-            home: ProStartupFailureScreen(
-              environment: environment,
-              error: error,
-              onRetry: () => bootstrapPro(
-                environment,
-                config: config,
-                initializeSupabase: initializeSupabase,
-                runWidgetApp: runWidgetApp,
-              ),
+      runner(
+        MaterialApp(
+          debugShowCheckedModeBanner: false,
+          home: ProStartupFailureScreen(
+            environment: environment,
+            error: error,
+            onRetry: () => bootstrapPro(
+              environment,
+              config: config,
+              initializeSupabase: initializeSupabase,
+              runWidgetApp: runWidgetApp,
             ),
           ),
-        );
-        return;
-      }
+        ),
+      );
+      return;
     }
   } else if (environment.isProduction) {
     runner(

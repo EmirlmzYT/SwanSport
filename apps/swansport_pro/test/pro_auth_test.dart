@@ -224,6 +224,33 @@ void main() {
     });
 
     testWidgets(
+        'keeps a neutral loading state while professional access inputs load',
+        (tester) async {
+      final fake = FakeAccountSessionService();
+      final profile = Completer<ProfileInfo?>();
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountSessionServiceProvider.overrideWithValue(fake),
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(makeSession('user-loading-access')),
+            ),
+            currentProfileProvider.overrideWith((ref) => profile.future),
+          ],
+          child: const MaterialApp(
+            home: ProAuthGate(child: Text('PRO_CONTENT')),
+          ),
+        ),
+      );
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.text('Profesyonel Erişim Bulunamadı'), findsNothing);
+      expect(find.text('PRO_CONTENT'), findsNothing);
+    });
+
+    testWidgets(
         'shows child when signed in with authorized professional access',
         (tester) async {
       await tester.pumpWidget(
@@ -248,6 +275,46 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(find.text('PRO_CONTENT'), findsOneWidget);
+    });
+
+    testWidgets('account changes invalidate cached shared access inputs',
+        (tester) async {
+      final sessions = StreamController<Session?>.broadcast();
+      addTearDown(sessions.close);
+      final fake = FakeAccountSessionService();
+      var adminReads = 0;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountSessionServiceProvider.overrideWithValue(fake),
+            authSessionProvider.overrideWith((ref) => sessions.stream),
+            currentProfileProvider.overrideWith(
+              (ref) async =>
+                  const ProfileInfo(id: 'profile', fullName: 'Test User'),
+            ),
+            isPlatformAdminProvider.overrideWith((ref) async {
+              adminReads++;
+              return true;
+            }),
+          ],
+          child: const MaterialApp(
+            home: ProAuthGate(child: Text('PRO_CONTENT')),
+          ),
+        ),
+      );
+
+      sessions.add(makeSession('user-one'));
+      await tester.pumpAndSettle();
+      expect(find.text('PRO_CONTENT'), findsOneWidget);
+      final readsAfterFirstAccount = adminReads;
+      expect(readsAfterFirstAccount, greaterThan(0));
+
+      sessions.add(makeSession('user-two'));
+      await tester.pumpAndSettle();
+
+      expect(adminReads, greaterThan(readsAfterFirstAccount));
       expect(find.text('PRO_CONTENT'), findsOneWidget);
     });
   });

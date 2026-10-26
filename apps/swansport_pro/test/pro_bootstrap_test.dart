@@ -51,6 +51,30 @@ void main() {
     });
 
     testWidgets(
+        'failed development initialization renders failure instead of a live configured app',
+        (tester) async {
+      Widget? launchedWidget;
+      const testConfig = SupabaseConfig(
+        url: 'https://test.supabase.co',
+        anonKey: 'test-key',
+      );
+
+      await bootstrapPro(
+        const ProEnvironment.development(),
+        config: testConfig,
+        initializeSupabase: (config) async {
+          throw Exception('Connection failed');
+        },
+        runWidgetApp: (app) => launchedWidget = app,
+      );
+
+      expect(launchedWidget, isNotNull);
+      await tester.pumpWidget(MaterialApp(home: launchedWidget!));
+      expect(find.byType(ProStartupFailureScreen), findsOneWidget);
+      expect(find.byType(ProApp), findsNothing);
+    });
+
+    testWidgets(
         'configured production startup installs shared provider overrides and launches ProApp',
         (tester) async {
       Widget? launchedWidget;
@@ -97,6 +121,27 @@ void main() {
       final scope = launchedWidget as ProviderScope;
       // Child must be ProApp directly, without push/deep link wrappers
       expect(scope.child, isA<ProApp>());
+    });
+  });
+
+  group('ProEnvironment.fromCompileTime', () {
+    test('rejects unknown environments instead of falling back to development',
+        () {
+      expect(
+        () => ProEnvironment.fromCompileTime(environmentName: 'staging-typo'),
+        throwsA(isA<ProEnvironmentException>()),
+      );
+    });
+
+    test('rejects empty app names and malformed debug flags', () {
+      expect(
+        () => ProEnvironment.fromCompileTime(appName: '   '),
+        throwsA(isA<ProEnvironmentException>()),
+      );
+      expect(
+        () => ProEnvironment.fromCompileTime(enableDebugTools: 'sometimes'),
+        throwsA(isA<ProEnvironmentException>()),
+      );
     });
   });
 }

@@ -2,6 +2,44 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'pro_workspace.dart';
 
+/// `SwanAccess` hesaplanırken kullanılan uzak kaynakların yükleme durumu.
+///
+/// `swanAccessProvider` kısmi verilerle güvenli biçimde `none` dönebildiği
+/// için Pro giriş kapısı, kesin bir erişim reddi göstermeden önce bu
+/// kaynakların tamamlanmasını ayrıca bekler.
+final proAccessReadinessProvider = Provider<AsyncValue<void>>((ref) {
+  final sources = <AsyncValue<dynamic>>[
+    ref.watch(currentProfileProvider),
+    ref.watch(isPlatformAdminProvider),
+    ref.watch(myCredentialsProvider),
+    ref.watch(myIdentityGateProvider),
+    ref.watch(myAccountantClubIdsProvider),
+    ref.watch(myManagedTurfFieldIdsProvider),
+    ref.watch(delegatedTurfFieldIdsProvider),
+    ref.watch(myFederationAppointmentsProvider),
+    ref.watch(myFederationRolesProvider),
+    ref.watch(myRefereeProfileProvider),
+    ref.watch(myClubStaffRolesProvider),
+    ref.watch(mySportsClubAuthorityProvider),
+    ref.watch(myClubOperationsAuthorityProvider),
+    ref.watch(guardianAthleteIdsProvider),
+    ref.watch(myVenueVerificationTierProvider),
+  ];
+
+  for (final source in sources) {
+    if (source.hasError) {
+      return AsyncError(
+        source.error!,
+        source.stackTrace ?? StackTrace.current,
+      );
+    }
+  }
+  if (sources.any((source) => source.isLoading)) {
+    return const AsyncLoading();
+  }
+  return const AsyncData(null);
+});
+
 /// Kullanıcının mevcut erişimine göre izin verilen çalışma alanları listesi.
 final availableProWorkspacesProvider = Provider<List<ProWorkspace>>((ref) {
   final access = ref.watch(swanAccessProvider);

@@ -1,32 +1,36 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 import '../auth/pro_auth_controller.dart';
 
 class ProAccountScreen extends ConsumerWidget {
   const ProAccountScreen({super.key});
 
-  void _openSwanSport(BuildContext context) {
-    showDialog<void>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        title: const Text('SwanSport', style: TextStyle(color: Colors.white)),
-        content: const Text(
-          'Kişisel sporcu, veli ve sosyal spor ağı deneyimi için SwanSport uygulamasını açabilirsiniz.\n\n'
-          'Web adresi: https://swansport.app',
-          style: TextStyle(color: Color(0xFFCBD5E1), height: 1.4),
+  static final _swanSportWebUri = Uri.parse('https://swansport.pages.dev/');
+
+  Future<void> _openSwanSport(BuildContext context) async {
+    var opened = false;
+    try {
+      opened = await launchUrl(
+        _swanSportWebUri,
+        mode: kIsWeb
+            ? LaunchMode.platformDefault
+            : LaunchMode.externalApplication,
+      );
+    } catch (_) {
+      opened = false;
+    }
+    if (!opened && context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content:
+              Text('SwanSport bağlantısı açılamadı. Lütfen tekrar deneyin.'),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(),
-            child:
-                const Text('Tamam', style: TextStyle(color: Color(0xFF38BDF8))),
-          ),
-        ],
-      ),
-    );
+      );
+    }
   }
 
   @override
