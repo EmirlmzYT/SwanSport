@@ -1,8 +1,15 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-25 Europe/Istanbul
+Son güncelleme: 2026-10-26 Europe/Istanbul
 Aktif Writer: —
 Durum: `free`
+
+2026-10-26 SwanSport Pro tasarımı: Gerçek ayrı Flutter uygulaması, aynı
+Supabase/Auth ve tek SwanAccess otoritesi; rol bazlı yedi çalışma alanı ve
+altı fazlı eklemeli geçiş kararlaştırıldı. Faz 1 yalnız Pro kabuğu/auth/erişim
+ve build kapılarıdır; push ve operasyon taşıması sonraki fazdadır. Mevcut
+SwanSport'tan hiçbir özellik çıkarılmadı, Ana Sayfa ve ürün kodu değişmedi.
+Tasarım kullanıcı onayı bekliyor.
 
 2026-10-26 Aşama 3 staging kabulü: Ayrı staging hedefi ve migration dry-run
 başarılı. İmzalı Android staging APK üretildi. Gerçek apply, temiz zincirde
