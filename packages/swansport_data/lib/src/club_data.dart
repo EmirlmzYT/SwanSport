@@ -767,6 +767,23 @@ final clubDataServiceProvider = Provider<ClubDataService>((ref) {
   return ClubDataService(ref.watch(supabaseClientProvider));
 });
 
+typedef TeamCreateCommand = Future<void> Function(
+  String clubId,
+  String name, {
+  String? ageGroup,
+  String? gender,
+});
+
+final teamCreateCommandProvider = Provider<TeamCreateCommand>((ref) {
+  final service = ref.watch(clubDataServiceProvider);
+  return (clubId, name, {ageGroup, gender}) => service.addTeam(
+        clubId,
+        name,
+        ageGroup: ageGroup,
+        gender: gender,
+      );
+});
+
 Future<T> _forClub<T>(Ref ref,
     Future<T> Function(ClubDataService s, String clubId) run, T empty) async {
   final club = await ref.watch(activeClubProvider.future);
