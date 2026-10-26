@@ -4,6 +4,12 @@ Son güncelleme: 2026-10-26 Europe/Istanbul
 Aktif Writer: —
 Durum: `free`
 
+2026-10-26 SwanSport Pro Faz 1: Kullanıcı tasarımı onayladı ve uygulamayı dış
+Gemini işçisine devretmek istedi. TDD uygulama planı ve denetimli işçi promptu
+hazırlandı; ürün kodu henüz değişmedi. Bu oturumdaki Ruflo yalnız Claude model
+takma adlarını kabul ediyor, Gemini eklentisi/CLI bulunmuyor; model bağlantısı
+veya kullanıcının yedek model seçimi bekleniyor.
+
 2026-10-26 SwanSport Pro tasarımı: Gerçek ayrı Flutter uygulaması, aynı
 Supabase/Auth ve tek SwanAccess otoritesi; rol bazlı yedi çalışma alanı ve
 altı fazlı eklemeli geçiş kararlaştırıldı. Faz 1 yalnız Pro kabuğu/auth/erişim

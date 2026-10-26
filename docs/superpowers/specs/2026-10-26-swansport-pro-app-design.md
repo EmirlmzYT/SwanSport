@@ -1,7 +1,7 @@
 # SwanSport Pro Ayrı Uygulama Tasarımı
 
 **Tarih:** 2026-10-26  
-**Durum:** Kullanıcı onayı bekliyor  
+**Durum:** Kullanıcı tarafından onaylandı; Faz 1 planlanıyor
 **Kapsam:** Tasarım ve fazlama; bu belgede ürün kodu değiştirilmez.
 
 ## 1. Karar
