@@ -1,9 +1,9 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-26 Europe/Istanbul
-Aktif Writer: Codex `/root`
-Durum: `busy` — SwanSport Pro Faz 1 denetimi ve paket kabulü tamamlandı;
-son kanıt commit/push işlemi sürüyor. SwanSport değişmez.
+Aktif Writer: yok
+Durum: `free` — SwanSport Pro Faz 1 denetimi, kanıt commit/push işlemi ve
+Android/iOS önizleme paket kabulü tamamlandı. SwanSport değişmedi.
 
 2026-10-26 Pro Faz 1 paket sonucu: kaynak/düzeltmeler `441c0fd` ile
 `codex/advanced-chat-header46` dalına pushlandı. GitHub Actions `40254315897`
