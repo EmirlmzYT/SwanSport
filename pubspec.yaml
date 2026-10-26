@@ -13,6 +13,7 @@ workspace:
   - packages/swansport_design_system
   - packages/swansport_models
   - packages/swansport_branch_engine
+  - packages/swansport_pro_features
 
 dev_dependencies:
   lints: ^5.0.0

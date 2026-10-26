@@ -1,0 +1,122 @@
+import 'package:flutter/material.dart';
+
+import 'pro_feature_theme.dart';
+
+final class TeamRouteTarget {
+  const TeamRouteTarget({required this.teamId, required this.teamName});
+
+  final String teamId;
+  final String teamName;
+}
+
+enum ProFeatureMessageTone { info, success, warning, danger }
+
+abstract interface class ProFeatureNavigator {
+  void openTeams();
+
+  void openRoster(TeamRouteTarget target);
+
+  void openAttendance();
+
+  void openAttendanceHistory();
+
+  void openTrainingList();
+
+  void openTrainingProtocols();
+
+  void openTrainingBuilder();
+
+  void openTrainingSession({String? sessionId});
+
+  void openTrainingResult({String? sessionId});
+
+  bool openCalendar();
+
+  bool openAthleteProfile({
+    required String athleteId,
+    String? athleteName,
+  });
+
+  bool openConversation({
+    required String profileId,
+    String? displayName,
+  });
+}
+
+/// Convenience base for hosts that do not support optional destinations.
+abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
+  @override
+  bool openCalendar() => false;
+
+  @override
+  bool openAthleteProfile({required String athleteId, String? athleteName}) =>
+      false;
+
+  @override
+  bool openConversation({required String profileId, String? displayName}) =>
+      false;
+}
+
+abstract interface class ProFeatureChrome {
+  Widget buildPage(
+    BuildContext context, {
+    required String title,
+    required Widget body,
+    List<Widget> actions,
+    Widget? bottomBar,
+    bool allowBack,
+  });
+
+  void showMessage(
+    BuildContext context,
+    String message, {
+    ProFeatureMessageTone tone,
+  });
+
+  Future<bool> confirm(
+    BuildContext context, {
+    required String title,
+    required String message,
+    required String confirmLabel,
+    String cancelLabel,
+  });
+}
+
+final class ProFeatureHostScope extends InheritedWidget {
+  const ProFeatureHostScope({
+    required this.navigator,
+    required this.chrome,
+    required this.theme,
+    required super.child,
+    super.key,
+  });
+
+  final ProFeatureNavigator navigator;
+  final ProFeatureChrome chrome;
+  final ProFeatureThemeData theme;
+
+  static ProFeatureHostScope? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<ProFeatureHostScope>();
+
+  static ProFeatureHostScope of(BuildContext context) {
+    final scope = maybeOf(context);
+    assert(
+      scope != null,
+      'No ProFeatureHostScope found. Shared professional-operation screens '
+      'must be mounted below a host adapter.',
+    );
+    if (scope == null) {
+      throw FlutterError(
+        'No ProFeatureHostScope found. Shared professional-operation screens '
+        'must be mounted below a host adapter.',
+      );
+    }
+    return scope;
+  }
+
+  @override
+  bool updateShouldNotify(ProFeatureHostScope oldWidget) =>
+      navigator != oldWidget.navigator ||
+      chrome != oldWidget.chrome ||
+      theme != oldWidget.theme;
+}
