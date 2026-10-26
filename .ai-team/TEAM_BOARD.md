@@ -1,9 +1,20 @@
 # SwanSport AI Team Board
 
 Son güncelleme: 2026-10-26 Europe/Istanbul
-Aktif Writer: Codex `/root`
-Durum: `busy` — Pro 0.1.0+2 production-Auth önizleme paketini fail-closed
-hedef kapısı ve GitHub APK/unsigned IPA kabulüyle hazırlıyor. SwanSport değişmez.
+Aktif Writer: yok
+Durum: `free` — Pro 0.1.0+2 production-Auth APK/unsigned IPA kabulü ve
+GitHub ön sürümü tamamlandı. SwanSport değişmedi.
+
+2026-10-26 Pro production-Auth düzeltmesi: İlk 0.1.0+1 paketinin staging
+Auth'a bağlı ve staging'in 0 kullanıcılı olması gerçek şifrenin reddedilme
+nedeniydi; production'da 54 hesap vardı. Kullanıcı/şifre kopyalanmadı.
+`production_target.py` yalnız bilinen production ref'ini kabul eden fail-closed
+kapı olarak eklendi; Pro `0.1.0+2` oldu. İlk CI `40256037501`, testin workflow
+env'ini boş senaryoya taşıması nedeniyle güvenle durdu; izolasyon düzeltmesinden
+sonra `40256268977` üç işi de geçti. APK/IPA içinde yalnız production URL'si,
+IPA'da `com.swansport.pro`/`0.1.0+2` ve Firebase plist yokluğu doğrulandı.
+Paketler `swansport-pro-v0.1.0+2-r2` prerelease'indedir. Migration/veri yazımı,
+production deploy, Play/TestFlight ve fiziksel cihaz kabulü yapılmadı.
 
 2026-10-26 Pro Faz 1 paket sonucu: kaynak/düzeltmeler `441c0fd` ile
 `codex/advanced-chat-header46` dalına pushlandı. GitHub Actions `40254315897`

@@ -122,6 +122,28 @@ git diff -- apps/swansport_app
   `768f8e310c5c13481c754e8ab2a23de3ec17e446aa007c8d448cecadab23e01b`
 - Her iki arşiv CRC kontrolünden geçti. IPA `com.swansport.pro`, `SwanSport Pro`,
   `0.1.0+1` değerlerini taşır ve `GoogleService-Info.plist` içermez.
+- Bu ilk paket staging Auth'a bağlıdır. Staging projesinde kullanıcı olmadığı
+  doğrulandığından gerçek SwanSport hesabıyla giriş kabulü için kullanılmaz.
+
+### I. Production Auth Hesap Kabul Paketi (`0.1.0+2`)
+
+- Gerçek hesapları staging'e kopyalamak yerine iki uygulamanın aynı production
+  Supabase/Auth kaynağını kullanması kararı korundu.
+- `tools/production_target.py` yalnız bilinen production proje adresini kabul
+  eder; eksik, farklı veya staging hedefinde build fail-closed durur.
+- GitHub Actions: [Production Preview #40256268977](https://github.com/EmirlmzYT/SwanSport/actions/runs/40256268977)
+- Sonuç: production hedef doğrulaması, analyzer, 43/43 Pro testi, sözleşme
+  testleri, Android APK ve unsigned iOS IPA işlerinin tamamı `success`.
+- Ön sürüm: [SwanSport Pro 0.1.0+2 Production Auth Preview](https://github.com/EmirlmzYT/SwanSport/releases/tag/swansport-pro-v0.1.0%2B2-r2)
+- APK: 53,176,986 byte; SHA-256
+  `80d726df05595924c4ca88159deaa270949a443c94b7a99023422ca1bfc77450`
+- IPA: 7,625,106 byte; SHA-256
+  `d23de9b46b938527ec13bd1979e9f75978e3d4313826061ce96f8d623af74e78`
+- İki pakette de yalnız production Supabase URL'si bulundu; staging URL'si yok.
+  Arşiv CRC'leri temiz. IPA `com.swansport.pro`, `SwanSport Pro`, `0.1.0+2`
+  taşır ve Firebase plist içermez.
+- Bu işlem migration, SQL apply, kullanıcı kopyalama veya production veri yazımı
+  yapmadı; yalnız istemci build hedefini mevcut ortak Auth'a bağladı.
 
 ---
 
@@ -130,6 +152,7 @@ git diff -- apps/swansport_app
 - **Operasyon Modülleri:** Faz 1 kapsamında operasyon ekranları taşınmamıştır; Görevler, Takvim ve Gelen Kutusu güvenli "Yakında" durumundadır. Sosyal veri kaynakları sorgulanmaz.
 - **Push & Bildirim:** Push altyapısı, `app_target` migration'ı ve APNs/FCM bildirimleri Faz 5 kapsamındadır.
 - **Canlı Yayın:** Canlı SQL migration, üretim deploy'u, imzalı mağaza paketleri ve cross-app silent SSO Faz 1'e dahil değildir.
-- **İmzalama sınırı:** APK staging release paketidir. IPA imzasız önizlemedir;
-  TestFlight/App Store dağıtımı veya fiziksel cihaz kabulü değildir. İmzalı iOS
-  dağıtımı gerçek Apple takım/sertifika/provisioning kurulumu ister.
+- **İmzalama sınırı:** `0.1.0+2` APK debug anahtarıyla imzalı production-bağlantılı
+  önizlemedir; Play Store yayını değildir. IPA imzasız önizlemedir; TestFlight/
+  App Store dağıtımı veya fiziksel cihaz kabulü değildir. Mağaza dağıtımları
+  gerçek Android/Apple yayın imzası ister.
