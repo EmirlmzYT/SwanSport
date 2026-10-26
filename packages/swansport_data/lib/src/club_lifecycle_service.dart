@@ -242,8 +242,7 @@ class OperationalRisk {
 
   final List<RiskReason> reasons;
 
-  List<RiskReason> get active =>
-      reasons.where((r) => r.isActive).toList();
+  List<RiskReason> get active => reasons.where((r) => r.isActive).toList();
 
   int get criticalCount => reasons.where((r) => r.isCritical).length;
 
@@ -452,8 +451,8 @@ class ClubLifecycleService {
 
   // ------------------------------------------------------------- uygunluk
   Future<Eligibility> eligibility(String athleteId) async {
-    final rows = await _c
-        .rpc<List<dynamic>>('eligibility_gate', params: {'p_athlete': athleteId});
+    final rows = await _c.rpc<List<dynamic>>('eligibility_gate',
+        params: {'p_athlete': athleteId});
     if (rows.isEmpty) return const Eligibility.unknown();
     return Eligibility.fromMap((rows.first as Map).cast<String, dynamic>());
   }
@@ -539,8 +538,8 @@ class ClubLifecycleService {
 
   // ----------------------------------------------------------------- risk
   Future<OperationalRisk> risk(String clubId) async {
-    final rows = await _c
-        .rpc<List<dynamic>>('club_operational_risk', params: {'p_club': clubId});
+    final rows = await _c.rpc<List<dynamic>>('club_operational_risk',
+        params: {'p_club': clubId});
     return OperationalRisk(rows
         .map((e) => RiskReason.fromMap((e as Map).cast<String, dynamic>()))
         .toList());
@@ -600,7 +599,8 @@ class ClubLifecycleService {
   Future<List<FaqEntry>> allFaq() async {
     final rows = await _c
         .from('faq_entries')
-        .select('id, question, answer, category, audience, sort_order, active, route, feature')
+        .select(
+            'id, question, answer, category, audience, sort_order, active, route, feature')
         .order('category')
         .order('sort_order');
     return rows
@@ -649,8 +649,8 @@ class ClubLifecycleService {
     final rows = await _c
         .rpc<List<dynamic>>('support_queue', params: {'p_status': status});
     return rows
-        .map((e) =>
-            SupportQueueItem.fromMap((e as Map).cast<String, dynamic>()))
+        .map(
+            (e) => SupportQueueItem.fromMap((e as Map).cast<String, dynamic>()))
         .toList();
   }
 
@@ -670,6 +670,18 @@ class ClubLifecycleService {
 
 final clubLifecycleServiceProvider = Provider<ClubLifecycleService>((ref) {
   return ClubLifecycleService(ref.watch(supabaseClientProvider));
+});
+
+typedef AttendanceSaveCommand = Future<AttendanceOpResult> Function({
+  required String eventId,
+  required String opId,
+  required List<Map<String, dynamic>> marks,
+});
+
+/// Testable write boundary for the shared attendance UI. The operation id is
+/// supplied by the caller so an uncertain retry can reuse the exact same id.
+final attendanceSaveCommandProvider = Provider<AttendanceSaveCommand>((ref) {
+  return ref.watch(clubLifecycleServiceProvider).saveAttendance;
 });
 
 final eligibilityProvider = FutureProvider.autoDispose

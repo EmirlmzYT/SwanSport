@@ -124,6 +124,8 @@ void main() {
           }),
           featureEnabledProvider(FeatureFlags.offlineAttendance)
               .overrideWithValue(false),
+          featureEnabledProvider(FeatureFlags.attendanceOperations)
+              .overrideWithValue(true),
           versionedRosterProvider('e').overrideWith((ref) async {
             if (offline) throw StateError('offline');
             return const [
@@ -136,6 +138,10 @@ void main() {
             ];
           }),
           clubLifecycleServiceProvider.overrideWithValue(lifecycle),
+          attendanceSaveCommandProvider.overrideWithValue(
+            ({required eventId, required opId, required marks}) => lifecycle
+                .saveAttendance(eventId: eventId, opId: opId, marks: marks),
+          ),
         ],
       );
       container.listen(attendanceLocalDataProvider, (_, __) {});
@@ -227,7 +233,8 @@ void main() {
     while (find.text('Sunucuda henüz doğrulanmadı').evaluate().isEmpty &&
         DateTime.now().isBefore(visibleDeadline)) {
       await t.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 20)));
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
       await t.pumpAndSettle();
     }
     expect(find.text('Sunucuda henüz doğrulanmadı'), findsOneWidget);

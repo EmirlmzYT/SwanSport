@@ -67,7 +67,8 @@ SafeOperationError classifyOperationError(Object error) {
         cause: error,
       );
     }
-    if (const {'22023', '23502', '23503', '23514', 'P0001'}.contains(code)) {
+    if ((code?.startsWith('22') ?? false) ||
+        const {'23502', '23503', '23514', 'P0001'}.contains(code)) {
       return SafeOperationError(
         kind: OperationErrorKind.validation,
         userMessage: 'Gönderilen bilgiler doğrulanamadı. Alanları kontrol et.',
