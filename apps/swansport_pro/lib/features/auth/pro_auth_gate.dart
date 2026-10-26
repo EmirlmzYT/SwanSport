@@ -32,7 +32,8 @@ class ProAuthGate extends ConsumerWidget {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Icon(Icons.error_outline, size: 48, color: Color(0xFFEF4444)),
+                const Icon(Icons.error_outline,
+                    size: 48, color: Color(0xFFEF4444)),
                 const SizedBox(height: 16),
                 Text(
                   'Oturum hatası: $error',
@@ -124,7 +125,8 @@ class _NoProAccessScreen extends StatelessWidget {
                   if (userEmail != null) ...[
                     const SizedBox(height: 16),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(6),

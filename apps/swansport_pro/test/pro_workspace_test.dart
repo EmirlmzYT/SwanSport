@@ -58,7 +58,9 @@ void main() {
       expect(proWorkspacesFor(nonStaff).contains(ProWorkspace.club), isFalse);
     });
 
-    test('coachLevel > 0 without active staff membership maps to coaching but NOT club', () {
+    test(
+        'coachLevel > 0 without active staff membership maps to coaching but NOT club',
+        () {
       final access = baseAccess(
         coachLevel: 2,
         clubRole: 'member',
@@ -78,7 +80,9 @@ void main() {
       expect(workspaces.contains(ProWorkspace.coaching), isTrue);
     });
 
-    test('active federation role or appointment maps to ProWorkspace.federation', () {
+    test(
+        'active federation role or appointment maps to ProWorkspace.federation',
+        () {
       final withRole = baseAccess(
         federationRoles: [
           FederationRole(
@@ -106,7 +110,8 @@ void main() {
           ),
         ],
       );
-      expect(proWorkspacesFor(withAppointment), contains(ProWorkspace.federation));
+      expect(
+          proWorkspacesFor(withAppointment), contains(ProWorkspace.federation));
     });
 
     test('active referee maps to referee, inactive referee does not', () {
@@ -118,7 +123,8 @@ void main() {
       final inactiveRef = baseAccess(
         refereeProfile: fakeReferee(isActive: false),
       );
-      expect(proWorkspacesFor(inactiveRef), isNot(contains(ProWorkspace.referee)));
+      expect(
+          proWorkspacesFor(inactiveRef), isNot(contains(ProWorkspace.referee)));
     });
 
     test('non-empty accountant club IDs map to ProWorkspace.accounting', () {
@@ -126,7 +132,8 @@ void main() {
       expect(proWorkspacesFor(access), contains(ProWorkspace.accounting));
 
       final noAccountant = baseAccess(accountantClubIds: {});
-      expect(proWorkspacesFor(noAccountant), isNot(contains(ProWorkspace.accounting)));
+      expect(proWorkspacesFor(noAccountant),
+          isNot(contains(ProWorkspace.accounting)));
     });
 
     test('managed or delegated turf ID maps to ProWorkspace.facility', () {
@@ -145,10 +152,13 @@ void main() {
       expect(proWorkspacesFor(admin), contains(ProWorkspace.platform));
 
       final notAdmin = baseAccess(isPlatformAdmin: false);
-      expect(proWorkspacesFor(notAdmin), isNot(contains(ProWorkspace.platform)));
+      expect(
+          proWorkspacesFor(notAdmin), isNot(contains(ProWorkspace.platform)));
     });
 
-    test('combined multi-role fixture returns all applicable values once in enum order', () {
+    test(
+        'combined multi-role fixture returns all applicable values once in enum order',
+        () {
       final multiRole = baseAccess(
         isPlatformAdmin: true,
         clubRole: 'club_admin',

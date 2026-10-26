@@ -19,7 +19,8 @@ class ProPlaceholderScreen extends StatelessWidget {
         'Antrenman, resmi maç, tesis ve görev takvimi operasyonel planlama fazında eklenecektir.',
       'Gelen Kutusu' =>
         'Sosyal bildirimlerden izole edilmiş profesyonel operasyon bildirimleri Faz 5 kapsamında sunulacaktır.',
-      _ => 'Bu modül Faz 2–5 planı uyarınca sonraki sürümlerde aktifleşecektir.',
+      _ =>
+        'Bu modül Faz 2–5 planı uyarınca sonraki sürümlerde aktifleşecektir.',
     };
 
     return Scaffold(
@@ -34,7 +35,8 @@ class ProPlaceholderScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: const Color(0xFF0284C7).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),

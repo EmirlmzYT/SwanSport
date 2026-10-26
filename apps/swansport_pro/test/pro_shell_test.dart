@@ -11,15 +11,14 @@ import 'package:swansport_pro/features/auth/pro_login_screen.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/placeholders/pro_placeholder_screen.dart';
 import 'package:swansport_pro/shell/pro_shell.dart';
-import 'package:swansport_pro/workspaces/pro_workspace.dart';
-import 'package:swansport_pro/workspaces/pro_workspace_controller.dart';
 import 'package:swansport_pro/workspaces/pro_workspace_switcher.dart';
 
 class FakeAccountSessionService implements AccountSessionService {
   bool signOutCalled = false;
 
   @override
-  Future<void> signIn({required String email, required String password}) async {}
+  Future<void> signIn(
+      {required String email, required String password}) async {}
 
   @override
   Future<void> signOut() async {
@@ -151,10 +150,12 @@ void main() {
 
       // Only 1 workspace (club) -> dropdown affordance should be hidden
       expect(find.byType(ProWorkspaceSwitcher), findsOneWidget);
-      expect(find.byKey(const ValueKey('pro_workspace_dropdown_button')), findsNothing);
+      expect(find.byKey(const ValueKey('pro_workspace_dropdown_button')),
+          findsNothing);
     });
 
-    testWidgets('multiple workspaces show switcher and selection updates dashboard',
+    testWidgets(
+        'multiple workspaces show switcher and selection updates dashboard',
         (tester) async {
       final fake = FakeAccountSessionService();
       await tester.pumpWidget(
@@ -178,13 +179,15 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.byKey(const ValueKey('pro_workspace_dropdown_button')), findsOneWidget);
+      expect(find.byKey(const ValueKey('pro_workspace_dropdown_button')),
+          findsOneWidget);
 
       // Dashboard shows first workspace: Kulüp
       expect(find.textContaining('Kulüp'), findsAtLeastNWidgets(1));
 
       // Open switcher and select Antrenörlük
-      await tester.tap(find.byKey(const ValueKey('pro_workspace_dropdown_button')));
+      await tester
+          .tap(find.byKey(const ValueKey('pro_workspace_dropdown_button')));
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Antrenörlük').last);
@@ -268,7 +271,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Switch to Platform workspace
-      await tester.tap(find.byKey(const ValueKey('pro_workspace_dropdown_button')));
+      await tester
+          .tap(find.byKey(const ValueKey('pro_workspace_dropdown_button')));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Platform').last);
       await tester.pumpAndSettle();

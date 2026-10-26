@@ -8,7 +8,8 @@ import 'package:swansport_pro/shell/pro_navigation.dart';
 
 class FakeAccountSessionService implements AccountSessionService {
   @override
-  Future<void> signIn({required String email, required String password}) async {}
+  Future<void> signIn(
+      {required String email, required String password}) async {}
 
   @override
   Future<void> signOut() async {}
@@ -43,7 +44,8 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            accountSessionServiceProvider.overrideWithValue(FakeAccountSessionService()),
+            accountSessionServiceProvider
+                .overrideWithValue(FakeAccountSessionService()),
             authSessionProvider.overrideWith(
               (ref) => Stream.value(makeSession('user-a11y')),
             ),
@@ -70,12 +72,14 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('navigation destinations have at least 48x48 hit areas and semantic labels',
+    testWidgets(
+        'navigation destinations have at least 48x48 hit areas and semantic labels',
         (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            accountSessionServiceProvider.overrideWithValue(FakeAccountSessionService()),
+            accountSessionServiceProvider
+                .overrideWithValue(FakeAccountSessionService()),
             authSessionProvider.overrideWith(
               (ref) => Stream.value(makeSession('user-a11y')),
             ),
@@ -93,7 +97,13 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      for (final label in ['Panel', 'Görevler', 'Takvim', 'Gelen Kutusu', 'Hesap']) {
+      for (final label in [
+        'Panel',
+        'Görevler',
+        'Takvim',
+        'Gelen Kutusu',
+        'Hesap'
+      ]) {
         final target = find.widgetWithText(ProNavigationItem, label);
         expect(target, findsOneWidget);
         final size = tester.getSize(target);

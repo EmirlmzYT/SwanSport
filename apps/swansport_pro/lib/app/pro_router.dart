@@ -9,9 +9,11 @@ import '../shell/pro_shell.dart';
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');
 final _panelNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'panelNav');
 final _tasksNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tasksNav');
-final _calendarNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'calendarNav');
+final _calendarNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'calendarNav');
 final _inboxNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'inboxNav');
-final _accountNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'accountNav');
+final _accountNavigatorKey =
+    GlobalKey<NavigatorState>(debugLabel: 'accountNav');
 
 final proRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -37,7 +39,8 @@ final proRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/gorevler',
-                builder: (context, state) => const ProPlaceholderScreen(title: 'Görevler'),
+                builder: (context, state) =>
+                    const ProPlaceholderScreen(title: 'Görevler'),
               ),
             ],
           ),
@@ -46,7 +49,8 @@ final proRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/takvim',
-                builder: (context, state) => const ProPlaceholderScreen(title: 'Takvim'),
+                builder: (context, state) =>
+                    const ProPlaceholderScreen(title: 'Takvim'),
               ),
             ],
           ),

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_core/swansport_core.dart';
-import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/app/pro_app.dart';
 import 'package:swansport_pro/app/pro_bootstrap.dart';
 import 'package:swansport_pro/app/pro_environment.dart';
@@ -10,7 +9,8 @@ import 'package:swansport_pro/features/auth/pro_startup_failure_screen.dart';
 
 void main() {
   group('bootstrapPro', () {
-    testWidgets('missing production config renders ProStartupFailureScreen and never fixtures',
+    testWidgets(
+        'missing production config renders ProStartupFailureScreen and never fixtures',
         (tester) async {
       Widget? launchedWidget;
 
@@ -26,7 +26,8 @@ void main() {
       expect(find.byType(ProApp), findsNothing);
     });
 
-    testWidgets('failed production initialization renders ProStartupFailureScreen',
+    testWidgets(
+        'failed production initialization renders ProStartupFailureScreen',
         (tester) async {
       Widget? launchedWidget;
       const testConfig = SupabaseConfig(
@@ -49,7 +50,8 @@ void main() {
       expect(find.byType(ProApp), findsNothing);
     });
 
-    testWidgets('configured production startup installs shared provider overrides and launches ProApp',
+    testWidgets(
+        'configured production startup installs shared provider overrides and launches ProApp',
         (tester) async {
       Widget? launchedWidget;
       const testConfig = SupabaseConfig(
@@ -76,7 +78,8 @@ void main() {
       expect(scope.child, isA<ProApp>());
     });
 
-    testWidgets('Pro root widget is not wrapped in push or Firebase lifecycle observers',
+    testWidgets(
+        'Pro root widget is not wrapped in push or Firebase lifecycle observers',
         (tester) async {
       Widget? launchedWidget;
       const testConfig = SupabaseConfig(

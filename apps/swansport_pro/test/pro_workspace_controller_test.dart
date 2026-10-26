@@ -67,7 +67,8 @@ void main() {
 
       final workspaces = container.read(availableProWorkspacesProvider);
       expect(workspaces, equals([ProWorkspace.club]));
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.club));
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.club));
     });
 
     test('defaults to the first workspace when multiple are available', () {
@@ -87,7 +88,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.club));
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.club));
     });
 
     test('preserves valid manual selection across reads', () {
@@ -106,13 +108,18 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.club));
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.club));
 
-      container.read(selectedProWorkspaceProvider.notifier).selectWorkspace(ProWorkspace.platform);
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.platform));
+      container
+          .read(selectedProWorkspaceProvider.notifier)
+          .selectWorkspace(ProWorkspace.platform);
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.platform));
     });
 
-    test('resets to the first available workspace if current selection is lost', () {
+    test('resets to the first available workspace if current selection is lost',
+        () {
       final accessState = StateProvider<SwanAccess>((ref) {
         return makeAccess(
           clubRole: 'club_admin',
@@ -130,13 +137,18 @@ void main() {
       );
       addTearDown(container.dispose);
 
-      container.read(selectedProWorkspaceProvider.notifier).selectWorkspace(ProWorkspace.platform);
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.platform));
+      container
+          .read(selectedProWorkspaceProvider.notifier)
+          .selectWorkspace(ProWorkspace.platform);
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.platform));
 
       // User loses platform admin access
-      container.read(accessState.notifier).state = makeAccess(clubRole: 'club_admin');
+      container.read(accessState.notifier).state =
+          makeAccess(clubRole: 'club_admin');
 
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.club));
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.club));
     });
 
     test('resets selection when session/account changes', () async {
@@ -160,17 +172,22 @@ void main() {
       sessions.add(makeSession('user-1'));
       await Future<void>.delayed(Duration.zero);
 
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.club));
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.club));
 
-      container.read(selectedProWorkspaceProvider.notifier).selectWorkspace(ProWorkspace.platform);
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.platform));
+      container
+          .read(selectedProWorkspaceProvider.notifier)
+          .selectWorkspace(ProWorkspace.platform);
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.platform));
 
       // User signs out / switches account
       sessions.add(makeSession('user-2'));
       await Future<void>.delayed(Duration.zero);
 
       // New account defaults back to first available workspace
-      expect(container.read(selectedProWorkspaceProvider), equals(ProWorkspace.club));
+      expect(container.read(selectedProWorkspaceProvider),
+          equals(ProWorkspace.club));
     });
   });
 }

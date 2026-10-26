@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import '../../workspaces/pro_workspace.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 import '../auth/pro_auth_controller.dart';
 
@@ -22,7 +21,8 @@ class ProAccountScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Tamam', style: TextStyle(color: Color(0xFF38BDF8))),
+            child:
+                const Text('Tamam', style: TextStyle(color: Color(0xFF38BDF8))),
           ),
         ],
       ),
@@ -100,7 +100,8 @@ class ProAccountScreen extends ConsumerWidget {
                       children: availableWorkspaces.map((ws) {
                         final isSelected = ws == selectedWorkspace;
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
                             color: isSelected
                                 ? const Color(0xFF0284C7).withValues(alpha: 0.3)
@@ -116,8 +117,12 @@ class ProAccountScreen extends ConsumerWidget {
                             ws.label,
                             style: TextStyle(
                               fontSize: 12,
-                              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
-                              color: isSelected ? const Color(0xFF38BDF8) : const Color(0xFF94A3B8),
+                              fontWeight: isSelected
+                                  ? FontWeight.w600
+                                  : FontWeight.normal,
+                              color: isSelected
+                                  ? const Color(0xFF38BDF8)
+                                  : const Color(0xFF94A3B8),
                             ),
                           ),
                         );

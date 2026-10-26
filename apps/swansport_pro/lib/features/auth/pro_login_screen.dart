@@ -109,7 +109,8 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'E-posta',
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                      prefixIcon: const Icon(Icons.email_outlined, color: Color(0xFF94A3B8)),
+                      prefixIcon: const Icon(Icons.email_outlined,
+                          color: Color(0xFF94A3B8)),
                       filled: true,
                       fillColor: const Color(0xFF1E293B),
                       border: OutlineInputBorder(
@@ -136,10 +137,13 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                     decoration: InputDecoration(
                       labelText: 'Şifre',
                       labelStyle: const TextStyle(color: Color(0xFF94A3B8)),
-                      prefixIcon: const Icon(Icons.lock_outline, color: Color(0xFF94A3B8)),
+                      prefixIcon: const Icon(Icons.lock_outline,
+                          color: Color(0xFF94A3B8)),
                       suffixIcon: IconButton(
                         icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          _obscurePassword
+                              ? Icons.visibility_off
+                              : Icons.visibility,
                           color: const Color(0xFF94A3B8),
                         ),
                         onPressed: () {
@@ -186,7 +190,8 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                           )
                         : const Text(
                             'Giriş Yap',
-                            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.w600),
                           ),
                   ),
                 ],

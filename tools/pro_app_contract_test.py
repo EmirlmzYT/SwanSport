@@ -107,6 +107,25 @@ class ProAppContractTest(unittest.TestCase):
             self.assertNotIn('firebase_core', content)
             self.assertNotIn('firebase_messaging', content)
 
+    def test_ci_workflow_includes_pro(self):
+        ci_yaml = (ROOT / '.github' / 'workflows' / 'ci.yml').read_text(encoding='utf-8')
+        self.assertIn('- apps/swansport_pro', ci_yaml)
+        self.assertIn('swansport_pro', ci_yaml)
+
+    def test_build_pro_preview_workflow_contract(self):
+        preview_workflow = ROOT / '.github' / 'workflows' / 'build_pro_preview.yml'
+        self.assertTrue(preview_workflow.is_file(), "build_pro_preview.yml must exist")
+        content = preview_workflow.read_text(encoding='utf-8')
+
+        self.assertIn('workflow_dispatch:', content)
+        self.assertIn('environment: staging', content)
+        self.assertIn('apps/swansport_pro', content)
+        self.assertIn('python tools/staging_target.py', content)
+        self.assertIn('SwanSport-Pro', content)
+        self.assertIn('verify_ios_preview_bundle.py', content)
+        self.assertIn('--firebase-enabled false', content)
+        self.assertNotIn('aps-environment', content)
+
 
 if __name__ == '__main__':
     unittest.main()

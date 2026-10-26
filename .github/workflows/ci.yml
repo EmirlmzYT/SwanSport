@@ -62,6 +62,7 @@ jobs:
           - packages/swansport_data
           - apps/swansport_app
           - apps/swansport_console
+          - apps/swansport_pro
 
     steps:
       - name: Checkout
@@ -133,7 +134,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        application: [swansport_app, swansport_console]
+        application: [swansport_app, swansport_console, swansport_pro]
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2

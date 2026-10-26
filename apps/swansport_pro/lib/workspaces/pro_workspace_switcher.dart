@@ -32,7 +32,8 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(_iconForWorkspace(selected), size: 18, color: const Color(0xFF38BDF8)),
+          Icon(_iconForWorkspace(selected),
+              size: 18, color: const Color(0xFF38BDF8)),
           const SizedBox(width: 8),
           Text(
             selected.label,
@@ -51,7 +52,9 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
       key: const ValueKey('pro_workspace_dropdown_button'),
       tooltip: 'Çalışma Alanı Değiştir',
       onSelected: (workspace) {
-        ref.read(selectedProWorkspaceProvider.notifier).selectWorkspace(workspace);
+        ref
+            .read(selectedProWorkspaceProvider.notifier)
+            .selectWorkspace(workspace);
       },
       color: const Color(0xFF1E293B),
       shape: RoundedRectangleBorder(
@@ -68,7 +71,9 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
                 Icon(
                   _iconForWorkspace(ws),
                   size: 20,
-                  color: isCurrent ? const Color(0xFF38BDF8) : const Color(0xFF94A3B8),
+                  color: isCurrent
+                      ? const Color(0xFF38BDF8)
+                      : const Color(0xFF94A3B8),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -76,7 +81,8 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
                     ws.label,
                     style: TextStyle(
                       color: isCurrent ? Colors.white : const Color(0xFFCBD5E1),
-                      fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+                      fontWeight:
+                          isCurrent ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -97,7 +103,8 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(_iconForWorkspace(selected), size: 18, color: const Color(0xFF38BDF8)),
+            Icon(_iconForWorkspace(selected),
+                size: 18, color: const Color(0xFF38BDF8)),
             const SizedBox(width: 8),
             Text(
               selected.label,
@@ -108,7 +115,8 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
               ),
             ),
             const SizedBox(width: 6),
-            const Icon(Icons.keyboard_arrow_down, size: 18, color: Color(0xFF94A3B8)),
+            const Icon(Icons.keyboard_arrow_down,
+                size: 18, color: Color(0xFF94A3B8)),
           ],
         ),
       ),

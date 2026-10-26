@@ -9,8 +9,6 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/features/auth/pro_auth_controller.dart';
 import 'package:swansport_pro/features/auth/pro_auth_gate.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
-import 'package:swansport_pro/workspaces/pro_workspace.dart';
-import 'package:swansport_pro/workspaces/pro_workspace_controller.dart';
 
 class FakeAccountSessionService implements AccountSessionService {
   String? lastEmail;
@@ -129,7 +127,8 @@ void main() {
   });
 
   group('ProLoginScreen', () {
-    testWidgets('renders email/password fields and handles submission', (tester) async {
+    testWidgets('renders email/password fields and handles submission',
+        (tester) async {
       final fake = FakeAccountSessionService();
       await tester.pumpWidget(
         ProviderScope(
@@ -154,7 +153,8 @@ void main() {
   });
 
   group('ProAuthGate', () {
-    testWidgets('shows loading when authSessionProvider is loading', (tester) async {
+    testWidgets('shows loading when authSessionProvider is loading',
+        (tester) async {
       final sessions = StreamController<Session?>();
       addTearDown(sessions.close);
 
@@ -192,7 +192,8 @@ void main() {
       expect(find.text('PRO_CONTENT'), findsNothing);
     });
 
-    testWidgets('shows no-pro-access screen when signed in without professional access',
+    testWidgets(
+        'shows no-pro-access screen when signed in without professional access',
         (tester) async {
       final fake = FakeAccountSessionService();
       await tester.pumpWidget(
@@ -222,7 +223,8 @@ void main() {
       expect(fake.signOutCalled, isTrue);
     });
 
-    testWidgets('shows child when signed in with authorized professional access',
+    testWidgets(
+        'shows child when signed in with authorized professional access',
         (tester) async {
       await tester.pumpWidget(
         ProviderScope(

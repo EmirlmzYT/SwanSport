@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../workspaces/pro_workspace.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 
 class ProDashboardScreen extends ConsumerWidget {
@@ -105,13 +104,13 @@ class ProDashboardScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.security_outlined,
                           size: 20,
                           color: Color(0xFF10B981),
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
+                        SizedBox(width: 8),
+                        Expanded(
                           child: Text(
                             'Doğrudan Veritabanı Yetkisi (RLS)',
                             style: TextStyle(
