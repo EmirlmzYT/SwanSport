@@ -69,6 +69,8 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
                     .read(selectedProWorkspaceProvider.notifier)
                     .selectWorkspace(workspace);
                 ref.read(selectedClubIdProvider.notifier).state = null;
+                ref.read(selectedFederationScopeKeyProvider.notifier).state =
+                    null;
               },
             );
       },

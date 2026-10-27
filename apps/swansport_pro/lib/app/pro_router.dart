@@ -157,6 +157,13 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/federasyon-maclar',
+        builder: (context, state) => const ProFederationOperationsGate(
+          child: SharedFederationMatchesScreen(),
+        ),
+      ),
     ],
   );
 });

@@ -18,6 +18,7 @@ class ProDashboardScreen extends ConsumerWidget {
           body: Center(child: Text('Çalışma alanı bulunamadı.')));
     }
     final supportsOperations = workspace.supportsClubOperations;
+    final supportsFederation = workspace.supportsFederationOperations;
     final clubs = ref.watch(proAuthorizedClubsProvider);
     return Scaffold(
       body: ListView(
@@ -33,7 +34,11 @@ class ProDashboardScreen extends ConsumerWidget {
             style: const TextStyle(color: Color(0xFF94A3B8)),
           ),
           const SizedBox(height: 20),
-          if (!supportsOperations)
+          if (supportsFederation)
+            const ProOperationsFeatureHost(
+              child: SharedFederationOperationsPanel(),
+            )
+          else if (!supportsOperations)
             const _InfoCard(
               icon: Icons.schedule_outlined,
               title: 'Bu çalışma alanı sonraki fazda açılacak',

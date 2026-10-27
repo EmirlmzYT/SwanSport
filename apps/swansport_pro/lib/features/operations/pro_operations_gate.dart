@@ -62,3 +62,38 @@ class ProOperationsGate extends ConsumerWidget {
     );
   }
 }
+
+class ProFederationOperationsGate extends ConsumerWidget {
+  const ProFederationOperationsGate({required this.child, super.key});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(swanAccessProvider);
+    if (!access.canOpenFederationOperations) {
+      return const Scaffold(
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Bu çalışma alanında aktif federasyon operasyon yetkin bulunmuyor.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+    final workspace = ref.watch(selectedProWorkspaceProvider);
+    final scopeKey = ref.watch(selectedFederationScopeKeyProvider);
+    final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
+    return ProFeatureContextBoundary(
+      contextKey: ProFeatureContextKey(
+        userId: userId,
+        workspace: workspace?.name ?? 'federation',
+        clubId: null,
+        scopeId: scopeKey,
+      ),
+      child: ProOperationsFeatureHost(child: child),
+    );
+  }
+}

@@ -54,6 +54,28 @@ final class _ProNavigator extends ProFeatureNavigatorBase {
   @override
   void openTrainingResult({String? sessionId}) =>
       context.push('/operasyon/antrenman-sonuc', extra: sessionId);
+  @override
+  void openFederationMatches() => context.push('/operasyon/federasyon-maclar');
+  @override
+  void openRefereeAssignments() => context.push('/operasyon/hakem-atamalari');
+  @override
+  void openLeagueStandings() => context.push('/operasyon/puan-durumu');
+  @override
+  void openDisciplinaryBoard() => context.push('/operasyon/disiplin-kurulu');
+  @override
+  void openFederationBulletins() =>
+      context.push('/operasyon/federasyon-bulten');
+  @override
+  void openRefereeDuties() => context.push('/operasyon/hakem-gorevleri');
+  @override
+  void openRefereeLineup(String matchId) =>
+      context.push('/operasyon/hakem-esame/$matchId');
+  @override
+  void openRefereeLiveCockpit(String matchId) =>
+      context.push('/operasyon/hakem-canli/$matchId');
+  @override
+  void openRefereeMatchReport(String matchId) =>
+      context.push('/operasyon/hakem-rapor/$matchId');
 }
 
 final class _ProChrome implements ProFeatureChrome {

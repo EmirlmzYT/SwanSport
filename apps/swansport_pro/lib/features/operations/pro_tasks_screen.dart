@@ -12,8 +12,9 @@ class ProTasksScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final workspace = ref.watch(selectedProWorkspaceProvider);
-    final operational =
+    final isClubOrCoaching =
         workspace == ProWorkspace.club || workspace == ProWorkspace.coaching;
+    final isFederation = workspace == ProWorkspace.federation;
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -21,11 +22,15 @@ class ProTasksScreen extends ConsumerWidget {
           const Text('Görevler',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          if (!operational)
+          if (!isClubOrCoaching && !isFederation)
             const Text('Bu çalışma alanı için operasyon görevi bulunmuyor.'),
-          if (operational)
+          if (isClubOrCoaching)
             const ProOperationsFeatureHost(
               child: SharedClubOperationsPanel(),
+            ),
+          if (isFederation)
+            const ProOperationsFeatureHost(
+              child: SharedFederationOperationsPanel(),
             ),
         ],
       ),
