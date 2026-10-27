@@ -1085,6 +1085,7 @@ class FinanceOpsService {
   /// süzgeç yalnızca gereksiz satırı gizliyor.
   Future<List<ExpenseRow>> pendingApprovals(String clubId) async {
     final me = _c.auth.currentUser?.id;
+    if (me == null || me.isEmpty) return const [];
     final rows = await _c
         .from('expenses')
         .select('id, club_id, amount, spent_on, note, status, supplier, '
@@ -1095,7 +1096,7 @@ class FinanceOpsService {
         .order('spent_on', ascending: false);
     return rows
         .map((e) => (e as Map).cast<String, dynamic>())
-        .where((m) => me == null || m['entered_by'] != me)
+        .where((m) => m['entered_by'] != me)
         .map(ExpenseRow.fromMap)
         .toList();
   }

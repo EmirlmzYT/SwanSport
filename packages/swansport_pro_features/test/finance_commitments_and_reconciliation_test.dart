@@ -81,7 +81,6 @@ void main() {
             ),
           ],
         ),
-        selfEnteredExpenseIdsProvider.overrideWithValue(const {'exp-own-1'}),
       ],
     );
     addTearDown(container.dispose);

@@ -9,13 +9,6 @@ import '../host/pro_feature_state.dart';
 import '../host/pro_feature_theme.dart';
 import 'accounting_operations_panel.dart';
 
-/// Optional set of expense IDs known to be created by the active user in the
-/// current session or context, used to enforce the UI self-approval lock even
-/// if an own expense row reaches the client list.
-final selfEnteredExpenseIdsProvider = Provider<Set<String>>(
-  (ref) => const <String>{},
-);
-
 typedef RecordOccurrenceCallback = Future<String> Function({
   required String clubId,
   required String operationId,
@@ -127,10 +120,8 @@ final class _FinanceCommitmentsBodyState
   bool _isSelfCreatedExpense({
     required ExpenseRow expense,
     required String currentUserId,
-    required Set<String> selfEnteredIds,
     required List<RecurringExpense> recurringExpenses,
   }) {
-    if (selfEnteredIds.contains(expense.id)) return true;
     if (currentUserId.isEmpty) return false;
     for (final recurring in recurringExpenses) {
       if (recurring.ownerId == currentUserId) {
@@ -482,7 +473,6 @@ final class _FinanceCommitmentsBodyState
     final occurrences =
         occurrencesAsync.valueOrNull ?? const <RecurringOccurrence>[];
     final pendingApprovals = approvalsAsync.valueOrNull ?? const <ExpenseRow>[];
-    final selfEnteredIds = ref.watch(selfEnteredExpenseIdsProvider);
     final currentUserId = _effectiveUserId(ref);
 
     return ListView(
@@ -532,7 +522,6 @@ final class _FinanceCommitmentsBodyState
               isSelfCreated: _isSelfCreatedExpense(
                 expense: expense,
                 currentUserId: currentUserId,
-                selfEnteredIds: selfEnteredIds,
                 recurringExpenses: recurringList,
               ),
               isSubmitting: _isSubmitting,
@@ -544,7 +533,6 @@ final class _FinanceCommitmentsBodyState
                 isSelfCreated: _isSelfCreatedExpense(
                   expense: expense,
                   currentUserId: currentUserId,
-                  selfEnteredIds: selfEnteredIds,
                   recurringExpenses: recurringList,
                 ),
               ),
@@ -555,7 +543,6 @@ final class _FinanceCommitmentsBodyState
                 isSelfCreated: _isSelfCreatedExpense(
                   expense: expense,
                   currentUserId: currentUserId,
-                  selfEnteredIds: selfEnteredIds,
                   recurringExpenses: recurringList,
                 ),
               ),

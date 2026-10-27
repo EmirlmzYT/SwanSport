@@ -1,4 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 /// Mali operasyon merkezi — veri katmanı.
@@ -345,10 +350,8 @@ void main() {
     });
 
     test('şikayet en kritik kalem', () {
-      const s = ClubOperationsSummary(
-          openReportCount: 1, lowRsvpEventCount: 3);
-      final report =
-          s.items.firstWhere((i) => i.code == 'open_report');
+      const s = ClubOperationsSummary(openReportCount: 1, lowRsvpEventCount: 3);
+      final report = s.items.firstWhere((i) => i.code == 'open_report');
       expect(report.risk, FinanceRisk.critical);
     });
   });
@@ -405,6 +408,39 @@ void main() {
       expect(line.isOverrun, isTrue);
       expect(line.risk, 'kritik');
       expect(line.scopeLabel, 'U-16 Erkek');
+    });
+  });
+
+  group('FinanceOpsService.pendingApprovals fail-closed', () {
+    test('kullanıcı kimliği yoksa giderler sızdırılmaz ve boş liste döner',
+        () async {
+      final client = SupabaseClient(
+        'https://example.supabase.co',
+        'anon-key',
+        authOptions: const AuthClientOptions(autoRefreshToken: false),
+        httpClient: MockClient((r) async {
+          return http.Response(
+            jsonEncode([
+              {
+                'id': 'exp-1',
+                'club_id': 'club-1',
+                'amount': 5000,
+                'spent_on': '2026-10-20',
+                'note': 'Kamp gideri',
+                'status': 'complete',
+                'entered_by': 'user-1',
+              }
+            ]),
+            200,
+            headers: {'content-type': 'application/json'},
+            request: r,
+          );
+        }),
+      );
+      addTearDown(client.dispose);
+      final service = FinanceOpsService(client);
+      final result = await service.pendingApprovals('club-1');
+      expect(result, isEmpty);
     });
   });
 }
