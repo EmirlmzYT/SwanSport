@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -65,14 +64,17 @@ class PushService {
     final uid = _c.auth.currentUser?.id;
     if (uid == null) return;
     try {
-      await _c.rpc<void>('register_push_subscription', params: {
-        'p_endpoint': sub.endpoint,
-        'p_kind': sub.kind,
-        'p_p256dh': sub.p256dh,
-        'p_auth': sub.auth,
-        'p_user_agent': userAgent,
-        'p_app_target': 'social',
-      });
+      await _c.rpc<void>(
+        'register_push_subscription',
+        params: {
+          'p_endpoint': sub.endpoint,
+          'p_kind': sub.kind,
+          'p_p256dh': sub.p256dh,
+          'p_auth': sub.auth,
+          'p_user_agent': userAgent,
+          'p_app_target': 'social',
+        },
+      );
     } on PostgrestException catch (e) {
       // 0043 henüz çalıştırılmadıysa fonksiyon yok (PGRST202). Eski yola
       // düş: kendi cihazını ilk kez kaydeden kullanıcı için o da çalışıyor,

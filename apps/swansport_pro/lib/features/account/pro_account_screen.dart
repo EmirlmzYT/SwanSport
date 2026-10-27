@@ -350,7 +350,7 @@ class ProAccountScreen extends ConsumerWidget {
           ),
         ),
         value: enabled,
-        activeColor: const Color(0xFF38BDF8),
+        activeTrackColor: const Color(0xFF38BDF8),
         onChanged: (bool value) async {
           if (ref.read(isSupabaseEnabledProvider)) {
             try {
