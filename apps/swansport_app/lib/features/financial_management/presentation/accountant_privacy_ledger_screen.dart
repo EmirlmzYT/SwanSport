@@ -1,108 +1,46 @@
-import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import '../../../app/design/swan_palette.dart';
-import '../../../app/design/swan_shape.dart';
-import '../../../app/design/swan_type.dart';
-import '../../../app/widgets/premium.dart';
-import '../../../app/widgets/quick_actions.dart';
-import '../../../app/widgets/swan_bottom_nav.dart';
-import '../../../app/widgets/swan_module_app_bar.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
+
+import '../../pro_operations/swan_pro_feature_host.dart';
 
 /// Reads exclusively through acc_ledger; athlete names are never requested.
-class AccountantPrivacyLedgerScreen extends ConsumerStatefulWidget {
+class AccountantPrivacyLedgerScreen extends ConsumerWidget {
   const AccountantPrivacyLedgerScreen({super.key});
-  @override
-  ConsumerState<AccountantPrivacyLedgerScreen> createState() => _LedgerState();
-}
-
-class _LedgerState extends ConsumerState<AccountantPrivacyLedgerScreen> {
-  int _offset = 0;
-  String? _clubId;
 
   @override
-  Widget build(BuildContext context) {
-    final c = context.swan;
-    final club = ref.watch(activeClubProvider).valueOrNull;
-    if (_clubId != club?.id) {
-      _clubId = club?.id;
-      _offset = 0;
-    }
-    final page = ref.watch(clubLedgerPageProvider(_offset));
-    return SwanScaffold(
-      backgroundColor: c.bg,
-      appBar: swanModuleAppBar(context, title: 'Muhasebeci Defteri'),
-      body: SafeArea(
-          child: Center(
-              child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 620),
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(clubLedgerPageProvider);
-            await ref.read(clubLedgerPageProvider(_offset).future);
-          },
-          child: ListView(
-              padding: const EdgeInsets.fromLTRB(
-                  SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
-              children: [
-                Text('Sporcu kimlikleri sunucuda maskelenir.',
-                    style: SwanType.bodySm(c.inkMuted)),
-                const SizedBox(height: SwanSpace.md),
-                const QuickActions(actions: [
-                  QuickAction(
-                    icon: Icons.receipt_long_rounded,
-                    label: 'Gider ekle',
-                    route: '/gider-ekle',
-                  ),
-                  QuickAction(
-                    icon: Icons.undo_rounded,
-                    label: 'Ters kayıt',
-                    route: '/ters-islem',
-                  ),
-                ]),
-                const SizedBox(height: SwanSpace.lg),
-                page.when(
-                  loading: premiumLoading,
-                  error: (e, _) => premiumError(context, '$e'),
-                  data: (data) => Column(children: [
-                    if (data.entries.isEmpty)
-                      Text('Defter kaydı bulunamadı.',
-                          style: SwanType.bodySm(c.inkMuted)),
-                    for (final row in data.entries)
-                      ListTile(
-                        title: Text(row.label, style: SwanType.body(c.ink)),
-                        subtitle: Text(
-                            '${row.counterpart} · ${row.movedOn.day}.${row.movedOn.month}.${row.movedOn.year} · ${row.status}'),
-                        trailing: Text(
-                            '${row.isIncome ? '+' : '-'}${money(row.amount)}',
-                            style: SwanType.bodySm(c.ink)),
-                      ),
-                    const SizedBox(height: SwanSpace.md),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          TextButton(
-                              onPressed: _offset == 0
-                                  ? null
-                                  : () => setState(() => _offset =
-                                      (_offset - 50).clamp(0, data.totalCount)),
-                              child: const Text('Önceki')),
-                          Text('${data.totalCount} kayıt',
-                              style: SwanType.caption(c.inkMuted)),
-                          TextButton(
-                              onPressed: _offset + data.entries.length >=
-                                      data.totalCount
-                                  ? null
-                                  : () => setState(() => _offset += 50),
-                              child: const Text('Sonraki')),
-                        ]),
-                  ]),
-                ),
-              ]),
-        ),
-      ))),
-      bottomNavigationBar: const SwanBottomNav(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(swanAccessProvider);
+    final activeClub = ref.watch(activeClubProvider).valueOrNull;
+
+    Widget content = const SwanProFeatureHost(
+      child: SharedFinanceLedgerScreen(),
     );
+
+    if (!access.isAccountant && activeClub != null) {
+      content = ProviderScope(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: activeClub.role,
+              coachLevel: 0,
+              athleteKind: null,
+              accountantClubIds: {activeClub.id},
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({
+              FeatureFlags.financeOperationsCenter,
+            }),
+          ),
+          myClubsProvider.overrideWith((ref) async => [activeClub]),
+        ],
+        child: content,
+      );
+    }
+
+    return content;
   }
 }

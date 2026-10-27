@@ -586,6 +586,7 @@ class FinanceAdjustment {
     this.entryId,
     required this.createdAt,
     this.approvedAt,
+    this.createdBy,
   });
 
   final String id;
@@ -600,6 +601,7 @@ class FinanceAdjustment {
   final String? entryId;
   final DateTime createdAt;
   final DateTime? approvedAt;
+  final String? createdBy;
 
   String get targetKindLabel => switch (targetKind) {
         'expense' => 'Gider Ters Kaydı',
@@ -631,6 +633,7 @@ class FinanceAdjustment {
         approvedAt: m['approved_at'] != null
             ? DateTime.tryParse('${m['approved_at']}')
             : null,
+        createdBy: m['created_by'] as String?,
       );
 }
 

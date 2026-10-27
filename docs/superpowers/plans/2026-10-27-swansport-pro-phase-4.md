@@ -5,7 +5,7 @@
 **Hedef Sürüm:** `0.1.3+5` (`com.swansport.pro`)
 
 ## İLERLEME
-- [x] Dilim 1  - [x] Dilim 2a  - [x] Dilim 2b  - [ ] Dilim 2c
+- [x] Dilim 1  - [x] Dilim 2a  - [x] Dilim 2b  - [x] Dilim 2c
 - [ ] Dilim 3   - [ ] Dilim 4a (envanter)  - [ ] Dilim 4b (sağlık)  - [ ] Dilim 4c (sportif)
 - [ ] Dilim 5a (salt okunur ekranlar)  - [ ] Dilim 5b (waitlist/plan yazıları)
 - [ ] Dilim 6  - [ ] Dilim 7  - [ ] Dilim 8

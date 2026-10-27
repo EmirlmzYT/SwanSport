@@ -144,6 +144,25 @@ final class _SwanFeatureNavigator extends ProFeatureNavigatorBase {
   @override
   void openRefereeMatchReport(String matchId) =>
       Navigator.pushNamed(context, '/hakem/rapor/$matchId');
+
+  @override
+  void openFinanceOperations() => Navigator.pushNamed(context, '/mali-isler');
+
+  @override
+  void openFinanceLedger() =>
+      Navigator.pushNamed(context, '/muhasebeci-defter');
+
+  @override
+  void openFinanceCommitments() => Navigator.pushNamed(context, '/finans');
+
+  @override
+  void openBankReconciliation() => Navigator.pushNamed(context, '/finans');
+
+  @override
+  void openClubBudget() => Navigator.pushNamed(context, '/finans');
+
+  @override
+  void openPeriodClosing() => Navigator.pushNamed(context, '/ters-islem');
 }
 
 final class _SwanFeatureChrome implements ProFeatureChrome {

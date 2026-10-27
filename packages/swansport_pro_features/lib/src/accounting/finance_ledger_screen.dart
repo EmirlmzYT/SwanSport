@@ -152,7 +152,7 @@ final class _ScopedFinanceLedgerContentState
             ),
             const SizedBox(height: 8),
             Text(
-              'Sunucu maskeli defter görünümü (acc_ledger): sporcu adı okunmaz, aidat karşı tarafı yalnız sabit referans koduyla (#A3F91C) gösterilir.',
+              'Sunucu maskeli defter görünümü (acc_ledger): sporcu adı okunmaz, aidat karşı tarafı yalnız sabit referans koduyla (ör. maskeli hash) gösterilir.',
               style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
             ),
             const SizedBox(height: 12),
@@ -256,7 +256,7 @@ final class _ScopedFinanceLedgerContentState
               crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 Text(
-                  'Toplam ${page.totalCount} kayıt',
+                  '${page.totalCount} kayıt',
                   style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
                 ),
                 Wrap(
