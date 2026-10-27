@@ -111,7 +111,10 @@ class ProFeaturesContractTest(unittest.TestCase):
                 r"antrenman-sablonlari|antrenman-olustur|akis|profil|"
                 r"hakem/gorevler|hakem/esame|hakem/canli|hakem/rapor|"
                 r"federasyon|federasyon-merkezi|federasyon-takvimi|"
-                r"mhk-atamalar|il-ligleri|disiplin-kurulu)['\"]"
+                r"mhk-atamalar|il-ligleri|disiplin-kurulu|"
+                r"mali-isler|defter|taahhutler|mutabakat|butce|donem-kapanis|"
+                r"saha-islemlerim|kulup-operasyonlari|platform-kontrol|"
+                r"gelisim-raporu)['\"]"
             ),
             "fail-open feature flag fallback": re.compile(
                 r"FeatureFlags\.[a-zA-Z0-9_]+\)\s*\?\?\s*true"

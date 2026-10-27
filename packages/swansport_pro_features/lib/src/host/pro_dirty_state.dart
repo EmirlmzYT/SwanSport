@@ -15,7 +15,11 @@ final class ProDirtyStateCoordinator {
   Future<bool>? _pendingTransition;
   bool _disposed = false;
 
-  bool get isDirty => _entries.values.any((entry) => entry.isDirty);
+  bool get isDirty => _entries.values
+      .any((entry) => entry.isDirty || entry.hasPendingOperation);
+
+  bool get hasPendingOperation =>
+      _entries.values.any((entry) => entry.hasPendingOperation);
 
   ProDirtyStateRegistration register(String owner) {
     _ensureActive();
@@ -24,6 +28,8 @@ final class ProDirtyStateCoordinator {
     return ProDirtyStateRegistration._(
       markDirty: () => _setDirty(token, true),
       markClean: () => _setDirty(token, false),
+      markPendingOperation: () => _setPendingOperation(token, true),
+      clearPendingOperation: () => _setPendingOperation(token, false),
       unregister: () => _entries.remove(token),
     );
   }
@@ -69,9 +75,16 @@ final class ProDirtyStateCoordinator {
     if (entry != null) entry.isDirty = value;
   }
 
+  void _setPendingOperation(Object token, bool value) {
+    if (_disposed) return;
+    final entry = _entries[token];
+    if (entry != null) entry.hasPendingOperation = value;
+  }
+
   void _clearDirtyState() {
     for (final entry in _entries.values) {
       entry.isDirty = false;
+      entry.hasPendingOperation = false;
     }
   }
 
@@ -91,13 +104,19 @@ final class ProDirtyStateRegistration {
   ProDirtyStateRegistration._({
     required void Function() markDirty,
     required void Function() markClean,
+    required void Function() markPendingOperation,
+    required void Function() clearPendingOperation,
     required void Function() unregister,
   })  : _markDirty = markDirty,
         _markClean = markClean,
+        _markPendingOperation = markPendingOperation,
+        _clearPendingOperation = clearPendingOperation,
         _unregister = unregister;
 
   final void Function() _markDirty;
   final void Function() _markClean;
+  final void Function() _markPendingOperation;
+  final void Function() _clearPendingOperation;
   final void Function() _unregister;
   bool _disposed = false;
 
@@ -107,6 +126,14 @@ final class ProDirtyStateRegistration {
 
   void markClean() {
     if (!_disposed) _markClean();
+  }
+
+  void markPendingOperation() {
+    if (!_disposed) _markPendingOperation();
+  }
+
+  void clearPendingOperation() {
+    if (!_disposed) _clearPendingOperation();
   }
 
   void dispose() {
@@ -121,4 +148,5 @@ final class _DirtyEntry {
 
   final String owner;
   bool isDirty = false;
+  bool hasPendingOperation = false;
 }

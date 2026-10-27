@@ -10,10 +10,34 @@ final class ProFeatureContextKey {
     this.scopeId,
   });
 
+  const ProFeatureContextKey.accounting({
+    required this.userId,
+    required String? accountingClubId,
+  })  : workspace = 'accounting',
+        clubId = accountingClubId,
+        scopeId = accountingClubId;
+
+  const ProFeatureContextKey.facility({
+    required this.userId,
+    required String? facilityScopeId,
+    this.clubId,
+  })  : workspace = 'facility',
+        scopeId = facilityScopeId;
+
+  const ProFeatureContextKey.platform({
+    required this.userId,
+  })  : workspace = 'platform',
+        clubId = null,
+        scopeId = 'platform';
+
   final String userId;
   final String workspace;
   final String? clubId;
   final String? scopeId;
+
+  String? get accountingClubId => workspace == 'accounting' ? clubId : null;
+
+  String? get facilityScopeId => workspace == 'facility' ? scopeId : null;
 
   @override
   bool operator ==(Object other) =>

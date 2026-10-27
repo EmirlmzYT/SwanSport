@@ -11,6 +11,20 @@ final class TeamRouteTarget {
 
 enum ProFeatureMessageTone { info, success, warning, danger }
 
+/// Typed sections of the desktop web administration console.
+/// Shared mobile/Pro screens never pass raw route strings when handing off
+/// desktop-only or unsafe-on-mobile platform workflows.
+enum PlatformWebConsoleSection {
+  missionControl,
+  branding,
+  plans,
+  audit,
+  waitlist,
+  support,
+  diagnostics,
+  marketplace,
+}
+
 abstract interface class ProFeatureNavigator {
   void openTeams();
 
@@ -47,6 +61,33 @@ abstract interface class ProFeatureNavigator {
   void openRefereeLiveCockpit(String matchId);
 
   void openRefereeMatchReport(String matchId);
+
+  void openFinanceOperations();
+
+  void openFinanceLedger();
+
+  void openFinanceCommitments();
+
+  void openBankReconciliation();
+
+  void openClubBudget();
+
+  void openPeriodClosing();
+
+  void openFacilityOperations();
+
+  void openClubInventory();
+
+  void openClubHealthOperations();
+
+  void openClubSportingPlanning();
+
+  void openPlatformOperations();
+
+  bool openPlatformWebConsole([
+    PlatformWebConsoleSection section =
+        PlatformWebConsoleSection.missionControl,
+  ]);
 
   bool openCalendar();
 
@@ -89,6 +130,46 @@ abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
 
   @override
   void openRefereeMatchReport(String matchId) {}
+
+  @override
+  void openFinanceOperations() {}
+
+  @override
+  void openFinanceLedger() {}
+
+  @override
+  void openFinanceCommitments() {}
+
+  @override
+  void openBankReconciliation() {}
+
+  @override
+  void openClubBudget() {}
+
+  @override
+  void openPeriodClosing() {}
+
+  @override
+  void openFacilityOperations() {}
+
+  @override
+  void openClubInventory() {}
+
+  @override
+  void openClubHealthOperations() {}
+
+  @override
+  void openClubSportingPlanning() {}
+
+  @override
+  void openPlatformOperations() {}
+
+  @override
+  bool openPlatformWebConsole([
+    PlatformWebConsoleSection section =
+        PlatformWebConsoleSection.missionControl,
+  ]) =>
+      false;
 
   @override
   bool openCalendar() => false;

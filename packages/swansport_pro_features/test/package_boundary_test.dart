@@ -100,6 +100,23 @@ void main() {
     navigator.openRefereeLineup('match-1');
     navigator.openRefereeLiveCockpit('match-1');
     navigator.openRefereeMatchReport('match-1');
+    navigator.openFinanceOperations();
+    navigator.openFinanceLedger();
+    navigator.openFinanceCommitments();
+    navigator.openBankReconciliation();
+    navigator.openClubBudget();
+    navigator.openPeriodClosing();
+    navigator.openFacilityOperations();
+    navigator.openClubInventory();
+    navigator.openClubHealthOperations();
+    navigator.openClubSportingPlanning();
+    navigator.openPlatformOperations();
+    expect(navigator.openPlatformWebConsole(), isFalse);
+    expect(
+      navigator.openPlatformWebConsole(PlatformWebConsoleSection.waitlist),
+      isFalse,
+    );
+    expect(PlatformWebConsoleSection.values, isNotEmpty);
   });
 }
 

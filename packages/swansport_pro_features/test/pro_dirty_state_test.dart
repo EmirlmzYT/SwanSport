@@ -108,4 +108,47 @@ void main() {
     expect(await second, isTrue);
     expect(transitions, 1);
   });
+
+  test(
+      'pending uncertain operation blocks unconfirmed workspace transition and clears on confirm',
+      () async {
+    final coordinator = ProDirtyStateCoordinator();
+    final registration = coordinator.register('finance_draft_expense')
+      ..markPendingOperation();
+    addTearDown(registration.dispose);
+
+    expect(coordinator.hasPendingOperation, isTrue);
+    expect(coordinator.isDirty, isTrue);
+
+    var confirmations = 0;
+    var transitions = 0;
+    final cancelled = await coordinator.runGuardedTransition(
+      confirmDiscard: () async {
+        confirmations++;
+        return false;
+      },
+      invalidate: () {},
+      transition: () => transitions++,
+    );
+
+    expect(cancelled, isFalse);
+    expect(confirmations, 1);
+    expect(transitions, 0);
+    expect(coordinator.hasPendingOperation, isTrue);
+
+    final confirmed = await coordinator.runGuardedTransition(
+      confirmDiscard: () async {
+        confirmations++;
+        return true;
+      },
+      invalidate: () {},
+      transition: () => transitions++,
+    );
+
+    expect(confirmed, isTrue);
+    expect(confirmations, 2);
+    expect(transitions, 1);
+    expect(coordinator.hasPendingOperation, isFalse);
+    expect(coordinator.isDirty, isFalse);
+  });
 }
