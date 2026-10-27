@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/design/swan_palette.dart';
@@ -12,6 +13,7 @@ import '../../../../app/navigation/swan_navigation.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_tabs.dart';
+import '../../pro_operations/swan_pro_feature_host.dart';
 import '../../settings/presentation/screens/club_training_sports_sheet.dart';
 import 'club_edit_sheet.dart';
 
@@ -168,6 +170,11 @@ class ClubCockpitScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: SwanSpace.md),
 
+                const SwanProFeatureHost(
+                  child: SharedClubOperationsPanel(),
+                ),
+                const SizedBox(height: SwanSpace.md),
+
                 // 3. 4'LÜ KPI SAYAÇLARI (Takım, Sporcu, Antrenör, Veli)
                 _buildModernKpiStrip(
                   context,
@@ -197,14 +204,6 @@ class ClubCockpitScreen extends ConsumerWidget {
                   _buildFinanceSection(
                       context, c, club, pendingPayments, access,),
                   const SizedBox(height: SwanSpace.xl),
-                  _buildRosterSection(context, c,
-                      club: club,
-                      pendingApps: pendingApps,
-                      activeAthletesCount: activeAthletesCount,),
-                  const SizedBox(height: SwanSpace.xl),
-                  _buildTrainingSection(context, c,
-                      trainingEnabled: trainingEnabled,),
-                  const SizedBox(height: SwanSpace.xl),
                   _buildOperationsSection(context, c,
                       club: club,
                       access: access,
@@ -214,14 +213,6 @@ class ClubCockpitScreen extends ConsumerWidget {
                   _buildAnalyticsSection(context, c, access: access),
                 ] else ...[
                   // ANTRENÖR ÖNCELİK SIRASI: Antrenman & Takvim -> Kadro & Sporcular -> Tesis & Operasyon -> Mali İşler -> Analiz
-                  _buildTrainingSection(context, c,
-                      trainingEnabled: trainingEnabled,),
-                  const SizedBox(height: SwanSpace.xl),
-                  _buildRosterSection(context, c,
-                      club: club,
-                      pendingApps: pendingApps,
-                      activeAthletesCount: activeAthletesCount,),
-                  const SizedBox(height: SwanSpace.xl),
                   _buildOperationsSection(context, c,
                       club: club,
                       access: access,
@@ -1065,136 +1056,6 @@ class ClubCockpitScreen extends ConsumerWidget {
       'Ara',
     ];
     return month >= 1 && month <= 12 ? months[month] : '';
-  }
-
-  // -------------------------------------------------------------
-  // KADRO & SPORCULAR BÖLÜMÜ
-  // -------------------------------------------------------------
-  Widget _buildRosterSection(
-    BuildContext context,
-    SwanPalette c, {
-    required ClubRef club,
-    required int pendingApps,
-    required int activeAthletesCount,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('KADRO & SPORCULAR', c),
-        const SizedBox(height: SwanSpace.sm),
-        _buildGroupCard(
-          c,
-          children: [
-            _buildTile(
-              c,
-              icon: Icons.person_add_alt_1_rounded,
-              title: 'Yeni Sporcu / Öğrenci Ekle',
-              subtitle:
-                  'WhatsApp davet linki gönder veya sahada elle kaydet',
-              badge: 'Hızlı',
-              badgeColor: c.accent,
-              onTap: () => _showAddAthleteHybridSheet(context, club),
-            ),
-            _buildDivider(c),
-            _buildTile(
-              c,
-              icon: Icons.how_to_reg_rounded,
-              title: 'Gelen Başvurular',
-              subtitle: pendingApps > 0
-                  ? '$pendingApps onay bekleyen yeni öğrenci'
-                  : 'Yeni kayıt taleplerini incele',
-              badge: pendingApps > 0 ? '$pendingApps' : null,
-              badgeColor: c.warning,
-              onTap: () => context.swanPush(AppRoutes.applications),
-            ),
-            _buildDivider(c),
-            _buildTile(
-              c,
-              icon: Icons.groups_rounded,
-              title: 'Sporcu Kadrosu',
-              subtitle: '$activeAthletesCount aktif sporcu kaydı',
-              onTap: () => context.swanPush(AppRoutes.athletes),
-            ),
-            _buildDivider(c),
-            _buildTile(
-              c,
-              icon: Icons.shield_rounded,
-              title: 'Takımlar ve Yaş Grupları',
-              subtitle: 'Branş takımları, yaş kategorileri ve listeler',
-              onTap: () => context.swanPush(AppRoutes.teams),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  // -------------------------------------------------------------
-  // ANTRENMAN & TAKVİM BÖLÜMÜ
-  // -------------------------------------------------------------
-  Widget _buildTrainingSection(
-    BuildContext context,
-    SwanPalette c, {
-    required bool trainingEnabled,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildSectionHeader('ANTRENMAN & TAKVİM', c),
-        const SizedBox(height: SwanSpace.sm),
-        _buildGroupCard(
-          c,
-          children: [
-            _buildTile(
-              c,
-              icon: Icons.checklist_rounded,
-              title: 'Günlük Yoklama Al',
-              subtitle: 'Bugünkü antrenman için devam çizelgesi',
-              onTap: () => context.swanPush(AppRoutes.attendance),
-            ),
-            _buildDivider(c),
-            _buildTile(
-              c,
-              icon: Icons.fact_check_rounded,
-              title: 'Devam Durumu & Geçmiş',
-              subtitle: 'Tüm sporcuların devam ve yoklama raporları',
-              onTap: () => context.swanPush(AppRoutes.attendanceHistory),
-            ),
-            _buildDivider(c),
-            if (trainingEnabled) ...[
-              _buildTile(
-                c,
-                icon: Icons.tune_rounded,
-                title: 'Antrenman Şablonları & Oturumlar',
-                subtitle:
-                    'Branşa özel egzersiz planları ve drill havuzu',
-                onTap: () => context.swanPush(
-                  AppRoutes.trainingProtocols,
-                ),
-              ),
-              _buildDivider(c),
-              _buildTile(
-                c,
-                icon: Icons.sports_rounded,
-                title: 'Antrenman Oturumu',
-                subtitle: 'Aktif antrenman oturumunu başlat ve yönet',
-                onTap: () => context.swanPush(
-                  AppRoutes.trainingSession,
-                ),
-              ),
-              _buildDivider(c),
-            ],
-            _buildTile(
-              c,
-              icon: Icons.calendar_month_rounded,
-              title: 'Kulüp Takvimi',
-              subtitle: 'Maçlar, antrenmanlar ve etkinlik programı',
-              onTap: () => context.swanPush(AppRoutes.calendar),
-            ),
-          ],
-        ),
-      ],
-    );
   }
 
   // -------------------------------------------------------------

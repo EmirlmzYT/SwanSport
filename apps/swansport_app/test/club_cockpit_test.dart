@@ -53,6 +53,26 @@ Future<void> pumpCockpit(
         clubPendingApplicationsProvider.overrideWith((_) async => const []),
         clubAthletesProvider.overrideWith((_) async => const []),
         pendingPaymentsProvider.overrideWith((_) async => payments),
+        featureFlagsProvider.overrideWith(
+          (_) async => FeatureFlags({
+            FeatureFlags.coachWorkspace,
+            FeatureFlags.teamHub,
+            FeatureFlags.attendanceOperations,
+            if (training) FeatureFlags.sportTrainingSessions,
+          }),
+        ),
+        clubRosterCountsProvider.overrideWith(
+          (_) async => const ClubRosterCounts(total: 0, active: 0),
+        ),
+        clubTodayAttendanceProvider.overrideWith(
+          (_) async => const ClubTodayAttendance(
+            trainingCount: 0,
+            markedCount: 0,
+          ),
+        ),
+        attendanceSummaryProvider.overrideWith((_) async => const []),
+        trainingProtocolsProvider.overrideWith((_) async => const []),
+        myLiveSessionProvider.overrideWith((_) async => null),
         featureEnabledProvider(FeatureFlags.sportTrainingSessions)
             .overrideWithValue(training),
         featureEnabledProvider(FeatureFlags.clubStaffOperations)
@@ -86,7 +106,7 @@ void main() {
 
   testWidgets('flagged routes stay hidden when flags are off', (tester) async {
     await pumpCockpit(tester, admin);
-    expect(find.text('Antrenman Şablonları & Oturumlar'), findsNothing);
+    expect(find.text('Antrenman Şablonları'), findsNothing);
     expect(find.text('Malzeme & Zimmet Takibi'), findsNothing);
     expect(find.text('Sağlık & İdari Dinlendirme'), findsNothing);
     expect(find.text('Sportif Kadro Planlama'), findsNothing);
@@ -97,8 +117,8 @@ void main() {
       (tester) async {
     await pumpCockpit(tester, coach,
         training: true, operations: true, season: true);
-    await scrollTo(tester, 'Antrenman Şablonları & Oturumlar');
-    expect(find.text('Antrenman Şablonları & Oturumlar'), findsOneWidget);
+    await scrollTo(tester, 'Antrenman Şablonları');
+    expect(find.text('Antrenman Şablonları'), findsOneWidget);
     expect(find.text('Sezon Açılışı'), findsNothing);
     expect(find.text('Malzeme & Zimmet Takibi'), findsNothing);
     expect(find.text('Sağlık & İdari Dinlendirme'), findsNothing);
@@ -181,8 +201,7 @@ void main() {
     tester.view.resetDevicePixelRatio();
   });
 
-  testWidgets(
-      'admin sees finance before training and has access to admin-only actions',
+  testWidgets('admin sees shared operations and retains admin-only actions',
       (tester) async {
     tester.view.physicalSize = const Size(600, 3500);
     tester.view.devicePixelRatio = 1;
@@ -193,17 +212,17 @@ void main() {
 
     await pumpCockpit(tester, admin, training: true, season: true);
 
+    final operationsPos =
+        tester.getTopLeft(find.text('Kulüp Operasyonları')).dy;
     final financePos = tester.getTopLeft(find.text('MALİ İŞLER & KASA')).dy;
-    final trainingPos = tester.getTopLeft(find.text('ANTRENMAN & TAKVİM')).dy;
-    expect(financePos, lessThan(trainingPos));
+    expect(operationsPos, lessThan(financePos));
 
     expect(find.byIcon(Icons.edit_outlined), findsOneWidget);
     expect(find.text('Kulüp Gideri Ekle'), findsOneWidget);
     expect(find.text('Kulüp Ayarları'), findsOneWidget);
   });
 
-  testWidgets(
-      'coach sees training before finance and cannot see admin-only actions',
+  testWidgets('coach sees shared operations and cannot see admin-only actions',
       (tester) async {
     tester.view.physicalSize = const Size(600, 3500);
     tester.view.devicePixelRatio = 1;
@@ -214,9 +233,10 @@ void main() {
 
     await pumpCockpit(tester, coach, training: true, season: true);
 
-    final trainingPos = tester.getTopLeft(find.text('ANTRENMAN & TAKVİM')).dy;
+    final operationsPos =
+        tester.getTopLeft(find.text('Kulüp Operasyonları')).dy;
     final financePos = tester.getTopLeft(find.text('MALİ İŞLER & KASA')).dy;
-    expect(trainingPos, lessThan(financePos));
+    expect(operationsPos, lessThan(financePos));
 
     expect(find.byIcon(Icons.edit_outlined), findsNothing);
     expect(find.text('Kulüp Gideri Ekle'), findsNothing);

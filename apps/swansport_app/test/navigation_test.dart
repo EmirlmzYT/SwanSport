@@ -82,6 +82,8 @@ void main() {
       read('lib/features/social/presentation/widgets/management_section.dart');
   final cockpit =
       read('lib/features/clubs/presentation/club_cockpit_screen.dart');
+  final proFeatureHost =
+      read('lib/features/pro_operations/swan_pro_feature_host.dart');
   final nav = read('lib/app/widgets/swan_bottom_nav.dart');
   final createSheet = read('lib/app/widgets/create_sheet.dart');
   final messages =
@@ -307,6 +309,7 @@ void main() {
       final entryPoints = explore +
           management +
           cockpit +
+          proFeatureHost +
           nav +
           createSheet +
           profile +

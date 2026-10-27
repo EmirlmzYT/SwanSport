@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:swansport_pro/app/pro_app.dart';
 import 'package:swansport_pro/features/account/pro_account_screen.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
@@ -107,7 +108,7 @@ void main() {
       await tester.tap(find.text('Görevler'));
       await tester.pumpAndSettle();
       expect(find.byType(ProTasksScreen), findsOneWidget);
-      expect(find.textContaining('operasyon görevi'), findsOneWidget);
+      expect(find.byType(SharedClubOperationsPanel), findsOneWidget);
 
       // Tap Takvim
       await tester.tap(find.text('Takvim'));

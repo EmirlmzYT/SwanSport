@@ -13,8 +13,7 @@ void main() {
   );
   const club = ClubRef(id: 'club-1', name: 'Kulüp', role: 'coach');
 
-  testWidgets('Pro training entry requires both rollout flags',
-      (tester) async {
+  testWidgets('Pro training entry requires both rollout flags', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -30,7 +29,7 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Antrenman Operasyonları'), findsNothing);
+    expect(find.text('Antrenman Şablonları'), findsNothing);
     expect(find.text('Operasyonlar kademeli yayında'), findsOneWidget);
   });
 
@@ -52,6 +51,6 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Antrenman Operasyonları'), findsOneWidget);
+    expect(find.text('Antrenman Şablonları'), findsOneWidget);
   });
 }

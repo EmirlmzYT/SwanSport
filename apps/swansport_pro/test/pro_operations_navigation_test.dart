@@ -40,10 +40,12 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.text('Takımlar ve Kadrolar'), findsOneWidget);
+    expect(find.text('Takımlar'), findsOneWidget);
+    expect(find.text('Sporcu Kadrosu'), findsOneWidget);
     expect(find.text('Canlı Yoklama'), findsOneWidget);
-    expect(find.text('Yoklama Geçmişi'), findsOneWidget);
-    expect(find.text('Antrenman Operasyonları'), findsOneWidget);
+    expect(find.text('Devam Geçmişi'), findsOneWidget);
+    expect(find.text('Antrenman Şablonları'), findsOneWidget);
+    expect(find.text('Antrenman Oturumu'), findsOneWidget);
   });
 
   testWidgets('typed Pro routes open shared team and attendance screens',
