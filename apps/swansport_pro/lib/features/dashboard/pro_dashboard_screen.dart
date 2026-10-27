@@ -19,6 +19,7 @@ class ProDashboardScreen extends ConsumerWidget {
     }
     final supportsOperations = workspace.supportsClubOperations;
     final supportsFederation = workspace.supportsFederationOperations;
+    final supportsReferee = workspace.supportsRefereeOperations;
     final clubs = ref.watch(proAuthorizedClubsProvider);
     return Scaffold(
       body: ListView(
@@ -37,6 +38,10 @@ class ProDashboardScreen extends ConsumerWidget {
           if (supportsFederation)
             const ProOperationsFeatureHost(
               child: SharedFederationOperationsPanel(),
+            )
+          else if (supportsReferee)
+            const ProOperationsFeatureHost(
+              child: SharedRefereeOperationsPanel(),
             )
           else if (!supportsOperations)
             const _InfoCard(

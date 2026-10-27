@@ -97,3 +97,37 @@ class ProFederationOperationsGate extends ConsumerWidget {
     );
   }
 }
+
+class ProRefereeOperationsGate extends ConsumerWidget {
+  const ProRefereeOperationsGate({required this.child, super.key});
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(swanAccessProvider);
+    if (!access.isReferee) {
+      return const Scaffold(
+        body: Center(
+          child: Padding(
+            padding: EdgeInsets.all(24),
+            child: Text(
+              'Bu çalışma alanında aktif hakem operasyon yetkin bulunmuyor.',
+              textAlign: TextAlign.center,
+            ),
+          ),
+        ),
+      );
+    }
+    final workspace = ref.watch(selectedProWorkspaceProvider);
+    final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
+    return ProFeatureContextBoundary(
+      contextKey: ProFeatureContextKey(
+        userId: userId,
+        workspace: workspace?.name ?? 'referee',
+        clubId: null,
+        scopeId: access.refereeProfile?.sportCode,
+      ),
+      child: ProOperationsFeatureHost(child: child),
+    );
+  }
+}

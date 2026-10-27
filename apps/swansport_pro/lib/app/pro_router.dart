@@ -192,6 +192,23 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           child: SharedFederationBulletinsScreen(),
         ),
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/hakem-gorevleri',
+        builder: (context, state) => const ProRefereeOperationsGate(
+          child: SharedRefereeDutyListScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/hakem-esame/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return ProRefereeOperationsGate(
+            child: SharedRefereeLineupApprovalScreen(matchId: id),
+          );
+        },
+      ),
     ],
   );
 });
