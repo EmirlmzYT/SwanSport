@@ -326,10 +326,10 @@ test('notification enqueue isolates delivery by app_target and both policy reach
         ($2, $3, 'endpoint-pro-1', 'fcm', 'p', 'a', 'pro')
     `, [id(31), id(32), id(1)]);
 
-    // 1. Social-only notification (e.g. 'message')
+    // 1. Social-only notification (e.g. 'follow')
     const socialNotif = (await db.query(`
       insert into notifications(profile_id, kind, title, body)
-      values($1, 'message', 'Yeni Mesaj', 'Selam') returning id
+      values($1, 'follow', 'Yeni Takipçi', 'Sizi takip etti') returning id
     `, [id(1)])).rows[0].id;
 
     let deliveries = (await db.query(`
