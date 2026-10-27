@@ -71,6 +71,7 @@ class PushService {
         'p_p256dh': sub.p256dh,
         'p_auth': sub.auth,
         'p_user_agent': userAgent,
+        'p_app_target': 'social',
       });
     } on PostgrestException catch (e) {
       // 0043 henüz çalıştırılmadıysa fonksiyon yok (PGRST202). Eski yola
@@ -83,6 +84,7 @@ class PushService {
         'kind': sub.kind,
         'p256dh': sub.p256dh,
         'auth': sub.auth,
+        'app_target': 'social',
         if (userAgent != null) 'user_agent': userAgent,
       }, onConflict: 'endpoint');
     }
@@ -104,8 +106,10 @@ class PushService {
   /// hesabındı. Yanlış teşhis, yanlış çözüme götürüyor.
   Future<PushSubState> subscriptionState(String endpoint) async {
     try {
-      final v = await _c.rpc<dynamic>('push_subscription_state',
-          params: {'p_endpoint': endpoint});
+      final v = await _c.rpc<dynamic>('push_subscription_state', params: {
+        'p_endpoint': endpoint,
+        'p_app_target': 'social',
+      });
       return switch ('$v') {
         'mine' => PushSubState.mine,
         'other_account' => PushSubState.otherAccount,

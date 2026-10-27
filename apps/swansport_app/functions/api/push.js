@@ -160,8 +160,8 @@ async function importServiceAccountKey(pem) {
  * olurdu. İstek başına bir kez alınıp aynı çağrıdaki tüm cihazlarda
  * kullanılıyor.
  */
-async function fcmAccessToken(env) {
-  const sa = JSON.parse(env.FCM_SERVICE_ACCOUNT);
+async function fcmAccessToken(serviceAccountJson) {
+  const sa = JSON.parse(serviceAccountJson);
   const now = Math.floor(Date.now() / 1000);
 
   const header = bytesToB64url(new TextEncoder().encode(
@@ -192,12 +192,17 @@ async function fcmAccessToken(env) {
 
 /** Android/iOS FCM mesajı; foreground görünümü istemcide tek yerde sunulur. */
 export function fcmMessage(sub, job) {
-  const notification = {title: job.title || 'SwanSport', body: job.body || ''};
+  const isPro = job.appTarget === 'pro';
+  const defaultTitle = isPro ? 'SwanSport Pro' : 'SwanSport';
+  const defaultUrl = isPro ? '/gelen-kutusu' : '/bildirimler';
+  const channelId = isPro ? 'swansport_pro_default' : 'swansport_default';
+
+  const notification = {title: job.title || defaultTitle, body: job.body || ''};
   const live = typeof job.url === 'string' && job.url.startsWith('/canli-mac/');
   return {
     token: sub.endpoint, notification,
-    data: {url: job.url || '/bildirimler'},
-    android: {priority: 'high', notification: {channel_id: 'swansport_default'}, ...(live ? {ttl: '60s'} : {})},
+    data: {url: job.url || defaultUrl},
+    android: {priority: 'high', notification: {channel_id: channelId}, ...(live ? {ttl: '60s'} : {})},
     apns: {
       headers: {'apns-push-type': 'alert', 'apns-priority': '10',
         ...(live ? {'apns-expiration': String(Math.floor(Date.now() / 1000) + 60)} : {})},
@@ -250,30 +255,41 @@ export async function onRequestPost({ request, env }) {
     return new Response('geçersiz gövde', {status: 400});
   }
 
+  const appTarget = job.appTarget || 'social';
+  if (appTarget !== 'social' && appTarget !== 'pro') {
+    return new Response('geçersiz hedef', { status: 400 });
+  }
+
   const subs = Array.isArray(job.subs) ? job.subs : [];
+  const defaultTitle = appTarget === 'pro' ? 'SwanSport Pro' : 'SwanSport';
+  const defaultUrl = appTarget === 'pro' ? '/gelen-kutusu' : '/bildirimler';
   const payload = JSON.stringify({
-    title: job.title || 'SwanSport',
+    title: job.title || defaultTitle,
     body: job.body || '',
-    url: job.url || '/bildirimler',
+    url: job.url || defaultUrl,
   });
 
   // Android cihaz varsa erişim token'ını bir kez al — her cihaz için ayrı
   // token istemek Google'a gereksiz tur atmak olurdu.
   const hasFcm = subs.some((s) => s.kind === 'fcm');
+  const serviceAccountJson = appTarget === 'pro'
+    ? env.PRO_FCM_SERVICE_ACCOUNT
+    : env.FCM_SERVICE_ACCOUNT;
+
   let fcm = null;
-  if (hasFcm && env.FCM_SERVICE_ACCOUNT) {
+  if (hasFcm && serviceAccountJson) {
     try {
-      fcm = await fcmAccessToken(env);
+      fcm = await fcmAccessToken(serviceAccountJson);
     } catch (e) {
       // Token alınamazsa Android cihazlar atlanır; web tarafı yine gitsin.
-      fcm = { error: String(e) };
+      fcm = { error: 'token alınamadı' };
     }
   }
 
   const results = await Promise.all(subs.map(async (s) => {
     try {
       if (s.kind === 'fcm') {
-        if (!env.FCM_SERVICE_ACCOUNT) {
+        if (!serviceAccountJson) {
           return { endpoint: s.endpoint, status: 0, error: 'FCM yapılandırılmamış' };
         }
         if (!fcm || fcm.error) {

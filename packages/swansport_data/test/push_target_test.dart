@@ -1,3 +1,4 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_data/swansport_data.dart';
 
@@ -5,8 +6,10 @@ void main() {
   group('PushAppTarget contracts', () {
     test('PushAppTarget exposes social and pro values with exact wire names',
         () {
-      expect(PushAppTarget.values,
-          containsAll([PushAppTarget.social, PushAppTarget.pro]));
+      expect(
+        PushAppTarget.values,
+        containsAll([PushAppTarget.social, PushAppTarget.pro]),
+      );
       expect(PushAppTarget.social.wireName, equals('social'));
       expect(PushAppTarget.pro.wireName, equals('pro'));
     });
@@ -18,6 +21,36 @@ void main() {
       expect(PushAppTarget.fromWire('pro'), equals(PushAppTarget.pro));
       expect(PushAppTarget.fromWire('unknown'), equals(PushAppTarget.social));
       expect(PushAppTarget.fromWire(null), equals(PushAppTarget.social));
+    });
+
+    test(
+        'PushSubscriptionService defaults to social and can be overridden for pro',
+        () {
+      final containerSocial = ProviderContainer();
+      addTearDown(containerSocial.dispose);
+      expect(
+        containerSocial.read(pushAppTargetProvider),
+        equals(PushAppTarget.social),
+      );
+      expect(
+        containerSocial.read(pushSubscriptionServiceProvider).target,
+        equals(PushAppTarget.social),
+      );
+
+      final containerPro = ProviderContainer(
+        overrides: [
+          pushAppTargetProvider.overrideWithValue(PushAppTarget.pro),
+        ],
+      );
+      addTearDown(containerPro.dispose);
+      expect(
+        containerPro.read(pushAppTargetProvider),
+        equals(PushAppTarget.pro),
+      );
+      expect(
+        containerPro.read(pushSubscriptionServiceProvider).target,
+        equals(PushAppTarget.pro),
+      );
     });
   });
 }

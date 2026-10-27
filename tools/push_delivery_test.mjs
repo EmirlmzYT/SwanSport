@@ -22,3 +22,41 @@ test('fcmMessage configures swansport_pro_default channel for pro and swansport_
   const socialMsg = sender.fcmMessage(sub, socialJob);
   assert.equal(socialMsg.android?.notification?.channel_id, 'swansport_default');
 });
+
+test('onRequestPost rejects unknown appTarget with 400', async () => {
+  const req = new Request('https://swansport.pages.dev/api/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-push-secret': 'sec123' },
+    body: JSON.stringify({ appTarget: 'evil_target', subs: [] }),
+  });
+  const res = await sender.onRequestPost({ request: req, env: { PUSH_SECRET: 'sec123' } });
+  assert.equal(res.status, 400);
+});
+
+test('onRequestPost isolates PRO_FCM_SERVICE_ACCOUNT from social FCM_SERVICE_ACCOUNT', async () => {
+  const reqPro = new Request('https://swansport.pages.dev/api/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-push-secret': 'sec123' },
+    body: JSON.stringify({ appTarget: 'pro', subs: [{ kind: 'fcm', endpoint: 'pro-ep' }] }),
+  });
+  const resPro = await sender.onRequestPost({
+    request: reqPro,
+    env: { PUSH_SECRET: 'sec123', FCM_SERVICE_ACCOUNT: '{"project_id":"social-proj"}' },
+  });
+  assert.equal(resPro.status, 200);
+  const dataPro = await resPro.json();
+  assert.equal(dataPro.results[0].error, 'FCM yapılandırılmamış');
+
+  const reqSocial = new Request('https://swansport.pages.dev/api/push', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'x-push-secret': 'sec123' },
+    body: JSON.stringify({ appTarget: 'social', subs: [{ kind: 'fcm', endpoint: 'social-ep' }] }),
+  });
+  const resSocial = await sender.onRequestPost({
+    request: reqSocial,
+    env: { PUSH_SECRET: 'sec123', PRO_FCM_SERVICE_ACCOUNT: '{"project_id":"pro-proj"}' },
+  });
+  assert.equal(resSocial.status, 200);
+  const dataSocial = await resSocial.json();
+  assert.equal(dataSocial.results[0].error, 'FCM yapılandırılmamış');
+});

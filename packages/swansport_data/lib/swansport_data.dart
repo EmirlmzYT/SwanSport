@@ -79,3 +79,4 @@ export 'src/league_standings_service.dart';
 export 'src/match_following_models.dart';
 export 'src/match_following_service.dart';
 export 'src/local_test_accounts.dart';
+export 'src/push_target.dart';
