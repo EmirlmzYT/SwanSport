@@ -231,6 +231,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Click Çıkış Yap
+      await tester.ensureVisible(find.text('Çıkış Yap'));
       await tester.tap(find.text('Çıkış Yap'));
       await tester.pumpAndSettle();
 
