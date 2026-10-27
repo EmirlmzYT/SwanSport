@@ -219,8 +219,7 @@ void main() {
       expect(find.byKey(const Key('create-duty-invite-btn')), findsNothing);
     });
 
-    testWidgets(
-        'delegate user DOES NOT see revoke button on duty card (hidden, not disabled)',
+    testWidgets('delegate user sees leave button on own active duty',
         (tester) async {
       final now = DateTime.now();
       final duty = TurfDuty(
@@ -268,10 +267,68 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      // Revoke action must be completely hidden for non-manager delegate
-      expect(find.text('Görevi geri al'), findsNothing);
+      // Delegate can leave their own active duty
+      expect(find.text('Görevi bırak'), findsOneWidget);
       expect(
         find.byKey(const Key('revoke-duty-btn-duty-active-1')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'delegate user DOES NOT see revoke or leave button on another delegate or field duty',
+        (tester) async {
+      final now = DateTime.now();
+      final otherDuty = TurfDuty(
+        id: 'duty-other-1',
+        fieldId: 'field-other',
+        fieldName: 'Güney Halı Saha',
+        venueName: 'Güney Spor Tesisleri',
+        issuer: false,
+        validUntil: now.add(const Duration(hours: 12)),
+        inviteUntil: now.add(const Duration(hours: 6)),
+        status: 'active',
+      );
+
+      final delegateContainer = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'member',
+              coachLevel: 0,
+              athleteKind: null,
+              managedTurfFieldIds: {},
+              delegatedTurfFieldIds: {'field-1'}, // only field-1 delegated
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({
+              FeatureFlags.turfFields,
+              FeatureFlags.turfDelegation,
+            }),
+          ),
+          selectedFacilityScopeIdProvider.overrideWith((ref) => 'field-1'),
+          turfDutiesProvider(0).overrideWith(
+            (ref) async => TurfDutyPage([otherDuty], false),
+          ),
+        ],
+      );
+      addTearDown(delegateContainer.dispose);
+
+      await tester.pumpWidget(
+        _buildHost(
+          container: delegateContainer,
+          child: const SharedManagedTurfDutiesScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Revoke action must be completely hidden for another delegate's duty
+      expect(find.text('Görevi bırak'), findsNothing);
+      expect(find.text('Görevi geri al'), findsNothing);
+      expect(
+        find.byKey(const Key('revoke-duty-btn-duty-other-1')),
         findsNothing,
       );
     });

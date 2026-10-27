@@ -236,7 +236,8 @@ final class _ManagedTurfDutiesBodyState
       if (!mounted) return;
       setState(() {
         _isSubmitting = false;
-        _statusMessage = 'Saha görevi geri alındı.';
+        _statusMessage =
+            duty.issuer ? 'Saha görevi geri alındı.' : 'Saha görevi bırakıldı.';
         _isStatusError = false;
       });
     } catch (e) {
@@ -600,12 +601,14 @@ final class _ManagedTurfDutiesBodyState
       _ => theme.danger,
     };
 
-    // Rule 1: Delegate user DOES NOT see revoke button. Only manager who is issuer sees it.
-    // Rule 2: Expired or revoked duty hides action button (fail-closed).
-    final canRevoke = isManager &&
-        duty.issuer &&
-        access.isTurfManagerOf(duty.fieldId) &&
-        isReallyLive;
+    // Manager can revoke duties they issued on their managed turf.
+    // Delegate can release/leave their own assigned active duty.
+    // Expired or revoked duties never show actions (fail-closed).
+    final canRevoke = isReallyLive &&
+        ((duty.issuer && access.isTurfManagerOf(duty.fieldId)) ||
+            (!duty.issuer &&
+                duty.status == 'active' &&
+                access.delegatedTurfFieldIds.contains(duty.fieldId)));
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 6),
@@ -678,7 +681,7 @@ final class _ManagedTurfDutiesBodyState
                 key: Key('revoke-duty-btn-${duty.id}'),
                 onPressed: _isSubmitting ? null : () => _handleRevokeDuty(duty),
                 icon: const Icon(Icons.cancel_outlined, size: 18),
-                label: const Text('Görevi geri al'),
+                label: Text(duty.issuer ? 'Görevi geri al' : 'Görevi bırak'),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: theme.danger,
                   side: BorderSide(color: theme.danger.withValues(alpha: 0.5)),
