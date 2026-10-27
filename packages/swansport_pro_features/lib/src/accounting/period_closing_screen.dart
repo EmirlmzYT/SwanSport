@@ -944,7 +944,7 @@ final class _NewAdjustmentSheetState
     final totalPages = (page.totalCount / _pageSize).ceil().clamp(1, 9999);
     final currentPage = (_offset / _pageSize).floor() + 1;
 
-    final displayItems = List<ClosedPeriodCandidateEntry>.from(page.entries);
+    final displayItems = List<ClosedPeriodCandidateEntry>.of(page.entries);
     if (_selectedEntry != null &&
         (_kindFilter == null || _selectedEntry!.targetKind == _kindFilter) &&
         !displayItems.any((e) => e.entryId == _selectedEntry!.entryId)) {

@@ -91,6 +91,11 @@ class ProFeaturesContractTest(unittest.TestCase):
             2,
             "build_pro_production_preview.yml must run pro_phase3_host_parity_test.dart in both SwanSport and Pro host steps",
         )
+        self.assertEqual(
+            preview.count("test/pro_phase4_host_parity_test.dart"),
+            2,
+            "build_pro_production_preview.yml must run pro_phase4_host_parity_test.dart in both SwanSport and Pro host steps",
+        )
         self.assertIn("pro_phase2_flags_sql_test.mjs", preview)
         self.assertIn("feature_flag_sync_test.dart", preview)
 

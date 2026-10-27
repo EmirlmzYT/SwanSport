@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 import '../../workspaces/pro_workspace.dart';
@@ -16,6 +17,10 @@ class ProTasksScreen extends ConsumerWidget {
         workspace == ProWorkspace.club || workspace == ProWorkspace.coaching;
     final isFederation = workspace == ProWorkspace.federation;
     final isReferee = workspace == ProWorkspace.referee;
+    final isAccounting = workspace == ProWorkspace.accounting;
+    final isFacility = workspace == ProWorkspace.facility;
+    final isPlatform = workspace == ProWorkspace.platform;
+    final access = ref.watch(swanAccessProvider);
     return Scaffold(
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -23,11 +28,16 @@ class ProTasksScreen extends ConsumerWidget {
           const Text('Görevler',
               style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
           const SizedBox(height: 12),
-          if (!isClubOrCoaching && !isFederation && !isReferee)
-            const Text('Bu çalışma alanı için operasyon görevi bulunmuyor.'),
           if (isClubOrCoaching)
-            const ProOperationsFeatureHost(
-              child: SharedClubOperationsPanel(),
+            ProOperationsFeatureHost(
+              child: Column(
+                children: [
+                  if (access.hasActiveClubStaffMembership)
+                    const SharedClubOperationsPanel(),
+                  if (access.hasOperationalClubRole)
+                    const SharedClubStaffOperationsPanel(),
+                ],
+              ),
             ),
           if (isFederation)
             const ProOperationsFeatureHost(
@@ -36,6 +46,18 @@ class ProTasksScreen extends ConsumerWidget {
           if (isReferee)
             const ProOperationsFeatureHost(
               child: SharedRefereeOperationsPanel(),
+            ),
+          if (isAccounting)
+            const ProOperationsFeatureHost(
+              child: SharedAccountingOperationsPanel(),
+            ),
+          if (isFacility)
+            const ProOperationsFeatureHost(
+              child: SharedFacilityOperationsPanel(),
+            ),
+          if (isPlatform)
+            const ProOperationsFeatureHost(
+              child: SharedPlatformOperationsPanel(),
             ),
         ],
       ),

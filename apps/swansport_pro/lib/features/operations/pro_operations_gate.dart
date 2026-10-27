@@ -131,3 +131,119 @@ class ProRefereeOperationsGate extends ConsumerWidget {
     );
   }
 }
+
+class ProAccountingOperationsGate extends ConsumerWidget {
+  const ProAccountingOperationsGate({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(swanAccessProvider);
+    final clubId = ref.watch(selectedAccountantClubIdProvider);
+    if (!access.isAccountant ||
+        clubId == null ||
+        !access.accountantClubIds.contains(clubId)) {
+      return const Scaffold(
+        body: Center(child: Text('Aktif muhasebe kulüp kapsamı gerekli.')),
+      );
+    }
+    if (ref.watch(selectedClubIdProvider) != clubId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(selectedClubIdProvider.notifier).state = clubId;
+      });
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
+    return ProFeatureContextBoundary(
+      contextKey: ProFeatureContextKey.accounting(
+        userId: userId,
+        accountingClubId: clubId,
+      ),
+      child: ProOperationsFeatureHost(child: child),
+    );
+  }
+}
+
+class ProFacilityOperationsGate extends ConsumerWidget {
+  const ProFacilityOperationsGate({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(swanAccessProvider);
+    final scopeId = ref.watch(selectedFacilityScopeIdProvider);
+    final authorizedScopes = {
+      ...access.managedTurfFieldIds,
+      ...access.delegatedTurfFieldIds,
+    };
+    if (!access.canOpenTurfCenter ||
+        scopeId == null ||
+        !authorizedScopes.contains(scopeId)) {
+      return const Scaffold(
+        body: Center(child: Text('Aktif tesis operasyon kapsamı gerekli.')),
+      );
+    }
+    final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
+    return ProFeatureContextBoundary(
+      contextKey: ProFeatureContextKey.facility(
+        userId: userId,
+        facilityScopeId: scopeId,
+      ),
+      child: ProOperationsFeatureHost(child: child),
+    );
+  }
+}
+
+class ProPlatformOperationsGate extends ConsumerWidget {
+  const ProPlatformOperationsGate({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (!ref.watch(swanAccessProvider).isPlatformAdmin) {
+      return const Scaffold(
+        body: Center(child: Text('Platform yöneticisi yetkisi gerekli.')),
+      );
+    }
+    final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
+    return ProFeatureContextBoundary(
+      contextKey: ProFeatureContextKey.platform(userId: userId),
+      child: ProOperationsFeatureHost(child: child),
+    );
+  }
+}
+
+class ProClubSpecialistOperationsGate extends ConsumerWidget {
+  const ProClubSpecialistOperationsGate({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final access = ref.watch(swanAccessProvider);
+    final clubId = ref.watch(selectedClubIdProvider);
+    final allowed = clubId != null &&
+        (access.canReadClubInventory(clubId) ||
+            access.canReadClubHealth(clubId) ||
+            access.canReadClubPlanning(clubId));
+    if (!allowed) {
+      return const Scaffold(
+        body: Center(child: Text('Aktif kulüp ihtisas kapsamı gerekli.')),
+      );
+    }
+    final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
+    return ProFeatureContextBoundary(
+      contextKey: ProFeatureContextKey(
+        userId: userId,
+        workspace: 'club-specialist',
+        clubId: clubId,
+      ),
+      child: ProOperationsFeatureHost(child: child),
+    );
+  }
+}

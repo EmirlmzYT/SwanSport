@@ -17,9 +17,12 @@ class ProDashboardScreen extends ConsumerWidget {
       return const Scaffold(
           body: Center(child: Text('Çalışma alanı bulunamadı.')));
     }
-    final supportsOperations = workspace.supportsClubOperations;
     final supportsFederation = workspace.supportsFederationOperations;
     final supportsReferee = workspace.supportsRefereeOperations;
+    final supportsAccounting = workspace.supportsAccountingOperations;
+    final supportsFacility = workspace.supportsFacilityOperations;
+    final supportsPlatform = workspace.supportsPlatformOperations;
+    final access = ref.watch(swanAccessProvider);
     final clubs = ref.watch(proAuthorizedClubsProvider);
     return Scaffold(
       body: ListView(
@@ -43,12 +46,17 @@ class ProDashboardScreen extends ConsumerWidget {
             const ProOperationsFeatureHost(
               child: SharedRefereeOperationsPanel(),
             )
-          else if (!supportsOperations)
-            const _InfoCard(
-              icon: Icons.schedule_outlined,
-              title: 'Bu çalışma alanı sonraki fazda açılacak',
-              body:
-                  'Takvim ve Gelen Kutusu yerleri korunuyor. Bu fazda gerçek kulüp ve antrenör operasyonları açılıyor.',
+          else if (supportsAccounting)
+            const ProOperationsFeatureHost(
+              child: SharedAccountingOperationsPanel(),
+            )
+          else if (supportsFacility)
+            const ProOperationsFeatureHost(
+              child: SharedFacilityOperationsPanel(),
+            )
+          else if (supportsPlatform)
+            const ProOperationsFeatureHost(
+              child: SharedPlatformOperationsPanel(),
             )
           else
             clubs.when(
@@ -64,8 +72,19 @@ class ProDashboardScreen extends ConsumerWidget {
                         'Bu çalışma alanını açan kimliğin var ancak aktif kulüp yöneticisi veya antrenör üyeliğin bulunmuyor.',
                   );
                 }
-                return const ProOperationsFeatureHost(
-                  child: SharedClubOperationsPanel(),
+                return ProOperationsFeatureHost(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (access.hasActiveClubStaffMembership)
+                        const SharedClubOperationsPanel(),
+                      if (access.hasActiveClubStaffMembership &&
+                          access.hasOperationalClubRole)
+                        const SizedBox(height: 24),
+                      if (access.hasOperationalClubRole)
+                        const SharedClubStaffOperationsPanel(),
+                    ],
+                  ),
                 );
               },
             ),

@@ -264,9 +264,7 @@ final class _SharedFacilityOperationsPanelState
           subtitle:
               'Geçici nöbet atamaları, kabul bekleyen davetler ve aktif görevler.',
           actionLabel: 'Görevleri Yönet',
-          onTap: () {
-            host.navigator.openFacilityOperations();
-          },
+          onTap: host.navigator.openManagedTurfDuties,
         ),
         const SizedBox(height: 12),
         _buildActionCard(
@@ -275,9 +273,8 @@ final class _SharedFacilityOperationsPanelState
           title: 'Halı Saha Doluluk Çizelgesi',
           subtitle:
               'Haftalık saat şeridi doluluk işaretleme ve müsaitlik panosu.',
-          actionLabel: 'Çizelgeyi Aç (Faz 3b)',
-          onTap: () {},
-          isPlaceholder: true,
+          actionLabel: 'Çizelgeyi Aç',
+          onTap: host.navigator.openFacilitySchedule,
         ),
         const SizedBox(height: 12),
         _buildActionCard(
@@ -285,9 +282,8 @@ final class _SharedFacilityOperationsPanelState
           icon: Icons.schedule_send_outlined,
           title: 'Rezervasyon Talepleri',
           subtitle: 'Kullanıcılardan gelen saat istekleri ve onay durumu.',
-          actionLabel: 'Talepleri İncele (Faz 3c)',
-          onTap: () {},
-          isPlaceholder: true,
+          actionLabel: 'Talepleri İncele',
+          onTap: host.navigator.openFacilityReservations,
         ),
       ],
     );

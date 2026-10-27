@@ -229,6 +229,139 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/muhasebe',
+        builder: (context, state) => const ProAccountingOperationsGate(
+          child: SharedFinanceOperationsScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/muhasebe-defter',
+        builder: (context, state) => const ProAccountingOperationsGate(
+          child: SharedFinanceLedgerScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/mali-taahhutler',
+        builder: (context, state) => const ProAccountingOperationsGate(
+          child: SharedFinanceCommitmentsScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/banka-mutabakati',
+        builder: (context, state) => const ProAccountingOperationsGate(
+          child: SharedBankReconciliationScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/kulup-butcesi',
+        builder: (context, state) => const ProAccountingOperationsGate(
+          child: SharedClubBudgetScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/donem-kapanisi',
+        builder: (context, state) => const ProAccountingOperationsGate(
+          child: SharedPeriodClosingScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/tesis',
+        builder: (context, state) => const ProFacilityOperationsGate(
+          child: SharedFacilityOperationsPanel(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/tesis-takvim',
+        builder: (context, state) => const ProFacilityOperationsGate(
+          child: SharedFacilityScheduleScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/tesis-rezervasyonlar',
+        builder: (context, state) => const ProFacilityOperationsGate(
+          child: SharedFacilityReservationsScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/tesis-gorevleri',
+        builder: (context, state) => const ProFacilityOperationsGate(
+          child: SharedManagedTurfDutiesScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/kulup-envanter',
+        builder: (context, state) => const ProClubSpecialistOperationsGate(
+          child: SharedClubInventoryScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/kulup-saglik',
+        builder: (context, state) => const ProClubSpecialistOperationsGate(
+          child: SharedClubHealthOperationsScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/kulup-sportif-planlama',
+        builder: (context, state) => const ProClubSpecialistOperationsGate(
+          child: SharedClubSportingPlanningScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/gelisim-raporu',
+        builder: (context, state) => const ProClubSpecialistOperationsGate(
+          child: SharedDevelopmentReportScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/platform',
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: SharedPlatformOperationsPanel(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/platform-durum',
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: SharedPlatformStatusScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/platform-denetim',
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: SharedPlatformAuditScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/platform-planlar',
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: SharedPlatformPlansScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/platform-bekleme-listesi',
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: SharedLaunchWaitlistScreen(),
+        ),
+      ),
     ],
   );
 });

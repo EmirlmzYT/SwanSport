@@ -19,7 +19,7 @@ class ProAppContractTest(unittest.TestCase):
         content = pro_pubspec.read_text(encoding='utf-8')
 
         self.assertRegex(content, r'(?m)^name:\s*swansport_pro\s*$')
-        self.assertRegex(content, r'(?m)^version:\s*0\.1\.2\+4\s*$')
+        self.assertRegex(content, r'(?m)^version:\s*0\.1\.3\+5\s*$')
         self.assertRegex(content, r'(?m)^resolution:\s*workspace\s*$')
 
         # Must have required shared/runtime dependencies
@@ -146,6 +146,11 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('tools.pro_features_contract_test', content)
         self.assertIn('pro_team_directory_host_test.dart', content)
         self.assertIn('pro_club_panel_host_test.dart', content)
+        self.assertEqual(
+            content.count('test/pro_phase4_host_parity_test.dart'),
+            2,
+            'production preview must run Phase 4 parity tests in both hosts',
+        )
         self.assertIn('pro_phase2_flags_sql_test.mjs', content)
         self.assertIn('feature_flag_sync_test.dart', content)
         self.assertIn('Build SwanSport Pro Production Web', content)

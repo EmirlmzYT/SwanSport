@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProOperationsFeatureHost extends StatelessWidget {
   const ProOperationsFeatureHost({required this.child, super.key});
@@ -76,6 +77,69 @@ final class _ProNavigator extends ProFeatureNavigatorBase {
   @override
   void openRefereeMatchReport(String matchId) =>
       context.push('/operasyon/hakem-rapor/$matchId');
+  @override
+  void openFinanceOperations() => context.push('/operasyon/muhasebe');
+  @override
+  void openFinanceLedger() => context.push('/operasyon/muhasebe-defter');
+  @override
+  void openFinanceCommitments() => context.push('/operasyon/mali-taahhutler');
+  @override
+  void openBankReconciliation() => context.push('/operasyon/banka-mutabakati');
+  @override
+  void openClubBudget() => context.push('/operasyon/kulup-butcesi');
+  @override
+  void openPeriodClosing() => context.push('/operasyon/donem-kapanisi');
+  @override
+  void openFacilityOperations() => context.push('/operasyon/tesis');
+  @override
+  void openManagedTurfDuties() => context.push('/operasyon/tesis-gorevleri');
+  @override
+  void openFacilitySchedule() => context.push('/operasyon/tesis-takvim');
+  @override
+  void openFacilityReservations() =>
+      context.push('/operasyon/tesis-rezervasyonlar');
+  @override
+  void openClubInventory() => context.push('/operasyon/kulup-envanter');
+  @override
+  void openClubHealthOperations() => context.push('/operasyon/kulup-saglik');
+  @override
+  void openClubSportingPlanning() =>
+      context.push('/operasyon/kulup-sportif-planlama');
+  @override
+  void openDevelopmentReport() => context.push('/operasyon/gelisim-raporu');
+  @override
+  void openPlatformOperations() => context.push('/operasyon/platform');
+  @override
+  void openPlatformStatus() => context.push('/operasyon/platform-durum');
+  @override
+  void openPlatformAudit() => context.push('/operasyon/platform-denetim');
+  @override
+  void openPlatformPlans() => context.push('/operasyon/platform-planlar');
+  @override
+  void openLaunchWaitlist() =>
+      context.push('/operasyon/platform-bekleme-listesi');
+
+  @override
+  bool openPlatformWebConsole([
+    PlatformWebConsoleSection section =
+        PlatformWebConsoleSection.missionControl,
+  ]) {
+    final fragment = switch (section) {
+      PlatformWebConsoleSection.missionControl => 'mission-control',
+      PlatformWebConsoleSection.branding => 'mission-control',
+      PlatformWebConsoleSection.plans => 'mission-control',
+      PlatformWebConsoleSection.audit => 'mission-control',
+      PlatformWebConsoleSection.waitlist => 'mission-control',
+      PlatformWebConsoleSection.support => 'destek',
+      PlatformWebConsoleSection.diagnostics => 'tanilama',
+      PlatformWebConsoleSection.marketplace => 'pazaryeri',
+    };
+    launchUrl(
+      Uri.parse('https://swansport.pages.dev/konsol/$fragment'),
+      mode: LaunchMode.externalApplication,
+    );
+    return true;
+  }
 }
 
 final class _ProChrome implements ProFeatureChrome {

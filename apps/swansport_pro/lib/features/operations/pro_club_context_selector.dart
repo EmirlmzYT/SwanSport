@@ -4,12 +4,17 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 final proAuthorizedClubsProvider = Provider<AsyncValue<List<ClubRef>>>((ref) {
+  final access = ref.watch(swanAccessProvider);
+  final operationalClubIds = access.clubOperationsAuthority
+      .map((authority) => authority.clubId)
+      .toSet();
   return ref.watch(myClubsProvider).whenData(
         (clubs) => clubs
             .where(
               (club) =>
                   club.isActive &&
-                  const {'club_admin', 'coach'}.contains(club.role),
+                  (const {'club_admin', 'coach'}.contains(club.role) ||
+                      operationalClubIds.contains(club.id)),
             )
             .toList(growable: false),
       );

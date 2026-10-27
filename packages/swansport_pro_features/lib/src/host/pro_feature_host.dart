@@ -76,13 +76,29 @@ abstract interface class ProFeatureNavigator {
 
   void openFacilityOperations();
 
+  void openManagedTurfDuties();
+
+  void openFacilitySchedule();
+
+  void openFacilityReservations();
+
   void openClubInventory();
 
   void openClubHealthOperations();
 
   void openClubSportingPlanning();
 
+  void openDevelopmentReport();
+
   void openPlatformOperations();
+
+  void openPlatformStatus();
+
+  void openPlatformAudit();
+
+  void openPlatformPlans();
+
+  void openLaunchWaitlist();
 
   bool openPlatformWebConsole([
     PlatformWebConsoleSection section =
@@ -153,6 +169,15 @@ abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
   void openFacilityOperations() {}
 
   @override
+  void openManagedTurfDuties() {}
+
+  @override
+  void openFacilitySchedule() {}
+
+  @override
+  void openFacilityReservations() {}
+
+  @override
   void openClubInventory() {}
 
   @override
@@ -162,7 +187,22 @@ abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
   void openClubSportingPlanning() {}
 
   @override
+  void openDevelopmentReport() {}
+
+  @override
   void openPlatformOperations() {}
+
+  @override
+  void openPlatformStatus() {}
+
+  @override
+  void openPlatformAudit() {}
+
+  @override
+  void openPlatformPlans() {}
+
+  @override
+  void openLaunchWaitlist() {}
 
   @override
   bool openPlatformWebConsole([

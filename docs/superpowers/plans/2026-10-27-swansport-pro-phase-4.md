@@ -6,9 +6,9 @@
 
 ## İLERLEME
 - [x] Dilim 1  - [x] Dilim 2a  - [x] Dilim 2b  - [x] Dilim 2c
-- [x] Dilim 3a  - [x] Dilim 3b  - [x] Dilim 3c   - [ ] Dilim 4a (envanter)  - [ ] Dilim 4b (sağlık)  - [ ] Dilim 4c (sportif)
-- [ ] Dilim 5a (salt okunur ekranlar)  - [ ] Dilim 5b (waitlist/plan yazıları)
-- [ ] Dilim 6  - [ ] Dilim 7  - [ ] Dilim 8
+- [x] Dilim 3a  - [x] Dilim 3b  - [x] Dilim 3c   - [x] Dilim 4a (envanter)  - [x] Dilim 4b (sağlık)  - [x] Dilim 4c (sportif)
+- [x] Dilim 5a (salt okunur ekranlar)  - [x] Dilim 5b (waitlist/plan yazıları)
+- [x] Dilim 6  - [x] Dilim 7  - [x] Dilim 8
 
 ## 1. Hedef ve Değişmez Kurallar
 

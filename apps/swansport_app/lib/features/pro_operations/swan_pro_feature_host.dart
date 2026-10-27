@@ -163,6 +163,38 @@ final class _SwanFeatureNavigator extends ProFeatureNavigatorBase {
 
   @override
   void openPeriodClosing() => Navigator.pushNamed(context, '/ters-islem');
+
+  @override
+  void openFacilityOperations() =>
+      Navigator.pushNamed(context, '/saha-islemlerim');
+
+  @override
+  void openManagedTurfDuties() =>
+      Navigator.pushNamed(context, '/saha-islemlerim');
+
+  @override
+  void openFacilitySchedule() =>
+      Navigator.pushNamed(context, '/saha-islemlerim');
+
+  @override
+  void openFacilityReservations() =>
+      Navigator.pushNamed(context, '/saha-islemlerim');
+
+  @override
+  void openClubInventory() =>
+      Navigator.pushNamed(context, '/kulup/malzeme-zimmet');
+
+  @override
+  void openClubHealthOperations() =>
+      Navigator.pushNamed(context, '/kulup/saglik-takibi');
+
+  @override
+  void openClubSportingPlanning() =>
+      Navigator.pushNamed(context, '/kulup/kadro-planlama');
+
+  @override
+  void openDevelopmentReport() =>
+      Navigator.pushNamed(context, '/gelisim-raporu');
 }
 
 final class _SwanFeatureChrome implements ProFeatureChrome {

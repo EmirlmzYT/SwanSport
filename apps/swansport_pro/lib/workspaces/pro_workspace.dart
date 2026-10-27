@@ -21,6 +21,12 @@ enum ProWorkspace {
   bool get supportsFederationOperations => this == ProWorkspace.federation;
 
   bool get supportsRefereeOperations => this == ProWorkspace.referee;
+
+  bool get supportsAccountingOperations => this == ProWorkspace.accounting;
+
+  bool get supportsFacilityOperations => this == ProWorkspace.facility;
+
+  bool get supportsPlatformOperations => this == ProWorkspace.platform;
 }
 
 /// SwanAccess yetki sonucunu Pro çalışma alanları listesine dönüştürür.
