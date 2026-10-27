@@ -367,7 +367,8 @@ void main() {
 
       expect(
         find.textContaining(
-            'Yayımlanmış kamu özeti: 1 maç resmi müsabakalardan men.'),
+          'Yayımlanmış kamu özeti: 1 maç resmi müsabakalardan men.',
+        ),
         findsOneWidget,
       );
       expect(find.text('Müsabaka Saat Değişikliği'), findsOneWidget);

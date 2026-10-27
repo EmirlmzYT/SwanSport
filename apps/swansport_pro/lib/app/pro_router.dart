@@ -209,6 +209,26 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           );
         },
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/hakem-canli/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return ProRefereeOperationsGate(
+            child: SharedRefereeLiveCockpitScreen(matchId: id),
+          );
+        },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/hakem-rapor/:id',
+        builder: (context, state) {
+          final id = state.pathParameters['id'] ?? '';
+          return ProRefereeOperationsGate(
+            child: SharedRefereeMatchReportScreen(matchId: id),
+          );
+        },
+      ),
     ],
   );
 });

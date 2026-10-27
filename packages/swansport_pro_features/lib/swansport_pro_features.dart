@@ -18,6 +18,8 @@ export 'src/host/pro_feature_state.dart';
 export 'src/host/pro_feature_theme.dart';
 export 'src/referee/referee_duty_list_screen.dart';
 export 'src/referee/referee_lineup_approval_screen.dart';
+export 'src/referee/referee_live_cockpit_screen.dart';
+export 'src/referee/referee_match_report_screen.dart';
 export 'src/referee/referee_operations_panel.dart';
 export 'src/roster/team_directory_content.dart';
 export 'src/roster/team_directory_screen.dart';
