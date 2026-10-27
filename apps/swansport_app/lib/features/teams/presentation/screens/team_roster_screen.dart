@@ -1,22 +1,687 @@
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_core/swansport_core.dart';
+import 'package:swansport_models/swansport_models.dart';
 
-import '../../../pro_operations/swan_pro_feature_host.dart';
+import '../../../../app/design/swan_palette.dart';
+import '../../../../app/design/swan_type.dart';
+import '../../../../app/design/swan_shape.dart';
+import '../../../../app/widgets/premium.dart';
+import '../../../../app/widgets/swan_bottom_nav.dart';
+import '../../../../app/widgets/swan_tabs.dart';
+import '../widgets/official_team_rosters.dart';
+import '../../../communities/presentation/community_chat_screen.dart';
+import '../../../athlete_workspace/presentation/routing/athlete_detail_route_args.dart';
 
-class TeamRosterScreen extends StatelessWidget {
+/// Takım & Sporcu Kadrosu (Stitch Calm Athletic Modernism v3).
+///
+/// Bento bilgi kartı, mevki filtreleri, profesyonel sporcu kartları,
+/// program, sohbet ve gelişim sekmelerini barındırır.
+class TeamRosterScreen extends ConsumerStatefulWidget {
   const TeamRosterScreen({
+    super.key,
     required this.teamId,
     required this.teamName,
-    super.key,
   });
 
   final String teamId;
   final String teamName;
 
   @override
-  Widget build(BuildContext context) => SwanProFeatureHost(
-        child: SharedTeamRosterScreen(
-          target: TeamRouteTarget(teamId: teamId, teamName: teamName),
+  ConsumerState<TeamRosterScreen> createState() => _TeamRosterScreenState();
+}
+
+class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
+  int _tab = 0; // 0: Kadro, 1: Özet, 2: Program, 3: Sohbet, 4: Gelişim
+  String _searchQuery = '';
+  late String _currentTeamId;
+  late String _currentTeamName;
+
+  @override
+  void initState() {
+    super.initState();
+    _currentTeamId = widget.teamId;
+    _currentTeamName = widget.teamName;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c = isDark ? SwanPalette.dark : SwanPalette.light;
+
+    final club = ref.watch(activeClubProvider).valueOrNull;
+    final canManage =
+        club != null && (club.role == 'club_admin' || club.role == 'coach');
+    final channelId =
+        ref.watch(teamChannelProvider(_currentTeamId)).valueOrNull;
+    final teams = ref.watch(teamsProvider).valueOrNull ?? const [];
+
+    final labels = channelId == null
+        ? const ['Kadro', 'Özet', 'Program', 'Gelişim']
+        : const ['Kadro', 'Özet', 'Program', 'Sohbet', 'Gelişim'];
+
+    return SwanScaffold(
+      extendBody: true,
+      backgroundColor: c.bg,
+      header: _buildHeader(context, c, club),
+      body: SafeArea(
+        bottom: false,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Column(
+              children: [
+                // 1. Header (Geri, Başlık, Yeni Sporcu Ekle)
+
+                // 2. Team Category Selector (Yatay Takım Listesi)
+                if (teams.isNotEmpty) ...[
+                  const SizedBox(height: 10),
+                  _buildTeamSelector(c, teams),
+                ],
+
+                // 3. Team Quick Info Hero Bento Card
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: _buildTeamHeroCard(c),
+                ),
+
+                // 4. Tab Navigation
+                const SizedBox(height: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: SwanSegmentedTabs(
+                    labels: labels,
+                    selected: _tab.clamp(0, labels.length - 1),
+                    onSelect: (i) => setState(() => _tab = i),
+                  ),
+                ),
+                const SizedBox(height: 10),
+
+                // 5. Active Tab Body
+                Expanded(
+                  child: _buildTabBody(
+                    context,
+                    c,
+                    canManage,
+                    channelId,
+                    labels[_tab.clamp(0, labels.length - 1)],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      bottomNavigationBar: const SwanBottomNav(),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // HEADER
+  // ---------------------------------------------------------------------------
+  Widget _buildHeader(BuildContext context, SwanPalette c, ClubRef? club) =>
+      Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
+          child: Row(children: [
+            IconButton(
+                onPressed: () => Navigator.maybePop(context),
+                tooltip: 'Geri',
+                icon: Icon(Icons.arrow_back, color: c.ink)),
+            const SizedBox(width: 10),
+            Expanded(
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                  Text('Takım Kadrosu', style: SwanType.h3(c.ink)),
+                  if (club != null)
+                    Text(club.name, style: SwanType.caption(c.inkMuted))
+                ])),
+          ]));
+
+  Widget _buildTeamSelector(SwanPalette c, List<TeamRow> teams) {
+    return SizedBox(
+      height: 36,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: teams.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (_, i) {
+          final t = teams[i];
+          final isSel = t.id == _currentTeamId;
+          return InkWell(
+            onTap: () {
+              setState(() {
+                _currentTeamId = t.id;
+                _currentTeamName = t.name;
+              });
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: isSel ? c.accentFill : c.surface,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: isSel ? c.accentFill : c.line),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isSel) ...[
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: context.swan.onAccent,
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                  ],
+                  Flexible(
+                      child: Text(
+                    t.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(
+                      isSel ? context.swan.onAccent : c.inkMuted,
+                      w: FontWeight.w700,
+                    ),
+                  )),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // TEAM HERO BENTO CARD
+  // ---------------------------------------------------------------------------
+  Widget _buildTeamHeroCard(SwanPalette c) => Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: c.line)),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+        Text(_currentTeamName, style: SwanType.h3(c.ink)),
+        const SizedBox(height: 4),
+        ref.watch(teamRosterProvider(_currentTeamId)).when(
+            loading: () =>
+                Text('Kadro yükleniyor', style: SwanType.caption(c.inkMuted)),
+            error: (_, __) =>
+                Text('Kadro alınamadı', style: SwanType.caption(c.danger)),
+            data: (roster) => Text('${roster.length} sporcu',
+                style: SwanType.caption(c.inkMuted))),
+      ]));
+
+  Widget _buildTabBody(
+    BuildContext context,
+    SwanPalette c,
+    bool canManage,
+    String? channelId,
+    String activeTab,
+  ) {
+    switch (activeTab) {
+      case 'Kadro':
+        return _buildRosterTab(context, c, canManage);
+      case 'Program':
+        return _buildScheduleTab(context, c);
+      case 'Sohbet':
+        return CommunityChatScreen(
+            communityId: channelId!, title: _currentTeamName);
+      case 'Gelişim':
+        return _buildGrowthTab(context, c);
+      default:
+        return _buildOverviewTab(context, c);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // KADRO TAB (STITCH SQUAD LISTING)
+  // ---------------------------------------------------------------------------
+  Widget _buildRosterTab(BuildContext context, SwanPalette c, bool canManage) {
+    final rosterAsync = ref.watch(teamRosterProvider(_currentTeamId));
+
+    return RefreshIndicator(
+      color: c.accent,
+      onRefresh: () async {
+        ref.invalidate(teamRosterProvider(_currentTeamId));
+        await ref.read(teamRosterProvider(_currentTeamId).future);
+      },
+      child: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 6, 16, SwanSpace.xl * 5),
+        children: [
+          // Search Bar
+          OfficialTeamRosters(teamId: _currentTeamId),
+          Container(
+            height: 44,
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.line),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.search, size: 20, color: c.inkMuted),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: TextField(
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                    onChanged: (v) => setState(() => _searchQuery = v),
+                    decoration: InputDecoration(
+                      hintText: 'Sporcu adı veya forma no ile ara...',
+                      hintStyle: SwanType.bodySm(c.inkMuted),
+                      border: InputBorder.none,
+                      isDense: true,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 10),
+
+          // Squad list
+          rosterAsync.when(
+            loading: premiumLoading,
+            error: (e, _) => Center(
+              child: Text('Veri yüklenemedi: $e',
+                  style: SwanType.caption(c.inkMuted)),
+            ),
+            data: (list) {
+              if (list.isEmpty) {
+                return premiumEmpty(
+                  context,
+                  icon: Icons.groups_rounded,
+                  title: 'Kadro boş',
+                  subtitle: canManage
+                      ? 'Aşağıdan kulüp sporcularını takıma ekle.'
+                      : 'Bu takıma henüz sporcu atanmamış.',
+                );
+              }
+
+              final filtered = list.where((m) {
+                if (_searchQuery.isNotEmpty) {
+                  if (!trContains(
+                      '${m.name} ${m.jersey ?? ''}', _searchQuery)) {
+                    return false;
+                  }
+                }
+                return true;
+              }).toList();
+
+              return Column(
+                children: List.generate(filtered.length, (i) {
+                  return _buildAthleteSquadCard(
+                    context,
+                    c,
+                    filtered[i],
+                    i,
+                    canManage,
+                  );
+                }),
+              );
+            },
+          ),
+
+          // Kulüp Sporcuları (Takıma Ekleme Havuzu)
+          if (canManage) ...[
+            const SizedBox(height: 24),
+            Text(
+              'Kulüp Sporcuları',
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              'Takıma eklemek için dokun.',
+              style: SwanType.caption(c.inkMuted),
+            ),
+            const SizedBox(height: 10),
+            _buildAvailableAthletes(context, c, rosterAsync.valueOrNull),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAthleteSquadCard(
+          BuildContext context,
+          SwanPalette c,
+          ({String id, String athleteId, String name, String? jersey}) m,
+          int index,
+          bool canManage) =>
+      Card(
+          color: c.surface,
+          child: ListTile(
+            leading: CircleAvatar(
+                backgroundColor: c.surfaceAlt,
+                child: Text(m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
+                    style: SwanType.body(c.ink))),
+            title:
+                Text(m.name, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+            subtitle: m.jersey == null || m.jersey!.isEmpty
+                ? null
+                : Text('Forma: ${m.jersey}',
+                    style: SwanType.caption(c.inkMuted)),
+            onTap: () => Navigator.pushNamed(context, '/athlete-detail',
+                arguments:
+                    AthleteDetailRouteArgs(athleteId: SwanId(m.athleteId))),
+            trailing: canManage
+                ? IconButton(
+                    tooltip: 'Takımdan çıkar',
+                    icon: Icon(Icons.remove_circle_outline, color: c.danger),
+                    onPressed: () async {
+                      try {
+                        await ref
+                            .read(clubDataServiceProvider)
+                            .removeFromTeam(m.id);
+                        ref.invalidate(teamRosterProvider(_currentTeamId));
+                      } catch (e) {
+                        if (context.mounted)
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Çıkarılamadı: $e')));
+                      }
+                    })
+                : null,
+          ));
+
+  Widget _buildAvailableAthletes(
+    BuildContext context,
+    SwanPalette c,
+    List<({String id, String athleteId, String name, String? jersey})>? roster,
+  ) {
+    final athletes = ref.watch(clubAthletesProvider).valueOrNull ?? const [];
+    final inTeam = (roster ?? const []).map((m) => m.athleteId).toSet();
+    final free = athletes.where((a) => !inTeam.contains(a.id)).toList();
+
+    if (free.isEmpty) {
+      return Text('Kulüpteki tüm sporcular bu takıma eklenmiş.',
+          style: SwanType.caption(c.inkMuted));
+    }
+
+    return Column(
+      children: free.map((a) {
+        return InkWell(
+          onTap: () async {
+            try {
+              await ref
+                  .read(clubDataServiceProvider)
+                  .addToTeam(_currentTeamId, a.id);
+              ref.invalidate(teamRosterProvider(_currentTeamId));
+            } catch (e) {
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                      content: Text('Eklenemedi: $e'),
+                      backgroundColor: context.swan.danger),
+                );
+              }
+            }
+          },
+          borderRadius: BorderRadius.circular(12),
+          child: Container(
+            margin: const EdgeInsets.only(bottom: 8),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: c.surface,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: c.line),
+            ),
+            child: Row(
+              children: [
+                GradientAvatar(
+                  initials: a.initials,
+                  size: 36,
+                  gradientIndex: a.fullName.length % 4,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(
+                    a.fullName,
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                  ),
+                ),
+                Icon(Icons.add_circle, color: c.accent, size: 22),
+              ],
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // ÖZET, PROGRAM & GELİŞİM TABLARI
+  // ---------------------------------------------------------------------------
+  Widget _buildOverviewTab(BuildContext context, SwanPalette c) {
+    final events = ref.watch(eventsProvider).valueOrNull ?? const <EventRow>[];
+    final roster =
+        ref.watch(teamRosterProvider(_currentTeamId)).valueOrNull ?? const [];
+    final anns = ref.watch(announcementsProvider).valueOrNull ?? const [];
+
+    final now = DateTime.now();
+    final upcoming = events
+        .where((e) => e.teamId == _currentTeamId && e.startsAt.isAfter(now))
+        .toList()
+      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+
+    return ListView(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
+      children: [
+        if (upcoming.isNotEmpty) ...[
+          Text('Sıradaki Etkinlik',
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          _eventTile(c, upcoming.first),
+          const SizedBox(height: 16),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: _statBox(c, '${roster.length}', 'Kayıtlı Sporcu'),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _statBox(c, '${upcoming.length}', 'Yaklaşan Etkinlik'),
+            ),
+          ],
+        ),
+        if (anns.isNotEmpty) ...[
+          const SizedBox(height: 20),
+          Text('Duyurular',
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 8),
+          for (final a in anns.take(2))
+            Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: c.line),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(a.title,
+                      style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                  if (a.body.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(a.body, style: SwanType.caption(c.inkMuted)),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildScheduleTab(BuildContext context, SwanPalette c) {
+    final events = ref.watch(eventsProvider);
+    return events.when(
+      loading: premiumLoading,
+      error: (e, _) => premiumError(context, '$e'),
+      data: (all) {
+        final mine = all.where((e) => e.teamId == _currentTeamId).toList()
+          ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+        if (mine.isEmpty) {
+          return premiumEmpty(
+            context,
+            icon: Icons.event_note_rounded,
+            title: 'Program boş',
+            subtitle: 'Bu takıma bağlı yaklaşan etkinlik yok.',
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
+          itemCount: mine.length,
+          itemBuilder: (_, i) => _eventTile(c, mine[i]),
+        );
+      },
+    );
+  }
+
+  Widget _buildGrowthTab(BuildContext context, SwanPalette c) {
+    final roster =
+        ref.watch(teamRosterProvider(_currentTeamId)).valueOrNull ?? const [];
+    final perf = ref.watch(performanceOverviewProvider);
+
+    return perf.when(
+      loading: premiumLoading,
+      error: (e, _) => premiumError(context, '$e'),
+      data: (all) {
+        final ids = roster.map((m) => m.athleteId).toSet();
+        final mine = all.where((r) => ids.contains(r.athleteId)).toList()
+          ..sort((a, b) => b.progress.compareTo(a.progress));
+
+        if (mine.isEmpty) {
+          return premiumEmpty(
+            context,
+            icon: Icons.trending_up_rounded,
+            title: 'Gelişim kaydı yok',
+            subtitle: 'Ölçüm girildikçe takımın gelişimi burada görünecek.',
+          );
+        }
+
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
+          itemCount: mine.length,
+          itemBuilder: (_, i) {
+            final r = mine[i];
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: c.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: c.line),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(r.name,
+                            style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                        Text('${r.tests} ölçüm · ${r.goals} hedef',
+                            style: SwanType.caption(c.inkMuted)),
+                      ],
+                    ),
+                  ),
+                  Flexible(
+                      child: Text(
+                    '%${r.progress}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(
+                        r.progress >= 50 ? c.accent : c.inkMuted,
+                        w: FontWeight.w800),
+                  )),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _statBox(SwanPalette c, String value, String label) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: c.surface,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: c.line),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(value,
+                style:
+                    SwanType.h2(c.ink).copyWith(fontWeight: FontWeight.w800)),
+            Text(label, style: SwanType.caption(c.inkMuted)),
+          ],
         ),
       );
+
+  Widget _eventTile(SwanPalette c, EventRow e) {
+    final hh = e.startsAt.hour.toString().padLeft(2, '0');
+    final mm = e.startsAt.minute.toString().padLeft(2, '0');
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: c.surface,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: c.line),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: c.bg,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: c.line),
+            ),
+            child: Column(
+              children: [
+                Text('$hh:$mm',
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w800)),
+                Text('${e.startsAt.day}.${e.startsAt.month}',
+                    style: SwanType.caption(c.inkMuted)),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(e.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                Text(e.place ?? e.kindLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(c.inkMuted)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

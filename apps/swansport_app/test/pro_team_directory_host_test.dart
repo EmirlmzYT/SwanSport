@@ -2,20 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/app/widgets/swan_bottom_nav.dart';
-import 'package:swansport_app/features/pro_operations/swan_pro_feature_host.dart';
 import 'package:swansport_app/features/teams/presentation/screens/team_roster_directory_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 void main() {
-  testWidgets('SwanSport wrapper renders the shared team directory',
+  testWidgets('SwanSport keeps its full team directory experience',
       (tester) async {
     await tester.pumpWidget(_app());
     await tester.pumpAndSettle();
 
-    expect(find.byType(SwanProFeatureHost), findsOneWidget);
-    expect(find.byType(SharedTeamDirectoryScreen), findsOneWidget);
     expect(find.byType(SwanBottomNav), findsOneWidget);
+    expect(find.text('Takımlar & Kadrolar'), findsOneWidget);
+    expect(find.text('Yarışma Kadroları'), findsOneWidget);
     expect(find.text('U16 Okçuluk'), findsOneWidget);
   });
 

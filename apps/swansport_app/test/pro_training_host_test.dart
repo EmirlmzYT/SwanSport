@@ -4,19 +4,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/training/presentation/my_training_screen.dart';
 import 'package:swansport_app/features/training/presentation/session_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 void main() {
-  testWidgets('SwanSport training wrapper opens the shared training list',
+  testWidgets('SwanSport keeps its full training history experience',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          featureFlagsProvider.overrideWith(
-            (ref) async => const FeatureFlags({
-              FeatureFlags.sportTrainingSessions,
-            }),
-          ),
           myLiveSessionProvider.overrideWith((ref) async => null),
           myTrainingHistoryProvider.overrideWith((ref) async => const []),
         ],
@@ -24,50 +18,22 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(SharedTrainingListScreen), findsOneWidget);
-    expect(find.text('Henüz antrenman kaydı yok.'), findsOneWidget);
+    expect(find.text('Antrenmanlarım'), findsOneWidget);
+    expect(find.text('Geçmiş'), findsOneWidget);
+    expect(find.textContaining('henüz antrenman kaydın yok'), findsOneWidget);
   });
 
-  testWidgets('legacy session route forwards a typed session id',
-      (tester) async {
+  testWidgets('SwanSport keeps the no-live-session guidance', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          featureFlagsProvider.overrideWith(
-            (ref) async => const FeatureFlags({
-              FeatureFlags.sportTrainingSessions,
-            }),
-          ),
-          trainingSessionProvider('session-1').overrideWith(
-            (ref) async => const TrainingSession(
-              id: 'session-1',
-              clubId: 'club-1',
-              kind: 'personal',
-              status: 'live',
-              phase: SessionPhase.shoot,
-              currentSet: 1,
-              setCount: 3,
-              rhythm: SessionRhythm.shared,
-              protocolName: 'Bireysel',
-            ),
-          ),
+          myLiveSessionProvider.overrideWith((ref) async => null),
         ],
-        child: MaterialApp(
-          onGenerateRoute: (settings) => MaterialPageRoute<void>(
-            settings: settings,
-            builder: (_) => const TrainingSessionScreen(),
-          ),
-          initialRoute: '/antrenman-oturumu',
-        ),
+        child: const MaterialApp(home: TrainingSessionScreen()),
       ),
     );
-    final navigator = tester.state<NavigatorState>(find.byType(Navigator));
-    navigator.pushNamed(
-      '/antrenman-oturumu',
-      arguments: const {'id': 'session-1'},
-    );
     await tester.pumpAndSettle();
-    expect(find.byType(SharedTrainingSessionScreen), findsOneWidget);
-    expect(find.text('Bireysel'), findsOneWidget);
+    expect(find.text('Aktif oturum yok'), findsOneWidget);
+    expect(find.textContaining('Antrenman şablonlarından'), findsOneWidget);
   });
 }

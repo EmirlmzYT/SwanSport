@@ -3,10 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/teams/presentation/screens/team_roster_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 void main() {
-  testWidgets('SwanSport roster wrapper preserves team id and name',
+  testWidgets('SwanSport roster preserves its full tabs, team id and name',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -34,7 +33,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(SharedTeamRosterScreen), findsOneWidget);
+    expect(find.text('Takım Kadrosu'), findsOneWidget);
     expect(find.text('U16 Okçuluk'), findsOneWidget);
+    expect(find.text('Kadro'), findsOneWidget);
+    expect(find.text('Program'), findsOneWidget);
   });
 }
