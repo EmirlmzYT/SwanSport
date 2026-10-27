@@ -309,6 +309,65 @@ void main() {
       expect(navigator.calls, contains('live:$matchId'));
     },
   );
+
+  testWidgets(
+    'Referee screens fail-closed when featureFlagsProvider is disabled or throws an error',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            swanAccessProvider.overrideWithValue(refereeAccess()),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags.none(),
+            ),
+          ],
+          child: MaterialApp(
+            home: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: const SharedRefereeDutyListScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Hakem kokpiti şu anda devre dışı'),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          key: UniqueKey(),
+          overrides: [
+            swanAccessProvider.overrideWithValue(refereeAccess()),
+            featureFlagsProvider.overrideWith(
+              (ref) async => throw StateError('flags load failed'),
+            ),
+          ],
+          child: MaterialApp(
+            home: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: const SharedRefereeLineupApprovalScreen(
+                matchId: '44444444-4444-4444-8444-444444444444',
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Hakem kokpiti şu anda devre dışı'),
+        findsNothing,
+      );
+      expect(find.byIcon(Icons.error_outline_rounded), findsOneWidget);
+    },
+  );
 }
 
 final class _Navigator extends ProFeatureNavigatorBase {

@@ -280,6 +280,136 @@ void main() {
     },
   );
 
+  testWidgets(
+    'SharedOfficialFacilityAllocationDialog selects club facility, validates duration, and calls onAllocateFacility',
+    (tester) async {
+      final now = DateTime.now().toUtc();
+      String? allocatedMatchId;
+      String? allocatedFacilityId;
+      DateTime? allocatedEndsAt;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            swanAccessProvider.overrideWithValue(
+              SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'admin',
+                coachLevel: 0,
+                athleteKind: null,
+                federationRoles: [
+                  FederationRole(
+                    id: 'role-mhk',
+                    federationId: 'fed-tff',
+                    profileId: 'user-mhk',
+                    role: FederationRoleKind.refereeCommittee,
+                    startsOn: now.subtract(const Duration(days: 5)),
+                    endsOn: now.add(const Duration(days: 30)),
+                  ),
+                ],
+              ),
+            ),
+            citiesProvider.overrideWith(
+              (ref) async => const [CityRow(code: '06', name: 'Ankara')],
+            ),
+            federationConsoleScopesProvider.overrideWith(
+              (ref) async => const [mhkScope],
+            ),
+            federationConsoleMatchesProvider.overrideWith(
+              (ref, query) async =>
+                  FederationConsolePage<FederationConsoleMatch>(
+                total: 1,
+                rows: [sampleMatch],
+              ),
+            ),
+            federationLockedReportProvider.overrideWith(
+              (ref, matchId) async => null,
+            ),
+            facilitiesProvider.overrideWith(
+              (ref) async => const [
+                FacilityRow(
+                  id: 'fac-1111',
+                  name: '19 Mayıs Ana Stadyum',
+                  occupancy: 20,
+                  status: 'Müsait',
+                  kind: 'Stadyum',
+                ),
+                FacilityRow(
+                  id: 'fac-2222',
+                  name: 'Beştepe Sentetik Saha',
+                  occupancy: 10,
+                  status: 'Müsait',
+                  kind: 'Saha',
+                ),
+              ],
+            ),
+          ],
+          child: MaterialApp(
+            home: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: SharedRefereeAssignmentsScreen(
+                onAllocateFacility: ({
+                  required String matchId,
+                  required String facilityId,
+                  required DateTime endsAt,
+                }) async {
+                  allocatedMatchId = matchId;
+                  allocatedFacilityId = facilityId;
+                  allocatedEndsAt = endsAt;
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final allocateBtn = find.byKey(
+        const Key('facility-allocate-btn-11111111-1111-4111-8111-111111111111'),
+      );
+      await tester.ensureVisible(allocateBtn);
+      await tester.pumpAndSettle();
+      await tester.tap(allocateBtn);
+      await tester.pumpAndSettle();
+
+      // Select second facility
+      await tester.tap(find.byKey(const Key('facility-allocate-dropdown')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.textContaining('Beştepe Sentetik Saha').last);
+      await tester.pumpAndSettle();
+
+      // Enter invalid duration (> 1440) first
+      await tester.enterText(
+        find.byKey(const Key('facility-allocate-duration-input')),
+        '2000',
+      );
+      await tester.tap(find.byKey(const Key('facility-allocate-submit-btn')));
+      await tester.pumpAndSettle();
+      expect(
+        find.textContaining('1–1440 dakika arası'),
+        findsOneWidget,
+      );
+      expect(allocatedFacilityId, isNull);
+
+      // Enter valid 90-minute duration
+      await tester.enterText(
+        find.byKey(const Key('facility-allocate-duration-input')),
+        '90',
+      );
+      await tester.tap(find.byKey(const Key('facility-allocate-submit-btn')));
+      await tester.pumpAndSettle();
+
+      expect(allocatedMatchId, '11111111-1111-4111-8111-111111111111');
+      expect(allocatedFacilityId, 'fac-2222');
+      expect(
+        allocatedEndsAt,
+        DateTime.utc(2026, 11, 2, 12).add(const Duration(minutes: 90)),
+      );
+    },
+  );
+
   testWidgets('renders without overflow at 320px width and 2x text scale', (
     tester,
   ) async {

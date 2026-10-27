@@ -374,6 +374,318 @@ void main() {
       expect(find.text('Müsabaka Saat Değişikliği'), findsOneWidget);
     },
   );
+
+  testWidgets(
+    'SharedLeagueStandingsScreen and SharedFederationBulletinsScreen fail-closed when feature flag is off or errors',
+    (tester) async {
+      final now = DateTime.now().toUtc();
+      final access = SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: null,
+        coachLevel: 0,
+        athleteKind: null,
+        federationRoles: [
+          FederationRole(
+            id: 'r-pres',
+            federationId: 'fed-tbf',
+            profileId: 'u-pres',
+            role: FederationRoleKind.president,
+            startsOn: now.subtract(const Duration(days: 5)),
+            endsOn: now.add(const Duration(days: 30)),
+          ),
+        ],
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            swanAccessProvider.overrideWithValue(access),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags.none(),
+            ),
+          ],
+          child: MaterialApp(
+            home: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: const SharedLeagueStandingsScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Lig puan durumu modülü devre dışı'),
+        findsOneWidget,
+      );
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            swanAccessProvider.overrideWithValue(access),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags.none(),
+            ),
+          ],
+          child: MaterialApp(
+            home: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: const SharedFederationBulletinsScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Federasyon bülten modülü devre dışı'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'SharedFederationBulletinsScreen supports official result registration (only with resultPublisher appointment), disciplinary bulletin summary publication, and match notice publication',
+    (tester) async {
+      final now = DateTime.now().toUtc();
+      Map<String, dynamic>? publishedResultCall;
+      Map<String, String>? publishedDisciplinaryCall;
+      Map<String, String>? publishedNoticeCall;
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            swanAccessProvider.overrideWithValue(
+              SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: null,
+                coachLevel: 0,
+                athleteKind: null,
+                federationRoles: [
+                  FederationRole(
+                    id: 'r-pres',
+                    federationId: 'fed-tbf',
+                    profileId: 'u-pres',
+                    role: FederationRoleKind.president,
+                    startsOn: now.subtract(const Duration(days: 5)),
+                    endsOn: now.add(const Duration(days: 30)),
+                  ),
+                  FederationRole(
+                    id: 'r-disc',
+                    federationId: 'fed-tbf',
+                    profileId: 'u-pres',
+                    role: FederationRoleKind.disciplinaryBoard,
+                    startsOn: now.subtract(const Duration(days: 5)),
+                    endsOn: now.add(const Duration(days: 30)),
+                  ),
+                ],
+                federationAppointments: [
+                  FederationAppointment(
+                    id: 'app-pub-1',
+                    sportCode: 'basketbol',
+                    cityCode: '06',
+                    duty: FederationDuty.resultPublisher,
+                    startsOn: now.subtract(const Duration(days: 5)),
+                    endsOn: now.add(const Duration(days: 30)),
+                  ),
+                ],
+              ),
+            ),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags({
+                FeatureFlags.federationBulletin,
+              }),
+            ),
+            federationConsoleScopesProvider.overrideWith(
+              (ref) async => const [bakanScope],
+            ),
+            federationPendingResultsProvider.overrideWith(
+              (ref, offset) async => const [
+                FederationPendingMatch(
+                  id: 'match-pending-1',
+                  name: 'Basketbol Gençler Ligi',
+                  sportCode: 'basketbol',
+                  cityCode: '06',
+                  version: 1,
+                  homeName: 'Anadolu Basket',
+                  awayName: 'Başkent SK',
+                ),
+              ],
+            ),
+            federationDisciplinaryReportsProvider.overrideWith(
+              (ref, offset) async =>
+                  FederationConsolePage<FederationDisciplinaryReport>(
+                total: 1,
+                rows: [
+                  FederationDisciplinaryReport(
+                    matchId: 'match-pending-1',
+                    revisionId: 'rev-1',
+                    program: 'Basketbol Gençler Ligi',
+                    sportCode: 'basketbol',
+                    cityCode: '06',
+                    signedAt: DateTime.utc(2026, 10, 26, 15),
+                    notes: 'İç hakem raporu notu',
+                    canDecide: true,
+                    athletes: const [],
+                    redCardAthleteIds: const [],
+                    decisions: [
+                      DisciplinaryDecision(
+                        id: 'dec-uuid-1',
+                        athleteId: 'ath-1',
+                        penaltyType: 'match_ban',
+                        matchBanCount: 2,
+                        reason: 'İç kurul gerekçesi (gizli)',
+                        createdAt: DateTime.utc(2026, 10, 26, 16),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            federationConsoleMatchesProvider.overrideWith(
+              (ref, query) async =>
+                  FederationConsolePage<FederationConsoleMatch>(
+                total: 1,
+                rows: [
+                  FederationConsoleMatch(
+                    id: 'match-postponed-1',
+                    program: 'Basketbol Gençler Ligi',
+                    sportCode: 'basketbol',
+                    status: 'postponed',
+                    cityCode: '06',
+                    homeName: 'Anadolu Basket',
+                    awayName: 'Başkent SK',
+                  ),
+                ],
+              ),
+            ),
+            federationDisciplinaryBulletinProvider.overrideWith(
+              (ref, filter) async => const [],
+            ),
+            federationNoticesProvider.overrideWith(
+              (ref, filter) async => const [],
+            ),
+          ],
+          child: MaterialApp(
+            home: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: SharedFederationBulletinsScreen(
+                onPublishResult: ({
+                  required String matchId,
+                  required Map<String, dynamic> protocol,
+                  required String reason,
+                  required int expectedVersion,
+                }) async {
+                  publishedResultCall = <String, dynamic>{
+                    'matchId': matchId,
+                    'protocol': protocol,
+                    'reason': reason,
+                    'expectedVersion': expectedVersion,
+                  };
+                  return 'rev-2';
+                },
+                onPublishDisciplinaryBulletin: ({
+                  required String decisionId,
+                  required String publicSummary,
+                }) async {
+                  publishedDisciplinaryCall = <String, String>{
+                    'decisionId': decisionId,
+                    'publicSummary': publicSummary,
+                  };
+                  return 'bul-1';
+                },
+                onPublishMatchNotice: ({
+                  required String matchId,
+                  required String noticeType,
+                  required String publicSummary,
+                }) async {
+                  publishedNoticeCall = <String, String>{
+                    'matchId': matchId,
+                    'noticeType': noticeType,
+                    'publicSummary': publicSummary,
+                  };
+                  return 'notice-1';
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // 1. Publish official match result revision (V1 -> V2)
+      await tester.tap(
+        find.byKey(const Key('bulletin-publish-result-btn-match-pending-1')),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('publish-result-home-input')),
+        '78',
+      );
+      await tester.enterText(
+        find.byKey(const Key('publish-result-away-input')),
+        '74',
+      );
+      await tester.enterText(
+        find.byKey(const Key('publish-result-reason-input')),
+        'MHK itiraz incelemesi sonrası skor tescili',
+      );
+      await tester.tap(find.byKey(const Key('publish-result-submit-btn')));
+      await tester.pumpAndSettle();
+
+      expect(publishedResultCall, isNotNull);
+      expect(publishedResultCall!['matchId'], 'match-pending-1');
+      expect(publishedResultCall!['expectedVersion'], 1);
+      expect(
+        publishedResultCall!['protocol'],
+        <String, dynamic>{'type': 'score', 'home': 78, 'away': 74},
+      );
+
+      // 2. Publish public disciplinary bulletin summary
+      await tester.tap(
+        find.byKey(const Key('bulletin-open-publish-disciplinary-btn')),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('publish-disciplinary-summary-input')),
+        'Disiplin Kurulu kararıyla 2 resmi müsabakadan men cezası verilmiştir.',
+      );
+      await tester
+          .tap(find.byKey(const Key('publish-disciplinary-submit-btn')));
+      await tester.pumpAndSettle();
+
+      expect(publishedDisciplinaryCall, <String, String>{
+        'decisionId': 'dec-uuid-1',
+        'publicSummary':
+            'Disiplin Kurulu kararıyla 2 resmi müsabakadan men cezası verilmiştir.',
+      });
+
+      // 3. Publish official match notice
+      await tester.tap(
+        find.byKey(const Key('bulletin-open-publish-notice-btn')),
+      );
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.byKey(const Key('publish-notice-summary-input')),
+        'Salon zemin bakımı nedeniyle müsabaka ileri bir tarihe ertelenmiştir.',
+      );
+      await tester.tap(find.byKey(const Key('publish-notice-submit-btn')));
+      await tester.pumpAndSettle();
+
+      expect(publishedNoticeCall, <String, String>{
+        'matchId': 'match-postponed-1',
+        'noticeType': 'match_postponed',
+        'publicSummary':
+            'Salon zemin bakımı nedeniyle müsabaka ileri bir tarihe ertelenmiştir.',
+      });
+    },
+  );
 }
 
 final class _Navigator extends ProFeatureNavigatorBase {

@@ -38,41 +38,10 @@ String federationTurkeyDateTime(DateTime? instant) {
 }
 
 List<FederationConsoleScope> resolveEffectiveFederationScopes(
-  List<FederationConsoleScope> serverScopes,
-  SwanAccess access,
-) {
-  if (serverScopes.isNotEmpty) return serverScopes;
-  if (!access.hasActiveFederationAppointment) return const [];
-  final now = DateTime.now().toUtc().add(const Duration(hours: 3));
-  final today = DateTime.utc(now.year, now.month, now.day);
-  final synthetic = <FederationConsoleScope>[];
-  for (final app in access.federationAppointments) {
-    final starts = DateTime.utc(
-      app.startsOn.year,
-      app.startsOn.month,
-      app.startsOn.day,
-    );
-    final ends = DateTime.utc(
-      app.endsOn.year,
-      app.endsOn.month,
-      app.endsOn.day,
-    );
-    if (app.revokedAt == null &&
-        !today.isBefore(starts) &&
-        !today.isAfter(ends)) {
-      synthetic.add(
-        FederationConsoleScope(
-          federationId: app.id,
-          name: 'Federasyon (${app.sportCode})',
-          sportCode: app.sportCode,
-          role: app.duty.key,
-          cityCode: app.cityCode,
-        ),
-      );
-    }
-  }
-  return List.unmodifiable(synthetic);
-}
+  List<FederationConsoleScope> serverScopes, [
+  SwanAccess? _,
+]) =>
+    List<FederationConsoleScope>.unmodifiable(serverScopes);
 
 final class SharedFederationOperationsPanel extends ConsumerWidget {
   const SharedFederationOperationsPanel({super.key});
@@ -139,7 +108,11 @@ final class SharedFederationOperationsPanel extends ConsumerWidget {
     }
 
     final flags = flagsAsync.valueOrNull ?? const FeatureFlags.none();
-    final matchQuery = FederationMatchQuery(cityCode: selectedScope.cityCode);
+    final matchQuery = FederationMatchQuery(
+      federationId: selectedScope.federationId,
+      sportCode: selectedScope.sportCode,
+      cityCode: selectedScope.cityCode,
+    );
     final matchesAsync =
         ref.watch(federationConsoleMatchesProvider(matchQuery));
 
@@ -149,7 +122,14 @@ final class SharedFederationOperationsPanel extends ConsumerWidget {
         title: 'Resmî Müsabakalar & Takvim',
         detail: _asyncDetail(
           matchesAsync,
-          (page) => '${page.total} resmî müsabaka kaydı',
+          (page) {
+            final scoped = page.rows
+                .where((m) => m.sportCode == selectedScope.sportCode)
+                .toList(growable: false);
+            final count =
+                scoped.length == page.rows.length ? page.total : scoped.length;
+            return '$count resmî müsabaka kaydı';
+          },
         ),
         onTap: host.navigator.openFederationMatches,
         theme: host.theme,
@@ -167,8 +147,9 @@ final class SharedFederationOperationsPanel extends ConsumerWidget {
               final pending = page.rows
                   .where(
                     (m) =>
-                        m.officials.isEmpty ||
-                        m.officials.any((o) => o.status == 'assigned'),
+                        m.sportCode == selectedScope.sportCode &&
+                        (m.officials.isEmpty ||
+                            m.officials.any((o) => o.status == 'assigned')),
                   )
                   .length;
               return '$pending müsabakada atama / onay bekliyor';
@@ -210,7 +191,15 @@ final class SharedFederationOperationsPanel extends ConsumerWidget {
           title: 'Disiplin Kurulu',
           detail: _asyncDetail(
             reportsAsync,
-            (page) => '${page.total} imzalı hakem raporu incelemede',
+            (page) {
+              final scoped = page.rows
+                  .where((r) => r.sportCode == selectedScope.sportCode)
+                  .toList(growable: false);
+              final count = scoped.length == page.rows.length
+                  ? page.total
+                  : scoped.length;
+              return '$count imzalı hakem raporu incelemede';
+            },
           ),
           onTap: host.navigator.openDisciplinaryBoard,
           theme: host.theme,

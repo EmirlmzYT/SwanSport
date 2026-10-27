@@ -14,6 +14,13 @@ typedef AssignOfficialCallback = Future<void> Function({
   required MatchOfficialDuty duty,
 });
 
+/// Optional injection callback for official match facility allocation in tests.
+typedef AllocateOfficialFacilityCallback = Future<void> Function({
+  required String matchId,
+  required String facilityId,
+  required DateTime endsAt,
+});
+
 /// Shared official referee assignment screen for SwanSport and SwanSport Pro.
 ///
 /// Enforces:
@@ -27,10 +34,12 @@ typedef AssignOfficialCallback = Future<void> Function({
 final class SharedRefereeAssignmentsScreen extends ConsumerStatefulWidget {
   const SharedRefereeAssignmentsScreen({
     this.onAssignOfficial,
+    this.onAllocateFacility,
     super.key,
   });
 
   final AssignOfficialCallback? onAssignOfficial;
+  final AllocateOfficialFacilityCallback? onAllocateFacility;
 
   @override
   ConsumerState<SharedRefereeAssignmentsScreen> createState() =>
@@ -139,6 +148,8 @@ final class _SharedRefereeAssignmentsScreenState
     final monday = DateTime.utc(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - 1, hours: 3));
     final query = FederationMatchQuery(
+      federationId: selectedScope.federationId,
+      sportCode: selectedScope.sportCode,
       cityCode: activeCity,
       offset: _offset,
       search: _search,
@@ -146,6 +157,8 @@ final class _SharedRefereeAssignmentsScreenState
       until: _weekOnly ? monday.add(const Duration(days: 7)) : null,
     );
     final pageAsync = ref.watch(federationConsoleMatchesProvider(query));
+    final canAllocateFacility =
+        access.isClubStaff || canAssign || widget.onAllocateFacility != null;
 
     return host.chrome.buildPage(
       context,
@@ -209,8 +222,10 @@ final class _SharedRefereeAssignmentsScreenState
                     _RefereeAssignmentMatchCard(
                       match: match,
                       canAssign: canAssign,
+                      canAllocateFacility: canAllocateFacility,
                       theme: theme,
                       onAssignOfficial: widget.onAssignOfficial,
+                      onAllocateFacility: widget.onAllocateFacility,
                       onAssigned: () => ref.invalidate(
                         federationConsoleMatchesProvider(query),
                       ),
@@ -377,16 +392,20 @@ class _RefereeAssignmentMatchCard extends ConsumerWidget {
   const _RefereeAssignmentMatchCard({
     required this.match,
     required this.canAssign,
+    required this.canAllocateFacility,
     required this.theme,
     required this.onAssigned,
     this.onAssignOfficial,
+    this.onAllocateFacility,
   });
 
   final FederationConsoleMatch match;
   final bool canAssign;
+  final bool canAllocateFacility;
   final ProFeatureThemeData theme;
   final VoidCallback onAssigned;
   final AssignOfficialCallback? onAssignOfficial;
+  final AllocateOfficialFacilityCallback? onAllocateFacility;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -532,16 +551,29 @@ class _RefereeAssignmentMatchCard extends ConsumerWidget {
               },
               orElse: () => const SizedBox.shrink(),
             ),
-          if (canAssign && match.status == 'scheduled') ...[
+          if ((canAssign || canAllocateFacility) &&
+              match.status == 'scheduled') ...[
             const SizedBox(height: 10),
-            Align(
-              alignment: Alignment.centerRight,
-              child: FilledButton.tonalIcon(
-                key: Key('referee-assign-btn-${match.id}'),
-                onPressed: () => _openAssignDialog(context),
-                icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
-                label: const Text('Hakem Ata / Güncelle'),
-              ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                if (canAllocateFacility)
+                  OutlinedButton.icon(
+                    key: Key('facility-allocate-btn-${match.id}'),
+                    onPressed: () => _openAllocateFacilityDialog(context),
+                    icon: const Icon(Icons.stadium_outlined, size: 18),
+                    label: const Text('Tesis Tahsis Et'),
+                  ),
+                if (canAssign)
+                  FilledButton.tonalIcon(
+                    key: Key('referee-assign-btn-${match.id}'),
+                    onPressed: () => _openAssignDialog(context),
+                    icon: const Icon(Icons.person_add_alt_1_rounded, size: 18),
+                    label: const Text('Hakem Ata / Güncelle'),
+                  ),
+              ],
             ),
           ],
         ],
@@ -559,6 +591,231 @@ class _RefereeAssignmentMatchCard extends ConsumerWidget {
     );
     if (assigned == true) {
       onAssigned();
+    }
+  }
+
+  Future<void> _openAllocateFacilityDialog(BuildContext context) async {
+    final allocated = await showDialog<bool>(
+      context: context,
+      builder: (_) => SharedOfficialFacilityAllocationDialog(
+        match: match,
+        onAllocateFacility: onAllocateFacility,
+      ),
+    );
+    if (allocated == true) {
+      onAssigned();
+    }
+  }
+}
+
+/// Dialog for allocating a club facility and match end time (`endsAt`) for an
+/// official scheduled match via `allocate_official_match_facility`.
+final class SharedOfficialFacilityAllocationDialog
+    extends ConsumerStatefulWidget {
+  const SharedOfficialFacilityAllocationDialog({
+    required this.match,
+    this.onAllocateFacility,
+    super.key,
+  });
+
+  final FederationConsoleMatch match;
+  final AllocateOfficialFacilityCallback? onAllocateFacility;
+
+  @override
+  ConsumerState<SharedOfficialFacilityAllocationDialog> createState() =>
+      _SharedOfficialFacilityAllocationDialogState();
+}
+
+final class _SharedOfficialFacilityAllocationDialogState
+    extends ConsumerState<SharedOfficialFacilityAllocationDialog> {
+  final TextEditingController _durationCtrl = TextEditingController(
+    text: '120',
+  );
+  String? _selectedFacilityId;
+  bool _submitting = false;
+  String? _errorMessage;
+
+  @override
+  void dispose() {
+    _durationCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final facilitiesAsync = ref.watch(facilitiesProvider);
+    final startsAt = widget.match.startsAt;
+
+    return AlertDialog(
+      title: Text('${widget.match.program} — Resmî Tesis Tahsisi'),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 460),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                '${widget.match.homeName ?? 'Ev Sahibi'} — ${widget.match.awayName ?? 'Deplasman'}',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Başlangıç: ${federationTurkeyDateTime(startsAt)}',
+                style: const TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              facilitiesAsync.when(
+                loading: () => const Padding(
+                  padding: EdgeInsets.all(16),
+                  child: Center(child: CircularProgressIndicator()),
+                ),
+                error: (_, __) => const Text(
+                  'Kulüp tesis havuzu yüklenemedi.',
+                ),
+                data: (facilities) {
+                  if (facilities.isEmpty) {
+                    return const Text(
+                      'Kulübünüze kayıtlı tahsis edilebilir tesis bulunamadı.',
+                    );
+                  }
+                  final effectiveId = facilities.any(
+                    (f) => f.id == _selectedFacilityId,
+                  )
+                      ? _selectedFacilityId
+                      : facilities.first.id;
+                  if (_selectedFacilityId != effectiveId) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (mounted) {
+                        setState(() => _selectedFacilityId = effectiveId);
+                      }
+                    });
+                  }
+                  return InputDecorator(
+                    decoration: const InputDecoration(
+                      labelText: 'Tahsis edilecek tesis',
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        key: const Key('facility-allocate-dropdown'),
+                        value: effectiveId,
+                        isExpanded: true,
+                        isDense: true,
+                        items: [
+                          for (final f in facilities)
+                            DropdownMenuItem<String>(
+                              value: f.id,
+                              child: Text(
+                                '${f.name}${f.kind == null ? '' : ' (${f.kind})'}',
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) {
+                          if (value != null) {
+                            setState(() => _selectedFacilityId = value);
+                          }
+                        },
+                      ),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                key: const Key('facility-allocate-duration-input'),
+                controller: _durationCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'Müsabaka süresi (dakika, 15–1440)',
+                  helperText:
+                      'Bitiş zamanı başlangıçtan sonra ve en fazla 24 saat içinde olmalıdır.',
+                ),
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  _errorMessage!,
+                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed:
+              _submitting ? null : () => Navigator.of(context).pop(false),
+          child: const Text('Vazgeç'),
+        ),
+        FilledButton(
+          key: const Key('facility-allocate-submit-btn'),
+          onPressed: _submitting ? null : _submit,
+          child: const Text('Tahsisi Kaydet'),
+        ),
+      ],
+    );
+  }
+
+  Future<void> _submit() async {
+    final facilityId = _selectedFacilityId;
+    if (facilityId == null || facilityId.trim().isEmpty) {
+      setState(() {
+        _errorMessage = 'Lütfen tahsis edilecek bir tesis seçin.';
+      });
+      return;
+    }
+    final startsAt = widget.match.startsAt;
+    if (startsAt == null) {
+      setState(() {
+        _errorMessage =
+            'Müsabaka başlangıç saati belirlenmeden tesis tahsis edilemez.';
+      });
+      return;
+    }
+    final minutes = int.tryParse(_durationCtrl.text.trim());
+    if (minutes == null || minutes <= 0 || minutes > 1440) {
+      setState(() {
+        _errorMessage =
+            'Geçerli bir müsabaka süresi girin (1–1440 dakika arası).';
+      });
+      return;
+    }
+    final endsAt = startsAt.toUtc().add(Duration(minutes: minutes));
+    setState(() {
+      _submitting = true;
+      _errorMessage = null;
+    });
+    try {
+      final callback = widget.onAllocateFacility;
+      if (callback != null) {
+        await callback(
+          matchId: widget.match.id,
+          facilityId: facilityId,
+          endsAt: endsAt,
+        );
+      } else {
+        final service = ref.read(federationConsoleServiceProvider);
+        if (service == null) {
+          throw StateError('Federasyon servisi kullanılamıyor.');
+        }
+        await service.allocateOfficialMatchFacility(
+          widget.match.id,
+          facilityId,
+          endsAt,
+        );
+      }
+      if (!mounted) return;
+      Navigator.of(context).pop(true);
+    } catch (error) {
+      if (!mounted) return;
+      setState(() {
+        _errorMessage = classifyOperationError(error).userMessage;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _submitting = false);
+      }
     }
   }
 }

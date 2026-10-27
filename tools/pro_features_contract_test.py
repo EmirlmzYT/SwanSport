@@ -86,6 +86,11 @@ class ProFeaturesContractTest(unittest.TestCase):
         self.assertIn("tools.pro_features_contract_test", preview)
         self.assertIn("pro_team_directory_host_test.dart", preview)
         self.assertIn("pro_club_panel_host_test.dart", preview)
+        self.assertEqual(
+            preview.count("test/pro_phase3_host_parity_test.dart"),
+            2,
+            "build_pro_production_preview.yml must run pro_phase3_host_parity_test.dart in both SwanSport and Pro host steps",
+        )
         self.assertIn("pro_phase2_flags_sql_test.mjs", preview)
         self.assertIn("feature_flag_sync_test.dart", preview)
 
@@ -107,6 +112,9 @@ class ProFeaturesContractTest(unittest.TestCase):
                 r"hakem/gorevler|hakem/esame|hakem/canli|hakem/rapor|"
                 r"federasyon|federasyon-merkezi|federasyon-takvimi|"
                 r"mhk-atamalar|il-ligleri|disiplin-kurulu)['\"]"
+            ),
+            "fail-open feature flag fallback": re.compile(
+                r"FeatureFlags\.[a-zA-Z0-9_]+\)\s*\?\?\s*true"
             ),
         }
 

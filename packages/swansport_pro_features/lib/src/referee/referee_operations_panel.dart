@@ -38,8 +38,16 @@ final class SharedRefereeOperationsPanel extends ConsumerWidget {
         child: Center(child: CircularProgressIndicator()),
       );
     }
-    final flags = flagsAsync.valueOrNull;
-    if (flags != null && !flags.has(FeatureFlags.refereeCockpit)) {
+    if (flagsAsync.hasError) {
+      return FederationPanelMessage(
+        icon: Icons.error_outline_rounded,
+        title: classifyOperationError(flagsAsync.error!).userMessage,
+        onRetry: () => ref.invalidate(featureFlagsProvider),
+      );
+    }
+    final enabled =
+        flagsAsync.valueOrNull?.has(FeatureFlags.refereeCockpit) ?? false;
+    if (!enabled) {
       return const FederationPanelMessage(
         icon: Icons.toggle_off_outlined,
         title: 'Hakem kokpiti şu anda devre dışı',

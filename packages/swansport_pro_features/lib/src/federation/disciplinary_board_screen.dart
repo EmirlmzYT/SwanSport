@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../host/pro_feature_host.dart';
+import '../host/pro_feature_state.dart';
 import '../host/pro_feature_theme.dart';
 import 'federation_operations_panel.dart';
 
@@ -58,6 +59,17 @@ final class _SharedDisciplinaryBoardScreenState
       );
     }
 
+    final scopesAsync = ref.watch(federationConsoleScopesProvider);
+    final scopes = resolveEffectiveFederationScopes(
+      scopesAsync.valueOrNull ?? const [],
+      access,
+    );
+    final selectedKey = ref.watch(selectedFederationScopeKeyProvider);
+    final selectedScope = scopes
+            .where((item) => federationScopeKey(item) == selectedKey)
+            .firstOrNull ??
+        scopes.firstOrNull;
+
     final pageAsync = ref.watch(federationDisciplinaryReportsProvider(_offset));
     return host.chrome.buildPage(
       context,
@@ -73,6 +85,14 @@ final class _SharedDisciplinaryBoardScreenState
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          if (scopes.length > 1 && selectedScope != null) ...[
+            FederationScopeSelector(
+              scopes: scopes,
+              selectedScope: selectedScope,
+              theme: theme,
+            ),
+            const SizedBox(height: 12),
+          ],
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
@@ -117,7 +137,12 @@ final class _SharedDisciplinaryBoardScreenState
               ),
             ),
             data: (page) {
-              if (page.rows.isEmpty) {
+              final scopedRows = selectedScope == null
+                  ? page.rows
+                  : page.rows
+                      .where((r) => r.sportCode == selectedScope.sportCode)
+                      .toList(growable: false);
+              if (scopedRows.isEmpty) {
                 return const FederationPanelMessage(
                   icon: Icons.gavel_outlined,
                   title: 'Bu kapsamda imzalı maç raporu yok',
@@ -127,7 +152,7 @@ final class _SharedDisciplinaryBoardScreenState
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final report in page.rows) ...[
+                  for (final report in scopedRows) ...[
                     _DisciplinaryReportCard(
                       report: report,
                       canDecide:

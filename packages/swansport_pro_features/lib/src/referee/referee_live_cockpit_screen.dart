@@ -293,8 +293,26 @@ final class _SharedRefereeLiveCockpitScreenState
     }
 
     final flagsAsync = ref.watch(featureFlagsProvider);
+    if (flagsAsync.isLoading) {
+      return host.chrome.buildPage(
+        context,
+        title: 'Canlı Hakem Kokpiti',
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (flagsAsync.hasError) {
+      return host.chrome.buildPage(
+        context,
+        title: 'Canlı Hakem Kokpiti',
+        body: FederationPanelMessage(
+          icon: Icons.error_outline_rounded,
+          title: classifyOperationError(flagsAsync.error!).userMessage,
+          onRetry: () => ref.invalidate(featureFlagsProvider),
+        ),
+      );
+    }
     final enabled =
-        flagsAsync.valueOrNull?.has(FeatureFlags.refereeCockpit) ?? true;
+        flagsAsync.valueOrNull?.has(FeatureFlags.refereeCockpit) ?? false;
     if (!enabled) {
       return host.chrome.buildPage(
         context,

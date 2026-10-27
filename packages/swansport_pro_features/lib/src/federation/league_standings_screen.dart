@@ -50,8 +50,26 @@ final class _SharedLeagueStandingsScreenState
     }
 
     final flagsAsync = ref.watch(featureFlagsProvider);
+    if (flagsAsync.isLoading) {
+      return host.chrome.buildPage(
+        context,
+        title: 'Lig & Puan Durumu',
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (flagsAsync.hasError) {
+      return host.chrome.buildPage(
+        context,
+        title: 'Lig & Puan Durumu',
+        body: FederationPanelMessage(
+          icon: Icons.error_outline_rounded,
+          title: classifyOperationError(flagsAsync.error!).userMessage,
+          onRetry: () => ref.invalidate(featureFlagsProvider),
+        ),
+      );
+    }
     final standingsEnabled =
-        flagsAsync.valueOrNull?.has(FeatureFlags.leagueStandings) ?? true;
+        flagsAsync.valueOrNull?.has(FeatureFlags.leagueStandings) ?? false;
     if (!standingsEnabled) {
       return host.chrome.buildPage(
         context,

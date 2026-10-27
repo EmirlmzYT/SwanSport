@@ -68,24 +68,124 @@ void main() {
 
   testWidgets('multi-scope selector switches active federation scope safely',
       (tester) async {
-    await _pumpPanel(
-      tester,
-      scopes: const [
-        FederationConsoleScope(
-          federationId: 'fed-1',
-          name: 'Türkiye Futbol Federasyonu',
-          sportCode: 'futbol',
-          role: 'president',
+    final observedQueries = <FederationMatchQuery>[];
+    final now = DateTime.now().toUtc();
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: null,
+              coachLevel: 0,
+              athleteKind: null,
+              federationRoles: [
+                FederationRole(
+                  id: 'role-1',
+                  federationId: 'fed-1',
+                  profileId: 'user-1',
+                  role: FederationRoleKind.president,
+                  startsOn: now.subtract(const Duration(days: 10)),
+                  endsOn: now.add(const Duration(days: 30)),
+                ),
+                FederationRole(
+                  id: 'role-2',
+                  federationId: 'fed-2',
+                  profileId: 'user-1',
+                  role: FederationRoleKind.provincialRep,
+                  cityCode: '06',
+                  startsOn: now.subtract(const Duration(days: 10)),
+                  endsOn: now.add(const Duration(days: 30)),
+                ),
+              ],
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({
+              FeatureFlags.leagueStandings,
+              FeatureFlags.federationBulletin,
+              FeatureFlags.liveMatchHub,
+            }),
+          ),
+          federationConsoleScopesProvider.overrideWith(
+            (ref) async => const [
+              FederationConsoleScope(
+                federationId: 'fed-1',
+                name: 'Türkiye Futbol Federasyonu',
+                sportCode: 'futbol',
+                role: 'president',
+              ),
+              FederationConsoleScope(
+                federationId: 'fed-2',
+                name: 'Türkiye Basketbol Federasyonu',
+                sportCode: 'basketbol',
+                role: 'provincial_rep',
+                cityCode: '06',
+              ),
+            ],
+          ),
+          federationConsoleMatchesProvider.overrideWith((ref, query) async {
+            observedQueries.add(query);
+            return FederationConsolePage<FederationConsoleMatch>(
+              total: 3,
+              rows: [
+                FederationConsoleMatch(
+                  id: 'm-f1',
+                  program: 'Futbol Elit Lig',
+                  sportCode: 'futbol',
+                  status: 'scheduled',
+                  cityCode: '34',
+                  homeName: 'A',
+                  awayName: 'B',
+                ),
+                FederationConsoleMatch(
+                  id: 'm-f2',
+                  program: 'Futbol Elit Lig',
+                  sportCode: 'futbol',
+                  status: 'scheduled',
+                  cityCode: '06',
+                  homeName: 'C',
+                  awayName: 'D',
+                ),
+                FederationConsoleMatch(
+                  id: 'm-b1',
+                  program: 'Basketbol Gençler Ligi',
+                  sportCode: 'basketbol',
+                  status: 'scheduled',
+                  cityCode: '06',
+                  homeName: 'E',
+                  awayName: 'F',
+                ),
+              ],
+            );
+          }),
+          standingsLeaguesProvider.overrideWith((ref) async => const []),
+          federationDisciplinaryBulletinProvider.overrideWith(
+            (ref, filter) async => const [],
+          ),
+          federationNoticesProvider.overrideWith(
+            (ref, filter) async => const [],
+          ),
+        ],
+        child: MaterialApp(
+          home: Scaffold(
+            body: ProFeatureHostScope(
+              navigator: _Navigator(),
+              chrome: const _Chrome(),
+              theme: ProFeatureThemeData.dark,
+              child: const SingleChildScrollView(
+                child: SharedFederationOperationsPanel(),
+              ),
+            ),
+          ),
         ),
-        FederationConsoleScope(
-          federationId: 'fed-2',
-          name: 'Türkiye Basketbol Federasyonu',
-          sportCode: 'basketbol',
-          role: 'provincial_rep',
-          cityCode: '06',
-        ),
-      ],
+      ),
     );
+    await tester.pumpAndSettle();
+
+    expect(observedQueries.last.federationId, 'fed-1');
+    expect(observedQueries.last.sportCode, 'futbol');
+    expect(find.text('2 resmî müsabaka kaydı'), findsOneWidget);
 
     expect(
       find.byKey(const Key('federation-scope-selector')),
@@ -96,10 +196,46 @@ void main() {
     await tester.tap(find.textContaining('Türkiye Basketbol Federasyonu').last);
     await tester.pumpAndSettle();
 
+    expect(observedQueries.last.federationId, 'fed-2');
+    expect(observedQueries.last.sportCode, 'basketbol');
+    expect(observedQueries.last.cityCode, '06');
+    expect(find.text('1 resmî müsabaka kaydı'), findsOneWidget);
     expect(
       find.textContaining('basketbol · İl 06'),
       findsWidgets,
     );
+  });
+
+  testWidgets(
+      'does not fabricate synthetic FederationConsoleScope from legacy federationAppointments when server scopes are empty',
+      (tester) async {
+    final now = DateTime.now().toUtc();
+    await _pumpPanel(
+      tester,
+      access: SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: null,
+        coachLevel: 0,
+        athleteKind: null,
+        federationAppointments: [
+          FederationAppointment(
+            id: 'legacy-appointment-id',
+            sportCode: 'futbol',
+            cityCode: '34',
+            duty: FederationDuty.resultPublisher,
+            startsOn: now.subtract(const Duration(days: 5)),
+            endsOn: now.add(const Duration(days: 30)),
+          ),
+        ],
+      ),
+      scopes: const [],
+    );
+
+    expect(
+      find.text('Aktif federasyon veya branş kapsamı bulunamadı'),
+      findsOneWidget,
+    );
+    expect(find.byType(ClubOperationCard), findsNothing);
   });
 
   testWidgets(

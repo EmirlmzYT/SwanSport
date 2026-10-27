@@ -6,9 +6,15 @@ import '../host/pro_feature_host.dart';
 import '../host/pro_feature_state.dart';
 import '../host/pro_feature_theme.dart';
 import 'federation_operations_panel.dart';
+import 'referee_assignments_screen.dart';
 
 final class SharedFederationMatchesScreen extends ConsumerStatefulWidget {
-  const SharedFederationMatchesScreen({super.key});
+  const SharedFederationMatchesScreen({
+    this.onAllocateFacility,
+    super.key,
+  });
+
+  final AllocateOfficialFacilityCallback? onAllocateFacility;
 
   @override
   ConsumerState<SharedFederationMatchesScreen> createState() =>
@@ -116,6 +122,8 @@ final class _SharedFederationMatchesScreenState
     final monday = DateTime.utc(now.year, now.month, now.day)
         .subtract(Duration(days: now.weekday - 1, hours: 3));
     final query = FederationMatchQuery(
+      federationId: selectedScope.federationId,
+      sportCode: selectedScope.sportCode,
       cityCode: activeCity,
       offset: _offset,
       search: _search,
@@ -123,6 +131,9 @@ final class _SharedFederationMatchesScreenState
       until: _weekOnly ? monday.add(const Duration(days: 7)) : null,
     );
     final pageAsync = ref.watch(federationConsoleMatchesProvider(query));
+    final canAllocateFacility = access.isClubStaff ||
+        access.canViewRefereeAssignments ||
+        widget.onAllocateFacility != null;
 
     return host.chrome.buildPage(
       context,
@@ -269,7 +280,14 @@ final class _SharedFederationMatchesScreenState
                     ref.invalidate(federationConsoleMatchesProvider(query)),
               ),
               data: (page) {
-                if (page.rows.isEmpty) {
+                final scopedRows = page.rows
+                    .where((m) => m.sportCode == selectedScope.sportCode)
+                    .toList(growable: false);
+                final scopedTotal = scopedRows.length == page.rows.length
+                    ? page.total
+                    : (page.total - (page.rows.length - scopedRows.length))
+                        .clamp(scopedRows.length, page.total);
+                if (scopedRows.isEmpty) {
                   return const FederationPanelMessage(
                     icon: Icons.event_busy_outlined,
                     title: 'Bu kapsamda resmî müsabaka yok.',
@@ -280,13 +298,18 @@ final class _SharedFederationMatchesScreenState
                     Expanded(
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
-                        itemCount: page.rows.length,
+                        itemCount: scopedRows.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final match = page.rows[index];
+                          final match = scopedRows[index];
                           return _FederationMatchCard(
                             match: match,
                             theme: theme,
+                            canAllocateFacility: canAllocateFacility,
+                            onAllocateFacility: widget.onAllocateFacility,
+                            onAllocated: () => ref.invalidate(
+                              federationConsoleMatchesProvider(query),
+                            ),
                           );
                         },
                       ),
@@ -301,7 +324,7 @@ final class _SharedFederationMatchesScreenState
                         children: [
                           Flexible(
                             child: Text(
-                              '${_offset + 1}–${_offset + page.rows.length} / ${page.total}',
+                              '${_offset + 1}–${_offset + scopedRows.length} / $scopedTotal',
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(color: theme.inkMuted),
                             ),
@@ -317,7 +340,7 @@ final class _SharedFederationMatchesScreenState
                                 ? null
                                 : () => setState(() {
                                       _offset = (_offset - _pageSize)
-                                          .clamp(0, page.total);
+                                          .clamp(0, scopedTotal);
                                     }),
                             icon: const Icon(Icons.chevron_left_rounded),
                           ),
@@ -328,7 +351,7 @@ final class _SharedFederationMatchesScreenState
                               minWidth: 48,
                               minHeight: 48,
                             ),
-                            onPressed: _offset + _pageSize >= page.total
+                            onPressed: _offset + _pageSize >= scopedTotal
                                 ? null
                                 : () => setState(() => _offset += _pageSize),
                             icon: const Icon(Icons.chevron_right_rounded),
@@ -348,10 +371,19 @@ final class _SharedFederationMatchesScreenState
 }
 
 final class _FederationMatchCard extends StatelessWidget {
-  const _FederationMatchCard({required this.match, required this.theme});
+  const _FederationMatchCard({
+    required this.match,
+    required this.theme,
+    required this.canAllocateFacility,
+    required this.onAllocated,
+    this.onAllocateFacility,
+  });
 
   final FederationConsoleMatch match;
   final ProFeatureThemeData theme;
+  final bool canAllocateFacility;
+  final VoidCallback onAllocated;
+  final AllocateOfficialFacilityCallback? onAllocateFacility;
 
   @override
   Widget build(BuildContext context) {
@@ -426,6 +458,24 @@ final class _FederationMatchCard extends StatelessWidget {
                     '${match.officials.length} görevli · $acceptedCount kabul',
                 color: theme.inkMuted,
               ),
+              if (canAllocateFacility && match.status == 'scheduled')
+                OutlinedButton.icon(
+                  key: Key('federation-match-allocate-facility-${match.id}'),
+                  onPressed: () async {
+                    final allocated = await showDialog<bool>(
+                      context: context,
+                      builder: (_) => SharedOfficialFacilityAllocationDialog(
+                        match: match,
+                        onAllocateFacility: onAllocateFacility,
+                      ),
+                    );
+                    if (allocated == true) {
+                      onAllocated();
+                    }
+                  },
+                  icon: const Icon(Icons.stadium_outlined, size: 16),
+                  label: const Text('Tesis Tahsis Et'),
+                ),
             ],
           ),
         ],

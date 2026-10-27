@@ -69,6 +69,7 @@ jobs:
           test/pro_team_roster_host_test.dart
           test/pro_training_host_test.dart
           test/pro_club_panel_host_test.dart
+          test/pro_phase3_host_parity_test.dart
       - name: Pro host parity tests
         working-directory: apps/swansport_pro
         run: >-
@@ -76,6 +77,7 @@ jobs:
           test/pro_club_panel_host_test.dart
           test/pro_training_host_test.dart
           test/pro_operations_navigation_test.dart
+          test/pro_phase3_host_parity_test.dart
       - name: Run Pro and target contract tests
         run: >-
           python -m unittest
