@@ -7,6 +7,7 @@ export 'src/club/club_operation_card.dart';
 export 'src/club/club_operations_panel.dart';
 export 'src/federation/federation_matches_screen.dart';
 export 'src/federation/federation_operations_panel.dart';
+export 'src/federation/referee_assignments_screen.dart';
 export 'src/host/pro_dirty_state.dart';
 export 'src/host/pro_feature_context.dart';
 export 'src/host/pro_feature_host.dart';

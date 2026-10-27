@@ -164,6 +164,13 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           child: SharedFederationMatchesScreen(),
         ),
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/hakem-atamalari',
+        builder: (context, state) => const ProFederationOperationsGate(
+          child: SharedRefereeAssignmentsScreen(),
+        ),
+      ),
     ],
   );
 });
