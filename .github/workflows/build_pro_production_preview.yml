@@ -160,11 +160,18 @@ jobs:
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
             --dart-define=APP_ENV=production
+          flutter build appbundle --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
           mkdir -p build/release
           cp build/app/outputs/flutter-apk/app-release.apk \
             "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk"
-          sha256sum build/release/*.apk > \
+          cp build/app/outputs/bundle/release/app-release.aab \
+            "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production.aab"
+          sha256sum build/release/*.apk build/release/*.aab > \
             "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk.sha256"
+          sha256sum build/release/*.apk build/release/*.aab > "build/release/checksums.txt"
       - name: Verify embedded backend target
         working-directory: apps/swansport_pro
         run: |
@@ -179,7 +186,9 @@ jobs:
           name: SwanSport-Pro-Android-production-${{ steps.version.outputs.value }}
           path: |
             apps/swansport_pro/build/release/*.apk
+            apps/swansport_pro/build/release/*.aab
             apps/swansport_pro/build/release/*.sha256
+            apps/swansport_pro/build/release/checksums.txt
           if-no-files-found: error
           retention-days: 30
 
@@ -257,6 +266,8 @@ jobs:
           generate_release_notes: true
           files: |
             release-assets/*.apk
+            release-assets/*.aab
             release-assets/*.ipa
             release-assets/*.tar.gz
             release-assets/*.sha256
+            release-assets/checksums.txt
