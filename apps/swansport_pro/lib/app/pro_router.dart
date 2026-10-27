@@ -171,6 +171,27 @@ final proRouterProvider = Provider<GoRouter>((ref) {
           child: SharedRefereeAssignmentsScreen(),
         ),
       ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/puan-durumu',
+        builder: (context, state) => const ProFederationOperationsGate(
+          child: SharedLeagueStandingsScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/disiplin-kurulu',
+        builder: (context, state) => const ProFederationOperationsGate(
+          child: SharedDisciplinaryBoardScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: '/operasyon/federasyon-bulten',
+        builder: (context, state) => const ProFederationOperationsGate(
+          child: SharedFederationBulletinsScreen(),
+        ),
+      ),
     ],
   );
 });
