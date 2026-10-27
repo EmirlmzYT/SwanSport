@@ -5,9 +5,12 @@ yoklama, antrenman ve kulüp paneli dilimlerini iki hosta bağladı. SwanSport't
 sadeleşen mobil takım/antrenman/yoklama akışları tam sürümlerine geri alındı;
 Ana Sayfa değişmedi. Yerel paket testleri Pro features 43/43, Pro 53/53, data
 513/513, branch engine 197/197 ve SwanSport 625/625 geçti; Python 36/36,
-Pro sözleşmeleri 14/14 ve web build başarılı. Pro `0.1.1+3` oldu. Production
-migration, GitHub paket/hash incelemesi ve rol/cihaz UAT açık; bu nedenle Faz 2
-henüz operasyonel `complete` değil. Rapor:
+Pro sözleşmeleri 14/14 ve web build başarılı. Pro `0.1.1+3` oldu. GitHub
+Actions `40437677031` beş işi geçti; APK/IPA/web hashleri, production ref'i,
+paket kimlikleri ve iOS Firebase plist yokluğu doğrulandı. İndirilebilir
+`swansport-pro-v0.1.1+3` prerelease hazır; düzeltme sonrası Node SQL/migration
+paketi 324/324 geçti. Production migration ve rol/cihaz UAT açık; bu nedenle
+Faz 2 henüz operasyonel `complete` değil. Rapor:
 `docs/swansport-pro-phase-2-verification.md`.
 
 Son güncelleme: 2026-10-26 Europe/Istanbul
