@@ -7,7 +7,12 @@ import '../host/pro_feature_state.dart';
 import 'accounting_operations_panel.dart';
 
 final class SharedFinanceLedgerScreen extends ConsumerWidget {
-  const SharedFinanceLedgerScreen({super.key});
+  const SharedFinanceLedgerScreen({
+    this.header,
+    super.key,
+  });
+
+  final Widget? header;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -15,13 +20,15 @@ final class SharedFinanceLedgerScreen extends ConsumerWidget {
     return host.chrome.buildPage(
       context,
       title: 'Mali Defter',
-      body: const _FinanceLedgerScopeGate(),
+      body: _FinanceLedgerScopeGate(header: header),
     );
   }
 }
 
 final class _FinanceLedgerScopeGate extends ConsumerWidget {
-  const _FinanceLedgerScopeGate();
+  const _FinanceLedgerScopeGate({this.header});
+
+  final Widget? header;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -96,6 +103,7 @@ final class _FinanceLedgerScopeGate extends ConsumerWidget {
       child: _ScopedFinanceLedgerContent(
         clubs: accountantClubs,
         selectedClub: selectedClub,
+        header: header,
       ),
     );
   }
@@ -105,10 +113,12 @@ final class _ScopedFinanceLedgerContent extends ConsumerStatefulWidget {
   const _ScopedFinanceLedgerContent({
     required this.clubs,
     required this.selectedClub,
+    this.header,
   });
 
   final List<ClubRef> clubs;
   final ClubRef selectedClub;
+  final Widget? header;
 
   @override
   ConsumerState<_ScopedFinanceLedgerContent> createState() =>
@@ -155,6 +165,10 @@ final class _ScopedFinanceLedgerContentState
                 selectedClub: widget.selectedClub,
                 theme: host.theme,
               ),
+              if (widget.header != null) ...[
+                const SizedBox(height: 12),
+                widget.header!,
+              ],
               const SizedBox(height: 8),
               Text(
                 'Sunucu maskeli defter görünümü (acc_ledger): sporcu adı okunmaz, aidat karşı tarafı yalnız sabit referans koduyla (ör. maskeli hash) gösterilir.',

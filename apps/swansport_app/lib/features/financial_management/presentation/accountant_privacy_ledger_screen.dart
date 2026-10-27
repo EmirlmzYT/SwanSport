@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
+import '../../../app/widgets/quick_actions.dart';
 import '../../pro_operations/swan_pro_feature_host.dart';
 
 /// Reads exclusively through acc_ledger; athlete names are never requested.
@@ -19,7 +20,22 @@ class AccountantPrivacyLedgerScreen extends ConsumerWidget {
     final activeClub = ref.watch(activeClubProvider).valueOrNull;
 
     Widget content = const SwanProFeatureHost(
-      child: SharedFinanceLedgerScreen(),
+      child: SharedFinanceLedgerScreen(
+        header: QuickActions(
+          actions: [
+            QuickAction(
+              icon: Icons.receipt_long_rounded,
+              label: 'Gider ekle',
+              route: '/gider-ekle',
+            ),
+            QuickAction(
+              icon: Icons.undo_rounded,
+              label: 'Ters kayıt',
+              route: '/ters-islem',
+            ),
+          ],
+        ),
+      ),
     );
 
     if (!access.isAccountant && activeClub != null) {

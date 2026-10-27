@@ -122,4 +122,71 @@ void main() {
     );
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets(
+      'AccountantPrivacyLedgerScreen renders quick actions and navigates to /gider-ekle and /ters-islem',
+      (tester) async {
+    const club =
+        ClubRef(id: 'club-parity-1', name: 'Parity SK', role: 'accountant');
+    final pushedRoutes = <String>[];
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          isSupabaseEnabledProvider.overrideWithValue(false),
+          activeClubProvider.overrideWith((ref) async => club),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'accountant',
+              coachLevel: 0,
+              athleteKind: null,
+              accountantClubIds: {'club-parity-1'},
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({
+              FeatureFlags.financeOperationsCenter,
+            }),
+          ),
+          myClubsProvider.overrideWith((ref) async => const [club]),
+          clubLedgerPageProvider(0).overrideWith(
+            (ref) async => const LedgerPage(entries: [], totalCount: 0),
+          ),
+        ],
+        child: MaterialApp(
+          routes: {
+            '/': (_) => const AccountantPrivacyLedgerScreen(),
+            '/gider-ekle': (_) {
+              pushedRoutes.add('/gider-ekle');
+              return const Scaffold(body: Text('Gider Ekle Ekranı'));
+            },
+            '/ters-islem': (_) {
+              pushedRoutes.add('/ters-islem');
+              return const Scaffold(body: Text('Ters İşlem Ekranı'));
+            },
+          },
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final expenseBtn = find.text('Gider ekle');
+    final reversalBtn = find.text('Ters kayıt');
+    expect(expenseBtn, findsOneWidget);
+    expect(reversalBtn, findsOneWidget);
+
+    await tester.tap(expenseBtn);
+    await tester.pumpAndSettle();
+    expect(pushedRoutes, contains('/gider-ekle'));
+    expect(find.text('Gider Ekle Ekranı'), findsOneWidget);
+
+    tester.state<NavigatorState>(find.byType(Navigator)).pop();
+    await tester.pumpAndSettle();
+
+    await tester.tap(reversalBtn);
+    await tester.pumpAndSettle();
+    expect(pushedRoutes, contains('/ters-islem'));
+    expect(find.text('Ters İşlem Ekranı'), findsOneWidget);
+  });
 }
