@@ -21,20 +21,33 @@ void main() {
   };
   test('reservation maps all server fields', () {
     final r = FacilityReservation.fromMap(map);
-    expect([r.id, r.clubId, r.facilityId, r.title, r.kind, r.status],
-        ['r1', 'c1', 'f1', 'Ders', 'private_lesson', 'pending']);
+    expect([
+      r.id,
+      r.clubId,
+      r.facilityId,
+      r.title,
+      r.kind,
+      r.status
+    ], [
+      'r1',
+      'c1',
+      'f1',
+      'Ders',
+      'private_lesson',
+      'pending',
+    ]);
     expect([
       r.reservedByName,
       r.reservedByPhone,
       r.reservedByProfileId,
       r.invoiceId,
-      r.notes
+      r.notes,
     ], [
       'Kişi',
       '555',
       'p1',
       'i1',
-      'Not'
+      'Not',
     ]);
     expect(r.fee, 125.5);
     expect(r.startsAt.toUtc(), DateTime.utc(2026, 10, 11, 10));
@@ -55,8 +68,11 @@ void main() {
   });
   test('conflicts map source while schedule remains compatible', () {
     for (final source in ['event', 'reservation']) {
-      final slot = FacilitySlot.fromMap(
-          {...map, 'conflict_source': source, 'team_name': 'Takım'});
+      final slot = FacilitySlot.fromMap({
+        ...map,
+        'conflict_source': source,
+        'team_name': 'Takım',
+      });
       expect(slot.conflictSource, source);
       expect(slot.teamName, 'Takım');
       expect(slot.title, 'Ders');

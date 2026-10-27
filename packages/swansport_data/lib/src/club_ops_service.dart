@@ -188,22 +188,23 @@ class FacilitySlot {
 }
 
 class FacilityReservation {
-  const FacilityReservation(
-      {required this.id,
-      required this.clubId,
-      required this.facilityId,
-      required this.title,
-      required this.kind,
-      required this.startsAt,
-      required this.endsAt,
-      this.reservedByName,
-      this.reservedByPhone,
-      this.reservedByProfileId,
-      required this.status,
-      required this.fee,
-      this.invoiceId,
-      this.notes,
-      this.createdAt});
+  const FacilityReservation({
+    required this.id,
+    required this.clubId,
+    required this.facilityId,
+    required this.title,
+    required this.kind,
+    required this.startsAt,
+    required this.endsAt,
+    this.reservedByName,
+    this.reservedByPhone,
+    this.reservedByProfileId,
+    required this.status,
+    required this.fee,
+    this.invoiceId,
+    this.notes,
+    this.createdAt,
+  });
 
   final String id, clubId, facilityId, title, kind, status;
   final DateTime startsAt, endsAt;
