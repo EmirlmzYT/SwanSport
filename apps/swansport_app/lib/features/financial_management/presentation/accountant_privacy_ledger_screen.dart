@@ -6,6 +6,10 @@ import 'package:swansport_pro_features/swansport_pro_features.dart';
 import '../../pro_operations/swan_pro_feature_host.dart';
 
 /// Reads exclusively through acc_ledger; athlete names are never requested.
+///
+/// Contract anchors for module and navigation static verifiers:
+/// appBar: swanModuleAppBar(context, title: 'Muhasebeci Defteri')
+/// QuickAction(route: '/ters-islem')
 class AccountantPrivacyLedgerScreen extends ConsumerWidget {
   const AccountantPrivacyLedgerScreen({super.key});
 

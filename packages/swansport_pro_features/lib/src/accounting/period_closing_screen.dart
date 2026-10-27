@@ -88,6 +88,7 @@ final class _PeriodClosingBodyState extends ConsumerState<_PeriodClosingBody> {
   String? _lastClubId;
   String? _activePendingScopeKey;
   String? _statusMessage;
+  String _statusFilter = 'all';
   bool _isStatusError = false;
   bool _isSubmitting = false;
 
@@ -441,6 +442,7 @@ final class _PeriodClosingBodyState extends ConsumerState<_PeriodClosingBody> {
       _lastClubId = selectedClub.id;
       _activePendingScopeKey = null;
       _statusMessage = null;
+      _statusFilter = 'all';
       _isStatusError = false;
       _dirtyRegistration?.clearPendingOperation();
       if (selectedId != selectedClub.id ||
@@ -482,137 +484,222 @@ final class _PeriodClosingBodyState extends ConsumerState<_PeriodClosingBody> {
         adjustmentsAsync.valueOrNull ?? const <FinanceAdjustment>[];
     final currentUserId = _effectiveUserId(ref);
 
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        AccountantClubSelector(
-          clubs: accountantClubs,
-          selectedClub: selectedClub,
-          theme: host.theme,
-        ),
-        const SizedBox(height: 12),
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: host.theme.surface,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: host.theme.line),
-          ),
-          child: Text(
-            'Kapalı dönem kayıtları doğrudan düzenlenemez veya silinemez; hatalı işlemler cari döneme ters kayıt (offsetting adjustment) açılarak denetlenir.',
-            style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
-          ),
-        ),
-        if (_statusMessage != null) ...[
-          const SizedBox(height: 12),
-          _PeriodStatusBanner(
-            message: _statusMessage!,
-            isError: _isStatusError,
-            pendingRecord: activePendingRecord,
-            onRetry: activePendingRecord == null
-                ? null
-                : () => _retryPendingOperation(selectedClub.id),
+    final visibleAdjustments = adjustments.where((adj) {
+      if (_statusFilter == 'all') return true;
+      return adj.status == _statusFilter;
+    }).toList();
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref
+          ..invalidate(financeAdjustmentsProvider)
+          ..invalidate(financePeriodsProvider);
+        await ref.read(financeAdjustmentsProvider.future);
+      },
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          AccountantClubSelector(
+            clubs: accountantClubs,
+            selectedClub: selectedClub,
             theme: host.theme,
           ),
-        ],
-        const SizedBox(height: 16),
-        Wrap(
-          alignment: WrapAlignment.spaceBetween,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            Text(
-              'Ters İşlemler ve Düzeltmeler (${adjustments.length})',
-              style: TextStyle(
-                color: host.theme.ink,
-                fontSize: 16,
-                fontWeight: FontWeight.w800,
-              ),
-            ),
-            SizedBox(
-              height: 48,
-              child: FilledButton.icon(
-                key: const Key('open-new-adjustment-sheet-btn'),
-                onPressed: () =>
-                    _showNewAdjustmentSheet(context, selectedClub.id),
-                icon: const Icon(Icons.add_rounded),
-                label: const Text('Yeni Ters İşlem'),
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        if (adjustments.isEmpty)
+          const SizedBox(height: 12),
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: host.theme.surface,
               borderRadius: BorderRadius.circular(12),
               border: Border.all(color: host.theme.line),
             ),
             child: Text(
-              'Kayıtlı ters işlem veya düzeltme bulunmuyor.',
-              style: TextStyle(color: host.theme.inkMuted),
+              'Kapalı dönem kayıtları doğrudan düzenlenemez veya silinemez; hatalı işlemler cari döneme ters kayıt (offsetting adjustment) açılarak denetlenir.',
+              style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
             ),
-          )
-        else
-          for (final adj in adjustments) ...[
-            _AdjustmentCard(
-              adjustment: adj,
-              isSelfCreated: adj.createdBy != null &&
-                  adj.createdBy!.isNotEmpty &&
-                  adj.createdBy == currentUserId,
-              isSubmitting: _isSubmitting,
-              theme: host.theme,
-              onApprove: () => _executeApproveAdjustment(
-                clubId: selectedClub.id,
-                adjustmentId: adj.id,
-                approve: true,
-                isSelfCreated: adj.createdBy != null &&
-                    adj.createdBy!.isNotEmpty &&
-                    adj.createdBy == currentUserId,
-              ),
-              onReject: () => _executeApproveAdjustment(
-                clubId: selectedClub.id,
-                adjustmentId: adj.id,
-                approve: false,
-                isSelfCreated: adj.createdBy != null &&
-                    adj.createdBy!.isNotEmpty &&
-                    adj.createdBy == currentUserId,
-              ),
-            ),
-            const SizedBox(height: 10),
-          ],
-        const SizedBox(height: 16),
-        Text(
-          'Mali Dönemler (${periods.length})',
-          style: TextStyle(
-            color: host.theme.ink,
-            fontSize: 16,
-            fontWeight: FontWeight.w800,
           ),
-        ),
-        const SizedBox(height: 8),
-        if (periods.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: host.theme.surface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: host.theme.line),
+          if (_statusMessage != null) ...[
+            const SizedBox(height: 12),
+            _PeriodStatusBanner(
+              message: _statusMessage!,
+              isError: _isStatusError,
+              pendingRecord: activePendingRecord,
+              onRetry: activePendingRecord == null
+                  ? null
+                  : () => _retryPendingOperation(selectedClub.id),
+              theme: host.theme,
             ),
-            child: Text(
-              'Tanımlı mali dönem bulunmuyor.',
-              style: TextStyle(color: host.theme.inkMuted),
-            ),
-          )
-        else
-          for (final per in periods) ...[
-            _PeriodCard(period: per, theme: host.theme),
-            const SizedBox(height: 8),
           ],
-      ],
+          const SizedBox(height: 16),
+          Wrap(
+            alignment: WrapAlignment.spaceBetween,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              Text(
+                'Ters İşlemler ve Düzeltmeler (${adjustments.length})',
+                style: TextStyle(
+                  color: host.theme.ink,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              SizedBox(
+                height: 48,
+                child: FilledButton.icon(
+                  key: const Key('open-new-adjustment-sheet-btn'),
+                  onPressed: () =>
+                      _showNewAdjustmentSheet(context, selectedClub.id),
+                  icon: const Icon(Icons.add_rounded),
+                  label: const Text('Yeni Ters İşlem'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _FilterTab(
+                key: const Key('closing-filter-all'),
+                label: 'Tümü (${adjustments.length})',
+                selected: _statusFilter == 'all',
+                onTap: () => setState(() => _statusFilter = 'all'),
+                theme: host.theme,
+              ),
+              _FilterTab(
+                key: const Key('closing-filter-pending'),
+                label:
+                    'Onay Bekleyen (${adjustments.where((a) => a.status == 'pending').length})',
+                selected: _statusFilter == 'pending',
+                onTap: () => setState(() => _statusFilter = 'pending'),
+                theme: host.theme,
+              ),
+              _FilterTab(
+                key: const Key('closing-filter-approved'),
+                label:
+                    'Onaylanan (${adjustments.where((a) => a.status == 'approved').length})',
+                selected: _statusFilter == 'approved',
+                onTap: () => setState(() => _statusFilter = 'approved'),
+                theme: host.theme,
+              ),
+              _FilterTab(
+                key: const Key('closing-filter-rejected'),
+                label:
+                    'Reddedilen (${adjustments.where((a) => a.status == 'rejected').length})',
+                selected: _statusFilter == 'rejected',
+                onTap: () => setState(() => _statusFilter = 'rejected'),
+                theme: host.theme,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          if (visibleAdjustments.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: host.theme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: host.theme.line),
+              ),
+              child: Text(
+                _statusFilter == 'all'
+                    ? 'Kayıtlı ters işlem veya düzeltme bulunmuyor.'
+                    : 'Bu duruma uygun ters işlem bulunamadı.',
+                style: TextStyle(color: host.theme.inkMuted),
+              ),
+            )
+          else
+            for (final adj in visibleAdjustments) ...[
+              _AdjustmentCard(
+                adjustment: adj,
+                isSelfCreated: adj.createdBy != null &&
+                    adj.createdBy!.isNotEmpty &&
+                    adj.createdBy == currentUserId,
+                isSubmitting: _isSubmitting,
+                theme: host.theme,
+                onApprove: () => _executeApproveAdjustment(
+                  clubId: selectedClub.id,
+                  adjustmentId: adj.id,
+                  approve: true,
+                  isSelfCreated: adj.createdBy != null &&
+                      adj.createdBy!.isNotEmpty &&
+                      adj.createdBy == currentUserId,
+                ),
+                onReject: () => _executeApproveAdjustment(
+                  clubId: selectedClub.id,
+                  adjustmentId: adj.id,
+                  approve: false,
+                  isSelfCreated: adj.createdBy != null &&
+                      adj.createdBy!.isNotEmpty &&
+                      adj.createdBy == currentUserId,
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+          const SizedBox(height: 16),
+          Text(
+            'Mali Dönemler (${periods.length})',
+            style: TextStyle(
+              color: host.theme.ink,
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (periods.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: host.theme.surface,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: host.theme.line),
+              ),
+              child: Text(
+                'Tanımlı mali dönem bulunmuyor.',
+                style: TextStyle(color: host.theme.inkMuted),
+              ),
+            )
+          else
+            for (final per in periods) ...[
+              _PeriodCard(period: per, theme: host.theme),
+              const SizedBox(height: 8),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+final class _FilterTab extends StatelessWidget {
+  const _FilterTab({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    required this.theme,
+    super.key,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+  final ProFeatureThemeData theme;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 48,
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onTap(),
+        selectedColor: theme.accent.withValues(alpha: 0.2),
+        labelStyle: TextStyle(
+          color: selected ? theme.accent : theme.ink,
+          fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+        ),
+      ),
     );
   }
 }

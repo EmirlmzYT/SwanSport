@@ -115,9 +115,11 @@ void main() {
     expect(find.byType(SharedPeriodClosingScreen), findsOneWidget);
     expect(find.text('Yeni Ters İşlem'), findsOneWidget);
     expect(
-        find.textContaining(
-            'Kapalı dönem kayıtları doğrudan düzenlenemez veya silinemez'),
-        findsOneWidget);
+      find.textContaining(
+        'Kapalı dönem kayıtları doğrudan düzenlenemez veya silinemez',
+      ),
+      findsOneWidget,
+    );
     expect(tester.takeException(), isNull);
   });
 }

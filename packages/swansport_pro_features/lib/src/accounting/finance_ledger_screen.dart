@@ -142,157 +142,164 @@ final class _ScopedFinanceLedgerContentState
         final hasPrev = _offset > 0;
         final hasNext = _offset + _pageSize < page.totalCount;
 
-        return ListView(
-          padding: const EdgeInsets.all(16),
-          children: [
-            AccountantClubSelector(
-              clubs: widget.clubs,
-              selectedClub: widget.selectedClub,
-              theme: host.theme,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Sunucu maskeli defter görünümü (acc_ledger): sporcu adı okunmaz, aidat karşı tarafı yalnız sabit referans koduyla (ör. maskeli hash) gösterilir.',
-              style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                _FilterChipButton(
-                  label: 'Tümü',
-                  selected: _directionFilter == null,
-                  onTap: () => setState(() => _directionFilter = null),
-                ),
-                _FilterChipButton(
-                  label: 'Gelir',
-                  selected: _directionFilter == 'in',
-                  onTap: () => setState(() => _directionFilter = 'in'),
-                ),
-                _FilterChipButton(
-                  label: 'Gider',
-                  selected: _directionFilter == 'out',
-                  onTap: () => setState(() => _directionFilter = 'out'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (visibleEntries.isEmpty)
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: host.theme.surface,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: host.theme.line),
-                ),
-                child: Text(
-                  'Seçili kapsamda defter hareketi bulunamadı.',
-                  style: TextStyle(color: host.theme.inkMuted),
-                ),
-              )
-            else
-              for (final entry in visibleEntries) ...[
+        return RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(clubLedgerPageProvider(_offset));
+            await ref.read(clubLedgerPageProvider(_offset).future);
+          },
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              AccountantClubSelector(
+                clubs: widget.clubs,
+                selectedClub: widget.selectedClub,
+                theme: host.theme,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Sunucu maskeli defter görünümü (acc_ledger): sporcu adı okunmaz, aidat karşı tarafı yalnız sabit referans koduyla (ör. maskeli hash) gösterilir.',
+                style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
+              ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _FilterChipButton(
+                    label: 'Tümü',
+                    selected: _directionFilter == null,
+                    onTap: () => setState(() => _directionFilter = null),
+                  ),
+                  _FilterChipButton(
+                    label: 'Gelir',
+                    selected: _directionFilter == 'in',
+                    onTap: () => setState(() => _directionFilter = 'in'),
+                  ),
+                  _FilterChipButton(
+                    label: 'Gider',
+                    selected: _directionFilter == 'out',
+                    onTap: () => setState(() => _directionFilter = 'out'),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              if (visibleEntries.isEmpty)
                 Container(
-                  key: ValueKey<String>('ledger-entry-${entry.id}'),
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: host.theme.surface,
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(color: host.theme.line),
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: Text(
+                    'Seçili kapsamda defter hareketi bulunamadı.',
+                    style: TextStyle(color: host.theme.inkMuted),
+                  ),
+                )
+              else
+                for (final entry in visibleEntries) ...[
+                  Container(
+                    key: ValueKey<String>('ledger-entry-${entry.id}'),
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: host.theme.surface,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: host.theme.line),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
+                          alignment: WrapAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              entry.label,
+                              style: TextStyle(
+                                color: host.theme.ink,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            Text(
+                              '${entry.isIncome ? '+' : '-'}${money(entry.amount)}',
+                              style: TextStyle(
+                                color: entry.isIncome
+                                    ? host.theme.success
+                                    : host.theme.danger,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Karşı Taraf / Referans: ${entry.counterpart} · Kategori: ${entry.category}',
+                          style: TextStyle(
+                            color: host.theme.inkMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          'Hesap: ${entry.account} · Tarih: ${accountingTurkeyDate(entry.movedOn)}',
+                          style: TextStyle(
+                            color: host.theme.inkMuted,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                ],
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 12,
+                runSpacing: 8,
+                alignment: WrapAlignment.spaceBetween,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Text(
+                    '${page.totalCount} kayıt',
+                    style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
                     children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 4,
-                        alignment: WrapAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            entry.label,
-                            style: TextStyle(
-                              color: host.theme.ink,
-                              fontWeight: FontWeight.w700,
+                      if (hasPrev)
+                        SizedBox(
+                          height: 48,
+                          child: OutlinedButton.icon(
+                            key: const Key('ledger-prev-page-button'),
+                            onPressed: () => setState(
+                              () => _offset = (_offset - _pageSize).clamp(
+                                0,
+                                page.totalCount,
+                              ),
                             ),
+                            icon: const Icon(Icons.chevron_left_rounded),
+                            label: const Text('Önceki'),
                           ),
-                          Text(
-                            '${entry.isIncome ? '+' : '-'}${money(entry.amount)}',
-                            style: TextStyle(
-                              color: entry.isIncome
-                                  ? host.theme.success
-                                  : host.theme.danger,
-                              fontWeight: FontWeight.w800,
-                            ),
+                        ),
+                      if (hasNext)
+                        SizedBox(
+                          height: 48,
+                          child: OutlinedButton.icon(
+                            key: const Key('ledger-next-page-button'),
+                            onPressed: () =>
+                                setState(() => _offset += _pageSize),
+                            icon: const Icon(Icons.chevron_right_rounded),
+                            label: const Text('Sonraki'),
                           ),
-                        ],
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Karşı Taraf / Referans: ${entry.counterpart} · Kategori: ${entry.category}',
-                        style: TextStyle(
-                          color: host.theme.inkMuted,
-                          fontSize: 12,
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'Hesap: ${entry.account} · Tarih: ${accountingTurkeyDate(entry.movedOn)}',
-                        style: TextStyle(
-                          color: host.theme.inkMuted,
-                          fontSize: 12,
-                        ),
-                      ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 8),
-              ],
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 12,
-              runSpacing: 8,
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              children: [
-                Text(
-                  '${page.totalCount} kayıt',
-                  style: TextStyle(color: host.theme.inkMuted, fontSize: 12),
-                ),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    if (hasPrev)
-                      SizedBox(
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          key: const Key('ledger-prev-page-button'),
-                          onPressed: () => setState(
-                            () => _offset = (_offset - _pageSize).clamp(
-                              0,
-                              page.totalCount,
-                            ),
-                          ),
-                          icon: const Icon(Icons.chevron_left_rounded),
-                          label: const Text('Önceki'),
-                        ),
-                      ),
-                    if (hasNext)
-                      SizedBox(
-                        height: 48,
-                        child: OutlinedButton.icon(
-                          key: const Key('ledger-next-page-button'),
-                          onPressed: () => setState(() => _offset += _pageSize),
-                          icon: const Icon(Icons.chevron_right_rounded),
-                          label: const Text('Sonraki'),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         );
       },
     );

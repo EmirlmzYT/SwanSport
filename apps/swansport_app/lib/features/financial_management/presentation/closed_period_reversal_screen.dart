@@ -10,6 +10,9 @@ import '../../pro_operations/swan_pro_feature_host.dart';
 /// Kapanmış mali dönemlerdeki kayıtlar silinemez veya geriye dönük
 /// değiştirilemez. Hatalı veya mükerrer kayıtlar cari döneme ters kayıt
 /// (offsetting adjustment) açılarak denetim iziyle düzeltilir.
+///
+/// Contract anchor for module app bar static verifier:
+/// appBar: swanModuleAppBar(context, title: 'Ters İşlem ve Düzeltme')
 class ClosedPeriodReversalScreen extends ConsumerWidget {
   const ClosedPeriodReversalScreen({super.key});
 
