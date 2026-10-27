@@ -13,6 +13,7 @@ export 'src/attendance/live_attendance_screen.dart';
 export 'src/club/club_operation_card.dart';
 export 'src/club/club_operations_panel.dart';
 export 'src/facility/facility_operations_panel.dart';
+export 'src/facility/facility_reservations_screen.dart';
 export 'src/facility/facility_schedule_screen.dart';
 export 'src/facility/managed_turf_duties_screen.dart';
 export 'src/federation/disciplinary_board_screen.dart';

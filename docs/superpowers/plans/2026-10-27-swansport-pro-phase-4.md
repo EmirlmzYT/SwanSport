@@ -6,7 +6,7 @@
 
 ## İLERLEME
 - [x] Dilim 1  - [x] Dilim 2a  - [x] Dilim 2b  - [x] Dilim 2c
-- [x] Dilim 3a  - [x] Dilim 3b  - [ ] Dilim 3c   - [ ] Dilim 4a (envanter)  - [ ] Dilim 4b (sağlık)  - [ ] Dilim 4c (sportif)
+- [x] Dilim 3a  - [x] Dilim 3b  - [x] Dilim 3c   - [ ] Dilim 4a (envanter)  - [ ] Dilim 4b (sağlık)  - [ ] Dilim 4c (sportif)
 - [ ] Dilim 5a (salt okunur ekranlar)  - [ ] Dilim 5b (waitlist/plan yazıları)
 - [ ] Dilim 6  - [ ] Dilim 7  - [ ] Dilim 8
 
@@ -35,7 +35,7 @@ SwanSport Pro içindeki `ProWorkspace.accounting`, `ProWorkspace.facility`, `Pro
 - **2b:** `SharedFinanceCommitmentsScreen` ve `SharedBankReconciliationScreen` (tekrarlayan gider/taahhütler, kendi giderini onaylama engeli, banka ekstre hareketleri ve eşleşme önerileri).
 - **2c:** `SharedClubBudgetScreen`, `SharedPeriodClosingScreen` (onaylı/beklenen/belirsiz nakit ayrımı, kapanış kontrol listesi, kapalı dönemde doğrudan düzenleme yerine ters kayıt/düzeltme akışı) ve SwanSport mobil host sarmalayıcıları.
 
-### Dilim 3 — `feat(pro): add facility operations workspace`
+### Dilim 3 — `feat(pro): add facility operations workspace` [x]
 - `SharedFacilityOperationsPanel`, `SharedManagedTurfDutiesScreen`, `SharedFacilityScheduleScreen`, `SharedFacilityReservationsScreen`.
 - `SwanAccess.canOpenTurfCenter` kapısı, `managedTurfFieldIds` ve `delegatedTurfFieldIds` ayrımı, süresi geçmiş görevlerde fail-closed davranış, gerçek UUID ve zaman aralığı olmadan çakışma için `'Doğrulanamıyor'` gösterimi.
 
