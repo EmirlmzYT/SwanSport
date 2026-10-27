@@ -131,10 +131,6 @@ final class _SharedFederationMatchesScreenState
       until: _weekOnly ? monday.add(const Duration(days: 7)) : null,
     );
     final pageAsync = ref.watch(federationConsoleMatchesProvider(query));
-    final canAllocateFacility = access.isClubStaff ||
-        access.canViewRefereeAssignments ||
-        widget.onAllocateFacility != null;
-
     return host.chrome.buildPage(
       context,
       title: 'Resmî Müsabakalar & Takvim',
@@ -280,14 +276,7 @@ final class _SharedFederationMatchesScreenState
                     ref.invalidate(federationConsoleMatchesProvider(query)),
               ),
               data: (page) {
-                final scopedRows = page.rows
-                    .where((m) => m.sportCode == selectedScope.sportCode)
-                    .toList(growable: false);
-                final scopedTotal = scopedRows.length == page.rows.length
-                    ? page.total
-                    : (page.total - (page.rows.length - scopedRows.length))
-                        .clamp(scopedRows.length, page.total);
-                if (scopedRows.isEmpty) {
+                if (page.rows.isEmpty) {
                   return const FederationPanelMessage(
                     icon: Icons.event_busy_outlined,
                     title: 'Bu kapsamda resmî müsabaka yok.',
@@ -298,14 +287,15 @@ final class _SharedFederationMatchesScreenState
                     Expanded(
                       child: ListView.separated(
                         padding: const EdgeInsets.all(16),
-                        itemCount: scopedRows.length,
+                        itemCount: page.rows.length,
                         separatorBuilder: (_, __) => const SizedBox(height: 12),
                         itemBuilder: (context, index) {
-                          final match = scopedRows[index];
+                          final match = page.rows[index];
                           return _FederationMatchCard(
                             match: match,
                             theme: theme,
-                            canAllocateFacility: canAllocateFacility,
+                            canAllocateFacility: match.canAllocateFacility ||
+                                widget.onAllocateFacility != null,
                             onAllocateFacility: widget.onAllocateFacility,
                             onAllocated: () => ref.invalidate(
                               federationConsoleMatchesProvider(query),
@@ -324,7 +314,7 @@ final class _SharedFederationMatchesScreenState
                         children: [
                           Flexible(
                             child: Text(
-                              '${_offset + 1}–${_offset + scopedRows.length} / $scopedTotal',
+                              '${_offset + 1}–${_offset + page.rows.length} / ${page.total}',
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(color: theme.inkMuted),
                             ),
@@ -340,7 +330,7 @@ final class _SharedFederationMatchesScreenState
                                 ? null
                                 : () => setState(() {
                                       _offset = (_offset - _pageSize)
-                                          .clamp(0, scopedTotal);
+                                          .clamp(0, page.total);
                                     }),
                             icon: const Icon(Icons.chevron_left_rounded),
                           ),
@@ -351,7 +341,7 @@ final class _SharedFederationMatchesScreenState
                               minWidth: 48,
                               minHeight: 48,
                             ),
-                            onPressed: _offset + _pageSize >= scopedTotal
+                            onPressed: _offset + _pageSize >= page.total
                                 ? null
                                 : () => setState(() => _offset += _pageSize),
                             icon: const Icon(Icons.chevron_right_rounded),

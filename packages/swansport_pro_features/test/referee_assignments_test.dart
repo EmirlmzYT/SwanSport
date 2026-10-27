@@ -257,6 +257,14 @@ void main() {
         find.textContaining('Müsabaka sorunsuz tamamlandı.'),
         findsOneWidget,
       );
+      expect(
+        find.byKey(
+          const Key(
+            'facility-allocate-btn-11111111-1111-4111-8111-111111111111',
+          ),
+        ),
+        findsNothing,
+      );
 
       // Open assignment dialog
       final assignBtn = find.byKey(

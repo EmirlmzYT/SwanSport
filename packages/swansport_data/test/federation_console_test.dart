@@ -84,7 +84,7 @@ void main() {
         isNot(const FederationMatchQuery(cityCode: '06')));
   });
   test(
-      'service uses exact narrow RPC parameters, filters matches by sportCode, and never queries raw official tables',
+      'service sends exact federation and sport scope before server pagination and never queries raw official tables',
       () async {
     final requests = <http.Request>[];
     final client = SupabaseClient('https://example.com', 'test',
@@ -93,24 +93,26 @@ void main() {
       if (request.url.path.endsWith('federation_console_matches')) {
         return http.Response(
           jsonEncode({
-            'total': 2,
+            'total': 1,
             'rows': [
               {
                 'id': 'm1',
                 'program': 'Futbol Lig',
                 'sport_code': 'futbol',
                 'status': 'scheduled',
-                'officials': []
-              },
-              {
-                'id': 'm2',
-                'program': 'Basket Lig',
-                'sport_code': 'basketbol',
-                'status': 'scheduled',
-                'officials': []
+                'can_allocate_facility': true,
+                'officials': <Map<String, dynamic>>[],
               },
             ],
           }),
+          200,
+          headers: {'content-type': 'application/json'},
+          request: request,
+        );
+      }
+      if (request.url.path.endsWith('federation_disciplinary_reports')) {
+        return http.Response(
+          jsonEncode({'total': 0, 'rows': <Map<String, dynamic>>[]}),
           200,
           headers: {'content-type': 'application/json'},
           request: request,
@@ -132,10 +134,25 @@ void main() {
       'p_offset': 50,
       'p_search': 'Lig',
       'p_from': null,
-      'p_until': null
+      'p_until': null,
+      'p_federation_id': 'fed-1',
+      'p_sport_code': 'futbol',
     });
     expect(page.rows.map((r) => r.id), ['m1']);
     expect(page.total, 1);
+    expect(page.rows.single.canAllocateFacility, isTrue);
+    await s.reports(
+      50,
+      federationId: 'fed-1',
+      sportCode: 'futbol',
+    );
+    expect(requests.last.url.path,
+        endsWith('/rpc/federation_disciplinary_reports'));
+    expect(jsonDecode(requests.last.body), {
+      'p_offset': 50,
+      'p_federation_id': 'fed-1',
+      'p_sport_code': 'futbol',
+    });
     await s.assignMatchOfficial('m', 'p', MatchOfficialDuty.headReferee);
     expect(requests.last.url.path, endsWith('/rpc/assign_match_official'));
     expect(jsonDecode(requests.last.body),

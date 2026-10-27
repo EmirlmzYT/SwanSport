@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
@@ -134,16 +136,23 @@ final class SharedFederationBulletinsScreen extends ConsumerWidget {
     final noticesAsync = ref.watch(federationNoticesProvider(filter));
 
     final canPublishResults = access.canPublishFederationResults;
-    final canPublishDisciplinary = access.isDisciplinaryBoardMember ||
+    final canPublishDisciplinary = selectedScope?.role == 'president' ||
         selectedScope?.role == 'disciplinary_board';
-    final canPublishNotices = access.isFederationPresident ||
-        selectedScope?.role == 'president' ||
+    final canPublishNotices = selectedScope?.role == 'president' ||
         selectedScope?.role == 'provincial_rep';
 
+    final pendingQuery = (
+      federationId: selectedScope?.federationId,
+      sportCode: selectedScope?.sportCode,
+      cityCode: selectedScope?.cityCode,
+      offset: 0,
+    );
+
     final pendingResultsAsync = canPublishResults
-        ? ref.watch(federationPendingResultsProvider(0))
+        ? ref.watch(federationScopedPendingResultsProvider(pendingQuery))
         : const AsyncData<List<FederationPendingMatch>>(
-            <FederationPendingMatch>[]);
+            <FederationPendingMatch>[],
+          );
 
     return host.chrome.buildPage(
       context,
@@ -155,7 +164,9 @@ final class SharedFederationBulletinsScreen extends ConsumerWidget {
             ref.invalidate(federationDisciplinaryBulletinProvider(filter));
             ref.invalidate(federationNoticesProvider(filter));
             if (canPublishResults) {
-              ref.invalidate(federationPendingResultsProvider(0));
+              ref.invalidate(
+                federationScopedPendingResultsProvider(pendingQuery),
+              );
             }
           },
           icon: const Icon(Icons.refresh_rounded),
@@ -229,6 +240,7 @@ final class SharedFederationBulletinsScreen extends ConsumerWidget {
                               context: context,
                               builder: (_) =>
                                   SharedPublishDisciplinaryBulletinDialog(
+                                federationId: selectedScope?.federationId,
                                 sportCode: selectedScope?.sportCode,
                                 onPublishDisciplinaryBulletin:
                                     onPublishDisciplinaryBulletin,
@@ -286,8 +298,9 @@ final class SharedFederationBulletinsScreen extends ConsumerWidget {
               error: (err, _) => FederationPanelMessage(
                 icon: Icons.error_outline_rounded,
                 title: classifyOperationError(err).userMessage,
-                onRetry: () =>
-                    ref.invalidate(federationPendingResultsProvider(0)),
+                onRetry: () => ref.invalidate(
+                  federationScopedPendingResultsProvider(pendingQuery),
+                ),
               ),
               data: (pendingMatches) {
                 final scopedPending = selectedScope == null
@@ -322,7 +335,11 @@ final class SharedFederationBulletinsScreen extends ConsumerWidget {
                         theme: theme,
                         onPublishResult: onPublishResult,
                         onPublished: () {
-                          ref.invalidate(federationPendingResultsProvider(0));
+                          ref.invalidate(
+                            federationScopedPendingResultsProvider(
+                              pendingQuery,
+                            ),
+                          );
                         },
                       ),
                       const SizedBox(height: 8),
@@ -566,6 +583,11 @@ class _PendingResultPublishCard extends StatelessWidget {
               'Bu branş/il için aktif Sonuç Tescil Görevlisi (result_publisher) yetkiniz bulunmuyor.',
               style: TextStyle(color: theme.danger, fontSize: 12),
             )
+          else if (!_supportedOfficialResultSports.contains(match.sportCode))
+            Text(
+              'Bu branş için doğrulanmış resmî sonuç protokolü henüz desteklenmiyor.',
+              style: TextStyle(color: theme.danger, fontSize: 12),
+            )
           else
             Align(
               alignment: Alignment.centerRight,
@@ -611,8 +633,7 @@ final class SharedPublishOfficialResultDialog extends ConsumerStatefulWidget {
 
 final class _SharedPublishOfficialResultDialogState
     extends ConsumerState<SharedPublishOfficialResultDialog> {
-  final TextEditingController _homeCtrl = TextEditingController();
-  final TextEditingController _awayCtrl = TextEditingController();
+  final TextEditingController _protocolCtrl = TextEditingController();
   late final TextEditingController _reasonCtrl;
   bool _submitting = false;
   String? _errorMessage;
@@ -629,16 +650,13 @@ final class _SharedPublishOfficialResultDialogState
 
   @override
   void dispose() {
-    _homeCtrl.dispose();
-    _awayCtrl.dispose();
+    _protocolCtrl.dispose();
     _reasonCtrl.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isSetSport = widget.match.sportCode == 'tenis' ||
-        widget.match.sportCode == 'voleybol';
     return AlertDialog(
       title: Text(
         'Resmî Sonuç Tescili (V${widget.match.version + 1})',
@@ -655,33 +673,22 @@ final class _SharedPublishOfficialResultDialogState
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      key: const Key('publish-result-home-input'),
-                      controller: _homeCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText:
-                            isSetSport ? 'Ev (1. Set)' : 'Ev Sahibi Skor',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      key: const Key('publish-result-away-input'),
-                      controller: _awayCtrl,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: isSetSport
-                            ? 'Deplasman (1. Set)'
-                            : 'Deplasman Skor',
-                      ),
-                    ),
-                  ),
-                ],
+              Text(
+                'Branş: ${widget.match.sportCode}. Yalnız tamamlanmış ve branş sözleşmesine uygun JSON protokolü kabul edilir.',
+                style: const TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                key: const Key('publish-result-protocol-input'),
+                controller: _protocolCtrl,
+                minLines: 7,
+                maxLines: 14,
+                keyboardType: TextInputType.multiline,
+                decoration: InputDecoration(
+                  labelText: 'Resmî Branş Protokolü (JSON)',
+                  hintText: _protocolHint(widget.match.sportCode),
+                  alignLabelWithHint: true,
+                ),
               ),
               const SizedBox(height: 10),
               TextField(
@@ -721,35 +728,31 @@ final class _SharedPublishOfficialResultDialogState
   }
 
   Future<void> _submit() async {
-    final home = int.tryParse(_homeCtrl.text.trim());
-    final away = int.tryParse(_awayCtrl.text.trim());
     final reason = _reasonCtrl.text.trim();
-    if (home == null || away == null || home < 0 || away < 0) {
-      setState(() {
-        _errorMessage = 'Geçerli sayısal skor değerleri girin.';
-      });
-      return;
-    }
     if (reason.isEmpty) {
       setState(() {
         _errorMessage = 'Tescil gerekçesi zorunludur.';
       });
       return;
     }
-    final isSetSport = widget.match.sportCode == 'tenis' ||
-        widget.match.sportCode == 'voleybol';
-    final protocol = isSetSport
-        ? <String, dynamic>{
-            'type': 'sets',
-            'sets': [
-              {'home': home, 'away': away},
-            ],
-          }
-        : <String, dynamic>{
-            'type': 'score',
-            'home': home,
-            'away': away,
-          };
+    late final Map<String, dynamic> protocol;
+    try {
+      final decoded = jsonDecode(_protocolCtrl.text.trim());
+      if (decoded is! Map || decoded.keys.any((key) => key is! String)) {
+        throw const FormatException('JSON nesnesi gerekli');
+      }
+      protocol = normalizeOfficialResult(
+        widget.match.sportCode,
+        <String, dynamic>{
+          for (final entry in decoded.entries) entry.key as String: entry.value,
+        },
+      );
+    } catch (error) {
+      setState(() {
+        _errorMessage = 'Branş protokolü geçersiz: $error';
+      });
+      return;
+    }
 
     setState(() {
       _submitting = true;
@@ -769,11 +772,10 @@ final class _SharedPublishOfficialResultDialogState
         if (service == null) {
           throw StateError('Federasyon tescil servisi kullanılamıyor.');
         }
-        await service.publishResult(
-          matchId: widget.match.id,
+        await service.publishOfficialResult(
+          match: widget.match,
           protocol: protocol,
           reason: reason,
-          expectedVersion: widget.match.version,
         );
       }
       if (!mounted) return;
@@ -791,16 +793,42 @@ final class _SharedPublishOfficialResultDialogState
   }
 }
 
+const _supportedOfficialResultSports = <String>{
+  'futbol',
+  'basketbol',
+  'tenis',
+  'yuzme',
+  'atletizm',
+  'okculuk',
+};
+
+String _protocolHint(String sportCode) => switch (sportCode) {
+      'futbol' =>
+        '{"status":"finished","halves":[{"home":1,"away":0},{"home":0,"away":0}],"knockout":false}',
+      'basketbol' =>
+        '{"status":"finished","periods":[{"label":"Q1","home":20,"away":18,"team_fouls":{"home":3,"away":4}}, ...]}',
+      'tenis' =>
+        '{"status":"finished","best_of":3,"sets":[{"home":6,"away":3},{"home":6,"away":4}]}',
+      'yuzme' ||
+      'atletizm' =>
+        '{"status":"finished","performances":[{"athlete_ref":"uuid","lane":1,"heat":1,"time_ms":62340,"rank":1,"dq":false,"dnf":false}]}',
+      'okculuk' =>
+        '{"status":"finished","performances":[{"athlete_ref":"uuid","heat":1,"rank":1,"dq":false,"dnf":false,"series":[10,9,10]}]}',
+      _ => '{}',
+    };
+
 /// Dialog for publishing an immutable public disciplinary bulletin summary
 /// (`publish_disciplinary_bulletin`).
 final class SharedPublishDisciplinaryBulletinDialog
     extends ConsumerStatefulWidget {
   const SharedPublishDisciplinaryBulletinDialog({
+    this.federationId,
     this.sportCode,
     this.onPublishDisciplinaryBulletin,
     super.key,
   });
 
+  final String? federationId;
   final String? sportCode;
   final PublishDisciplinaryBulletinCallback? onPublishDisciplinaryBulletin;
 
@@ -824,7 +852,12 @@ final class _SharedPublishDisciplinaryBulletinDialogState
 
   @override
   Widget build(BuildContext context) {
-    final reportsAsync = ref.watch(federationDisciplinaryReportsProvider(0));
+    final query = FederationDisciplinaryQuery(
+      federationId: widget.federationId,
+      sportCode: widget.sportCode,
+    );
+    final reportsAsync =
+        ref.watch(federationScopedDisciplinaryReportsProvider(query));
 
     return AlertDialog(
       title: const Text('Kamusal Disiplin Bülteni Özeti Yayımla'),
@@ -1033,6 +1066,10 @@ final class _SharedPublishMatchNoticeDialogState
       cityCode: widget.scope?.cityCode,
     );
     final matchesAsync = ref.watch(federationConsoleMatchesProvider(query));
+    final hasEligibleMatch = matchesAsync.valueOrNull?.rows.any(
+          (match) => match.status == 'cancelled' || match.status == 'postponed',
+        ) ??
+        false;
 
     return AlertDialog(
       title: const Text('Resmî Müsabaka Duyurusu Yayımla'),
@@ -1056,9 +1093,11 @@ final class _SharedPublishMatchNoticeDialogState
                             m.status == 'cancelled' || m.status == 'postponed',
                       )
                       .toList(growable: false);
-                  final candidates = eligible.isNotEmpty ? eligible : page.rows;
+                  final candidates = eligible;
                   if (candidates.isEmpty) {
-                    return const Text('Kapsamda müsabaka bulunamadı.');
+                    return const Text(
+                      'Kapsamda iptal edilmiş veya ertelenmiş müsabaka bulunamadı.',
+                    );
                   }
                   final effectiveId = candidates.any(
                     (m) => m.id == _selectedMatchId,
@@ -1169,7 +1208,7 @@ final class _SharedPublishMatchNoticeDialogState
         ),
         FilledButton(
           key: const Key('publish-notice-submit-btn'),
-          onPressed: _submitting ? null : _submit,
+          onPressed: _submitting || !hasEligibleMatch ? null : _submit,
           child: const Text('Duyuruyu Yayımla'),
         ),
       ],

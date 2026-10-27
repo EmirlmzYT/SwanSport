@@ -4,6 +4,7 @@ import {readFile} from 'node:fs/promises';
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 const migration=await readFile(new URL('../supabase/migrations/0113_federation_console_engine.sql',import.meta.url),'utf8');
+const scopedMigration=await readFile(new URL('../supabase/migrations/20261027143000_scope_federation_operations.sql',import.meta.url),'utf8');
 async function owner(db,p=officer){await db.exec('reset role');await actor(db,p);}
 async function auth(db,p){await owner(db,p);await db.exec('set role authenticated');}
 export async function setup(){const f=await fixture();try{await owner(f.db);
@@ -16,9 +17,9 @@ export async function setup(){const f=await fixture();try{await owner(f.db);
  await f.db.exec('alter table events add column ends_at timestamptz,add column facility_id uuid references facilities(id),add column status text default \'scheduled\'; create table invoices(id uuid primary key)');
  const reservations=await readFile(new URL('../supabase/migrations/0108_facility_reservation_conflicts.sql',import.meta.url),'utf8');
  await f.db.exec(reservations.slice(reservations.indexOf('create table if not exists public.facility_reservations'),reservations.indexOf('create index if not exists idx_facility_reservations_facility_starts')));
- await apply(f.db,migration);return f;}catch(e){await f.db.close();throw e;}}
+ await apply(f.db,migration);await apply(f.db,scopedMigration);return f;}catch(e){await f.db.close();throw e;}}
 test('0113 scope, redacted excuses, raw RLS, assignment authority/license and replay',async()=>{
- const {db,match}=await setup();try{
+ const {db,match,federation}=await setup();try{
   await owner(db);await db.query("update match_officials set status='declined',decline_reason='PRIVATE_EXCUSE' where match_id=$1",[match]);
   await auth(db,id(73));const redacted=await call(db,'federation_console_matches',[]);
   assert.ok(redacted.rows.some(r=>r.id===match));assert.doesNotMatch(JSON.stringify(redacted),/PRIVATE_EXCUSE/);
@@ -26,11 +27,13 @@ test('0113 scope, redacted excuses, raw RLS, assignment authority/license and re
   await assert.rejects(call(db,'assign_match_official',[match,id(71),'head_referee']),/Başkan/);
   for(const p of [id(75),id(74),id(76),admin]){await auth(db,p);assert.equal((await call(db,'federation_console_matches',[])).total,0);}
   await auth(db,id(72));assert.match(JSON.stringify(await call(db,'federation_console_matches',[])),/PRIVATE_EXCUSE/);
+  assert.equal((await call(db,'federation_console_matches',[null,0,'',null,null,id(9876),'tenis'])).total,0);
+  assert.ok((await call(db,'federation_console_matches',[null,0,'',null,null,federation,'tenis'])).total>0);
   const assignment=await call(db,'assign_match_official',[match,id(71),'head_referee']);
   assert.equal(await call(db,'assign_match_official',[match,id(71),'head_referee']),assignment);
   await assert.rejects(call(db,'assign_match_official',[match,id(75),'observer']),/lisansı/);
   await assert.rejects(call(db,'assign_match_official',[match,id(71),'observer']),/ikinci/);
-  await owner(db);await apply(db,migration);
+  await owner(db);await apply(db,migration);await apply(db,scopedMigration);
   assert.equal((await db.query("select count(*)::int n from federation_audit where action='match_official_assigned'")).rows[0].n,1);
   await auth(db,id(73));await assert.rejects(db.exec('select * from disciplinary_decisions'),/permission/);
  }finally{await db.close();}
@@ -46,7 +49,7 @@ test('0113 active MHK may assign; disciplinary member cannot, revoked scope and 
   await owner(db);await db.query('update federation_roles set revoked_at=now() where profile_id=$1',[id(75)]);
   await auth(db,id(75));assert.equal((await call(db,'federation_console_matches',[])).total,0);
   await assert.rejects(call(db,'assign_match_official',[match,id(71),'head_referee']),/Başkan/);
-  for(const signature of ['federation_console_scopes()','federation_console_matches(text,integer,text,timestamptz,timestamptz)',
+  for(const signature of ['federation_console_scopes()','federation_console_matches(text,integer,text,timestamptz,timestamptz,uuid,text)',
     'assign_match_official(uuid,uuid,text)','record_disciplinary_decision(uuid,uuid,uuid,text,text,integer,integer,numeric)']){
    await owner(db);assert.equal((await db.query("select has_function_privilege('anon',$1,'EXECUTE') ok",[signature])).rows[0].ok,false);
   }

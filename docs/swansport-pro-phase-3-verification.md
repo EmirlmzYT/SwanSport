@@ -67,7 +67,7 @@ Taban `0ef0bab` üzerine oluşturulan 8 mantıksal commit:
 - `packages/swansport_pro_features/lib/src/federation/referee_assignments_screen.dart`: Hakem atama (`assignMatchOfficial`), uygun aktif hakem havuzu (`federationAvailableRefereesProvider`), resmî tesis tahsisi (`SharedOfficialFacilityAllocationDialog`, `allocateOfficialMatchFacility`), resmî tesis çakışma durumu (`facilityConflictCount`), görev kabul/ret durumu ve özel mazeret (`declineReason`) / imzalı rapor (`federationLockedReportProvider`) gizliliği ekranı.
 - `packages/swansport_pro_features/lib/src/federation/league_standings_screen.dart`: Yalnız kamusal/resmî lig-turnuva projeksiyonunu (`standingsLeaguesProvider`, `leagueStandingsProvider`) ve organizasyonun gerçek puan ayarlarını (`winPoints`, `drawPoints`, `lossPoints`) kullanan, `FeatureFlags.leagueStandings` kapalı/hata durumunda fail-closed çalışan puan durumu ekranı.
 - `packages/swansport_pro_features/lib/src/federation/disciplinary_board_screen.dart`: İmzalı hakem raporu inceleme (Başkan/MHK/Disiplin Kurulu yetkisiyle), seçili federasyon/branş kapsamı filtrelemesi, immutable ve idempotent disiplin kararı kaydetme (`recordDecision`, `p_operation_id`), iç gerekçe ile kamusal bülten ayrımı ekranı.
-- `packages/swansport_pro_features/lib/src/federation/federation_bulletins_screen.dart`: `FeatureFlags.federationBulletin` kapalı/hata durumunda fail-closed çalışan; yayımlanmış kamusal disiplin özetlerini (`federationDisciplinaryBulletinProvider`) ve resmî duyuruları (`federationNoticesProvider`) gösteren; ayrıca yetkili roller için resmî sonuç tescili/revizyonu (`publishResult`, `SharedPublishOfficialResultDialog`), kamusal disiplin bülteni özeti yayını (`publishDisciplinaryBulletin`, `SharedPublishDisciplinaryBulletinDialog`) ve resmî müsabaka iptal/erteleme duyurusu yayını (`publishMatchNotice`, `SharedPublishMatchNoticeDialog`) sunan ekran.
+- `packages/swansport_pro_features/lib/src/federation/federation_bulletins_screen.dart`: `FeatureFlags.federationBulletin` kapalı/hata durumunda fail-closed çalışan; yayımlanmış kamusal disiplin özetlerini (`federationDisciplinaryBulletinProvider`) ve resmî duyuruları (`federationNoticesProvider`) gösteren; ayrıca yetkili roller için branş motorunca doğrulanan resmî sonuç tescili/revizyonu (`publishOfficialResult`, `SharedPublishOfficialResultDialog`), kamusal disiplin bülteni özeti yayını (`publishDisciplinaryBulletin`, `SharedPublishDisciplinaryBulletinDialog`) ve resmî müsabaka iptal/erteleme duyurusu yayını (`publishMatchNotice`, `SharedPublishMatchNoticeDialog`) sunan ekran.
 - `packages/swansport_pro_features/lib/src/referee/referee_operations_panel.dart`: `SwanAccess.isReferee` ve `FeatureFlags.refereeCockpit` (fail-closed) korumalı hakem çalışma alanı özeti, bekleyen/kabul edilen görev sayaçları ve görev/esame/canlı kokpit/rapor hızlı geçişleri.
 - `packages/swansport_pro_features/lib/src/referee/referee_duty_list_screen.dart`: `SwanAccess.isReferee` ve `FeatureFlags.refereeCockpit` (fail-closed) korumalı hakem görev listesi, görev kabul/ret (`respondMatchAssignment`) ve esame/canlı kokpit/rapor geçişleri.
 - `packages/swansport_pro_features/lib/src/referee/referee_lineup_approval_screen.dart`: `SwanAccess.isReferee` ve `FeatureFlags.refereeCockpit` (fail-closed) korumalı, sunucu taraflı taraf belirleme (`matchLineupApprovalsProvider`, `refereeLineupCandidatesProvider`), ilk/yedek kadro uygunluk ve çocuk maskeleme kurallarıyla immutable esame onay (`verifyMatchLineup`) ekranı.
@@ -108,7 +108,7 @@ Taban `0ef0bab` üzerine oluşturulan 8 mantıksal commit:
 
 - `SharedRefereeAssignmentsScreen`, kabul edilmiş aktif branş kapsamını, uygun hakem havuzunu (`federationAvailableRefereesProvider`), görev rolünü (`headReferee`, `assistantReferee1`, `assistantReferee2`, `fourthReferee`, `tableOfficial`, `observer`), resmî tesis tahsisini (`SharedOfficialFacilityAllocationDialog`, `allocateOfficialMatchFacility`) ve resmî tesis çakışma bilgisini (`facilityConflictCount`) sunar.
 - **Resmî Tesis Tahsisi (`SharedOfficialFacilityAllocationDialog`):**
-  - Planlanmış (`scheduled`) müsabakalarda yetkili kullanıcılar kulüp tesis havuzundan (`facilitiesProvider`) tesis seçip müsabaka süresini (1–1440 dakika, `endsAt > startsAt` ve `<= startsAt + 24 saat`) belirleyerek `allocateOfficialMatchFacility(matchId, facilityId, endsAt)` RPC'sini çağırır.
+  - Planlanmış (`scheduled`) müsabakalarda yalnız sunucunun `can_allocate_facility` verdiği, tesis sahibi katılımcı kulübün aktif personeli kulüp tesis havuzundan (`facilitiesProvider`) tesis seçip müsabaka süresini (1–1440 dakika, `endsAt > startsAt` ve `<= startsAt + 24 saat`) belirleyerek `allocateOfficialMatchFacility(matchId, facilityId, endsAt)` RPC'sini çağırır.
 - **Gizlilik ve veri doğruluğu:**
   - Özel ret/mazeret notu (`declineReason`) ve imzalı hakem raporu (`federationLockedReportProvider`) yalnız yetkili MHK/başkan kapsamında (`canAssign`) görünür; il temsilcisi (`provincial_rep`) ham özel mazereti okuyamaz ve kilitli rapor sorgusu hiç başlatılmaz.
   - Kesin tesis tahsisi veya süre olmadığında çakışma sayısı sahte `0` olarak üretilmez; açıkça `Doğrulanamıyor` (`conflictCount == null`) olarak gösterilir.
@@ -167,7 +167,7 @@ Taban `0ef0bab` üzerine oluşturulan 8 mantıksal commit:
 
 ## 11. Migration ve Feature Flag Durumu
 
-- **Yeni SQL migration:** Gerekmedi. Federasyon, hakem atama, esame, canlı maç olay günlüğü, maç raporu, disiplin kurulu, lig puan durumu ve bülten tabloları/RLS politikaları/RPC'leri `0110`–`0135` migration zincirinde zaten tam ve idempotent olarak mevcuttur.
+- **Yeni SQL migration:** `20261027143000_scope_federation_operations.sql`; federasyon/branş filtrelerini sunucu sayfalamasından önce uygular, disiplin ve bekleyen sonuç kuyruklarını seçili federasyona bağlar, tesis tahsisi uygunluğunu satır bazında projekte eder ve eski PostgREST imzalarını bırakarak HTTP 300 üretmez.
 - **Feature flag ve SSS senkronizasyonu:** `referee_cockpit`, `league_standings`, `federation_bulletin`, `live_match_hub` ve `attendance_operations` dahil **53/53** özellik bayrağı ve **53/53** SSS kaydı `python tools/check_faq.py` ve `python tools/check_migrations.py` ile doğrulandı.
 
 ---
@@ -177,7 +177,7 @@ Taban `0ef0bab` üzerine oluşturulan 8 mantıksal commit:
 | Komut | Kapsam | Sonuç |
 |---|---|---|
 | `python -m unittest tools.pro_app_contract_test tools.pro_features_contract_test tools.production_target_test -v` | Pro uygulama, ortak paket sınırı ve production hedef sözleşmeleri | **PASS (17/17 test)** |
-| `python tools/check_migrations.py` | `0001`–`0135` sıralı migration ve güvenlik sözleşmeleri | **PASS (135/135 migration, 0 sorun)** |
+| `uv run --with pglast==8.7 python tools/check_migrations.py` | Tüm sıralı/timestamp migration ve güvenlik sözleşmeleri | **PASS (141/141 migration, 0 sorun)** |
 | `python tools/check_faq.py` | Feature flag ve SSS senkronizasyonu | **PASS (53/53 bayrak ve SSS)** |
 | `python tools/check_push_routes.py` | Push bildirim rota sözleşmesi | **PASS (42/42 rota)** |
 | `python tools/check_mobile_ui_tokens.py` | Mobil tasarım jetonu sözleşmesi | **PASS (24/24 ekran)** |
@@ -185,7 +185,8 @@ Taban `0ef0bab` üzerine oluşturulan 8 mantıksal commit:
 | `flutter analyze --no-pub --no-fatal-infos` (`packages/swansport_data`) | Veri katmanı statik analiz | **PASS (hata/uyarı yok)** |
 | `flutter test --no-pub` (`packages/swansport_data`) | Veri katmanı birim testleri | **PASS (513/513 test)** |
 | `flutter analyze --no-pub --no-fatal-infos` (`packages/swansport_pro_features`) | Ortak operasyon paketi statik analiz | **PASS (0 issue)** |
-| `flutter test --no-pub` (`packages/swansport_pro_features`) | Ortak operasyon paketi widget/birim testleri | **PASS (69/69 test)** |
+| `flutter test --no-pub` (`packages/swansport_pro_features`) | Ortak operasyon paketi widget/birim testleri | **PASS (70/70 test)** |
+| `node --test --experimental-test-isolation=none --test-concurrency=1 tools/federation_console_sql_test.mjs` | Yeni kapsam migration'ı, kesin federasyon izolasyonu, yeniden uygulama, RLS/RPC ve tesis yetkisi regresyonu | **PASS (68/68 test)** |
 | `flutter analyze --no-pub --no-fatal-infos` (`apps/swansport_pro`) | SwanSport Pro statik analiz | **PASS (0 issue)** |
 | `flutter test --no-pub` (`apps/swansport_pro`) | SwanSport Pro widget/birim testleri | **PASS (55/55 test)** |
 | `flutter test --no-pub test/pro_club_panel_host_test.dart test/pro_training_host_test.dart test/pro_operations_navigation_test.dart test/pro_phase3_host_parity_test.dart` (`apps/swansport_pro`) | CI Pro host parite test listesi | **PASS (6/6 test)** |
@@ -219,7 +220,7 @@ Taban `0ef0bab` üzerine oluşturulan 8 mantıksal commit:
 ## 15. Faz 3 Durum Kararı
 
 - **Kaynak Kod ve Mimari:** TAMAMLANDI
-- **Birim, Widget, Paket Sınırı, İki-Host Parite ve SQL Güvenlik Testleri:** TAMAMLANDI (Toplam **1.370 Flutter paket testi (`513 + 69 + 55 + 107 + 626`) + 474 Node SQL testi + 17 Python sözleşme testi = 1.861 test PASS**)
+- **Birim, Widget, Paket Sınırı, İki-Host Parite ve SQL Güvenlik Testleri:** TAMAMLANDI (Toplam **1.371 Flutter paket testi (`513 + 70 + 55 + 107 + 626`) + 474 Node SQL testi + 17 Python sözleşme testi = 1.862 test PASS**)
 - **Yerel Web Release Derlemeleri (`swansport_pro`, `swansport_app`, `swansport_console`):** TAMAMLANDI
 - **Operasyonel Canlı Kapanış:** Fiziksel cihaz UAT matrisi ve CI release önizlemesi öncesi Codex bağımsız incelemesini bekliyor.
 

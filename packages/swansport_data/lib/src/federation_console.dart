@@ -60,12 +60,14 @@ class FederationConsoleMatch {
       this.awayName,
       this.facilityName,
       this.facilityConflictCount,
+      this.canAllocateFacility = false,
       List<ConsoleMatchOfficial> officials = const []})
       : officials = List.unmodifiable(officials);
   final String id, program, sportCode, status;
   final String? cityCode, location, homeName, awayName;
   final String? facilityName;
   final int? facilityConflictCount;
+  final bool canAllocateFacility;
   final DateTime? startsAt;
   final List<ConsoleMatchOfficial> officials;
   factory FederationConsoleMatch.fromMap(Map<String, dynamic> m) =>
@@ -82,6 +84,7 @@ class FederationConsoleMatch {
           facilityName: m['facility_name'] as String?,
           facilityConflictCount:
               (m['facility_conflict_count'] as num?)?.toInt(),
+          canAllocateFacility: m['can_allocate_facility'] == true,
           officials:
               _rows(m['officials']).map(ConsoleMatchOfficial.fromMap).toList());
 }
@@ -242,6 +245,26 @@ class FederationMatchQuery {
       federationId, sportCode, cityCode, offset, search, from, until);
 }
 
+class FederationDisciplinaryQuery {
+  const FederationDisciplinaryQuery({
+    this.federationId,
+    this.sportCode,
+    this.offset = 0,
+  });
+  final String? federationId, sportCode;
+  final int offset;
+
+  @override
+  bool operator ==(Object other) =>
+      other is FederationDisciplinaryQuery &&
+      federationId == other.federationId &&
+      sportCode == other.sportCode &&
+      offset == other.offset;
+
+  @override
+  int get hashCode => Object.hash(federationId, sportCode, offset);
+}
+
 class FederationConsoleService {
   FederationConsoleService(this.client);
   final SupabaseClient client;
@@ -256,24 +279,13 @@ class FederationConsoleService {
       'p_offset': q.offset,
       'p_search': q.search,
       'p_from': q.from?.toUtc().toIso8601String(),
-      'p_until': q.until?.toUtc().toIso8601String()
+      'p_until': q.until?.toUtc().toIso8601String(),
+      'p_federation_id': q.federationId,
+      'p_sport_code': q.sportCode,
     }) as Map);
-    final rawRows =
-        _rows(m['rows']).map(FederationConsoleMatch.fromMap).toList();
-    final rawTotal = (m['total'] as num).toInt();
-    final sport = q.sportCode?.trim();
-    if (sport == null || sport.isEmpty) {
-      return FederationConsolePage(total: rawTotal, rows: rawRows);
-    }
-    final filtered =
-        rawRows.where((row) => row.sportCode == sport).toList(growable: false);
-    if (filtered.length == rawRows.length) {
-      return FederationConsolePage(total: rawTotal, rows: filtered);
-    }
     return FederationConsolePage(
-      total: (rawTotal - (rawRows.length - filtered.length))
-          .clamp(filtered.length, rawTotal),
-      rows: filtered,
+      total: (m['total'] as num).toInt(),
+      rows: _rows(m['rows']).map(FederationConsoleMatch.fromMap).toList(),
     );
   }
 
@@ -301,10 +313,15 @@ class FederationConsoleService {
   }
 
   Future<FederationConsolePage<FederationDisciplinaryReport>> reports(
-      int offset) async {
-    final m = Map<String, dynamic>.from(await client.rpc<dynamic>(
-        'federation_disciplinary_reports',
-        params: {'p_offset': offset}) as Map);
+      int offset,
+      {String? federationId,
+      String? sportCode}) async {
+    final m = Map<String, dynamic>.from(
+        await client.rpc<dynamic>('federation_disciplinary_reports', params: {
+      'p_offset': offset,
+      'p_federation_id': federationId,
+      'p_sport_code': sportCode,
+    }) as Map);
     return FederationConsolePage(
         total: (m['total'] as num).toInt(),
         rows: _rows(m['rows'])
@@ -360,6 +377,20 @@ final federationDisciplinaryReportsProvider = FutureProvider.autoDispose
   final timer = Timer(const Duration(seconds: 30), ref.invalidateSelf);
   ref.onDispose(timer.cancel);
   return ref.watch(federationConsoleServiceProvider)?.reports(offset) ??
+      Future.value(FederationConsolePage<FederationDisciplinaryReport>(
+          total: 0, rows: const []));
+});
+final federationScopedDisciplinaryReportsProvider = FutureProvider.autoDispose
+    .family<FederationConsolePage<FederationDisciplinaryReport>,
+        FederationDisciplinaryQuery>((ref, query) {
+  ref.watch(authSessionProvider);
+  final timer = Timer(const Duration(seconds: 30), ref.invalidateSelf);
+  ref.onDispose(timer.cancel);
+  return ref.watch(federationConsoleServiceProvider)?.reports(
+            query.offset,
+            federationId: query.federationId,
+            sportCode: query.sportCode,
+          ) ??
       Future.value(FederationConsolePage<FederationDisciplinaryReport>(
           total: 0, rows: const []));
 });

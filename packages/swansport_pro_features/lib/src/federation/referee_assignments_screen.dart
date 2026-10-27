@@ -157,9 +157,6 @@ final class _SharedRefereeAssignmentsScreenState
       until: _weekOnly ? monday.add(const Duration(days: 7)) : null,
     );
     final pageAsync = ref.watch(federationConsoleMatchesProvider(query));
-    final canAllocateFacility =
-        access.isClubStaff || canAssign || widget.onAllocateFacility != null;
-
     return host.chrome.buildPage(
       context,
       title: 'MHK Hakem Atamaları',
@@ -204,10 +201,7 @@ final class _SharedRefereeAssignmentsScreenState
                   ref.invalidate(federationConsoleMatchesProvider(query)),
             ),
             data: (page) {
-              final scopedRows = page.rows
-                  .where((m) => m.sportCode == selectedScope.sportCode)
-                  .toList(growable: false);
-              if (scopedRows.isEmpty) {
+              if (page.rows.isEmpty) {
                 return const FederationPanelMessage(
                   icon: Icons.event_busy_outlined,
                   title: 'Kapsama uygun müsabaka bulunamadı',
@@ -218,11 +212,12 @@ final class _SharedRefereeAssignmentsScreenState
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final match in scopedRows) ...[
+                  for (final match in page.rows) ...[
                     _RefereeAssignmentMatchCard(
                       match: match,
                       canAssign: canAssign,
-                      canAllocateFacility: canAllocateFacility,
+                      canAllocateFacility: match.canAllocateFacility ||
+                          widget.onAllocateFacility != null,
                       theme: theme,
                       onAssignOfficial: widget.onAssignOfficial,
                       onAllocateFacility: widget.onAllocateFacility,

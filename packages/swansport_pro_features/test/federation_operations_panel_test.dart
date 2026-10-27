@@ -400,7 +400,7 @@ Future<void> _pumpPanel(
             ],
           ),
         ),
-        federationDisciplinaryReportsProvider.overrideWith(
+        federationScopedDisciplinaryReportsProvider.overrideWith(
           (ref, offset) async =>
               FederationConsolePage<FederationDisciplinaryReport>(
             total: 2,

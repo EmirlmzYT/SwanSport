@@ -206,7 +206,7 @@ void main() {
                 ],
               ),
             ),
-            federationDisciplinaryReportsProvider.overrideWith(
+            federationScopedDisciplinaryReportsProvider.overrideWith(
               (ref, offset) async =>
                   FederationConsolePage<FederationDisciplinaryReport>(
                 total: 1,
@@ -503,7 +503,7 @@ void main() {
             federationConsoleScopesProvider.overrideWith(
               (ref) async => const [bakanScope],
             ),
-            federationPendingResultsProvider.overrideWith(
+            federationScopedPendingResultsProvider.overrideWith(
               (ref, offset) async => const [
                 FederationPendingMatch(
                   id: 'match-pending-1',
@@ -516,7 +516,7 @@ void main() {
                 ),
               ],
             ),
-            federationDisciplinaryReportsProvider.overrideWith(
+            federationScopedDisciplinaryReportsProvider.overrideWith(
               (ref, offset) async =>
                   FederationConsolePage<FederationDisciplinaryReport>(
                 total: 1,
@@ -620,17 +620,17 @@ void main() {
       await tester.pumpAndSettle();
 
       // 1. Publish official match result revision (V1 -> V2)
+      await tester.scrollUntilVisible(
+        find.byKey(const Key('bulletin-publish-result-btn-match-pending-1')),
+        300,
+      );
       await tester.tap(
         find.byKey(const Key('bulletin-publish-result-btn-match-pending-1')),
       );
       await tester.pumpAndSettle();
       await tester.enterText(
-        find.byKey(const Key('publish-result-home-input')),
-        '78',
-      );
-      await tester.enterText(
-        find.byKey(const Key('publish-result-away-input')),
-        '74',
+        find.byKey(const Key('publish-result-protocol-input')),
+        '''{"status":"finished","periods":[{"label":"Q1","home":20,"away":18,"team_fouls":{"home":3,"away":4}},{"label":"Q2","home":20,"away":18,"team_fouls":{"home":2,"away":3}},{"label":"Q3","home":19,"away":20,"team_fouls":{"home":4,"away":4}},{"label":"Q4","home":19,"away":18,"team_fouls":{"home":3,"away":2}}]}''',
       );
       await tester.enterText(
         find.byKey(const Key('publish-result-reason-input')),
@@ -644,7 +644,36 @@ void main() {
       expect(publishedResultCall!['expectedVersion'], 1);
       expect(
         publishedResultCall!['protocol'],
-        <String, dynamic>{'type': 'score', 'home': 78, 'away': 74},
+        <String, dynamic>{
+          'status': 'finished',
+          'sport_code': 'basketbol',
+          'periods': <dynamic>[
+            <String, dynamic>{
+              'label': 'Q1',
+              'home': 20,
+              'away': 18,
+              'team_fouls': <String, dynamic>{'home': 3, 'away': 4},
+            },
+            <String, dynamic>{
+              'label': 'Q2',
+              'home': 20,
+              'away': 18,
+              'team_fouls': <String, dynamic>{'home': 2, 'away': 3},
+            },
+            <String, dynamic>{
+              'label': 'Q3',
+              'home': 19,
+              'away': 20,
+              'team_fouls': <String, dynamic>{'home': 4, 'away': 4},
+            },
+            <String, dynamic>{
+              'label': 'Q4',
+              'home': 19,
+              'away': 18,
+              'team_fouls': <String, dynamic>{'home': 3, 'away': 2},
+            },
+          ],
+        },
       );
 
       // 2. Publish public disciplinary bulletin summary
@@ -684,6 +713,53 @@ void main() {
         'publicSummary':
             'Salon zemin bakımı nedeniyle müsabaka ileri bir tarihe ertelenmiştir.',
       });
+    },
+  );
+
+  testWidgets(
+    'match notice dialog never falls back to a scheduled match',
+    (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            federationConsoleMatchesProvider.overrideWith(
+              (ref, query) async =>
+                  FederationConsolePage<FederationConsoleMatch>(
+                total: 1,
+                rows: [
+                  FederationConsoleMatch(
+                    id: 'scheduled-1',
+                    program: 'Planlanan Lig Maçı',
+                    sportCode: 'basketbol',
+                    status: 'scheduled',
+                  ),
+                ],
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(
+              body: SharedPublishMatchNoticeDialog(scope: bakanScope),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Kapsamda iptal edilmiş veya ertelenmiş müsabaka bulunamadı.',
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.byKey(const Key('publish-notice-match-dropdown')),
+        findsNothing,
+      );
+      final submit = tester.widget<FilledButton>(
+        find.byKey(const Key('publish-notice-submit-btn')),
+      );
+      expect(submit.onPressed, isNull);
     },
   );
 }

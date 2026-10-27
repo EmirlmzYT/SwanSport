@@ -69,7 +69,7 @@ void main() {
                 rows: const [],
               ),
             ),
-            federationDisciplinaryReportsProvider.overrideWith(
+            federationScopedDisciplinaryReportsProvider.overrideWith(
               (ref, offset) async =>
                   FederationConsolePage<FederationDisciplinaryReport>(
                 total: 0,

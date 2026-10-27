@@ -70,15 +70,22 @@ final class _SharedDisciplinaryBoardScreenState
             .firstOrNull ??
         scopes.firstOrNull;
 
-    final pageAsync = ref.watch(federationDisciplinaryReportsProvider(_offset));
+    final query = FederationDisciplinaryQuery(
+      federationId: selectedScope?.federationId,
+      sportCode: selectedScope?.sportCode,
+      offset: _offset,
+    );
+    final pageAsync =
+        ref.watch(federationScopedDisciplinaryReportsProvider(query));
     return host.chrome.buildPage(
       context,
       title: 'Disiplin Kurulu',
       actions: [
         IconButton(
           tooltip: 'Yenile',
-          onPressed: () =>
-              ref.invalidate(federationDisciplinaryReportsProvider(_offset)),
+          onPressed: () => ref.invalidate(
+            federationScopedDisciplinaryReportsProvider(query),
+          ),
           icon: const Icon(Icons.refresh_rounded),
         ),
       ],
@@ -133,16 +140,11 @@ final class _SharedDisciplinaryBoardScreenState
               icon: Icons.error_outline_rounded,
               title: classifyOperationError(err).userMessage,
               onRetry: () => ref.invalidate(
-                federationDisciplinaryReportsProvider(_offset),
+                federationScopedDisciplinaryReportsProvider(query),
               ),
             ),
             data: (page) {
-              final scopedRows = selectedScope == null
-                  ? page.rows
-                  : page.rows
-                      .where((r) => r.sportCode == selectedScope.sportCode)
-                      .toList(growable: false);
-              if (scopedRows.isEmpty) {
+              if (page.rows.isEmpty) {
                 return const FederationPanelMessage(
                   icon: Icons.gavel_outlined,
                   title: 'Bu kapsamda imzalı maç raporu yok',
@@ -152,15 +154,14 @@ final class _SharedDisciplinaryBoardScreenState
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  for (final report in scopedRows) ...[
+                  for (final report in page.rows) ...[
                     _DisciplinaryReportCard(
                       report: report,
-                      canDecide:
-                          access.isDisciplinaryBoardMember && report.canDecide,
+                      canDecide: report.canDecide,
                       theme: theme,
                       onRecordDecision: widget.onRecordDecision,
                       onDecided: () => ref.invalidate(
-                        federationDisciplinaryReportsProvider(_offset),
+                        federationScopedDisciplinaryReportsProvider(query),
                       ),
                     ),
                     const SizedBox(height: 10),

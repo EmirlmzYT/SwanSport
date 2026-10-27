@@ -183,23 +183,22 @@ final class SharedFederationOperationsPanel extends ConsumerWidget {
       );
     }
 
-    if (access.isDisciplinaryBoardMember) {
-      final reportsAsync = ref.watch(federationDisciplinaryReportsProvider(0));
+    if (selectedScope.role == 'president' ||
+        selectedScope.role == 'referee_committee' ||
+        selectedScope.role == 'disciplinary_board') {
+      final reportsQuery = FederationDisciplinaryQuery(
+        federationId: selectedScope.federationId,
+        sportCode: selectedScope.sportCode,
+      );
+      final reportsAsync =
+          ref.watch(federationScopedDisciplinaryReportsProvider(reportsQuery));
       cards.add(
         ClubOperationCard(
           icon: Icons.gavel_outlined,
           title: 'Disiplin Kurulu',
           detail: _asyncDetail(
             reportsAsync,
-            (page) {
-              final scoped = page.rows
-                  .where((r) => r.sportCode == selectedScope.sportCode)
-                  .toList(growable: false);
-              final count = scoped.length == page.rows.length
-                  ? page.total
-                  : scoped.length;
-              return '$count imzalı hakem raporu incelemede';
-            },
+            (page) => '${page.total} imzalı hakem raporu incelemede',
           ),
           onTap: host.navigator.openDisciplinaryBoard,
           theme: host.theme,
