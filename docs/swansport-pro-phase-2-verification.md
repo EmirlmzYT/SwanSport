@@ -5,9 +5,11 @@
 **Kaynak dalı:** `codex/advanced-chat-header46`
 
 **Pro sürümü:** `0.1.1+3`
+
 **Durum:** Faz 2 kaynak uygulaması ve indirilebilir CI önizlemesi tamamlandı.
-Üretim migration uygulaması ile çok rollü fiziksel cihaz UAT kanıtı henüz
-tamamlanmadığı için Faz 2 operasyonel olarak tamamlandı sayılmıyor.
+Production migration ve salt-okunur canlı rol kontrolleri tamamlandı. Fiziksel
+cihaz UAT matrisi henüz tamamlanmadığı için Faz 2 operasyonel olarak tamamlandı
+sayılmıyor.
 
 ## 1. Uygulanan Kod
 
@@ -74,8 +76,25 @@ arasında boş diff verdi:
 
 ## 3. Veritabanı, CI ve Yayın Durumu
 
-- Faz 2 migration'ı kaynakta ve yerel SQL sözleşmelerinde mevcut; production
-  Supabase'e uygulandığı bu çalışmada doğrulanmadı.
+- Faz 2 migration'ı production proje `gokkimnokigqxmbppvle` üzerinde
+  `20261027024345 / pro_phase2_attendance_operations` kaydıyla uygulandı.
+  `attendance_operations=everyone`, tek aktif `club_staff` SSS satırı ve
+  `/attendance` rotası canlı sorguyla doğrulandı. Mevcut `offline_attendance`,
+  `coach_workspace` ve `sport_training_sessions` değerleri değişmedi.
+- Aynı bakım penceresinde bağımsız test edilmiş üç bekleyen güvenilirlik
+  migration'ı da dosya başına uygulandı:
+  `20261027024530 / account_deletion_lifecycle`,
+  `20261027024531 / reliability_help_coverage` ve
+  `20261027024542 / fix_finance_period_trigger_row_fields`. FK silme eylemleri,
+  nullable aktör alanları, iki SSS kaydı ve `to_jsonb` tabanlı mali dönem
+  tetikleyicisi canlı metadata ile doğrulandı.
+- `20261025042446_push_delivery_tracking.sql` uygulanmadı. Bu migration'ın
+  kaynak sözleşmesi Cloudflare sender sürümünün önce yayımlanmasını zorunlu
+  kılıyor; bu oturumda Cloudflare deployment kimliği/anahtarı bulunmadığı için
+  güvenli sıra korunarak push ledger/cron canlıya açılmadı.
+- Migration sonrası güvenlik advisor'ı yeniden çalıştı. Yeni 0135 veri
+  migration'ına bağlı yeni RLS/ACL bulgusu oluşmadı; proje genelindeki mevcut
+  advisor borcu ayrı kapsam olarak korunuyor.
 - Production Auth havuzu değişmedi; yeni veritabanı veya kullanıcı kopyası
   oluşturulmadı.
 - Production hedef kapısı yalnız `gokkimnokigqxmbppvle` ref'ini kabul ediyor,
@@ -102,9 +121,20 @@ arasında boş diff verdi:
 
 ## 4. Fiziksel Cihaz ve Rol Bazlı UAT
 
-Kullanıcı production Auth ile Pro'ya giriş yapabildiğini bildirdi; bu yalnız
-oturum açma gözlemidir. Aşağıdaki resmi matris henüz cihaz/OS ve sonuç
-kanıtıyla tamamlanmadı:
+Kullanıcı production Auth ile Pro'ya giriş yapabildiğini bildirdi. Production
+verisine yazmadan gerçek RLS/Auth bağlamıyla salt-okunur backend kabulü ayrıca
+çalıştırıldı:
+
+- aktif kulüp yöneticisi kendi üyeliğini ve takım/yoklama/antrenman bayraklarını
+  gördü;
+- yalnız onaylı antrenör belgesi olan hesap kendi belgesini gördü, aktif kulüp
+  personeli gibi davranmadı;
+- Pro yetkisi olmayan hesapta personel üyeliği ve antrenör belgesi kapalı kaldı;
+  herkese açık rollout bayrağının tek başına yetki vermediği doğrulandı.
+
+Production verisinde aktif kulüp antrenörü `0`, çok kulüplü personel `0` olduğu
+için bu iki rolü gerçek veriyi değiştirerek üretmedik. Aşağıdaki fiziksel matris
+cihaz/OS kanıtıyla hâlâ tamamlanmalıdır:
 
 - kulüp yöneticisi;
 - aktif kulüp antrenörü;
@@ -122,6 +152,6 @@ olarak yorumlanmaz.
 
 ## 5. Kapanış Ölçütü
 
-Faz 2 ancak 0135 production durumu doğrulandıktan, CI'nin tam yeşil koşusu ve
-paket kimlik/hash incelemesi rapora eklendikten, ardından yukarıdaki rol/cihaz
+Kaynak, CI, paket incelemesi, 0135 production kurulumu ve mevcut production
+rolleriyle backend kabulü tamamlandı. Faz 2 yalnız yukarıdaki fiziksel rol/cihaz
 UAT matrisi tamamlandıktan sonra `complete` olarak işaretlenebilir.

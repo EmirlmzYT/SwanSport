@@ -7,8 +7,11 @@ tamamlandı. SwanSport tam mobil akışları ile Ana Sayfa görünümü korundu.
 Flutter paketleri 43 + 53 + 513 + 197 + 625 testle geçti; SwanSport web build
 başarılıdır. GitHub Actions `40437677031` bütün işleri geçti; APK/IPA/web
 hashleri ve production hedefi bağımsız incelendi. İndirilebilir prerelease
-`swansport-pro-v0.1.1+3` hazırdır. Production migration durumu ve çok rollü
-fiziksel cihaz UAT açık olduğundan Faz 2 operasyonel kabulü verilmedi. Ayrıntı:
+`swansport-pro-v0.1.1+3` hazırdır. Production 0135 ve üç güvenilirlik migration'ı
+uygulandı; gerçek RLS bağlamında yönetici/belgeli antrenör/yetkisiz hesap
+kontrolleri geçti. Cloudflare ön şartlı push ledger migration'ı uygulanmadı;
+çok rollü fiziksel cihaz UAT açık olduğundan Faz 2 operasyonel kabulü verilmedi.
+Ayrıntı:
 `docs/swansport-pro-phase-2-verification.md`.
 
 Güncelleme: 2026-10-25. **Ana Sayfa görünümü ve sosyal spor ağı yönü korunur.**

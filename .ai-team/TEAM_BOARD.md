@@ -9,8 +9,11 @@ Pro sözleşmeleri 14/14 ve web build başarılı. Pro `0.1.1+3` oldu. GitHub
 Actions `40437677031` beş işi geçti; APK/IPA/web hashleri, production ref'i,
 paket kimlikleri ve iOS Firebase plist yokluğu doğrulandı. İndirilebilir
 `swansport-pro-v0.1.1+3` prerelease hazır; düzeltme sonrası Node SQL/migration
-paketi 324/324 geçti. Production migration ve rol/cihaz UAT açık; bu nedenle
-Faz 2 henüz operasyonel `complete` değil. Rapor:
+paketi 324/324 geçti. Production 0135 ile hesap silme, SSS ve mali dönem
+güvenilirlik migration'ları uygulandı ve canlı doğrulandı. Yönetici, yalnız
+belgeli antrenör ve yetkisiz hesap salt-okunur production RLS kabulü geçti.
+Cloudflare ön şartlı push ledger ile fiziksel rol/cihaz UAT açık; bu nedenle Faz
+2 henüz operasyonel `complete` değil. Rapor:
 `docs/swansport-pro-phase-2-verification.md`.
 
 Son güncelleme: 2026-10-26 Europe/Istanbul
