@@ -60,6 +60,7 @@ jobs:
           - packages/swansport_design_system
           - packages/swansport_branch_engine
           - packages/swansport_data
+          - packages/swansport_pro_features
           - apps/swansport_app
           - apps/swansport_console
           - apps/swansport_pro

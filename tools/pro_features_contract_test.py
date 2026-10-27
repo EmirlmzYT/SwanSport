@@ -73,6 +73,22 @@ class ProFeaturesContractTest(unittest.TestCase):
                 f"{app} must depend on {PACKAGE_NAME}",
             )
 
+    def test_ci_and_pro_preview_verify_shared_package_and_host_parity(self):
+        ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
+            encoding="utf-8"
+        )
+        preview = (
+            ROOT / ".github" / "workflows" / "build_pro_production_preview.yml"
+        ).read_text(encoding="utf-8")
+
+        self.assertIn("- packages/swansport_pro_features", ci)
+        self.assertIn("packages/swansport_pro_features", preview)
+        self.assertIn("tools.pro_features_contract_test", preview)
+        self.assertIn("pro_team_directory_host_test.dart", preview)
+        self.assertIn("pro_club_panel_host_test.dart", preview)
+        self.assertIn("pro_phase2_flags_sql_test.mjs", preview)
+        self.assertIn("feature_flag_sync_test.dart", preview)
+
     def test_shared_sources_do_not_cross_package_boundaries(self):
         lib_dir = PACKAGE_DIR / "lib"
         self.assertTrue(lib_dir.is_dir(), f"{lib_dir} must exist")

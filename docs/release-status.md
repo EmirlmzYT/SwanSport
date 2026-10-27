@@ -1,5 +1,15 @@
 # Kaynak, yayın ve kabul matrisi
 
+## SwanSport Pro 0.1.1+3 Faz 2 adayı — 2026-10-27
+
+Ortak takım, kadro, yoklama, antrenman ve kulüp operasyon katmanı kaynakta
+tamamlandı. SwanSport tam mobil akışları ile Ana Sayfa görünümü korundu. Yerel
+Flutter paketleri 43 + 53 + 513 + 197 + 625 testle geçti; SwanSport web build
+başarılıdır. Production migration durumu, GitHub `0.1.1+3` paket koşusu,
+APK/IPA hash incelemesi ve çok rollü fiziksel cihaz UAT henüz açık olduğundan
+Faz 2 yayın kabulü verilmedi. Ayrıntı:
+`docs/swansport-pro-phase-2-verification.md`.
+
 Güncelleme: 2026-10-25. **Ana Sayfa görünümü ve sosyal spor ağı yönü korunur.**
 
 Bu belge ile üretilen JSON farklı kanıtları taşır. `python tools/release_matrix.py

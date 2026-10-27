@@ -19,7 +19,7 @@ class ProAppContractTest(unittest.TestCase):
         content = pro_pubspec.read_text(encoding='utf-8')
 
         self.assertRegex(content, r'(?m)^name:\s*swansport_pro\s*$')
-        self.assertRegex(content, r'(?m)^version:\s*0\.1\.0\+2\s*$')
+        self.assertRegex(content, r'(?m)^version:\s*0\.1\.1\+3\s*$')
         self.assertRegex(content, r'(?m)^resolution:\s*workspace\s*$')
 
         # Must have required shared/runtime dependencies
@@ -142,6 +142,15 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('secrets.SUPABASE_ANON_KEY', content)
         self.assertIn('SwanSport-Pro', content)
         self.assertIn('verify_ios_preview_bundle.py', content)
+        self.assertIn('packages/swansport_pro_features', content)
+        self.assertIn('tools.pro_features_contract_test', content)
+        self.assertIn('pro_team_directory_host_test.dart', content)
+        self.assertIn('pro_club_panel_host_test.dart', content)
+        self.assertIn('pro_phase2_flags_sql_test.mjs', content)
+        self.assertIn('feature_flag_sync_test.dart', content)
+        self.assertIn('Build SwanSport Pro Production Web', content)
+        self.assertIn('flutter build web --release', content)
+        self.assertIn('sha256sum', content)
         self.assertNotIn('STAGING_SUPABASE', content)
 
     def test_open_swansport_action_uses_real_supported_fallback(self):

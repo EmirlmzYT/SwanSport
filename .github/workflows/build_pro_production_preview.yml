@@ -11,7 +11,7 @@ on:
         default: true
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: pro-production-preview-${{ github.ref }}
@@ -31,6 +31,11 @@ jobs:
           channel: stable
           flutter-version: '3.47.7'
           cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/package-lock.json
       - name: Accept only the known production backend
         run: python tools/production_target.py
       - run: flutter pub get --enforce-lockfile
@@ -40,8 +45,87 @@ jobs:
       - name: Pro Tests
         working-directory: apps/swansport_pro
         run: flutter test --no-pub
+      - name: Shared Phase 2 Analyze
+        working-directory: packages/swansport_pro_features
+        run: flutter analyze --no-pub --no-fatal-infos
+      - name: Shared Phase 2 Tests
+        working-directory: packages/swansport_pro_features
+        run: flutter test --no-pub
+      - name: Phase 2 flag SQL contract
+        run: |
+          npm ci --prefix tools
+          node --test tools/pro_phase2_flags_sql_test.mjs
+      - name: Feature flag Dart sync
+        working-directory: packages/swansport_data
+        run: >-
+          flutter test --no-pub
+          test/feature_flags_test.dart
+          test/feature_flag_sync_test.dart
+      - name: SwanSport host parity tests
+        working-directory: apps/swansport_app
+        run: >-
+          flutter test --no-pub
+          test/pro_team_directory_host_test.dart
+          test/pro_team_roster_host_test.dart
+          test/pro_training_host_test.dart
+          test/pro_club_panel_host_test.dart
+      - name: Pro host parity tests
+        working-directory: apps/swansport_pro
+        run: >-
+          flutter test --no-pub
+          test/pro_club_panel_host_test.dart
+          test/pro_training_host_test.dart
+          test/pro_operations_navigation_test.dart
       - name: Run Pro and target contract tests
-        run: python -m unittest tools.production_target_test tools.pro_app_contract_test -v
+        run: >-
+          python -m unittest
+          tools.production_target_test
+          tools.pro_app_contract_test
+          tools.pro_features_contract_test -v
+
+  build-pro-web:
+    name: Build SwanSport Pro Production Web
+    needs: verify-pro
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      PRODUCTION_PROJECT_REF: gokkimnokigqxmbppvle
+      STAGING_PROJECT_REF: hsfobmghsbtegiiqphpc
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - run: python tools/production_target.py
+      - run: flutter pub get --enforce-lockfile
+      - name: Read Pro version
+        id: version
+        run: |
+          echo "value=$(sed -n 's/^version: //p' apps/swansport_pro/pubspec.yaml | tr -d '\r')" >> "$GITHUB_OUTPUT"
+      - name: Build production-connected Pro web preview
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build web --release --no-pub -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production --no-wasm-dry-run
+          grep -R -F "$PRODUCTION_PROJECT_REF" build/web
+          if grep -R -Fq "$STAGING_PROJECT_REF" build/web; then
+            echo 'Staging project ref found in production preview' >&2
+            exit 1
+          fi
+          mkdir -p build/release
+          tar -C build/web -czf "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-web.tar.gz" .
+          sha256sum build/release/*.tar.gz > "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-web.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-Web-production-${{ steps.version.outputs.value }}
+          path: apps/swansport_pro/build/release/*
+          if-no-files-found: error
+          retention-days: 30
 
   build-pro-android:
     name: Build SwanSport Pro Production Android APK
@@ -75,6 +159,8 @@ jobs:
           mkdir -p build/release
           cp build/app/outputs/flutter-apk/app-release.apk \
             "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk"
+          sha256sum build/release/*.apk > \
+            "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk.sha256"
       - name: Verify embedded backend target
         working-directory: apps/swansport_pro
         run: |
@@ -87,7 +173,9 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: SwanSport-Pro-Android-production-${{ steps.version.outputs.value }}
-          path: apps/swansport_pro/build/release/*.apk
+          path: |
+            apps/swansport_pro/build/release/*.apk
+            apps/swansport_pro/build/release/*.sha256
           if-no-files-found: error
           retention-days: 30
 
@@ -138,9 +226,33 @@ jobs:
           python ../../tools/verify_ios_preview_bundle.py build/ios/release/Payload/Runner.app --firebase-enabled false
           cd build/ios/release
           zip -qry "SwanSport-Pro-${{ steps.version.outputs.value }}-production-unsigned.ipa" Payload
+          shasum -a 256 *.ipa > "SwanSport-Pro-${{ steps.version.outputs.value }}-production-unsigned.ipa.sha256"
       - uses: actions/upload-artifact@v4
         with:
           name: SwanSport-Pro-iOS-production-unsigned-${{ steps.version.outputs.value }}
-          path: apps/swansport_pro/build/ios/release/*.ipa
+          path: |
+            apps/swansport_pro/build/ios/release/*.ipa
+            apps/swansport_pro/build/ios/release/*.sha256
           if-no-files-found: error
           retention-days: 30
+
+  publish-preview-release:
+    name: Publish Downloadable SwanSport Pro Preview
+    if: startsWith(github.ref, 'refs/tags/swansport-pro-v')
+    needs: [build-pro-web, build-pro-android, build-pro-ios]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: SwanSport-Pro-*
+          path: release-assets
+          merge-multiple: true
+      - uses: softprops/action-gh-release@v2
+        with:
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            release-assets/*.apk
+            release-assets/*.ipa
+            release-assets/*.tar.gz
+            release-assets/*.sha256
