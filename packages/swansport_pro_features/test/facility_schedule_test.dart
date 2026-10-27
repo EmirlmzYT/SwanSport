@@ -260,6 +260,276 @@ void main() {
       completer.complete();
       await tester.pumpAndSettle();
     });
+
+    testWidgets(
+        'expired or revoked delegate has write actions hidden (not disabled)',
+        (tester) async {
+      final slotTime = DateTime.parse('2026-10-27T16:00:00Z');
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'member',
+              coachLevel: 0,
+              athleteKind: null,
+              managedTurfFieldIds: {},
+              // User has active duty on other-turf, but revoked/expired on turf-1
+              delegatedTurfFieldIds: {'other-turf'},
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({FeatureFlags.turfFields}),
+          ),
+          selectedFacilityScopeIdProvider.overrideWith((ref) => 'turf-1'),
+          turfOccupancyGridProvider('turf-1').overrideWith(
+            (ref) async => [
+              TurfSlot(startsAt: slotTime, occupied: false),
+            ],
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        _buildHost(
+          container: container,
+          child: const SharedFacilityScheduleScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Badge must show 'Salt Okunur'
+      expect(find.text('Salt Okunur'), findsOneWidget);
+      expect(find.text('Yetkili'), findsNothing);
+
+      // Select slot
+      await tester
+          .tap(find.byKey(Key('turf-slot-${slotTime.toIso8601String()}')));
+      await tester.pumpAndSettle();
+
+      // Write action buttons must not exist
+      expect(find.byKey(const Key('mark-occupied-btn')), findsNothing);
+      expect(find.byKey(const Key('mark-free-btn')), findsNothing);
+    });
+
+    testWidgets(
+        'markOccupied retries with same payload on uncertain failure, invalidates data and displays real state',
+        (tester) async {
+      final slotTime = DateTime.parse('2026-10-27T15:00:00Z');
+      var callCount = 0;
+      final payloadFieldIds = <String>[];
+      final payloadStartsAt = <DateTime>[];
+      var isOccupiedInDb = false;
+
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'member',
+              coachLevel: 0,
+              athleteKind: null,
+              managedTurfFieldIds: {'turf-1'},
+              delegatedTurfFieldIds: {},
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({FeatureFlags.turfFields}),
+          ),
+          selectedFacilityScopeIdProvider.overrideWith((ref) => 'turf-1'),
+          turfOccupancyGridProvider('turf-1').overrideWith(
+            (ref) async => [
+              TurfSlot(startsAt: slotTime, occupied: isOccupiedInDb),
+            ],
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        _buildHost(
+          container: container,
+          child: SharedFacilityScheduleScreen(
+            writeCallbacks: FacilityScheduleWriteCallbacks(
+              onMarkOccupied: ({
+                required String fieldId,
+                required DateTime startsAt,
+                String? note,
+              }) async {
+                callCount++;
+                payloadFieldIds.add(fieldId);
+                payloadStartsAt.add(startsAt);
+                if (callCount == 1) {
+                  throw Exception('Network timeout / uncertain result');
+                }
+                isOccupiedInDb = true;
+              },
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Select slot
+      await tester
+          .tap(find.byKey(Key('turf-slot-${slotTime.toIso8601String()}')));
+      await tester.pumpAndSettle();
+
+      // First tap -> fails with network error
+      await tester.tap(find.byKey(const Key('mark-occupied-btn')));
+      await tester.pumpAndSettle();
+
+      expect(callCount, 1);
+      expect(
+        find.textContaining('Ağ hatası veya işlem başarısız oldu'),
+        findsOneWidget,
+      );
+
+      // Verify that the mark-occupied button remains visible for immediate retry with same payload
+      final retryBtn = find.byKey(const Key('mark-occupied-btn'));
+      expect(retryBtn, findsOneWidget);
+
+      // Retry with same payload
+      await tester.tap(retryBtn);
+      await tester.pumpAndSettle();
+
+      expect(callCount, 2);
+      expect(payloadFieldIds[0], payloadFieldIds[1]);
+      expect(payloadStartsAt[0], payloadStartsAt[1]);
+      expect(
+        find.text('Saat hücresi dolu olarak işaretlendi.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets(
+        'async markOccupied completed after dispose does not update state',
+        (tester) async {
+      final slotTime = DateTime.parse('2026-10-27T17:00:00Z');
+      final completer = Completer<void>();
+
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'member',
+              coachLevel: 0,
+              athleteKind: null,
+              managedTurfFieldIds: {'turf-1'},
+              delegatedTurfFieldIds: {},
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({FeatureFlags.turfFields}),
+          ),
+          selectedFacilityScopeIdProvider.overrideWith((ref) => 'turf-1'),
+          turfOccupancyGridProvider('turf-1').overrideWith(
+            (ref) async => [
+              TurfSlot(startsAt: slotTime, occupied: false),
+            ],
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        _buildHost(
+          container: container,
+          child: SharedFacilityScheduleScreen(
+            writeCallbacks: FacilityScheduleWriteCallbacks(
+              onMarkOccupied: ({
+                required String fieldId,
+                required DateTime startsAt,
+                String? note,
+              }) =>
+                  completer.future,
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester
+          .tap(find.byKey(Key('turf-slot-${slotTime.toIso8601String()}')));
+      await tester.pumpAndSettle();
+
+      // Trigger write
+      await tester.tap(find.byKey(const Key('mark-occupied-btn')));
+      await tester.pump();
+
+      // Unmount / dispose widget
+      await tester.pumpWidget(const SizedBox.shrink());
+
+      // Complete async operation after dispose
+      completer.complete();
+      await tester.pump();
+
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+        'changing turf facility scope clears selected cell and prevents state leakage',
+        (tester) async {
+      final slotTime1 = DateTime.parse('2026-10-27T18:00:00Z');
+      final slotTime2 = DateTime.parse('2026-10-27T19:00:00Z');
+
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'member',
+              coachLevel: 0,
+              athleteKind: null,
+              managedTurfFieldIds: {'turf-1', 'turf-2'},
+              delegatedTurfFieldIds: {},
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({FeatureFlags.turfFields}),
+          ),
+          selectedFacilityScopeIdProvider.overrideWith((ref) => 'turf-1'),
+          turfOccupancyGridProvider('turf-1').overrideWith(
+            (ref) async => [
+              TurfSlot(startsAt: slotTime1, occupied: false),
+            ],
+          ),
+          turfOccupancyGridProvider('turf-2').overrideWith(
+            (ref) async => [
+              TurfSlot(startsAt: slotTime2, occupied: false),
+            ],
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+
+      await tester.pumpWidget(
+        _buildHost(
+          container: container,
+          child: const SharedFacilityScheduleScreen(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Select slot on turf-1
+      await tester
+          .tap(find.byKey(Key('turf-slot-${slotTime1.toIso8601String()}')));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('mark-occupied-btn')), findsOneWidget);
+
+      // Switch scope to turf-2
+      container.read(selectedFacilityScopeIdProvider.notifier).state = 'turf-2';
+      await tester.pumpAndSettle();
+
+      // Selected slot action from turf-1 must be cleared immediately
+      expect(find.byKey(const Key('mark-occupied-btn')), findsNothing);
+      expect(
+        find.byKey(Key('turf-slot-${slotTime2.toIso8601String()}')),
+        findsOneWidget,
+      );
+    });
   });
 
   group('Kulüp Tesisi Çakışma Denetimi (Conflict Inspection)', () {
