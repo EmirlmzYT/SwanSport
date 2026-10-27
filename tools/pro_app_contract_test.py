@@ -32,14 +32,14 @@ class ProAppContractTest(unittest.TestCase):
             'swansport_core:',
             'swansport_data:',
             'swansport_design_system:',
+            'firebase_core:',
+            'firebase_messaging:',
         ]
         for dep in required_deps:
             self.assertIn(dep, content)
 
-        # Pro must NOT have firebase or operational dependencies
+        # Pro must NOT have forbidden operational dependencies
         forbidden_deps = [
-            'firebase_core',
-            'firebase_messaging',
             'swansport_branch_engine',
         ]
         for dep in forbidden_deps:
@@ -96,16 +96,6 @@ class ProAppContractTest(unittest.TestCase):
         for ent_file in (PRO_DIR / 'ios').glob('**/*.entitlements'):
             ent_content = ent_file.read_text(encoding='utf-8')
             self.assertNotIn('aps-environment', ent_content)
-
-        # Ensure no firebase references in pubspec or Dart code
-        if (PRO_DIR / 'pubspec.yaml').is_file():
-            self.assertNotIn('firebase', (PRO_DIR / 'pubspec.yaml').read_text(encoding='utf-8').lower())
-
-        dart_files = list((PRO_DIR / 'lib').glob('**/*.dart'))
-        for dart_file in dart_files:
-            content = dart_file.read_text(encoding='utf-8')
-            self.assertNotIn('firebase_core', content)
-            self.assertNotIn('firebase_messaging', content)
 
     def test_ci_workflow_includes_pro(self):
         ci_yaml = (ROOT / '.github' / 'workflows' / 'ci.yml').read_text(encoding='utf-8')

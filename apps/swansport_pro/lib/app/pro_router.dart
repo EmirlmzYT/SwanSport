@@ -7,6 +7,7 @@ import '../features/operations/pro_operations_gate.dart';
 import '../features/operations/pro_tasks_screen.dart';
 import '../features/placeholders/pro_placeholder_screen.dart';
 import '../shell/pro_shell.dart';
+import 'push/pro_notification_route_handler.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');
@@ -61,8 +62,10 @@ final proRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/gelen-kutusu',
-                builder: (context, state) =>
-                    const ProPlaceholderScreen(title: 'Gelen Kutusu'),
+                builder: (context, state) => SharedProInboxScreen(
+                  onNotificationTap: (notification) =>
+                      handleProNotificationTap(context, notification),
+                ),
               ),
             ],
           ),

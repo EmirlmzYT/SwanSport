@@ -85,6 +85,7 @@ Future<void> bootstrapPro(
       overrides: [
         proEnvironmentProvider.overrideWithValue(environment),
         supabaseConfigProvider.overrideWithValue(config),
+        pushAppTargetProvider.overrideWithValue(PushAppTarget.pro),
       ],
       child: const ProApp(),
     ),

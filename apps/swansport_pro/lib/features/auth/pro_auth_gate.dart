@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import '../../app/push/pro_push_client.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 import 'pro_auth_controller.dart';
 import 'pro_login_screen.dart';
@@ -21,6 +24,11 @@ class ProAuthGate extends ConsumerWidget {
         if (previousUserId != nextUserId) {
           ref.read(selectedClubIdProvider.notifier).state = null;
           ref.invalidateSwanAccess();
+          if (nextUserId != null) {
+            unawaited(ref.read(proPushClientProvider).registerWithServer());
+          } else {
+            unawaited(ref.read(proPushClientProvider).unregisterFromServer());
+          }
         }
       },
     );

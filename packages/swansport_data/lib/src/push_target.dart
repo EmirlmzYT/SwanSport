@@ -20,6 +20,51 @@ enum PushAppTarget {
   }
 }
 
+/// The set of notification kinds eligible for professional operations (pro-only or both).
+const proNotificationKinds = <String>{
+  // Pro only (15)
+  'referee_assignment',
+  'expense_approval',
+  'expense_rejected',
+  'commitment_due',
+  'account_negative',
+  'bank_unmatched',
+  'period_closed',
+  'period_blocked',
+  'turf_slot_request',
+  'turf_field',
+  'turf_manager',
+  'court_waitlist',
+  'turf_delegation',
+  'store_decision',
+  'moderation',
+  // Both (18)
+  'match_live',
+  'match_result',
+  'fee',
+  'fee_reminder',
+  'payment',
+  'donation',
+  'attendance',
+  'attendance_reminder',
+  'event',
+  'announcement',
+  'document',
+  'documents',
+  'document_expiry',
+  'support',
+  'eligibility',
+  'training_session',
+  'training_result',
+  'application',
+};
+
+/// Returns true if [kind] is eligible to be presented in professional clients (SwanSport Pro).
+bool isProNotificationKind(String? kind) {
+  if (kind == null) return false;
+  return proNotificationKinds.contains(kind.trim().toLowerCase());
+}
+
 /// Push subscription registration state on the server.
 enum PushSubState {
   mine,

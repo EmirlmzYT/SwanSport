@@ -52,5 +52,25 @@ void main() {
         equals(PushAppTarget.pro),
       );
     });
+
+    test('proNotificationKinds inventory and isProNotificationKind validation',
+        () {
+      expect(proNotificationKinds.length, equals(33));
+      // Pro-only examples
+      expect(isProNotificationKind('referee_assignment'), isTrue);
+      expect(isProNotificationKind('expense_approval'), isTrue);
+      expect(isProNotificationKind('turf_slot_request'), isTrue);
+      // Both examples
+      expect(isProNotificationKind('match_live'), isTrue);
+      expect(isProNotificationKind('attendance'), isTrue);
+      expect(isProNotificationKind('fee'), isTrue);
+      // Social-only examples
+      expect(isProNotificationKind('message'), isFalse);
+      expect(isProNotificationKind('follow'), isFalse);
+      expect(isProNotificationKind('mention'), isFalse);
+      expect(isProNotificationKind('post_repost'), isFalse);
+      expect(isProNotificationKind('unknown'), isFalse);
+      expect(isProNotificationKind(null), isFalse);
+    });
   });
 }

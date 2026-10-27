@@ -118,7 +118,7 @@ void main() {
       // Tap Gelen Kutusu
       await tester.tap(find.text('Gelen Kutusu'));
       await tester.pumpAndSettle();
-      expect(find.byType(ProPlaceholderScreen), findsOneWidget);
+      expect(find.byType(SharedProInboxScreen), findsOneWidget);
 
       // Tap Hesap
       await tester.tap(find.text('Hesap'));

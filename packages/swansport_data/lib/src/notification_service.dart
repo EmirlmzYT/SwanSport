@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_scope.dart';
 import 'live_match_models.dart';
+import 'push_target.dart';
 
 /// ---------------------------------------------------------------------------
 /// Bildirimler ve birebir mesajlaşma.
@@ -519,6 +520,20 @@ class NotificationService {
 
 final notificationServiceProvider = Provider<NotificationService>((ref) {
   return NotificationService(ref.watch(supabaseClientProvider));
+});
+
+final proNotificationsProvider =
+    FutureProvider.autoDispose<List<NotificationRow>>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  final all = await ref.watch(notificationsProvider.future);
+  return all.where((n) => isProNotificationKind(n.kind)).toList();
+});
+
+final proUnreadNotificationsCountProvider =
+    FutureProvider.autoDispose<int>((ref) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return 0;
+  final proList = await ref.watch(proNotificationsProvider.future);
+  return proList.where((n) => n.isUnread).length;
 });
 
 final notificationsProvider =
