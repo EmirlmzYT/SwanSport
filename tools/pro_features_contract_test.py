@@ -103,7 +103,10 @@ class ProFeaturesContractTest(unittest.TestCase):
             "app route string": re.compile(
                 r"['\"]/(?:teams|takim-kadro|attendance|devam-durumu|"
                 r"antrenmanlarim|antrenman-oturumu|antrenman-sonuc|"
-                r"antrenman-sablonlari|antrenman-olustur|akis|profil)['\"]"
+                r"antrenman-sablonlari|antrenman-olustur|akis|profil|"
+                r"hakem/gorevler|hakem/esame|hakem/canli|hakem/rapor|"
+                r"federasyon|federasyon-merkezi|federasyon-takvimi|"
+                r"mhk-atamalar|il-ligleri|disiplin-kurulu)['\"]"
             ),
         }
 

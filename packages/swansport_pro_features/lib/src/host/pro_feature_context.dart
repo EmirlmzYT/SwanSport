@@ -7,11 +7,13 @@ final class ProFeatureContextKey {
     required this.userId,
     required this.workspace,
     required this.clubId,
+    this.scopeId,
   });
 
   final String userId;
   final String workspace;
   final String? clubId;
+  final String? scopeId;
 
   @override
   bool operator ==(Object other) =>
@@ -19,15 +21,16 @@ final class ProFeatureContextKey {
       other is ProFeatureContextKey &&
           userId == other.userId &&
           workspace == other.workspace &&
-          clubId == other.clubId;
+          clubId == other.clubId &&
+          scopeId == other.scopeId;
 
   @override
-  int get hashCode => Object.hash(userId, workspace, clubId);
+  int get hashCode => Object.hash(userId, workspace, clubId, scopeId);
 
   @override
   String toString() =>
       'ProFeatureContextKey(userId: $userId, workspace: $workspace, '
-      'clubId: $clubId)';
+      'clubId: $clubId, scopeId: $scopeId)';
 }
 
 final proFeatureContextProvider = StateProvider<ProFeatureContextKey?>(

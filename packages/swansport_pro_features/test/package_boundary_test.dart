@@ -91,6 +91,15 @@ void main() {
       navigator.openConversation(profileId: 'profile-1'),
       isFalse,
     );
+    navigator.openFederationMatches();
+    navigator.openRefereeAssignments();
+    navigator.openLeagueStandings();
+    navigator.openDisciplinaryBoard();
+    navigator.openFederationBulletins();
+    navigator.openRefereeDuties();
+    navigator.openRefereeLineup('match-1');
+    navigator.openRefereeLiveCockpit('match-1');
+    navigator.openRefereeMatchReport('match-1');
   });
 }
 

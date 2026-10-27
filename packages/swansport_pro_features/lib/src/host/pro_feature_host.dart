@@ -30,6 +30,24 @@ abstract interface class ProFeatureNavigator {
 
   void openTrainingResult({String? sessionId});
 
+  void openFederationMatches();
+
+  void openRefereeAssignments();
+
+  void openLeagueStandings();
+
+  void openDisciplinaryBoard();
+
+  void openFederationBulletins();
+
+  void openRefereeDuties();
+
+  void openRefereeLineup(String matchId);
+
+  void openRefereeLiveCockpit(String matchId);
+
+  void openRefereeMatchReport(String matchId);
+
   bool openCalendar();
 
   bool openAthleteProfile({
@@ -45,6 +63,33 @@ abstract interface class ProFeatureNavigator {
 
 /// Convenience base for hosts that do not support optional destinations.
 abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
+  @override
+  void openFederationMatches() {}
+
+  @override
+  void openRefereeAssignments() {}
+
+  @override
+  void openLeagueStandings() {}
+
+  @override
+  void openDisciplinaryBoard() {}
+
+  @override
+  void openFederationBulletins() {}
+
+  @override
+  void openRefereeDuties() {}
+
+  @override
+  void openRefereeLineup(String matchId) {}
+
+  @override
+  void openRefereeLiveCockpit(String matchId) {}
+
+  @override
+  void openRefereeMatchReport(String matchId) {}
+
   @override
   bool openCalendar() => false;
 
