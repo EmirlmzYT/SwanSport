@@ -19,7 +19,7 @@ class ProAppContractTest(unittest.TestCase):
         content = pro_pubspec.read_text(encoding='utf-8')
 
         self.assertRegex(content, r'(?m)^name:\s*swansport_pro\s*$')
-        self.assertRegex(content, r'(?m)^version:\s*0\.1\.1\+3\s*$')
+        self.assertRegex(content, r'(?m)^version:\s*0\.1\.2\+4\s*$')
         self.assertRegex(content, r'(?m)^resolution:\s*workspace\s*$')
 
         # Must have required shared/runtime dependencies

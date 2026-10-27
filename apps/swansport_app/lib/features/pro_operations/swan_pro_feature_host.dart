@@ -109,6 +109,41 @@ final class _SwanFeatureNavigator extends ProFeatureNavigatorBase {
     );
     return true;
   }
+
+  @override
+  void openFederationMatches() =>
+      Navigator.pushNamed(context, '/federasyon-merkezi');
+
+  @override
+  void openRefereeAssignments() =>
+      Navigator.pushNamed(context, '/federasyon-merkezi');
+
+  @override
+  void openLeagueStandings() =>
+      Navigator.pushNamed(context, '/federasyon-merkezi');
+
+  @override
+  void openDisciplinaryBoard() =>
+      Navigator.pushNamed(context, '/federasyon-merkezi');
+
+  @override
+  void openFederationBulletins() =>
+      Navigator.pushNamed(context, '/federasyon-merkezi');
+
+  @override
+  void openRefereeDuties() => Navigator.pushNamed(context, '/hakem/gorevler');
+
+  @override
+  void openRefereeLineup(String matchId) =>
+      Navigator.pushNamed(context, '/hakem/esame/$matchId');
+
+  @override
+  void openRefereeLiveCockpit(String matchId) =>
+      Navigator.pushNamed(context, '/hakem/canli/$matchId');
+
+  @override
+  void openRefereeMatchReport(String matchId) =>
+      Navigator.pushNamed(context, '/hakem/rapor/$matchId');
 }
 
 final class _SwanFeatureChrome implements ProFeatureChrome {
