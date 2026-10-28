@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../app/pro_theme.dart';
+
 class ProNavigationItemData {
   const ProNavigationItemData({
     required this.route,
@@ -61,8 +63,8 @@ class ProNavigationItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final activeColor = const Color(0xFF38BDF8);
-    final inactiveColor = const Color(0xFF94A3B8);
+    const activeColor = ProTheme.primary;
+    const inactiveColor = ProTheme.muted;
 
     return Semantics(
       button: true,
@@ -70,11 +72,19 @@ class ProNavigationItem extends StatelessWidget {
       label: item.label,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(14),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 56, minHeight: 48),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 6),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            margin: const EdgeInsets.symmetric(horizontal: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 7),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? ProTheme.primary.withValues(alpha: 0.12)
+                  : Colors.transparent,
+              borderRadius: BorderRadius.circular(14),
+            ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
@@ -84,15 +94,14 @@ class ProNavigationItem extends StatelessWidget {
                   color: isSelected ? activeColor : inactiveColor,
                   size: 22,
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 3),
                 Text(
                   item.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight:
-                        isSelected ? FontWeight.w600 : FontWeight.normal,
+                    fontSize: 10.5,
+                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected ? activeColor : inactiveColor,
                   ),
                 ),
@@ -117,26 +126,36 @@ class ProBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1C2541),
-        border: Border(
-          top: BorderSide(color: Color(0xFF3A4B75), width: 0.5),
-        ),
-      ),
-      padding: const EdgeInsets.only(top: 4, bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          for (var i = 0; i < proNavigationItems.length; i++)
-            Expanded(
-              child: ProNavigationItem(
-                item: proNavigationItems[i],
-                isSelected: currentIndex == i,
-                onTap: () => onDestinationSelected(i),
-              ),
+    return SafeArea(
+      top: false,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+        decoration: BoxDecoration(
+          color: ProTheme.surface.withValues(alpha: 0.98),
+          border: Border.all(color: ProTheme.line),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x66000000),
+              blurRadius: 22,
+              offset: Offset(0, 10),
             ),
-        ],
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            for (var i = 0; i < proNavigationItems.length; i++)
+              Expanded(
+                child: ProNavigationItem(
+                  item: proNavigationItems[i],
+                  isSelected: currentIndex == i,
+                  onTap: () => onDestinationSelected(i),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }

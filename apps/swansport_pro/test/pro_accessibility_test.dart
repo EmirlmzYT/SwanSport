@@ -111,5 +111,44 @@ void main() {
         expect(size.height, greaterThanOrEqualTo(48.0));
       }
     });
+
+    testWidgets(
+        'uses a desktop sidebar without the mobile bottom bar at 1200px',
+        (tester) async {
+      tester.view.physicalSize = const Size(1200, 800);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountSessionServiceProvider
+                .overrideWithValue(FakeAccountSessionService()),
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(makeSession('user-desktop')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+          ],
+          child: const ProApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProBottomNavigationBar), findsNothing);
+      expect(find.text('SwanSport Pro'), findsOneWidget);
+      expect(find.text('Panel'), findsOneWidget);
+      expect(find.text('Hesap'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

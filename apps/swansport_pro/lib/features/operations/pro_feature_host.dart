@@ -3,6 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../app/pro_theme.dart';
+
 class ProOperationsFeatureHost extends StatelessWidget {
   const ProOperationsFeatureHost({required this.child, super.key});
 
@@ -13,12 +15,12 @@ class ProOperationsFeatureHost extends StatelessWidget {
         navigator: _ProNavigator(context),
         chrome: const _ProChrome(),
         theme: const ProFeatureThemeData(
-          background: Color(0xFF0B132B),
-          surface: Color(0xFF1C2541),
-          line: Color(0xFF3A4B75),
-          ink: Colors.white,
-          inkMuted: Color(0xFF94A3B8),
-          accent: Color(0xFF38BDF8),
+          background: ProTheme.background,
+          surface: ProTheme.surface,
+          line: ProTheme.line,
+          ink: ProTheme.ink,
+          inkMuted: ProTheme.muted,
+          accent: ProTheme.primary,
           danger: Color(0xFFEF4444),
           warning: Color(0xFFF59E0B),
           success: Color(0xFF10B981),
@@ -160,7 +162,16 @@ final class _ProChrome implements ProFeatureChrome {
           title: Text(title),
           actions: actions,
         ),
-        body: body,
+        body: SafeArea(
+          top: false,
+          child: Align(
+            alignment: Alignment.topCenter,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 1240),
+              child: body,
+            ),
+          ),
+        ),
         bottomNavigationBar: bottomBar,
       );
 
