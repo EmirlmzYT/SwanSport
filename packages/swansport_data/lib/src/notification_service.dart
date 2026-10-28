@@ -5,7 +5,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'supabase_scope.dart';
 import 'live_match_models.dart';
-import 'push_target.dart';
 
 /// ---------------------------------------------------------------------------
 /// Bildirimler ve birebir mesajlaşma.
