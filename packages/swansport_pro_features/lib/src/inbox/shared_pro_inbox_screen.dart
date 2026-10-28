@@ -307,7 +307,7 @@ final class _SharedProInboxScreenState
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: () => ref.refresh(notificationsProvider),
+                onPressed: () => ref.refresh(proNotificationsProvider),
                 child: const Text('Tekrar Dene'),
               ),
             ],
@@ -316,13 +316,19 @@ final class _SharedProInboxScreenState
       ),
       data: _buildContent,
     );
+    final constrainedBody = Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 920),
+        child: body,
+      ),
+    );
 
     if (host != null) {
       return host.chrome.buildPage(
         context,
         title: 'Gelen Kutusu',
         actions: actions,
-        body: body,
+        body: constrainedBody,
       );
     }
 
@@ -334,7 +340,7 @@ final class _SharedProInboxScreenState
         foregroundColor: Colors.white,
         actions: actions,
       ),
-      body: body,
+      body: constrainedBody,
     );
   }
 }
