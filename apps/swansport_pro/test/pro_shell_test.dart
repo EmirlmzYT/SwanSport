@@ -9,8 +9,8 @@ import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:swansport_pro/app/pro_app.dart';
 import 'package:swansport_pro/features/account/pro_account_screen.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
+import 'package:swansport_pro/features/calendar/pro_calendar_screen.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
-import 'package:swansport_pro/features/placeholders/pro_placeholder_screen.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
 import 'package:swansport_pro/shell/pro_shell.dart';
 import 'package:swansport_pro/workspaces/pro_workspace_switcher.dart';
@@ -113,7 +113,7 @@ void main() {
       // Tap Takvim
       await tester.tap(find.text('Takvim'));
       await tester.pumpAndSettle();
-      expect(find.byType(ProPlaceholderScreen), findsOneWidget);
+      expect(find.byType(ProCalendarScreen), findsOneWidget);
 
       // Tap Gelen Kutusu
       await tester.tap(find.text('Gelen Kutusu'));

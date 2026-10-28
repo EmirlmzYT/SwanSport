@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../features/account/pro_account_screen.dart';
+import '../features/calendar/pro_calendar_screen.dart';
 import '../features/dashboard/pro_dashboard_screen.dart';
 import '../features/operations/pro_operations_gate.dart';
 import '../features/operations/pro_tasks_screen.dart';
-import '../features/placeholders/pro_placeholder_screen.dart';
 import '../shell/pro_shell.dart';
 import 'push/pro_notification_route_handler.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
@@ -52,8 +52,7 @@ final proRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: '/takvim',
-                builder: (context, state) =>
-                    const ProPlaceholderScreen(title: 'Takvim'),
+                builder: (context, state) => const ProCalendarScreen(),
               ),
             ],
           ),
