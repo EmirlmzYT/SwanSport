@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/design/swan_palette.dart';
@@ -10,6 +11,7 @@ import '../../../../app/design/swan_type.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_tabs.dart';
+import '../../pro_operations/swan_pro_feature_host.dart';
 import '../../settings/presentation/screens/club_training_sports_sheet.dart';
 import 'club_edit_sheet.dart';
 
@@ -109,7 +111,8 @@ class ClubCockpitScreen extends ConsumerWidget {
           }
           if (!access.isClubStaff) {
             return Center(
-                child: Text('Yetkin yok', style: SwanType.body(c.ink)),);
+              child: Text('Yetkin yok', style: SwanType.body(c.ink)),
+            );
           }
 
           // Real data counts from providers (NO fake/dummy sample values!)
@@ -118,9 +121,8 @@ class ClubCockpitScreen extends ConsumerWidget {
                   const <String>[];
           final teamsList =
               ref.watch(teamsProvider).valueOrNull ?? const <TeamRow>[];
-          final teamsCount = teamsList.isNotEmpty
-              ? teamsList.length
-              : sportsBranches.length;
+          final teamsCount =
+              teamsList.isNotEmpty ? teamsList.length : sportsBranches.length;
           final clubMembers =
               ref.watch(clubMembersProvider(club.id)).valueOrNull ?? const [];
           final coachesCount = clubMembers.isNotEmpty
@@ -166,6 +168,11 @@ class ClubCockpitScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: SwanSpace.md),
 
+                const SwanProFeatureHost(
+                  child: SharedClubOperationsPanel(),
+                ),
+                const SizedBox(height: SwanSpace.md),
+
                 // 3. 4'LÜ KPI SAYAÇLARI (Takım, Sporcu, Antrenör, Veli)
                 _buildModernKpiStrip(
                   context,
@@ -193,41 +200,69 @@ class ClubCockpitScreen extends ConsumerWidget {
                 if (access.isClubAdmin) ...[
                   // YÖNETİCİ ÖNCELİK SIRASI: Mali İşler -> Kadro & Sporcular -> Antrenman & Takvim -> Tesis & Operasyon -> Analiz & Ayarlar
                   _buildFinanceSection(
-                      context, c, club, pendingPayments, access,),
+                    context,
+                    c,
+                    club,
+                    pendingPayments,
+                    access,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
-                  _buildRosterSection(context, c,
-                      club: club,
-                      pendingApps: pendingApps,
-                      activeAthletesCount: activeAthletesCount,),
+                  _buildRosterSection(
+                    context,
+                    c,
+                    club: club,
+                    pendingApps: pendingApps,
+                    activeAthletesCount: activeAthletesCount,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
-                  _buildTrainingSection(context, c,
-                      trainingEnabled: trainingEnabled,),
+                  _buildTrainingSection(
+                    context,
+                    c,
+                    trainingEnabled: trainingEnabled,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
-                  _buildOperationsSection(context, c,
-                      club: club,
-                      access: access,
-                      staffOperationsEnabled: staffOperationsEnabled,
-                      seasonEnabled: seasonEnabled,),
+                  _buildOperationsSection(
+                    context,
+                    c,
+                    club: club,
+                    access: access,
+                    staffOperationsEnabled: staffOperationsEnabled,
+                    seasonEnabled: seasonEnabled,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
                   _buildAnalyticsSection(context, c, access: access),
                 ] else ...[
                   // ANTRENÖR ÖNCELİK SIRASI: Antrenman & Takvim -> Kadro & Sporcular -> Tesis & Operasyon -> Mali İşler -> Analiz
-                  _buildTrainingSection(context, c,
-                      trainingEnabled: trainingEnabled,),
+                  _buildTrainingSection(
+                    context,
+                    c,
+                    trainingEnabled: trainingEnabled,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
-                  _buildRosterSection(context, c,
-                      club: club,
-                      pendingApps: pendingApps,
-                      activeAthletesCount: activeAthletesCount,),
+                  _buildRosterSection(
+                    context,
+                    c,
+                    club: club,
+                    pendingApps: pendingApps,
+                    activeAthletesCount: activeAthletesCount,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
-                  _buildOperationsSection(context, c,
-                      club: club,
-                      access: access,
-                      staffOperationsEnabled: staffOperationsEnabled,
-                      seasonEnabled: seasonEnabled,),
+                  _buildOperationsSection(
+                    context,
+                    c,
+                    club: club,
+                    access: access,
+                    staffOperationsEnabled: staffOperationsEnabled,
+                    seasonEnabled: seasonEnabled,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
                   _buildFinanceSection(
-                      context, c, club, pendingPayments, access,),
+                    context,
+                    c,
+                    club,
+                    pendingPayments,
+                    access,
+                  ),
                   const SizedBox(height: SwanSpace.xl),
                   _buildAnalyticsSection(context, c, access: access),
                 ],
@@ -496,8 +531,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 color: c.accent,
                 text: 'Günün antrenman oturumunu başlatın ve yönetin',
                 buttonLabel: 'Oturum Aç',
-                onTap: () =>
-                    Navigator.pushNamed(context, '/antrenman-oturumu'),
+                onTap: () => Navigator.pushNamed(context, '/antrenman-oturumu'),
               ),
             ],
             if (pendingApps > 0) ...[
@@ -921,14 +955,21 @@ class ClubCockpitScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(SwanRadius.sm),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: SwanSpace.xs, vertical: 2,),
+                  horizontal: SwanSpace.xs,
+                  vertical: 2,
+                ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text('Tümünü Gör',
-                        style: SwanType.caption(c.accent, w: FontWeight.w600),),
-                    Icon(Icons.chevron_right_rounded,
-                        color: c.accent, size: 16,),
+                    Text(
+                      'Tümünü Gör',
+                      style: SwanType.caption(c.accent, w: FontWeight.w600),
+                    ),
+                    Icon(
+                      Icons.chevron_right_rounded,
+                      color: c.accent,
+                      size: 16,
+                    ),
                   ],
                 ),
               ),
@@ -947,8 +988,11 @@ class ClubCockpitScreen extends ConsumerWidget {
             child: Center(
               child: Column(
                 children: [
-                  Icon(Icons.event_available_rounded,
-                      color: c.inkMuted, size: 36,),
+                  Icon(
+                    Icons.event_available_rounded,
+                    color: c.inkMuted,
+                    size: 36,
+                  ),
                   const SizedBox(height: SwanSpace.xs),
                   Text(
                     'Henüz planlanmış bir etkinlik bulunmuyor',
@@ -986,8 +1030,7 @@ class ClubCockpitScreen extends ConsumerWidget {
   }
 
   Widget _buildEventTile(BuildContext context, SwanPalette c, EventRow event) {
-    final dayStr =
-        '${event.startsAt.day} ${_monthName(event.startsAt.month)}';
+    final dayStr = '${event.startsAt.day} ${_monthName(event.startsAt.month)}';
     final timeStr =
         '${event.startsAt.hour.toString().padLeft(2, '0')}:${event.startsAt.minute.toString().padLeft(2, '0')}';
 
@@ -1089,8 +1132,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               c,
               icon: Icons.person_add_alt_1_rounded,
               title: 'Yeni Sporcu / Öğrenci Ekle',
-              subtitle:
-                  'WhatsApp davet linki gönder veya sahada elle kaydet',
+              subtitle: 'WhatsApp davet linki gönder veya sahada elle kaydet',
               badge: 'Hızlı',
               badgeColor: c.accent,
               onTap: () => _showAddAthleteHybridSheet(context, club),
@@ -1166,8 +1208,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 c,
                 icon: Icons.tune_rounded,
                 title: 'Antrenman Şablonları & Oturumlar',
-                subtitle:
-                    'Branşa özel egzersiz planları ve drill havuzu',
+                subtitle: 'Branşa özel egzersiz planları ve drill havuzu',
                 onTap: () => Navigator.pushNamed(
                   context,
                   '/antrenman-sablonlari',
@@ -1221,8 +1262,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               c,
               icon: Icons.notifications_active_rounded,
               title: 'Tek Tıkla Aidat Hatırlatma',
-              subtitle:
-                  'Ödeme bildirimlerini incele veya genel mesajı paylaş',
+              subtitle: 'Ödeme bildirimlerini incele veya genel mesajı paylaş',
               badge: pendingPayments.isNotEmpty
                   ? '${pendingPayments.length}'
                   : null,
@@ -1282,8 +1322,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 c,
                 icon: Icons.inventory_2_outlined,
                 title: 'Malzeme & Zimmet Takibi',
-                subtitle:
-                    'Kulüp envanteri ve sporculara teslim edilenler',
+                subtitle: 'Kulüp envanteri ve sporculara teslim edilenler',
                 onTap: () => Navigator.pushNamed(
                   context,
                   '/kulup/malzeme-zimmet',
@@ -1331,8 +1370,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 icon: Icons.event_available_rounded,
                 title: 'Sezon Açılışı',
                 subtitle: 'Yeni sezonun kulüp hazırlıklarını yönet',
-                onTap: () =>
-                    Navigator.pushNamed(context, '/sezon-acilisi'),
+                onTap: () => Navigator.pushNamed(context, '/sezon-acilisi'),
               ),
               _buildDivider(c),
             ],
@@ -1472,8 +1510,10 @@ class ClubCockpitScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: SwanType.bodySm(c.ink, w: FontWeight.w600),),
+                  Text(
+                    title,
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w600),
+                  ),
                   const SizedBox(height: 2),
                   Text(subtitle, style: SwanType.caption(c.inkMuted)),
                 ],
@@ -1581,7 +1621,8 @@ class _AddAthleteHybridSheetState
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Paylaşma başarısız; metni elle kopyalayın.'),),
+            content: Text('Paylaşma başarısız; metni elle kopyalayın.'),
+          ),
         );
       }
       return;
@@ -1617,10 +1658,12 @@ class _AddAthleteHybridSheetState
       if (!mounted) return;
       final messenger = ScaffoldMessenger.of(context);
       Navigator.pop(context);
-      messenger.showSnackBar(SnackBar(
-        content:
-            Text('$first $last kadroya eklendi; henüz bir hesaba bağlı değil.'),
-      ),);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+              '$first $last kadroya eklendi; henüz bir hesaba bağlı değil.'),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1656,219 +1699,228 @@ class _AddAthleteHybridSheetState
         child: SafeArea(
           top: false,
           child: SingleChildScrollView(
-              child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Center(
-                child: Container(
-                  width: 36,
-                  height: 4,
-                  decoration: BoxDecoration(
-                    color: c.line,
-                    borderRadius: BorderRadius.circular(2),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: c.line,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: SwanSpace.md),
-              Text('Yeni Sporcu / Öğrenci Ekle', style: SwanType.h3(c.ink)),
-              const SizedBox(height: 2),
-              Text(
-                widget.club.name,
-                style: SwanType.caption(c.inkMuted),
-              ),
-              const SizedBox(height: SwanSpace.md),
-              SwanSegmentedTabs(
-                labels: const ['Davet Linki', 'Hesapsız Ekle'],
-                selected: _tab,
-                onSelect: (int i) => setState(() => _tab = i),
-              ),
-              const SizedBox(height: SwanSpace.lg),
-              if (_tab == 0) ...[
-                Container(
-                  padding: const EdgeInsets.all(SwanSpace.lg),
-                  decoration: BoxDecoration(
-                    color: c.surface,
-                    borderRadius: BorderRadius.circular(SwanRadius.lg),
-                    border: Border.all(color: c.line),
-                  ),
-                  child: Column(
-                    children: [
-                      Icon(Icons.link_rounded, size: 88, color: c.ink),
-                      const SizedBox(height: SwanSpace.sm),
-                      Text(
-                        'Veli veya Sporcu Davet Bağlantısı',
-                        style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Bu bağlantı kulüp profilini açar. Sporcu veya veli buradaki Başvur düğmesiyle başvuru yapabilir; başvuru Gelen Başvurular ekranınıza düşer.',
-                        style: SwanType.caption(c.inkMuted),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: SwanSpace.md),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: SwanSpace.md,
-                          vertical: SwanSpace.sm,
+                const SizedBox(height: SwanSpace.md),
+                Text('Yeni Sporcu / Öğrenci Ekle', style: SwanType.h3(c.ink)),
+                const SizedBox(height: 2),
+                Text(
+                  widget.club.name,
+                  style: SwanType.caption(c.inkMuted),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                SwanSegmentedTabs(
+                  labels: const ['Davet Linki', 'Hesapsız Ekle'],
+                  selected: _tab,
+                  onSelect: (int i) => setState(() => _tab = i),
+                ),
+                const SizedBox(height: SwanSpace.lg),
+                if (_tab == 0) ...[
+                  Container(
+                    padding: const EdgeInsets.all(SwanSpace.lg),
+                    decoration: BoxDecoration(
+                      color: c.surface,
+                      borderRadius: BorderRadius.circular(SwanRadius.lg),
+                      border: Border.all(color: c.line),
+                    ),
+                    child: Column(
+                      children: [
+                        Icon(Icons.link_rounded, size: 88, color: c.ink),
+                        const SizedBox(height: SwanSpace.sm),
+                        Text(
+                          'Veli veya Sporcu Davet Bağlantısı',
+                          style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                         ),
-                        decoration: BoxDecoration(
-                          color: c.bg,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line),
-                        ),
-                        child: SelectableText(
-                          _inviteUrl,
-                          style: SwanType.caption(c.accent, w: FontWeight.w600),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Bu bağlantı kulüp profilini açar. Sporcu veya veli buradaki Başvur düğmesiyle başvuru yapabilir; başvuru Gelen Başvurular ekranınıza düşer.',
+                          style: SwanType.caption(c.inkMuted),
                           textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: SwanSpace.md),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: SwanSpace.md,
+                            vertical: SwanSpace.sm,
+                          ),
+                          decoration: BoxDecoration(
+                            color: c.bg,
+                            borderRadius: BorderRadius.circular(SwanRadius.sm),
+                            border: Border.all(color: c.line),
+                          ),
+                          child: SelectableText(
+                            _inviteUrl,
+                            style:
+                                SwanType.caption(c.accent, w: FontWeight.w600),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: SwanSpace.md),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () async {
+                            try {
+                              await Clipboard.setData(
+                                ClipboardData(text: _inviteUrl),
+                              );
+                            } catch (_) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Kopyalama başarısız; bağlantıyı seçip kopyalayın.',
+                                    ),
+                                  ),
+                                );
+                              }
+                              return;
+                            }
+                            if (!context.mounted) return;
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Davet linki kopyalandı!'),
+                              ),
+                            );
+                          },
+                          icon:
+                              Icon(Icons.copy_rounded, size: 18, color: c.ink),
+                          label: Text('Kopyala', style: SwanType.bodySm(c.ink)),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: c.line),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: SwanSpace.md,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(SwanRadius.md),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: SwanSpace.sm),
+                      Expanded(
+                        flex: 2,
+                        child: ElevatedButton.icon(
+                          onPressed: () => _shareViaWhatsApp(_whatsappText),
+                          icon: const Icon(Icons.send_rounded, size: 18),
+                          label: FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Text(
+                              'WhatsApp ile Gönder',
+                              style: SwanType.bodySm(
+                                c.onAccent,
+                                w: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: c.accentFill,
+                            foregroundColor: c.onAccent,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              vertical: SwanSpace.md,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius:
+                                  BorderRadius.circular(SwanRadius.md),
+                            ),
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: SwanSpace.md),
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          try {
-                            await Clipboard.setData(
-                              ClipboardData(text: _inviteUrl),
-                            );
-                          } catch (_) {
-                            if (context.mounted) {
-                              ScaffoldMessenger.of(context)
-                                  .showSnackBar(const SnackBar(
-                                content: Text(
-                                    'Kopyalama başarısız; bağlantıyı seçip kopyalayın.',),
-                              ),);
-                            }
-                            return;
-                          }
-                          if (!context.mounted) return;
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Davet linki kopyalandı!'),
-                            ),
-                          );
-                        },
-                        icon: Icon(Icons.copy_rounded, size: 18, color: c.ink),
-                        label: Text('Kopyala', style: SwanType.bodySm(c.ink)),
-                        style: OutlinedButton.styleFrom(
-                          side: BorderSide(color: c.line),
-                          padding: const EdgeInsets.symmetric(
-                            vertical: SwanSpace.md,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SwanRadius.md),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: SwanSpace.sm),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _shareViaWhatsApp(_whatsappText),
-                        icon: const Icon(Icons.send_rounded, size: 18),
-                        label: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
-                            'WhatsApp ile Gönder',
-                            style: SwanType.bodySm(
-                              c.onAccent,
-                              w: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: c.accentFill,
-                          foregroundColor: c.onAccent,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(
-                            vertical: SwanSpace.md,
-                          ),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(SwanRadius.md),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ] else ...[
-                Text(
+                ] else ...[
+                  Text(
                     'Bu kayıt yalnızca hesabı olmayan sporcular içindir. Kulübe zaten üye olan sporcuyu Sporcu Kadrosu ekranından hesabına bağlayın.',
-                    style: SwanType.caption(c.inkMuted),),
-                TextButton(
-                  onPressed: () {
-                    final navigator = Navigator.of(context);
-                    navigator.pop();
-                    navigator.pushNamed('/athletes');
-                  },
-                  child: const Text('Mevcut üyeyi kadroya bağla'),
-                ),
-                TextField(
-                  controller: _firstNameCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Sporcu Adı',
-                    hintText: 'Örn: Kerem',
-                    filled: true,
-                    fillColor: c.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                    style: SwanType.caption(c.inkMuted),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      final navigator = Navigator.of(context);
+                      navigator.pop();
+                      navigator.pushNamed('/athletes');
+                    },
+                    child: const Text('Mevcut üyeyi kadroya bağla'),
+                  ),
+                  TextField(
+                    controller: _firstNameCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Sporcu Adı',
+                      hintText: 'Örn: Kerem',
+                      filled: true,
+                      fillColor: c.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(SwanRadius.md),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: SwanSpace.sm),
-                TextField(
-                  controller: _lastNameCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Sporcu Soyadı',
-                    hintText: 'Örn: Yılmaz',
-                    filled: true,
-                    fillColor: c.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                  const SizedBox(height: SwanSpace.sm),
+                  TextField(
+                    controller: _lastNameCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Sporcu Soyadı',
+                      hintText: 'Örn: Yılmaz',
+                      filled: true,
+                      fillColor: c.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(SwanRadius.md),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: SwanSpace.sm),
-                TextField(
-                  controller: _groupCtrl,
-                  decoration: InputDecoration(
-                    labelText: 'Yaş Grubu / Mevki (İsteğe bağlı)',
-                    hintText: 'Örn: U14 Takımı veya Oyun Kurucu',
-                    filled: true,
-                    fillColor: c.surface,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                  const SizedBox(height: SwanSpace.sm),
+                  TextField(
+                    controller: _groupCtrl,
+                    decoration: InputDecoration(
+                      labelText: 'Yaş Grubu / Mevki (İsteğe bağlı)',
+                      hintText: 'Örn: U14 Takımı veya Oyun Kurucu',
+                      filled: true,
+                      fillColor: c.surface,
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(SwanRadius.md),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: SwanSpace.lg),
-                ElevatedButton.icon(
-                  onPressed: _saving ? null : _saveManualAthlete,
-                  icon:
-                      const Icon(Icons.check_circle_outline_rounded, size: 18),
-                  label: Text(
-                    _saving ? 'Kaydediliyor...' : 'Sporcuyu Kadroya Kaydet',
-                    style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: c.accentFill,
-                    foregroundColor: c.onAccent,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(vertical: SwanSpace.md),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(SwanRadius.md),
+                  const SizedBox(height: SwanSpace.lg),
+                  ElevatedButton.icon(
+                    onPressed: _saving ? null : _saveManualAthlete,
+                    icon: const Icon(Icons.check_circle_outline_rounded,
+                        size: 18),
+                    label: Text(
+                      _saving ? 'Kaydediliyor...' : 'Sporcuyu Kadroya Kaydet',
+                      style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: c.accentFill,
+                      foregroundColor: c.onAccent,
+                      elevation: 0,
+                      padding:
+                          const EdgeInsets.symmetric(vertical: SwanSpace.md),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(SwanRadius.md),
+                      ),
                     ),
                   ),
-                ),
+                ],
               ],
-            ],
-          ),),
+            ),
+          ),
         ),
       ),
     );
@@ -1906,7 +1958,8 @@ class _FeeReminderSheet extends StatelessWidget {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-              content: Text('Paylaşma başarısız; metni elle kopyalayın.'),),
+            content: Text('Paylaşma başarısız; metni elle kopyalayın.'),
+          ),
         );
       }
       return;
@@ -1940,140 +1993,147 @@ class _FeeReminderSheet extends StatelessWidget {
       child: SafeArea(
         top: false,
         child: SingleChildScrollView(
-            child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 36,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: c.line,
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-            ),
-            const SizedBox(height: SwanSpace.md),
-            Text('Tek Tıkla Aidat Hatırlatma', style: SwanType.h3(c.ink)),
-            const SizedBox(height: 2),
-            Text(
-              pendingPayments.isNotEmpty
-                  ? '${pendingPayments.length} ödeme bildirimi onay bekliyor'
-                  : 'Genel kulüp aidat hatırlatma şablonu',
-              style: SwanType.caption(c.inkMuted),
-            ),
-            if (pendingPayments.isNotEmpty) ...[
-              const SizedBox(height: SwanSpace.xs),
-              Text(
-                'Bu sporcular ödeme bildirmiştir; aşağıdaki genel mesajı göndermeden önce alıcıyı kontrol edin.',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ],
-            const SizedBox(height: SwanSpace.md),
-            if (pendingPayments.isNotEmpty) ...[
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxHeight: 150),
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: pendingPayments.length,
-                  itemBuilder: (context, index) {
-                    final payment = pendingPayments[index];
-                    final name = payment.athleteName ??
-                        payment.declaredName ??
-                        'Sporcu belirtilmedi';
-                    return Text(
-                        '$name • ${payment.label} • ${payment.amount} ₺',
-                        style: SwanType.caption(c.ink),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,);
-                  },
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 36,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: c.line,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
                 ),
               ),
               const SizedBox(height: SwanSpace.md),
-            ],
-            Container(
-              padding: const EdgeInsets.all(SwanSpace.md),
-              decoration: BoxDecoration(
-                color: c.surface,
-                borderRadius: BorderRadius.circular(SwanRadius.md),
-                border: Border.all(color: c.line),
+              Text('Tek Tıkla Aidat Hatırlatma', style: SwanType.h3(c.ink)),
+              const SizedBox(height: 2),
+              Text(
+                pendingPayments.isNotEmpty
+                    ? '${pendingPayments.length} ödeme bildirimi onay bekliyor'
+                    : 'Genel kulüp aidat hatırlatma şablonu',
+                style: SwanType.caption(c.inkMuted),
               ),
-              child: Text(template, style: SwanType.bodySm(c.ink)),
-            ),
-            const SizedBox(height: SwanSpace.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () async {
-                      try {
-                        await Clipboard.setData(ClipboardData(text: template));
-                      } catch (_) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                                content: Text('Kopyalama başarısız'),),
-                          );
-                        }
-                        return;
-                      }
-                      if (!context.mounted) return;
-                      final messenger = ScaffoldMessenger.of(context);
-                      Navigator.pop(context);
-                      messenger.showSnackBar(
-                        const SnackBar(
-                          content: Text('Mesaj panoya kopyalandı!'),
-                        ),
-                      );
-                    },
-                    icon: Icon(Icons.copy_rounded, size: 18, color: c.ink),
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text('Metni Kopyala',
-                          style: SwanType.bodySm(c.ink),),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: c.line),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: SwanSpace.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(SwanRadius.md),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: SwanSpace.sm),
-                Expanded(
-                  flex: 2,
-                  child: ElevatedButton.icon(
-                    onPressed: () => _sendWhatsAppReminder(context, template),
-                    icon: const Icon(Icons.send_rounded, size: 18),
-                    label: FittedBox(
-                      fit: BoxFit.scaleDown,
-                      child: Text(
-                        'WhatsApp ile Hatırlat',
-                        style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
-                      ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: c.accentFill,
-                      foregroundColor: c.onAccent,
-                      elevation: 0,
-                      padding: const EdgeInsets.symmetric(
-                        vertical: SwanSpace.md,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(SwanRadius.md),
-                      ),
-                    ),
-                  ),
+              if (pendingPayments.isNotEmpty) ...[
+                const SizedBox(height: SwanSpace.xs),
+                Text(
+                  'Bu sporcular ödeme bildirmiştir; aşağıdaki genel mesajı göndermeden önce alıcıyı kontrol edin.',
+                  style: SwanType.caption(c.inkMuted),
                 ),
               ],
-            ),
-          ],
-        ),),
+              const SizedBox(height: SwanSpace.md),
+              if (pendingPayments.isNotEmpty) ...[
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 150),
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: pendingPayments.length,
+                    itemBuilder: (context, index) {
+                      final payment = pendingPayments[index];
+                      final name = payment.athleteName ??
+                          payment.declaredName ??
+                          'Sporcu belirtilmedi';
+                      return Text(
+                        '$name • ${payment.label} • ${payment.amount} ₺',
+                        style: SwanType.caption(c.ink),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.md),
+              ],
+              Container(
+                padding: const EdgeInsets.all(SwanSpace.md),
+                decoration: BoxDecoration(
+                  color: c.surface,
+                  borderRadius: BorderRadius.circular(SwanRadius.md),
+                  border: Border.all(color: c.line),
+                ),
+                child: Text(template, style: SwanType.bodySm(c.ink)),
+              ),
+              const SizedBox(height: SwanSpace.lg),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: () async {
+                        try {
+                          await Clipboard.setData(
+                              ClipboardData(text: template));
+                        } catch (_) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Kopyalama başarısız'),
+                              ),
+                            );
+                          }
+                          return;
+                        }
+                        if (!context.mounted) return;
+                        final messenger = ScaffoldMessenger.of(context);
+                        Navigator.pop(context);
+                        messenger.showSnackBar(
+                          const SnackBar(
+                            content: Text('Mesaj panoya kopyalandı!'),
+                          ),
+                        );
+                      },
+                      icon: Icon(Icons.copy_rounded, size: 18, color: c.ink),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'Metni Kopyala',
+                          style: SwanType.bodySm(c.ink),
+                        ),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: BorderSide(color: c.line),
+                        padding: const EdgeInsets.symmetric(
+                          vertical: SwanSpace.md,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: SwanSpace.sm),
+                  Expanded(
+                    flex: 2,
+                    child: ElevatedButton.icon(
+                      onPressed: () => _sendWhatsAppReminder(context, template),
+                      icon: const Icon(Icons.send_rounded, size: 18),
+                      label: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          'WhatsApp ile Hatırlat',
+                          style:
+                              SwanType.bodySm(c.onAccent, w: FontWeight.w700),
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: c.accentFill,
+                        foregroundColor: c.onAccent,
+                        elevation: 0,
+                        padding: const EdgeInsets.symmetric(
+                          vertical: SwanSpace.md,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(SwanRadius.md),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

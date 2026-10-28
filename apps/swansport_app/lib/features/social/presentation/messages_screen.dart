@@ -150,13 +150,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 children: [
                   const SwanHeaderSpacer(),
                   const SizedBox(height: SwanSpace.xs),
-
                   _buildSearchField(c),
                   const SizedBox(height: 12),
-
                   _buildCategoryFilters(c),
                   const SizedBox(height: 10),
-
                   dms.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(SwanSpace.lg),
@@ -243,8 +240,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             suffixIcon: _query.isEmpty
                 ? null
                 : IconButton(
-                    icon: Icon(Icons.close_rounded,
-                        size: 16, color: c.inkMuted),
+                    icon:
+                        Icon(Icons.close_rounded, size: 16, color: c.inkMuted),
                     onPressed: () {
                       _searchCtrl.clear();
                       setState(() => _query = '');
@@ -334,18 +331,14 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         avatarWidget: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: g.isFederation ? Colors.white : c.surfaceAlt,
-            border: Border.all(
-                color: c.accent.withValues(alpha: 0.3), width: 1),
+            color: g.isFederation ? c.surface : c.surfaceAlt,
+            border:
+                Border.all(color: c.accent.withValues(alpha: 0.3), width: 1),
           ),
           child: Center(
             child: Icon(
-              g.isFederation
-                  ? Icons.shield_outlined
-                  : Icons.group_rounded,
-              color: g.isFederation
-                  ? const Color(0xFF131D2E)
-                  : c.accent,
+              g.isFederation ? Icons.shield_outlined : Icons.group_rounded,
+              color: g.isFederation ? c.ink : c.accent,
               size: 24,
             ),
           ),
@@ -380,7 +373,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
     if (filtered.isEmpty) {
       return Padding(
-        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
+        padding:
+            const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
         child: Center(
           child: Column(
             children: [
@@ -412,7 +406,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               const SizedBox(height: 18),
               FilledButton.icon(
                 onPressed: () => Navigator.pushNamed(context, '/ara'),
-                icon: Icon(Icons.person_search_rounded, size: 16, color: c.onAccent),
+                icon: Icon(Icons.person_search_rounded,
+                    size: 16, color: c.onAccent),
                 label: const Text('Kullanıcı Ara & Sohbet Başlat'),
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accentFill,
@@ -530,11 +525,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                             alignment: Alignment.center,
                             child: Text(
                               '${item.unread}',
-                              style: SwanType.caption(c.onAccent,
-                                      w: FontWeight.w800)
-                                  .copyWith(
-                                fontSize: 11,
-                                height: 1.1,
+                              style: SwanType.caption(
+                                c.onAccent,
+                                w: FontWeight.w800,
                               ),
                             ),
                           ),
@@ -573,6 +566,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   final List<MessageRow> _pending = [];
   final Set<String> _marked = {};
   bool _perMessageMarkUnavailable = false;
+  bool _checkingSend = false;
+  Future<void> _sendQueue = Future<void>.value();
   @override
   void initState() {
     super.initState();
@@ -622,44 +617,65 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _send() async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
-      return;
-    final text = _ctrl.text.trim();
-    if (text.isEmpty) return;
-    _ctrl.clear();
-    await _deliver(text);
+    if (_checkingSend || _ctrl.text.trim().isEmpty) return;
+    _checkingSend = true;
+    try {
+      if (!await requireSwanAction(context, ref, SwanAction.message) ||
+          !mounted) {
+        return;
+      }
+      final text = _ctrl.text.trim();
+      if (text.isEmpty) return;
+      _ctrl.clear();
+      _deliver(text);
+    } finally {
+      _checkingSend = false;
+    }
   }
 
-  Future<void> _deliver(String text, {String? retryId}) async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
-      return;
-    final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
+  void _deliver(String text, {String? retryId}) {
+    final id = retryId ?? NotificationService.newMessageId();
     setState(() {
-      _pending
-        ..removeWhere((m) => m.id == id)
-        ..add(MessageRow(
-          id: id,
-          body: text,
-          createdAt: DateTime.now(),
-          isMine: true,
-          status: MessageStatus.sending,
-        ));
+      final existing = _pending.indexWhere((m) => m.id == id);
+      final message = MessageRow(
+        id: id,
+        body: text,
+        createdAt: DateTime.now(),
+        isMine: true,
+        status: MessageStatus.sending,
+      );
+      if (existing < 0) {
+        _pending.add(message);
+      } else {
+        _pending[existing] = message;
+      }
     });
     _scrollToEnd();
-
-    try {
-      await ref.read(notificationServiceProvider).send(widget.otherId, text);
-      if (mounted) setState(() => _pending.removeWhere((m) => m.id == id));
-      ref.invalidate(conversationsProvider);
-    } catch (_) {
-      if (!mounted) return;
-      setState(() {
-        final i = _pending.indexWhere((m) => m.id == id);
-        if (i >= 0) {
-          _pending[i] = _pending[i].copyWith(status: MessageStatus.failed);
-        }
-      });
-    }
+    final service = ref.read(notificationServiceProvider);
+    _sendQueue = _sendQueue.then((_) async {
+      try {
+        final sent = await service.send(
+          widget.otherId,
+          text,
+          messageId: id,
+        );
+        if (!mounted) return;
+        setState(() {
+          final index = _pending.indexWhere((m) => m.id == id);
+          if (index >= 0) _pending[index] = sent;
+        });
+        ref.invalidate(conversationsProvider);
+      } catch (_) {
+        if (!mounted) return;
+        setState(() {
+          final index = _pending.indexWhere((m) => m.id == id);
+          if (index >= 0) {
+            _pending[index] =
+                _pending[index].copyWith(status: MessageStatus.failed);
+          }
+        });
+      }
+    });
   }
 
   void _scrollToEnd() {
