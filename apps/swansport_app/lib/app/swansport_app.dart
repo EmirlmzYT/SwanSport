@@ -185,8 +185,8 @@ class _SwanSportAppState extends ConsumerState<SwanSportApp> {
       '/announcements': (context) => const AnnouncementsScreen(),
       '/teams': (context) => const TeamRosterDirectoryScreen(),
       '/documents': (context) => const DocumentVaultScreen(),
-      '/hesap': (context) => const ClubSettingsScreen(accountOnly: true),
-      '/settings': (context) => const ClubSettingsRouteGate(),
+      '/hesap': (context) => const ClubSettingsScreen(),
+      '/settings': (context) => const ClubSettingsScreen(),
       '/gider-ekle': (context) => const QuickExpenseScreen(),
       // push_route yedi mali bildirim türünü buraya yönlendiriyor.
       '/mali-isler': (context) => const FinanceTasksScreen(),

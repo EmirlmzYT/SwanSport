@@ -126,7 +126,7 @@ void main() {
         expect(router.contains("'$route'"), isTrue);
       }
       expect(routes.contains('refereeRoute(settings)'), isTrue);
-      expect(routes.contains('guardAccountRoutes'), isTrue);
+      expect(routes.contains('protectedDynamicRoutes'), isTrue);
       expect(router.contains('hasMatch(matchId)'), isTrue);
     });
     test(
