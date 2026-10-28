@@ -45,10 +45,10 @@ jobs:
       - name: Link the dedicated staging project
         run: npx --yes supabase@2.121.0 link --project-ref "$STAGING_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
       - name: Mandatory migration dry-run
-        run: npx --yes supabase@2.121.0 db push --dry-run
+        run: npx --yes supabase@2.121.0 db push --dry-run --include-all
       - name: Apply migrations to staging
         if: inputs.apply_migrations == true
-        run: npx --yes supabase@2.121.0 db push
+        run: npx --yes supabase@2.121.0 db push --include-all
 
   android:
     name: Build Android staging APK
