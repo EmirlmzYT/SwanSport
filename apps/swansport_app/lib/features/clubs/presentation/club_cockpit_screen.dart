@@ -2,18 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
-import '../../../../app/navigation/app_routes.dart';
-import '../../../../app/navigation/swan_navigation.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_tabs.dart';
-import '../../pro_operations/swan_pro_feature_host.dart';
 import '../../settings/presentation/screens/club_training_sports_sheet.dart';
 import 'club_edit_sheet.dart';
 
@@ -65,7 +61,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                   size: SwanSpace.lg,
                   color: c.ink,
                 ),
-                onPressed: () => context.swanPop(),
+                onPressed: () => Navigator.maybePop(context),
               )
             : null,
         title: Text(
@@ -78,7 +74,7 @@ class ClubCockpitScreen extends ConsumerWidget {
           IconButton(
             tooltip: 'Kulüp Ayarları',
             icon: Icon(Icons.settings_outlined, color: c.inkMuted, size: 22),
-            onPressed: () => context.swanPush(AppRoutes.clubSettings),
+            onPressed: () => Navigator.pushNamed(context, '/settings'),
           ),
         ],
       ),
@@ -170,11 +166,6 @@ class ClubCockpitScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: SwanSpace.md),
 
-                const SwanProFeatureHost(
-                  child: SharedClubOperationsPanel(),
-                ),
-                const SizedBox(height: SwanSpace.md),
-
                 // 3. 4'LÜ KPI SAYAÇLARI (Takım, Sporcu, Antrenör, Veli)
                 _buildModernKpiStrip(
                   context,
@@ -204,6 +195,14 @@ class ClubCockpitScreen extends ConsumerWidget {
                   _buildFinanceSection(
                       context, c, club, pendingPayments, access,),
                   const SizedBox(height: SwanSpace.xl),
+                  _buildRosterSection(context, c,
+                      club: club,
+                      pendingApps: pendingApps,
+                      activeAthletesCount: activeAthletesCount,),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildTrainingSection(context, c,
+                      trainingEnabled: trainingEnabled,),
+                  const SizedBox(height: SwanSpace.xl),
                   _buildOperationsSection(context, c,
                       club: club,
                       access: access,
@@ -213,6 +212,14 @@ class ClubCockpitScreen extends ConsumerWidget {
                   _buildAnalyticsSection(context, c, access: access),
                 ] else ...[
                   // ANTRENÖR ÖNCELİK SIRASI: Antrenman & Takvim -> Kadro & Sporcular -> Tesis & Operasyon -> Mali İşler -> Analiz
+                  _buildTrainingSection(context, c,
+                      trainingEnabled: trainingEnabled,),
+                  const SizedBox(height: SwanSpace.xl),
+                  _buildRosterSection(context, c,
+                      club: club,
+                      pendingApps: pendingApps,
+                      activeAthletesCount: activeAthletesCount,),
+                  const SizedBox(height: SwanSpace.xl),
                   _buildOperationsSection(context, c,
                       club: club,
                       access: access,
@@ -355,9 +362,10 @@ class ClubCockpitScreen extends ConsumerWidget {
               SizedBox(
                 width: double.infinity,
                 child: OutlinedButton.icon(
-                  onPressed: () => context.swanPush(
-                    AppRoutes.clubProfile,
-                    extra: club.id,
+                  onPressed: () => Navigator.pushNamed(
+                    context,
+                    '/kulup-profil',
+                    arguments: club.id,
                   ),
                   icon: Icon(Icons.storefront_outlined, size: 16, color: c.ink),
                   label: Text('Kulüp Sayfası', style: SwanType.bodySm(c.ink)),
@@ -444,7 +452,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 color: c.warning,
                 text: '$pendingApps yeni sporcu başvurusu onayınızı bekliyor',
                 buttonLabel: 'Onayla',
-                onTap: () => context.swanPush(AppRoutes.applications),
+                onTap: () => Navigator.pushNamed(context, '/basvurular'),
               ),
               const SizedBox(height: SwanSpace.xs),
             ],
@@ -454,7 +462,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               color: c.accent,
               text: 'Günün antrenman yoklamasını başlatın',
               buttonLabel: 'Yoklama Al',
-              onTap: () => context.swanPush(AppRoutes.attendance),
+              onTap: () => Navigator.pushNamed(context, '/attendance'),
             ),
             const SizedBox(height: SwanSpace.xs),
             _urgentRow(
@@ -478,7 +486,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               color: c.accent,
               text: 'Günün antrenman yoklamasını başlatın',
               buttonLabel: 'Yoklama Al',
-              onTap: () => context.swanPush(AppRoutes.attendance),
+              onTap: () => Navigator.pushNamed(context, '/attendance'),
             ),
             if (trainingEnabled) ...[
               const SizedBox(height: SwanSpace.xs),
@@ -489,7 +497,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 text: 'Günün antrenman oturumunu başlatın ve yönetin',
                 buttonLabel: 'Oturum Aç',
                 onTap: () =>
-                    context.swanPush(AppRoutes.trainingSession),
+                    Navigator.pushNamed(context, '/antrenman-oturumu'),
               ),
             ],
             if (pendingApps > 0) ...[
@@ -500,7 +508,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 color: c.warning,
                 text: '$pendingApps yeni sporcu başvurusu inceleme bekliyor',
                 buttonLabel: 'Başvurular',
-                onTap: () => context.swanPush(AppRoutes.applications),
+                onTap: () => Navigator.pushNamed(context, '/basvurular'),
               ),
             ],
           ],
@@ -581,25 +589,25 @@ class ClubCockpitScreen extends ConsumerWidget {
         c,
         title: 'Takım',
         value: '$teamsCount',
-        onTap: () => context.swanPush(AppRoutes.teams),
+        onTap: () => Navigator.pushNamed(context, '/teams'),
       ),
       _kpiItem(
         c,
         title: 'Sporcu',
         value: '$athletesCount',
-        onTap: () => context.swanPush(AppRoutes.athletes),
+        onTap: () => Navigator.pushNamed(context, '/athletes'),
       ),
       _kpiItem(
         c,
         title: 'Antrenör',
         value: '$coachesCount',
-        onTap: () => context.swanPush(AppRoutes.athletes),
+        onTap: () => Navigator.pushNamed(context, '/athletes'),
       ),
       _kpiItem(
         c,
         title: 'Veli',
         value: '$guardiansCount',
-        onTap: () => context.swanPush(AppRoutes.applications),
+        onTap: () => Navigator.pushNamed(context, '/basvurular'),
       ),
     ];
 
@@ -690,9 +698,10 @@ class ClubCockpitScreen extends ConsumerWidget {
     SwanPalette c,
   ) {
     return InkWell(
-      onTap: () => context.swanPush(
-        AppRoutes.clubProfile,
-        extra: club.id,
+      onTap: () => Navigator.pushNamed(
+        context,
+        '/kulup-profil',
+        arguments: club.id,
       ),
       borderRadius: BorderRadius.circular(SwanRadius.md),
       child: Container(
@@ -760,7 +769,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 iconColor: const Color(0xFF00C9B7),
                 title: 'Takımlarım',
                 subtitle: 'Tüm takımları yönet',
-                onTap: () => context.swanPush(AppRoutes.teams),
+                onTap: () => Navigator.pushNamed(context, '/teams'),
               ),
             ),
             const SizedBox(width: SwanSpace.sm),
@@ -771,7 +780,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 iconColor: const Color(0xFF3B82F6),
                 title: 'Antrenörler',
                 subtitle: 'Antrenör kadronu yönet',
-                onTap: () => context.swanPush(AppRoutes.athletes),
+                onTap: () => Navigator.pushNamed(context, '/athletes'),
               ),
             ),
           ],
@@ -786,7 +795,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 iconColor: const Color(0xFF10B981),
                 title: 'Antrenman Programı',
                 subtitle: 'Antrenmanları planla',
-                onTap: () => context.swanPush(AppRoutes.calendar),
+                onTap: () => Navigator.pushNamed(context, '/calendar'),
               ),
             ),
             const SizedBox(width: SwanSpace.sm),
@@ -797,7 +806,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 iconColor: const Color(0xFFF59E0B),
                 title: 'Yoklama',
                 subtitle: 'Yoklamaları takip et',
-                onTap: () => context.swanPush(AppRoutes.attendance),
+                onTap: () => Navigator.pushNamed(context, '/attendance'),
               ),
             ),
           ],
@@ -812,7 +821,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 iconColor: const Color(0xFF8B5CF6),
                 title: 'Aidat Takibi',
                 subtitle: 'Ödemeleri görüntüle',
-                onTap: () => context.swanPush(AppRoutes.finance),
+                onTap: () => Navigator.pushNamed(context, '/finans'),
               ),
             ),
             const SizedBox(width: SwanSpace.sm),
@@ -823,7 +832,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 iconColor: const Color(0xFFEC4899),
                 title: 'Duyurular',
                 subtitle: 'Kulüp duyurularını paylaş',
-                onTap: () => context.swanPush(AppRoutes.announcements),
+                onTap: () => Navigator.pushNamed(context, '/announcements'),
               ),
             ),
           ],
@@ -908,7 +917,7 @@ class ClubCockpitScreen extends ConsumerWidget {
           children: [
             Expanded(child: _buildSectionHeader('SON ETKİNLİKLER', c)),
             InkWell(
-              onTap: () => context.swanPush(AppRoutes.calendar),
+              onTap: () => Navigator.pushNamed(context, '/calendar'),
               borderRadius: BorderRadius.circular(SwanRadius.sm),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -983,7 +992,7 @@ class ClubCockpitScreen extends ConsumerWidget {
         '${event.startsAt.hour.toString().padLeft(2, '0')}:${event.startsAt.minute.toString().padLeft(2, '0')}';
 
     return InkWell(
-      onTap: () => context.swanPush(AppRoutes.calendar),
+      onTap: () => Navigator.pushNamed(context, '/calendar'),
       borderRadius: BorderRadius.circular(SwanRadius.md),
       child: Padding(
         padding: const EdgeInsets.symmetric(
@@ -1059,6 +1068,138 @@ class ClubCockpitScreen extends ConsumerWidget {
   }
 
   // -------------------------------------------------------------
+  // KADRO & SPORCULAR BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildRosterSection(
+    BuildContext context,
+    SwanPalette c, {
+    required ClubRef club,
+    required int pendingApps,
+    required int activeAthletesCount,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('KADRO & SPORCULAR', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            _buildTile(
+              c,
+              icon: Icons.person_add_alt_1_rounded,
+              title: 'Yeni Sporcu / Öğrenci Ekle',
+              subtitle:
+                  'WhatsApp davet linki gönder veya sahada elle kaydet',
+              badge: 'Hızlı',
+              badgeColor: c.accent,
+              onTap: () => _showAddAthleteHybridSheet(context, club),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.how_to_reg_rounded,
+              title: 'Gelen Başvurular',
+              subtitle: pendingApps > 0
+                  ? '$pendingApps onay bekleyen yeni öğrenci'
+                  : 'Yeni kayıt taleplerini incele',
+              badge: pendingApps > 0 ? '$pendingApps' : null,
+              badgeColor: c.warning,
+              onTap: () => Navigator.pushNamed(context, '/basvurular'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.groups_rounded,
+              title: 'Sporcu Kadrosu',
+              subtitle: '$activeAthletesCount aktif sporcu kaydı',
+              onTap: () => Navigator.pushNamed(context, '/athletes'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.shield_rounded,
+              title: 'Takımlar ve Yaş Grupları',
+              subtitle: 'Branş takımları, yaş kategorileri ve listeler',
+              onTap: () => Navigator.pushNamed(context, '/teams'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // -------------------------------------------------------------
+  // ANTRENMAN & TAKVİM BÖLÜMÜ
+  // -------------------------------------------------------------
+  Widget _buildTrainingSection(
+    BuildContext context,
+    SwanPalette c, {
+    required bool trainingEnabled,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildSectionHeader('ANTRENMAN & TAKVİM', c),
+        const SizedBox(height: SwanSpace.sm),
+        _buildGroupCard(
+          c,
+          children: [
+            _buildTile(
+              c,
+              icon: Icons.checklist_rounded,
+              title: 'Günlük Yoklama Al',
+              subtitle: 'Bugünkü antrenman için devam çizelgesi',
+              onTap: () => Navigator.pushNamed(context, '/attendance'),
+            ),
+            _buildDivider(c),
+            _buildTile(
+              c,
+              icon: Icons.fact_check_rounded,
+              title: 'Devam Durumu & Geçmiş',
+              subtitle: 'Tüm sporcuların devam ve yoklama raporları',
+              onTap: () => Navigator.pushNamed(context, '/devam-durumu'),
+            ),
+            _buildDivider(c),
+            if (trainingEnabled) ...[
+              _buildTile(
+                c,
+                icon: Icons.tune_rounded,
+                title: 'Antrenman Şablonları & Oturumlar',
+                subtitle:
+                    'Branşa özel egzersiz planları ve drill havuzu',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/antrenman-sablonlari',
+                ),
+              ),
+              _buildDivider(c),
+              _buildTile(
+                c,
+                icon: Icons.sports_rounded,
+                title: 'Antrenman Oturumu',
+                subtitle: 'Aktif antrenman oturumunu başlat ve yönet',
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/antrenman-oturumu',
+                ),
+              ),
+              _buildDivider(c),
+            ],
+            _buildTile(
+              c,
+              icon: Icons.calendar_month_rounded,
+              title: 'Kulüp Takvimi',
+              subtitle: 'Maçlar, antrenmanlar ve etkinlik programı',
+              onTap: () => Navigator.pushNamed(context, '/calendar'),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // -------------------------------------------------------------
   // MALİ İŞLER & KASA BÖLÜMÜ
   // -------------------------------------------------------------
   Widget _buildFinanceSection(
@@ -1098,7 +1239,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               icon: Icons.payments_rounded,
               title: 'Aidat ve Tahsilat Yönetimi',
               subtitle: 'Öğrenci aidat takibi ve tahsilat durumu',
-              onTap: () => context.swanPush(AppRoutes.finance),
+              onTap: () => Navigator.pushNamed(context, '/finans'),
             ),
             if (access.isClubAdmin) ...[
               _buildDivider(c),
@@ -1107,7 +1248,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 icon: Icons.receipt_long_rounded,
                 title: 'Kulüp Gideri Ekle',
                 subtitle: 'Tesis, malzeme ve operasyon harcaması kaydet',
-                onTap: () => context.swanPush(AppRoutes.quickExpense),
+                onTap: () => Navigator.pushNamed(context, '/gider-ekle'),
               ),
             ],
           ],
@@ -1143,8 +1284,9 @@ class ClubCockpitScreen extends ConsumerWidget {
                 title: 'Malzeme & Zimmet Takibi',
                 subtitle:
                     'Kulüp envanteri ve sporculara teslim edilenler',
-                onTap: () => context.swanPush(
-                  AppRoutes.clubInventory,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/kulup/malzeme-zimmet',
                 ),
               ),
               _buildDivider(c),
@@ -1154,7 +1296,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               icon: Icons.stadium_rounded,
               title: 'Tesisler ve Sahalar',
               subtitle: 'Kort ve saha tahsisleri, kullanım saatleri',
-              onTap: () => context.swanPush(AppRoutes.facilities),
+              onTap: () => Navigator.pushNamed(context, '/facilities'),
             ),
             _buildDivider(c),
             if (staffOperationsEnabled &&
@@ -1164,8 +1306,9 @@ class ClubCockpitScreen extends ConsumerWidget {
                 icon: Icons.health_and_safety_outlined,
                 title: 'Sağlık & İdari Dinlendirme',
                 subtitle: 'Sakatlık kayıtları ve dinlendirme kararları',
-                onTap: () => context.swanPush(
-                  AppRoutes.clubHealth,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/kulup/saglik-takibi',
                 ),
               ),
               _buildDivider(c),
@@ -1178,7 +1321,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 title: 'Sportif Kadro Planlama',
                 subtitle: 'Sezon kadrosunu ve görevleri planla',
                 onTap: () =>
-                    context.swanPush(AppRoutes.clubSquadPlanning),
+                    Navigator.pushNamed(context, '/kulup/kadro-planlama'),
               ),
               _buildDivider(c),
             ],
@@ -1189,7 +1332,7 @@ class ClubCockpitScreen extends ConsumerWidget {
                 title: 'Sezon Açılışı',
                 subtitle: 'Yeni sezonun kulüp hazırlıklarını yönet',
                 onTap: () =>
-                    context.swanPush(AppRoutes.seasonSetup),
+                    Navigator.pushNamed(context, '/sezon-acilisi'),
               ),
               _buildDivider(c),
             ],
@@ -1198,7 +1341,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               icon: Icons.campaign_rounded,
               title: 'Kulüp Duyurusu Paylaş',
               subtitle: 'Tüm sporcu ve velilere anlık duyuru gönder',
-              onTap: () => context.swanPush(AppRoutes.announcements),
+              onTap: () => Navigator.pushNamed(context, '/announcements'),
             ),
             _buildDivider(c),
             _buildTile(
@@ -1206,7 +1349,7 @@ class ClubCockpitScreen extends ConsumerWidget {
               icon: Icons.medical_services_rounded,
               title: 'Medikal Merkez',
               subtitle: 'Sağlık muayeneleri, tetkikler ve sağlık raporları',
-              onTap: () => context.swanPush(AppRoutes.medicalCenter),
+              onTap: () => Navigator.pushNamed(context, '/medical-center'),
             ),
           ],
         ),
@@ -1235,8 +1378,9 @@ class ClubCockpitScreen extends ConsumerWidget {
               icon: Icons.bar_chart_rounded,
               title: 'Performans & Analitik',
               subtitle: 'Takım ve sporcu gelişim istatistikleri',
-              onTap: () => context.swanPush(
-                AppRoutes.performanceAnalytics,
+              onTap: () => Navigator.pushNamed(
+                context,
+                '/performance-analytics',
               ),
             ),
             _buildDivider(c),
@@ -1245,8 +1389,9 @@ class ClubCockpitScreen extends ConsumerWidget {
               icon: Icons.dashboard_rounded,
               title: 'Komuta Merkezi',
               subtitle: 'Kulüp operasyonel genel bakış',
-              onTap: () => context.swanPush(
-                AppRoutes.homeCommand,
+              onTap: () => Navigator.pushNamed(
+                context,
+                '/home-command',
               ),
             ),
             if (access.isClubAdmin) ...[
@@ -1256,8 +1401,9 @@ class ClubCockpitScreen extends ConsumerWidget {
                 icon: Icons.settings_suggest_rounded,
                 title: 'Kulüp Ayarları',
                 subtitle: 'Kulüp tercihleri, profil ve üyelik ayarları',
-                onTap: () => context.swanPush(
-                  AppRoutes.clubSettings,
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/settings',
                 ),
               ),
             ],
@@ -1657,8 +1803,9 @@ class _AddAthleteHybridSheetState
                     style: SwanType.caption(c.inkMuted),),
                 TextButton(
                   onPressed: () {
-                    context.swanPop();
-                    context.swanPush(AppRoutes.athletes);
+                    final navigator = Navigator.of(context);
+                    navigator.pop();
+                    navigator.pushNamed('/athletes');
                   },
                   child: const Text('Mevcut üyeyi kadroya bağla'),
                 ),

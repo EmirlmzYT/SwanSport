@@ -267,16 +267,19 @@ class _AthleteWorkspaceScreenState
                   top: -2,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: c.danger,
+                    decoration: const BoxDecoration(
+                      color: Colors.red,
                       shape: BoxShape.circle,
                     ),
                     constraints:
                         const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '$pendingCount',
-                      style: SwanType.caption(c.onAccent,
-                          w: FontWeight.bold),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                       textAlign: TextAlign.center,
                     ),
                   ),
@@ -529,8 +532,8 @@ class _AthleteWorkspaceScreenState
               color: c.accent,
               shape: BoxShape.circle,
             ),
-            child: Icon(Icons.person_add_rounded,
-                color: c.onAccent, size: 20),
+            child: const Icon(Icons.person_add_rounded,
+                color: Colors.white, size: 20),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -552,7 +555,7 @@ class _AthleteWorkspaceScreenState
             onPressed: () => Navigator.pushNamed(context, '/basvurular'),
             style: TextButton.styleFrom(
               backgroundColor: c.accent,
-              foregroundColor: c.onAccent,
+              foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -595,7 +598,7 @@ class _AthleteWorkspaceScreenState
               label: const Text('Kulüp Oluştur'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
-                foregroundColor: c.onAccent,
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),

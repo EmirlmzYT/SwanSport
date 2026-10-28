@@ -22,9 +22,7 @@ import '../../../../app/design/swan_shape.dart';
 
 /// Persisted settings and shortcuts to existing services.
 class ClubSettingsScreen extends ConsumerStatefulWidget {
-  const ClubSettingsScreen({super.key, this.accountOnly = false});
-
-  final bool accountOnly;
+  const ClubSettingsScreen({super.key});
   @override
   ConsumerState<ClubSettingsScreen> createState() => _ClubSettingsScreenState();
 }
@@ -39,10 +37,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
         ref.watch(clubPendingApplicationsProvider).valueOrNull?.length ?? 0;
 
     return SwanScaffold(
-      appBar: swanModuleAppBar(
-        context,
-        title: widget.accountOnly ? 'Hesap ve Uygulama' : 'Kulüp Ayarları',
-      ),
+      appBar: swanModuleAppBar(context, title: 'Kulüp Ayarları'),
       backgroundColor: c.bg,
       body: Center(
         child: ConstrainedBox(
@@ -56,9 +51,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
             ),
             children: [
               // Kulüp Personeli için Kulüp Yönetimi ve Ayarları EN TEPEDE
-              if (!widget.accountOnly &&
-                  club != null &&
-                  access.hasActiveClubStaffMembership) ...[
+              if (club != null && access.isClubStaff) ...[
                 _group('Kulüp Yönetimi & Ayarları', [
                   _clubHeaderCard(club, access),
                   SwanActionCard(
@@ -101,9 +94,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                     ),
                   ),
                 ]),
-              ] else if (!widget.accountOnly &&
-                  club == null &&
-                  (access.coachLevel > 0 || access.isClubAdmin)) ...[
+              ] else if (club == null && (access.coachLevel > 0 || access.isClubAdmin)) ...[
                 _group('Kulüp İşlemleri', [
                   SwanActionCard(
                     title: 'Yeni Kulüp Kur',
@@ -172,8 +163,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                   },
                 ),
                 const _PushToggleRow(),
-                _shortcut('Bildirimler', '/bildirimler',
-                    Icons.notifications_outlined),
+                _shortcut(
+                    'Bildirimler', '/bildirimler', Icons.notifications_outlined),
               ]),
 
               _group('Destek ve Oturum', [
@@ -242,17 +233,13 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
     );
   }
 
-  Widget _group(String title, List<Widget> children) => SwanSurface(
-          child:
-              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        Text(title, style: SwanType.h3(context.swan.ink)),
-        const SizedBox(height: SwanSpace.md),
-        ...children,
-      ]));
+  Widget _group(String title, List<Widget> children) => SwanSurface(child: Column(
+    crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      Text(title, style: SwanType.h3(context.swan.ink)),
+      const SizedBox(height: SwanSpace.md), ...children,
+    ]));
   Widget _shortcut(String title, String route, IconData icon) => SwanActionCard(
-      title: title,
-      icon: icon,
-      onTap: () => Navigator.pushNamed(context, route));
+    title: title, icon: icon, onTap: () => Navigator.pushNamed(context, route));
 
   Future<void> _signOut() async {
     final ok = await showDialog<bool>(
@@ -290,18 +277,6 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
   }
 }
 
-/// `/settings` remains the club-settings compatibility route. Users without
-/// an active club staff scope are sent to the general account surface.
-class ClubSettingsRouteGate extends ConsumerWidget {
-  const ClubSettingsRouteGate({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) => ClubSettingsScreen(
-        accountOnly:
-            !ref.watch(swanAccessProvider).hasActiveClubStaffMembership,
-      );
-}
-
 /// Gerçek push anahtarı — tarayıcı aboneliğini ve veritabanı kaydını yönetir.
 class _PushToggleRow extends ConsumerWidget {
   const _PushToggleRow();
@@ -309,8 +284,10 @@ class _PushToggleRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary = isDark ? context.swan.ink : SwanPalette.light.ink;
-    final textMuted = isDark ? context.swan.inkMuted : context.swan.inkMuted;
+    final textPrimary =
+        isDark ? context.swan.ink : SwanPalette.light.ink;
+    final textMuted =
+        isDark ? context.swan.inkMuted : context.swan.inkMuted;
     final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
 
@@ -389,8 +366,7 @@ class _PushToggleRow extends ConsumerWidget {
                               PushFailure.unsupported =>
                                 'Bu tarayıcı bildirim desteklemiyor.',
                               PushFailure.failed => 'Açılamadı, tekrar dene.',
-                              PushFailure.apnsUnavailable =>
-                                'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırmasını kontrol et.',
+                              PushFailure.apnsUnavailable => 'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırmasını kontrol et.',
                             },
                           ),
                           backgroundColor: SwanPalette.light.danger,

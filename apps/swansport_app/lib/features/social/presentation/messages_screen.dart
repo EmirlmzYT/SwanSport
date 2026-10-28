@@ -1,10 +1,7 @@
-import '../../../app/navigation/app_routes.dart';
-import '../../../app/navigation/swan_navigation.dart';
-import '../../../app/widgets/swan_scaffold.dart';
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/widgets/action_gate.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
@@ -14,6 +11,7 @@ import '../../../app/design/swan_type.dart';
 import '../../../app/widgets/shared_content_card.dart';
 import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
+import 'widgets/social_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/widgets/swan_floating_header.dart';
 
@@ -38,7 +36,6 @@ class _ChatItemDisplay {
     this.avatarUrl,
     this.avatarWidget,
     this.initials = '',
-    this.sortAt,
     required this.onTap,
   });
 
@@ -51,7 +48,6 @@ class _ChatItemDisplay {
   final String? avatarUrl;
   final Widget? avatarWidget;
   final String initials;
-  final DateTime? sortAt;
   final VoidCallback onTap;
 }
 
@@ -62,8 +58,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
 
   final List<String> _filters = const [
     'Tümü',
-    'Kişiler',
     'Gruplar',
+    'Kulüpler',
+    'Antrenörler',
   ];
 
   @override
@@ -153,10 +150,13 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                 children: [
                   const SwanHeaderSpacer(),
                   const SizedBox(height: SwanSpace.xs),
+
                   _buildSearchField(c),
                   const SizedBox(height: 12),
+
                   _buildCategoryFilters(c),
                   const SizedBox(height: 10),
+
                   dms.when(
                     loading: () => const Padding(
                       padding: EdgeInsets.all(SwanSpace.lg),
@@ -180,7 +180,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             ? SwanHeaderIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
                 tooltip: 'Geri dön',
-                onPressed: () => context.swanPop(),
+                onPressed: () => Navigator.maybePop(context),
               )
             : null,
         title: Text(
@@ -202,7 +202,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               icon: Icon(Icons.person_add_alt_1_outlined,
                   size: 20, color: c.accent),
               tooltip: 'Yeni Grup veya Kişi',
-              onPressed: () => context.swanPush(AppRoutes.search),
+              onPressed: () => Navigator.pushNamed(context, '/ara'),
             ),
           ),
           const SizedBox(width: 8),
@@ -217,7 +217,7 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               padding: EdgeInsets.zero,
               icon: Icon(Icons.edit_square, size: 19, color: c.accent),
               tooltip: 'Yeni Sohbet',
-              onPressed: () => context.swanPush(AppRoutes.search),
+              onPressed: () => Navigator.pushNamed(context, '/ara'),
             ),
           ),
         ],
@@ -243,8 +243,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             suffixIcon: _query.isEmpty
                 ? null
                 : IconButton(
-                    icon:
-                        Icon(Icons.close_rounded, size: 16, color: c.inkMuted),
+                    icon: Icon(Icons.close_rounded,
+                        size: 16, color: c.inkMuted),
                     onPressed: () {
                       _searchCtrl.clear();
                       setState(() => _query = '');
@@ -302,28 +302,6 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
       SwanPalette c, List<ConversationRow> dms, List<CommunityRow> groups) {
     final List<_ChatItemDisplay> items = [];
 
-    if (ref.watch(featureEnabledProvider(FeatureFlags.swanAssistant))) {
-      items.add(
-        _ChatItemDisplay(
-          id: 'swan-assistant',
-          title: 'Swan Asistan',
-          subtitle: 'Uygulama, etkinlik ve sporcu işlemlerinde yardım',
-          time: '',
-          kind: 'assistant',
-          avatarWidget: Container(
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: c.accent.withValues(alpha: .12),
-            ),
-            child: Center(
-              child: Icon(Icons.assistant_rounded, color: c.accent, size: 24),
-            ),
-          ),
-          onTap: () => context.swanPush(AppRoutes.aiAssistant),
-        ),
-      );
-    }
-
     // Real Supabase DMs
     for (final dm in dms) {
       items.add(_ChatItemDisplay(
@@ -331,12 +309,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
         title: dm.otherName,
         subtitle: dm.lastBody,
         time: _formatDate(dm.lastAt),
-        sortAt: dm.lastAt,
         unread: dm.unread,
         kind: 'coach',
         avatarUrl: dm.otherAvatarUrl,
         initials: dm.initials,
-        onTap: () => context.swanPush(AppRoutes.directMessage, extra: {
+        onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
           'id': dm.otherId,
           'name': dm.otherName,
         }),
@@ -352,41 +329,43 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
             ? g.lastBody!
             : '${g.memberCount} üye',
         time: _formatDate(g.lastAt),
-        sortAt: g.lastAt,
         kind: g.isFederation ? 'club' : 'group',
         initials: g.name.characters.take(2).toString(),
         avatarWidget: Container(
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: g.isFederation ? c.onAccent : c.surfaceAlt,
-            border:
-                Border.all(color: c.accent.withValues(alpha: 0.3), width: 1),
+            color: g.isFederation ? Colors.white : c.surfaceAlt,
+            border: Border.all(
+                color: c.accent.withValues(alpha: 0.3), width: 1),
           ),
           child: Center(
             child: Icon(
-              g.isFederation ? Icons.shield_outlined : Icons.group_rounded,
-              color: g.isFederation ? SwanPalette.light.ink : c.accent,
+              g.isFederation
+                  ? Icons.shield_outlined
+                  : Icons.group_rounded,
+              color: g.isFederation
+                  ? const Color(0xFF131D2E)
+                  : c.accent,
               size: 24,
             ),
           ),
         ),
-        onTap: () => context.swanPush(
-          g.isFederation ? AppRoutes.federation : AppRoutes.community,
-          extra: {'id': g.id, 'name': g.name},
+        onTap: () => Navigator.pushNamed(
+          context,
+          g.isFederation ? '/federasyon' : '/topluluk',
+          arguments: {'id': g.id, 'name': g.name},
         ),
       ));
     }
 
-    // Kişiler ve gruplar: kullanıcıya veri modelini değil, iletişim türünü
-    // gösterir. Federasyon kanalları da grup iletişiminin parçasıdır.
+    // Filter by category
     List<_ChatItemDisplay> filtered = items;
     if (_selectedFilter == 1) {
-      filtered = filtered
-          .where((i) => i.kind == 'coach' || i.kind == 'assistant')
-          .toList();
+      filtered = filtered.where((i) => i.kind == 'group').toList();
     } else if (_selectedFilter == 2) {
-      filtered =
-          filtered.where((i) => i.kind == 'group' || i.kind == 'club').toList();
+      filtered = filtered.where((i) => i.kind == 'club').toList();
+    } else if (_selectedFilter == 3) {
+      filtered = filtered.where((i) => i.kind == 'coach').toList();
     }
 
     // Filter by query
@@ -399,18 +378,9 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
           .toList();
     }
 
-    filtered.sort((a, b) {
-      if (a.kind == 'assistant') return -1;
-      if (b.kind == 'assistant') return 1;
-      final aAt = a.sortAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final bAt = b.sortAt ?? DateTime.fromMillisecondsSinceEpoch(0);
-      return bAt.compareTo(aAt);
-    });
-
     if (filtered.isEmpty) {
       return Padding(
-        padding:
-            const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
+        padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 48),
         child: Center(
           child: Column(
             children: [
@@ -441,9 +411,8 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
               ),
               const SizedBox(height: 18),
               FilledButton.icon(
-                onPressed: () => context.swanPush(AppRoutes.search),
-                icon: Icon(Icons.person_search_rounded,
-                    size: 16, color: c.onAccent),
+                onPressed: () => Navigator.pushNamed(context, '/ara'),
+                icon: Icon(Icons.person_search_rounded, size: 16, color: c.onAccent),
                 label: const Text('Kullanıcı Ara & Sohbet Başlat'),
                 style: FilledButton.styleFrom(
                   backgroundColor: c.accentFill,
@@ -563,7 +532,10 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
                               '${item.unread}',
                               style: SwanType.caption(c.onAccent,
                                       w: FontWeight.w800)
-                                  .copyWith(height: 1.1),
+                                  .copyWith(
+                                fontSize: 11,
+                                height: 1.1,
+                              ),
                             ),
                           ),
                       ],
@@ -597,16 +569,10 @@ class ChatScreen extends ConsumerStatefulWidget {
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
   final _ctrl = TextEditingController();
-  final _chatSearchCtrl = TextEditingController();
   final _scroll = ScrollController();
   final List<MessageRow> _pending = [];
   final Set<String> _marked = {};
   bool _perMessageMarkUnavailable = false;
-  bool _checkingSend = false;
-  bool _searching = false;
-  String _messageQuery = '';
-  int _renderedMessageCount = 0;
-  Future<void> _sendQueue = Future.value();
   @override
   void initState() {
     super.initState();
@@ -623,7 +589,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   void dispose() {
     OpenChat.close(widget.otherId);
     _ctrl.dispose();
-    _chatSearchCtrl.dispose();
     _scroll.dispose();
     super.dispose();
   }
@@ -657,70 +622,51 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
   }
 
   Future<void> _send() async {
-    if (_checkingSend || _ctrl.text.trim().isEmpty) return;
-    _checkingSend = true;
-    try {
-      if (!await requireSwanAction(context, ref, SwanAction.message) ||
-          !mounted) return;
-      final text = _ctrl.text.trim();
-      if (text.isEmpty) return;
-      _ctrl.clear();
-      _deliver(text);
-    } finally {
-      _checkingSend = false;
-    }
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
+      return;
+    final text = _ctrl.text.trim();
+    if (text.isEmpty) return;
+    _ctrl.clear();
+    await _deliver(text);
   }
 
-  void _deliver(String text, {String? retryId}) {
-    final id = retryId ?? NotificationService.newMessageId();
+  Future<void> _deliver(String text, {String? retryId}) async {
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
+      return;
+    final id = retryId ?? 'local-${DateTime.now().microsecondsSinceEpoch}';
     setState(() {
-      final existing = _pending.indexWhere((m) => m.id == id);
-      final message = MessageRow(
-        id: id,
-        body: text,
-        createdAt: DateTime.now(),
-        isMine: true,
-        status: MessageStatus.sending,
-      );
-      if (existing < 0) {
-        _pending.add(message);
-      } else {
-        _pending[existing] = message;
-      }
+      _pending
+        ..removeWhere((m) => m.id == id)
+        ..add(MessageRow(
+          id: id,
+          body: text,
+          createdAt: DateTime.now(),
+          isMine: true,
+          status: MessageStatus.sending,
+        ));
     });
     _scrollToEnd();
-    final service = ref.read(notificationServiceProvider);
-    _sendQueue = _sendQueue.then((_) async {
-      try {
-        final sent = await service.send(
-          widget.otherId,
-          text,
-          messageId: id,
-        );
-        if (!mounted) return;
-        setState(() {
-          final index = _pending.indexWhere((m) => m.id == id);
-          if (index >= 0) _pending[index] = sent;
-        });
-        ref.invalidate(conversationsProvider);
-      } catch (_) {
-        if (!mounted) return;
-        setState(() {
-          final index = _pending.indexWhere((m) => m.id == id);
-          if (index >= 0) {
-            _pending[index] =
-                _pending[index].copyWith(status: MessageStatus.failed);
-          }
-        });
-      }
-    });
+
+    try {
+      await ref.read(notificationServiceProvider).send(widget.otherId, text);
+      if (mounted) setState(() => _pending.removeWhere((m) => m.id == id));
+      ref.invalidate(conversationsProvider);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        final i = _pending.indexWhere((m) => m.id == id);
+        if (i >= 0) {
+          _pending[i] = _pending[i].copyWith(status: MessageStatus.failed);
+        }
+      });
+    }
   }
 
   void _scrollToEnd() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!_scroll.hasClients) return;
       _scroll.animateTo(
-        _scroll.position.maxScrollExtent,
+        0,
         duration: const Duration(milliseconds: 220),
         curve: Curves.easeOut,
       );
@@ -733,7 +679,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     final async = ref.watch(chatProvider(widget.otherId));
 
     return SwanScaffold(
-      backgroundColor: c.surfaceAlt,
+      backgroundColor: c.bg,
       header: _buildChatHeader(c),
       body: SafeArea(
         child: Center(
@@ -745,50 +691,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                   child: async.when(
                     loading: () =>
                         const Center(child: CircularProgressIndicator()),
-                    error: (_, __) => Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('Mesajlar yüklenemedi',
-                              style: SwanType.bodySm(c.ink)),
-                          const SizedBox(height: 8),
-                          TextButton.icon(
-                            onPressed: () =>
-                                ref.invalidate(chatProvider(widget.otherId)),
-                            icon: const Icon(Icons.refresh_rounded),
-                            label: const Text('Tekrar dene'),
-                          ),
-                        ],
-                      ),
-                    ),
+                    error: (e, _) => premiumError(context, '$e'),
                     data: (list) {
                       _markVisible(list);
-                      final serverIds = list.map((m) => m.id).toSet();
-                      final merged = [
-                        ...list,
-                        ..._pending.where((m) => !serverIds.contains(m.id)),
-                      ]..sort((a, b) {
-                          final byTime = a.createdAt.compareTo(b.createdAt);
-                          return byTime != 0 ? byTime : a.id.compareTo(b.id);
-                        });
-                      final query = _messageQuery.toLowerCase();
-                      final all = query.isEmpty
-                          ? merged
-                          : merged
-                              .where(
-                                  (m) => m.body.toLowerCase().contains(query))
-                              .toList();
-
-                      if (query.isEmpty && all.length > _renderedMessageCount) {
-                        final wasAtBottom = !_scroll.hasClients ||
-                            _scroll.position.maxScrollExtent -
-                                    _scroll.position.pixels <
-                                120;
-                        if (_renderedMessageCount == 0 || wasAtBottom) {
-                          _scrollToEnd();
-                        }
-                        _renderedMessageCount = all.length;
-                      }
+                      final all = [...list, ..._pending];
 
                       if (all.isEmpty) {
                         return Center(
@@ -827,50 +733,25 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
                       return ListView.builder(
                         controller: _scroll,
+                        reverse: true,
                         padding: const EdgeInsets.fromLTRB(16, 10, 16, 14),
                         itemCount: all.length,
-                        itemBuilder: (_, i) {
-                          final index = i;
-                          final message = all[index];
-                          final previous = index > 0 ? all[index - 1] : null;
-                          final showDate = previous == null ||
-                              !_sameDay(previous.createdAt, message.createdAt);
-                          return Column(children: [
-                            if (showDate) _dateLabel(c, message.createdAt),
-                            _bubble(c, message),
-                          ]);
-                        },
+                        itemBuilder: (_, i) =>
+                            _bubble(c, all[all.length - 1 - i]),
                       );
                     },
                   ),
                 ),
+
+                // Interactive Quick Chips Row
+
+                // Bottom Message Input Bar
                 _buildInputBar(c),
               ],
             ),
           ),
         ),
       ),
-    );
-  }
-
-  bool _sameDay(DateTime a, DateTime b) =>
-      a.year == b.year && a.month == b.month && a.day == b.day;
-
-  Widget _dateLabel(SwanPalette c, DateTime date) {
-    final now = DateTime.now();
-    final yesterday = DateTime(now.year, now.month, now.day)
-        .subtract(const Duration(days: 1));
-    final label = _sameDay(date, now)
-        ? 'Bugün'
-        : _sameDay(date, yesterday)
-            ? 'Dün'
-            : '${date.day.toString().padLeft(2, '0')}.${date.month.toString().padLeft(2, '0')}.${date.year}';
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-      decoration: BoxDecoration(
-          color: c.surface, borderRadius: BorderRadius.circular(16)),
-      child: Text(label, style: SwanType.caption(c.inkMuted)),
     );
   }
 
@@ -882,85 +763,52 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         color: c.surface,
         border: Border(bottom: BorderSide(color: c.line)),
       ),
-      child: _searching
-          ? Row(
-              children: [
-                IconButton(
-                  onPressed: () => setState(() {
-                    _searching = false;
-                    _messageQuery = '';
-                    _chatSearchCtrl.clear();
-                  }),
-                  icon: const Icon(Icons.arrow_back_rounded),
-                  tooltip: 'Aramayı kapat',
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+              child: Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.maybePop(context),
+                icon: Icon(Icons.arrow_back_ios_new_rounded,
+                    size: 18, color: c.ink),
+                tooltip: 'Geri',
+              ),
+              CircleAvatar(
+                radius: 20,
+                backgroundColor: c.surface,
+                child: Text(
+                  widget.otherName.isNotEmpty
+                      ? widget.otherName[0].toUpperCase()
+                      : '?',
+                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),
                 ),
-                Expanded(
-                  child: TextField(
-                    controller: _chatSearchCtrl,
-                    autofocus: true,
-                    onChanged: (value) =>
-                        setState(() => _messageQuery = value.trim()),
-                    decoration: const InputDecoration(
-                      hintText: 'Sohbette ara…',
-                      border: InputBorder.none,
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                    child: Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => setState(() => _searching = true),
-                      icon: Icon(Icons.search_rounded, size: 20, color: c.ink),
-                      tooltip: 'Sohbette ara',
-                    ),
-                    IconButton(
-                      onPressed: () => context.swanPop(),
-                      icon: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 18, color: c.ink),
-                      tooltip: 'Geri',
-                    ),
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: c.surfaceAlt,
-                      child: Text(
-                        widget.otherName.isNotEmpty
-                            ? widget.otherName[0].toUpperCase()
-                            : '?',
-                        style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                        child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(widget.otherName,
-                            style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                        Text('Birebir sohbet',
-                            style: SwanType.caption(c.inkMuted)),
-                      ],
-                    )),
-                  ],
-                )),
-                Row(
-                  children: [
-                    IconButton(
-                      onPressed: () => context.swanPush(AppRoutes.profile,
-                          extra: widget.otherId),
-                      icon: Icon(Icons.info_outline_rounded,
-                          size: 20, color: c.ink),
-                      tooltip: 'Profil',
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(widget.otherName,
+                      style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                  Text('Birebir sohbet', style: SwanType.caption(c.inkMuted)),
+                ],
+              )),
+            ],
+          )),
+          Row(
+            children: [
+              IconButton(
+                onPressed: () => Navigator.pushNamed(context, '/profil',
+                    arguments: widget.otherId),
+                icon: Icon(Icons.info_outline_rounded, size: 20, color: c.ink),
+                tooltip: 'Profil',
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -972,27 +820,12 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                 controller: _ctrl,
                 minLines: 1,
                 maxLines: 4,
-                textCapitalization: TextCapitalization.sentences,
-                textInputAction: TextInputAction.newline,
-                decoration: InputDecoration(
-                  hintText: 'Mesaj yaz…',
-                  filled: true,
-                  fillColor: c.surface,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                  border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(24),
-                      borderSide: BorderSide.none),
-                ))),
-        ValueListenableBuilder<TextEditingValue>(
-          valueListenable: _ctrl,
-          builder: (context, value, _) => IconButton(
+                onSubmitted: (_) => _send(),
+                decoration: const InputDecoration(hintText: 'Mesaj yaz…'))),
+        IconButton(
             tooltip: 'Gönder',
-            onPressed: value.text.trim().isEmpty ? null : _send,
-            icon: const Icon(Icons.send_rounded),
-            color: c.accent,
-          ),
-        ),
+            onPressed: _send,
+            icon: Icon(Icons.send_rounded, color: c.accent)),
       ]));
 
   Widget _bubble(SwanPalette c, MessageRow m) {
@@ -1000,16 +833,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
       alignment: m.isMine ? Alignment.centerRight : Alignment.centerLeft,
       child: GestureDetector(
         onTap: m.status == MessageStatus.failed
-            ? () async {
-                if (await requireSwanAction(context, ref, SwanAction.message) &&
-                    mounted) {
-                  _deliver(m.body, retryId: m.id);
-                }
-              }
+            ? () => _deliver(m.body, retryId: m.id)
             : null,
-        onLongPress: m.status == MessageStatus.sending
-            ? null
-            : () => _showMessageActions(c, m),
         child: Container(
           constraints: const BoxConstraints(maxWidth: 300),
           margin: const EdgeInsets.only(bottom: 8),
@@ -1018,7 +843,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
             gradient: m.isMine
                 ? LinearGradient(colors: [c.accentFill, c.accentFill])
                 : null,
-            color: m.isMine ? null : c.surface,
+            color: m.isMine ? null : c.surfaceAlt,
             borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(16),
               topRight: const Radius.circular(16),
@@ -1052,7 +877,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                       child: Text(
                     m.status == MessageStatus.failed
                         ? 'Gönderilemedi · dokun, tekrar dene'
-                        : '${m.createdAt.hour.toString().padLeft(2, '0')}:${m.createdAt.minute.toString().padLeft(2, '0')}',
+                        : shortAgo(m.createdAt),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: SwanType.caption(
@@ -1070,73 +895,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         ),
       ),
     );
-  }
-
-  Future<void> _showMessageActions(SwanPalette c, MessageRow message) async {
-    final action = await showModalBottomSheet<String>(
-      context: context,
-      backgroundColor: c.surface,
-      builder: (context) => SafeArea(
-        child: Wrap(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.copy_rounded),
-              title: const Text('Mesajı kopyala'),
-              onTap: () => Navigator.pop(context, 'copy'),
-            ),
-            if (message.isMine && message.status == MessageStatus.sent)
-              ListTile(
-                leading: Icon(Icons.delete_outline_rounded, color: c.danger),
-                title: Text('Mesajı sil', style: SwanType.body(c.danger)),
-                onTap: () => Navigator.pop(context, 'delete'),
-              ),
-          ],
-        ),
-      ),
-    );
-    if (!mounted || action == null) return;
-    if (action == 'copy') {
-      await Clipboard.setData(ClipboardData(text: message.body));
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Mesaj kopyalandı')),
-        );
-      }
-      return;
-    }
-    if (action == 'delete') {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Mesaj silinsin mi?'),
-          content: const Text('Bu işlem geri alınamaz.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Vazgeç'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Sil'),
-            ),
-          ],
-        ),
-      );
-      if (confirmed != true || !mounted) return;
-      try {
-        await ref
-            .read(notificationServiceProvider)
-            .deleteOwnMessage(message.id);
-        ref.invalidate(chatProvider(widget.otherId));
-        ref.invalidate(conversationsProvider);
-      } catch (_) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mesaj silinemedi. Tekrar deneyin.')),
-          );
-        }
-      }
-    }
   }
 
   Widget _tick(MessageRow m) => switch (m.status) {
