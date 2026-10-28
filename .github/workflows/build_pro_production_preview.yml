@@ -132,7 +132,7 @@ jobs:
           retention-days: 30
 
   build-pro-android:
-    name: Build SwanSport Pro Production Android APK
+    name: Build SwanSport Pro Android Preview APK
     needs: verify-pro
     runs-on: ubuntu-latest
     env:
@@ -160,18 +160,12 @@ jobs:
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
             --dart-define=APP_ENV=production
-          flutter build appbundle --release -t lib/main_production.dart \
-            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
-            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
-            --dart-define=APP_ENV=production
           mkdir -p build/release
           cp build/app/outputs/flutter-apk/app-release.apk \
             "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk"
-          cp build/app/outputs/bundle/release/app-release.aab \
-            "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production.aab"
-          sha256sum build/release/*.apk build/release/*.aab > \
+          sha256sum build/release/*.apk > \
             "build/release/SwanSport-Pro-${{ steps.version.outputs.value }}-production-preview.apk.sha256"
-          sha256sum build/release/*.apk build/release/*.aab > "build/release/checksums.txt"
+          sha256sum build/release/*.apk > "build/release/checksums.txt"
       - name: Verify embedded backend target
         working-directory: apps/swansport_pro
         run: |
@@ -186,7 +180,6 @@ jobs:
           name: SwanSport-Pro-Android-production-${{ steps.version.outputs.value }}
           path: |
             apps/swansport_pro/build/release/*.apk
-            apps/swansport_pro/build/release/*.aab
             apps/swansport_pro/build/release/*.sha256
             apps/swansport_pro/build/release/checksums.txt
           if-no-files-found: error
@@ -211,6 +204,10 @@ jobs:
           cache: true
       - run: python tools/production_target.py
       - run: flutter pub get --enforce-lockfile
+      - name: Materialize disabled Firebase resource
+        env:
+          TARGET_APP: pro
+        run: python tools/configure_ios_firebase.py
       - name: Read Pro version
         id: version
         run: |
@@ -226,6 +223,7 @@ jobs:
           flutter build ios --release --no-codesign -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=IOS_FIREBASE_ENABLED=false \
             --dart-define=APP_ENV=production
           strings build/ios/iphoneos/Runner.app/Frameworks/App.framework/App | grep -F "$PRODUCTION_PROJECT_REF"
           if strings build/ios/iphoneos/Runner.app/Frameworks/App.framework/App | grep -Fq "$STAGING_PROJECT_REF"; then
@@ -266,7 +264,6 @@ jobs:
           generate_release_notes: true
           files: |
             release-assets/*.apk
-            release-assets/*.aab
             release-assets/*.ipa
             release-assets/*.tar.gz
             release-assets/*.sha256

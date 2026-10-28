@@ -19,6 +19,7 @@ env/
 
 google-services.json
 GoogleService-Info.plist
+Signing.xcconfig
 firebase_options.dart
 
 android/.gradle/

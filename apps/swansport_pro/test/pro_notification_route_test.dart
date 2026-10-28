@@ -72,9 +72,23 @@ void main() {
       }
     });
 
-    test('matches route to federation matches screen', () {
+    test('live matches use the cockpit only with a valid match id', () {
       expect(
-        resolveProNotificationRoute(kind: 'match_live'),
+        resolveProNotificationRoute(
+          kind: 'match_live',
+          entityType: 'match',
+          entityId: '00000000-0000-0000-0000-000000000001',
+        ),
+        equals(
+          '/operasyon/hakem-canli/00000000-0000-0000-0000-000000000001',
+        ),
+      );
+      expect(
+        resolveProNotificationRoute(
+          kind: 'match_live',
+          entityType: 'match',
+          entityId: '../hesap',
+        ),
         equals('/operasyon/federasyon-maclar'),
       );
       expect(
@@ -83,7 +97,8 @@ void main() {
       );
     });
 
-    test('platform and moderation notifications route to platform operations', () {
+    test('platform and moderation notifications route to platform operations',
+        () {
       expect(
         resolveProNotificationRoute(kind: 'store_decision'),
         equals('/operasyon/platform'),
@@ -94,7 +109,8 @@ void main() {
       );
     });
 
-    test('social or unmapped kinds safely fallback to inbox (/gelen-kutusu)', () {
+    test('social or unmapped kinds safely fallback to inbox (/gelen-kutusu)',
+        () {
       final fallbackKinds = [
         'message',
         'follow',
@@ -111,6 +127,30 @@ void main() {
           equals('/gelen-kutusu'),
           reason: 'Expected $kind to fallback to /gelen-kutusu',
         );
+      }
+    });
+  });
+
+  group('native push URL allowlist', () {
+    test('accepts known static and valid dynamic routes', () {
+      expect(resolveProPushUrl('/gelen-kutusu'), '/gelen-kutusu');
+      expect(
+        resolveProPushUrl(
+          '/operasyon/hakem-rapor/00000000-0000-0000-0000-000000000001',
+        ),
+        '/operasyon/hakem-rapor/00000000-0000-0000-0000-000000000001',
+      );
+    });
+
+    test('rejects external, malformed, queried, and unknown routes', () {
+      for (final route in [
+        'https://evil.example/hesap',
+        '/operasyon/hakem-canli/not-a-uuid',
+        '/gelen-kutusu?next=/hesap',
+        '/bilinmeyen',
+        '',
+      ]) {
+        expect(resolveProPushUrl(route), proFallbackRoute);
       }
     });
   });

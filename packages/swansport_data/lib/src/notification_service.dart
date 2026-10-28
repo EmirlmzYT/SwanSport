@@ -271,6 +271,26 @@ class NotificationService {
         .toList();
   }
 
+  /// Server-filtered professional inbox. Social rows never cross this RPC.
+  Future<List<NotificationRow>> listPro({
+    int limit = 60,
+    DateTime? before,
+  }) async {
+    if (_uid == null) return const [];
+    final rows = await _c.rpc<List<dynamic>>(
+      'my_pro_notifications',
+      params: {
+        'p_limit': limit,
+        if (before != null) 'p_before': before.toUtc().toIso8601String(),
+      },
+    );
+    return rows
+        .map((row) => NotificationRow.fromMap(
+              (row as Map).cast<String, dynamic>(),
+            ))
+        .toList();
+  }
+
   /// Zil rozeti — okunmamış bildirimler, **mesajlar hariç**.
   ///
   /// 0040'tan beri her doğrudan mesaj bir `notifications` satırı da üretiyor
@@ -316,6 +336,17 @@ class NotificationService {
     final uid = _uid;
     if (uid == null) return;
     await _c.rpc<void>('mark_notifications_read');
+  }
+
+  /// Marks only rows eligible for the professional application.
+  Future<void> markProRead({String? notificationId}) async {
+    if (_uid == null) return;
+    await _c.rpc<dynamic>(
+      'mark_pro_notifications_read',
+      params: {
+        if (notificationId != null) 'p_notification': notificationId,
+      },
+    );
   }
 
   // ----------------------------- mesajlar ------------------------------
@@ -525,8 +556,7 @@ final notificationServiceProvider = Provider<NotificationService>((ref) {
 final proNotificationsProvider =
     FutureProvider.autoDispose<List<NotificationRow>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
-  final all = await ref.watch(notificationsProvider.future);
-  return all.where((n) => isProNotificationKind(n.kind)).toList();
+  return ref.watch(notificationServiceProvider).listPro();
 });
 
 final proUnreadNotificationsCountProvider =

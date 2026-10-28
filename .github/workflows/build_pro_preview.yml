@@ -91,6 +91,10 @@ jobs:
       - name: Reject missing or production target
         run: python tools/staging_target.py
       - run: flutter pub get --enforce-lockfile
+      - name: Materialize disabled Firebase resource
+        env:
+          TARGET_APP: pro
+        run: python tools/configure_ios_firebase.py
       - name: Configure unsigned Pro build
         run: |
           printf '%s\n' 'DEVELOPMENT_TEAM = 0000000000' 'CODE_SIGN_IDENTITY =' \
@@ -102,6 +106,7 @@ jobs:
           flutter build ios --release --no-codesign -t lib/main_production.dart \
             --dart-define="SUPABASE_URL=$STAGING_SUPABASE_URL" \
             --dart-define="SUPABASE_ANON_KEY=$STAGING_SUPABASE_ANON_KEY" \
+            --dart-define=IOS_FIREBASE_ENABLED=false \
             --dart-define=APP_ENV=production
           mkdir -p build/ios/staging/Payload build/ios/release
           cp -R build/ios/iphoneos/Runner.app build/ios/staging/Payload/

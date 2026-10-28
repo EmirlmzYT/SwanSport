@@ -11,6 +11,9 @@ import 'package:swansport_pro/features/auth/pro_auth_gate.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
 
 class FakeAccountSessionService implements AccountSessionService {
+  FakeAccountSessionService({this.events});
+
+  final List<String>? events;
   String? lastEmail;
   String? lastPassword;
   bool shouldFail = false;
@@ -28,6 +31,7 @@ class FakeAccountSessionService implements AccountSessionService {
 
   @override
   Future<void> signOut() async {
+    events?.add('sign-out');
     signOutCalled = true;
   }
 }
@@ -122,6 +126,37 @@ void main() {
 
       final controller = container.read(proAuthControllerProvider.notifier);
       await controller.signOut();
+      expect(fake.signOutCalled, isTrue);
+    });
+
+    test('removes the Pro push subscription before ending the session',
+        () async {
+      final events = <String>[];
+      final fake = FakeAccountSessionService(events: events);
+      final controller = ProAuthController(
+        fake,
+        beforeSignOut: () async => events.add('push-cleanup'),
+      );
+
+      await controller.signOut();
+
+      expect(events, equals(['push-cleanup', 'sign-out']));
+    });
+
+    test('still signs out when push cleanup fails', () async {
+      final events = <String>[];
+      final fake = FakeAccountSessionService(events: events);
+      final controller = ProAuthController(
+        fake,
+        beforeSignOut: () async {
+          events.add('push-cleanup');
+          throw StateError('network');
+        },
+      );
+
+      await controller.signOut();
+
+      expect(events, equals(['push-cleanup', 'sign-out']));
       expect(fake.signOutCalled, isTrue);
     });
   });

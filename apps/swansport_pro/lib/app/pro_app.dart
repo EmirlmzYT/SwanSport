@@ -4,6 +4,7 @@ import '../features/auth/pro_auth_gate.dart';
 import '../features/operations/pro_feature_host.dart';
 import 'pro_router.dart';
 import 'pro_theme.dart';
+import 'push/pro_push_coordinator.dart';
 
 class ProApp extends ConsumerWidget {
   const ProApp({super.key});
@@ -18,9 +19,12 @@ class ProApp extends ConsumerWidget {
       theme: ProTheme.dark(),
       routerConfig: router,
       builder: (context, child) {
-        return ProAuthGate(
-          child: ProOperationsFeatureHost(
-            child: child ?? const SizedBox.shrink(),
+        return ProPushCoordinator(
+          router: router,
+          child: ProAuthGate(
+            child: ProOperationsFeatureHost(
+              child: child ?? const SizedBox.shrink(),
+            ),
           ),
         );
       },

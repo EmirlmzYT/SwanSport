@@ -100,8 +100,10 @@ async function createBaseFixture() {
       kind text,
       title text,
       body text,
+      actor_id uuid,
       entity_type text,
       entity_id uuid,
+      read_at timestamptz,
       created_at timestamptz default now()
     );
 
@@ -118,6 +120,14 @@ async function createBaseFixture() {
     $$;
 
     create function _match_follow_public(p uuid) returns boolean language sql as $$
+      select true
+    $$;
+
+    create function _guardian_result_visible(p uuid) returns boolean language sql as $$
+      select true
+    $$;
+
+    create function _match_notice_visible(p uuid) returns boolean language sql as $$
       select true
     $$;
 
@@ -176,7 +186,7 @@ async function createBaseFixture() {
   for (const name of files) {
     if (
       name.endsWith('_push_delivery_tracking.sql') ||
-      name.endsWith('_push_app_target.sql')
+      name.includes('_push_app_target')
     ) {
       await db.exec(await sql(name));
     }
@@ -209,6 +219,96 @@ test('all 42 notification kinds match exact target policy and unknown kinds fail
 
     const nullRes = await db.query('select public._notification_target_policy(null) as policy');
     assert.equal(nullRes.rows[0].policy, 'social', 'Null kind must fail closed to social');
+  } finally {
+    await db.close();
+  }
+});
+
+test('Pro inbox reads and marks only professional notifications', async () => {
+  const db = await createBaseFixture();
+  try {
+    await db.query(`select set_config('test.actor', $1, false)`, [id(1)]);
+    await db.query(`
+      insert into notifications(id, profile_id, kind, title, body)
+      values
+        ($1, $4, 'follow', 'Social', 'social body'),
+        ($2, $4, 'referee_assignment', 'Pro', 'pro body'),
+        ($3, $4, 'attendance', 'Both', 'both body')
+    `, [id(70), id(71), id(72), id(1)]);
+
+    await db.exec('set role authenticated');
+    const proRows = (await db.query(
+      'select kind from public.my_pro_notifications(60, null) order by kind',
+    )).rows;
+    assert.deepEqual(proRows.map((row) => row.kind), ['attendance', 'referee_assignment']);
+
+    const marked = (await db.query(
+      'select public.mark_pro_notifications_read(null) as count',
+    )).rows[0].count;
+    assert.equal(marked, 2);
+    await db.exec('reset role');
+
+    const states = (await db.query(
+      'select kind, read_at is not null as is_read from notifications order by kind',
+    )).rows;
+    assert.deepEqual(states, [
+      { kind: 'attendance', is_read: true },
+      { kind: 'follow', is_read: false },
+      { kind: 'referee_assignment', is_read: true },
+    ]);
+
+    await db.exec('set role anon');
+    await assert.rejects(
+      db.query('select * from public.my_pro_notifications(60, null)'),
+      /permission denied/i,
+    );
+  } finally {
+    await db.close();
+  }
+});
+
+test('subscription removal is scoped to account and application target', async () => {
+  const db = await createBaseFixture();
+  try {
+    await db.query(`
+      insert into push_subscriptions(id, profile_id, endpoint, kind, app_target)
+      values
+        ($1, $3, 'social-token', 'fcm', 'social'),
+        ($2, $3, 'pro-token', 'fcm', 'pro')
+    `, [id(80), id(81), id(1)]);
+    await db.query(`select set_config('test.actor', $1, false)`, [id(1)]);
+    await db.exec('set role authenticated');
+
+    await db.query("select public.drop_push_subscription('pro-token', 'social')");
+    await db.exec('reset role');
+    assert.equal(
+      (await db.query("select count(*)::int as count from push_subscriptions where endpoint='pro-token'"))
+        .rows[0].count,
+      1,
+    );
+
+    await db.exec('set role authenticated');
+    await db.query("select public.drop_push_subscription('pro-token', 'pro')");
+    await db.exec('reset role');
+    assert.equal(
+      (await db.query("select count(*)::int as count from push_subscriptions where endpoint='pro-token'"))
+        .rows[0].count,
+      0,
+    );
+    assert.equal(
+      (await db.query("select count(*)::int as count from push_subscriptions where endpoint='social-token'"))
+        .rows[0].count,
+      1,
+    );
+
+    await db.exec('set role authenticated');
+    await db.query("select public.drop_push_subscription('social-token')");
+    await db.exec('reset role');
+    assert.equal(
+      (await db.query("select count(*)::int as count from push_subscriptions where endpoint='social-token'"))
+        .rows[0].count,
+      0,
+    );
   } finally {
     await db.close();
   }

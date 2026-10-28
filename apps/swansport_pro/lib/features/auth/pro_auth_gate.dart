@@ -26,8 +26,6 @@ class ProAuthGate extends ConsumerWidget {
           ref.invalidateSwanAccess();
           if (nextUserId != null) {
             unawaited(ref.read(proPushClientProvider).registerWithServer());
-          } else {
-            unawaited(ref.read(proPushClientProvider).unregisterFromServer());
           }
         }
       },

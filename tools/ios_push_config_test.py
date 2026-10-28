@@ -90,16 +90,29 @@ class IosPushConfigTest(unittest.TestCase):
 
     def test_pro_ios_firebase_validation(self):
         config = {
-            'PROJECT_ID': 'swanspor',
+            'PROJECT_ID': 'swansport-pro',
             'BUNDLE_ID': 'com.swansport.pro',
             'GOOGLE_APP_ID': '1:987654321:ios:abcdef654321',
             'GCM_SENDER_ID': '987654321',
             'API_KEY': 'AIza' + 'y' * 35,
         }
         encode = lambda c: base64.b64encode(plistlib.dumps(c)).decode()
-        self.assertEqual(plistlib.loads(validate_config(encode(config), bundle_id='com.swansport.pro')), config)
+        self.assertEqual(
+            plistlib.loads(
+                validate_config(
+                    encode(config),
+                    bundle_id='com.swansport.pro',
+                    project_id='swansport-pro',
+                )
+            ),
+            config,
+        )
         with self.assertRaises(ValueError):
-            validate_config(encode({**config, 'BUNDLE_ID': 'com.swansport.app'}), bundle_id='com.swansport.pro')
+            validate_config(
+                encode({**config, 'BUNDLE_ID': 'com.swansport.app'}),
+                bundle_id='com.swansport.pro',
+                project_id='swansport-pro',
+            )
 
     def test_ci_configuration_is_before_both_unsigned_and_signed_builds(self):
         workflow = (ROOT / '.github/workflows/build_ios.yml').read_text()

@@ -60,20 +60,16 @@ void main() {
     expect(find.text('Gelen kutunuzda bildirim bulunmuyor.'), findsOneWidget);
   });
 
-  testWidgets(
-      'pro inbox filters out social-only notifications and supports tabs',
+  testWidgets('pro inbox renders server-filtered rows and supports tabs',
       (tester) async {
     await _pumpInbox(
       tester,
-      notificationsOverride: () async => _sampleNotifications,
+      notificationsOverride: () async => _sampleNotifications.take(2).toList(),
     );
 
     // Pro notifications are present
     expect(find.text('Yeni Hakem Ataması'), findsOneWidget);
     expect(find.text('Harcama Onayı Bekliyor'), findsOneWidget);
-
-    // Social-only notification is excluded!
-    expect(find.text('Sosyal Mesaj'), findsNothing);
 
     // Switch to "Okunmamış" (Unread) tab
     await tester.tap(find.textContaining('Okunmamış'));
@@ -86,10 +82,12 @@ void main() {
 
   testWidgets('tapping notification calls tap callback', (tester) async {
     NotificationRow? tapped;
+    String? markedId;
     await _pumpInbox(
       tester,
-      notificationsOverride: () async => _sampleNotifications,
+      notificationsOverride: () async => _sampleNotifications.take(2).toList(),
       onNotificationTap: (n) => tapped = n,
+      onMarkRead: (id) async => markedId = id,
     );
 
     await tester.tap(find.text('Yeni Hakem Ataması'));
@@ -97,6 +95,26 @@ void main() {
 
     expect(tapped, isNotNull);
     expect(tapped?.id, equals('n-1'));
+    expect(markedId, equals('n-1'));
+  });
+
+  testWidgets('mark all uses the Pro-only read operation', (tester) async {
+    var called = false;
+    String? markedId = 'not-called';
+    await _pumpInbox(
+      tester,
+      notificationsOverride: () async => _sampleNotifications.take(2).toList(),
+      onMarkRead: (id) async {
+        called = true;
+        markedId = id;
+      },
+    );
+
+    await tester.tap(find.byTooltip('Tümünü Okundu İşaretle'));
+    await tester.pumpAndSettle();
+
+    expect(called, isTrue);
+    expect(markedId, isNull);
   });
 
   testWidgets('renders properly on narrow 320px width screen without overflow',
@@ -107,7 +125,7 @@ void main() {
 
     await _pumpInbox(
       tester,
-      notificationsOverride: () async => _sampleNotifications,
+      notificationsOverride: () async => _sampleNotifications.take(2).toList(),
     );
 
     expect(find.text('Yeni Hakem Ataması'), findsOneWidget);
@@ -119,16 +137,18 @@ Future<void> _pumpInbox(
   WidgetTester tester, {
   required Future<List<NotificationRow>> Function() notificationsOverride,
   void Function(NotificationRow)? onNotificationTap,
+  Future<void> Function(String? notificationId)? onMarkRead,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
       overrides: [
         isSupabaseEnabledProvider.overrideWithValue(true),
-        notificationsProvider.overrideWith((ref) => notificationsOverride()),
+        proNotificationsProvider.overrideWith((ref) => notificationsOverride()),
       ],
       child: MaterialApp(
         home: SharedProInboxScreen(
           onNotificationTap: onNotificationTap,
+          onMarkRead: onMarkRead,
         ),
       ),
     ),

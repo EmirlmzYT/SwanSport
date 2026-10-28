@@ -19,7 +19,7 @@ class ProAppContractTest(unittest.TestCase):
         content = pro_pubspec.read_text(encoding='utf-8')
 
         self.assertRegex(content, r'(?m)^name:\s*swansport_pro\s*$')
-        self.assertRegex(content, r'(?m)^version:\s*0\.1\.3\+5\s*$')
+        self.assertRegex(content, r'(?m)^version:\s*0\.1\.4\+6\s*$')
         self.assertRegex(content, r'(?m)^resolution:\s*workspace\s*$')
 
         # Must have required shared/runtime dependencies
@@ -82,7 +82,7 @@ class ProAppContractTest(unittest.TestCase):
         plist_content = info_plist.read_text(encoding='utf-8')
         self.assertIn('<key>CFBundleDisplayName</key>\n\t<string>SwanSport Pro</string>', plist_content)
 
-    def test_pro_has_no_firebase_or_push_artifacts(self):
+    def test_pro_firebase_resources_are_ignored_but_native_contracts_exist(self):
         self.assertFalse(
             (PRO_DIR / 'ios' / 'Runner' / 'GoogleService-Info.plist').exists(),
             "GoogleService-Info.plist must not exist in Pro iOS",
@@ -92,10 +92,19 @@ class ProAppContractTest(unittest.TestCase):
             "google-services.json must not exist in Pro Android",
         )
 
-        # Ensure no aps-environment in any entitlements
-        for ent_file in (PRO_DIR / 'ios').glob('**/*.entitlements'):
-            ent_content = ent_file.read_text(encoding='utf-8')
-            self.assertNotIn('aps-environment', ent_content)
+        entitlements = PRO_DIR / 'ios' / 'Runner' / 'Runner.entitlements'
+        self.assertIn('aps-environment', entitlements.read_text(encoding='utf-8'))
+        pbxproj = (PRO_DIR / 'ios' / 'Runner.xcodeproj' / 'project.pbxproj').read_text(
+            encoding='utf-8'
+        )
+        self.assertIn('GoogleService-Info.plist in Resources', pbxproj)
+        self.assertIn('CODE_SIGN_ENTITLEMENTS = Runner/Runner.entitlements;', pbxproj)
+        self.assertIn('guard_ios_firebase_registration.py', pbxproj)
+        self.assertIn('com.apple.Push = {enabled = 1;}', pbxproj)
+        android = (PRO_DIR / 'android' / 'app' / 'build.gradle.kts').read_text(
+            encoding='utf-8'
+        )
+        self.assertIn('com.google.gms.google-services', android)
 
     def test_ci_workflow_includes_pro(self):
         ci_yaml = (ROOT / '.github' / 'workflows' / 'ci.yml').read_text(encoding='utf-8')
@@ -114,7 +123,7 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('SwanSport-Pro', content)
         self.assertIn('verify_ios_preview_bundle.py', content)
         self.assertIn('--firebase-enabled false', content)
-        self.assertNotIn('aps-environment', content)
+        self.assertIn('python tools/configure_ios_firebase.py', content)
 
     def test_build_pro_production_preview_workflow_contract(self):
         workflow = ROOT / '.github' / 'workflows' / 'build_pro_production_preview.yml'
@@ -147,6 +156,35 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('flutter build web --release', content)
         self.assertIn('sha256sum', content)
         self.assertNotIn('STAGING_SUPABASE', content)
+
+    def test_signed_mobile_workflow_is_manual_and_fail_closed(self):
+        content = (
+            ROOT / '.github' / 'workflows' / 'build_pro_signed_mobile.yml'
+        ).read_text(encoding='utf-8')
+        self.assertIn('workflow_dispatch:', content)
+        self.assertIn('PRO_ANDROID_GOOGLE_SERVICES_JSON_BASE64', content)
+        self.assertIn('PRO_ANDROID_KEYSTORE_BASE64', content)
+        self.assertIn('PRO_IOS_GOOGLE_SERVICE_INFO_BASE64', content)
+        self.assertIn('PRO_APPSTORE_CERTIFICATES_FILE_BASE64', content)
+        self.assertIn('--package com.swansport.pro', content)
+        self.assertIn('--dart-define=IOS_FIREBASE_ENABLED=true', content)
+        self.assertIn("'APS_ENVIRONMENT = production'", content)
+        self.assertNotIn('upload-testflight-build', content)
+        self.assertIn('Signing.xcconfig', (ROOT / '.gitignore').read_text(encoding='utf-8'))
+
+    def test_native_push_lifecycle_is_connected_to_the_pro_router(self):
+        client = (PRO_DIR / 'lib' / 'app' / 'push' / 'pro_push_client.dart').read_text(
+            encoding='utf-8'
+        )
+        coordinator = (
+            PRO_DIR / 'lib' / 'app' / 'push' / 'pro_push_coordinator.dart'
+        ).read_text(encoding='utf-8')
+        app = (PRO_DIR / 'lib' / 'app' / 'pro_app.dart').read_text(encoding='utf-8')
+        self.assertIn('FirebaseMessaging.onMessage', client)
+        self.assertIn('FirebaseMessaging.onMessageOpenedApp', client)
+        self.assertIn('getInitialMessage()', client)
+        self.assertIn('resolveProPushUrl(message.route)', coordinator)
+        self.assertIn('ProPushCoordinator(', app)
 
     def test_open_swansport_action_uses_real_supported_fallback(self):
         account_source = (

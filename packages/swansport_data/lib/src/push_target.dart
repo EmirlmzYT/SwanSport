@@ -66,7 +66,7 @@ bool isProNotificationKind(String? kind) {
 }
 
 /// Push subscription registration state on the server.
-enum PushSubState {
+enum PushSubscriptionState {
   mine,
   otherAccount,
   missing,
@@ -137,6 +137,7 @@ class PushSubscriptionService {
         'drop_push_subscription',
         params: {
           'p_endpoint': trimmed,
+          'p_app_target': _target.wireName,
         },
       );
       lastPushErrorDiagnostics = null;
@@ -147,11 +148,11 @@ class PushSubscriptionService {
   }
 
   /// Checks the current device endpoint registration state on the server.
-  Future<PushSubState> subscriptionState(String endpoint) async {
+  Future<PushSubscriptionState> subscriptionState(String endpoint) async {
     final client = _client;
-    if (client == null) return PushSubState.missing;
+    if (client == null) return PushSubscriptionState.missing;
     final trimmed = endpoint.trim();
-    if (trimmed.isEmpty) return PushSubState.missing;
+    if (trimmed.isEmpty) return PushSubscriptionState.missing;
     try {
       final res = await client.rpc<dynamic>(
         'push_subscription_state',
@@ -161,14 +162,14 @@ class PushSubscriptionService {
         },
       );
       return switch ('$res') {
-        'mine' => PushSubState.mine,
-        'other_account' => PushSubState.otherAccount,
-        'no_session' => PushSubState.noSession,
-        _ => PushSubState.missing,
+        'mine' => PushSubscriptionState.mine,
+        'other_account' => PushSubscriptionState.otherAccount,
+        'no_session' => PushSubscriptionState.noSession,
+        _ => PushSubscriptionState.missing,
       };
     } catch (e) {
       lastPushErrorDiagnostics = 'Push state query failed: ${e.runtimeType}';
-      return PushSubState.missing;
+      return PushSubscriptionState.missing;
     }
   }
 }

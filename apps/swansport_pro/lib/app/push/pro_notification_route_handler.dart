@@ -5,6 +5,45 @@ import 'package:swansport_data/swansport_data.dart';
 /// Fallback route when a notification cannot be routed to a specific operational screen.
 const String proFallbackRoute = '/gelen-kutusu';
 
+const _staticProRoutes = <String>{
+  '/panel',
+  '/gorevler',
+  '/takvim',
+  '/gelen-kutusu',
+  '/hesap',
+  '/operasyon/yoklama',
+  '/operasyon/antrenmanlar',
+  '/operasyon/federasyon-maclar',
+  '/operasyon/hakem-gorevleri',
+  '/operasyon/muhasebe',
+  '/operasyon/tesis-gorevleri',
+  '/operasyon/platform',
+};
+
+/// Accepts only known in-app paths from a native push payload.
+String resolveProPushUrl(String? rawUrl) {
+  if (rawUrl == null) return proFallbackRoute;
+  final uri = Uri.tryParse(rawUrl.trim());
+  if (uri == null ||
+      uri.hasScheme ||
+      uri.hasAuthority ||
+      uri.hasQuery ||
+      uri.hasFragment) {
+    return proFallbackRoute;
+  }
+  final path = uri.path;
+  if (_staticProRoutes.contains(path)) return path;
+  final segments = uri.pathSegments;
+  if (segments.length == 3 &&
+      segments[0] == 'operasyon' &&
+      const {'hakem-canli', 'hakem-esame', 'hakem-rapor'}
+          .contains(segments[1]) &&
+      isPublicMatchId(segments[2])) {
+    return '/operasyon/${segments[1]}/${segments[2]}';
+  }
+  return proFallbackRoute;
+}
+
 /// Resolves a notification kind and payload into a validated typed Pro route.
 ///
 /// Guaranteed to never throw; returns [proFallbackRoute] for any unmapped,
@@ -49,6 +88,13 @@ String resolveProNotificationRoute({
       return '/operasyon/tesis-gorevleri';
 
     case 'match_live':
+      if (entityType == 'match' &&
+          entityId != null &&
+          isPublicMatchId(entityId)) {
+        return '/operasyon/hakem-canli/$entityId';
+      }
+      return '/operasyon/federasyon-maclar';
+
     case 'match_result':
       return '/operasyon/federasyon-maclar';
 

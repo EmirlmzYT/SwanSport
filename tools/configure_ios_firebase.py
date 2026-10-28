@@ -41,6 +41,7 @@ if __name__ == '__main__':
     secret_key = 'PRO_IOS_GOOGLE_SERVICE_INFO_BASE64' if is_pro else 'GOOGLESERVICE_INFO_PLIST_BASE64'
     default_bundle = 'com.swansport.pro' if is_pro else 'com.swansport.app'
     bundle_id = os.environ.get('IOS_BUNDLE_ID', default_bundle)
+    project_id = os.environ.get('IOS_FIREBASE_PROJECT_ID', 'swanspor').strip()
     app_folder = 'apps/swansport_pro' if is_pro else 'apps/swansport_app'
     encoded = os.environ.get(secret_key, '') or ('' if is_pro else os.environ.get('GOOGLESERVICE_INFO_PLIST_BASE64', ''))
     target = Path(__file__).resolve().parent.parent / app_folder / 'ios/Runner/GoogleService-Info.plist'
@@ -53,7 +54,7 @@ if __name__ == '__main__':
         enabled = False
     else:
         try:
-            data = validate_config(encoded, bundle_id)
+            data = validate_config(encoded, bundle_id, project_id)
             target.write_bytes(data)
             enabled = True
             print('iOS Firebase config doğrulandı ve CI derleme kaynağına yerleştirildi.')

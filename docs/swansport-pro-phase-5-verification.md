@@ -1,11 +1,10 @@
 # SwanSport Pro — Faz 5 Bağımsız Doğrulama Raporu
 
-**Tarih:** 2026-10-28  
-**Raporlayan:** Uygulayıcı Ajan (Antigravity)  
-**Hedef Kitle:** Supervising Codex Ajanı, SwanSport Mimari Kurulu  
-**Başlangıç Commit'i:** `9e88831 feat(pro): complete phase four operations`  
-**Faz 5 Bitiş Versiyonu:** `0.1.3+5` (SwanSport Pro)  
-**Durum:** Tamamlandı, Bağımsız Denetime Hazır  
+**Tarih:** 2026-10-28
+**Raporlayan:** Uygulayıcı Ajan ve bağımsız Codex düzeltme turu
+**Başlangıç Commit'i:** `9e88831 feat(pro): complete phase four operations`
+**Faz 5 Bitiş Versiyonu:** `0.1.4+6` (SwanSport Pro)
+**Durum:** Kaynak kod ve yerel doğrulama tamamlandı; imzalı cihaz artefaktı ve fiziksel UAT bekliyor
 
 ---
 
@@ -26,7 +25,7 @@ SwanSport Pro Faz 5 geliştirmesi; operasyonel push bildirim altyapısının kur
 
 ## 2. Veritabanı ve Şema Doğrulaması
 
-- **Migration Dosyası:** `supabase/migrations/20261028000000_push_app_target.sql`
+- **Migration Dosyaları:** `20261028000000_push_app_target.sql` ve sonradan eklenen `20261028000100_push_app_target_hardening.sql`.
 - **Tablo Değişikliği:** `push_subscriptions` tablosuna `app_target text NOT NULL DEFAULT 'social'` sütunu ve `CHECK (app_target IN ('social', 'pro'))` kısıtı eklenmiştir.
 - **Performans İndeksi:** `CREATE INDEX IF NOT EXISTS idx_push_subscriptions_profile_target ON push_subscriptions (profile_id, app_target) WHERE is_active = true;`
 - **RPC Güncellemesi:** `register_push_subscription` fonksiyonuna `p_app_target text DEFAULT 'social'` parametresi eklenmiş, geçersiz hedefler fail-closed olarak `social`'a düşürülmüştür.
@@ -34,6 +33,7 @@ SwanSport Pro Faz 5 geliştirmesi; operasyonel push bildirim altyapısının kur
   - Bildirim türüne göre (`p_kind`) hedef uygulama (`social`, `pro` veya her ikisi) belirlenir.
   - İlgili kullanıcının yalnız ilgili `app_target` değerine sahip aktif cihazlarına bildirim kuyruklanır (`push_delivery_queue`).
   - Sosyal bildirimler Pro cihazlarına, operasyonel bildirimler ise son kullanıcı App cihazlarına asla iletilmez.
+- **Düzeltme turu güvenliği:** `drop_push_subscription` artık kullanıcı + endpoint + `app_target` ile sınırlandırılmıştır. `my_pro_notifications` ve `mark_pro_notifications_read` RPC'leri Pro gelen kutusunun sosyal kayıtları okumamasını veya okundu işaretlememesini sağlar. Fonksiyon yürütme izinleri yalnız `authenticated` rolüne açıkça verilmiştir.
 
 ---
 
@@ -57,7 +57,7 @@ SwanSport sistemindeki toplam **42 bildirim türü** (`notification_kinds`) 3 ka
 - **Dosya:** `functions/api/push.js`
 - **FCM Servis Hesabı İzolasyonu:**
   - `social` gönderimleri için `env.FCM_SERVICE_ACCOUNT` kullanılır.
-  - `pro` gönderimleri için `env.PRO_FCM_SERVICE_ACCOUNT` (yoksa izole `env.FCM_SERVICE_ACCOUNT`) kullanılır.
+  - `pro` gönderimleri yalnız `env.PRO_FCM_SERVICE_ACCOUNT` kullanır; sosyal servis hesabına geri düşmez.
 - **Android Bildirim Kanalı Ayrımı:**
   - Pro bildirimleri için `swansport_pro_default` kanalı konfigüre edilmiştir.
   - Social bildirimleri için `swansport_default` kanalı korunmuştur.
@@ -74,19 +74,21 @@ SwanSport sistemindeki toplam **42 bildirim türü** (`notification_kinds`) 3 ka
 - **Envanter ve Validator:** `proNotificationKinds` (33 tür: 15 pro-only + 18 both) ve `isProNotificationKind(kind)` fonksiyonu.
 - **Servis Güncellemesi:**
   - `PushSubscriptionService.registerSubscription` metoduna `appTarget` parametresi eklenmiş, varsayılan olarak `PushAppTarget.social` tanımlanmıştır.
-  - `notificationServiceProvider` üzerinden Pro için filtrelenmiş bildirim akışı: `proNotificationsProvider` ve `proUnreadNotificationsCountProvider`.
+  - `proNotificationsProvider`, genel ilk 50 satırı istemcide filtrelemek yerine `my_pro_notifications` RPC'sini kullanır. Pro okundu işlemleri de ayrı `mark_pro_notifications_read` RPC'sine gider.
+  - Ortak enum `PushSubscriptionState` olarak adlandırılmış; sosyal uygulamadaki yerel `PushSubState` ile derleme çakışması kaldırılmıştır.
 
 ---
 
 ## 6. Pro İstemcisi ve Bağımlılıklar
 
-- **Uygulama:** `apps/swansport_pro` (Sürüm: `0.1.3+5`)
+- **Uygulama:** `apps/swansport_pro` (Sürüm: `0.1.4+6`)
 - **Bağımlılıklar:** `firebase_core: ^4.14.0` ve `firebase_messaging: ^16.6.0` `pubspec.yaml` dosyasına eklenmiştir.
 - **Sözleşme Koruması:** `tools/pro_app_contract_test.py` güncellenmiş; firebase paketlerine izin verilirken, izole olmayan paketlerin (`swansport_branch_engine`) yasaklı kalması ve repoda hiçbir firebase JSON/plist sırrının bulunmaması kuralı güvenceye alınmıştır.
 - **Pro Push İstemcisi:** `apps/swansport_pro/lib/app/push/pro_push_client.dart`
   - Web ve konfigürasyonsuz ortamlarda (`kIsWeb` veya eksik Firebase Options) çökmeden sessizce fallback yapar.
   - Mobil açılışta `swansport_pro_default` kanalını başlatır ve token aldığında `PushAppTarget.pro` olarak Supabase'e kaydeder.
-  - `ProAuthGate` içinde oturum açıldığında abone olur, oturum kapatıldığında (`signOut`) push aboneliğini sunucudan siler (`unregister`).
+  - Oturum açıldığında abone olur. Çıkışta Pro aboneliği oturum sona ermeden önce silinir, yerel FCM token'ı iptal edilir ve ardından Supabase oturumu kapatılır.
+  - `FirebaseMessaging.onMessage`, `onMessageOpenedApp` ve `getInitialMessage` akışları `ProPushCoordinator` üzerinden görünür uyarı ve güvenli yönlendirmeye bağlanmıştır.
 
 ---
 
@@ -107,16 +109,9 @@ SwanSport sistemindeki toplam **42 bildirim türü** (`notification_kinds`) 3 ka
 ## 8. Deep-Link Yönlendirme Matrisi ve Güvenli Fallback
 
 - **Dosya:** `apps/swansport_pro/lib/app/push/pro_notification_route_handler.dart`
-- **Operasyonel Rota Eşleşmeleri:**
-  - `referee_assignment` -> `/app/referee`
-  - `expense_approval`, `expense_rejected`, `commitment_due`, `account_negative`, `bank_unmatched`, `period_closed`, `period_blocked` -> `/app/accounting`
-  - `turf_slot_request`, `turf_field`, `turf_manager`, `turf_delegation`, `court_waitlist` -> `/app/facilities`
-  - `attendance`, `attendance_reminder` -> `/app/attendance`
-  - `match_live`, `match_result` -> `/app/matches`
-  - `training_session`, `training_result` -> `/app/training`
-  - Diğer operasyonel / genel duyuru ve belgeler -> `/app/tasks` veya `/app/inbox`
+- **Operasyonel Rota Eşleşmeleri:** Gerçek GoRouter yolları kullanılır: `/operasyon/hakem-gorevleri`, `/operasyon/yoklama`, `/operasyon/antrenmanlar`, `/operasyon/muhasebe`, `/operasyon/tesis-gorevleri`, `/operasyon/federasyon-maclar`, `/operasyon/platform` ve geçerli maç UUID'si için `/operasyon/hakem-canli/:id`.
 - **Güvenli Fallback:**
-  - Yetkisiz, eksik parametreli veya tanınmayan rotalarda uygulama asla çökmez; otomatik olarak `/app/inbox` gelen kutusuna güvenle yönlendirir.
+  - Dış URL, query/fragment, geçersiz UUID veya tanınmayan rota reddedilir ve `/gelen-kutusu` yoluna düşer. Hedef ekran kendi `ProOperationsGate` / `SwanAccess` kontrolünü ayrıca uygular.
 
 ---
 
@@ -135,14 +130,14 @@ SwanSport sistemindeki toplam **42 bildirim türü** (`notification_kinds`) 3 ka
 
 ## 10. CI/CD ve Dağıtım Pipeline’ları
 
-- **GitHub Actions Workflow:** `.github/workflows/build_pro_production_preview.yml`
+- **GitHub Actions Workflows:** `.github/workflows/build_pro_production_preview.yml` (imzasız/debug-imzalı indirilebilir önizleme) ve yalnız elle çalışan `.github/workflows/build_pro_signed_mobile.yml` (gerçek imzalı mobil artefaktlar).
 - **Android Dağıtımı:**
-  - Google Play Console yüklemesi için `apps/swansport_pro` üzerinden Android App Bundle (`app-release.aab`) derlenir.
-  - Doğrudan test ve cihaz dağıtımı için imzalı Android APK (`app-release.apk`) derlenir.
+  - Önizleme akışı debug imzalı APK üretir; bunu mağaza artefaktı olarak sunmaz.
+  - Manuel imzalı akış Pro'ya özel Firebase JSON ve keystore girdilerini zorunlu tutar, paket/proje kimliğini doğrular ve imzalı APK + AAB üretir.
   - Paket sağlığı ve güvenliği için SHA-256 doğrulama özeti (`checksums.txt`) oluşturulur ve release artifact olarak saklanır.
 - **iOS Dağıtımı:**
-  - İmzasız test IPA'sı derlenir.
-  - `PRO_IOS_GOOGLE_SERVICE_INFO_BASE64` ve Apple sertifikaları sağlandığında imzalı sürüm IPA'sı derlenir.
+  - Önizleme akışı Firebase kapalı, imzasız IPA üretir ve yer tutucu plist'i paketten çıkarır.
+  - Manuel imzalı akış Pro Firebase plist'i, Pro Apple sertifikası/provisioning profile ve `aps-environment=production` yetkisini zorunlu tutarak IPA üretir. Otomatik mağaza/TestFlight yüklemesi yapmaz.
 - **Web Dağıtımı:**
   - Komut: `flutter build web --release --no-pub -t lib/main_production.dart --dart-define=APP_ENV=production`
   - Derleme süresi: 75.0 saniye.
@@ -166,35 +161,41 @@ SwanSport sistemindeki toplam **42 bildirim türü** (`notification_kinds`) 3 ka
 Tüm testler ve statik analiz kontrolleri başarıyla tamamlanmıştır:
 
 ```text
-1. Node Testleri (tools/):
-   Command: npm.cmd test --prefix tools
-   Result: 333 tests passed, 0 failures, 0 skipped.
+1. Faz 5 SQL Testleri:
+   Command: node --test tools/push_target_sql_test.mjs
+   Result: 8/8 PASS.
+   Command: npm ci --prefix tools --ignore-scripts --no-audit --no-fund && npm test --prefix tools
+   Result: 335/335 PASS, 0 fail, 0 skipped.
 
 2. Python Sözleşme ve Doğrulama Testleri:
    Command: python -m unittest discover -s tools -p "*_test.py"
-   Result: Ran 37 tests in 1.851s -> OK.
-   Command: python tools/check_migrations.py -> sorunlu dosya: 0 (OK)
+   Result: 41/41 PASS.
+   Command: python tools/check_migrations.py -> 143 migration, sorunlu dosya: 0 (OK)
    Command: python tools/check_push_routes.py -> 42 esleme, kayip esleme yok (OK)
    Command: python tools/check_faq.py -> bayrak: 53, SSS: 53, hepsi eslesiyor (OK)
 
 3. SwanSport Pro Uygulama Testleri:
    Command: cd apps/swansport_pro && flutter test --no-pub
-   Result: 65/65 tests passed (All tests passed!).
+   Result: 69/69 tests passed (All tests passed!).
 
 4. SwanSport Pro Özellik Paketi Testleri:
    Command: cd packages/swansport_pro_features && flutter test --no-pub
-   Result: 140/140 tests passed (All tests passed!).
+   Result: 141/141 tests passed (All tests passed!).
 
 5. Veri Katmanı Testleri:
-   Command: cd packages/swansport_data && flutter test --no-pub test/push_target_test.dart
-   Result: 4/4 tests passed (All tests passed!).
+   Command: cd packages/swansport_data && flutter test --no-pub
+   Result: 519/519 tests passed (All tests passed!).
 
-6. Statik Kod Analizi:
+6. SwanSport sosyal uygulama regresyonu:
+   Command: cd apps/swansport_app && flutter test --no-pub
+   Result: 630/630 tests passed; önceki `PushSubState` derleme çakışması kapandı.
+
+7. Statik Kod Analizi:
    - apps/swansport_pro: flutter analyze -> No issues found!
    - packages/swansport_pro_features: flutter analyze -> No issues found!
    - packages/swansport_data: flutter analyze -> 0 error, 0 fatal issues.
-   - apps/swansport_app: flutter analyze -> 0 error, 0 fatal issues.
-   - dart format: Formatted files with 0 changes (tam uyum).
+   - packages/swansport_data: 0 error/uyarı; depoda önceden bulunan info seviyesinde lintler raporlandı.
+   - Değişen Dart dosyaları `dart format` ile biçimlendirildi.
 ```
 
 ---
@@ -210,7 +211,4 @@ Tüm testler ve statik analiz kontrolleri başarıyla tamamlanmıştır:
 
 ## 14. Codex Supervising Ajanı İnceleme Notları ve Hazırlık Durumu
 
-Faz 5 çalışmaları, Codex denetim ajanının bağımsız değerlendirmesine tamamen hazırdır:
-- 7 commit'lik temiz ve atomik commit geçmişi oluşturulmuştur.
-- Tüm mimari gereksinimler, sözleşmeler ve kabul matrisleri belgelenmiştir.
-- Çalışma alanı temiz bırakılmış, kullanıcıya ait konfigürasyonlara dokunulmamıştır.
+Bağımsız Codex incelemesinde bulunan veri izolasyonu, logout sırası, native push yaşam döngüsü, mobil imzalama ve raporlama eksikleri kaynak kodda kapatılmıştır. Canlı migration uygulanmamış, uzak workflow tetiklenmemiş ve fiziksel cihaz UAT yapılmamıştır. Bu nedenle “mağazaya hazır” kararı ancak manuel imzalı workflow başarıyla gerçek artefakt ürettikten ve kabul matrisi fiziksel cihazlarda tamamlandıktan sonra verilebilir.

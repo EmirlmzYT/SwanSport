@@ -6,6 +6,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+class ProPushMessage {
+  const ProPushMessage({
+    required this.title,
+    required this.body,
+    this.route,
+  });
+
+  final String title;
+  final String body;
+  final String? route;
+}
+
 /// Push client for SwanSport Pro.
 ///
 /// Encapsulates FCM initialization, permission requests, token registration,
@@ -30,7 +42,7 @@ class ProPushClient {
     if (defaultTargetPlatform == TargetPlatform.iOS) {
       return const bool.fromEnvironment(
         'IOS_FIREBASE_ENABLED',
-        defaultValue: true,
+        defaultValue: false,
       );
     }
     return false;
@@ -111,15 +123,55 @@ class ProPushClient {
   /// Removes device token registration from Supabase.
   Future<void> unregisterFromServer([PushSubscriptionService? service]) async {
     final activeService = service ?? _subscriptionService;
-    if (activeService == null) return;
-    final token = _lastToken ?? await getDeviceToken();
-    if (token == null || token.isEmpty) return;
-
+    // Registration always caches the active token. Do not initialize Firebase
+    // or request a fresh token while the user is trying to sign out.
+    final token = _lastToken;
+    Object? serverError;
     try {
-      await activeService.unregisterSubscription(token);
+      if (activeService != null && token != null && token.isNotEmpty) {
+        await activeService.unregisterSubscription(token);
+      }
     } catch (e) {
       debugPrint('ProPushClient: server unregistration failed: $e');
+      serverError = e;
+    } finally {
+      await _tokenRefreshSub?.cancel();
+      _tokenRefreshSub = null;
+      if (_initialized) {
+        try {
+          await FirebaseMessaging.instance.deleteToken();
+        } catch (e) {
+          debugPrint('ProPushClient: local token deletion failed: $e');
+        }
+      }
+      _lastToken = null;
     }
+    if (serverError != null) throw serverError;
+  }
+
+  ProPushMessage _message(RemoteMessage value) {
+    final rawRoute = value.data['url'];
+    return ProPushMessage(
+      title: value.notification?.title ?? 'SwanSport Pro',
+      body: value.notification?.body ?? '',
+      route: rawRoute is String ? rawRoute : null,
+    );
+  }
+
+  Stream<ProPushMessage> foregroundMessages() async* {
+    if (!await initialize()) return;
+    yield* FirebaseMessaging.onMessage.map(_message);
+  }
+
+  Stream<ProPushMessage> openedMessages() async* {
+    if (!await initialize()) return;
+    yield* FirebaseMessaging.onMessageOpenedApp.map(_message);
+  }
+
+  Future<ProPushMessage?> initialMessage() async {
+    if (!await initialize()) return null;
+    final message = await FirebaseMessaging.instance.getInitialMessage();
+    return message == null ? null : _message(message);
   }
 
   void _listenTokenRefresh(PushSubscriptionService service) {

@@ -1,0 +1,153 @@
+name: Build signed SwanSport Pro mobile artifacts
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-signed-mobile-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    name: Signed Pro Android APK and AAB
+    runs-on: ubuntu-latest
+    environment: production
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+      FIREBASE_PROJECT_ID: ${{ vars.PRO_FIREBASE_PROJECT_ID }}
+      GOOGLE_SERVICES_BASE64: ${{ secrets.PRO_ANDROID_GOOGLE_SERVICES_JSON_BASE64 }}
+      KEYSTORE_BASE64: ${{ secrets.PRO_ANDROID_KEYSTORE_BASE64 }}
+      KEY_ALIAS: ${{ secrets.PRO_ANDROID_KEY_ALIAS }}
+      KEY_PASSWORD: ${{ secrets.PRO_ANDROID_KEY_PASSWORD }}
+      STORE_PASSWORD: ${{ secrets.PRO_ANDROID_STORE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - name: Require isolated Pro signing and Firebase inputs
+        run: |
+          for value in SUPABASE_URL SUPABASE_ANON_KEY FIREBASE_PROJECT_ID GOOGLE_SERVICES_BASE64 KEYSTORE_BASE64 KEY_ALIAS KEY_PASSWORD STORE_PASSWORD; do
+            test -n "${!value}" || { echo "$value eksik" >&2; exit 1; }
+          done
+      - run: python tools/production_target.py
+      - name: Materialize and validate ignored Android secrets
+        run: |
+          printf '%s' "$GOOGLE_SERVICES_BASE64" | base64 --decode > apps/swansport_pro/android/app/google-services.json
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > apps/swansport_pro/android/app/pro-release.jks
+          python tools/validate_android_firebase.py \
+            apps/swansport_pro/android/app/google-services.json \
+            --package com.swansport.pro --project-id "$FIREBASE_PROJECT_ID"
+          printf '%s\n' \
+            'storeFile=pro-release.jks' \
+            "storePassword=$STORE_PASSWORD" \
+            "keyAlias=$KEY_ALIAS" \
+            "keyPassword=$KEY_PASSWORD" > apps/swansport_pro/android/key.properties
+      - run: flutter pub get --enforce-lockfile
+      - name: Build signed artifacts
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build apk --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+          flutter build appbundle --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+          mkdir -p build/release
+          cp build/app/outputs/flutter-apk/app-release.apk build/release/SwanSport-Pro-signed.apk
+          cp build/app/outputs/bundle/release/app-release.aab build/release/SwanSport-Pro-signed.aab
+          sha256sum build/release/* > build/release/checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-Android-signed
+          path: apps/swansport_pro/build/release/*
+          if-no-files-found: error
+      - name: Remove materialized secrets
+        if: always()
+        run: rm -f apps/swansport_pro/android/app/google-services.json apps/swansport_pro/android/app/pro-release.jks apps/swansport_pro/android/key.properties
+
+  ios:
+    name: Signed Pro iOS IPA
+    runs-on: macos-latest
+    environment: production
+    env:
+      IOS_BUNDLE_ID: com.swansport.pro
+      IOS_FIREBASE_PROJECT_ID: ${{ vars.PRO_FIREBASE_PROJECT_ID }}
+      PRO_IOS_GOOGLE_SERVICE_INFO_BASE64: ${{ secrets.PRO_IOS_GOOGLE_SERVICE_INFO_BASE64 }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - name: Require isolated Pro Firebase configuration
+        env:
+          CERTIFICATE: ${{ secrets.PRO_APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          CERTIFICATE_PASSWORD: ${{ secrets.PRO_APPSTORE_CERTIFICATES_PASSWORD }}
+          API_PRIVATE_KEY: ${{ secrets.PRO_APPSTORE_API_PRIVATE_KEY }}
+          ISSUER_ID: ${{ vars.PRO_APPSTORE_ISSUER_ID }}
+          API_KEY_ID: ${{ vars.PRO_APPSTORE_API_KEY_ID }}
+          TEAM_ID: ${{ vars.PRO_IOS_TEAM_ID }}
+        run: |
+          for value in SUPABASE_URL SUPABASE_ANON_KEY IOS_FIREBASE_PROJECT_ID PRO_IOS_GOOGLE_SERVICE_INFO_BASE64 CERTIFICATE CERTIFICATE_PASSWORD API_PRIVATE_KEY ISSUER_ID API_KEY_ID TEAM_ID; do
+            test -n "${!value}" || { echo "$value eksik" >&2; exit 1; }
+          done
+      - run: python tools/production_target.py
+      - name: Configure Pro Firebase
+        env:
+          TARGET_APP: pro
+          REQUIRE_IOS_FIREBASE_CONFIG: 'true'
+        run: python tools/configure_ios_firebase.py
+      - uses: apple-actions/import-codesign-certs@v7
+        with:
+          p12-file-base64: ${{ secrets.PRO_APPSTORE_CERTIFICATES_FILE_BASE64 }}
+          p12-password: ${{ secrets.PRO_APPSTORE_CERTIFICATES_PASSWORD }}
+      - uses: apple-actions/download-provisioning-profiles@v4
+        with:
+          bundle-id: com.swansport.pro
+          profile-type: IOS_APP_STORE
+          issuer-id: ${{ vars.PRO_APPSTORE_ISSUER_ID }}
+          api-key-id: ${{ vars.PRO_APPSTORE_API_KEY_ID }}
+          api-private-key: ${{ secrets.PRO_APPSTORE_API_PRIVATE_KEY }}
+      - name: Configure distribution signing
+        env:
+          TEAM_ID: ${{ vars.PRO_IOS_TEAM_ID }}
+        run: |
+          test -n "$TEAM_ID" || { echo 'PRO_IOS_TEAM_ID eksik' >&2; exit 1; }
+          printf '%s\n' \
+            "DEVELOPMENT_TEAM = $TEAM_ID" \
+            'CODE_SIGN_STYLE = Automatic' \
+            'CODE_SIGN_IDENTITY[sdk=iphoneos*] = Apple Distribution' \
+            'APS_ENVIRONMENT = production' > apps/swansport_pro/ios/Flutter/Signing.xcconfig
+      - run: flutter pub get --enforce-lockfile
+      - name: Build signed IPA with APNs enabled
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build ipa --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY" \
+            --dart-define=IOS_FIREBASE_ENABLED=true \
+            --dart-define=APP_ENV=production
+          codesign -d --entitlements :- build/ios/archive/Runner.xcarchive/Products/Applications/Runner.app 2>&1 | grep -F '<key>aps-environment</key>'
+          shasum -a 256 build/ios/ipa/*.ipa > build/ios/ipa/checksums.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-iOS-signed
+          path: |
+            apps/swansport_pro/build/ios/ipa/*.ipa
+            apps/swansport_pro/build/ios/ipa/checksums.txt
+          if-no-files-found: error
+      - name: Remove materialized secrets
+        if: always()
+        run: rm -f apps/swansport_pro/ios/Runner/GoogleService-Info.plist apps/swansport_pro/ios/Flutter/Signing.xcconfig

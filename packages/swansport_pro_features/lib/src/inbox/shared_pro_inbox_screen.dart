@@ -10,15 +10,17 @@ enum InboxFilter { all, unread }
 
 /// Profesyonel gelen kutusu ekranı.
 ///
-/// Sosyal bildirimleri ayıklar; yalnızca kulüp, hakem, tesis, antrenman ve
+/// Sunucunun Pro'ya özel RPC'sinden yalnız kulüp, hakem, tesis, antrenman ve
 /// operasyon bildirimlerini listeler.
 final class SharedProInboxScreen extends ConsumerStatefulWidget {
   const SharedProInboxScreen({
     this.onNotificationTap,
+    this.onMarkRead,
     super.key,
   });
 
   final void Function(NotificationRow notification)? onNotificationTap;
+  final Future<void> Function(String? notificationId)? onMarkRead;
 
   @override
   ConsumerState<SharedProInboxScreen> createState() =>
@@ -66,8 +68,9 @@ final class _SharedProInboxScreenState
   Future<void> _markAllRead() async {
     if (!ref.read(isSupabaseEnabledProvider)) return;
     try {
-      await ref.read(notificationServiceProvider).markAllRead();
-      ref.invalidate(notificationsProvider);
+      await (widget.onMarkRead?.call(null) ??
+          ref.read(notificationServiceProvider).markProRead());
+      ref.invalidate(proNotificationsProvider);
     } catch (e) {
       debugPrint('Mark all read failed: $e');
     }
@@ -76,8 +79,11 @@ final class _SharedProInboxScreenState
   Future<void> _handleItemTap(NotificationRow item) async {
     if (item.isUnread && ref.read(isSupabaseEnabledProvider)) {
       try {
-        await ref.read(notificationServiceProvider).markRead(item.id);
-        ref.invalidate(notificationsProvider);
+        await (widget.onMarkRead?.call(item.id) ??
+            ref
+                .read(notificationServiceProvider)
+                .markProRead(notificationId: item.id));
+        ref.invalidate(proNotificationsProvider);
       } catch (e) {
         debugPrint('Mark read failed: $e');
       }
@@ -153,7 +159,7 @@ final class _SharedProInboxScreenState
                 )
               : RefreshIndicator(
                   onRefresh: () async {
-                    ref.invalidate(notificationsProvider);
+                    ref.invalidate(proNotificationsProvider);
                     await ref.read(proNotificationsProvider.future);
                   },
                   child: ListView.separated(
