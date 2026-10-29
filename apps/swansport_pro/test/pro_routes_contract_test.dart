@@ -1391,6 +1391,13 @@ void main() {
       container.read(selectedProWorkspaceProvider.notifier).state =
           ProWorkspace.club;
 
+      final coordinator = container.read(proDirtyStateCoordinatorProvider);
+      final registration = coordinator.register('fixture');
+      registration.markDirty();
+      addTearDown(registration.dispose);
+
+      expect(coordinator.isDirty, isTrue);
+
       await tester.pumpWidget(
         UncontrolledProviderScope(
           container: container,
@@ -1411,6 +1418,7 @@ void main() {
       expect(size.width, greaterThanOrEqualTo(48.0));
       expect(size.height, greaterThanOrEqualTo(48.0));
 
+      // 1. Open picker and tap second club with dirty form
       await tester.tap(switchBtnFinder);
       await tester.pumpAndSettle();
 
@@ -1420,7 +1428,107 @@ void main() {
       await tester.tap(find.text('Beşiktaş SK'));
       await tester.pumpAndSettle();
 
+      // 2. Guard dialog appears
+      expect(find.text('Kaydedilmemiş değişiklikler var'), findsOneWidget);
+
+      // 3. Cancel transition -> remains on club-a and stays dirty
+      final cancelBtn = find.widgetWithText(TextButton, 'Vazgeç');
+      expect(cancelBtn, findsOneWidget);
+      await tester.tap(cancelBtn);
+      await tester.pumpAndSettle();
+
+      expect(container.read(selectedClubIdProvider), 'club-a');
+      expect(coordinator.isDirty, isTrue);
+
+      // 4. Reopen and tap second club again
+      await tester.tap(switchBtnFinder);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Beşiktaş SK'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kaydedilmemiş değişiklikler var'), findsOneWidget);
+
+      // 5. Confirm transition -> switches to club-b and clears dirty
+      final confirmBtn = find.widgetWithText(FilledButton, 'Kulübü değiştir');
+      expect(confirmBtn, findsOneWidget);
+      await tester.tap(confirmBtn);
+      await tester.pumpAndSettle();
+
       expect(container.read(selectedClubIdProvider), 'club-b');
+      expect(coordinator.isDirty, isFalse);
+    });
+
+    testWidgets(
+        'mobile club switcher: 320x568 small viewport with 8 clubs renders without vertical overflow',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      final eightClubs = List.generate(
+        8,
+        (i) => ClubRef(
+          id: 'club-$i',
+          name: 'Spor Kulübü $i',
+          role: 'club_admin',
+        ),
+      );
+
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('user-small-mobile')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          proAuthorizedClubsProvider.overrideWithValue(
+            AsyncData(eightClubs),
+          ),
+          selectedClubIdProvider.overrideWith((ref) => 'club-0'),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.club;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: ProContextBar(compact: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final switchBtnFinder =
+          find.byKey(const Key('pro-mobile-club-selector-button'));
+      expect(switchBtnFinder, findsOneWidget);
+
+      await tester.tap(switchBtnFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kulüp Değiştir'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(BottomSheet),
+          matching: find.text('Spor Kulübü 0'),
+        ),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 }

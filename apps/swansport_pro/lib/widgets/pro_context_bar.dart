@@ -258,94 +258,109 @@ class ProContextBar extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                for (final club in clubs) ...[
-                  Material(
-                    color: club.id == selected.id
-                        ? ProTheme.primary.withValues(alpha: 0.12)
-                        : Colors.transparent,
-                    borderRadius: BorderRadius.circular(14),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(14),
-                      onTap: () async {
-                        Navigator.pop(sheetContext);
-                        if (club.id != selected.id) {
-                          final coordinator =
-                              ref.read(proDirtyStateCoordinatorProvider);
-                          await coordinator.runGuardedTransition(
-                            confirmDiscard: () => _confirmDiscard(context),
-                            invalidate: () => invalidateProFeatureState(ref),
-                            transition: () {
-                              ref.read(selectedClubIdProvider.notifier).state =
-                                  club.id;
-                            },
-                          );
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 14, vertical: 12),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        for (final club in clubs) ...[
+                          Material(
                             color: club.id == selected.id
-                                ? ProTheme.primary.withValues(alpha: 0.35)
-                                : ProTheme.line,
-                          ),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: ProTheme.primary.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.shield_outlined,
-                                size: 18,
-                                color: ProTheme.primary,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    club.name,
-                                    style: const TextStyle(
-                                      color: ProTheme.ink,
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                    ),
+                                ? ProTheme.primary.withValues(alpha: 0.12)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(14),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(14),
+                              onTap: () async {
+                                Navigator.pop(sheetContext);
+                                if (club.id != selected.id) {
+                                  final coordinator = ref
+                                      .read(proDirtyStateCoordinatorProvider);
+                                  await coordinator.runGuardedTransition(
+                                    confirmDiscard: () =>
+                                        _confirmDiscard(context),
+                                    invalidate: () =>
+                                        invalidateProFeatureState(ref),
+                                    transition: () {
+                                      ref
+                                          .read(selectedClubIdProvider.notifier)
+                                          .state = club.id;
+                                    },
+                                  );
+                                }
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 14, vertical: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(14),
+                                  border: Border.all(
+                                    color: club.id == selected.id
+                                        ? ProTheme.primary
+                                            .withValues(alpha: 0.35)
+                                        : ProTheme.line,
                                   ),
-                                  if (club.role != null &&
-                                      club.role!.isNotEmpty)
-                                    Text(
-                                      club.role!,
-                                      style: const TextStyle(
-                                        color: ProTheme.muted,
-                                        fontSize: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: ProTheme.primary
+                                            .withValues(alpha: 0.12),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.shield_outlined,
+                                        size: 18,
+                                        color: ProTheme.primary,
                                       ),
                                     ),
-                                ],
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Text(
+                                            club.name,
+                                            style: const TextStyle(
+                                              color: ProTheme.ink,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                          if (club.role != null &&
+                                              club.role!.isNotEmpty)
+                                            Text(
+                                              club.role!,
+                                              style: const TextStyle(
+                                                color: ProTheme.muted,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                    if (club.id == selected.id)
+                                      const Icon(
+                                        Icons.check_circle_rounded,
+                                        color: ProTheme.primary,
+                                        size: 20,
+                                      ),
+                                  ],
+                                ),
                               ),
                             ),
-                            if (club.id == selected.id)
-                              const Icon(
-                                Icons.check_circle_rounded,
-                                color: ProTheme.primary,
-                                size: 20,
-                              ),
-                          ],
-                        ),
-                      ),
+                          ),
+                          const SizedBox(height: 8),
+                        ],
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 8),
-                ],
+                ),
               ],
             ),
           ),
