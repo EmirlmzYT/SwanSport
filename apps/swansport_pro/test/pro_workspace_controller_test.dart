@@ -23,14 +23,18 @@ void main() {
     );
   }
 
-  Session makeSession(String userId) {
+  Session makeSession(
+    String userId, {
+    Map<String, dynamic> appMetadata = const {},
+    Map<String, dynamic> userMetadata = const {},
+  }) {
     return Session(
       accessToken: 'token',
       tokenType: 'bearer',
       user: User(
         id: userId,
-        appMetadata: const {},
-        userMetadata: const {},
+        appMetadata: appMetadata,
+        userMetadata: userMetadata,
         aud: 'authenticated',
         createdAt: '2026-10-26',
       ),
@@ -38,6 +42,79 @@ void main() {
   }
 
   group('selectedProWorkspaceProvider', () {
+    test('server-controlled developer preview exposes every workspace',
+        () async {
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(SwanAccess.none),
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(
+              makeSession(
+                'developer-1',
+                appMetadata: const {'pro_workspace_preview': true},
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(authSessionProvider, (_, __) {});
+      await Future<void>.delayed(Duration.zero);
+
+      expect(
+        container.read(availableProWorkspacesProvider),
+        equals(ProWorkspace.values),
+      );
+      expect(
+        container.read(selectedProWorkspaceProvider),
+        equals(ProWorkspace.club),
+      );
+    });
+
+    test('developer preview fails closed for missing or malformed metadata',
+        () {
+      for (final metadata in <Map<String, dynamic>>[
+        const {},
+        const {'pro_workspace_preview': 'true'},
+        const {'pro_workspace_preview': false},
+      ]) {
+        final container = ProviderContainer(
+          overrides: [
+            swanAccessProvider.overrideWithValue(SwanAccess.none),
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(
+                makeSession('user-1', appMetadata: metadata),
+              ),
+            ),
+          ],
+        );
+
+        expect(container.read(availableProWorkspacesProvider), isEmpty);
+        container.dispose();
+      }
+    });
+
+    test('user-controlled metadata cannot enable developer preview', () async {
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(SwanAccess.none),
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(
+              makeSession(
+                'user-1',
+                userMetadata: const {'pro_workspace_preview': true},
+              ),
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.listen(authSessionProvider, (_, __) {});
+      await Future<void>.delayed(Duration.zero);
+
+      expect(container.read(availableProWorkspacesProvider), isEmpty);
+    });
+
     test('becomes null when user has no professional access', () {
       final container = ProviderContainer(
         overrides: [

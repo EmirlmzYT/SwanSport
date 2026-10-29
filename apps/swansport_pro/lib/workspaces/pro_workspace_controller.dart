@@ -42,6 +42,10 @@ final proAccessReadinessProvider = Provider<AsyncValue<void>>((ref) {
 
 /// Kullanıcının mevcut erişimine göre izin verilen çalışma alanları listesi.
 final availableProWorkspacesProvider = Provider<List<ProWorkspace>>((ref) {
+  final session = ref.watch(authSessionProvider).valueOrNull;
+  if (session?.user.appMetadata['pro_workspace_preview'] == true) {
+    return ProWorkspace.values;
+  }
   final access = ref.watch(swanAccessProvider);
   return proWorkspacesFor(access);
 });
