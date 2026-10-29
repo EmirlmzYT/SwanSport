@@ -157,6 +157,21 @@ void main() {
                 ),
               ),
             ),
+            refereeDutyMatchesProvider.overrideWith(
+              (ref) async => [
+                RefereeMatchSummary(
+                  officialId: 'ref-1',
+                  matchId: 'match-pending-1',
+                  matchStatus: 'scheduled',
+                  homeClubName: 'Galata SK',
+                  awayClubName: 'Pera FK',
+                  duty: MatchOfficialDuty.headReferee,
+                  status: MatchOfficialStatus.assigned,
+                  assignedAt: DateTime.utc(2026, 10, 29),
+                  sportCode: 'futbol',
+                ),
+              ],
+            ),
             featureFlagsProvider.overrideWith(
               (ref) async => const FeatureFlags({
                 FeatureFlags.refereeCockpit,
@@ -171,6 +186,10 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(SharedRefereeOperationsPanel), findsOneWidget);
+      expect(find.text('Yanıt Bekleyen Görevler'), findsOneWidget);
+      expect(find.text('1 müsabaka ataması kabul veya ret bekliyor.'),
+          findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Görevler'), findsOneWidget);
     });
   });
 }

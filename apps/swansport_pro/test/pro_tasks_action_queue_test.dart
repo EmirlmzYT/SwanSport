@@ -8,6 +8,8 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
+import 'package:swansport_pro/widgets/pro_ui_components.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 Session _makeSession(String userId) {
   return Session(
@@ -28,6 +30,13 @@ void main() {
   group('Pro Tasks Action Queue Contracts', () {
     testWidgets('Panel and Görevler do NOT show identical card lists',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 1800);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -78,8 +87,29 @@ void main() {
       // SharedClubOperationsPanel directly inside itself.
       expect(find.byType(ProDashboardScreen), findsOneWidget);
       expect(find.byType(ProTasksScreen), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(ProDashboardScreen),
+          matching: find.byType(SharedClubOperationsPanel),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byType(ProTasksScreen),
+          matching: find.byType(SharedClubOperationsPanel),
+        ),
+        findsNothing,
+      );
 
-      // Verify that ProTasksScreen contains filter bar / task queue headers
+      // Verify that ProTasksScreen contains filter bar and no duplicate operations panel
+      expect(
+        find.descendant(
+          of: find.byType(ProTasksScreen),
+          matching: find.byType(ProFilterBar),
+        ),
+        findsOneWidget,
+      );
       expect(
         find.descendant(
           of: find.byType(ProTasksScreen),
