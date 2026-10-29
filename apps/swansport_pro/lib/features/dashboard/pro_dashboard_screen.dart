@@ -386,8 +386,10 @@ class _TodaySection extends ConsumerWidget {
 
       case ProWorkspace.federation:
         final scopesAsync = ref.watch(federationConsoleScopesProvider);
-        if (scopesAsync.isLoading) return const AsyncValue.loading();
-        if (scopesAsync.hasError) {
+        if (scopesAsync.isLoading && !scopesAsync.hasValue) {
+          return const AsyncValue.loading();
+        }
+        if (scopesAsync.hasError && !scopesAsync.hasValue) {
           return AsyncValue.error(
             scopesAsync.error!,
             scopesAsync.stackTrace!,
@@ -492,6 +494,12 @@ class _TodaySection extends ConsumerWidget {
       case ProWorkspace.coaching:
         final attendanceAsync = ref.watch(clubTodayAttendanceProvider);
         if (attendanceAsync.isLoading) return const AsyncValue.loading();
+        if (attendanceAsync.hasError) {
+          return AsyncValue.error(
+            attendanceAsync.error!,
+            attendanceAsync.stackTrace ?? StackTrace.current,
+          );
+        }
         final todayAttendance = attendanceAsync.valueOrNull;
         final list = <Widget>[];
         if (todayAttendance != null) {

@@ -103,24 +103,8 @@ void refreshProWorkspaceData(WidgetRef ref, ProWorkspace workspace) {
       ref.invalidate(activeClubProvider);
       break;
     case ProWorkspace.federation:
+      ref.invalidate(federationScopedPendingResultsProvider);
       ref.invalidate(federationConsoleScopesProvider);
-      final scopes = resolveEffectiveFederationScopes(
-        ref.read(federationConsoleScopesProvider).valueOrNull ?? const [],
-        ref.read(swanAccessProvider),
-      );
-      final selectedKey = ref.read(selectedFederationScopeKeyProvider);
-      final selectedScope = scopes
-              .where((item) => federationScopeKey(item) == selectedKey)
-              .firstOrNull ??
-          scopes.firstOrNull;
-      if (selectedScope != null) {
-        ref.invalidate(federationScopedPendingResultsProvider((
-          federationId: selectedScope.federationId,
-          sportCode: selectedScope.sportCode,
-          cityCode: selectedScope.cityCode,
-          offset: 0,
-        )));
-      }
       break;
     case ProWorkspace.facility:
       ref.invalidate(turfDutiesProvider(0));

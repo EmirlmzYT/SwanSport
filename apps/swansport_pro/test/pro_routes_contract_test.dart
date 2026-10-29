@@ -186,11 +186,6 @@ void main() {
         'club workspace loading hides empty state in both tasks and dashboard',
         (tester) async {
       final completer = Completer<ClubTodayAttendance?>();
-      addTearDown(() {
-        if (!completer.isCompleted) {
-          completer.complete(null);
-        }
-      });
       final container = ProviderContainer(
         overrides: [
           authSessionProvider.overrideWith(
@@ -244,6 +239,9 @@ void main() {
       await tester.pump();
       expect(find.text('Bugün için bekleyen acil işlem yok'), findsNothing);
       expect(find.byType(CircularProgressIndicator), findsWidgets);
+
+      completer.complete(null);
+      await tester.pumpAndSettle();
     });
 
     testWidgets(
