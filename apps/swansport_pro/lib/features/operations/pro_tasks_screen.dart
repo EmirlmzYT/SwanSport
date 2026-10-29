@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 import '../../app/pro_router.dart';
 import '../../app/pro_theme.dart';
@@ -9,8 +10,6 @@ import '../../widgets/pro_ui_components.dart';
 import '../../workspaces/pro_workspace.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 import 'pro_tasks_controller.dart';
-
-enum _TasksFilter { all, pending, today, completed }
 
 enum ProTaskPriority { now, today, upcoming, completed }
 
@@ -44,7 +43,44 @@ class ProTasksScreen extends ConsumerStatefulWidget {
 }
 
 class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
-  _TasksFilter _filter = _TasksFilter.all;
+  String _filter = 'Tümü';
+
+  List<String> _buildAvailableFilters(List<ProTaskItem> tasks) {
+    final filters = <String>['Tümü'];
+    if (tasks.any((t) => t.priority == ProTaskPriority.now)) {
+      filters.add('Bekleyen');
+    }
+    if (tasks.any((t) => t.priority == ProTaskPriority.today)) {
+      filters.add('Bugün');
+    }
+    if (tasks.any((t) => t.priority == ProTaskPriority.upcoming)) {
+      filters.add('Yaklaşan');
+    }
+    if (tasks.any((t) => t.priority == ProTaskPriority.completed)) {
+      filters.add('Tamamlanan');
+    }
+    return filters;
+  }
+
+  List<ProTaskItem> _applyFilter(List<ProTaskItem> tasks, String filter) {
+    switch (filter) {
+      case 'Bekleyen':
+        return tasks.where((t) => t.priority == ProTaskPriority.now).toList();
+      case 'Bugün':
+        return tasks.where((t) => t.priority == ProTaskPriority.today).toList();
+      case 'Yaklaşan':
+        return tasks
+            .where((t) => t.priority == ProTaskPriority.upcoming)
+            .toList();
+      case 'Tamamlanan':
+        return tasks
+            .where((t) => t.priority == ProTaskPriority.completed)
+            .toList();
+      case 'Tümü':
+      default:
+        return tasks;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -55,8 +91,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
       );
     }
 
-    final tasks = _collectTasks(context, ref, workspace);
-    final filteredTasks = _applyFilter(tasks, _filter);
+    final tasksAsync = _collectTasksAsync(context, ref, workspace);
 
     return Scaffold(
       body: Align(
@@ -91,76 +126,108 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                       const Icon(Icons.refresh_rounded, color: ProTheme.muted),
                   tooltip: 'Yenile',
                   onPressed: () {
-                    ref.invalidate(proPendingTasksCountProvider);
+                    refreshProWorkspaceData(ref, workspace);
                   },
                 ),
               ),
               const SizedBox(height: 14),
-              ProFilterBar(
-                filters: const ['Tümü', 'Bekleyen', 'Bugün', 'Tamamlanan'],
-                selected: switch (_filter) {
-                  _TasksFilter.all => 'Tümü',
-                  _TasksFilter.pending => 'Bekleyen',
-                  _TasksFilter.today => 'Bugün',
-                  _TasksFilter.completed => 'Tamamlanan',
-                },
-                onChanged: (val) {
-                  setState(() {
-                    _filter = switch (val) {
-                      'Bekleyen' => _TasksFilter.pending,
-                      'Bugün' => _TasksFilter.today,
-                      'Tamamlanan' => _TasksFilter.completed,
-                      _ => _TasksFilter.all,
-                    };
-                  });
+              Builder(
+                builder: (context) {
+                  final tasks = tasksAsync.valueOrNull ?? const [];
+                  final availableFilters = _buildAvailableFilters(tasks);
+                  final activeFilter =
+                      availableFilters.contains(_filter) ? _filter : 'Tümü';
+                  final filteredTasks = _applyFilter(tasks, activeFilter);
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ProFilterBar(
+                        filters: availableFilters,
+                        selected: activeFilter,
+                        onChanged: (val) {
+                          setState(() {
+                            _filter = val;
+                          });
+                        },
+                      ),
+                      const SizedBox(height: 18),
+                      tasksAsync.when(
+                        loading: () => const Padding(
+                          padding: EdgeInsets.symmetric(vertical: 48),
+                          child: Center(
+                            child: CircularProgressIndicator(),
+                          ),
+                        ),
+                        error: (err, _) => ProErrorState(
+                          message: 'Görevler yüklenirken bir hata oluştu.',
+                          onRetry: () =>
+                              refreshProWorkspaceData(ref, workspace),
+                        ),
+                        data: (_) {
+                          if (filteredTasks.isEmpty) {
+                            return ProEmptyState(
+                              icon: Icons.task_alt_rounded,
+                              title: 'Bekleyen operasyon görevi bulunmuyor',
+                              subtitle:
+                                  'Tüm görevler tamamlandı veya seçili filtreye uygun işlem yok.',
+                              action: OutlinedButton.icon(
+                                style: OutlinedButton.styleFrom(
+                                  minimumSize: const Size(48, 48),
+                                ),
+                                onPressed: () => context.go(ProRoutes.calendar),
+                                icon: const Icon(Icons.calendar_month_outlined,
+                                    size: 18),
+                                label: const Text('Takvimi Gör'),
+                              ),
+                            );
+                          }
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildSection(
+                                title: 'Şimdi',
+                                subtitle:
+                                    'Acil onaylar ve süresi dolmak üzere olan işlemler',
+                                tasks: filteredTasks
+                                    .where((t) =>
+                                        t.priority == ProTaskPriority.now)
+                                    .toList(),
+                              ),
+                              _buildSection(
+                                title: 'Bugün',
+                                subtitle: 'Günün planlanmış operasyonel işleri',
+                                tasks: filteredTasks
+                                    .where((t) =>
+                                        t.priority == ProTaskPriority.today)
+                                    .toList(),
+                              ),
+                              _buildSection(
+                                title: 'Yaklaşan',
+                                subtitle:
+                                    'Haftalık program ve yaklaşan incelemeler',
+                                tasks: filteredTasks
+                                    .where((t) =>
+                                        t.priority == ProTaskPriority.upcoming)
+                                    .toList(),
+                              ),
+                              _buildSection(
+                                title: 'Tamamlandı / Bilgi',
+                                subtitle:
+                                    'Sonuçlanan görevler ve arşiv kayıtları',
+                                tasks: filteredTasks
+                                    .where((t) =>
+                                        t.priority == ProTaskPriority.completed)
+                                    .toList(),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  );
                 },
               ),
-              const SizedBox(height: 18),
-              if (filteredTasks.isEmpty)
-                ProEmptyState(
-                  icon: Icons.task_alt_rounded,
-                  title: 'Bekleyen operasyon görevi bulunmuyor',
-                  subtitle:
-                      'Tüm görevler tamamlandı veya seçili filtreye uygun işlem yok.',
-                  action: OutlinedButton.icon(
-                    style: OutlinedButton.styleFrom(
-                      minimumSize: const Size(48, 48),
-                    ),
-                    onPressed: () => context.go('/takvim'),
-                    icon: const Icon(Icons.calendar_month_outlined, size: 18),
-                    label: const Text('Takvimi Gör'),
-                  ),
-                )
-              else ...[
-                _buildSection(
-                  title: 'Şimdi',
-                  subtitle: 'Acil onaylar ve süresi dolmak üzere olan işlemler',
-                  tasks: filteredTasks
-                      .where((t) => t.priority == ProTaskPriority.now)
-                      .toList(),
-                ),
-                _buildSection(
-                  title: 'Bugün',
-                  subtitle: 'Günün planlanmış operasyonel işleri',
-                  tasks: filteredTasks
-                      .where((t) => t.priority == ProTaskPriority.today)
-                      .toList(),
-                ),
-                _buildSection(
-                  title: 'Yaklaşan',
-                  subtitle: 'Haftalık program ve yaklaşan incelemeler',
-                  tasks: filteredTasks
-                      .where((t) => t.priority == ProTaskPriority.upcoming)
-                      .toList(),
-                ),
-                _buildSection(
-                  title: 'Tamamlandı / Bilgi',
-                  subtitle: 'Sonuçlanan görevler ve arşiv kayıtları',
-                  tasks: filteredTasks
-                      .where((t) => t.priority == ProTaskPriority.completed)
-                      .toList(),
-                ),
-              ],
             ],
           ),
         ),
@@ -197,36 +264,23 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
     );
   }
 
-  List<ProTaskItem> _applyFilter(List<ProTaskItem> tasks, _TasksFilter filter) {
-    switch (filter) {
-      case _TasksFilter.all:
-        return tasks;
-      case _TasksFilter.pending:
-        return tasks
-            .where((t) =>
-                t.priority == ProTaskPriority.now ||
-                t.priority == ProTaskPriority.today)
-            .toList();
-      case _TasksFilter.today:
-        return tasks.where((t) => t.priority == ProTaskPriority.today).toList();
-      case _TasksFilter.completed:
-        return tasks
-            .where((t) => t.priority == ProTaskPriority.completed)
-            .toList();
-    }
-  }
-
-  List<ProTaskItem> _collectTasks(
+  AsyncValue<List<ProTaskItem>> _collectTasksAsync(
     BuildContext context,
     WidgetRef ref,
     ProWorkspace workspace,
   ) {
-    final list = <ProTaskItem>[];
-
     switch (workspace) {
       case ProWorkspace.referee:
-        final matches =
-            ref.watch(refereeDutyMatchesProvider).valueOrNull ?? const [];
+        final matchesAsync = ref.watch(refereeDutyMatchesProvider);
+        if (matchesAsync.isLoading) return const AsyncValue.loading();
+        if (matchesAsync.hasError) {
+          return AsyncValue.error(
+            matchesAsync.error!,
+            matchesAsync.stackTrace!,
+          );
+        }
+        final matches = matchesAsync.value ?? const [];
+        final list = <ProTaskItem>[];
         for (final m in matches) {
           if (m.matchStatus == 'scheduled' &&
               m.status == MatchOfficialStatus.assigned) {
@@ -276,10 +330,19 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             }
           }
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.accounting:
-        final summary = ref.watch(financeOperationsSummaryProvider).valueOrNull;
+        final summaryAsync = ref.watch(financeOperationsSummaryProvider);
+        if (summaryAsync.isLoading) return const AsyncValue.loading();
+        if (summaryAsync.hasError) {
+          return AsyncValue.error(
+            summaryAsync.error!,
+            summaryAsync.stackTrace!,
+          );
+        }
+        final summary = summaryAsync.value;
+        final list = <ProTaskItem>[];
         if (summary != null) {
           if (summary.pendingApprovalCount > 0) {
             list.add(
@@ -312,12 +375,14 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             );
           }
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.club:
       case ProWorkspace.coaching:
-        final todayAttendance =
-            ref.watch(clubTodayAttendanceProvider).valueOrNull;
+        final attendanceAsync = ref.watch(clubTodayAttendanceProvider);
+        if (attendanceAsync.isLoading) return const AsyncValue.loading();
+        final todayAttendance = attendanceAsync.valueOrNull;
+        final list = <ProTaskItem>[];
         if (todayAttendance != null) {
           final unrecorded =
               (todayAttendance.trainingCount - todayAttendance.markedCount)
@@ -338,12 +403,46 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             );
           }
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.federation:
-        final pending =
-            ref.watch(federationPendingResultsProvider(0)).valueOrNull ??
-                const [];
+        final scopesAsync = ref.watch(federationConsoleScopesProvider);
+        if (scopesAsync.isLoading) return const AsyncValue.loading();
+        if (scopesAsync.hasError) {
+          return AsyncValue.error(
+            scopesAsync.error!,
+            scopesAsync.stackTrace!,
+          );
+        }
+        final scopes = resolveEffectiveFederationScopes(
+          scopesAsync.value ?? const [],
+          ref.watch(swanAccessProvider),
+        );
+        final selectedKey = ref.watch(selectedFederationScopeKeyProvider);
+        final selectedScope = scopes
+                .where((item) => federationScopeKey(item) == selectedKey)
+                .firstOrNull ??
+            scopes.firstOrNull;
+        if (selectedScope == null) {
+          return const AsyncValue.data(<ProTaskItem>[]);
+        }
+        final pendingQuery = (
+          federationId: selectedScope.federationId,
+          sportCode: selectedScope.sportCode,
+          cityCode: selectedScope.cityCode,
+          offset: 0,
+        );
+        final pendingAsync =
+            ref.watch(federationScopedPendingResultsProvider(pendingQuery));
+        if (pendingAsync.isLoading) return const AsyncValue.loading();
+        if (pendingAsync.hasError) {
+          return AsyncValue.error(
+            pendingAsync.error!,
+            pendingAsync.stackTrace!,
+          );
+        }
+        final pending = pendingAsync.value ?? const [];
+        final list = <ProTaskItem>[];
         if (pending.isNotEmpty) {
           list.add(
             ProTaskItem(
@@ -359,11 +458,19 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.facility:
-        final duties =
-            ref.watch(turfDutiesProvider(0)).valueOrNull?.items ?? const [];
+        final dutiesAsync = ref.watch(turfDutiesProvider(0));
+        if (dutiesAsync.isLoading) return const AsyncValue.loading();
+        if (dutiesAsync.hasError) {
+          return AsyncValue.error(
+            dutiesAsync.error!,
+            dutiesAsync.stackTrace!,
+          );
+        }
+        final duties = dutiesAsync.value?.items ?? const [];
+        final list = <ProTaskItem>[];
         for (final duty in duties) {
           list.add(
             ProTaskItem(
@@ -378,10 +485,19 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.platform:
-        final waitlist = ref.watch(launchWaitlistSummaryProvider).valueOrNull;
+        final waitlistAsync = ref.watch(launchWaitlistSummaryProvider);
+        if (waitlistAsync.isLoading) return const AsyncValue.loading();
+        if (waitlistAsync.hasError) {
+          return AsyncValue.error(
+            waitlistAsync.error!,
+            waitlistAsync.stackTrace!,
+          );
+        }
+        final waitlist = waitlistAsync.value;
+        final list = <ProTaskItem>[];
         if (waitlist != null && waitlist.totalCount > 0) {
           list.add(
             ProTaskItem(
@@ -397,10 +513,8 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
     }
-
-    return list;
   }
 }
 

@@ -209,7 +209,7 @@ class _TodaySection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = _buildTodayItems(context, ref);
+    final itemsAsync = _buildTodayItemsAsync(context, ref);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -218,62 +218,98 @@ class _TodaySection extends ConsumerWidget {
           subtitle: 'En önemli operasyonel durumlar',
         ),
         const SizedBox(height: 10),
-        if (items.isEmpty)
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: ProTheme.surface,
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: ProTheme.line),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.check_circle_outline_rounded,
-                    color: ProTheme.secondary, size: 22),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Bugün için bekleyen acil işlem yok',
-                        style: TextStyle(
-                          color: ProTheme.ink,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 14,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        'Tüm operasyonel süreçler güncel ve yolunda.',
-                        style: TextStyle(
-                          color: ProTheme.muted,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          )
-        else
-          ...items.take(3).map(
-                (item) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: item,
-                ),
+        itemsAsync.when(
+          loading: () => const Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(strokeWidth: 2),
               ),
+            ),
+          ),
+          error: (err, _) => ProErrorState(
+            message: 'Bugün operasyon verileri yüklenemedi.',
+            onRetry: () => refreshProWorkspaceData(ref, workspace),
+          ),
+          data: (items) {
+            if (items.isEmpty) {
+              return Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: ProTheme.surface,
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: ProTheme.line),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline_rounded,
+                      color: ProTheme.secondary,
+                      size: 22,
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Bugün için bekleyen acil işlem yok',
+                            style: TextStyle(
+                              color: ProTheme.ink,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                          SizedBox(height: 2),
+                          Text(
+                            'Tüm operasyonel süreçler güncel ve yolunda.',
+                            style: TextStyle(
+                              color: ProTheme.muted,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return Column(
+              children: items
+                  .take(3)
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: item,
+                    ),
+                  )
+                  .toList(),
+            );
+          },
+        ),
       ],
     );
   }
 
-  List<Widget> _buildTodayItems(BuildContext context, WidgetRef ref) {
-    final list = <Widget>[];
+  AsyncValue<List<Widget>> _buildTodayItemsAsync(
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     switch (workspace) {
       case ProWorkspace.referee:
-        final matches =
-            ref.watch(refereeDutyMatchesProvider).valueOrNull ?? const [];
+        final matchesAsync = ref.watch(refereeDutyMatchesProvider);
+        if (matchesAsync.isLoading) return const AsyncValue.loading();
+        if (matchesAsync.hasError) {
+          return AsyncValue.error(
+            matchesAsync.error!,
+            matchesAsync.stackTrace!,
+          );
+        }
+        final matches = matchesAsync.value ?? const [];
+        final list = <Widget>[];
         final pending = matches
             .where((m) =>
                 m.matchStatus == 'scheduled' &&
@@ -287,7 +323,7 @@ class _TodaySection extends ConsumerWidget {
               title: 'Yanıt Bekleyen Görevler',
               subtitle: '$pending müsabaka ataması kabul veya ret bekliyor.',
               actionLabel: 'Görevler',
-              onTap: () => context.go('/gorevler'),
+              onTap: () => context.go(ProRoutes.tasks),
             ),
           );
         }
@@ -304,14 +340,23 @@ class _TodaySection extends ConsumerWidget {
               title: 'Yaklaşan Müsabakalar',
               subtitle: '$accepted kabul edilmiş maç takvimde seni bekliyor.',
               actionLabel: 'Takvim',
-              onTap: () => context.go('/takvim'),
+              onTap: () => context.go(ProRoutes.calendar),
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.accounting:
-        final summary = ref.watch(financeOperationsSummaryProvider).valueOrNull;
+        final summaryAsync = ref.watch(financeOperationsSummaryProvider);
+        if (summaryAsync.isLoading) return const AsyncValue.loading();
+        if (summaryAsync.hasError) {
+          return AsyncValue.error(
+            summaryAsync.error!,
+            summaryAsync.stackTrace!,
+          );
+        }
+        final summary = summaryAsync.value;
+        final list = <Widget>[];
         if (summary != null && summary.pendingApprovalCount > 0) {
           list.add(
             _TodayItemCard(
@@ -338,12 +383,46 @@ class _TodaySection extends ConsumerWidget {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.federation:
-        final pending =
-            ref.watch(federationPendingResultsProvider(0)).valueOrNull ??
-                const [];
+        final scopesAsync = ref.watch(federationConsoleScopesProvider);
+        if (scopesAsync.isLoading) return const AsyncValue.loading();
+        if (scopesAsync.hasError) {
+          return AsyncValue.error(
+            scopesAsync.error!,
+            scopesAsync.stackTrace!,
+          );
+        }
+        final scopes = resolveEffectiveFederationScopes(
+          scopesAsync.value ?? const [],
+          ref.watch(swanAccessProvider),
+        );
+        final selectedKey = ref.watch(selectedFederationScopeKeyProvider);
+        final selectedScope = scopes
+                .where((item) => federationScopeKey(item) == selectedKey)
+                .firstOrNull ??
+            scopes.firstOrNull;
+        if (selectedScope == null) {
+          return const AsyncValue.data(<Widget>[]);
+        }
+        final pendingQuery = (
+          federationId: selectedScope.federationId,
+          sportCode: selectedScope.sportCode,
+          cityCode: selectedScope.cityCode,
+          offset: 0,
+        );
+        final pendingAsync =
+            ref.watch(federationScopedPendingResultsProvider(pendingQuery));
+        if (pendingAsync.isLoading) return const AsyncValue.loading();
+        if (pendingAsync.hasError) {
+          return AsyncValue.error(
+            pendingAsync.error!,
+            pendingAsync.stackTrace!,
+          );
+        }
+        final pending = pendingAsync.value ?? const [];
+        final list = <Widget>[];
         if (pending.isNotEmpty) {
           list.add(
             _TodayItemCard(
@@ -357,11 +436,19 @@ class _TodaySection extends ConsumerWidget {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.facility:
-        final duties =
-            ref.watch(turfDutiesProvider(0)).valueOrNull?.items ?? const [];
+        final dutiesAsync = ref.watch(turfDutiesProvider(0));
+        if (dutiesAsync.isLoading) return const AsyncValue.loading();
+        if (dutiesAsync.hasError) {
+          return AsyncValue.error(
+            dutiesAsync.error!,
+            dutiesAsync.stackTrace!,
+          );
+        }
+        final duties = dutiesAsync.value?.items ?? const [];
+        final list = <Widget>[];
         if (duties.isNotEmpty) {
           list.add(
             _TodayItemCard(
@@ -374,10 +461,19 @@ class _TodaySection extends ConsumerWidget {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.platform:
-        final waitlist = ref.watch(launchWaitlistSummaryProvider).valueOrNull;
+        final waitlistAsync = ref.watch(launchWaitlistSummaryProvider);
+        if (waitlistAsync.isLoading) return const AsyncValue.loading();
+        if (waitlistAsync.hasError) {
+          return AsyncValue.error(
+            waitlistAsync.error!,
+            waitlistAsync.stackTrace!,
+          );
+        }
+        final waitlist = waitlistAsync.value;
+        final list = <Widget>[];
         if (waitlist != null && waitlist.totalCount > 0) {
           list.add(
             _TodayItemCard(
@@ -391,12 +487,14 @@ class _TodaySection extends ConsumerWidget {
             ),
           );
         }
-        break;
+        return AsyncValue.data(list);
 
       case ProWorkspace.club:
       case ProWorkspace.coaching:
-        final todayAttendance =
-            ref.watch(clubTodayAttendanceProvider).valueOrNull;
+        final attendanceAsync = ref.watch(clubTodayAttendanceProvider);
+        if (attendanceAsync.isLoading) return const AsyncValue.loading();
+        final todayAttendance = attendanceAsync.valueOrNull;
+        final list = <Widget>[];
         if (todayAttendance != null) {
           final unrecorded =
               (todayAttendance.trainingCount - todayAttendance.markedCount)
@@ -415,20 +513,19 @@ class _TodaySection extends ConsumerWidget {
             );
           }
         }
-        break;
+        return AsyncValue.data(list);
     }
-    return list;
   }
 }
 
-class _QuickActionsRow extends StatelessWidget {
+class _QuickActionsRow extends ConsumerWidget {
   const _QuickActionsRow({required this.workspace});
 
   final ProWorkspace workspace;
 
   @override
-  Widget build(BuildContext context) {
-    final actions = _buildActions(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final actions = _buildActions(context, ref);
     if (actions.isEmpty) return const SizedBox.shrink();
 
     return Column(
@@ -448,34 +545,28 @@ class _QuickActionsRow extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildActions(BuildContext context) {
+  List<Widget> _buildActions(BuildContext context, WidgetRef ref) {
     final list = <Widget>[];
 
     switch (workspace) {
       case ProWorkspace.club:
       case ProWorkspace.coaching:
-        list.addAll([
-          _QuickActionButton(
-            icon: Icons.fact_check_outlined,
-            label: 'Yoklama Al',
-            onTap: () => context.push(ProRoutes.attendance),
-          ),
-          _QuickActionButton(
-            icon: Icons.history_edu_outlined,
-            label: 'Devam Takibi',
-            onTap: () => context.push(ProRoutes.attendanceHistory),
-          ),
-          _QuickActionButton(
-            icon: Icons.groups_outlined,
-            label: 'Takım Yönetimi',
-            onTap: () => context.push(ProRoutes.teams),
-          ),
-          _QuickActionButton(
-            icon: Icons.model_training_outlined,
-            label: 'Antrenman Şablonları',
-            onTap: () => context.push(ProRoutes.trainingProtocols),
-          ),
-        ]);
+        final flags = ref.watch(featureFlagsProvider).valueOrNull ??
+            const FeatureFlags({});
+        if (flags.has(FeatureFlags.attendanceOperations)) {
+          list.addAll([
+            _QuickActionButton(
+              icon: Icons.fact_check_outlined,
+              label: 'Yoklama Al',
+              onTap: () => context.push(ProRoutes.attendance),
+            ),
+            _QuickActionButton(
+              icon: Icons.history_edu_outlined,
+              label: 'Devam Takibi',
+              onTap: () => context.push(ProRoutes.attendanceHistory),
+            ),
+          ]);
+        }
         break;
       case ProWorkspace.accounting:
         list.addAll([
@@ -577,6 +668,7 @@ class _QuickActionButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
+          constraints: const BoxConstraints(maxWidth: 240),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -587,12 +679,16 @@ class _QuickActionButton extends StatelessWidget {
             children: [
               Icon(icon, size: 18, color: ProTheme.primary),
               const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  color: ProTheme.ink,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    color: ProTheme.ink,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],

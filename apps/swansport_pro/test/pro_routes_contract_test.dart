@@ -628,9 +628,9 @@ void main() {
       expect(find.text('Bekleyen Başvurular'), findsNothing);
     });
 
-    testWidgets(
+    test(
         'federation scope isolation queries scoped results and updates on scope switch',
-        (tester) async {
+        () async {
       const basketballScope = FederationConsoleScope(
         federationId: 'fed-1',
         name: 'TBF İstanbul',
@@ -652,11 +652,21 @@ void main() {
             (ref) => Stream.value(_makeSession('fed-iso-user')),
           ),
           swanAccessProvider.overrideWithValue(
-            const SwanAccess(
+            SwanAccess(
               isPlatformAdmin: false,
               clubRole: null,
               coachLevel: 0,
               athleteKind: null,
+              federationRoles: [
+                FederationRole(
+                  id: 'fed-role-1',
+                  federationId: 'fed-1',
+                  profileId: 'fed-iso-user',
+                  role: FederationRoleKind.president,
+                  startsOn: DateTime(2025, 1, 1),
+                  endsOn: DateTime(2030, 1, 1),
+                ),
+              ],
             ),
           ),
           federationConsoleScopesProvider.overrideWith(
@@ -665,34 +675,26 @@ void main() {
           selectedFederationScopeKeyProvider.overrideWith(
             (ref) => 'fed-1:futbol:34',
           ),
-          federationScopedPendingResultsProvider((
-            federationId: 'fed-1',
-            sportCode: 'futbol',
-            cityCode: '34',
-            offset: 0,
-          )).overrideWith(
-            (ref) async => const [
-              FederationPendingMatch(
-                id: 'match-fb-1',
-                name: 'Futbol Ligi',
-                sportCode: 'futbol',
-                version: 1,
-              ),
-            ],
-          ),
-          federationScopedPendingResultsProvider((
-            federationId: 'fed-1',
-            sportCode: 'basketbol',
-            cityCode: '34',
-            offset: 0,
-          )).overrideWith(
-            (ref) async => const [],
+          federationScopedPendingResultsProvider.overrideWith(
+            (ref, query) async => query.sportCode == 'futbol'
+                ? const [
+                    FederationPendingMatch(
+                      id: 'match-fb-1',
+                      name: 'Futbol Ligi',
+                      sportCode: 'futbol',
+                      version: 1,
+                    ),
+                  ]
+                : const [],
           ),
         ],
       );
       addTearDown(container.dispose);
       container.read(selectedProWorkspaceProvider.notifier).state =
           ProWorkspace.federation;
+
+      final sub = container.listen(proPendingTasksCountProvider, (_, __) {});
+      addTearDown(sub.close);
 
       final countFootball =
           await container.read(proPendingTasksCountProvider.future);
