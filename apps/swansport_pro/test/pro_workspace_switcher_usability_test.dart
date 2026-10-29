@@ -176,7 +176,7 @@ void main() {
       expect(container.read(selectedClubIdProvider), isNull);
     });
 
-    test('user_metadata CANNOT grant any preview workspace access', () {
+    test('user_metadata CANNOT grant any preview workspace access', () async {
       final container = ProviderContainer(
         overrides: [
           swanAccessProvider.overrideWithValue(SwanAccess.none),
@@ -198,6 +198,8 @@ void main() {
       );
       addTearDown(container.dispose);
 
+      await container.read(authSessionProvider.future);
+
       final workspaces = container.read(availableProWorkspacesProvider);
       expect(workspaces, isEmpty,
           reason:
@@ -205,7 +207,7 @@ void main() {
       expect(container.read(selectedProWorkspaceProvider), isNull);
     });
 
-    test('server-controlled app_metadata preview works as expected', () {
+    test('server-controlled app_metadata preview works as expected', () async {
       final container = ProviderContainer(
         overrides: [
           swanAccessProvider.overrideWithValue(SwanAccess.none),
@@ -222,6 +224,8 @@ void main() {
         ],
       );
       addTearDown(container.dispose);
+
+      await container.read(authSessionProvider.future);
 
       final workspaces = container.read(availableProWorkspacesProvider);
       expect(

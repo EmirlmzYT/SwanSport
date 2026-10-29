@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:swansport_data/swansport_data.dart';
 import '../workspaces/pro_workspace_switcher.dart';
-import '../workspaces/pro_workspace_controller.dart';
-import '../workspaces/pro_workspace.dart';
-import '../features/operations/pro_club_context_selector.dart';
+import '../features/operations/pro_tasks_controller.dart';
 import '../app/pro_theme.dart';
+import '../widgets/pro_context_bar.dart';
 import 'pro_navigation.dart';
 
 class ProShell extends ConsumerWidget {
@@ -18,7 +18,17 @@ class ProShell extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final workspace = ref.watch(selectedProWorkspaceProvider);
+    final unreadInbox =
+        ref.watch(proUnreadNotificationsCountProvider).valueOrNull ?? 0;
+    final pendingTasks =
+        ref.watch(proPendingTasksCountProvider).valueOrNull ?? 0;
+
+    int? badgeForIndex(int index) {
+      if (index == 1) return pendingTasks > 0 ? pendingTasks : null;
+      if (index == 3) return unreadInbox > 0 ? unreadInbox : null;
+      return null;
+    }
+
     void selectDestination(int index) {
       navigationShell.goBranch(
         index,
@@ -36,12 +46,13 @@ class ProShell extends ConsumerWidget {
                 _ProDesktopNavigation(
                   currentIndex: navigationShell.currentIndex,
                   onDestinationSelected: selectDestination,
+                  badgeForIndex: badgeForIndex,
                 ),
                 const VerticalDivider(width: 1),
                 Expanded(
                   child: Column(
                     children: [
-                      _ProTopBar(workspace: workspace),
+                      const ProContextBar(),
                       Expanded(child: navigationShell),
                     ],
                   ),
@@ -62,50 +73,19 @@ class ProShell extends ConsumerWidget {
               ),
             ],
           ),
-          body: navigationShell,
+          body: Column(
+            children: [
+              const ProContextBar(compact: true),
+              Expanded(child: navigationShell),
+            ],
+          ),
           bottomNavigationBar: ProBottomNavigationBar(
             currentIndex: navigationShell.currentIndex,
             onDestinationSelected: selectDestination,
+            badgeForIndex: badgeForIndex,
           ),
         );
       },
-    );
-  }
-}
-
-class _ProTopBar extends StatelessWidget {
-  const _ProTopBar({required this.workspace});
-
-  final ProWorkspace? workspace;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      decoration: const BoxDecoration(
-        color: ProTheme.background,
-        border: Border(bottom: BorderSide(color: ProTheme.line)),
-      ),
-      child: Row(
-        children: [
-          Text(
-            '${workspace?.label ?? 'Operasyon'} Merkezi',
-            style: const TextStyle(
-              color: ProTheme.ink,
-              fontSize: 18,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.3,
-            ),
-          ),
-          const Spacer(),
-          if (workspace?.supportsClubOperations ?? false) ...[
-            const SizedBox(width: 220, child: ProClubContextSelector()),
-            const SizedBox(width: 12),
-          ],
-          const ProWorkspaceSwitcher(),
-        ],
-      ),
     );
   }
 }
@@ -114,10 +94,12 @@ class _ProDesktopNavigation extends StatelessWidget {
   const _ProDesktopNavigation({
     required this.currentIndex,
     required this.onDestinationSelected,
+    this.badgeForIndex,
   });
 
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
+  final int? Function(int index)? badgeForIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -153,6 +135,7 @@ class _ProDesktopNavigation extends StatelessWidget {
                 item: proNavigationItems[i],
                 selected: currentIndex == i,
                 onTap: () => onDestinationSelected(i),
+                badgeCount: badgeForIndex?.call(i),
               ),
             ),
           const Spacer(),
@@ -193,18 +176,24 @@ class _DesktopDestination extends StatelessWidget {
     required this.item,
     required this.selected,
     required this.onTap,
+    this.badgeCount,
   });
 
   final ProNavigationItemData item;
   final bool selected;
   final VoidCallback onTap;
+  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
+    final hasBadge = badgeCount != null && badgeCount! > 0;
+    final semanticLabel =
+        hasBadge ? '${item.label}, $badgeCount bildirim' : item.label;
+
     return Semantics(
       button: true,
       selected: selected,
-      label: item.label,
+      label: semanticLabel,
       child: Material(
         color: selected
             ? ProTheme.primary.withValues(alpha: 0.12)
@@ -232,6 +221,25 @@ class _DesktopDestination extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (hasBadge) ...[
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEF4444),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      badgeCount! > 99 ? '99+' : '$badgeCount',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                ],
                 if (selected)
                   const Icon(
                     Icons.chevron_right_rounded,

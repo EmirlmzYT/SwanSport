@@ -6,8 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
-import 'package:swansport_pro/workspaces/pro_workspace.dart';
-import 'package:swansport_pro/workspaces/pro_workspace_controller.dart';
+import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 Session _makeSession(String userId) {
@@ -44,11 +43,10 @@ void main() {
                 athleteKind: null,
               ),
             ),
-            proAuthorizedClubsProvider.overrideWith(
-              (ref) async => [
-                const ClubRef(
-                    id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
-              ],
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
             ),
             activeClubProvider.overrideWith(
               (ref) async => const ClubRef(
@@ -95,11 +93,10 @@ void main() {
                 athleteKind: null,
               ),
             ),
-            proAuthorizedClubsProvider.overrideWith(
-              (ref) async => [
-                const ClubRef(
-                    id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
-              ],
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
             ),
             activeClubProvider.overrideWith(
               (ref) async => const ClubRef(
@@ -110,9 +107,9 @@ void main() {
             ),
             featureFlagsProvider.overrideWith(
               (ref) async => const FeatureFlags({
-                FeatureFlags.coachWorkspace: 'everyone',
-                FeatureFlags.attendanceOperations: 'everyone',
-                FeatureFlags.teamHub: 'everyone',
+                FeatureFlags.coachWorkspace,
+                FeatureFlags.attendanceOperations,
+                FeatureFlags.teamHub,
               }),
             ),
           ],
@@ -123,7 +120,9 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final firstTask = find.text('Bugün').or(find.text('Öncelikli İşlemler'));
+      final firstTask = find.byWidgetPredicate((widget) =>
+          widget is Text &&
+          (widget.data == 'Bugün' || widget.data == 'Öncelikli İşlemler'));
       expect(firstTask, findsAtLeastNWidgets(1));
 
       final firstTaskPos = tester.getTopLeft(firstTask.first);
@@ -147,15 +146,20 @@ void main() {
                 clubRole: null,
                 coachLevel: 0,
                 athleteKind: null,
-                isReferee: true,
+                refereeProfile: RefereeProfile(
+                  id: 'ref-1',
+                  profileId: 'user-referee-dash',
+                  licenseNumber: 'TFF-100',
+                  badgeTier: RefereeBadgeTier.national,
+                  sportCode: 'futbol',
+                  cityCode: '34',
+                  isActive: true,
+                ),
               ),
-            ),
-            selectedProWorkspaceProvider.overrideWith(
-              (ref) => ProWorkspace.referee,
             ),
             featureFlagsProvider.overrideWith(
               (ref) async => const FeatureFlags({
-                FeatureFlags.refereeCockpit: 'everyone',
+                FeatureFlags.refereeCockpit,
               }),
             ),
           ],

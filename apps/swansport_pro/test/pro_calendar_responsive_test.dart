@@ -41,18 +41,16 @@ void main() {
               ),
             ),
             unifiedCalendarMonthProvider.overrideWith(
-              (ref, month) async => UnifiedCalendarMonth(
-                month: month,
-                events: [
+              (ref, month) async => UnifiedCalendarData(
+                [
                   UnifiedCalendarEvent(
                     id: 'ev-1',
-                    source: UnifiedCalendarSource.club,
+                    type: CalendarEventType.clubTraining,
                     title: 'A Takım Antrenmanı',
                     startsAt: DateTime(month.year, month.month, 15, 18, 0),
                     status: 'scheduled',
                   ),
                 ],
-                failedSources: const [],
               ),
             ),
           ],
@@ -102,10 +100,8 @@ void main() {
                 ),
               ),
               unifiedCalendarMonthProvider.overrideWith(
-                (ref, month) async => UnifiedCalendarMonth(
-                  month: month,
-                  events: const [],
-                  failedSources: const [],
+                (ref, month) async => const UnifiedCalendarData(
+                  [],
                 ),
               ),
             ],

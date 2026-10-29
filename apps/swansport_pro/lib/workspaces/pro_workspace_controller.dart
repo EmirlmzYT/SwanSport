@@ -41,9 +41,45 @@ final proAccessReadinessProvider = Provider<AsyncValue<void>>((ref) {
 });
 
 /// Kullanıcının mevcut erişimine göre izin verilen çalışma alanları listesi.
+///
+/// Sunucu yetkilendirmesi [SwanAccess] temel belirleyicidir.
+/// Güvenlik kuralı: `user_metadata` istemci tarafından değiştirilebilir olduğundan
+/// hiçbir zaman çalışma alanı yetkisi veya preview erişimi açamaz.
+/// Yalnızca sunucu tarafından yönetilen güvenilir `app_metadata` içerisindeki
+/// `pro_preview_workspaces` listesi (varsa) eklenir.
 final availableProWorkspacesProvider = Provider<List<ProWorkspace>>((ref) {
   final access = ref.watch(swanAccessProvider);
-  return proWorkspacesFor(access);
+  final accessWorkspaces = proWorkspacesFor(access);
+  if (accessWorkspaces.isNotEmpty) {
+    return accessWorkspaces;
+  }
+
+  // Server-controlled app_metadata preview fallback (asla user_metadata kontrol edilmez)
+  final session = ref.watch(authSessionProvider).valueOrNull;
+  final appMeta = session?.user.appMetadata;
+  if (appMeta != null) {
+    final previewRaw =
+        appMeta['pro_preview_workspaces'] ?? appMeta['preview_workspaces'];
+    if (previewRaw is List) {
+      final list = <ProWorkspace>[];
+      for (final item in previewRaw) {
+        final name = item.toString().toLowerCase().trim();
+        for (final ws in ProWorkspace.values) {
+          if (ws.name.toLowerCase() == name && !list.contains(ws)) {
+            list.add(ws);
+          }
+        }
+      }
+      if (list.isNotEmpty) {
+        return List.unmodifiable(list);
+      }
+    }
+    if (appMeta['pro_preview'] == true || appMeta['preview'] == true) {
+      return List.unmodifiable(ProWorkspace.values);
+    }
+  }
+
+  return const [];
 });
 
 /// Aktif seçili profesyonel çalışma alanı.

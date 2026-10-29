@@ -6,10 +6,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
+import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
-import 'package:swansport_pro/workspaces/pro_workspace.dart';
-import 'package:swansport_pro/workspaces/pro_workspace_controller.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 Session _makeSession(String userId) {
   return Session(
@@ -44,11 +42,10 @@ void main() {
                 athleteKind: null,
               ),
             ),
-            proAuthorizedClubsProvider.overrideWith(
-              (ref) async => [
-                const ClubRef(
-                    id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
-              ],
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
             ),
             activeClubProvider.overrideWith(
               (ref) async => const ClubRef(
@@ -59,9 +56,9 @@ void main() {
             ),
             featureFlagsProvider.overrideWith(
               (ref) async => const FeatureFlags({
-                FeatureFlags.coachWorkspace: 'everyone',
-                FeatureFlags.attendanceOperations: 'everyone',
-                FeatureFlags.teamHub: 'everyone',
+                FeatureFlags.coachWorkspace,
+                FeatureFlags.attendanceOperations,
+                FeatureFlags.teamHub,
               }),
             ),
           ],
@@ -86,7 +83,9 @@ void main() {
       expect(
         find.descendant(
           of: find.byType(ProTasksScreen),
-          matching: find.text('Tümü').or(find.text('Bekleyen')),
+          matching: find.byWidgetPredicate((widget) =>
+              widget is Text &&
+              (widget.data == 'Tümü' || widget.data == 'Bekleyen')),
         ),
         findsAtLeastNWidgets(1),
       );
@@ -108,11 +107,10 @@ void main() {
                 athleteKind: null,
               ),
             ),
-            proAuthorizedClubsProvider.overrideWith(
-              (ref) async => [
-                const ClubRef(
-                    id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
-              ],
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
             ),
             activeClubProvider.overrideWith(
               (ref) async => const ClubRef(
