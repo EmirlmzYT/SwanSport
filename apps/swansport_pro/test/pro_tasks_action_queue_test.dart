@@ -149,6 +149,7 @@ void main() {
                 role: 'club_admin',
               ),
             ),
+            clubTodayAttendanceProvider.overrideWith((ref) async => null),
           ],
           child: const MaterialApp(
             home: ProTasksScreen(),
