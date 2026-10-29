@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
-import '../workspaces/pro_workspace_switcher.dart';
 import '../features/operations/pro_tasks_controller.dart';
 import '../app/pro_theme.dart';
 import '../widgets/pro_context_bar.dart';
@@ -66,12 +65,6 @@ class ProShell extends ConsumerWidget {
           appBar: AppBar(
             titleSpacing: 16,
             title: const _ProBrand(compact: true),
-            actions: const [
-              Padding(
-                padding: EdgeInsets.only(right: 12),
-                child: ProWorkspaceSwitcher(),
-              ),
-            ],
           ),
           body: Column(
             children: [

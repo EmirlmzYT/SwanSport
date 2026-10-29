@@ -17,7 +17,7 @@ class ProCalendarScreen extends ConsumerStatefulWidget {
 class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
   late CalendarMonth _month;
   late DateTime _selectedDay;
-  CalendarViewMode _viewMode = CalendarViewMode.list;
+  CalendarViewMode _viewMode = CalendarViewMode.month;
 
   @override
   void initState() {
@@ -101,11 +101,16 @@ class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
                           onSelectDay: (day) =>
                               setState(() => _selectedDay = day),
                         );
+                        final dayEvents = calendar.events
+                            .where((event) => event.occursOn(_selectedDay))
+                            .toList(growable: false);
                         final agenda = _Agenda(
                           selectedDay: _selectedDay,
-                          events: calendar.events
-                              .where((event) => event.occursOn(_selectedDay))
-                              .toList(growable: false),
+                          events: dayEvents.isNotEmpty
+                              ? dayEvents
+                              : calendar.events,
+                          isFallback:
+                              dayEvents.isEmpty && calendar.events.isNotEmpty,
                         );
                         if (!wide) {
                           return Column(
@@ -321,7 +326,7 @@ class _CalendarListView extends StatelessWidget {
       );
     }
 
-    final sorted = List<UnifiedCalendarEvent>.from(events)
+    final sorted = [...events]
       ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
 
     final groups = <DateTime, List<UnifiedCalendarEvent>>{};
@@ -530,10 +535,15 @@ class _MonthGrid extends StatelessWidget {
 }
 
 class _Agenda extends StatelessWidget {
-  const _Agenda({required this.selectedDay, required this.events});
+  const _Agenda({
+    required this.selectedDay,
+    required this.events,
+    this.isFallback = false,
+  });
 
   final DateTime selectedDay;
   final List<UnifiedCalendarEvent> events;
+  final bool isFallback;
 
   @override
   Widget build(BuildContext context) {
@@ -548,7 +558,9 @@ class _Agenda extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${selectedDay.day} ${_monthName(selectedDay.month)} gündemi',
+            isFallback
+                ? 'Ayın Etkinlikleri'
+                : '${selectedDay.day} ${_monthName(selectedDay.month)} gündemi',
             style: const TextStyle(
               color: ProTheme.ink,
               fontSize: 15.5,

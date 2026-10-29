@@ -463,79 +463,108 @@ class _QuickActionsRow extends StatelessWidget {
   }
 
   List<Widget> _buildActions(BuildContext context) {
-    final list = <Widget>[
-      _QuickActionButton(
-        icon: Icons.calendar_month_outlined,
-        label: 'Takvim',
-        onTap: () => context.go('/takvim'),
-      ),
-      _QuickActionButton(
-        icon: Icons.task_alt_outlined,
-        label: 'Görevler',
-        onTap: () => context.go('/gorevler'),
-      ),
-      _QuickActionButton(
-        icon: Icons.inbox_outlined,
-        label: 'Gelen Kutusu',
-        onTap: () => context.go('/gelen-kutusu'),
-      ),
-    ];
+    final list = <Widget>[];
 
     switch (workspace) {
       case ProWorkspace.club:
       case ProWorkspace.coaching:
-        list.add(
+        list.addAll([
           _QuickActionButton(
             icon: Icons.fact_check_outlined,
-            label: 'Yoklama',
+            label: 'Yoklama Al',
             onTap: () => context.push('/operasyon/yoklama'),
           ),
-        );
+          _QuickActionButton(
+            icon: Icons.history_edu_outlined,
+            label: 'Devam Takibi',
+            onTap: () => context.push('/operasyon/devam'),
+          ),
+          _QuickActionButton(
+            icon: Icons.groups_outlined,
+            label: 'Takım Yönetimi',
+            onTap: () => context.push('/operasyon/takimlar'),
+          ),
+          _QuickActionButton(
+            icon: Icons.person_add_outlined,
+            label: 'Başvurular',
+            onTap: () => context.push('/operasyon/kulup/basvurular'),
+          ),
+        ]);
         break;
       case ProWorkspace.accounting:
-        list.add(
+        list.addAll([
+          _QuickActionButton(
+            icon: Icons.verified_outlined,
+            label: 'Harcama Onayı',
+            onTap: () => context.push('/operasyon/muhasebe/onaylar'),
+          ),
           _QuickActionButton(
             icon: Icons.account_balance_outlined,
-            label: 'Banka',
+            label: 'Banka Mutabakatı',
             onTap: () => context.push('/operasyon/muhasebe/banka'),
           ),
-        );
+          _QuickActionButton(
+            icon: Icons.receipt_long_outlined,
+            label: 'Finans Özeti',
+            onTap: () => context.push('/operasyon/muhasebe/onaylar'),
+          ),
+        ]);
         break;
       case ProWorkspace.federation:
-        list.add(
+        list.addAll([
           _QuickActionButton(
             icon: Icons.newspaper_outlined,
             label: 'Bülten',
             onTap: () => context.push('/operasyon/bulten'),
           ),
-        );
+          _QuickActionButton(
+            icon: Icons.leaderboard_outlined,
+            label: 'Puan Durumu',
+            onTap: () => context.push('/operasyon/bulten'),
+          ),
+        ]);
         break;
       case ProWorkspace.facility:
-        list.add(
+        list.addAll([
           _QuickActionButton(
             icon: Icons.sports_soccer_outlined,
-            label: 'Sahalar',
+            label: 'Saha Durumu',
             onTap: () => context.push('/operasyon/tesis/sahalar'),
           ),
-        );
+          _QuickActionButton(
+            icon: Icons.build_circle_outlined,
+            label: 'Tesis Bakımı',
+            onTap: () => context.push('/operasyon/tesis/sahalar'),
+          ),
+        ]);
         break;
       case ProWorkspace.referee:
-        list.add(
+        list.addAll([
           _QuickActionButton(
-            icon: Icons.sports_outlined,
-            label: 'Atamalar',
+            icon: Icons.description_outlined,
+            label: 'Müsabaka Raporu',
             onTap: () => context.go('/gorevler'),
           ),
-        );
+          _QuickActionButton(
+            icon: Icons.sports_outlined,
+            label: 'Görev Programı',
+            onTap: () => context.go('/takvim'),
+          ),
+        ]);
         break;
       case ProWorkspace.platform:
-        list.add(
+        list.addAll([
           _QuickActionButton(
             icon: Icons.tune_outlined,
-            label: 'Ayarlar',
+            label: 'Yapılandırma',
             onTap: () => context.push('/operasyon/platform/yapilandirma'),
           ),
-        );
+          _QuickActionButton(
+            icon: Icons.people_outline_rounded,
+            label: 'Bekleme Listesi',
+            onTap: () => context.push('/operasyon/platform/bekleme-listesi'),
+          ),
+        ]);
         break;
     }
     return list;
