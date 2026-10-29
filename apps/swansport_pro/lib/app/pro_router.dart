@@ -10,6 +10,68 @@ import '../shell/pro_shell.dart';
 import 'push/pro_notification_route_handler.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
+abstract final class ProRoutes {
+  static const panel = '/panel';
+  static const tasks = '/gorevler';
+  static const calendar = '/takvim';
+  static const inbox = '/gelen-kutusu';
+  static const account = '/hesap';
+
+  // Operations - Club / Coach
+  static const teams = '/operasyon/takimlar';
+  static const attendance = '/operasyon/yoklama';
+  static const attendanceHistory = '/operasyon/devam';
+  static String teamRoster(String id) => '/operasyon/takim/$id';
+  static const trainings = '/operasyon/antrenmanlar';
+  static const trainingProtocols = '/operasyon/antrenman-sablonlari';
+  static const trainingBuilder = '/operasyon/antrenman-olustur';
+  static const trainingSession = '/operasyon/antrenman-oturumu';
+  static const trainingResult = '/operasyon/antrenman-sonuc';
+
+  // Federation
+  static const federationMatches = '/operasyon/federasyon-maclar';
+  static const refereeAssignments = '/operasyon/hakem-atamalari';
+  static const leagueStandings = '/operasyon/puan-durumu';
+  static const disciplinaryBoard = '/operasyon/disiplin-kurulu';
+  static const federationBulletin = '/operasyon/federasyon-bulten';
+
+  // Referee
+  static const refereeDuties = '/operasyon/hakem-gorevleri';
+  static String refereeLineup(String matchId) =>
+      '/operasyon/hakem-esame/$matchId';
+  static String refereeLive(String matchId) =>
+      '/operasyon/hakem-canli/$matchId';
+  static String refereeReport(String matchId) =>
+      '/operasyon/hakem-rapor/$matchId';
+
+  // Accounting
+  static const accounting = '/operasyon/muhasebe';
+  static const accountingLedger = '/operasyon/muhasebe-defter';
+  static const accountingCommitments = '/operasyon/mali-taahhutler';
+  static const bankReconciliation = '/operasyon/banka-mutabakati';
+  static const clubBudget = '/operasyon/kulup-butcesi';
+  static const periodClosing = '/operasyon/donem-kapanisi';
+
+  // Facility
+  static const facility = '/operasyon/tesis';
+  static const facilityCalendar = '/operasyon/tesis-takvim';
+  static const facilityReservations = '/operasyon/tesis-rezervasyonlar';
+  static const facilityDuties = '/operasyon/tesis-gorevleri';
+
+  // Club specialist
+  static const clubInventory = '/operasyon/kulup-envanter';
+  static const clubHealth = '/operasyon/kulup-saglik';
+  static const clubPlanning = '/operasyon/kulup-sportif-planlama';
+  static const developmentReport = '/operasyon/gelisim-raporu';
+
+  // Platform
+  static const platform = '/operasyon/platform';
+  static const platformStatus = '/operasyon/platform-durum';
+  static const platformAudit = '/operasyon/platform-denetim';
+  static const platformPlans = '/operasyon/platform-planlar';
+  static const platformWaitlist = '/operasyon/platform-bekleme-listesi';
+}
+
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');
 final _panelNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'panelNav');
 final _tasksNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'tasksNav');

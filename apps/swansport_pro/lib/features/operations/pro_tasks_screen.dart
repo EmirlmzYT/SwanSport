@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+import '../../app/pro_router.dart';
 import '../../app/pro_theme.dart';
 import '../../widgets/pro_ui_components.dart';
 import '../../workspaces/pro_workspace.dart';
@@ -239,24 +240,40 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                 priority: ProTaskPriority.now,
                 status: 'Yanıt Bekliyor',
                 actionLabel: 'Yanıtla',
-                onAction: () => context.go('/gorevler'),
+                onAction: () => context.push(ProRoutes.refereeDuties),
               ),
             );
-          } else if (m.matchStatus == 'scheduled' &&
-              m.status == MatchOfficialStatus.accepted) {
-            list.add(
-              ProTaskItem(
-                id: 'ref-match-${m.matchId}',
-                icon: Icons.sports_rounded,
-                title: 'Müsabaka Görevi',
-                context:
-                    '${m.location ?? 'Tesis'} • ${m.homeClubName ?? ''} vs ${m.awayClubName ?? ''}',
-                priority: ProTaskPriority.today,
-                status: 'Kabul Edildi',
-                actionLabel: 'Takvim',
-                onAction: () => context.go('/takvim'),
-              ),
-            );
+          } else if (m.status == MatchOfficialStatus.accepted) {
+            if (m.matchStatus == 'completed') {
+              list.add(
+                ProTaskItem(
+                  id: 'ref-report-${m.matchId}',
+                  icon: Icons.description_outlined,
+                  title: 'Müsabaka Raporu',
+                  context:
+                      '${m.homeClubName ?? ''} vs ${m.awayClubName ?? ''} • Rapor Girişi',
+                  priority: ProTaskPriority.now,
+                  status: 'Rapor Bekliyor',
+                  actionLabel: 'Rapor Yaz',
+                  onAction: () =>
+                      context.push(ProRoutes.refereeReport(m.matchId)),
+                ),
+              );
+            } else if (m.matchStatus == 'scheduled') {
+              list.add(
+                ProTaskItem(
+                  id: 'ref-match-${m.matchId}',
+                  icon: Icons.sports_rounded,
+                  title: 'Müsabaka Görevi',
+                  context:
+                      '${m.location ?? 'Tesis'} • ${m.homeClubName ?? ''} vs ${m.awayClubName ?? ''}',
+                  priority: ProTaskPriority.today,
+                  status: 'Kabul Edildi',
+                  actionLabel: 'Takvim',
+                  onAction: () => context.go(ProRoutes.calendar),
+                ),
+              );
+            }
           }
         }
         break;
@@ -275,7 +292,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                 priority: ProTaskPriority.now,
                 status: 'Onay Bekliyor',
                 actionLabel: 'İncele',
-                onAction: () => context.push('/operasyon/muhasebe/onaylar'),
+                onAction: () => context.push(ProRoutes.accounting),
               ),
             );
           }
@@ -290,7 +307,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                 priority: ProTaskPriority.today,
                 status: 'Eşleşme Bekliyor',
                 actionLabel: 'Eşleştir',
-                onAction: () => context.push('/operasyon/muhasebe/banka'),
+                onAction: () => context.push(ProRoutes.bankReconciliation),
               ),
             );
           }
@@ -299,23 +316,6 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
 
       case ProWorkspace.club:
       case ProWorkspace.coaching:
-        final pendingApps =
-            ref.watch(clubPendingApplicationsProvider).valueOrNull ?? const [];
-        if (pendingApps.isNotEmpty) {
-          list.add(
-            ProTaskItem(
-              id: 'club-apps',
-              icon: Icons.group_add_outlined,
-              title: 'Kulüp Üyelik Başvuruları',
-              context:
-                  '${pendingApps.length} sporcu / üye başvurusu değerlendirilmeyi bekliyor',
-              priority: ProTaskPriority.now,
-              status: 'İnceleme Bekliyor',
-              actionLabel: 'İncele',
-              onAction: () => context.push('/operasyon/kulup/basvurular'),
-            ),
-          );
-        }
         final todayAttendance =
             ref.watch(clubTodayAttendanceProvider).valueOrNull;
         if (todayAttendance != null) {
@@ -333,7 +333,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                 priority: ProTaskPriority.today,
                 status: 'Yoklama Eksik',
                 actionLabel: 'Yoklama Al',
-                onAction: () => context.push('/operasyon/yoklama'),
+                onAction: () => context.push(ProRoutes.attendance),
               ),
             );
           }
@@ -355,7 +355,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
               priority: ProTaskPriority.now,
               status: 'İşlem Bekliyor',
               actionLabel: 'İncele',
-              onAction: () => context.push('/operasyon/bulten'),
+              onAction: () => context.push(ProRoutes.federationBulletin),
             ),
           );
         }
@@ -374,7 +374,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
               priority: ProTaskPriority.today,
               status: duty.status,
               actionLabel: 'İncele',
-              onAction: () => context.push('/operasyon/tesis/sahalar'),
+              onAction: () => context.push(ProRoutes.facilityDuties),
             ),
           );
         }
@@ -393,8 +393,7 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
               priority: ProTaskPriority.now,
               status: 'İnceleme Bekliyor',
               actionLabel: 'İncele',
-              onAction: () =>
-                  context.push('/operasyon/platform/bekleme-listesi'),
+              onAction: () => context.push(ProRoutes.platformWaitlist),
             ),
           );
         }

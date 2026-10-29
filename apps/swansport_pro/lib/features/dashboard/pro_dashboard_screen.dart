@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
+import '../../app/pro_router.dart';
 import '../../app/pro_theme.dart';
 import '../../widgets/pro_ui_components.dart';
 import '../../workspaces/pro_workspace.dart';
@@ -320,7 +321,7 @@ class _TodaySection extends ConsumerWidget {
               subtitle:
                   '${summary.pendingApprovalCount} gider onayı inceleme bekliyor.',
               actionLabel: 'İncele',
-              onTap: () => context.push('/operasyon/muhasebe/onaylar'),
+              onTap: () => context.push(ProRoutes.accounting),
             ),
           );
         }
@@ -333,7 +334,7 @@ class _TodaySection extends ConsumerWidget {
               subtitle:
                   '${summary.bankUnmatchedCount} banka işlemi mutabakat bekliyor.',
               actionLabel: 'Mutabakat',
-              onTap: () => context.push('/operasyon/muhasebe/banka'),
+              onTap: () => context.push(ProRoutes.bankReconciliation),
             ),
           );
         }
@@ -352,7 +353,7 @@ class _TodaySection extends ConsumerWidget {
               subtitle:
                   '${pending.length} müsabaka sonuç girişi veya hakem ataması bekliyor.',
               actionLabel: 'İncele',
-              onTap: () => context.go('/gorevler'),
+              onTap: () => context.go(ProRoutes.tasks),
             ),
           );
         }
@@ -369,7 +370,7 @@ class _TodaySection extends ConsumerWidget {
               title: 'Tesis Görevleri',
               subtitle: '${duties.length} saha ve bakım operasyonu planlandı.',
               actionLabel: 'Görevler',
-              onTap: () => context.go('/gorevler'),
+              onTap: () => context.go(ProRoutes.tasks),
             ),
           );
         }
@@ -386,7 +387,7 @@ class _TodaySection extends ConsumerWidget {
               subtitle:
                   '${waitlist.totalCount} başvuru onay ve inceleme bekliyor.',
               actionLabel: 'İncele',
-              onTap: () => context.push('/operasyon/platform/bekleme-listesi'),
+              onTap: () => context.push(ProRoutes.platformWaitlist),
             ),
           );
         }
@@ -394,21 +395,6 @@ class _TodaySection extends ConsumerWidget {
 
       case ProWorkspace.club:
       case ProWorkspace.coaching:
-        final pendingApps =
-            ref.watch(clubPendingApplicationsProvider).valueOrNull ?? const [];
-        if (pendingApps.isNotEmpty) {
-          list.add(
-            _TodayItemCard(
-              icon: Icons.group_add_outlined,
-              tone: _ItemTone.warning,
-              title: 'Bekleyen Başvurular',
-              subtitle:
-                  '${pendingApps.length} sporcu veya üye başvurusu onay bekliyor.',
-              actionLabel: 'İncele',
-              onTap: () => context.push('/operasyon/kulup/basvurular'),
-            ),
-          );
-        }
         final todayAttendance =
             ref.watch(clubTodayAttendanceProvider).valueOrNull;
         if (todayAttendance != null) {
@@ -424,7 +410,7 @@ class _TodaySection extends ConsumerWidget {
                 subtitle:
                     '$unrecorded antrenman oturumunun yoklaması henüz alınmadı.',
                 actionLabel: 'Yoklama Al',
-                onTap: () => context.push('/operasyon/yoklama'),
+                onTap: () => context.push(ProRoutes.attendance),
               ),
             );
           }
@@ -472,22 +458,22 @@ class _QuickActionsRow extends StatelessWidget {
           _QuickActionButton(
             icon: Icons.fact_check_outlined,
             label: 'Yoklama Al',
-            onTap: () => context.push('/operasyon/yoklama'),
+            onTap: () => context.push(ProRoutes.attendance),
           ),
           _QuickActionButton(
             icon: Icons.history_edu_outlined,
             label: 'Devam Takibi',
-            onTap: () => context.push('/operasyon/devam'),
+            onTap: () => context.push(ProRoutes.attendanceHistory),
           ),
           _QuickActionButton(
             icon: Icons.groups_outlined,
             label: 'Takım Yönetimi',
-            onTap: () => context.push('/operasyon/takimlar'),
+            onTap: () => context.push(ProRoutes.teams),
           ),
           _QuickActionButton(
-            icon: Icons.person_add_outlined,
-            label: 'Başvurular',
-            onTap: () => context.push('/operasyon/kulup/basvurular'),
+            icon: Icons.model_training_outlined,
+            label: 'Antrenman Şablonları',
+            onTap: () => context.push(ProRoutes.trainingProtocols),
           ),
         ]);
         break;
@@ -496,17 +482,17 @@ class _QuickActionsRow extends StatelessWidget {
           _QuickActionButton(
             icon: Icons.verified_outlined,
             label: 'Harcama Onayı',
-            onTap: () => context.push('/operasyon/muhasebe/onaylar'),
+            onTap: () => context.push(ProRoutes.accounting),
           ),
           _QuickActionButton(
             icon: Icons.account_balance_outlined,
             label: 'Banka Mutabakatı',
-            onTap: () => context.push('/operasyon/muhasebe/banka'),
+            onTap: () => context.push(ProRoutes.bankReconciliation),
           ),
           _QuickActionButton(
             icon: Icons.receipt_long_outlined,
-            label: 'Finans Özeti',
-            onTap: () => context.push('/operasyon/muhasebe/onaylar'),
+            label: 'Finans Defteri',
+            onTap: () => context.push(ProRoutes.accountingLedger),
           ),
         ]);
         break;
@@ -515,12 +501,12 @@ class _QuickActionsRow extends StatelessWidget {
           _QuickActionButton(
             icon: Icons.newspaper_outlined,
             label: 'Bülten',
-            onTap: () => context.push('/operasyon/bulten'),
+            onTap: () => context.push(ProRoutes.federationBulletin),
           ),
           _QuickActionButton(
             icon: Icons.leaderboard_outlined,
             label: 'Puan Durumu',
-            onTap: () => context.push('/operasyon/bulten'),
+            onTap: () => context.push(ProRoutes.leagueStandings),
           ),
         ]);
         break;
@@ -529,26 +515,26 @@ class _QuickActionsRow extends StatelessWidget {
           _QuickActionButton(
             icon: Icons.sports_soccer_outlined,
             label: 'Saha Durumu',
-            onTap: () => context.push('/operasyon/tesis/sahalar'),
+            onTap: () => context.push(ProRoutes.facility),
           ),
           _QuickActionButton(
             icon: Icons.build_circle_outlined,
-            label: 'Tesis Bakımı',
-            onTap: () => context.push('/operasyon/tesis/sahalar'),
+            label: 'Tesis Görevleri',
+            onTap: () => context.push(ProRoutes.facilityDuties),
           ),
         ]);
         break;
       case ProWorkspace.referee:
         list.addAll([
           _QuickActionButton(
-            icon: Icons.description_outlined,
-            label: 'Müsabaka Raporu',
-            onTap: () => context.go('/gorevler'),
+            icon: Icons.assignment_turned_in_outlined,
+            label: 'Hakem Görevleri',
+            onTap: () => context.push(ProRoutes.refereeDuties),
           ),
           _QuickActionButton(
             icon: Icons.sports_outlined,
             label: 'Görev Programı',
-            onTap: () => context.go('/takvim'),
+            onTap: () => context.go(ProRoutes.calendar),
           ),
         ]);
         break;
@@ -556,13 +542,13 @@ class _QuickActionsRow extends StatelessWidget {
         list.addAll([
           _QuickActionButton(
             icon: Icons.tune_outlined,
-            label: 'Yapılandırma',
-            onTap: () => context.push('/operasyon/platform/yapilandirma'),
+            label: 'Sistem Durumu',
+            onTap: () => context.push(ProRoutes.platformStatus),
           ),
           _QuickActionButton(
             icon: Icons.people_outline_rounded,
             label: 'Bekleme Listesi',
-            onTap: () => context.push('/operasyon/platform/bekleme-listesi'),
+            onTap: () => context.push(ProRoutes.platformWaitlist),
           ),
         ]);
         break;

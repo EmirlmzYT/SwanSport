@@ -124,6 +124,13 @@ void main() {
 
     testWidgets('accounting workspace buttons navigate to real routes',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       const accClub = ClubRef(
         id: 'acc-club-1',
         name: 'Kadıköy Finans SK',
@@ -173,31 +180,34 @@ void main() {
 
       final approvalAction = find.widgetWithText(InkWell, 'Harcama Onayı');
       expect(approvalAction, findsOneWidget);
+      await tester.ensureVisible(approvalAction);
       await tester.tap(approvalAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/muhasebe',
-      );
+      expect(find.byType(SharedFinanceOperationsScreen), findsOneWidget);
 
-      router.go('/panel');
+      router.pop();
       await tester.pumpAndSettle();
 
       final bankAction = find.widgetWithText(InkWell, 'Banka Mutabakatı');
       expect(bankAction, findsOneWidget);
+      await tester.ensureVisible(bankAction);
       await tester.tap(bankAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/banka-mutabakati',
-      );
+      expect(find.byType(SharedBankReconciliationScreen), findsOneWidget);
     });
 
     testWidgets(
         'federation workspace bulletin and standings navigate to distinct real routes',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final now = DateTime.now().toUtc();
       final container = ProviderContainer(
         overrides: [
@@ -236,6 +246,26 @@ void main() {
           selectedFederationScopeKeyProvider.overrideWith(
             (ref) => 'fed-1:futbol:34',
           ),
+          federationConsoleMatchesProvider.overrideWith(
+            (ref, query) async => FederationConsolePage<FederationConsoleMatch>(
+              total: 0,
+              rows: const [],
+            ),
+          ),
+          federationScopedDisciplinaryReportsProvider.overrideWith(
+            (ref, offset) async =>
+                FederationConsolePage<FederationDisciplinaryReport>(
+              total: 0,
+              rows: const [],
+            ),
+          ),
+          standingsLeaguesProvider.overrideWith((ref) async => const []),
+          federationDisciplinaryBulletinProvider.overrideWith(
+            (ref, filter) async => const [],
+          ),
+          federationNoticesProvider.overrideWith(
+            (ref, filter) async => const [],
+          ),
           featureFlagsProvider.overrideWith(
             (ref) async => const FeatureFlags({
               FeatureFlags.leagueStandings,
@@ -260,30 +290,33 @@ void main() {
 
       final standingsAction = find.widgetWithText(InkWell, 'Puan Durumu');
       expect(standingsAction, findsOneWidget);
+      await tester.ensureVisible(standingsAction);
       await tester.tap(standingsAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/puan-durumu',
-      );
+      expect(find.byType(SharedLeagueStandingsScreen), findsOneWidget);
 
-      router.go('/panel');
+      router.pop();
       await tester.pumpAndSettle();
 
       final bulletinAction = find.widgetWithText(InkWell, 'Bülten');
       expect(bulletinAction, findsOneWidget);
+      await tester.ensureVisible(bulletinAction);
       await tester.tap(bulletinAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/federasyon-bulten',
-      );
+      expect(find.byType(SharedFederationBulletinsScreen), findsOneWidget);
     });
 
     testWidgets('facility duties navigate to real facility duties route',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final now = DateTime.now().toUtc();
       final container = ProviderContainer(
         overrides: [
@@ -337,19 +370,24 @@ void main() {
       router.go('/gorevler');
       await tester.pumpAndSettle();
 
-      final inspectAction = find.widgetWithText(TextButton, 'İncele');
+      final inspectAction = find.widgetWithText(FilledButton, 'İncele');
       expect(inspectAction, findsOneWidget);
+      await tester.ensureVisible(inspectAction);
       await tester.tap(inspectAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/tesis-gorevleri',
-      );
+      expect(find.byType(SharedManagedTurfDutiesScreen), findsOneWidget);
     });
 
     testWidgets('platform waitlist navigates to real platform waitlist route',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final container = ProviderContainer(
         overrides: [
           authSessionProvider.overrideWith(
@@ -390,18 +428,23 @@ void main() {
 
       final waitlistAction = find.widgetWithText(InkWell, 'Bekleme Listesi');
       expect(waitlistAction, findsOneWidget);
+      await tester.ensureVisible(waitlistAction);
       await tester.tap(waitlistAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/platform-bekleme-listesi',
-      );
+      expect(find.byType(SharedLaunchWaitlistScreen), findsOneWidget);
     });
 
     testWidgets(
         'referee action buttons navigate to referee duties or match report',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final now = DateTime.now().toUtc();
       final assignedMatch = RefereeMatchSummary(
         officialId: 'off-1',
@@ -481,33 +524,46 @@ void main() {
       router.go('/gorevler');
       await tester.pumpAndSettle();
 
-      final replyAction = find.widgetWithText(TextButton, 'Yanıtla');
+      final replyAction = find.widgetWithText(FilledButton, 'Yanıtla');
       expect(replyAction, findsOneWidget);
+      await tester.ensureVisible(replyAction);
       await tester.tap(replyAction);
       await tester.pumpAndSettle();
 
-      expect(
-        router.routerDelegate.currentConfiguration.uri.path,
-        '/operasyon/hakem-gorevleri',
-      );
+      expect(find.byType(SharedRefereeDutyListScreen), findsOneWidget);
+
+      router.pop();
+      await tester.pumpAndSettle();
+
+      final reportTaskAction = find.widgetWithText(FilledButton, 'Rapor Yaz');
+      expect(reportTaskAction, findsOneWidget);
+      await tester.ensureVisible(reportTaskAction);
+      await tester.tap(reportTaskAction);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SharedRefereeMatchReportScreen), findsOneWidget);
 
       router.go('/panel');
       await tester.pumpAndSettle();
 
-      final reportAction = find.widgetWithText(InkWell, 'Müsabaka Raporu');
-      if (reportAction.evaluate().isNotEmpty) {
-        await tester.tap(reportAction);
-        await tester.pumpAndSettle();
-        expect(
-          router.routerDelegate.currentConfiguration.uri.path,
-          '/operasyon/hakem-gorevleri',
-        );
-      }
+      final reportAction = find.widgetWithText(InkWell, 'Hakem Görevleri');
+      expect(reportAction, findsOneWidget);
+      await tester.ensureVisible(reportAction);
+      await tester.tap(reportAction);
+      await tester.pumpAndSettle();
+      expect(find.byType(SharedRefereeDutyListScreen), findsOneWidget);
     });
 
     testWidgets(
         'club applications action is omitted (fail-closed) when no real route exists',
         (tester) async {
+      tester.view.physicalSize = const Size(1280, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       final now = DateTime.now().toUtc();
       final container = ProviderContainer(
         overrides: [
@@ -534,6 +590,7 @@ void main() {
               role: 'club_admin',
             ),
           ),
+          clubTodayAttendanceProvider.overrideWith((ref) async => null),
           clubPendingApplicationsProvider.overrideWith(
             (ref) async => [
               ClubApplicationRow(
