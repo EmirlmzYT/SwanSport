@@ -11,6 +11,7 @@ import 'package:swansport_pro/app/pro_router.dart';
 import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_controller.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
+import 'package:swansport_pro/widgets/pro_context_bar.dart';
 import 'package:swansport_pro/widgets/pro_ui_components.dart';
 import 'package:swansport_pro/workspaces/pro_workspace.dart';
 import 'package:swansport_pro/workspaces/pro_workspace_controller.dart';
@@ -811,6 +812,76 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(refereeFetchCount, 2);
+    });
+
+    testWidgets(
+        'mobile context bar provides accessible club switcher with guarded transition',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      const clubA =
+          ClubRef(id: 'club-a', name: 'Kadıköy SK', role: 'club_admin');
+      const clubB =
+          ClubRef(id: 'club-b', name: 'Beşiktaş SK', role: 'club_admin');
+
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('user-mobile-scope')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          proAuthorizedClubsProvider.overrideWithValue(
+            const AsyncData([clubA, clubB]),
+          ),
+          selectedClubIdProvider.overrideWith((ref) => 'club-a'),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.club;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(
+            home: Scaffold(
+              body: ProContextBar(compact: true),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final switchBtnFinder =
+          find.byKey(const Key('pro-mobile-club-selector-button'));
+      expect(switchBtnFinder, findsOneWidget);
+
+      final size = tester.getSize(switchBtnFinder);
+      expect(size.width, greaterThanOrEqualTo(48.0));
+      expect(size.height, greaterThanOrEqualTo(48.0));
+
+      await tester.tap(switchBtnFinder);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Kulüp Değiştir'), findsOneWidget);
+      expect(find.text('Beşiktaş SK'), findsOneWidget);
+
+      await tester.tap(find.text('Beşiktaş SK'));
+      await tester.pumpAndSettle();
+
+      expect(container.read(selectedClubIdProvider), 'club-b');
     });
   });
 }
