@@ -9,6 +9,13 @@ import 'package:swansport_pro_features/swansport_pro_features.dart';
 void main() {
   testWidgets('platform workspace mounts shared Phase 4 panel in both hosts',
       (tester) async {
+    tester.view.physicalSize = const Size(1024, 1400);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -41,7 +48,8 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(SharedPlatformOperationsPanel), findsNWidgets(2));
+    expect(find.byType(SharedPlatformOperationsPanel), findsOneWidget);
+    expect(find.byType(ProTasksScreen), findsOneWidget);
     expect(find.text('Bu çalışma alanı sonraki fazda açılacak'), findsNothing);
     expect(find.text('Bu çalışma alanı için operasyon görevi bulunmuyor.'),
         findsNothing);

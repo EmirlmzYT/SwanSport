@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 /// SwanSport Pro bünyesinde desteklenen yetkili profesyonel çalışma alanları.
@@ -14,6 +15,27 @@ enum ProWorkspace {
   const ProWorkspace(this.label);
 
   final String label;
+
+  String get description => switch (this) {
+        ProWorkspace.club => 'Takım, sporcu kadrosu ve yoklama yönetimi',
+        ProWorkspace.coaching => 'Antrenman oturumları ve sporcu gelişimi',
+        ProWorkspace.federation => 'Ligler, fikstür, hakem atama ve bültenler',
+        ProWorkspace.referee => 'Maç görevleri, esame onayı ve canlı kokpit',
+        ProWorkspace.accounting =>
+          'Gelir/gider defteri, kasa, bütçe ve mutabakat',
+        ProWorkspace.facility => 'Saha rezervasyonları ve tesis görevleri',
+        ProWorkspace.platform => 'Sistem ayarları, planlar ve denetim logları',
+      };
+
+  IconData get icon => switch (this) {
+        ProWorkspace.club => Icons.shield_outlined,
+        ProWorkspace.coaching => Icons.sports_outlined,
+        ProWorkspace.federation => Icons.account_balance_outlined,
+        ProWorkspace.referee => Icons.sports_score_outlined,
+        ProWorkspace.accounting => Icons.receipt_long_outlined,
+        ProWorkspace.facility => Icons.stadium_outlined,
+        ProWorkspace.platform => Icons.admin_panel_settings_outlined,
+      };
 
   bool get supportsClubOperations =>
       this == ProWorkspace.club || this == ProWorkspace.coaching;

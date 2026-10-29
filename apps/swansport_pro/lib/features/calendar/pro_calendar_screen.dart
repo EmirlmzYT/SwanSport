@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/pro_theme.dart';
+import '../../widgets/pro_ui_components.dart';
+
+enum CalendarViewMode { list, month }
 
 class ProCalendarScreen extends ConsumerStatefulWidget {
   const ProCalendarScreen({super.key});
@@ -14,6 +17,7 @@ class ProCalendarScreen extends ConsumerStatefulWidget {
 class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
   late CalendarMonth _month;
   late DateTime _selectedDay;
+  CalendarViewMode _viewMode = CalendarViewMode.month;
 
   @override
   void initState() {
@@ -27,7 +31,7 @@ class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
     final next = DateTime.utc(_month.year, _month.month + delta);
     setState(() {
       _month = CalendarMonth(next.year, next.month);
-      _selectedDay = DateTime.utc(next.year, next.month);
+      _selectedDay = DateTime.utc(next.year, next.month, 1);
     });
   }
 
@@ -54,10 +58,13 @@ class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
               onRefresh: _refresh,
               child: ListView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.fromLTRB(20, 22, 20, 40),
+                padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
                 children: [
                   _CalendarHeader(
                     month: _month,
+                    viewMode: _viewMode,
+                    onViewModeChanged: (mode) =>
+                        setState(() => _viewMode = mode),
                     onPrevious: () => _moveMonth(-1),
                     onNext: () => _moveMonth(1),
                     onToday: () {
@@ -77,42 +84,53 @@ class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
                       clubUnavailable: calendar.clubUnavailable,
                     ),
                   ],
-                  const SizedBox(height: 18),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 860;
-                      final calendarPanel = _MonthGrid(
-                        month: _month,
-                        events: calendar.events,
-                        selectedDay: _selectedDay,
-                        onSelectDay: (day) =>
-                            setState(() => _selectedDay = day),
-                      );
-                      final agenda = _Agenda(
-                        selectedDay: _selectedDay,
-                        events: calendar.events
+                  const SizedBox(height: 16),
+                  if (_viewMode == CalendarViewMode.list)
+                    _CalendarListView(
+                      month: _month,
+                      events: calendar.events,
+                    )
+                  else
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final wide = constraints.maxWidth >= 860;
+                        final calendarPanel = _MonthGrid(
+                          month: _month,
+                          events: calendar.events,
+                          selectedDay: _selectedDay,
+                          onSelectDay: (day) =>
+                              setState(() => _selectedDay = day),
+                        );
+                        final dayEvents = calendar.events
                             .where((event) => event.occursOn(_selectedDay))
-                            .toList(growable: false),
-                      );
-                      if (!wide) {
-                        return Column(
+                            .toList(growable: false);
+                        final agenda = _Agenda(
+                          selectedDay: _selectedDay,
+                          events: dayEvents.isNotEmpty
+                              ? dayEvents
+                              : calendar.events,
+                          isFallback:
+                              dayEvents.isEmpty && calendar.events.isNotEmpty,
+                        );
+                        if (!wide) {
+                          return Column(
+                            children: [
+                              calendarPanel,
+                              const SizedBox(height: 16),
+                              agenda,
+                            ],
+                          );
+                        }
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            calendarPanel,
-                            const SizedBox(height: 16),
-                            agenda,
+                            Expanded(flex: 7, child: calendarPanel),
+                            const SizedBox(width: 18),
+                            Expanded(flex: 4, child: agenda),
                           ],
                         );
-                      }
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 7, child: calendarPanel),
-                          const SizedBox(width: 18),
-                          Expanded(flex: 4, child: agenda),
-                        ],
-                      );
-                    },
-                  ),
+                      },
+                    ),
                 ],
               ),
             ),
@@ -126,12 +144,16 @@ class _ProCalendarScreenState extends ConsumerState<ProCalendarScreen> {
 class _CalendarHeader extends StatelessWidget {
   const _CalendarHeader({
     required this.month,
+    required this.viewMode,
+    required this.onViewModeChanged,
     required this.onPrevious,
     required this.onNext,
     required this.onToday,
   });
 
   final CalendarMonth month;
+  final CalendarViewMode viewMode;
+  final ValueChanged<CalendarViewMode> onViewModeChanged;
   final VoidCallback onPrevious;
   final VoidCallback onNext;
   final VoidCallback onToday;
@@ -139,89 +161,228 @@ class _CalendarHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [Color(0xFF12314A), ProTheme.surface],
         ),
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: ProTheme.line),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final title = Row(
+          final isCompact = constraints.maxWidth < 620;
+
+          final titleRow = Row(
             children: [
               Container(
-                width: 48,
-                height: 48,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
                   color: ProTheme.primary.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 child: const Icon(
                   Icons.calendar_month_rounded,
                   color: ProTheme.primary,
+                  size: 22,
                 ),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       '${_monthName(month.month)} ${month.year}',
                       style: const TextStyle(
                         color: ProTheme.ink,
-                        fontSize: 21,
+                        fontSize: 19,
                         fontWeight: FontWeight.w900,
-                        letterSpacing: -0.5,
+                        letterSpacing: -0.4,
                       ),
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: 2),
                     const Text(
                       'Kulüp ve resmî federasyon programı',
-                      style: TextStyle(color: ProTheme.muted, fontSize: 12),
+                      style: TextStyle(color: ProTheme.muted, fontSize: 11.5),
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
                 ),
               ),
             ],
           );
-          final actions = Row(
+
+          final viewToggle = SegmentedButton<CalendarViewMode>(
+            showSelectedIcon: false,
+            style: SegmentedButton.styleFrom(
+              backgroundColor: ProTheme.surfaceRaised,
+              selectedBackgroundColor: ProTheme.primary.withValues(alpha: 0.15),
+              selectedForegroundColor: ProTheme.primary,
+              foregroundColor: ProTheme.muted,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+            ),
+            segments: const [
+              ButtonSegment(
+                value: CalendarViewMode.list,
+                label: Text('Liste', style: TextStyle(fontSize: 12)),
+              ),
+              ButtonSegment(
+                value: CalendarViewMode.month,
+                label: Text('Ay', style: TextStyle(fontSize: 12)),
+              ),
+            ],
+            selected: {viewMode},
+            onSelectionChanged: (set) => onViewModeChanged(set.first),
+          );
+
+          final navActions = Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               IconButton(
                 onPressed: onPrevious,
                 icon: const Icon(Icons.chevron_left_rounded),
                 tooltip: 'Önceki ay',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
-              TextButton(onPressed: onToday, child: const Text('Bugün')),
+              TextButton(
+                onPressed: onToday,
+                style: TextButton.styleFrom(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  minimumSize: const Size(48, 36),
+                ),
+                child: const Text('Bugün'),
+              ),
               IconButton(
                 onPressed: onNext,
                 icon: const Icon(Icons.chevron_right_rounded),
                 tooltip: 'Sonraki ay',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
               ),
             ],
           );
-          if (constraints.maxWidth < 520) {
+
+          if (isCompact) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                title,
+                titleRow,
                 const SizedBox(height: 10),
-                Align(alignment: Alignment.centerRight, child: actions),
+                Wrap(
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    viewToggle,
+                    navActions,
+                  ],
+                ),
               ],
             );
           }
+
           return Row(
             children: [
-              Expanded(child: title),
-              const SizedBox(width: 16),
-              actions,
+              Expanded(child: titleRow),
+              const SizedBox(width: 14),
+              viewToggle,
+              const SizedBox(width: 10),
+              navActions,
             ],
           );
         },
       ),
+    );
+  }
+}
+
+class _CalendarListView extends StatelessWidget {
+  const _CalendarListView({
+    required this.month,
+    required this.events,
+  });
+
+  final CalendarMonth month;
+  final List<UnifiedCalendarEvent> events;
+
+  @override
+  Widget build(BuildContext context) {
+    if (events.isEmpty) {
+      return const ProEmptyState(
+        icon: Icons.event_available_outlined,
+        title: 'Bu ay için planlanmış etkinlik yok',
+        subtitle:
+            'Kulüp veya resmî federasyon takviminde henüz kayıtlı faaliyet bulunmuyor.',
+      );
+    }
+
+    final sorted = [...events]
+      ..sort((a, b) => a.startsAt.compareTo(b.startsAt));
+
+    final groups = <DateTime, List<UnifiedCalendarEvent>>{};
+    for (final event in sorted) {
+      final dayKey = DateTime.utc(
+          event.startsAt.year, event.startsAt.month, event.startsAt.day);
+      groups.putIfAbsent(dayKey, () => []).add(event);
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (final entry in groups.entries) ...[
+          Padding(
+            padding: const EdgeInsets.only(top: 14, bottom: 8),
+            child: Row(
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: ProTheme.primary,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    '${entry.key.day} ${_monthName(entry.key.month)} ${_weekdayName(entry.key.weekday)}',
+                    style: const TextStyle(
+                      color: ProTheme.ink,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '(${entry.value.length})',
+                  style: const TextStyle(
+                    color: ProTheme.muted,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          for (final event in entry.value) ...[
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: _AgendaItem(event: event),
+            ),
+          ],
+        ],
+      ],
     );
   }
 }
@@ -244,8 +405,9 @@ class _MonthGrid extends StatelessWidget {
     final first = DateTime.utc(month.year, month.month);
     final days = DateTime.utc(month.year, month.month + 1, 0).day;
     final leading = first.weekday - 1;
+
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
         color: ProTheme.surface,
         borderRadius: BorderRadius.circular(20),
@@ -266,14 +428,14 @@ class _MonthGrid extends StatelessWidget {
               ])
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.only(bottom: 10),
+                    padding: const EdgeInsets.only(bottom: 8),
                     child: Text(
                       label,
                       textAlign: TextAlign.center,
                       style: const TextStyle(
                         color: ProTheme.muted,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
                   ),
@@ -286,9 +448,9 @@ class _MonthGrid extends StatelessWidget {
             itemCount: leading + days,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
-              mainAxisSpacing: 5,
-              crossAxisSpacing: 5,
-              childAspectRatio: 0.9,
+              mainAxisSpacing: 4,
+              crossAxisSpacing: 4,
+              childAspectRatio: 0.95,
             ),
             itemBuilder: (context, index) {
               if (index < leading) return const SizedBox.shrink();
@@ -310,14 +472,14 @@ class _MonthGrid extends StatelessWidget {
                 child: InkWell(
                   key: ValueKey('pro-calendar-day-$dayNumber'),
                   onTap: () => onSelectDay(day),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(10),
                   child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 160),
+                    duration: const Duration(milliseconds: 140),
                     decoration: BoxDecoration(
                       color: selected
                           ? ProTheme.primary.withValues(alpha: 0.14)
                           : ProTheme.background.withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(
                         color: selected
                             ? ProTheme.primary
@@ -328,10 +490,12 @@ class _MonthGrid extends StatelessWidget {
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
                           '$dayNumber',
                           style: TextStyle(
+                            fontSize: 12.5,
                             color: selected ? ProTheme.primary : ProTheme.ink,
                             fontWeight: selected || today
                                 ? FontWeight.w900
@@ -339,14 +503,14 @@ class _MonthGrid extends StatelessWidget {
                           ),
                         ),
                         if (dayEvents.isNotEmpty) ...[
-                          const SizedBox(height: 5),
+                          const SizedBox(height: 3),
                           Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               for (final event in dayEvents.take(3))
                                 Container(
-                                  width: 5,
-                                  height: 5,
+                                  width: 4,
+                                  height: 4,
                                   margin:
                                       const EdgeInsets.symmetric(horizontal: 1),
                                   decoration: BoxDecoration(
@@ -371,10 +535,15 @@ class _MonthGrid extends StatelessWidget {
 }
 
 class _Agenda extends StatelessWidget {
-  const _Agenda({required this.selectedDay, required this.events});
+  const _Agenda({
+    required this.selectedDay,
+    required this.events,
+    this.isFallback = false,
+  });
 
   final DateTime selectedDay;
   final List<UnifiedCalendarEvent> events;
+  final bool isFallback;
 
   @override
   Widget build(BuildContext context) {
@@ -389,25 +558,27 @@ class _Agenda extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '${selectedDay.day} ${_monthName(selectedDay.month)} gündemi',
+            isFallback
+                ? 'Ayın Etkinlikleri'
+                : '${selectedDay.day} ${_monthName(selectedDay.month)} gündemi',
             style: const TextStyle(
               color: ProTheme.ink,
-              fontSize: 16,
+              fontSize: 15.5,
               fontWeight: FontWeight.w900,
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 4),
           Text(
             events.isEmpty ? 'Planlanmış kayıt yok' : '${events.length} kayıt',
             style: const TextStyle(color: ProTheme.muted, fontSize: 12),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 12),
           if (events.isEmpty)
             const _EmptyAgenda()
           else
             for (final event in events) ...[
               _AgendaItem(event: event),
-              if (event != events.last) const SizedBox(height: 9),
+              if (event != events.last) const SizedBox(height: 8),
             ],
         ],
       ),
@@ -447,23 +618,25 @@ class _AgendaItem extends StatelessWidget {
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   event.title,
                   style: const TextStyle(
                     color: ProTheme.ink,
                     fontWeight: FontWeight.w800,
+                    fontSize: 14,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text(
                   '${time.hour.toString().padLeft(2, '0')}:'
                   '${time.minute.toString().padLeft(2, '0')} · '
                   '${_eventLabel(event.type)}',
-                  style: const TextStyle(color: ProTheme.muted, fontSize: 11),
+                  style: const TextStyle(color: ProTheme.muted, fontSize: 11.5),
                 ),
                 if (event.place != null && event.place!.isNotEmpty) ...[
-                  const SizedBox(height: 3),
+                  const SizedBox(height: 2),
                   Text(
                     event.place!,
                     style: const TextStyle(color: ProTheme.muted, fontSize: 11),
@@ -485,7 +658,7 @@ class _EmptyAgenda extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 28),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
       decoration: BoxDecoration(
         color: ProTheme.background.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
@@ -493,8 +666,8 @@ class _EmptyAgenda extends StatelessWidget {
       ),
       child: const Column(
         children: [
-          Icon(Icons.event_available_outlined, color: ProTheme.muted, size: 30),
-          SizedBox(height: 9),
+          Icon(Icons.event_available_outlined, color: ProTheme.muted, size: 28),
+          SizedBox(height: 8),
           Text(
             'Bu gün için operasyon kaydı yok.',
             textAlign: TextAlign.center,
@@ -533,7 +706,8 @@ class _PartialDataBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.warning_amber_rounded, color: Color(0xFFFBBF24)),
+          const Icon(Icons.warning_amber_rounded,
+              color: Color(0xFFFBBF24), size: 20),
           const SizedBox(width: 10),
           Expanded(
             child: Text(
@@ -562,7 +736,7 @@ class _CalendarError extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(Icons.event_busy_outlined,
-                color: Color(0xFFF87171), size: 42),
+                color: Color(0xFFF87171), size: 40),
             const SizedBox(height: 12),
             const Text(
               'Takvim yüklenemedi',
@@ -573,12 +747,12 @@ class _CalendarError extends StatelessWidget {
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: ProTheme.muted),
+              style: const TextStyle(color: ProTheme.muted, fontSize: 13),
             ),
             const SizedBox(height: 16),
             FilledButton.icon(
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
+              icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text('Yeniden Dene'),
             ),
           ],
@@ -605,6 +779,16 @@ String _monthName(int month) => const [
       'Kasım',
       'Aralık',
     ][month - 1];
+
+String _weekdayName(int weekday) => const [
+      'Pazartesi',
+      'Salı',
+      'Çarşamba',
+      'Perşembe',
+      'Cuma',
+      'Cumartesi',
+      'Pazar',
+    ][weekday - 1];
 
 Color _eventColor(CalendarEventType type) => switch (type) {
       CalendarEventType.officialFederation => ProTheme.secondary,

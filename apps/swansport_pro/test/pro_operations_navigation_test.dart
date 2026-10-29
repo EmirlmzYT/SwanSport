@@ -15,6 +15,13 @@ void main() {
 
   testWidgets('club panel shows only flag-enabled operation entries',
       (tester) async {
+    tester.view.physicalSize = const Size(1280, 1600);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(() {
+      tester.view.resetPhysicalSize();
+      tester.view.resetDevicePixelRatio();
+    });
+
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -27,6 +34,7 @@ void main() {
             ),
           ),
           myClubsProvider.overrideWith((ref) async => const [club]),
+          clubTodayAttendanceProvider.overrideWith((ref) async => null),
           featureFlagsProvider.overrideWith(
             (ref) async => const FeatureFlags({
               FeatureFlags.coachWorkspace,
