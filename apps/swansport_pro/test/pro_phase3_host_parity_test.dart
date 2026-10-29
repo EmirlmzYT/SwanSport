@@ -15,6 +15,13 @@ void main() {
       final now = DateTime.now().toUtc();
       const matchId = '44444444-4444-4444-8444-444444444444';
 
+      tester.view.physicalSize = const Size(1024, 1400);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -128,7 +135,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // Default workspace by priority for federation+referee is Federation
-      expect(find.byType(SharedFederationOperationsPanel), findsNWidgets(2));
+      expect(find.byType(SharedFederationOperationsPanel), findsOneWidget);
+      expect(find.byType(ProTasksScreen), findsOneWidget);
 
       // Save a referee draft and switch workspace -> invalidateProFeatureState clears drafts
       final container = ProviderScope.containerOf(
@@ -149,7 +157,7 @@ void main() {
       await tester.tap(find.byKey(const Key('switch-to-referee')));
       await tester.pumpAndSettle();
 
-      expect(find.byType(SharedRefereeOperationsPanel), findsNWidgets(2));
+      expect(find.byType(SharedRefereeOperationsPanel), findsOneWidget);
       expect(
         container
             .read(refereeReportDraftsProvider)

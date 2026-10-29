@@ -1,0 +1,195 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
+import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
+
+Session _makeSession(String userId) {
+  return Session(
+    accessToken: 'token',
+    tokenType: 'bearer',
+    user: User(
+      id: userId,
+      appMetadata: const {},
+      userMetadata: const {},
+      aud: 'authenticated',
+      createdAt: '2026-10-26',
+      email: 'dashboard@swansport.com',
+    ),
+  );
+}
+
+void main() {
+  group('Pro Dashboard Priority & Today Hub Contracts', () {
+    testWidgets(
+        'compact header shows active workspace and no redundant Aktif badge',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-dash-header')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
+            ),
+            activeClubProvider.overrideWith(
+              (ref) async => const ClubRef(
+                id: 'club-1',
+                name: 'Kadıköy SK',
+                role: 'club_admin',
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: ProDashboardScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ProDashboardScreen), findsOneWidget);
+      expect(find.text('Kulüp Paneli'), findsOneWidget);
+      // Generic standalone "Aktif" chip removed in favor of compact scope/refresh
+      expect(find.text('Aktif'), findsNothing);
+    });
+
+    testWidgets(
+        '390px mobile viewport keeps first priority task above the fold',
+        (tester) async {
+      tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+      tester.view.devicePixelRatio = 3.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-fold-390')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
+            ),
+            activeClubProvider.overrideWith(
+              (ref) async => const ClubRef(
+                id: 'club-1',
+                name: 'Kadıköy SK',
+                role: 'club_admin',
+              ),
+            ),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags({
+                FeatureFlags.coachWorkspace,
+                FeatureFlags.attendanceOperations,
+                FeatureFlags.teamHub,
+              }),
+            ),
+          ],
+          child: const MaterialApp(
+            home: ProDashboardScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final firstTask = find.byWidgetPredicate((widget) =>
+          widget is Text &&
+          (widget.data == 'Bugün' || widget.data == 'Öncelikli İşlemler'));
+      expect(firstTask, findsAtLeastNWidgets(1));
+
+      final firstTaskPos = tester.getTopLeft(firstTask.first);
+      // Must be above the fold (within screen height 844)
+      expect(firstTaskPos.dy, lessThan(600.0));
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets(
+        'referee workspace renders Today section with pending assignments',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-referee-dash')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: null,
+                coachLevel: 0,
+                athleteKind: null,
+                refereeProfile: RefereeProfile(
+                  id: 'ref-1',
+                  profileId: 'user-referee-dash',
+                  licenseNumber: 'TFF-100',
+                  badgeTier: RefereeBadgeTier.national,
+                  sportCode: 'futbol',
+                  cityCode: '34',
+                  isActive: true,
+                ),
+              ),
+            ),
+            refereeDutyMatchesProvider.overrideWith(
+              (ref) async => [
+                RefereeMatchSummary(
+                  officialId: 'ref-1',
+                  matchId: 'match-pending-1',
+                  matchStatus: 'scheduled',
+                  homeClubName: 'Galata SK',
+                  awayClubName: 'Pera FK',
+                  duty: MatchOfficialDuty.headReferee,
+                  status: MatchOfficialStatus.assigned,
+                  assignedAt: DateTime.utc(2026, 10, 29),
+                  sportCode: 'futbol',
+                ),
+              ],
+            ),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags({
+                FeatureFlags.refereeCockpit,
+              }),
+            ),
+          ],
+          child: const MaterialApp(
+            home: ProDashboardScreen(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(SharedRefereeOperationsPanel), findsOneWidget);
+      expect(find.text('Yanıt Bekleyen Görevler'), findsOneWidget);
+      expect(find.text('1 müsabaka ataması kabul veya ret bekliyor.'),
+          findsOneWidget);
+      expect(find.widgetWithText(TextButton, 'Görevler'), findsOneWidget);
+    });
+  });
+}

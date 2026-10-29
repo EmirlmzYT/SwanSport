@@ -123,6 +123,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.byType(SharedFederationOperationsPanel), findsOneWidget);
+    expect(find.byType(ProTasksScreen), findsOneWidget);
+    expect(find.text('Görevler & Aksiyon Kuyruğu'), findsOneWidget);
   });
 }

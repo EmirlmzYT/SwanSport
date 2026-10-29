@@ -108,7 +108,7 @@ void main() {
       await tester.tap(find.text('Görevler'));
       await tester.pumpAndSettle();
       expect(find.byType(ProTasksScreen), findsOneWidget);
-      expect(find.byType(SharedClubOperationsPanel), findsOneWidget);
+      expect(find.text('Görevler & Aksiyon Kuyruğu'), findsOneWidget);
 
       // Tap Takvim
       await tester.tap(find.text('Takvim'));

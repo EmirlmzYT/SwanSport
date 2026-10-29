@@ -55,21 +55,26 @@ class ProNavigationItem extends StatelessWidget {
     required this.item,
     required this.isSelected,
     required this.onTap,
+    this.badgeCount,
   });
 
   final ProNavigationItemData item;
   final bool isSelected;
   final VoidCallback onTap;
+  final int? badgeCount;
 
   @override
   Widget build(BuildContext context) {
     const activeColor = ProTheme.primary;
     const inactiveColor = ProTheme.muted;
+    final hasBadge = badgeCount != null && badgeCount! > 0;
+    final semanticLabel =
+        hasBadge ? '${item.label}, $badgeCount bildirim' : item.label;
 
     return Semantics(
       button: true,
       selected: isSelected,
-      label: item.label,
+      label: semanticLabel,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
@@ -89,10 +94,42 @@ class ProNavigationItem extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  isSelected ? item.selectedIcon : item.icon,
-                  color: isSelected ? activeColor : inactiveColor,
-                  size: 22,
+                Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(
+                      isSelected ? item.selectedIcon : item.icon,
+                      color: isSelected ? activeColor : inactiveColor,
+                      size: 22,
+                    ),
+                    if (hasBadge)
+                      Positioned(
+                        top: -5,
+                        right: -10,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 4, vertical: 1),
+                          constraints:
+                              const BoxConstraints(minWidth: 16, minHeight: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEF4444),
+                            borderRadius: BorderRadius.circular(99),
+                            border:
+                                Border.all(color: ProTheme.surface, width: 1.5),
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            badgeCount! > 99 ? '99+' : '$badgeCount',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9.5,
+                              fontWeight: FontWeight.w900,
+                              height: 1,
+                            ),
+                          ),
+                        ),
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 3),
                 Text(
@@ -119,10 +156,12 @@ class ProBottomNavigationBar extends StatelessWidget {
     super.key,
     required this.currentIndex,
     required this.onDestinationSelected,
+    this.badgeForIndex,
   });
 
   final int currentIndex;
   final ValueChanged<int> onDestinationSelected;
+  final int? Function(int index)? badgeForIndex;
 
   @override
   Widget build(BuildContext context) {
@@ -152,6 +191,7 @@ class ProBottomNavigationBar extends StatelessWidget {
                   item: proNavigationItems[i],
                   isSelected: currentIndex == i,
                   onTap: () => onDestinationSelected(i),
+                  badgeCount: badgeForIndex?.call(i),
                 ),
               ),
           ],
