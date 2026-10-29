@@ -21,6 +21,7 @@ abstract final class ProRoutes {
   static const teams = '/operasyon/takimlar';
   static const attendance = '/operasyon/yoklama';
   static const attendanceHistory = '/operasyon/devam';
+  static const teamRosterPattern = '/operasyon/takim/:id';
   static String teamRoster(String id) => '/operasyon/takim/$id';
   static const trainings = '/operasyon/antrenmanlar';
   static const trainingProtocols = '/operasyon/antrenman-sablonlari';
@@ -37,10 +38,13 @@ abstract final class ProRoutes {
 
   // Referee
   static const refereeDuties = '/operasyon/hakem-gorevleri';
+  static const refereeLineupPattern = '/operasyon/hakem-esame/:id';
   static String refereeLineup(String matchId) =>
       '/operasyon/hakem-esame/$matchId';
+  static const refereeLivePattern = '/operasyon/hakem-canli/:id';
   static String refereeLive(String matchId) =>
       '/operasyon/hakem-canli/$matchId';
+  static const refereeReportPattern = '/operasyon/hakem-rapor/:id';
   static String refereeReport(String matchId) =>
       '/operasyon/hakem-rapor/$matchId';
 
@@ -70,6 +74,9 @@ abstract final class ProRoutes {
   static const platformAudit = '/operasyon/platform-denetim';
   static const platformPlans = '/operasyon/platform-planlar';
   static const platformWaitlist = '/operasyon/platform-bekleme-listesi';
+
+  /// Immutable contract of all patterns registered in pro_router
+  static const registeredPatterns = <String>{};
 }
 
 final _rootNavigatorKey = GlobalKey<NavigatorState>(debugLabel: 'rootNav');

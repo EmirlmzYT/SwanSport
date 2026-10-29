@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/app/pro_router.dart';
+import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_controller.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
@@ -71,7 +71,7 @@ bool _matchesRegisteredRoute(String route, Set<String> registeredPatterns) {
 
 void main() {
   group('Pro Route Contracts & Navigation Regression Tests', () {
-    test('all hardcoded routes in dashboard and tasks must exist in pro_router',
+    test('route contract: unregistered fake pattern is caught by contract test',
         () {
       final container = ProviderContainer(
         overrides: [
@@ -89,38 +89,579 @@ void main() {
       final router = container.read(proRouterProvider);
       addTearDown(router.dispose);
 
-      final registeredPatterns = _extractRegisteredRoutes(router);
+      final routerPatterns = _extractRegisteredRoutes(router);
+      const fakePattern = '/operasyon/sahte-uydurma-rota';
 
-      final dashboardSource = File(
-        'lib/features/dashboard/pro_dashboard_screen.dart',
-      ).readAsStringSync();
-      final tasksSource = File(
-        'lib/features/operations/pro_tasks_screen.dart',
-      ).readAsStringSync();
+      expect(routerPatterns.contains(fakePattern), isFalse);
+      expect(
+        _matchesRegisteredRoute(fakePattern, routerPatterns),
+        isFalse,
+        reason: 'Unregistered fake route must not match router configuration',
+      );
+    });
 
-      final routeRegex = RegExp(r'''['"](/operasyon/[^'"]+)['"]''');
-      final usedRoutes = <String>{};
+    test(
+        'route contract: parameterized URL builders match registered route patterns',
+        () {
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final router = container.read(proRouterProvider);
+      addTearDown(router.dispose);
 
-      for (final match in routeRegex.allMatches(dashboardSource)) {
-        usedRoutes.add(match.group(1)!);
-      }
-      for (final match in routeRegex.allMatches(tasksSource)) {
-        usedRoutes.add(match.group(1)!);
-      }
-
-      final invalidRoutes = <String>[];
-      for (final route in usedRoutes) {
-        if (!_matchesRegisteredRoute(route, registeredPatterns)) {
-          invalidRoutes.add(route);
-        }
-      }
+      final routerPatterns = _extractRegisteredRoutes(router);
 
       expect(
-        invalidRoutes,
+        _matchesRegisteredRoute(
+            ProRoutes.teamRoster('team-123'), routerPatterns),
+        isTrue,
+      );
+      expect(
+        _matchesRegisteredRoute(
+            ProRoutes.refereeLineup('match-456'), routerPatterns),
+        isTrue,
+      );
+      expect(
+        _matchesRegisteredRoute(
+            ProRoutes.refereeLive('match-789'), routerPatterns),
+        isTrue,
+      );
+      expect(
+        _matchesRegisteredRoute(
+            ProRoutes.refereeReport('match-999'), routerPatterns),
+        isTrue,
+      );
+    });
+
+    test(
+        'route contract: registeredPatterns strictly matches router configuration bidirectionally',
+        () {
+      final container = ProviderContainer(
+        overrides: [
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      final router = container.read(proRouterProvider);
+      addTearDown(router.dispose);
+
+      final routerPatterns = _extractRegisteredRoutes(router);
+      final contractPatterns = ProRoutes.registeredPatterns;
+
+      final inContractNotRouter = contractPatterns.difference(routerPatterns);
+      final inRouterNotContract = routerPatterns.difference(contractPatterns);
+
+      expect(
+        inContractNotRouter,
         isEmpty,
         reason:
-            'Found hard-coded routes not registered in pro_router: $invalidRoutes',
+            'Patterns in ProRoutes.registeredPatterns but missing in router: $inContractNotRouter',
       );
+      expect(
+        inRouterNotContract,
+        isEmpty,
+        reason:
+            'Patterns in router but missing in ProRoutes.registeredPatterns: $inRouterNotContract',
+      );
+    });
+
+    testWidgets(
+        'club workspace loading hides empty state in both tasks and dashboard',
+        (tester) async {
+      final completer = Completer<ClubTodayAttendance?>();
+      addTearDown(() {
+        if (!completer.isCompleted) {
+          completer.complete(null);
+        }
+      });
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('club-loading-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          proAuthorizedClubsProvider.overrideWithValue(
+            const AsyncData([
+              ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+            ]),
+          ),
+          activeClubProvider.overrideWith(
+            (ref) async => const ClubRef(
+              id: 'club-1',
+              name: 'Kadıköy SK',
+              role: 'club_admin',
+            ),
+          ),
+          clubTodayAttendanceProvider.overrideWith((ref) => completer.future),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.club;
+
+      // 1. ProTasksScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Bekleyen operasyon görevi bulunmuyor'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // 2. ProDashboardScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProDashboardScreen()),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Bugün için bekleyen acil işlem yok'), findsNothing);
+      expect(find.byType(CircularProgressIndicator), findsWidgets);
+    });
+
+    testWidgets(
+        'club workspace error shows ProErrorState and hides empty state in both tasks and dashboard',
+        (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('club-error-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          proAuthorizedClubsProvider.overrideWithValue(
+            const AsyncData([
+              ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+            ]),
+          ),
+          activeClubProvider.overrideWith(
+            (ref) async => const ClubRef(
+              id: 'club-1',
+              name: 'Kadıköy SK',
+              role: 'club_admin',
+            ),
+          ),
+          clubTodayAttendanceProvider.overrideWith(
+            (ref) => Future.error(Exception('Failed to fetch attendance')),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.club;
+
+      // 1. ProTasksScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ProErrorState), findsOneWidget);
+      expect(find.text('Bekleyen operasyon görevi bulunmuyor'), findsNothing);
+
+      // 2. ProDashboardScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProDashboardScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ProErrorState), findsWidgets);
+      expect(find.text('Bugün için bekleyen acil işlem yok'), findsNothing);
+      expect(find.text('Tüm operasyonel süreçler güncel ve yolunda.'),
+          findsNothing);
+    });
+
+    testWidgets(
+        'club workspace success null or empty data shows real empty state in both tasks and dashboard',
+        (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('club-empty-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          proAuthorizedClubsProvider.overrideWithValue(
+            const AsyncData([
+              ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+            ]),
+          ),
+          activeClubProvider.overrideWith(
+            (ref) async => const ClubRef(
+              id: 'club-1',
+              name: 'Kadıköy SK',
+              role: 'club_admin',
+            ),
+          ),
+          clubTodayAttendanceProvider.overrideWith((ref) async => null),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.club;
+
+      // 1. ProTasksScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Bekleyen operasyon görevi bulunmuyor'), findsOneWidget);
+
+      // 2. ProDashboardScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProDashboardScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Bugün için bekleyen acil işlem yok'), findsOneWidget);
+    });
+
+    testWidgets(
+        'club workspace with unrecorded attendance shows attendance task in both tasks and dashboard',
+        (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('club-att-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: 'club_admin',
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          proAuthorizedClubsProvider.overrideWithValue(
+            const AsyncData([
+              ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+            ]),
+          ),
+          activeClubProvider.overrideWith(
+            (ref) async => const ClubRef(
+              id: 'club-1',
+              name: 'Kadıköy SK',
+              role: 'club_admin',
+            ),
+          ),
+          clubTodayAttendanceProvider.overrideWith(
+            (ref) async =>
+                const ClubTodayAttendance(trainingCount: 2, markedCount: 0),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.club;
+
+      // 1. ProTasksScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Günün Antrenman Yoklaması'), findsOneWidget);
+
+      // 2. ProDashboardScreen
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProDashboardScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Günün Yoklaması'), findsOneWidget);
+    });
+
+    testWidgets(
+        'federation refresh invalidates scoped results and increments fetch count',
+        (tester) async {
+      final now = DateTime.now().toUtc();
+      var pendingFetchCount = 0;
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('fed-refresh-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: null,
+              coachLevel: 0,
+              athleteKind: null,
+              federationRoles: [
+                FederationRole(
+                  id: 'r1',
+                  federationId: 'fed-1',
+                  profileId: 'fed-refresh-user',
+                  role: FederationRoleKind.president,
+                  startsOn: now.subtract(const Duration(days: 5)),
+                  endsOn: now.add(const Duration(days: 30)),
+                ),
+              ],
+            ),
+          ),
+          federationConsoleScopesProvider.overrideWith(
+            (ref) async => const [
+              FederationConsoleScope(
+                federationId: 'fed-1',
+                name: 'TFF İstanbul',
+                sportCode: 'futbol',
+                cityCode: '34',
+                role: 'president',
+              ),
+            ],
+          ),
+          selectedFederationScopeKeyProvider.overrideWith(
+            (ref) => 'fed-1:futbol:34',
+          ),
+          federationScopedPendingResultsProvider.overrideWith(
+            (ref, query) async {
+              pendingFetchCount++;
+              return const [
+                FederationPendingMatch(
+                  id: 'match-fed-1',
+                  name: 'Süper Amatör',
+                  sportCode: 'futbol',
+                  version: 1,
+                ),
+              ];
+            },
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.federation;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(pendingFetchCount, 1);
+
+      final refreshBtn = find.byTooltip('Yenile');
+      expect(refreshBtn, findsOneWidget);
+      await tester.tap(refreshBtn);
+      await tester.pumpAndSettle();
+
+      expect(pendingFetchCount, 2);
+    });
+
+    testWidgets(
+        'federation scope transition switches query to new sport without state leakage',
+        (tester) async {
+      final now = DateTime.now().toUtc();
+      var footballQueryCount = 0;
+      var basketballQueryCount = 0;
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('fed-leak-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: null,
+              coachLevel: 0,
+              athleteKind: null,
+              federationRoles: [
+                FederationRole(
+                  id: 'r1',
+                  federationId: 'fed-1',
+                  profileId: 'fed-leak-user',
+                  role: FederationRoleKind.president,
+                  startsOn: now.subtract(const Duration(days: 5)),
+                  endsOn: now.add(const Duration(days: 30)),
+                ),
+              ],
+            ),
+          ),
+          federationConsoleScopesProvider.overrideWith(
+            (ref) async => const [
+              FederationConsoleScope(
+                federationId: 'fed-1',
+                name: 'TFF Futbol',
+                sportCode: 'futbol',
+                cityCode: '34',
+                role: 'president',
+              ),
+              FederationConsoleScope(
+                federationId: 'fed-1',
+                name: 'TBF Basketbol',
+                sportCode: 'basketbol',
+                cityCode: '34',
+                role: 'president',
+              ),
+            ],
+          ),
+          selectedFederationScopeKeyProvider.overrideWith(
+            (ref) => 'fed-1:futbol:34',
+          ),
+          federationScopedPendingResultsProvider.overrideWith(
+            (ref, query) async {
+              if (query.sportCode == 'futbol') {
+                footballQueryCount++;
+                return const [
+                  FederationPendingMatch(
+                    id: 'match-fb',
+                    name: 'Futbol Maçı',
+                    sportCode: 'futbol',
+                    version: 1,
+                  ),
+                ];
+              } else if (query.sportCode == 'basketbol') {
+                basketballQueryCount++;
+                return const [
+                  FederationPendingMatch(
+                    id: 'match-bb',
+                    name: 'Basketbol Maçı',
+                    sportCode: 'basketbol',
+                    version: 1,
+                  ),
+                ];
+              }
+              return const [];
+            },
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.federation;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(footballQueryCount, 1);
+      expect(basketballQueryCount, 0);
+      expect(find.textContaining('1 müsabaka sonuç onayı'), findsOneWidget);
+
+      // Transition to basketball
+      container.read(selectedFederationScopeKeyProvider.notifier).state =
+          'fed-1:basketbol:34';
+      await tester.pumpAndSettle();
+
+      expect(basketballQueryCount, 1);
+      expect(find.textContaining('1 müsabaka sonuç onayı'), findsOneWidget);
+    });
+
+    testWidgets(
+        'federation scopes error does not show fake zero or empty success',
+        (tester) async {
+      final now = DateTime.now().toUtc();
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('fed-error-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: null,
+              coachLevel: 0,
+              athleteKind: null,
+              federationRoles: [
+                FederationRole(
+                  id: 'r1',
+                  federationId: 'fed-1',
+                  profileId: 'fed-error-user',
+                  role: FederationRoleKind.president,
+                  startsOn: now.subtract(const Duration(days: 5)),
+                  endsOn: now.add(const Duration(days: 30)),
+                ),
+              ],
+            ),
+          ),
+          federationConsoleScopesProvider.overrideWith(
+            (ref) => Future.error(Exception('Scope fetch failed')),
+          ),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.federation;
+
+      // 1. ProTasksScreen shows ProErrorState, not empty
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ProErrorState), findsOneWidget);
+      expect(find.text('Bekleyen operasyon görevi bulunmuyor'), findsNothing);
+
+      // 2. ProDashboardScreen shows ProErrorState, not empty
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProDashboardScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.byType(ProErrorState), findsWidgets);
+      expect(find.text('Bugün için bekleyen acil işlem yok'), findsNothing);
     });
 
     testWidgets('accounting workspace buttons navigate to real routes',
