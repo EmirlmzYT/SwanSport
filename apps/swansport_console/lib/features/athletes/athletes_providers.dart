@@ -1,22 +1,38 @@
+import '../../app/preferences/console_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/widgets/console_table.dart';
 
 /// Sporcu tablosunun o anki sorgusu (sayfa, sıralama, arama).
-final athleteQueryProvider =
-    StateProvider<ConsoleTableQuery>((ref) => const ConsoleTableQuery(
-          sortKey: 'first_name',
-        ));
+final athleteQueryProvider = consolePreference<ConsoleTableQuery>(
+  'athletes.query',
+  clubScoped: true,
+  fallback: () => const ConsoleTableQuery(sortKey: 'first_name'),
+  decode: (v) => decodeConsoleQuery(v,
+      defaultSort: 'first_name',
+      sortKeys: const {'first_name', 'position', 'status'}),
+  encode: encodeConsoleQuery,
+);
 
 /// Durum süzgeci: null = hepsi.
-final athleteStatusFilterProvider = StateProvider<String?>((ref) => null);
+final athleteStatusFilterProvider = consolePreference<String?>(
+  'athletes.status',
+  clubScoped: true,
+  fallback: () => null,
+  decode: (v) => v == 'active' || v == 'inactive' ? v as String : null,
+  encode: (v) => v,
+);
 
 /// Tabloda seçili satırların kimlikleri.
 ///
 /// Sayfa değişince silinmiyor: kullanıcı 1. sayfadan 10, 2. sayfadan 5 kişi
 /// seçip hepsine birden işlem yapabilsin.
-final athleteSelectionProvider = StateProvider<Set<String>>((ref) => {});
+final athleteSelectionProvider = StateProvider<Set<String>>((ref) {
+  ref.watch(consolePreferenceAccountProvider);
+  ref.watch(consolePreferenceClubProvider);
+  return {};
+});
 
 /// Görünen sayfanın sunucudan çekildiği an.
 ///

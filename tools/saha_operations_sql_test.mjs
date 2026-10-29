@@ -1,4 +1,4 @@
-import {PGlite} from '../build/finance-sql-tests/node_modules/@electric-sql/pglite/dist/index.js';
+import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';import {test} from 'node:test';import assert from 'node:assert/strict';
 const id=n=>`00000000-0000-0000-0000-${String(n).padStart(12,'0')}`;
 const read=p=>readFile(new URL('../'+p,import.meta.url),'utf8');

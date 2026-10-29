@@ -6,6 +6,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../demo/demo_role.dart';
 import 'admin_review_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -55,25 +56,17 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
+      appBar: swanModuleAppBar(
+        context,
+        title: 'Platform Yönetimi',
+        subtitle: 'SİSTEM YÖNETİCİSİ',
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Sistem Yöneticisi', style: SwanType.h3(ink),),
-                    const SizedBox(height: 3),
-                    Text('Platform Yönetimi',
-                        style: SwanType.h2(ink)),
-                    const SizedBox(height: 14),
-                  ],
-                ),
-              ),
               if (!isAdmin)
                 Expanded(
                   child: premiumEmpty(

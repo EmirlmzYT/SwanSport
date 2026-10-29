@@ -57,7 +57,21 @@ class HomeCommandCenterScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('swanspor', style: SwanType.wordmark(ink)),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if (Navigator.canPop(context)) ...[
+                            IconButton(
+                              tooltip: 'Geri dön',
+                              icon: Icon(Icons.arrow_back_ios_new_rounded,
+                                  size: 18, color: ink),
+                              onPressed: () => Navigator.maybePop(context),
+                            ),
+                            const SizedBox(width: 4),
+                          ],
+                          Text('swanspor', style: SwanType.wordmark(ink)),
+                        ],
+                      ),
                       const InboxActions(),
                     ],
                   ),

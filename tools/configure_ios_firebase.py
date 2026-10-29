@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 
 
-def validate_config(encoded: str, bundle_id: str = 'com.swansport.app') -> bytes:
+def validate_config(encoded: str, bundle_id: str = 'com.swansport.app', project_id: str = 'swanspor') -> bytes:
     if not encoded:
         raise ValueError('GOOGLESERVICE_INFO_PLIST_BASE64 secret eksik; iOS Firebase yapılandırması gerekli.')
     try:
@@ -16,7 +16,7 @@ def validate_config(encoded: str, bundle_id: str = 'com.swansport.app') -> bytes
         raise ValueError('iOS Firebase config base64/plist biçimi geçersiz.') from None
     if not isinstance(config, dict) or config.get('BUNDLE_ID') != bundle_id:
         raise ValueError('Firebase BUNDLE_ID iOS hedefi ile uyuşmuyor.')
-    if config.get('PROJECT_ID') != 'swanspor':
+    if config.get('PROJECT_ID') != project_id:
         raise ValueError('Firebase PROJECT_ID beklenen SwanSport projesi ile uyuşmuyor.')
     if not all(isinstance(config.get(k), str) and config[k] for k in ('GOOGLE_APP_ID', 'GCM_SENDER_ID', 'API_KEY')):
         raise ValueError('Firebase iOS config zorunlu alanları eksik.')
@@ -36,17 +36,25 @@ def generate_disabled_plist(bundle_id: str = 'com.swansport.app') -> bytes:
 
 
 if __name__ == '__main__':
-    encoded = os.environ.get('GOOGLESERVICE_INFO_PLIST_BASE64', '')
-    target = Path(__file__).resolve().parent.parent / 'apps/swansport_app/ios/Runner/GoogleService-Info.plist'
+    target_app = os.environ.get('TARGET_APP', 'swansport_app').strip()
+    is_pro = target_app == 'pro' or os.environ.get('IOS_BUNDLE_ID') == 'com.swansport.pro'
+    secret_key = 'PRO_IOS_GOOGLE_SERVICE_INFO_BASE64' if is_pro else 'GOOGLESERVICE_INFO_PLIST_BASE64'
+    default_bundle = 'com.swansport.pro' if is_pro else 'com.swansport.app'
+    bundle_id = os.environ.get('IOS_BUNDLE_ID', default_bundle)
+    project_id = os.environ.get('IOS_FIREBASE_PROJECT_ID', 'swanspor').strip()
+    app_folder = 'apps/swansport_pro' if is_pro else 'apps/swansport_app'
+    encoded = os.environ.get(secret_key, '') or ('' if is_pro else os.environ.get('GOOGLESERVICE_INFO_PLIST_BASE64', ''))
+    target = Path(__file__).resolve().parent.parent / app_folder / 'ios/Runner/GoogleService-Info.plist'
+
     if not encoded.strip():
         if os.environ.get('REQUIRE_IOS_FIREBASE_CONFIG') == 'true':
-            raise SystemExit('İmzalı iOS derlemesi için GOOGLESERVICE_INFO_PLIST_BASE64 secret gerekli.')
+            raise SystemExit(f'İmzalı iOS derlemesi için {secret_key} secret gerekli.')
         print('[UYARI] iOS Firebase config yok; önizlemede push kapalı, sahte anahtar üretilmez.')
-        target.write_bytes(generate_disabled_plist(os.environ.get('IOS_BUNDLE_ID', 'com.swansport.app')))
+        target.write_bytes(generate_disabled_plist(bundle_id))
         enabled = False
     else:
         try:
-            data = validate_config(encoded, os.environ.get('IOS_BUNDLE_ID', 'com.swansport.app'))
+            data = validate_config(encoded, bundle_id, project_id)
             target.write_bytes(data)
             enabled = True
             print('iOS Firebase config doğrulandı ve CI derleme kaynağına yerleştirildi.')

@@ -7,6 +7,10 @@ on:
         description: 'Apply migrations after the mandatory dry-run'
         type: boolean
         default: false
+      provision_test_accounts:
+        description: 'Provision guarded staging-only role test accounts'
+        type: boolean
+        default: false
       build_android:
         description: 'Build a signed Android staging APK'
         type: boolean
@@ -45,10 +49,39 @@ jobs:
       - name: Link the dedicated staging project
         run: npx --yes supabase@2.121.0 link --project-ref "$STAGING_PROJECT_ID" --password "$SUPABASE_DB_PASSWORD"
       - name: Mandatory migration dry-run
-        run: npx --yes supabase@2.121.0 db push --dry-run
+        run: npx --yes supabase@2.121.0 db push --dry-run --include-all
       - name: Apply migrations to staging
         if: inputs.apply_migrations == true
-        run: npx --yes supabase@2.121.0 db push
+        run: npx --yes supabase@2.121.0 db push --include-all
+      - name: Provision guarded staging test accounts
+        if: inputs.provision_test_accounts == true
+        env:
+          CONFIRMED_SEED: ${{ runner.temp }}/full_roles_test_seed.confirmed.sql
+        run: |
+          python - <<'PY'
+          import os
+          from pathlib import Path
+
+          source = Path('supabase/seed/full_roles_test_seed.sql').read_text(
+              encoding='utf-8',
+          )
+          guard = "v_confirmation text := 'CHANGE_ME';"
+          confirmed = (
+              "v_confirmation text := "
+              "'CANLI_TEST_HESAPLARINI_ONAYLIYORUM';"
+          )
+          if source.count(guard) != 1:
+              raise SystemExit('Test account seed confirmation guard changed')
+          if 'v_enable_platform_admin boolean := false;' not in source:
+              raise SystemExit('Platform admin seed default is not fail-closed')
+          if 'v_enable_federation_roles boolean := false;' not in source:
+              raise SystemExit('Federation seed default is not fail-closed')
+          Path(os.environ['CONFIRMED_SEED']).write_text(
+              source.replace(guard, confirmed),
+              encoding='utf-8',
+          )
+          PY
+          npx --yes supabase@2.121.0 db query --linked --file "$CONFIRMED_SEED"
 
   android:
     name: Build Android staging APK
@@ -138,7 +171,7 @@ jobs:
           melos bootstrap
       - name: Configure unsigned build
         run: |
-          rm -f apps/swansport_app/ios/Runner/GoogleService-Info.plist
+          python tools/configure_ios_firebase.py
           printf '%s\n' 'DEVELOPMENT_TEAM = 0000000000' 'CODE_SIGN_IDENTITY =' \
             'CODE_SIGNING_REQUIRED = NO' 'CODE_SIGNING_ALLOWED = NO' \
             'CODE_SIGN_ENTITLEMENTS =' > apps/swansport_app/ios/Flutter/Signing.xcconfig

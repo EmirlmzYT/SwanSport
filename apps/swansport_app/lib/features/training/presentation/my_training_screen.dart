@@ -68,14 +68,20 @@ class MyTrainingScreen extends ConsumerWidget {
                         const Center(child: CircularProgressIndicator()),
                     error: (e, _) =>
                         Text('$e', style: SwanType.bodySm(c.danger)),
-                    data: (list) => list.where((h) => matchesTrainingSportContext(h.sportCode, sportContext)).isEmpty
+                    data: (list) => list
+                            .where((h) => matchesTrainingSportContext(
+                                h.sportCode, sportContext))
+                            .isEmpty
                         ? Text(
                             'Bu branşta henüz antrenman kaydın yok. Antrenörün bir oturum '
                             'başlattığında ya da kendi başına antrenman '
                             'yaptığında burada görünecek.',
                             style: SwanType.bodySm(c.inkMuted))
                         : Column(children: [
-                            for (final h in list.where((h) => matchesTrainingSportContext(h.sportCode, sportContext))) _row(context, c, h),
+                            for (final h in list.where((h) =>
+                                matchesTrainingSportContext(
+                                    h.sportCode, sportContext)))
+                              _row(context, c, h),
                           ]),
                   ),
                 ],
@@ -141,7 +147,8 @@ class MyTrainingScreen extends ConsumerWidget {
   /// Kamera okuyucu yok — kod her yerde ve web'de çalışıyor. Kod doğru olsa
   /// bile başka kulübün oturumuna girilemiyor; kapsamı sunucu kesiyor.
   Future<void> _joinDialog(BuildContext context, WidgetRef ref) async {
-    if (!await requireSwanAction(context, ref, SwanAction.rsvp) || !context.mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.rsvp) ||
+        !context.mounted) return;
     final ctrl = TextEditingController();
     String? error;
 
@@ -170,7 +177,9 @@ class MyTrainingScreen extends ConsumerWidget {
                 child: const Text('Vazgeç')),
             FilledButton(
               onPressed: () async {
-                if (!context.mounted || !await requireSwanAction(context, ref, SwanAction.rsvp) || !ctx.mounted) return;
+                if (!context.mounted ||
+                    !await requireSwanAction(context, ref, SwanAction.rsvp) ||
+                    !ctx.mounted) return;
                 try {
                   final id = await ref
                       .read(trainingSessionServiceProvider)
@@ -196,7 +205,8 @@ class MyTrainingScreen extends ConsumerWidget {
   Future<void> _startPersonal(BuildContext context, WidgetRef ref) async {
     final sport = ref.read(effectiveSportContextProvider);
     final protocols = (await ref.read(trainingProtocolsProvider.future))
-        .where((p) => matchesTrainingSportContext(p.sportCode, sport)).toList();
+        .where((p) => matchesTrainingSportContext(p.sportCode, sport))
+        .toList();
     if (!context.mounted) return;
     if (protocols.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(

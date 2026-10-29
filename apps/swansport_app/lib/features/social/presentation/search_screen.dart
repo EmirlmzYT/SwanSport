@@ -1,4 +1,6 @@
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_navigation.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -163,6 +165,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
                   child: Row(
                     children: [
+                      if (Navigator.canPop(context)) ...[
+                        IconButton(
+                          tooltip: 'Geri dön',
+                          icon: Icon(Icons.arrow_back_ios_new_rounded,
+                              size: 18, color: ink),
+                          onPressed: () => Navigator.maybePop(context),
+                        ),
+                        const SizedBox(width: 4),
+                      ],
                       Expanded(
                         child: Container(
                           height: 48,
@@ -551,10 +562,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     GestureDetector(
                       onTap: () {
                         if (s.kind == 'club') {
-                          Navigator.pushNamed(context, '/kulupler');
+                          context.swanPush(AppRoutes.clubs);
                         } else {
-                          Navigator.pushNamed(context, '/profil',
-                              arguments: {'id': s.id});
+                          context.swanPush(AppRoutes.profile,
+                              extra: {'id': s.id});
                         }
                       },
                       child: Container(
@@ -584,7 +595,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 'Kulüp Ağlarım', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
               )),
               GestureDetector(
-                onTap: () => Navigator.pushNamed(context, '/kulupler'),
+                onTap: () => context.swanPush(AppRoutes.clubs),
                 child: Text(
                   'Tüm Kulüpler',
                   style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
@@ -775,8 +786,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.ink, w: FontWeight.w600))),
                 const Spacer(),
                 InkWell(
-                  onTap: () => Navigator.pushNamed(context, '/kulup-detay',
-                      arguments: r.id),
+                  onTap: () => context.swanPush(AppRoutes.clubDetail,
+                      extra: r.id),
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     padding:
@@ -844,7 +855,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
           InkWell(
             onTap: () =>
-                Navigator.pushNamed(context, '/profil', arguments: r.id),
+                context.swanPush(AppRoutes.profile, extra: r.id),
             borderRadius: BorderRadius.circular(999),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),

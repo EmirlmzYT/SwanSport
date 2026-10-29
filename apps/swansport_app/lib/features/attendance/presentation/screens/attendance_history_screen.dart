@@ -33,7 +33,11 @@ class _AttendanceHistoryScreenState
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Yoklama Geçmişi', actions: [
-        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/attendance'), icon: Icon(Icons.add_rounded), label: Text('Yoklama Al', style: SwanType.caption(context.swan.accent))),
+        TextButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/attendance'),
+            icon: Icon(Icons.add_rounded),
+            label: Text('Yoklama Al',
+                style: SwanType.caption(context.swan.accent))),
       ]),
       extendBody: true,
       backgroundColor: c.bg,
@@ -46,7 +50,6 @@ class _AttendanceHistoryScreenState
               children: [
                 // Top Header
 
-
                 // Main Scrollable Area
                 Expanded(
                   child: RefreshIndicator(
@@ -56,7 +59,8 @@ class _AttendanceHistoryScreenState
                       await ref.read(attendanceSummaryProvider.future);
                     },
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
+                      padding: const EdgeInsets.fromLTRB(
+                          16, 12, 16, SwanSpace.xl * 5),
                       children: [
                         // 1. Subheader
                         _buildSubheader(c, club),
@@ -81,7 +85,6 @@ class _AttendanceHistoryScreenState
   // HEADER
   // ---------------------------------------------------------------------------
 
-
   // ---------------------------------------------------------------------------
   // SUBHEADER
   // ---------------------------------------------------------------------------
@@ -89,7 +92,8 @@ class _AttendanceHistoryScreenState
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(child: Column(
+        Expanded(
+            child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
@@ -131,10 +135,15 @@ class _AttendanceHistoryScreenState
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Flexible(child: Text(
-              'Sporcu Devam Tablosu', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
+            Flexible(
+                child: Text(
+              'Sporcu Devam Tablosu',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700),
             )),
-            Expanded(child: SingleChildScrollView(
+            Expanded(
+                child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
                 children: [

@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -65,13 +64,17 @@ class PushService {
     final uid = _c.auth.currentUser?.id;
     if (uid == null) return;
     try {
-      await _c.rpc<void>('register_push_subscription', params: {
-        'p_endpoint': sub.endpoint,
-        'p_kind': sub.kind,
-        'p_p256dh': sub.p256dh,
-        'p_auth': sub.auth,
-        'p_user_agent': userAgent,
-      });
+      await _c.rpc<void>(
+        'register_push_subscription',
+        params: {
+          'p_endpoint': sub.endpoint,
+          'p_kind': sub.kind,
+          'p_p256dh': sub.p256dh,
+          'p_auth': sub.auth,
+          'p_user_agent': userAgent,
+          'p_app_target': 'social',
+        },
+      );
     } on PostgrestException catch (e) {
       // 0043 henüz çalıştırılmadıysa fonksiyon yok (PGRST202). Eski yola
       // düş: kendi cihazını ilk kez kaydeden kullanıcı için o da çalışıyor,
@@ -83,6 +86,7 @@ class PushService {
         'kind': sub.kind,
         'p256dh': sub.p256dh,
         'auth': sub.auth,
+        'app_target': 'social',
         if (userAgent != null) 'user_agent': userAgent,
       }, onConflict: 'endpoint');
     }
@@ -104,8 +108,10 @@ class PushService {
   /// hesabındı. Yanlış teşhis, yanlış çözüme götürüyor.
   Future<PushSubState> subscriptionState(String endpoint) async {
     try {
-      final v = await _c.rpc<dynamic>('push_subscription_state',
-          params: {'p_endpoint': endpoint});
+      final v = await _c.rpc<dynamic>('push_subscription_state', params: {
+        'p_endpoint': endpoint,
+        'p_app_target': 'social',
+      });
       return switch ('$v') {
         'mine' => PushSubState.mine,
         'other_account' => PushSubState.otherAccount,
@@ -328,14 +334,19 @@ StreamSubscription<String>? listenPushTokenChanges(WidgetRef ref) {
   try {
     return pushTokenChanges().listen(
       (token) {
-        if(!pushPermissionGranted||!ref.read(isSupabaseEnabledProvider))return;
+        if (!pushPermissionGranted || !ref.read(isSupabaseEnabledProvider))
+          return;
         unawaited(
           ref.read(pushServiceProvider).register(PushSub.fcm(token)).catchError(
-                (Object e) {lastPushError = '$e';},
-              ),
+            (Object e) {
+              lastPushError = '$e';
+            },
+          ),
         );
       },
-      onError: (Object error, StackTrace stackTrace) {lastPushError='$error';},
+      onError: (Object error, StackTrace stackTrace) {
+        lastPushError = '$error';
+      },
     );
   } catch (error) {
     debugPrint('SwanSport: push token dinleyicisi başlatılamadı — $error');
@@ -364,27 +375,34 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   @override
   void initState() {
     super.initState();
-    _tokenSub=listenPushTokenChanges(ref);
-    _foregroundSub = pushForegroundMessages().listen(_showForegroundMessage,onError:_pushError);
-    _openedSub = pushOpenedMessages().listen(_openMessage,onError:_pushError);
+    _tokenSub = listenPushTokenChanges(ref);
+    _foregroundSub = pushForegroundMessages()
+        .listen(_showForegroundMessage, onError: _pushError);
+    _openedSub = pushOpenedMessages().listen(_openMessage, onError: _pushError);
     Future.microtask(() async {
-      try{
-        if(!mounted||!ref.read(isSupabaseEnabledProvider))return;
+      try {
+        if (!mounted || !ref.read(isSupabaseEnabledProvider)) return;
         await refreshPushSilently(ref);
-        if(!mounted)return;
+        if (!mounted) return;
         final initial = await pushInitialMessage();
-        if (mounted&&initial != null) _openMessage(initial);
-      }catch(error){_pushError(error);}
+        if (mounted && initial != null) _openMessage(initial);
+      } catch (error) {
+        _pushError(error);
+      }
     });
   }
 
-  void _pushError(Object error){lastPushError='$error';}
+  void _pushError(Object error) {
+    lastPushError = '$error';
+  }
 
   void _showForegroundMessage(PushMessage message) {
-    if(!mounted)return;
-    if(message.route?.startsWith('/canli-mac/')??false){
-      ref.invalidate(publicLiveMatchesProvider);ref.invalidate(publicLiveMatchesForSportProvider);
-      ref.invalidate(publicMatchLiveStateProvider);ref.invalidate(leagueStandingsProvider);
+    if (!mounted) return;
+    if (message.route?.startsWith('/canli-mac/') ?? false) {
+      ref.invalidate(publicLiveMatchesProvider);
+      ref.invalidate(publicLiveMatchesForSportProvider);
+      ref.invalidate(publicMatchLiveStateProvider);
+      ref.invalidate(leagueStandingsProvider);
     }
     if (message.route?.startsWith('/resmi-sonuc') ?? false) {
       ref.read(officialResultRefreshProvider)();
@@ -410,12 +428,13 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
   }
 
   void _openMessage(PushMessage message) {
-    if(!mounted)return;
+    if (!mounted) return;
     if (message.route?.startsWith('/resmi-sonuc') ?? false) {
       ref.read(officialResultRefreshProvider)();
     }
+    final router = swanGoRouter;
     final navigator = swanNavigatorKey.currentState;
-    if (navigator == null) {
+    if (router == null && navigator == null) {
       WidgetsBinding.instance
           .addPostFrameCallback((_) => _openMessage(message));
       return;
@@ -424,7 +443,11 @@ class _PushLifecycleObserverState extends ConsumerState<PushLifecycleObserver> {
     final target = pushRouteOrNotifications(message.route);
     final trace = diagnosticId();
     recorder.record('start', operation: 'action:push_open', traceId: trace);
-    navigator.pushNamed(target);
+    if (router != null) {
+      router.go(target);
+    } else {
+      navigator!.pushNamed(target);
+    }
     recorder.record('success', operation: 'action:push_open', traceId: trace);
   }
 

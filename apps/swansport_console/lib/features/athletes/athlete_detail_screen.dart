@@ -13,9 +13,11 @@ import 'athletes_providers.dart';
 /// değişmeyen kimlik bilgisi hep görünür kalıyor, sağda sekmeler arasında
 /// gezilirken kime baktığın kaybolmuyor.
 class AthleteDetailScreen extends ConsumerWidget {
-  const AthleteDetailScreen({required this.athleteId, super.key});
+  const AthleteDetailScreen(
+      {required this.athleteId, this.embedded = false, super.key});
 
   final String athleteId;
+  final bool embedded;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,17 +48,23 @@ class AthleteDetailScreen extends ConsumerWidget {
         }
         return Column(
           children: [
-            _Breadcrumb(name: a.fullName),
-            Divider(height: 1, color: t.colorScheme.outline),
+            if (!embedded) _Breadcrumb(name: a.fullName),
+            if (!embedded) Divider(height: 1, color: t.colorScheme.outline),
             Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  SizedBox(width: 320, child: _IdentityPane(athlete: a)),
-                  VerticalDivider(width: 1, color: t.colorScheme.outline),
-                  Expanded(child: _DetailTabs(athleteId: athleteId)),
-                ],
-              ),
+              child: embedded
+                  ? Column(children: [
+                      SizedBox(height: 245, child: _IdentityPane(athlete: a)),
+                      const Divider(height: 1),
+                      Expanded(child: _DetailTabs(athleteId: athleteId)),
+                    ])
+                  : Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        SizedBox(width: 320, child: _IdentityPane(athlete: a)),
+                        VerticalDivider(width: 1, color: t.colorScheme.outline),
+                        Expanded(child: _DetailTabs(athleteId: athleteId)),
+                      ],
+                    ),
             ),
           ],
         );
@@ -137,8 +145,7 @@ class _IdentityPane extends StatelessWidget {
                     const SizedBox(height: ConsoleDensity.xs),
                     StatusPill(
                       label: athlete.isActive ? 'Aktif' : 'Pasif',
-                      tone:
-                          athlete.isActive ? PillTone.good : PillTone.muted,
+                      tone: athlete.isActive ? PillTone.good : PillTone.muted,
                     ),
                   ],
                 ),
@@ -147,8 +154,7 @@ class _IdentityPane extends StatelessWidget {
           ),
           const SizedBox(height: ConsoleDensity.xl),
           _field(t, 'MEVKİ', athlete.position ?? '—'),
-          _field(t, 'YAŞ',
-              athlete.age == null ? '—' : '${athlete.age}'),
+          _field(t, 'YAŞ', athlete.age == null ? '—' : '${athlete.age}'),
           _field(
               t,
               'DOĞUM TARİHİ',
@@ -195,8 +201,8 @@ class _DetailTabs extends ConsumerWidget {
             child: TabBar(
               isScrollable: true,
               tabAlignment: TabAlignment.start,
-              labelStyle: t.textTheme.bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600),
+              labelStyle:
+                  t.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
               tabs: const [
                 Tab(text: 'Performans'),
                 Tab(text: 'Sağlık'),
@@ -247,8 +253,7 @@ class _PerformanceTab extends ConsumerWidget {
             final s = series[i];
             final latest = s.latest;
             return Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: ConsoleDensity.sm),
+              padding: const EdgeInsets.symmetric(vertical: ConsoleDensity.sm),
               child: Row(
                 children: [
                   Expanded(
@@ -355,8 +360,7 @@ class _InjuriesTab extends ConsumerWidget {
           itemBuilder: (_, i) {
             final r = mine[i];
             return Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: ConsoleDensity.sm),
+              padding: const EdgeInsets.symmetric(vertical: ConsoleDensity.sm),
               child: Row(
                 children: [
                   SizedBox(
@@ -372,10 +376,8 @@ class _InjuriesTab extends ConsumerWidget {
                   ),
                   const SizedBox(width: ConsoleDensity.md),
                   Expanded(
-                      child: Text(r.note ?? '—',
-                          style: t.textTheme.bodySmall)),
-                  Text(_formatDate(r.createdAt),
-                      style: t.textTheme.bodySmall),
+                      child: Text(r.note ?? '—', style: t.textTheme.bodySmall)),
+                  Text(_formatDate(r.createdAt), style: t.textTheme.bodySmall),
                 ],
               ),
             );
@@ -410,8 +412,7 @@ class _AchievementsTab extends ConsumerWidget {
           itemBuilder: (_, i) {
             final a = list[i];
             return Padding(
-              padding:
-                  const EdgeInsets.symmetric(vertical: ConsoleDensity.sm),
+              padding: const EdgeInsets.symmetric(vertical: ConsoleDensity.sm),
               child: Row(
                 children: [
                   Expanded(
@@ -431,9 +432,7 @@ class _AchievementsTab extends ConsumerWidget {
                         ? Text(a.category, style: t.textTheme.bodySmall)
                         : StatusPill(
                             label: a.placementLabel,
-                            tone: a.isPodium
-                                ? PillTone.good
-                                : PillTone.muted,
+                            tone: a.isPodium ? PillTone.good : PillTone.muted,
                           ),
                   ),
                   SizedBox(

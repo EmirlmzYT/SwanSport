@@ -77,10 +77,14 @@ cd packages/swansport_data && flutter test
 cd apps/swansport_console && flutter test
 ```
 
-Mobil uygulamanın test paketinde bilinen bir sorun var: bir bölüm test,
-Supabase istemcisi başlatılmadan ekran açtığı için başarısız oluyor
-(`_instance._isInitialized`). Sayı uzun süredir sabit; düzeltmesi ortak bir
-test kurulumu yazmayı gerektiriyor.
+Mobil testler `apps/swansport_app` dizininde `flutter test --no-pub` ile
+çalıştırılır. Testleri paket dizininden çalıştırmak asset ve göreli dosya
+yolları için gereklidir. Backend araçlarının kilitli kurulumu ve komutları:
+[`tools/README.md`](tools/README.md).
+
+Güncel kaynak/yayın/kabul ayrımı: [`docs/release-status.md`](docs/release-status.md).
+Güvenilirlik test kanıtı ve üretim sınırları:
+[`docs/reliability-foundation-verification.md`](docs/reliability-foundation-verification.md).
 
 ## Dağıtım
 

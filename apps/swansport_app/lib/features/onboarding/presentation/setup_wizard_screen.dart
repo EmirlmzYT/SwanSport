@@ -146,6 +146,13 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
                       onPressed: _back,
                       tooltip: 'Geri',
                     )
+                  else if (Navigator.canPop(context))
+                    IconButton(
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      color: c.ink,
+                      onPressed: () => Navigator.maybePop(context),
+                      tooltip: 'Geri dön',
+                    )
                   else
                     const SizedBox(width: 48),
                   Expanded(

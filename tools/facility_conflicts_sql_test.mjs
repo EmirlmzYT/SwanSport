@@ -1,7 +1,7 @@
 // Isolated PostgreSQL/PLpgSQL behaviour test; it does not contact Supabase.
 // Setup: npm install --prefix build/finance-sql-tests --no-audit --no-fund @electric-sql/pglite@0.5.8
 // Run: node --test tools/facility_conflicts_sql_test.mjs
-import {PGlite} from '../build/finance-sql-tests/node_modules/@electric-sql/pglite/dist/index.js';
+import {PGlite} from '@electric-sql/pglite';
 import {readFile} from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {test} from 'node:test';

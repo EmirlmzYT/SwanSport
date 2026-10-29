@@ -155,6 +155,15 @@ class CoachGuardianService {
 
 final coachGuardianServiceProvider = Provider<CoachGuardianService>(
     (ref) => CoachGuardianService(ref.watch(supabaseClientProvider)));
+typedef OfficialRosterPublishCommand = Future<void> Function(
+  OfficialTeamRoster roster,
+  List<String> athleteIds,
+  String reason,
+);
+final officialRosterPublishCommandProvider =
+    Provider<OfficialRosterPublishCommand>((ref) {
+  return ref.watch(coachGuardianServiceProvider).publishRoster;
+});
 final officialTeamRostersProvider = FutureProvider.autoDispose
     .family<List<OfficialTeamRoster>, String>((ref, team) {
   ref.watch(authSessionProvider);

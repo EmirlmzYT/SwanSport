@@ -110,7 +110,8 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
                   data: (list) {
                     final query = _searchController.text.trim();
                     final filtered = list.where((p) {
-                      if (!matchesTrainingSportContext(p.sportCode, sportContext)) return false;
+                      if (!matchesTrainingSportContext(
+                          p.sportCode, sportContext)) return false;
                       if (_selectedCategory != 'Tümü' &&
                           p.config.mode.label != _selectedCategory)
                         return false;

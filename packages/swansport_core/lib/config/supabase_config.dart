@@ -22,11 +22,11 @@ class SupabaseConfig {
   factory SupabaseConfig.fromCompileTime({
     String url = const String.fromEnvironment(
       'SUPABASE_URL',
-      defaultValue: 'https://gokkimnokigqxmbppvle.supabase.co',
+      defaultValue: '',
     ),
     String anonKey = const String.fromEnvironment(
       'SUPABASE_ANON_KEY',
-      defaultValue: 'sb_publishable_G5WQXM4DMmpnwPN9V9srFQ_JZZ2_Yje',
+      defaultValue: '',
     ),
   }) {
     return SupabaseConfig(

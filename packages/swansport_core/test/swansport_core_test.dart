@@ -7,4 +7,12 @@ void main() {
 
     expect(result.value, 'ready');
   });
+
+  test('missing compile-time Supabase settings stay in fixture mode', () {
+    final config = SupabaseConfig.fromCompileTime();
+
+    expect(config.url, isEmpty);
+    expect(config.anonKey, isEmpty);
+    expect(config.isConfigured, isFalse);
+  });
 }

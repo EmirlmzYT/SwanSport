@@ -79,7 +79,7 @@ class _MissionControlScreenState extends ConsumerState<MissionControlScreen> {
       Container(
         width: double.infinity,
         color: Theme.of(context).colorScheme.surface,
-        child: const TabBar(isScrollable: true, tabs: [
+        child: const TabBar(isScrollable: true, tabAlignment: TabAlignment.start, tabs: [
           Tab(text: 'Marka & Görünüm'), Tab(text: 'Finans & Komisyonlar'),
           Tab(text: 'Paketler & Fiyatlandırma'), Tab(text: 'Şalterler'), Tab(text: 'Denetim & Sistem'),
         ]),

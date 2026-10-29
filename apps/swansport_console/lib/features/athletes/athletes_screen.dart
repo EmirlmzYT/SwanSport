@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/theme/console_theme.dart';
 import '../../app/widgets/console_table.dart';
+import '../../app/widgets/console_detail_panel.dart';
 import '../../app/widgets/csv_export.dart';
 import '../../app/widgets/status_pill.dart';
 import 'athletes_providers.dart';
+import 'athlete_detail_screen.dart';
 
 /// Kadro tablosu.
 ///
@@ -32,11 +33,19 @@ class AthletesScreen extends ConsumerWidget {
         ConsoleToolbar(
           query: query,
           searchHint: 'Ad, soyad veya mevkiye göre ara…',
+          onResetFilters: query.search.isEmpty && statusFilter == null
+              ? null
+              : () {
+                  ref.read(athleteStatusFilterProvider.notifier).state = null;
+                  ref.read(athleteQueryProvider.notifier).state =
+                      query.copyWith(search: '', page: 0);
+                },
           onQueryChanged: (q) {
             ref.read(athleteQueryProvider.notifier).state = q;
           },
           filters: [
             _StatusFilter(
+              key: ValueKey(statusFilter),
               value: statusFilter,
               onChanged: (v) {
                 ref.read(athleteStatusFilterProvider.notifier).state = v;
@@ -72,7 +81,13 @@ class AthletesScreen extends ConsumerWidget {
             onSelectionChanged: (s) {
               ref.read(athleteSelectionProvider.notifier).state = s;
             },
-            onRowTap: (r) => GoRouter.of(context).go('/sporcular/${r.id}'),
+            onRowTap: (r) => showConsoleDetailPanel<void>(context,
+                title: r.fullName,
+                child: AthleteDetailScreen(athleteId: r.id, embedded: true)),
+            onRetry: () {
+              ref.invalidate(athletePageProvider);
+              ref.invalidate(athleteCountProvider);
+            },
             bulkActions: [
               ConsoleBulkAction(
                 label: 'Aktif yap',
@@ -176,9 +191,7 @@ class AthletesScreen extends ConsumerWidget {
                                     style: t.textTheme.bodyMedium)),
                             StatusPill(
                               label: a.isActive ? 'Aktif' : 'Pasif',
-                              tone: a.isActive
-                                  ? PillTone.good
-                                  : PillTone.muted,
+                              tone: a.isActive ? PillTone.good : PillTone.muted,
                             ),
                           ],
                         ),
@@ -253,7 +266,8 @@ class AthletesScreen extends ConsumerWidget {
 }
 
 class _StatusFilter extends StatelessWidget {
-  const _StatusFilter({required this.value, required this.onChanged});
+  const _StatusFilter(
+      {required this.value, required this.onChanged, super.key});
 
   final String? value;
   final ValueChanged<String?> onChanged;

@@ -8,16 +8,24 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_console/app/console_dashboard.dart';
 import 'package:swansport_console/app/modules/console_module.dart';
 import 'package:swansport_console/app/modules/module_registry.dart';
+import 'package:swansport_console/app/modules/console_workspace.dart';
 import 'package:swansport_console/app/shell/console_shell.dart';
 import 'package:swansport_console/app/shell/too_narrow_notice.dart';
 import 'package:swansport_console/app/theme/console_theme.dart';
 import 'package:swansport_console/features/auth/console_login_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-const _staff = SwanAccess(isPlatformAdmin: false, clubRole: 'club_admin',
-    coachLevel: 0, athleteKind: null);
-const _accountant = SwanAccess(isPlatformAdmin: false, clubRole: null,
-    coachLevel: 0, athleteKind: null, accountantClubIds: {'club'});
+const _staff = SwanAccess(
+    isPlatformAdmin: false,
+    clubRole: 'club_admin',
+    coachLevel: 0,
+    athleteKind: null);
+const _accountant = SwanAccess(
+    isPlatformAdmin: false,
+    clubRole: null,
+    coachLevel: 0,
+    athleteKind: null,
+    accountantClubIds: {'club'});
 const _club = ClubRef(id: 'club', name: 'Swan Spor Kulübü');
 
 class _AccountFake extends Fake implements AccountSessionService {
@@ -29,29 +37,45 @@ class _AccountFake extends Fake implements AccountSessionService {
     signIns++;
     return pending.future;
   }
+
   @override
-  Future<void> signOut() async { signOuts++; }
+  Future<void> signOut() async {
+    signOuts++;
+  }
 }
 
 void main() {
   testWidgets('shell and login consume configured branding', (tester) async {
-    tester.view.physicalSize = const Size(1400, 1000); tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.resetPhysicalSize); addTearDown(tester.view.resetDevicePixelRatio);
+    tester.view.physicalSize = const Size(1400, 1000);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     Widget wrap(Widget child) => ProviderScope(overrides: [
-      platformConfigProvider.overrideWith((_) async => PlatformConfig.fromMap({'branding': {
-        'app_name': 'Özel Kulüp', 'logo_url': 'https://example.com/logo.png'}})),
-      consoleAccessProvider.overrideWithValue(_accountant),
-      activeClubProvider.overrideWith((_) async => _club),
-      myClubsProvider.overrideWith((_) async => [_club]),
-      currentProfileProvider.overrideWith((_) async => const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
-      authSessionProvider.overrideWith((_) => Stream.value(null)),
-    ], child: MaterialApp(theme: ConsoleTheme.dark(), home: child));
-    await tester.pumpWidget(wrap(const ConsoleShell(route: '/', child: Text('Content'))));
-    await tester.pumpAndSettle(); expect(find.text('Özel Kulüp'), findsOneWidget);
-    final network = find.byWidgetPredicate((w) => w is Image && w.image is NetworkImage);
+          platformConfigProvider
+              .overrideWith((_) async => PlatformConfig.fromMap({
+                    'branding': {
+                      'app_name': 'Özel Kulüp',
+                      'logo_url': 'https://example.com/logo.png'
+                    }
+                  })),
+          consoleAccessProvider.overrideWithValue(_accountant),
+          activeClubProvider.overrideWith((_) async => _club),
+          myClubsProvider.overrideWith((_) async => [_club]),
+          currentProfileProvider.overrideWith((_) async =>
+              const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
+          authSessionProvider.overrideWith((_) => Stream.value(null)),
+        ], child: MaterialApp(theme: ConsoleTheme.dark(), home: child));
+    await tester.pumpWidget(
+        wrap(const ConsoleShell(route: '/', child: Text('Content'))));
+    await tester.pumpAndSettle();
+    expect(find.text('Özel Kulüp'), findsOneWidget);
+    final network =
+        find.byWidgetPredicate((w) => w is Image && w.image is NetworkImage);
     expect(network, findsOneWidget);
-    expect((tester.widget<Image>(network).image as NetworkImage).url, 'https://example.com/logo.png');
-    await tester.pumpWidget(wrap(const ConsoleLoginScreen())); await tester.pumpAndSettle();
+    expect((tester.widget<Image>(network).image as NetworkImage).url,
+        'https://example.com/logo.png');
+    await tester.pumpWidget(wrap(const ConsoleLoginScreen()));
+    await tester.pumpAndSettle();
     expect(find.text('Özel Kulüp Konsol'), findsOneWidget);
     expect(network, findsOneWidget);
     expect(tester.takeException(), isNull);
@@ -65,12 +89,17 @@ void main() {
     addTearDown(tester.view.resetDevicePixelRatio);
   }
 
-  testWidgets('split login shows password toggle and validates before submission', (tester) async {
+  testWidgets(
+      'split login shows password toggle and validates before submission',
+      (tester) async {
     size(tester, 900);
     final service = _AccountFake();
-    await tester.pumpWidget(ProviderScope(overrides: [
-      accountSessionServiceProvider.overrideWithValue(service),
-    ], child: MaterialApp(theme: ConsoleTheme.light(), home: const ConsoleLoginScreen())));
+    await tester.pumpWidget(ProviderScope(
+        overrides: [
+          accountSessionServiceProvider.overrideWithValue(service),
+        ],
+        child: MaterialApp(
+            theme: ConsoleTheme.light(), home: const ConsoleLoginScreen())));
     await tester.pumpAndSettle();
     expect(find.text('Şeffaf Mali Defter'), findsOneWidget);
     await tester.tap(find.text('Giriş yap'));
@@ -79,17 +108,24 @@ void main() {
     expect(find.text('Geçerli bir e-posta gir'), findsOneWidget);
     await tester.tap(find.byTooltip('Parolayı göster'));
     await tester.pump();
-    expect(tester.widget<TextField>(find.byType(TextField).last).obscureText, isFalse);
+    expect(tester.widget<TextField>(find.byType(TextField).last).obscureText,
+        isFalse);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('Enter submits once, busy state blocks duplicates, error is visible', (tester) async {
+  testWidgets(
+      'Enter submits once, busy state blocks duplicates, error is visible',
+      (tester) async {
     size(tester, 1200);
     final service = _AccountFake();
-    await tester.pumpWidget(ProviderScope(overrides: [
-      accountSessionServiceProvider.overrideWithValue(service),
-    ], child: MaterialApp(theme: ConsoleTheme.dark(), home: const ConsoleLoginScreen())));
-    await tester.enterText(find.byType(TextFormField).first, 'admin@example.com');
+    await tester.pumpWidget(ProviderScope(
+        overrides: [
+          accountSessionServiceProvider.overrideWithValue(service),
+        ],
+        child: MaterialApp(
+            theme: ConsoleTheme.dark(), home: const ConsoleLoginScreen())));
+    await tester.enterText(
+        find.byType(TextFormField).first, 'admin@example.com');
     await tester.enterText(find.byType(TextFormField).last, 'secret');
     await tester.testTextInput.receiveAction(TextInputAction.done);
     await tester.pump();
@@ -107,58 +143,85 @@ void main() {
   for (final login in [true, false]) {
     testWidgets('desktop guard is preserved: login=$login', (tester) async {
       size(tester, 899);
-      await tester.pumpWidget(ProviderScope(child: MaterialApp(
-        home: login ? const ConsoleLoginScreen()
-            : const ConsoleShell(route: '/', child: Text('PRIVATE')))));
+      await tester.pumpWidget(ProviderScope(
+          child: MaterialApp(
+              home: login
+                  ? const ConsoleLoginScreen()
+                  : const ConsoleShell(route: '/', child: Text('PRIVATE')))));
       await tester.pumpAndSettle();
       expect(find.byType(TooNarrowNotice), findsOneWidget);
       expect(find.text('PRIVATE'), findsNothing);
     });
   }
 
-  Widget dashboard({required GoRouter router, SwanAccess access = _staff,
-    bool financeError = false, VoidCallback? onPrivateRead}) => ProviderScope(overrides: [
-      consoleAccessProvider.overrideWithValue(access),
-      swanAccessProvider.overrideWithValue(access),
-      currentProfileProvider.overrideWith((_) async => const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
-      activeClubProvider.overrideWith((_) async => _club),
-      myClubsProvider.overrideWith((_) async => [_club]),
-      authSessionProvider.overrideWith((_) => Stream.value(null)),
-      financeOperationsSummaryProvider.overrideWith((_) async {
-        if (financeError) throw StateError('offline');
-        return const FinanceOperationsSummary(pendingApprovalCount: 2, pendingPaymentCount: 3);
-      }),
-      clubOperationsSummaryProvider.overrideWith((_) async {
-        onPrivateRead?.call();
-        return const ClubOperationsSummary(expiringDocumentCount: 1);
-      }),
-      clubRosterCountsProvider.overrideWith((_) async {
-        onPrivateRead?.call();
-        return const ClubRosterCounts(total: 37, active: 30);
-      }),
-      clubTodayAttendanceProvider.overrideWith((_) async {
-        onPrivateRead?.call();
-        return const ClubTodayAttendance(trainingCount: 4, markedCount: 2);
-      }),
-      eligibilityBoardProvider.overrideWith((_) async {
-        onPrivateRead?.call();
-        return const [EligibilityRow(athleteId: 'a', athleteRef: '#A',
-          status: 'restricted', reasonLabel: 'Kısıt')];
-      }),
-    ], child: MaterialApp.router(theme: ConsoleTheme.light(), darkTheme: ConsoleTheme.dark(), routerConfig: router));
+  Widget dashboard(
+          {required GoRouter router,
+          SwanAccess access = _staff,
+          bool financeError = false,
+          ConsoleWorkspace? initialWorkspace,
+          VoidCallback? onPrivateRead}) =>
+      ProviderScope(
+          overrides: [
+            consoleAccessProvider.overrideWithValue(access),
+            consoleWorkspaceProvider.overrideWith((_) => initialWorkspace),
+            swanAccessProvider.overrideWithValue(access),
+            currentProfileProvider.overrideWith((_) async =>
+                const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
+            activeClubProvider.overrideWith((_) async => _club),
+            myClubsProvider.overrideWith((_) async => [_club]),
+            authSessionProvider.overrideWith((_) => Stream.value(null)),
+            financeOperationsSummaryProvider.overrideWith((_) async {
+              if (financeError) throw StateError('offline');
+              return const FinanceOperationsSummary(
+                  pendingApprovalCount: 2, pendingPaymentCount: 3);
+            }),
+            clubOperationsSummaryProvider.overrideWith((_) async {
+              onPrivateRead?.call();
+              return const ClubOperationsSummary(expiringDocumentCount: 1);
+            }),
+            clubRosterCountsProvider.overrideWith((_) async {
+              onPrivateRead?.call();
+              return const ClubRosterCounts(total: 37, active: 30);
+            }),
+            clubTodayAttendanceProvider.overrideWith((_) async {
+              onPrivateRead?.call();
+              return const ClubTodayAttendance(
+                  trainingCount: 4, markedCount: 2);
+            }),
+            eligibilityBoardProvider.overrideWith((_) async {
+              onPrivateRead?.call();
+              return const [
+                EligibilityRow(
+                    athleteId: 'a',
+                    athleteRef: '#A',
+                    status: 'restricted',
+                    reasonLabel: 'Kısıt')
+              ];
+            }),
+          ],
+          child: MaterialApp.router(
+              theme: ConsoleTheme.light(),
+              darkTheme: ConsoleTheme.dark(),
+              routerConfig: router));
 
   GoRouter router() {
     final result = GoRouter(routes: [
-      GoRoute(path: '/', builder: (_, __) => const ConsoleShell(route: '/', child: ConsoleDashboard())),
+      GoRoute(
+          path: '/',
+          builder: (_, __) =>
+              const ConsoleShell(route: '/', child: ConsoleDashboard())),
       for (final module in kConsoleModules)
-        GoRoute(path: module.route, builder: (_, __) => Scaffold(body: Text('TARGET ${module.route}'))),
+        GoRoute(
+            path: module.route,
+            builder: (_, __) => Scaffold(body: Text('TARGET ${module.route}'))),
     ]);
     addTearDown(result.dispose);
     return result;
   }
 
   for (final width in [900.0, 1200.0, 1600.0]) {
-    testWidgets('real dashboard values and layout fit desktop width $width', (tester) async {
+    testWidgets('real dashboard values and layout fit desktop width $width',
+        (tester) async {
       size(tester, width);
       final routes = router();
       await tester.pumpWidget(dashboard(router: routes));
@@ -179,11 +242,12 @@ void main() {
     });
   }
 
-  testWidgets('accountant dashboard never subscribes to sporting data', (tester) async {
+  testWidgets('accountant dashboard never subscribes to sporting data',
+      (tester) async {
     size(tester, 1200);
     var reads = 0;
-    await tester.pumpWidget(dashboard(router: router(), access: _accountant,
-      onPrivateRead: () => reads++));
+    await tester.pumpWidget(dashboard(
+        router: router(), access: _accountant, onPrivateRead: () => reads++));
     await tester.pumpAndSettle();
     expect(reads, 0);
     expect(find.text('37'), findsNothing);
@@ -192,7 +256,8 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('finance failure is shown as unavailable, not a fake zero', (tester) async {
+  testWidgets('finance failure is shown as unavailable, not a fake zero',
+      (tester) async {
     size(tester, 1200);
     await tester.pumpWidget(dashboard(router: router(), financeError: true));
     await tester.pumpAndSettle();
@@ -201,20 +266,27 @@ void main() {
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('club switcher, collapse tooltip and theme preference work', (tester) async {
+  testWidgets('club switcher, collapse tooltip and theme preference work',
+      (tester) async {
     size(tester, 1400);
     final service = _AccountFake();
     final container = ProviderContainer(overrides: [
       accountSessionServiceProvider.overrideWithValue(service),
       consoleAccessProvider.overrideWithValue(_staff),
-      currentProfileProvider.overrideWith((_) async => const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
+      currentProfileProvider.overrideWith((_) async =>
+          const ProfileInfo(id: 'admin', fullName: 'Deniz Yönetici')),
       activeClubProvider.overrideWith((_) async => _club),
-      myClubsProvider.overrideWith((_) async => [_club, const ClubRef(id: 'other', name: 'Diğer Kulüp')]),
+      myClubsProvider.overrideWith((_) async =>
+          [_club, const ClubRef(id: 'other', name: 'Diğer Kulüp')]),
       authSessionProvider.overrideWith((_) => Stream.value(null)),
     ]);
     addTearDown(container.dispose);
-    await tester.pumpWidget(UncontrolledProviderScope(container: container,
-      child: MaterialApp(theme: ConsoleTheme.light(), home: const ConsoleShell(route: '/sporcular', child: Text('BODY')))));
+    await tester.pumpWidget(UncontrolledProviderScope(
+        container: container,
+        child: MaterialApp(
+            theme: ConsoleTheme.light(),
+            home:
+                const ConsoleShell(route: '/sporcular', child: Text('BODY')))));
     await tester.pumpAndSettle();
     expect(find.text('MALİ İŞLER'), findsOneWidget);
     await tester.tap(find.byTooltip('Kulüp değiştir'));
@@ -231,6 +303,53 @@ void main() {
     await tester.tap(find.byTooltip('Çıkış yap'));
     await tester.pumpAndSettle();
     expect(service.signOuts, 1);
+    expect(tester.takeException(), isNull);
+  });
+  const combined = SwanAccess(
+      isPlatformAdmin: true,
+      clubRole: 'club_admin',
+      coachLevel: 0,
+      athleteKind: null);
+
+  testWidgets(
+      'workspace picker changes both dashboard and menu, and search navigates',
+      (tester) async {
+    size(tester, 1400);
+    await tester.pumpWidget(dashboard(router: router(), access: combined));
+    await tester.pumpAndSettle();
+    expect(find.text('Sporcular'), findsOneWidget);
+    expect(find.text('37'), findsOneWidget);
+    expect(find.text('Kullanıcılar'), findsNothing);
+    await tester.tap(find.byTooltip('Çalışma alanını değiştir'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Platform').last);
+    await tester.pumpAndSettle();
+    expect(find.text('Sporcular'), findsNothing);
+    expect(find.text('37'), findsNothing);
+    expect(find.textContaining('Platform özeti'), findsOneWidget);
+    await tester.tap(find.byTooltip('Sayfa ara'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Kullanıcılar');
+    await tester.pumpAndSettle();
+    expect(find.byType(ListTile), findsOneWidget);
+    await tester.tap(find.byType(ListTile));
+    await tester.pumpAndSettle();
+    expect(find.text('TARGET /kullanicilar'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('platform workspace never starts club private data subscriptions',
+      (tester) async {
+    size(tester, 1400);
+    var reads = 0;
+    await tester.pumpWidget(dashboard(
+        router: router(),
+        access: combined,
+        initialWorkspace: ConsoleWorkspace.platform,
+        onPrivateRead: () => reads++));
+    await tester.pumpAndSettle();
+    expect(reads, 0);
+    expect(find.text('37'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 }

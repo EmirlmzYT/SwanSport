@@ -36,7 +36,11 @@ class _TeamRosterDirectoryScreenState
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Takımlar & Kadrolar', actions: [
-        if (canManage) IconButton(tooltip: 'Takım Ekle', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: () => _team(context, ref, club.id)),
+        if (canManage)
+          IconButton(
+              tooltip: 'Takım Ekle',
+              icon: Icon(Icons.add_rounded, color: context.swan.inkMuted),
+              onPressed: () => _team(context, ref, club.id)),
       ]),
       extendBody: true,
       backgroundColor: c.bg,
@@ -47,7 +51,6 @@ class _TeamRosterDirectoryScreenState
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-
                 Expanded(
                   child: ListView(
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 132),
@@ -67,8 +70,8 @@ class _TeamRosterDirectoryScreenState
                             const SizedBox(width: 8),
                             Expanded(
                               child: TextField(
-                                onChanged: (v) =>
-                                    setState(() => _searchQuery = v.trim().toLowerCase()),
+                                onChanged: (v) => setState(() =>
+                                    _searchQuery = v.trim().toLowerCase()),
                                 style: SwanType.bodySm(c.ink),
                                 decoration: InputDecoration(
                                   hintText: 'Takım adı veya yaş grubu ara...',
@@ -97,7 +100,8 @@ class _TeamRosterDirectoryScreenState
                             StitchFilterPill(
                               label: 'Yarışma Kadroları',
                               isSelected: _filter == 'competition',
-                              onTap: () => setState(() => _filter = 'competition'),
+                              onTap: () =>
+                                  setState(() => _filter = 'competition'),
                             ),
                             const SizedBox(width: 8),
                             StitchFilterPill(
@@ -127,7 +131,10 @@ class _TeamRosterDirectoryScreenState
                           final filtered = teams.where((t) {
                             if (_searchQuery.isNotEmpty &&
                                 !t.name.toLowerCase().contains(_searchQuery) &&
-                                !(t.ageGroup?.toLowerCase().contains(_searchQuery) ?? false)) {
+                                !(t.ageGroup
+                                        ?.toLowerCase()
+                                        .contains(_searchQuery) ??
+                                    false)) {
                               return false;
                             }
                             return true;

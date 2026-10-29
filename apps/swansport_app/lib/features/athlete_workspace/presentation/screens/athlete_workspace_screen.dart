@@ -55,7 +55,10 @@ class _AthleteWorkspaceScreenState
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Sporcular', actions: [
-        IconButton(tooltip: 'Kulüp Ayarları', icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/settings')),
+        IconButton(
+            tooltip: 'Kulüp Ayarları',
+            icon: Icon(Icons.tune_rounded, color: context.swan.inkMuted),
+            onPressed: () => Navigator.pushNamed(context, '/settings')),
       ]),
       extendBody: true,
       backgroundColor: c.bg,
@@ -72,7 +75,8 @@ class _AthleteWorkspaceScreenState
                 await ref.read(clubAthletesProvider.future);
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
+                padding:
+                    const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
                 children: [
                   // --- 1. Üst Bar: Geri, Başlık, Arama, Filtre, Profil ---
 
@@ -150,11 +154,12 @@ class _AthleteWorkspaceScreenState
                 backgroundColor: c.accentFill,
                 elevation: 4,
                 onPressed: () => _showAddAthlete(clubAsync.valueOrNull!),
-                icon:
-                    Icon(Icons.add_circle, color: context.swan.onAccent, size: 20),
+                icon: Icon(Icons.add_circle,
+                    color: context.swan.onAccent, size: 20),
                 label: Text(
                   'Yeni Sporcu Ekle',
-                  style: SwanType.bodySm(context.swan.onAccent, w: FontWeight.w700),
+                  style: SwanType.bodySm(context.swan.onAccent,
+                      w: FontWeight.w700),
                 ),
               ),
             )
@@ -165,7 +170,6 @@ class _AthleteWorkspaceScreenState
   // ---------------------------------------------------------------------------
   // ÜST BAR
   // ---------------------------------------------------------------------------
-
 
   // ---------------------------------------------------------------------------
   // CANLI HUB SATIRI
@@ -267,18 +271,17 @@ class _AthleteWorkspaceScreenState
                   top: -2,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: Colors.red,
+                    decoration: BoxDecoration(
+                      color: c.danger,
                       shape: BoxShape.circle,
                     ),
                     constraints:
                         const BoxConstraints(minWidth: 16, minHeight: 16),
                     child: Text(
                       '$pendingCount',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                      style: SwanType.caption(
+                        c.onAccent,
+                        w: FontWeight.bold,
                       ),
                       textAlign: TextAlign.center,
                     ),
@@ -432,9 +435,12 @@ class _AthleteWorkspaceScreenState
                     color: ok ? c.accent : context.swan.warning,
                   ),
                   const SizedBox(width: 4),
-                  Flexible(child: Text(
+                  Flexible(
+                      child: Text(
                     ok ? 'Aktif' : 'Pasif',
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(
                       ok ? c.accent : context.swan.warning,
                       w: FontWeight.w700,
                     ),
@@ -480,9 +486,12 @@ class _AthleteWorkspaceScreenState
                   style: SwanType.bodySm(c.ink),
                 ),
               ),
-              Flexible(child: Text(
+              Flexible(
+                  child: Text(
                 'Eşleştir',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(c.accent, w: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.bodySm(c.accent, w: FontWeight.w700),
               )),
             ],
           ),
@@ -532,8 +541,11 @@ class _AthleteWorkspaceScreenState
               color: c.accent,
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.person_add_rounded,
-                color: Colors.white, size: 20),
+            child: Icon(
+              Icons.person_add_rounded,
+              color: c.onAccent,
+              size: 20,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -555,7 +567,7 @@ class _AthleteWorkspaceScreenState
             onPressed: () => Navigator.pushNamed(context, '/basvurular'),
             style: TextButton.styleFrom(
               backgroundColor: c.accent,
-              foregroundColor: Colors.white,
+              foregroundColor: c.onAccent,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               minimumSize: Size.zero,
               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -583,11 +595,13 @@ class _AthleteWorkspaceScreenState
                 color: c.accent.withValues(alpha: 0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.add_business_rounded, color: c.accent, size: 32),
+              child:
+                  Icon(Icons.add_business_rounded, color: c.accent, size: 32),
             ),
             const SizedBox(height: 16),
             Text('Henüz bir kulübün yok',
-                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
+                style:
+                    SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 6),
             Text('Kadro kurmak ve sporcuları yönetmek için kulübünü oluştur.',
                 style: SwanType.caption(c.inkMuted)),
@@ -598,8 +612,9 @@ class _AthleteWorkspaceScreenState
               label: const Text('Kulüp Oluştur'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: c.accent,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                foregroundColor: c.onAccent,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -627,7 +642,8 @@ class _AthleteWorkspaceScreenState
             Icon(Icons.groups_rounded, color: c.accent, size: 36),
             const SizedBox(height: 12),
             Text('Kadro boş',
-                style: SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
+                style:
+                    SwanType.h3(c.ink).copyWith(fontWeight: FontWeight.w700)),
             const SizedBox(height: 4),
             Text('İlk sporcunu ekleyerek başla.',
                 style: SwanType.caption(c.inkMuted)),
@@ -725,7 +741,8 @@ class _AthleteWorkspaceScreenState
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Hata: $e'), backgroundColor: context.swan.danger),
+        SnackBar(
+            content: Text('Hata: $e'), backgroundColor: context.swan.danger),
       );
     }
   }
@@ -864,7 +881,8 @@ class _StopwatchSheetState extends State<_StopwatchSheet> {
               ),
               child: Text(
                 '$min:$sec.$ms',
-                style: SwanType.stopwatch(c.accent).copyWith(fontWeight: FontWeight.w800),
+                style: SwanType.stopwatch(c.accent)
+                    .copyWith(fontWeight: FontWeight.w800),
               ),
             ),
             const SizedBox(height: 24),

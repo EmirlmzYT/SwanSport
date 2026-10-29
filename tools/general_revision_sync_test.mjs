@@ -18,7 +18,8 @@ const targets=[
 ];
 test('all eleven scoped modules use standard headers and no raw ListTile, font or secondary-color calls',async()=>{
  for(const path of targets){const source=await read(root+path);
-  assert.match(source,/swanModuleAppBar\(context/,path);
+  assert.match(source,path==='network/presentation/guest_explore_screen.dart'
+    ? /appBar:\s*const StitchFeedTopBar\(\)/ : /swanModuleAppBar\(\s*context/,path);
   assert.doesNotMatch(source,/\bAppBar\(|\bListTile\(|SwanColors\.textSecondary|\b(?:jakarta|sora)\(/,path);
   assert.doesNotMatch(source,/Supabase\.instance|\.from\('/,path);
  }
@@ -39,7 +40,7 @@ test('common header preserves conditional back and subtitles; actions retain dis
 });
 test('settings route entry, pure service mutation and context invalidation are connected',async()=>{
  const settings=await read(root+'settings/presentation/screens/club_settings_screen.dart');
- assert.match(settings,/club != null && access\.isClubStaff/);
+ assert.match(settings,/club != null &&\s*access\.hasActiveClubStaffMembership/);
  assert.match(settings,/ClubTrainingSportsSheet\(clubId: club\.id\)/);
  const data=await read('packages/swansport_data/lib/src/sport_context_service.dart');
  assert.match(data,/rpc<int>\('set_club_training_sports'/);

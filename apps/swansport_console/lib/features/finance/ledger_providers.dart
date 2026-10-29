@@ -1,3 +1,4 @@
+import '../../app/preferences/console_preferences.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
@@ -34,15 +35,46 @@ class DateRange {
   int get hashCode => Object.hash(from, to);
 }
 
-final ledgerRangeProvider =
-    StateProvider<DateRange>((ref) => DateRange.thisMonth());
+final ledgerRangeProvider = consolePreference<DateRange>(
+  'ledger.range',
+  clubScoped: true,
+  fallback: DateRange.thisMonth,
+  decode: (v) {
+    if (v is! Map) return DateRange.thisMonth();
+    final from =
+        DateTime.tryParse(v['from'] is String ? v['from'] as String : '');
+    final to = DateTime.tryParse(v['to'] is String ? v['to'] as String : '');
+    if (from == null || to == null) return DateRange.thisMonth();
+    final start = DateTime(from.year, from.month, from.day);
+    final end = DateTime(to.year, to.month, to.day);
+    final now = DateTime.now();
+    final maximum = DateTime(now.year, now.month, now.day)
+        .add(const Duration(days: 365));
+    if (start.isAfter(end) || start.isBefore(DateTime(2020)) ||
+        end.isAfter(maximum)) return DateRange.thisMonth();
+    return DateRange(start, end);
+  },
+  encode: (v) =>
+      {'from': v.from.toIso8601String(), 'to': v.to.toIso8601String()},
+);
 
 /// Yön süzgeci: null = hepsi, 'in' = gelir, 'out' = gider.
-final ledgerDirectionProvider = StateProvider<String?>((ref) => null);
+final ledgerDirectionProvider = consolePreference<String?>(
+  'ledger.direction',
+  clubScoped: true,
+  fallback: () => null,
+  decode: (v) => v == 'in' || v == 'out' ? v as String : null,
+  encode: (v) => v,
+);
 
-/// Defter tablosunun sayfa durumu. Sıralama RPC'de sabittir: tarih, sonra id.
-final ledgerQueryProvider =
-    StateProvider<ConsoleTableQuery>((ref) => const ConsoleTableQuery());
+/// Sayfa konumu her açılışta sıfırdır; yalnız görünüm tercihleri saklanır.
+final ledgerQueryProvider = consolePreference<ConsoleTableQuery>(
+  'ledger.query',
+  clubScoped: true,
+  fallback: () => const ConsoleTableQuery(),
+  decode: (v) => decodeConsoleQuery(v),
+  encode: encodeConsoleQuery,
+);
 
 /// Gelir–gider defteri.
 final ledgerProvider = FutureProvider.autoDispose<LedgerPage>((ref) async {

@@ -74,6 +74,15 @@ class CoachDashboardScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
                 children: [
                   Row(children: [
+                    if (Navigator.canPop(context)) ...[
+                      IconButton(
+                        tooltip: 'Geri dön',
+                        icon: Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 18, color: c.ink),
+                        onPressed: () => Navigator.maybePop(context),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
                     Expanded(
                         child: Text('SwanSport', style: SwanType.h2(c.ink))),
                     const InboxActions()

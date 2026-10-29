@@ -101,26 +101,40 @@ class SwanAccess {
 
   /// Only these named routes may construct screens without an account.
   static bool isGuestRoute(String? route) {
-    final target=Uri.tryParse(route??'');
-    if(target!=null && !target.hasScheme && !target.hasAuthority && target.pathSegments.length==2
-      && target.pathSegments.first=='canli-mac' && isPublicMatchId(target.pathSegments.last))return true;
+    final target = Uri.tryParse(route ?? '');
+    if (target != null &&
+        !target.hasScheme &&
+        !target.hasAuthority &&
+        target.pathSegments.length == 2 &&
+        target.pathSegments.first == 'canli-mac' &&
+        isPublicMatchId(target.pathSegments.last)) return true;
+    if (target != null &&
+        !target.hasScheme &&
+        !target.hasAuthority &&
+        target.pathSegments.length == 3 &&
+        target.pathSegments[0] == 'swan-id' &&
+        target.pathSegments[1] == 'dogrula' &&
+        RegExp(r'^[0-9a-f]{48}$', caseSensitive: false)
+            .hasMatch(target.pathSegments[2])) {
+      return true;
+    }
     return const {
-        '/',
-        '/auth',
-        '/landing',
-        '/akis',
-        '/kesfet',
-        '/kortlar',
-        '/halisahalar',
-        '/partner-ara',
-        '/oyuncu-aranan',
-        '/federasyon-takvimi',
-        '/federasyon-merkezi',
-        '/calendar',
-        '/yardim',
-        '/rehber',
-        '/canli-skor',
-      }.contains(route);
+      '/',
+      '/auth',
+      '/landing',
+      '/akis',
+      '/kesfet',
+      '/kortlar',
+      '/halisahalar',
+      '/partner-ara',
+      '/oyuncu-aranan',
+      '/federasyon-takvimi',
+      '/federasyon-merkezi',
+      '/calendar',
+      '/yardim',
+      '/rehber',
+      '/canli-skor',
+    }.contains(route);
   }
 
   bool get isInIdentityWaitingRoom =>
@@ -188,54 +202,82 @@ class SwanAccess {
   final Set<String> medicalAuthorityClubIds;
   final Set<String> administrativeStatusClubIds;
   final List<ClubOperationsAuthority> clubOperationsAuthority;
-  bool canReadClubInventory(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.inventoryRead);
-  bool canManageClubInventory(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.inventoryWrite);
-  bool canReadClubHealth(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.healthRead);
-  bool canReadClubPlanning(String clubId) => clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.planningRead);
-  bool get hasOperationalClubRole => clubOperationsAuthority.any((a)=>a.inventoryRead||a.healthRead||a.planningRead);
-  bool get canOpenClubInventory => clubOperationsAuthority.any((a)=>a.inventoryWrite);
-  bool get canOpenClubInventoryRead => clubOperationsAuthority.any((a)=>a.inventoryRead);
-  bool get canOpenClubHealth => clubOperationsAuthority.any((a)=>a.healthRead);
-  bool get canOpenClubPlanning => clubOperationsAuthority.any((a)=>a.planningRead);
+  bool canReadClubInventory(String clubId) =>
+      clubOperationsAuthority.any((a) => a.clubId == clubId && a.inventoryRead);
+  bool canManageClubInventory(String clubId) => clubOperationsAuthority
+      .any((a) => a.clubId == clubId && a.inventoryWrite);
+  bool canReadClubHealth(String clubId) =>
+      clubOperationsAuthority.any((a) => a.clubId == clubId && a.healthRead);
+  bool canReadClubPlanning(String clubId) =>
+      clubOperationsAuthority.any((a) => a.clubId == clubId && a.planningRead);
+  bool get hasOperationalClubRole => clubOperationsAuthority
+      .any((a) => a.inventoryRead || a.healthRead || a.planningRead);
+  bool get canOpenClubInventory =>
+      clubOperationsAuthority.any((a) => a.inventoryWrite);
+  bool get canOpenClubInventoryRead =>
+      clubOperationsAuthority.any((a) => a.inventoryRead);
+  bool get canOpenClubHealth =>
+      clubOperationsAuthority.any((a) => a.healthRead);
+  bool get canOpenClubPlanning =>
+      clubOperationsAuthority.any((a) => a.planningRead);
 
   /// Aggregate visibility only. Scoped queries must supply their federation ID;
   /// these role labels never grant the legacy official result-write duties.
-  bool get isFederationPresident => federationRoles.any(
-      (r) => r.role == FederationRoleKind.president && r.isActive);
+  bool get isFederationPresident => federationRoles
+      .any((r) => r.role == FederationRoleKind.president && r.isActive);
   bool get hasActiveFederationRole => federationRoles.any((r) => r.isActive);
-  bool get canViewRefereeAssignments => isRefereeCommitteeMember || federationRoles.any(
-      (r) => r.role == FederationRoleKind.provincialRep && r.isActive);
-  bool get canViewProvincialLeagues => isFederationPresident || federationRoles.any(
-      (r) => r.role == FederationRoleKind.provincialRep && r.isActive);
-  bool canAssignOfficialsForFederation(String federationId) => federationRoles.any((r) =>
-      r.federationId == federationId && r.isActive &&
-      (r.role == FederationRoleKind.president || r.role == FederationRoleKind.refereeCommittee));
+  bool get canViewRefereeAssignments =>
+      isRefereeCommitteeMember ||
+      federationRoles
+          .any((r) => r.role == FederationRoleKind.provincialRep && r.isActive);
+  bool get canViewProvincialLeagues =>
+      isFederationPresident ||
+      federationRoles
+          .any((r) => r.role == FederationRoleKind.provincialRep && r.isActive);
+  bool canAssignOfficialsForFederation(String federationId) =>
+      federationRoles.any((r) =>
+          r.federationId == federationId &&
+          r.isActive &&
+          (r.role == FederationRoleKind.president ||
+              r.role == FederationRoleKind.refereeCommittee));
   bool isProvincialRep(String cityCode, {String? federationId, DateTime? at}) =>
       federationRoles.any((r) =>
-        (federationId == null || r.federationId == federationId) &&
-        r.isActiveOn(at ?? DateTime.now()) &&
-        (r.role == FederationRoleKind.president ||
-          (r.role == FederationRoleKind.provincialRep && r.cityCode == cityCode)));
-  bool get isRefereeCommitteeMember => isFederationPresident || federationRoles.any(
-      (r) => r.role == FederationRoleKind.refereeCommittee && r.isActive);
-  bool get isDisciplinaryBoardMember => isFederationPresident || federationRoles.any(
-      (r) => r.role == FederationRoleKind.disciplinaryBoard && r.isActive);
+          (federationId == null || r.federationId == federationId) &&
+          r.isActiveOn(at ?? DateTime.now()) &&
+          (r.role == FederationRoleKind.president ||
+              (r.role == FederationRoleKind.provincialRep &&
+                  r.cityCode == cityCode)));
+  bool get isRefereeCommitteeMember =>
+      isFederationPresident ||
+      federationRoles.any(
+          (r) => r.role == FederationRoleKind.refereeCommittee && r.isActive);
+  bool get isDisciplinaryBoardMember =>
+      isFederationPresident ||
+      federationRoles.any(
+          (r) => r.role == FederationRoleKind.disciplinaryBoard && r.isActive);
   bool get isReferee => refereeProfile?.isActive ?? false;
   bool _hasClubStaffRole(String clubId, ClubStaffRoleKind role) =>
       clubStaffRoles.any((r) => r.clubId == clubId && r.role == role);
-  bool isClubPresident(String clubId) => _hasClubStaffRole(clubId, ClubStaffRoleKind.president);
-  bool isClubSportingDirector(String clubId) => _hasClubStaffRole(clubId, ClubStaffRoleKind.sportingDirector);
+  bool isClubPresident(String clubId) =>
+      _hasClubStaffRole(clubId, ClubStaffRoleKind.president);
+  bool isClubSportingDirector(String clubId) =>
+      _hasClubStaffRole(clubId, ClubStaffRoleKind.sportingDirector);
   bool isClubDoctor(String clubId) => isClubMedicalStaff(clubId);
   bool isClubMedicalStaff(String clubId) =>
       _hasClubStaffRole(clubId, ClubStaffRoleKind.doctor) ||
       _hasClubStaffRole(clubId, ClubStaffRoleKind.physiotherapist);
-  bool isClubKitManager(String clubId) => _hasClubStaffRole(clubId, ClubStaffRoleKind.kitManager);
+  bool isClubKitManager(String clubId) =>
+      _hasClubStaffRole(clubId, ClubStaffRoleKind.kitManager);
   bool get hasMedicalAuthority => medicalAuthorityClubIds.isNotEmpty;
-  bool hasMedicalAuthorityForClub(String clubId) => medicalAuthorityClubIds.contains(clubId);
+  bool hasMedicalAuthorityForClub(String clubId) =>
+      medicalAuthorityClubIds.contains(clubId);
+
   /// Administrative rest is independent of a physician being present; medical
   /// or disciplinary locks can still only be cleared by the authoritative RPC.
   bool canManageAdministrativeStatus(String clubId) =>
-      administrativeStatusClubIds.contains(clubId) || clubOperationsAuthority.any((a)=>a.clubId==clubId&&a.administrativeWrite);
+      administrativeStatusClubIds.contains(clubId) ||
+      clubOperationsAuthority
+          .any((a) => a.clubId == clubId && a.administrativeWrite);
 
   /// Sport credentials never inherit the club-admin or platform-admin shortcut.
   int coachLevelForSport(String sportCode, {DateTime? at}) {
@@ -334,6 +376,8 @@ class SwanAccess {
 
   bool isTurfManagerOf(String fieldId) => managedTurfFieldIds.contains(fieldId);
   final Set<String> delegatedTurfFieldIds;
+  bool get canOpenTurfCenter =>
+      managedTurfFieldIds.isNotEmpty || delegatedTurfFieldIds.isNotEmpty;
   bool canEditTurfOccupancy(String fieldId) =>
       isTurfManagerOf(fieldId) || delegatedTurfFieldIds.contains(fieldId);
 
@@ -348,6 +392,37 @@ class SwanAccess {
         'club_admin' || 'coach' || 'official' => true,
         _ => false,
       };
+
+  /// Active club membership scope for navigation and club operations.
+  /// A verified coach credential alone does not expose a club management
+  /// center; server-side RLS remains authoritative for every operation.
+  bool get hasActiveClubStaffMembership => switch (clubRole) {
+        'club_admin' || 'coach' || 'official' => true,
+        _ => false,
+      };
+
+  bool get hasActiveFederationAppointment {
+    final now = DateTime.now().toUtc().add(const Duration(hours: 3));
+    final day = DateTime.utc(now.year, now.month, now.day);
+    return federationAppointments.any((appointment) {
+      final starts = DateTime.utc(
+        appointment.startsOn.year,
+        appointment.startsOn.month,
+        appointment.startsOn.day,
+      );
+      final ends = DateTime.utc(
+        appointment.endsOn.year,
+        appointment.endsOn.month,
+        appointment.endsOn.day,
+      );
+      return appointment.revokedAt == null &&
+          !day.isBefore(starts) &&
+          !day.isAfter(ends);
+    });
+  }
+
+  bool get canOpenFederationOperations =>
+      hasActiveFederationRole || hasActiveFederationAppointment;
 
   /// Matches can_post_for_club: a credential alone does not grant club publishing.
   bool get canPublishClubPosts =>
@@ -416,14 +491,22 @@ final swanAccessProvider = Provider<SwanAccess>((ref) {
     sportCredentials: creds,
     federationAppointments:
         ref.watch(myFederationAppointmentsProvider).valueOrNull ?? const [],
-    federationRoles: ref.watch(myFederationRolesProvider).asData?.value ?? const [],
+    federationRoles:
+        ref.watch(myFederationRolesProvider).asData?.value ?? const [],
     refereeProfile: ref.watch(myRefereeProfileProvider).asData?.value,
-    clubStaffRoles: ref.watch(myClubStaffRolesProvider).asData?.value ?? const [],
+    clubStaffRoles:
+        ref.watch(myClubStaffRolesProvider).asData?.value ?? const [],
     medicalAuthorityClubIds:
-        ref.watch(mySportsClubAuthorityProvider).asData?.value.medicalClubIds ?? const {},
-    administrativeStatusClubIds:
-        ref.watch(mySportsClubAuthorityProvider).asData?.value.administrativeClubIds ?? const {},
-    clubOperationsAuthority: ref.watch(myClubOperationsAuthorityProvider).asData?.value ?? const [],
+        ref.watch(mySportsClubAuthorityProvider).asData?.value.medicalClubIds ??
+            const {},
+    administrativeStatusClubIds: ref
+            .watch(mySportsClubAuthorityProvider)
+            .asData
+            ?.value
+            .administrativeClubIds ??
+        const {},
+    clubOperationsAuthority:
+        ref.watch(myClubOperationsAuthorityProvider).asData?.value ?? const [],
     athleteKind: athleteKind,
     accountantClubIds: accountantClubs,
     guardianAthleteIds:
@@ -472,4 +555,3 @@ extension SwanAccessWidgetRefX on WidgetRef {
   /// SwanAccess'i besleyen tüm profil, üyelik ve yetki provider'larını yeniler.
   void invalidateSwanAccess() => invalidateSwanAccessProviders(invalidate);
 }
-

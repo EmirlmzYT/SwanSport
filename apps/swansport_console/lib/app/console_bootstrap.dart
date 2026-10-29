@@ -1,3 +1,4 @@
+import 'preferences/console_account_scope.dart';
 import 'dart:async';
 import 'dart:ui';
 import 'package:http/http.dart' as http;
@@ -105,7 +106,10 @@ Future<void> bootstrapConsole({
       overrides: [
         supabaseConfigProvider.overrideWithValue(supabaseConfig),
       ],
-      child: const ConsoleApp(),
+      child: ConsoleAccountScope(
+        observers: [_ConsoleDiagnosticObserver()],
+        child: const ConsoleApp(),
+      ),
     ),
   );
 }

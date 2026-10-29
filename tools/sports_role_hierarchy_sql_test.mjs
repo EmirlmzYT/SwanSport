@@ -117,7 +117,7 @@ test('0110 scope: dates, revocation, federation/sport/city checks, no self-assig
     await auth(db,rep); assert.equal(await call(db,'is_provincial_rep',['34','tenis']),true);
     assert.equal(await call(db,'is_provincial_rep',['06','tenis']),false);
     await assert.rejects(db.query("insert into federation_roles(federation_id,profile_id,role) values($1,$2,'president')",[federation,rep]),/permission/);
-    for (const change of ["starts_on=current_date+1,ends_on=current_date+2","ends_on=current_date-1,starts_on=current_date-2","revoked_at=now()"]) {
+    for (const change of ["starts_on=(now() at time zone 'Europe/Istanbul')::date+1,ends_on=(now() at time zone 'Europe/Istanbul')::date+2","ends_on=(now() at time zone 'Europe/Istanbul')::date-1,starts_on=(now() at time zone 'Europe/Istanbul')::date-2","revoked_at=now()"]) {
       await owner(db); await db.exec('begin');
       await db.query('update federation_roles set '+change+' where profile_id=$1',[president]);
       await auth(db,president); assert.equal(await call(db,'is_federation_president',['tenis']),false);

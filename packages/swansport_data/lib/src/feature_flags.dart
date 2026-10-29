@@ -48,6 +48,13 @@ class FeatureFlags {
   static const teamHub = 'team_hub';
   static const seasonSetup = 'season_setup';
   static const developmentReport = 'development_report';
+  static const swanId = 'swan_id';
+  static const athleteShowcase = 'athlete_showcase';
+  static const swanAssistant = 'swan_assistant';
+  static const athleteJourney = 'athlete_journey';
+  static const eventPreparation = 'event_preparation';
+  static const teamKudos = 'team_kudos';
+  static const athleteMatchCard = 'athlete_match_card';
 
   /// 0054. Sabiti eksikti; feature_flag_sync_test bunu yakaladı.
   static const coachDiscovery = 'coach_discovery';
@@ -94,6 +101,9 @@ class FeatureFlags {
   /// kaybettiriyor. Sunucuda da `off` kademesinde.
   static const offlineAttendance = 'offline_attendance';
 
+  /// Faz 2 çevrimiçi yoklama ekranı. Yazma yetkisi yine mevcut RLS/RPC'dedir.
+  static const attendanceOperations = 'attendance_operations';
+
   /// 0071–0073. Branşa özel canlı antrenman oturumu: set, süre, skor ve
   /// antrenör onayı. İlk çalışan branş okçuluk.
   static const sportTrainingSessions = 'sport_training_sessions';
@@ -106,7 +116,8 @@ class FeatureFlags {
 /// yavaşlatırdı.
 final featureFlagsProvider = FutureProvider<FeatureFlags>((ref) async {
   ref.watch(
-      authSessionProvider.select((session) => session.valueOrNull?.user.id));
+    authSessionProvider.select((session) => session.valueOrNull?.user.id),
+  );
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return const FeatureFlags.none();
   }

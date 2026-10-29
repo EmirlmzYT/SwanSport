@@ -61,10 +61,17 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
     final club = ref.watch(activeClubProvider);
     final access = ref.watch(swanAccessProvider);
     final sportContext = ref.watch(effectiveSportContextProvider);
-    final preferredSports = ref.watch(sportContextOptionsProvider).valueOrNull?.map((s) => s.code).toSet() ?? const <String>{};
+    final preferredSports = ref
+            .watch(sportContextOptionsProvider)
+            .valueOrNull
+            ?.map((s) => s.code)
+            .toSet() ??
+        const <String>{};
     final selectedSport = _sport ?? sportContext;
-    final profile = selectedSport == null ? null : branchTrainingProfileFor(selectedSport);
-    final archetype = _sport == null ? profile?.defaultArchetype ?? _archetype : _archetype;
+    final profile =
+        selectedSport == null ? null : branchTrainingProfileFor(selectedSport);
+    final archetype =
+        _sport == null ? profile?.defaultArchetype ?? _archetype : _archetype;
     return SwanScaffold(
       backgroundColor: c.bg,
       appBar: swanModuleAppBar(context, title: 'Antrenman Şablonu Oluştur'),
@@ -87,134 +94,164 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
                 child: ListView(
                   padding: const EdgeInsets.all(SwanSpace.lg),
                   children: [
-                    SwanSurface(child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-                    Text(club.name, style: SwanType.h3(c.ink)),
-                    const SizedBox(height: SwanSpace.md),
-                    TextFormField(
-                        controller: _name,
-                        enabled: !_saving,
-                        decoration:
-                            const InputDecoration(labelText: 'Şablon adı'),
-                        validator: (v) => v == null || v.trim().length < 3
-                            ? 'En az 3 karakter yaz.'
-                            : null),
-                    const SizedBox(height: SwanSpace.md),
-                    TextFormField(
-                        controller: _description,
-                        enabled: !_saving,
-                        maxLines: 3,
-                        decoration: const InputDecoration(
-                            labelText: 'Açıklama (isteğe bağlı)')),
-                    const SizedBox(height: SwanSpace.md),
-                    ref.watch(sportsProvider).when(
-                          loading: () => const LinearProgressIndicator(),
-                          error: (e, _) => Text('Branşlar yüklenemedi: $e',
-                              style: SwanType.bodySm(c.danger)),
-                          data: (sports) => DropdownButtonFormField<String>(
-                            key: ValueKey(selectedSport),
-                            initialValue: selectedSport,
-                            isExpanded: true,
-                            decoration:
-                                const InputDecoration(labelText: 'Branş'),
-                            items: [
-                              for (final sport in [
-                                ...sports.where((s) => preferredSports.contains(s.code)),
-                                ...sports.where((s) => !preferredSports.contains(s.code)),
-                              ])
+                    SwanSurface(
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                          Text(club.name, style: SwanType.h3(c.ink)),
+                          const SizedBox(height: SwanSpace.md),
+                          TextFormField(
+                              controller: _name,
+                              enabled: !_saving,
+                              decoration: const InputDecoration(
+                                  labelText: 'Şablon adı'),
+                              validator: (v) => v == null || v.trim().length < 3
+                                  ? 'En az 3 karakter yaz.'
+                                  : null),
+                          const SizedBox(height: SwanSpace.md),
+                          TextFormField(
+                              controller: _description,
+                              enabled: !_saving,
+                              maxLines: 3,
+                              decoration: const InputDecoration(
+                                  labelText: 'Açıklama (isteğe bağlı)')),
+                          const SizedBox(height: SwanSpace.md),
+                          ref.watch(sportsProvider).when(
+                                loading: () => const LinearProgressIndicator(),
+                                error: (e, _) => Text(
+                                    'Branşlar yüklenemedi: $e',
+                                    style: SwanType.bodySm(c.danger)),
+                                data: (sports) =>
+                                    DropdownButtonFormField<String>(
+                                  key: ValueKey(selectedSport),
+                                  initialValue: selectedSport,
+                                  isExpanded: true,
+                                  decoration:
+                                      const InputDecoration(labelText: 'Branş'),
+                                  items: [
+                                    for (final sport in [
+                                      ...sports.where((s) =>
+                                          preferredSports.contains(s.code)),
+                                      ...sports.where((s) =>
+                                          !preferredSports.contains(s.code)),
+                                    ])
+                                      DropdownMenuItem(
+                                          value: sport.code,
+                                          child: Text(sport.name))
+                                  ],
+                                  onChanged: _saving
+                                      ? null
+                                      : (v) => setState(() {
+                                            _sport = v;
+                                            if (v != null)
+                                              _archetype =
+                                                  branchTrainingProfileFor(v)
+                                                      .defaultArchetype;
+                                          }),
+                                  validator: (v) =>
+                                      v == null ? 'Bir branş seç.' : null,
+                                ),
+                              ),
+                          const SizedBox(height: SwanSpace.md),
+                          if (profile != null)
+                            DropdownButtonFormField<TrainingArchetype>(
+                                key: ValueKey((selectedSport, archetype)),
+                                initialValue: archetype,
+                                decoration: const InputDecoration(
+                                    labelText: 'Ölçüm arketipi'),
+                                items: [
+                                  for (final a in profile.supportedArchetypes)
+                                    DropdownMenuItem(
+                                        value: a, child: Text(a.label))
+                                ],
+                                onChanged: _saving
+                                    ? null
+                                    : (value) => setState(() {
+                                          _sport = selectedSport;
+                                          _archetype = value!;
+                                        })),
+                          DropdownButtonFormField<TrainingMode>(
+                              initialValue: _mode,
+                              decoration: const InputDecoration(
+                                  labelText: 'Antrenman türü'),
+                              items: [
+                                for (final mode in TrainingMode.values)
+                                  DropdownMenuItem(
+                                      value: mode, child: Text(mode.label))
+                              ],
+                              onChanged: _saving
+                                  ? null
+                                  : (v) => setState(() => _mode = v!)),
+                          const SizedBox(height: SwanSpace.md),
+                          DropdownButtonFormField<ScoreEntryMode>(
+                              initialValue: _entry,
+                              decoration: const InputDecoration(
+                                  labelText: 'Skor girişi'),
+                              items: const [
                                 DropdownMenuItem(
-                                    value: sport.code, child: Text(sport.name))
-                            ],
-                            onChanged: _saving
-                                ? null
-                                : (v) => setState(() {
-                                  _sport = v;
-                                  if (v != null) _archetype = branchTrainingProfileFor(v).defaultArchetype;
+                                    value: ScoreEntryMode.simple,
+                                    child: Text('Set toplamı')),
+                                DropdownMenuItem(
+                                    value: ScoreEntryMode.detailed,
+                                    child: Text('Her tekrar ayrı')),
+                                DropdownMenuItem(
+                                    value: ScoreEntryMode.flexible,
+                                    child: Text('Sporcu seçer')),
+                              ],
+                              onChanged: _saving
+                                  ? null
+                                  : (v) => setState(() => _entry = v!)),
+                          for (final field in const [
+                            ('set_count', 'Set sayısı', 1, 50),
+                            ('units_per_set', 'Set başına tekrar', 1, 100),
+                            ('prep_seconds', 'Hazırlık (saniye)', 0, 3600),
+                            ('shoot_seconds', 'Çalışma (saniye)', 5, 3600),
+                            ('collect_seconds', 'Toplama (saniye)', 0, 3600),
+                            ('rest_seconds', 'Dinlenme (saniye)', 0, 3600),
+                            (
+                              'max_unit_score',
+                              'Tekrar başına en yüksek puan',
+                              1,
+                              1000
+                            ),
+                          ].where((field) =>
+                              field.$1 != 'collect_seconds' ||
+                              archetype == TrainingArchetype.targetScore)) ...[
+                            const SizedBox(height: SwanSpace.md),
+                            TextFormField(
+                                controller: _numbers[field.$1],
+                                enabled: !_saving,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                    labelText: switch (field.$1) {
+                                  'set_count' =>
+                                    '${profile?.setLabel ?? 'Set'} sayısı',
+                                  'units_per_set' =>
+                                    '${profile?.setLabel ?? 'Set'} başına ${profile?.unitLabel ?? 'tekrar'}',
+                                  'shoot_seconds' =>
+                                    '${profile?.workPhaseLabel ?? 'Çalışma'} süresi (saniye)',
+                                  _ => field.$2,
                                 }),
-                            validator: (v) =>
-                                v == null ? 'Bir branş seç.' : null,
-                          ),
-                        ),
-                    const SizedBox(height: SwanSpace.md),
-                    if (profile != null) DropdownButtonFormField<TrainingArchetype>(
-                      key: ValueKey((selectedSport, archetype)), initialValue: archetype,
-                      decoration: const InputDecoration(labelText: 'Ölçüm arketipi'),
-                      items: [for (final a in profile.supportedArchetypes)
-                        DropdownMenuItem(value: a, child: Text(a.label))],
-                      onChanged: _saving ? null : (value) => setState(() {
-                        _sport = selectedSport; _archetype = value!;
-                      })),
-                    DropdownButtonFormField<TrainingMode>(
-                        initialValue: _mode,
-                        decoration:
-                            const InputDecoration(labelText: 'Antrenman türü'),
-                        items: [
-                          for (final mode in TrainingMode.values)
-                            DropdownMenuItem(
-                                value: mode, child: Text(mode.label))
-                        ],
-                        onChanged:
-                            _saving ? null : (v) => setState(() => _mode = v!)),
-                    const SizedBox(height: SwanSpace.md),
-                    DropdownButtonFormField<ScoreEntryMode>(
-                        initialValue: _entry,
-                        decoration:
-                            const InputDecoration(labelText: 'Skor girişi'),
-                        items: const [
-                          DropdownMenuItem(
-                              value: ScoreEntryMode.simple,
-                              child: Text('Set toplamı')),
-                          DropdownMenuItem(
-                              value: ScoreEntryMode.detailed,
-                              child: Text('Her tekrar ayrı')),
-                          DropdownMenuItem(
-                              value: ScoreEntryMode.flexible,
-                              child: Text('Sporcu seçer')),
-                        ],
-                        onChanged: _saving
-                            ? null
-                            : (v) => setState(() => _entry = v!)),
-                    for (final field in const [
-                      ('set_count', 'Set sayısı', 1, 50),
-                      ('units_per_set', 'Set başına tekrar', 1, 100),
-                      ('prep_seconds', 'Hazırlık (saniye)', 0, 3600),
-                      ('shoot_seconds', 'Çalışma (saniye)', 5, 3600),
-                      ('collect_seconds', 'Toplama (saniye)', 0, 3600),
-                      ('rest_seconds', 'Dinlenme (saniye)', 0, 3600),
-                      (
-                        'max_unit_score',
-                        'Tekrar başına en yüksek puan',
-                        1,
-                        1000
-                      ),
-                    ].where((field) => field.$1 != 'collect_seconds' || archetype == TrainingArchetype.targetScore)) ...[
-                      const SizedBox(height: SwanSpace.md),
-                      TextFormField(
-                          controller: _numbers[field.$1],
-                          enabled: !_saving,
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(labelText: switch (field.$1) {
-                            'set_count' => '${profile?.setLabel ?? 'Set'} sayısı',
-                            'units_per_set' => '${profile?.setLabel ?? 'Set'} başına ${profile?.unitLabel ?? 'tekrar'}',
-                            'shoot_seconds' => '${profile?.workPhaseLabel ?? 'Çalışma'} süresi (saniye)',
-                            _ => field.$2,
-                          }),
-                          validator: (v) {
-                            final n = int.tryParse(v?.trim() ?? '');
-                            return n == null || n < field.$3 || n > field.$4
-                                ? '${field.$3}–${field.$4} arasında tam sayı yaz.'
-                                : null;
-                          }),
-                    ],
-                    if (_error != null) ...[
-                      const SizedBox(height: SwanSpace.md),
-                      Text(_error!, style: SwanType.bodySm(c.danger)),
-                    ],
-                    const SizedBox(height: SwanSpace.lg),
-                    FilledButton(
-                        onPressed: _saving ? null : _save,
-                        child:
-                            Text(_saving ? 'Kaydediliyor…' : 'Şablonu kaydet')),
-                    ])),
+                                validator: (v) {
+                                  final n = int.tryParse(v?.trim() ?? '');
+                                  return n == null ||
+                                          n < field.$3 ||
+                                          n > field.$4
+                                      ? '${field.$3}–${field.$4} arasında tam sayı yaz.'
+                                      : null;
+                                }),
+                          ],
+                          if (_error != null) ...[
+                            const SizedBox(height: SwanSpace.md),
+                            Text(_error!, style: SwanType.bodySm(c.danger)),
+                          ],
+                          const SizedBox(height: SwanSpace.lg),
+                          FilledButton(
+                              onPressed: _saving ? null : _save,
+                              child: Text(_saving
+                                  ? 'Kaydediliyor…'
+                                  : 'Şablonu kaydet')),
+                        ])),
                   ],
                 )),
           ));
@@ -226,7 +263,9 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
   Future<void> _save() async {
     final sport = _sport ?? ref.read(effectiveSportContextProvider);
     if (_saving || !_form.currentState!.validate() || sport == null) return;
-    final archetype = _sport == null ? branchTrainingProfileFor(sport).defaultArchetype : _archetype;
+    final archetype = _sport == null
+        ? branchTrainingProfileFor(sport).defaultArchetype
+        : _archetype;
     final club = ref.read(activeClubProvider).valueOrNull;
     if (club == null || !ref.read(swanAccessProvider).isClubStaff) return;
     setState(() {
@@ -245,7 +284,9 @@ class _BuilderState extends ConsumerState<WorkoutProtocolBuilderScreen> {
               unitsPerSet: n('units_per_set'),
               prepSeconds: n('prep_seconds'),
               shootSeconds: n('shoot_seconds'),
-              collectSeconds: archetype == TrainingArchetype.targetScore ? n('collect_seconds') : 0,
+              collectSeconds: archetype == TrainingArchetype.targetScore
+                  ? n('collect_seconds')
+                  : 0,
               archetype: archetype,
               restSeconds: n('rest_seconds'),
               maxUnitScore: n('max_unit_score'),

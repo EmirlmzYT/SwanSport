@@ -13,6 +13,7 @@ import '../design/swan_type.dart';
 Future<void> showCreateSheet(BuildContext context) {
   return showModalBottomSheet<void>(
     context: context,
+    useRootNavigator: true,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
     builder: (_) => const _CreateSheet(),
@@ -35,22 +36,16 @@ class _CreateSheet extends ConsumerWidget {
         badge: 'Yeni',
         kind: _CreateKind.post,
       ),
-      const _CreateItem(
-        icon: Icons.timer_rounded,
-        title: 'Antrenman Günlüğü',
-        subtitle: 'Setler, ok skorları, süre ve kişisel notlar',
-        route: '/antrenman',
-      ),
-      if (access.isClubStaff)
+      if (access.canPublishClubPosts)
         const _CreateItem(
           icon: Icons.campaign_rounded,
           title: 'Kulüp Duyurusu',
           subtitle: 'Roster, müsabaka veya resmi bülten yayınlayın',
           badge: 'Yetkili',
           isStaffBadge: true,
-          route: '/duyurular',
+          route: '/announcements',
         ),
-      if (access.isClubStaff)
+      if (access.canPublishClubPosts)
         const _CreateItem(
           icon: Icons.event_rounded,
           title: 'Etkinlik & Antrenman',
@@ -137,63 +132,6 @@ class _CreateSheet extends ConsumerWidget {
 
                 // Action Items
                 for (final item in items) _buildActionItem(context, c, item),
-
-                // Drafts Preview Tile
-                const SizedBox(height: SwanSpace.sm),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: SwanSpace.md, vertical: SwanSpace.sm),
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        ),
-                        child: Icon(Icons.drafts_rounded,
-                            size: 18, color: c.inkMuted),
-                      ),
-                      const SizedBox(width: SwanSpace.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Kayıtlı Taslaklar (2)',
-                                style:
-                                    SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                            Text('Son düzenleme: 2 saat önce',
-                                style: SwanType.caption(c.inkMuted)),
-                          ],
-                        ),
-                      ),
-                      InkWell(
-                        onTap: () {
-                          Navigator.pop(context);
-                          unawaited(showPostComposer(context));
-                        },
-                        borderRadius: BorderRadius.circular(999),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: c.surface,
-                            borderRadius: BorderRadius.circular(999),
-                            border: Border.all(color: c.line),
-                          ),
-                          child: Text('Görüntüle',
-                              style: SwanType.caption(c.accent,
-                                  w: FontWeight.w700)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
 
                 // Cancel Button
                 const SizedBox(height: SwanSpace.md),

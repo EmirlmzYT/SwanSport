@@ -7,11 +7,13 @@ environment:
 workspace:
   - apps/swansport_app
   - apps/swansport_console
+  - apps/swansport_pro
   - packages/swansport_core
   - packages/swansport_data
   - packages/swansport_design_system
   - packages/swansport_models
   - packages/swansport_branch_engine
+  - packages/swansport_pro_features
 
 dev_dependencies:
   lints: ^5.0.0

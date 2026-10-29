@@ -7,6 +7,7 @@
 /// Bu paket **arayüze bağlanmaz**. `IconData`, `Color`, widget ve tema burada
 /// yer almaz; onlar tüketen uygulamanın sunum katmanına aittir.
 library;
+
 export 'src/sport_context_service.dart';
 export 'src/club_staff_operations.dart';
 export 'src/federation_console.dart';
@@ -48,6 +49,7 @@ export 'src/news_service.dart';
 export 'src/notification_service.dart';
 export 'src/nutrition_service.dart';
 export 'src/offline_attendance.dart';
+export 'src/operation_error.dart';
 export 'src/parent_actions.dart';
 export 'src/platform_mission_control.dart';
 export 'src/performance_service.dart';
@@ -60,6 +62,7 @@ export 'src/sports_roles_models.dart';
 export 'src/sports_roles_service.dart';
 export 'src/referee_cockpit.dart';
 export 'src/supabase_athletes.dart';
+export 'src/swan_experience.dart';
 export 'src/supabase_scope.dart';
 export 'src/training_session_service.dart';
 export 'src/training_cockpit.dart';
@@ -76,3 +79,4 @@ export 'src/league_standings_service.dart';
 export 'src/match_following_models.dart';
 export 'src/match_following_service.dart';
 export 'src/local_test_accounts.dart';
+export 'src/push_target.dart';

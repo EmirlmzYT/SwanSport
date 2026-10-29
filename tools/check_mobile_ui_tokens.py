@@ -49,10 +49,10 @@ def main():
             failures.append(f'{name}: direct backend query in widget')
     notice = sources.get('notifications_screen', '')
     for required in ('ref.watch(unreadNotificationsProvider)', 'unreadCount > 0',
-                     "'$unreadCount Yeni'", 'c.accentFill', 'c.onAccent'):
+                     "'$unreadCount yeni'", 'c.accentFill', 'c.onAccent'):
         if required not in notice:
             failures.append(f'notifications: missing {required}')
-    if "'3 Yeni'" in notice or notice.count('Icons.done_all_rounded') != 1:
+    if "'3 yeni'" in notice.lower() or notice.count('Icons.done_all_rounded') != 1:
         failures.append('notifications: mock count or duplicate read action')
     profile = sources.get('profile_screen', '')
     if 'Icons.expand_more_rounded' in profile or '_highlightItem' in profile:

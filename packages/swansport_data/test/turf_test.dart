@@ -96,15 +96,15 @@ void main() {
       expect(free.note, isNull);
     });
 
-    test('occupied alanı eksikse boş sayılır — yanlışlıkla dolu gösterip '
+    test(
+        'occupied alanı eksikse boş sayılır — yanlışlıkla dolu gösterip '
         'gerçek müşteriyi kaçırmamalı', () {
       final s = TurfSlot.fromMap({'starts_at': '2026-08-30T18:00:00Z'});
       expect(s.occupied, isFalse);
     });
 
     test('saat etiketi iki haneli', () {
-      final s = TurfSlot(
-          startsAt: DateTime(2026, 8, 30, 9), occupied: false);
+      final s = TurfSlot(startsAt: DateTime(2026, 8, 30, 9), occupied: false);
       expect(s.hourLabel, '09:00');
     });
   });
@@ -120,6 +120,7 @@ void main() {
 
     test('yönetilen sahada true döner', () {
       expect(withManaged({'f1', 'f2'}).isTurfManagerOf('f1'), isTrue);
+      expect(withManaged({'f1'}).canOpenTurfCenter, isTrue);
     });
 
     test('yönetilmeyen sahada false döner', () {
@@ -128,6 +129,18 @@ void main() {
 
     test('varsayılan hesap hiçbir sahayı yönetmez', () {
       expect(SwanAccess.none.isTurfManagerOf('f1'), isFalse);
+      expect(SwanAccess.none.canOpenTurfCenter, isFalse);
+    });
+
+    test('delege edilen saha da merkezi açar', () {
+      const delegated = SwanAccess(
+        isPlatformAdmin: false,
+        clubRole: null,
+        coachLevel: 0,
+        athleteKind: null,
+        delegatedTurfFieldIds: {'f2'},
+      );
+      expect(delegated.canOpenTurfCenter, isTrue);
     });
   });
 
@@ -149,7 +162,8 @@ void main() {
       expect(s.requestedByMe, isFalse);
     });
 
-    test('dolu bir hücre aynı zamanda istenmiş de olabilir — biri istedi, '
+    test(
+        'dolu bir hücre aynı zamanda istenmiş de olabilir — biri istedi, '
         'yönetici telefonla anlaşıp işaretledi', () {
       final s = TurfSlot.fromMap({
         'starts_at': '2026-08-30T18:00:00Z',

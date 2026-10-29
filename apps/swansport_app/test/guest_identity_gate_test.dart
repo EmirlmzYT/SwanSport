@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:swansport_app/app/app_navigator.dart';
 import 'package:swansport_app/app/swansport_app.dart';
 import 'package:swansport_app/app/widgets/action_gate.dart';
 import 'package:swansport_app/features/auth/presentation/screens/auth_gate.dart';
@@ -195,21 +196,36 @@ void main() {
       onboardingSeenProvider.overrideWith((ref) async => true),
     ], child: const SwanSportApp()));
     await tester.pumpAndSettle();
-    final nav = tester.state<NavigatorState>(find.byType(Navigator));
+    final router = swanGoRouter;
+    final nav = router == null
+        ? tester.state<NavigatorState>(find.byType(Navigator))
+        : null;
     for (final route in [
       '/ilan-ver',
       '/sohbet',
       '/dogrulama',
       '/resmi-sonuc?notification=private'
     ]) {
-      unawaited(nav.pushNamed(route));
+      if (router != null) {
+        router.go(route);
+      } else {
+        unawaited(nav!.pushNamed(route));
+      }
       await tester.pumpAndSettle();
       expect(find.text('Bu özelliği kullanabilmek için hesap açmalısınız'),
           findsOneWidget);
-      nav.pop();
+      if (router != null) {
+        router.go('/');
+      } else {
+        nav!.pop();
+      }
       await tester.pumpAndSettle();
     }
-    unawaited(nav.pushNamed('/federasyon-takvimi'));
+    if (router != null) {
+      router.go('/federasyon-takvimi');
+    } else {
+      unawaited(nav!.pushNamed('/federasyon-takvimi'));
+    }
     await tester.pumpAndSettle();
     expect(find.text('Henüz etkinlik yok'), findsOneWidget);
   });

@@ -60,6 +60,51 @@ class FederationBulletinService {
         ),
     ]);
   }
+
+  Future<String> publishDisciplinaryBulletin({
+    required String decisionId,
+    required String publicSummary,
+  }) async {
+    final trimmed = publicSummary.trim();
+    if (decisionId.trim().isEmpty || trimmed.isEmpty || trimmed.length > 500) {
+      throw const FormatException(
+        'Kamusal bülten özeti 1–500 karakter olmalı',
+      );
+    }
+    final result = await client.rpc<dynamic>(
+      'publish_disciplinary_bulletin',
+      params: {
+        'p_decision_id': decisionId.trim(),
+        'p_public_summary': trimmed,
+      },
+    );
+    return result.toString();
+  }
+
+  Future<String> publishMatchNotice({
+    required String matchId,
+    required String noticeType,
+    required String publicSummary,
+  }) async {
+    final trimmed = publicSummary.trim();
+    if (matchId.trim().isEmpty ||
+        (noticeType != 'match_cancelled' && noticeType != 'match_postponed') ||
+        trimmed.isEmpty ||
+        trimmed.length > 500) {
+      throw const FormatException(
+        'Geçerli duyuru türü ve 1–500 karakterlik kamusal özet gerekli',
+      );
+    }
+    final result = await client.rpc<dynamic>(
+      'publish_federation_match_notice',
+      params: {
+        'p_match_id': matchId.trim(),
+        'p_notice_type': noticeType,
+        'p_public_summary': trimmed,
+      },
+    );
+    return result.toString();
+  }
 }
 
 final federationBulletinServiceProvider = Provider<FederationBulletinService>(

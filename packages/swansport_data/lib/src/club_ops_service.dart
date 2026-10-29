@@ -100,11 +100,10 @@ class DocumentRow {
         name: (m['name'] as String?) ?? '',
         kind: (m['kind'] as String?) ?? 'file',
         sizeLabel: m['size_label'] as String?,
-        createdAt:
-            DateTime.tryParse('${m['created_at']}')?.toLocal() ?? DateTime.now(),
+        createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
+            DateTime.now(),
       );
 }
-
 
 /// Tesisin haftalık yükü — elle girilen doluluk yerine takvimden hesaplanır.
 class FacilityLoad {
@@ -189,34 +188,56 @@ class FacilitySlot {
 }
 
 class FacilityReservation {
-  const FacilityReservation({required this.id, required this.clubId,
-    required this.facilityId, required this.title, required this.kind,
-    required this.startsAt, required this.endsAt, this.reservedByName,
-    this.reservedByPhone, this.reservedByProfileId, required this.status,
-    required this.fee, this.invoiceId, this.notes, this.createdAt});
+  const FacilityReservation({
+    required this.id,
+    required this.clubId,
+    required this.facilityId,
+    required this.title,
+    required this.kind,
+    required this.startsAt,
+    required this.endsAt,
+    this.reservedByName,
+    this.reservedByPhone,
+    this.reservedByProfileId,
+    required this.status,
+    required this.fee,
+    this.invoiceId,
+    this.notes,
+    this.createdAt,
+  });
 
   final String id, clubId, facilityId, title, kind, status;
   final DateTime startsAt, endsAt;
-  final String? reservedByName, reservedByPhone, reservedByProfileId, invoiceId, notes;
+  final String? reservedByName,
+      reservedByPhone,
+      reservedByProfileId,
+      invoiceId,
+      notes;
   final double fee;
   final DateTime? createdAt;
 
-  factory FacilityReservation.fromMap(Map<String, dynamic> m) => FacilityReservation(
-    id: m['id'] as String,
-    clubId: (m['club_id'] as String?) ?? '',
-    facilityId: (m['facility_id'] as String?) ?? '',
-    title: (m['title'] as String?) ?? '',
-    kind: (m['kind'] as String?) ?? 'rental',
-    startsAt: DateTime.tryParse('${m['starts_at']}')?.toLocal() ?? DateTime.now(),
-    endsAt: DateTime.tryParse('${m['ends_at']}')?.toLocal() ?? DateTime.now(),
-    reservedByName: m['reserved_by_name'] as String?,
-    reservedByPhone: m['reserved_by_phone'] as String?,
-    reservedByProfileId: m['reserved_by_profile_id'] as String?,
-    status: (m['status'] as String?) ?? 'confirmed',
-    fee: (m['fee'] as num?)?.toDouble() ?? 0.0,
-    invoiceId: m['invoice_id'] as String?, notes: m['notes'] as String?,
-    createdAt: m['created_at'] == null ? null : DateTime.tryParse('${m['created_at']}')?.toLocal(),
-  );
+  factory FacilityReservation.fromMap(Map<String, dynamic> m) =>
+      FacilityReservation(
+        id: m['id'] as String,
+        clubId: (m['club_id'] as String?) ?? '',
+        facilityId: (m['facility_id'] as String?) ?? '',
+        title: (m['title'] as String?) ?? '',
+        kind: (m['kind'] as String?) ?? 'rental',
+        startsAt:
+            DateTime.tryParse('${m['starts_at']}')?.toLocal() ?? DateTime.now(),
+        endsAt:
+            DateTime.tryParse('${m['ends_at']}')?.toLocal() ?? DateTime.now(),
+        reservedByName: m['reserved_by_name'] as String?,
+        reservedByPhone: m['reserved_by_phone'] as String?,
+        reservedByProfileId: m['reserved_by_profile_id'] as String?,
+        status: (m['status'] as String?) ?? 'confirmed',
+        fee: (m['fee'] as num?)?.toDouble() ?? 0.0,
+        invoiceId: m['invoice_id'] as String?,
+        notes: m['notes'] as String?,
+        createdAt: m['created_at'] == null
+            ? null
+            : DateTime.tryParse('${m['created_at']}')?.toLocal(),
+      );
 }
 
 /// Yoklama özeti satırı.
@@ -337,13 +358,12 @@ class ClubOpsService {
     await _c.from('documents').delete().eq('id', id);
   }
 
-
   // --------------------------- tesis ↔ takvim ------------------------------
 
   /// Haftalık tesis yükü (takvimden hesaplanır).
   Future<List<FacilityLoad>> facilityLoad(String clubId) async {
-    final rows =
-        await _c.rpc<List<dynamic>>('facility_load', params: {'p_club': clubId});
+    final rows = await _c
+        .rpc<List<dynamic>>('facility_load', params: {'p_club': clubId});
     return rows
         .map((r) => FacilityLoad.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
@@ -358,7 +378,6 @@ class ClubOpsService {
         .map((r) => FacilitySlot.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
   }
-
 
   /// Haftalık tekrarlayan etkinlik serisi oluşturur; kaç kayıt ürediğini döner.
   ///
@@ -413,17 +432,29 @@ class ClubOpsService {
 
   /// Tesis rezervasyonu oluşturur; çakışma kararı sunucuda tekrar doğrulanır.
   Future<String> createFacilityReservation({
-    required String clubId, required String facilityId, required String title,
-    String kind = 'rental', required DateTime startsAt, required DateTime endsAt,
-    String? reservedByName, String? reservedByPhone, double fee = 0,
-    String? notes, bool allowConflict = false,
+    required String clubId,
+    required String facilityId,
+    required String title,
+    String kind = 'rental',
+    required DateTime startsAt,
+    required DateTime endsAt,
+    String? reservedByName,
+    String? reservedByPhone,
+    double fee = 0,
+    String? notes,
+    bool allowConflict = false,
   }) async {
     final res = await _c.rpc<dynamic>('create_facility_reservation', params: {
-      'p_club': clubId, 'p_facility': facilityId, 'p_title': title.trim(),
-      'p_kind': kind, 'p_starts': startsAt.toUtc().toIso8601String(),
+      'p_club': clubId,
+      'p_facility': facilityId,
+      'p_title': title.trim(),
+      'p_kind': kind,
+      'p_starts': startsAt.toUtc().toIso8601String(),
       'p_ends': endsAt.toUtc().toIso8601String(),
-      'p_by_name': reservedByName?.trim(), 'p_by_phone': reservedByPhone?.trim(),
-      'p_fee': fee, 'p_allow_conflict': allowConflict,
+      'p_by_name': reservedByName?.trim(),
+      'p_by_phone': reservedByPhone?.trim(),
+      'p_fee': fee,
+      'p_allow_conflict': allowConflict,
       if (notes != null && notes.trim().isNotEmpty) 'p_notes': notes.trim(),
     });
     return res.toString();
@@ -435,9 +466,35 @@ class ClubOpsService {
     });
   }
 
-  Future<List<FacilityReservation>> facilityReservations(String facilityId) async {
-    final rows = await _c.from('facility_reservations').select('*')
-        .eq('facility_id', facilityId).order('starts_at', ascending: true);
+  Future<List<FacilityReservation>> facilityReservations(
+      String facilityId) async {
+    final rows = await _c
+        .from('facility_reservations')
+        .select('*')
+        .eq('facility_id', facilityId)
+        .order('starts_at', ascending: true);
+    return rows.map((r) => FacilityReservation.fromMap(r)).toList();
+  }
+
+  /// Dar kapsamlı tesis rezervasyon sütunları.
+  /// Kişisel ve hassas verileri (reserved_by_phone, reserved_by_name, fee, notes,
+  /// reserved_by_profile_id, created_by) dışarıda tutar.
+  static const facilityPublicReservationColumns =
+      'id, facility_id, club_id, title, kind, starts_at, ends_at, status';
+
+  /// Dar kapsamlı, PII içermeyen tesis rezervasyonları sorgusu.
+  /// Yalnızca id, facility_id, club_id, title, kind, starts_at, ends_at, status çeker.
+  Future<List<FacilityReservation>> narrowFacilityReservations(
+    String facilityId, {
+    int limit = 50,
+  }) async {
+    final rows = await _c
+        .from('facility_reservations')
+        .select(facilityPublicReservationColumns)
+        .eq('facility_id', facilityId)
+        .inFilter('status', const ['pending', 'confirmed'])
+        .order('starts_at', ascending: true)
+        .limit(limit);
     return rows.map((r) => FacilityReservation.fromMap(r)).toList();
   }
 
@@ -529,7 +586,6 @@ final clubDocumentsProvider =
   return ref.watch(clubOpsServiceProvider).documents(club.id);
 });
 
-
 final facilityLoadProvider =
     FutureProvider.autoDispose<List<FacilityLoad>>((ref) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
@@ -558,4 +614,12 @@ final facilityReservationsProvider = FutureProvider.autoDispose
     .family<List<FacilityReservation>, String>((ref, facilityId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(clubOpsServiceProvider).facilityReservations(facilityId);
+});
+
+final narrowFacilityReservationsProvider = FutureProvider.autoDispose
+    .family<List<FacilityReservation>, String>((ref, facilityId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref
+      .watch(clubOpsServiceProvider)
+      .narrowFacilityReservations(facilityId);
 });

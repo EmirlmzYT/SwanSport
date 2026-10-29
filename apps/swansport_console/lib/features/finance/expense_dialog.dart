@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../app/theme/console_theme.dart';
+import '../../app/widgets/console_form.dart';
 import 'ledger_providers.dart';
 
 /// Gider ekleme / düzenleme penceresi.
@@ -17,6 +18,7 @@ Future<void> showExpenseDialog(
 }) async {
   await showDialog<void>(
     context: context,
+    barrierDismissible: false,
     builder: (_) => _ExpenseDialog(existing: existing),
   );
 }
@@ -44,6 +46,7 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
   late String? _categoryId = widget.existing?.categoryId;
   late String? _accountId = widget.existing?.accountId;
 
+  final _formKey = GlobalKey<FormState>();
   bool _busy = false;
   String? _error;
 
@@ -68,7 +71,7 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
       s = s.replaceAll('.', '').replaceAll(',', '.');
     }
     final v = num.tryParse(s);
-    return (v == null || v <= 0) ? null : v;
+    return (v == null || !v.isFinite || v <= 0) ? null : v;
   }
 
   @override
@@ -79,160 +82,199 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
     final suggestions =
         ref.watch(supplierSuggestionsProvider).valueOrNull ?? const <String>[];
 
-    return AlertDialog(
-      title: Text(_isEdit ? 'Gideri düzenle' : 'Gider ekle'),
-      content: SizedBox(
-        width: 460,
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Fiş görseli — mobilden yüklenmişse burada açılıyor. Fişi
-              // çekmenin amacı sonradan bakılabilmesiydi; görünmezse o adım
-              // boşa gidiyordu.
-              if (_isEdit && widget.existing!.receiptPath != null) ...[
-                _ReceiptPreview(path: widget.existing!.receiptPath!),
-                const SizedBox(height: ConsoleDensity.lg),
-              ],
-              if (_isEdit && widget.existing!.isDraft)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: ConsoleDensity.md),
-                  child: Text(
-                    'Bu kayıt mobilden fişle girilmiş bir taslak. Kaydedince '
-                    'tamamlanmış sayılır ve raporlara girer.',
-                    style: t.textTheme.bodySmall,
-                  ),
-                ),
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _amount,
-                      autofocus: true,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9.,]')),
+    return PopScope(
+        canPop: !_busy,
+        child: AlertDialog(
+          title: Text(_isEdit ? 'Gideri düzenle' : 'Gider ekle'),
+          content: SizedBox(
+            width: 460,
+            child: SingleChildScrollView(
+              child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Fiş görseli — mobilden yüklenmişse burada açılıyor. Fişi
+                      // çekmenin amacı sonradan bakılabilmesiydi; görünmezse o adım
+                      // boşa gidiyordu.
+                      if (_isEdit && widget.existing!.receiptPath != null) ...[
+                        _ReceiptPreview(path: widget.existing!.receiptPath!),
+                        const SizedBox(height: ConsoleDensity.lg),
                       ],
-                      decoration: const InputDecoration(
-                        labelText: 'Tutar',
-                        suffixText: '₺',
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: ConsoleDensity.md),
-                  Expanded(
-                    child: InkWell(
-                      onTap: _pickDate,
-                      borderRadius:
-                          BorderRadius.circular(ConsoleDensity.radius),
-                      child: InputDecorator(
-                        decoration: const InputDecoration(labelText: 'Tarih'),
-                        child: Text(fmtDate(_date)),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: ConsoleDensity.md),
-              categories.when(
-                loading: () => const LinearProgressIndicator(minHeight: 2),
-                error: (e, _) => Text('Kategoriler alınamadı: $e',
-                    style: t.textTheme.bodySmall),
-                data: (list) => DropdownButtonFormField<String?>(
-                  initialValue: _categoryId,
-                  decoration: const InputDecoration(labelText: 'Kategori'),
-                  items: [
-                    const DropdownMenuItem(value: null, child: Text('Seçilmedi')),
-                    for (final c in list)
-                      DropdownMenuItem(value: c.id, child: Text(c.name)),
-                  ],
-                  onChanged: (v) => setState(() => _categoryId = v),
-                ),
-              ),
-              const SizedBox(height: ConsoleDensity.md),
-              accounts.when(
-                loading: () => const LinearProgressIndicator(minHeight: 2),
-                error: (e, _) => Text('Hesaplar alınamadı: $e',
-                    style: t.textTheme.bodySmall),
-                data: (list) => list.isEmpty
-                    ? Text(
-                        'Kasa/banka hesabı tanımlı değil. Hesap eklemeden de '
-                        'gider girebilirsin ama bakiye takibi yapılamaz.',
-                        style: t.textTheme.bodySmall)
-                    : DropdownButtonFormField<String?>(
-                        initialValue: _accountId,
-                        decoration:
-                            const InputDecoration(labelText: 'Hangi hesaptan'),
-                        items: [
-                          const DropdownMenuItem(
-                              value: null, child: Text('Belirtilmedi')),
-                          for (final a in list)
-                            DropdownMenuItem(
-                                value: a.id,
-                                child: Text('${a.name} · ${a.kindLabel}')),
+                      if (_isEdit && widget.existing!.isDraft)
+                        Padding(
+                          padding:
+                              const EdgeInsets.only(bottom: ConsoleDensity.md),
+                          child: Text(
+                            'Bu kayıt mobilden fişle girilmiş bir taslak. Kaydedince '
+                            'tamamlanmış sayılır ve raporlara girer.',
+                            style: t.textTheme.bodySmall,
+                          ),
+                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              key: const Key('expense_amount'),
+                              enabled: !_busy,
+                              validator: (v) => _parseAmount(v ?? '') == null
+                                  ? 'Sıfırdan büyük bir tutar gir.'
+                                  : null,
+                              controller: _amount,
+                              autofocus: true,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                      decimal: true),
+                              inputFormatters: [
+                                FilteringTextInputFormatter.allow(
+                                    RegExp(r'[0-9.,]')),
+                              ],
+                              decoration: const InputDecoration(
+                                labelText: 'Tutar',
+                                suffixText: '₺',
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: ConsoleDensity.md),
+                          Expanded(
+                            child: InkWell(
+                              onTap: _busy ? null : _pickDate,
+                              borderRadius:
+                                  BorderRadius.circular(ConsoleDensity.radius),
+                              child: InputDecorator(
+                                decoration:
+                                    const InputDecoration(labelText: 'Tarih'),
+                                child: Text(fmtDate(_date)),
+                              ),
+                            ),
+                          ),
                         ],
-                        onChanged: (v) => setState(() => _accountId = v),
                       ),
-              ),
-              const SizedBox(height: ConsoleDensity.md),
-              // Tedarikçi ayrı tablo değil; öneri listesi yazım farklarını
-              // ("Migros" / "migros") azaltmak için.
-              Autocomplete<String>(
-                initialValue: TextEditingValue(text: _supplier.text),
-                optionsBuilder: (v) {
-                  final q = v.text.trim().toLowerCase();
-                  if (q.isEmpty) return const Iterable<String>.empty();
-                  return suggestions
-                      .where((s) => s.toLowerCase().contains(q))
-                      .take(6);
-                },
-                onSelected: (s) => _supplier.text = s,
-                fieldViewBuilder: (context, controller, focus, onSubmit) {
-                  controller.addListener(() => _supplier.text = controller.text);
-                  return TextField(
-                    controller: controller,
-                    focusNode: focus,
-                    decoration:
-                        const InputDecoration(labelText: 'Kime ödendi'),
-                  );
-                },
-              ),
-              const SizedBox(height: ConsoleDensity.md),
-              TextField(
-                controller: _note,
-                maxLines: 2,
-                decoration: const InputDecoration(labelText: 'Açıklama'),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: ConsoleDensity.md),
-                Text(_error!,
-                    style: t.textTheme.bodySmall
-                        ?.copyWith(color: t.colorScheme.error)),
-              ],
-            ],
+                      const SizedBox(height: ConsoleDensity.md),
+                      categories.when(
+                        loading: () =>
+                            const LinearProgressIndicator(minHeight: 2),
+                        error: (e, _) => Text('Kategoriler alınamadı: $e',
+                            style: t.textTheme.bodySmall),
+                        data: (list) => DropdownButtonFormField<String?>(
+                          initialValue: _categoryId,
+                          decoration:
+                              const InputDecoration(labelText: 'Kategori'),
+                          items: [
+                            const DropdownMenuItem(
+                                value: null, child: Text('Seçilmedi')),
+                            for (final c in list)
+                              DropdownMenuItem(
+                                  value: c.id, child: Text(c.name)),
+                          ],
+                          onChanged: _busy
+                              ? null
+                              : (v) => setState(() => _categoryId = v),
+                        ),
+                      ),
+                      const SizedBox(height: ConsoleDensity.md),
+                      ConsoleOptionalFields(
+                          initiallyExpanded: _isEdit &&
+                              (widget.existing!.supplier?.isNotEmpty == true ||
+                                  widget.existing!.note?.isNotEmpty == true ||
+                                  _accountId != null),
+                          children: [
+                            accounts.when(
+                              loading: () =>
+                                  const LinearProgressIndicator(minHeight: 2),
+                              error: (e, _) => Text('Hesaplar alınamadı: $e',
+                                  style: t.textTheme.bodySmall),
+                              data: (list) => list.isEmpty
+                                  ? Text(
+                                      'Kasa/banka hesabı tanımlı değil. Hesap eklemeden de '
+                                      'gider girebilirsin ama bakiye takibi yapılamaz.',
+                                      style: t.textTheme.bodySmall)
+                                  : DropdownButtonFormField<String?>(
+                                      initialValue: _accountId,
+                                      decoration: const InputDecoration(
+                                          labelText: 'Hangi hesaptan'),
+                                      items: [
+                                        const DropdownMenuItem(
+                                            value: null,
+                                            child: Text('Belirtilmedi')),
+                                        for (final a in list)
+                                          DropdownMenuItem(
+                                              value: a.id,
+                                              child: Text(
+                                                  '${a.name} · ${a.kindLabel}')),
+                                      ],
+                                      onChanged: _busy
+                                          ? null
+                                          : (v) =>
+                                              setState(() => _accountId = v),
+                                    ),
+                            ),
+                            const SizedBox(height: ConsoleDensity.md),
+                            // Tedarikçi ayrı tablo değil; öneri listesi yazım farklarını
+                            // ("Migros" / "migros") azaltmak için.
+                            Autocomplete<String>(
+                              initialValue:
+                                  TextEditingValue(text: _supplier.text),
+                              optionsBuilder: (v) {
+                                final q = v.text.trim().toLowerCase();
+                                if (q.isEmpty)
+                                  return const Iterable<String>.empty();
+                                return suggestions
+                                    .where((s) => s.toLowerCase().contains(q))
+                                    .take(6);
+                              },
+                              onSelected: (s) => _supplier.text = s,
+                              fieldViewBuilder:
+                                  (context, controller, focus, onSubmit) {
+                                return TextField(
+                                  controller: controller,
+                                  focusNode: focus,
+                                  enabled: !_busy,
+                                  onChanged: (value) => _supplier.text = value,
+                                  decoration: const InputDecoration(
+                                      labelText: 'Kime ödendi'),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: ConsoleDensity.md),
+                            TextFormField(
+                              key: const Key('expense_note'),
+                              enabled: !_busy,
+                              controller: _note,
+                              maxLines: 2,
+                              decoration:
+                                  const InputDecoration(labelText: 'Açıklama'),
+                            ),
+                          ]),
+                      if (_error != null) ...[
+                        const SizedBox(height: ConsoleDensity.md),
+                        Text(_error!,
+                            style: t.textTheme.bodySmall
+                                ?.copyWith(color: t.colorScheme.error)),
+                      ],
+                    ],
+                  )),
+            ),
           ),
-        ),
-      ),
-      actions: [
-        if (_isEdit)
-          TextButton(
-            onPressed: _busy ? null : _delete,
-            style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error),
-            child: const Text('Sil'),
-          ),
-        TextButton(
-          onPressed: _busy ? null : () => Navigator.of(context).pop(),
-          child: const Text('Vazgeç'),
-        ),
-        FilledButton(
-          onPressed: _busy ? null : _save,
-          child: Text(_busy ? 'Kaydediliyor…' : 'Kaydet'),
-        ),
-      ],
-    );
+          actions: [
+            if (_isEdit)
+              TextButton(
+                onPressed: _busy ? null : _delete,
+                style: TextButton.styleFrom(
+                    foregroundColor: Theme.of(context).colorScheme.error),
+                child: const Text('Sil'),
+              ),
+            TextButton(
+              onPressed: _busy ? null : () => Navigator.of(context).pop(),
+              child: const Text('Vazgeç'),
+            ),
+            FilledButton(
+              onPressed: _busy ? null : _save,
+              child: Text(_busy ? 'Kaydediliyor…' : 'Kaydet'),
+            ),
+          ],
+        ));
   }
 
   Future<void> _pickDate() async {
@@ -246,6 +288,8 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
   }
 
   Future<void> _save() async {
+    if (_busy || !_formKey.currentState!.validate()) return;
+    FocusManager.instance.primaryFocus?.unfocus();
     final amount = _parseAmount(_amount.text);
     if (amount == null) {
       setState(() => _error = 'Geçerli bir tutar gir (örn. 1.250,00)');
@@ -258,6 +302,7 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
     });
 
     final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
     try {
       final club = await ref.read(activeClubProvider.future);
       if (club == null) throw StateError('Aktif kulüp yok');
@@ -287,8 +332,11 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
         );
       }
 
+      if (!mounted) return;
       _refresh();
       navigator.pop();
+      messenger
+          .showSnackBar(const SnackBar(content: Text('Gider kaydedildi.')));
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -318,6 +366,7 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
 
   void _refresh() {
     ref
+      ..invalidate(ledgerTotalsProvider)
       ..invalidate(ledgerProvider)
       ..invalidate(draftExpensesProvider)
       ..invalidate(categoryBreakdownProvider)
@@ -325,7 +374,6 @@ class _ExpenseDialogState extends ConsumerState<_ExpenseDialog> {
       ..invalidate(supplierSuggestionsProvider);
   }
 }
-
 
 /// Gidere bağlı fiş/fatura görseli.
 class _ReceiptPreview extends ConsumerWidget {
@@ -340,7 +388,8 @@ class _ReceiptPreview extends ConsumerWidget {
 
     return url.when(
       loading: () => const SizedBox(
-          height: 120, child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
+          height: 120,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2))),
       error: (e, _) => Container(
         padding: const EdgeInsets.all(ConsoleDensity.md),
         decoration: BoxDecoration(
@@ -364,8 +413,8 @@ class _ReceiptPreview extends ConsumerWidget {
                 fit: BoxFit.contain,
                 errorBuilder: (_, __, ___) => Padding(
                   padding: const EdgeInsets.all(ConsoleDensity.lg),
-                  child: Text('Görsel yüklenemedi.',
-                      style: t.textTheme.bodySmall),
+                  child:
+                      Text('Görsel yüklenemedi.', style: t.textTheme.bodySmall),
                 ),
               ),
             ),

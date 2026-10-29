@@ -1,8 +1,134 @@
 # SwanSport AI Team Board
 
-Son güncelleme: 2026-10-18 Europe/Istanbul
-Aktif Writer: Yok
-Durum: `complete`
+2026-10-27 Pro Faz 2 kaynak kabulü: Ortak operasyon paketi takım, kadro,
+yoklama, antrenman ve kulüp paneli dilimlerini iki hosta bağladı. SwanSport'ta
+sadeleşen mobil takım/antrenman/yoklama akışları tam sürümlerine geri alındı;
+Ana Sayfa değişmedi. Yerel paket testleri Pro features 43/43, Pro 53/53, data
+513/513, branch engine 197/197 ve SwanSport 625/625 geçti; Python 36/36,
+Pro sözleşmeleri 14/14 ve web build başarılı. Pro `0.1.1+3` oldu. GitHub
+Actions `40437677031` beş işi geçti; APK/IPA/web hashleri, production ref'i,
+paket kimlikleri ve iOS Firebase plist yokluğu doğrulandı. İndirilebilir
+`swansport-pro-v0.1.1+3` prerelease hazır; düzeltme sonrası Node SQL/migration
+paketi 324/324 geçti. Production 0135 ile hesap silme, SSS ve mali dönem
+güvenilirlik migration'ları uygulandı ve canlı doğrulandı. Yönetici, yalnız
+belgeli antrenör ve yetkisiz hesap salt-okunur production RLS kabulü geçti.
+Cloudflare ön şartlı push ledger ile fiziksel rol/cihaz UAT açık; bu nedenle Faz
+2 henüz operasyonel `complete` değil. Rapor:
+`docs/swansport-pro-phase-2-verification.md`.
+
+Son güncelleme: 2026-10-26 Europe/Istanbul
+Aktif Writer: yok
+Durum: `free` — Pro 0.1.0+2 production-Auth APK/unsigned IPA kabulü ve
+GitHub ön sürümü tamamlandı. SwanSport değişmedi.
+
+2026-10-26 Pro production-Auth düzeltmesi: İlk 0.1.0+1 paketinin staging
+Auth'a bağlı ve staging'in 0 kullanıcılı olması gerçek şifrenin reddedilme
+nedeniydi; production'da 54 hesap vardı. Kullanıcı/şifre kopyalanmadı.
+`production_target.py` yalnız bilinen production ref'ini kabul eden fail-closed
+kapı olarak eklendi; Pro `0.1.0+2` oldu. İlk CI `40256037501`, testin workflow
+env'ini boş senaryoya taşıması nedeniyle güvenle durdu; izolasyon düzeltmesinden
+sonra `40256268977` üç işi de geçti. APK/IPA içinde yalnız production URL'si,
+IPA'da `com.swansport.pro`/`0.1.0+2` ve Firebase plist yokluğu doğrulandı.
+Paketler `swansport-pro-v0.1.0+2-r2` prerelease'indedir. Migration/veri yazımı,
+production deploy, Play/TestFlight ve fiziksel cihaz kabulü yapılmadı.
+
+2026-10-26 Pro Faz 1 paket sonucu: kaynak/düzeltmeler `441c0fd` ile
+`codex/advanced-chat-header46` dalına pushlandı. GitHub Actions `40254315897`
+üç işi de geçti: Pro doğrulama, staging Android release APK ve unsigned iOS IPA.
+Arşiv CRC'leri temiz; IPA `com.swansport.pro`, `SwanSport Pro`, `0.1.0+1` ve
+Firebase plist yokluğu doğrulandı. APK/IPA doğrudan indirilebilir prerelease
+`swansport-pro-phase1-preview-0.1.0-1` altında yayımlandı. İmzalı iOS/TestFlight
+ve fiziksel cihaz kabulü yapılmadı; canlı SQL/production deploy yok.
+
+2026-10-26 Codex Faz 1 bağımsız denetimi: Gemini'nin beş commit'i korunarak
+dört çalışma zamanı açığı kapatıldı: development bootstrap hatası artık canlı
+uygulamaya sızmıyor; APP_ENV/debug değerleri fail-closed; hesap değişimi tüm
+SwanAccess girdilerini sıfırlıyor; yetki kaynaklarının yükleme/hata hali gerçek
+erişim reddinden ayrılıyor. Hesaptaki SwanSport eylemi uydurma URL/dialog yerine
+gerçek `https://swansport.pages.dev/` adresini açıyor. Python sözleşme 8/8,
+Pro testleri 43/43, data access 14/14, analyzer 0 issue, enforce-lockfile ve web
+release build geçti. Ana SwanSport kaynak diff'i boş. Yerel Android SDK/Xcode
+yok; mobil artifact kabulü GitHub Actions'ta çalıştırılacak.
+
+2026-10-26 SwanSport Pro Faz 1 sonucu: Gemini worker tarafından 5 görevlik TDD
+planı eksiksiz tamamlandı. `apps/swansport_pro` bağımsız Flutter uygulaması
+(`com.swansport.pro`, v0.1.0+1) kuruldu. `SwanAccess` tabanlı 7 çalışma alanı
+çözücüsü, fail-closed bootstrap, paylaşımlı `AccountSessionService` auth entegrasyonu,
+5 sekmeli Pro kabuğu, dinamik switcher, dashboard ve erişilebilirlik testleri bağlandı.
+`apps/swansport_app` ve Ana Sayfa tamamen dokunulmadan korundu (diff boş).
+Python sözleşme 7/7, Dart format exit 0, analyzer exit 0 (0 issue), Pro testleri 38/38,
+web release build 42s başarılı, data access_test 14/14 geçti. CI matrix ve staging
+preview workflow'u eklendi; canlı SQL, push, deploy yapılmadı. Rapor:
+`docs/swansport-pro-phase-1-verification.md`. Codex denetiminin sonucu yukarıdaki
+güncel kayıttadır.
+
+2026-10-26 SwanSport Pro tasarımı: Gerçek ayrı Flutter uygulaması, aynı
+Supabase/Auth ve tek SwanAccess otoritesi; rol bazlı yedi çalışma alanı ve
+altı fazlı eklemeli geçiş kararlaştırıldı. Faz 1 yalnız Pro kabuğu/auth/erişim
+ve build kapılarıdır; push ve operasyon taşıması sonraki fazdadır. Mevcut
+SwanSport'tan hiçbir özellik çıkarılmadı, Ana Sayfa ve ürün kodu değişmedi.
+Tasarım kullanıcı onayı bekliyor.
+
+2026-10-26 Aşama 3 staging kabulü: Ayrı staging hedefi ve migration dry-run
+başarılı. İmzalı Android staging APK üretildi. Gerçek apply, temiz zincirde
+0028'in artık bulunmayan demo helper imzalarına koşulsuz REVOKE vermesiyle
+42883'te durdu; 0001–0027 staging'e uygulandı, 0028 transaction'ı uygulanmadı.
+iOS preview Xcode'un build girdisi olarak beklediği disabled Firebase plist'i
+derlemeden önce silindiği için durdu. Her iki kök neden dar regresyonlarla
+kırmızı doğrulandı; ürün arayüzü/Ana Sayfa kapsam dışı.
+
+2026-10-26 Aşama 3 staging sonucu: 0028 temiz kurulumda eksik retired helper
+imzalarını yeniden yaratmadan koşullu kapatıyor; local test-center uyumluluk
+stub'ı kaldırıldı. iOS preview build sırasında disabled plist üretip son IPA'dan
+çıkarıyor. Staging migration koşusu `40235896424` başarılı; takip dry-run'ı
+`40237030025` "Remote database is up to date" verdi. Android staging APK ve
+unsigned iOS staging IPA `staging-preview-1.0.5-62` prerelease'inde yayımlandı;
+paketlerde staging ref var, production ref yok, arşiv CRC temiz. Gece yarısı
+UTC/İstanbul ayrışan üç federasyon testi ürün saatiyle hizalandı; odaklı 67/67
+ve son tam CI `40237643738` başarılı. Fiziksel cihaz ve iOS APNs kabulü açık;
+Ana Sayfa görünümü değişmedi.
+
+2026-10-25 Aşama 3 başlangıç: Üretim verisine dokunmadan ayrı Supabase staging
+hedefi, yanlış üretim hedefini reddeden CI kapısı ve Android/iOS fiziksel cihaz
+kabul protokolü hazırlanıyor. Mevcut Ana Sayfa görünümü değiştirilmeyecek.
+Staging hesabı/sırları, Apple imzası ve fiziksel cihaz gerektiren son adımlar
+kullanıcı kontrol listesi olarak ayrılacak; canlı SQL ve mağaza yayını yok.
+
+2026-10-25 Aşama 3 hazırlık sonucu: Kaynak ve iOS/konsol workflow canlı
+Supabase fallback'leri kaldırıldı; ayar yoksa fixture modu korunuyor. GitHub'da
+`staging` environment oluşturuldu. Elle çalışan workflow canlı Supabase ref'ini
+ve production Firebase projesini reddediyor, migration için zorunlu dry-run ve
+ayrı apply seçimi sunuyor; imzalı Android staging APK ile push kapalı unsigned
+iOS preview üretimi hazır. Gizlilik güvenli 22 maddelik fiziksel cihaz rapor
+kapısı eklendi. 16 Python sözleşme testi, core 27/27 ve tüm workflow actionlint
+kontrolü geçti. Staging sırları eklenmedi, migration çalıştırılmadı, mobil paket
+üretilmedi; fiziksel Android/iPhone ve imzalı iOS/APNs kabulü kullanıcı girdisi
+bekliyor. Tam GitHub CI `40223132867` başarılı: gerçek yerel Supabase kabulü,
+yedi Flutter hedefi, backend sözleşmeleri ve iki web build'i geçti. Ana Sayfa
+görünümü değişmedi.
+
+2026-10-25 Aşama 2 sonuç: Temiz 139 migration zinciri, beş gerçek GoTrue
+oturumu ve PostgREST/RLS ile altı kabul akışı GitHub Actions `40212637923`te
+geçti. Kabul sırasında `block_closed_period` polimorfik trigger alan hatası
+bulundu; yeni timestamp migration ve PGlite regresyonuyla düzeltildi. Mobil
+CI'daki AppLinks eklentisiz ortam sızıntısı yalnız kesin kanal hatasını ayıran
+test ve uygulama observer korumasıyla kapatıldı. Son kaynak `217e84bc`; tam
+Android `40214737143` ve iOS `40214771539` koşuları başarılı. İmzalı APK ve
+imzasız preview IPA, `preview-1.0.5-62` GitHub prerelease'inde yayınlandı.
+Paket hashleri `docs/release-status.md` içinde. Ana Sayfa görünümü değişmedi;
+canlı SQL, TestFlight/App Store ve fiziksel cihaz/push kabulü yapılmadı.
+
+2026-10-25 Aşama 2: Kullanıcı günlük akış kabulünü ve GitHub'da indirilebilir APK/IPA istedi. Ana Sayfa korunur. Yerelde Docker/telefon yok; mevcut yerel Supabase kurucusuna headless CI yolu ve gerçek GoTrue/PostgREST/RLS sentetik kabulü ekleniyor. Gerçek fiziksel cihaz kabulü uydurulmaz. GitHub APK signing/Firebase yapılandırma adları mevcut; değerler okunmadı/raporlanmadı. Paketler mağaza/TestFlight yerine GitHub test yayını olarak hazırlanır.
+
+2026-10-25: Kullanıcı analizdeki ilk güvenilirlik paketini yetkilendirdi. Hesap silme, CI/test kurulumu, sürüm matrisi, günlük akış kabulü ve push teslimi ele alınıyor. Ana Sayfa görünümü ve sosyal spor ağı odağı korunacak. Başlangıçtaki kullanıcı değişiklikleri korunur; canlı SQL/deploy yapılmaz. Başlangıç kanıtı: konsol 107 geçer; mobil 617 geçer/1 tasarım sözleşmesi hatası; JS genel revizyon 3/5. Plan: docs/superpowers/plans/2026-10-25-reliability-foundation.md.
+
+Kontrol noktası: 0132 FK hesap silme hatası kırmızı→yeşil 3/3; tek yönetici/anon engeli korunur. Kilitli tools npm/PGlite ve Python/pglast kurulumu, eski build importlarının kaldırılması, CI yedi Flutter hedefi/iki web derlemesi/backend kapıları ve release önkoşulu bağlı. Genel revizyon 5/5, SSS 52/52; migration parser hatada artık exit 1. Push ilk 4 SQL ve 2 sınıflandırma/5 gönderici testi geçti; tercihin/ilişkinin retry öncesi yeniden denetlenmesi ekleniyor. İlk mobil kök dizinden koşulduğunda asset/relative-path hataları görüldü; CI ve son yerel koşu paket dizinine düzeltildi, ürün ekranları değiştirilmedi. Son tam Flutter/JS regresyonu sürüyor. Sürüm matrisi ve gerçek rol/cihaz kabul şablonu eklendi; Docker/fiziksel cihaz yok, UAT bekliyor.
+
+Son Flutter kontrolü: mobil 618, konsol 107, data 510, core 26, models 1, design 7, motor 197 (toplam 1466) geçer. Genel analiz son koşu exit 0, 0 hata/uyarı, 4813 info. Production app/konsol web build 71,9s/54,3s geçti; yayın yok. Ana akış/başlık/alt nav kaynakları değişmedi. Son push yetki değişimi/bozuk yanıt dahil dar SQL/JS 11/11, migration isim seçimi 1/1, Python 10/10, SSS 52/52, 138 SQL parse temiz, push42, mobil24 sözleşmesi temiz. Bağımsız inceleme önemli/kritik bulgu bildirmedi. Toplu SQL/JS son koşusu sürüyor.
+
+2026-10-25 sonuç: Sabit kaynakta tam SQL/JS 317/317, sıfır hata/skip (557s). Kademeli yayında eski sender 404 cevabının token silmesini engelleyen ek kırmızı→yeşil regresyonla push paketi 7/7; bağımsız inceleme de doğruladı. Yeni migration'lar canlıya uygulanmadı; Cloudflare sender SQL'den önce yayımlanır. Docker/GoTrue/PostgREST/gerçek iki oturum ve Android/iOS fiziksel kabulü bekliyor; şablon docs/reliability-acceptance.md. Kanıt docs/reliability-foundation-verification.md, matris docs/release-status.md. Projenin GitHub kayıt tercihi gereği mevcut test edilmiş mobil/konsol revizyonları korunarak aynı geliştirme dalında kaynak kaydı hazırlanır; main/tag/SQL/deploy yok. Writer serbest.
+
+GitHub kaydı: ürün kaynağı `5225943`, `origin/codex/advanced-chat-header46` dalına push doğrulandı. WSL HTTPS credential oturumu yoktu; mevcut Windows Git oturumu kullanıldı, yeni anahtar üretilmedi/raporlanmadı. Önceden var olan mobil/konsol revizyonları test edilmiş çalışma alanı kaydında korundu. Main/tag/SQL/deploy yapılmadı; gerçek rol/cihaz kabulü bekliyor.
 
 2026-10-18: Cihazdan alınan 0.5.13+42 çökme kaydı Firebase Installations validateAPIKey sırasında native SIGABRT gösterdi. Kullanıcı yeni IPA istedi. Sahte Firebase yapılandırması kaldırılacak; gerçek config olmayan önizlemede native otomatik başlatma ve Dart push kapalı kalacak. Ayrı önizleme dalı/macOS CI; main/tag/SQL/web/TestFlight değişmez. Cihaz kayıtları repo veya panoya kopyalanmaz.
 

@@ -33,7 +33,7 @@ void main() {
   });
 
   group('anahtar sabitleri şemayla eşleşmeli', () {
-    test('0053''teki anahtarlarla birebir', () {
+    test('0053' 'teki anahtarlarla birebir', () {
       // Ayrışırsa bayrak hiç açılmaz ve sebebi görünmez: sunucu
       // 'partner_search' derken istemci 'partnerSearch' arar.
       expect(FeatureFlags.marketplace, 'marketplace');
@@ -41,6 +41,7 @@ void main() {
       expect(FeatureFlags.partnerSearch, 'partner_search');
       expect(FeatureFlags.turfFields, 'turf_fields');
       expect(FeatureFlags.teamHub, 'team_hub');
+      expect(FeatureFlags.attendanceOperations, 'attendance_operations');
     });
   });
 }

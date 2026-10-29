@@ -1,0 +1,123 @@
+name: Build SwanSport Pro Preview
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_ios:
+        description: 'Derive and build unsigned iOS preview on macOS'
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pro-preview-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify-pro:
+    name: Verify Pro Contracts & Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - run: flutter pub get --enforce-lockfile
+      - name: Pro Dart Analyze
+        working-directory: apps/swansport_pro
+        run: flutter analyze --no-pub --no-fatal-infos
+      - name: Pro Tests
+        working-directory: apps/swansport_pro
+        run: flutter test --no-pub
+      - name: Run Contract Tests
+        run: python -m unittest tools.pro_app_contract_test -v
+
+  build-pro-android:
+    name: Build SwanSport Pro Android APK
+    needs: verify-pro
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      STAGING_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      STAGING_PROJECT_ID: ${{ secrets.STAGING_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - name: Reject missing or production target
+        run: python tools/staging_target.py
+      - run: flutter pub get --enforce-lockfile
+      - name: Build Pro Android APK
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build apk --release -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$STAGING_SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$STAGING_SUPABASE_ANON_KEY" \
+            --dart-define=APP_ENV=production
+          mkdir -p build/staging
+          cp build/app/outputs/flutter-apk/app-release.apk build/staging/SwanSport-Pro-staging.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-Android-staging
+          path: apps/swansport_pro/build/staging/SwanSport-Pro-staging.apk
+          if-no-files-found: error
+          retention-days: 14
+
+  build-pro-ios:
+    name: Build SwanSport Pro Unsigned iOS Preview
+    if: inputs.build_ios == true
+    needs: verify-pro
+    runs-on: macos-latest
+    environment: staging
+    env:
+      STAGING_SUPABASE_URL: ${{ secrets.STAGING_SUPABASE_URL }}
+      STAGING_SUPABASE_ANON_KEY: ${{ secrets.STAGING_SUPABASE_ANON_KEY }}
+      STAGING_PROJECT_ID: ${{ secrets.STAGING_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.7'
+          cache: true
+      - name: Reject missing or production target
+        run: python tools/staging_target.py
+      - run: flutter pub get --enforce-lockfile
+      - name: Materialize disabled Firebase resource
+        env:
+          TARGET_APP: pro
+        run: python tools/configure_ios_firebase.py
+      - name: Configure unsigned Pro build
+        run: |
+          printf '%s\n' 'DEVELOPMENT_TEAM = 0000000000' 'CODE_SIGN_IDENTITY =' \
+            'CODE_SIGNING_REQUIRED = NO' 'CODE_SIGNING_ALLOWED = NO' \
+            'CODE_SIGN_ENTITLEMENTS =' > apps/swansport_pro/ios/Flutter/Signing.xcconfig
+      - name: Build unsigned Pro iOS preview
+        working-directory: apps/swansport_pro
+        run: |
+          flutter build ios --release --no-codesign -t lib/main_production.dart \
+            --dart-define="SUPABASE_URL=$STAGING_SUPABASE_URL" \
+            --dart-define="SUPABASE_ANON_KEY=$STAGING_SUPABASE_ANON_KEY" \
+            --dart-define=IOS_FIREBASE_ENABLED=false \
+            --dart-define=APP_ENV=production
+          mkdir -p build/ios/staging/Payload build/ios/release
+          cp -R build/ios/iphoneos/Runner.app build/ios/staging/Payload/
+          rm -f build/ios/staging/Payload/Runner.app/GoogleService-Info.plist
+          find build/ios/staging/Payload/Runner.app -name '*.xcent' -delete
+          python ../../tools/verify_ios_preview_bundle.py build/ios/staging/Payload/Runner.app --firebase-enabled false
+          cd build/ios/staging
+          zip -qry ../release/SwanSport-Pro-staging-unsigned.ipa Payload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SwanSport-Pro-iOS-staging-unsigned
+          path: apps/swansport_pro/build/ios/release/SwanSport-Pro-staging-unsigned.ipa
+          if-no-files-found: error
+          retention-days: 14

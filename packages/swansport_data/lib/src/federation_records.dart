@@ -117,9 +117,20 @@ class FederationRecordsService {
     return FederationResultCard.fromMap((row as Map).cast<String, dynamic>());
   }
 
-  Future<List<FederationPendingMatch>> pendingResults(int offset) async {
-    final rows = await _client.rpc<dynamic>('federation_pending_results',
-        params: {'p_offset': offset, 'p_limit': 100});
+  Future<List<FederationPendingMatch>> pendingResults(
+    int offset, {
+    String? federationId,
+    String? sportCode,
+    String? cityCode,
+  }) async {
+    final rows =
+        await _client.rpc<dynamic>('federation_pending_results', params: {
+      'p_offset': offset,
+      'p_limit': 100,
+      'p_federation_id': federationId,
+      'p_sport_code': sportCode,
+      'p_city': cityCode,
+    });
     return [
       for (final row in rows as List)
         FederationPendingMatch.fromMap(Map<String, dynamic>.from(row as Map))
@@ -294,6 +305,28 @@ final federationPendingResultsProvider = FutureProvider.autoDispose
   ref.watch(authSessionProvider);
   final service = ref.watch(federationRecordsServiceProvider);
   return service == null ? const [] : service.pendingResults(offset);
+});
+
+typedef FederationPendingResultsQuery = ({
+  String? federationId,
+  String? sportCode,
+  String? cityCode,
+  int offset,
+});
+
+final federationScopedPendingResultsProvider = FutureProvider.autoDispose
+    .family<List<FederationPendingMatch>, FederationPendingResultsQuery>(
+        (ref, query) async {
+  ref.watch(authSessionProvider);
+  final service = ref.watch(federationRecordsServiceProvider);
+  return service == null
+      ? const []
+      : service.pendingResults(
+          query.offset,
+          federationId: query.federationId,
+          sportCode: query.sportCode,
+          cityCode: query.cityCode,
+        );
 });
 final federationResultCardProvider = FutureProvider.autoDispose
     .family<FederationResultCard, String>((ref, id) async {

@@ -71,6 +71,45 @@ class EventRosterDetailScreen extends ConsumerWidget {
                             style: SwanType.bodySm(c.inkMuted)),
                         if (e.place?.isNotEmpty ?? false)
                           Text(e.place!, style: SwanType.bodySm(c.inkMuted)),
+                        if (ref.watch(featureEnabledProvider(
+                            FeatureFlags.eventPreparation))) ...[
+                          const SizedBox(height: SwanSpace.lg),
+                          Row(children: [
+                            Expanded(
+                                child: Text('Hazırlık kartı',
+                                    style: SwanType.h3(c.ink))),
+                            if (isStaff)
+                              IconButton(
+                                  tooltip: 'Hazırlığı düzenle',
+                                  onPressed: () => _editPreparation(
+                                      context, ref, e.id, e.startsAt),
+                                  icon: const Icon(Icons.edit_rounded))
+                          ]),
+                          ref.watch(eventPreparationProvider(e.id)).when(
+                                loading: premiumLoading,
+                                error: (err, _) => Text(
+                                    'Hazırlık bilgisi eklenmemiş.',
+                                    style: SwanType.bodySm(c.inkMuted)),
+                                data: (p) => Card(
+                                    child: Padding(
+                                        padding: const EdgeInsets.all(14),
+                                        child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              if (p.meetingAt != null)
+                                                Text(
+                                                    'Buluşma: ${p.meetingAt!.hour.toString().padLeft(2, '0')}:${p.meetingAt!.minute.toString().padLeft(2, '0')}'),
+                                              if (p.equipment.isNotEmpty)
+                                                Text(
+                                                    'Ekipman: ${p.equipment.join(', ')}'),
+                                              if (p.kitNote != null)
+                                                Text('Kıyafet: ${p.kitNote}'),
+                                              if (p.coachNote != null)
+                                                Text(p.coachNote!),
+                                            ]))),
+                              ),
+                        ],
                         if (isStaff) ...[
                           const SizedBox(height: SwanSpace.lg),
                           Text('Katılım ve yoklama', style: SwanType.h3(c.ink)),
@@ -89,6 +128,17 @@ class EventRosterDetailScreen extends ConsumerWidget {
                                                 'Yanıt: ${_rsvp(row.rsvp)}'),
                                             trailing: Text(
                                                 _attendance(row.attendance)),
+                                            onTap: e.startsAt.isBefore(
+                                                        DateTime.now()) &&
+                                                    row.attendance ==
+                                                        'present' &&
+                                                    ref.watch(
+                                                        featureEnabledProvider(
+                                                            FeatureFlags
+                                                                .teamKudos))
+                                                ? () => _sendKudo(context, ref,
+                                                    e.id, row.athleteId)
+                                                : null,
                                           )
                                       ]),
                               ),
@@ -117,4 +167,85 @@ class EventRosterDetailScreen extends ConsumerWidget {
         'excused' => 'İzinli',
         _ => 'Yoklama alınmadı',
       };
+
+  static Future<void> _editPreparation(BuildContext context, WidgetRef ref,
+      String eventId, DateTime startsAt) async {
+    final equipment = TextEditingController();
+    final kit = TextEditingController();
+    final note = TextEditingController();
+    final saved = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Hazırlık kartını düzenle'),
+        content: SingleChildScrollView(
+          child: Column(mainAxisSize: MainAxisSize.min, children: [
+            TextField(
+                controller: equipment,
+                decoration: const InputDecoration(
+                    labelText: 'Ekipman (virgülle ayır)')),
+            TextField(
+                controller: kit,
+                decoration: const InputDecoration(labelText: 'Kıyafet/forma')),
+            TextField(
+                controller: note,
+                maxLength: 500,
+                decoration: const InputDecoration(labelText: 'Antrenör notu')),
+          ]),
+        ),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Vazgeç')),
+          FilledButton(
+              onPressed: () => Navigator.pop(context, true),
+              child: const Text('Kaydet')),
+        ],
+      ),
+    );
+    if (saved == true) {
+      await ref.read(swanExperienceServiceProvider).savePreparation(eventId,
+          meetingAt: startsAt.subtract(const Duration(minutes: 30)),
+          equipment: equipment.text
+              .split(',')
+              .map((e) => e.trim())
+              .where((e) => e.isNotEmpty)
+              .toList(),
+          kitNote: kit.text,
+          coachNote: note.text);
+      ref.invalidate(eventPreparationProvider(eventId));
+    }
+    equipment.dispose();
+    kit.dispose();
+    note.dispose();
+  }
+
+  static Future<void> _sendKudo(BuildContext context, WidgetRef ref,
+      String eventId, String athleteId) async {
+    final badge = await showModalBottomSheet<String>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          for (final entry in const {
+            'team_player': 'İyi takım arkadaşı',
+            'fair_play': 'Fair play',
+            'helpful': 'Yardımsever',
+            'determined': 'Mücadeleci',
+            'motivator': 'Takımı motive etti',
+          }.entries)
+            ListTile(
+                leading: const Icon(Icons.favorite_rounded),
+                title: Text(entry.value),
+                onTap: () => Navigator.pop(context, entry.key)),
+        ]),
+      ),
+    );
+    if (badge == null) return;
+    await ref
+        .read(swanExperienceServiceProvider)
+        .sendKudo(eventId, athleteId, badge);
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Takım rozeti gönderildi.')));
+    }
+  }
 }

@@ -12,6 +12,18 @@ bulunamayacak** şeyleri anlatıyor.
 
 ## Yapı
 
+2026-10-25 güvenilirlik temeli yereldir: CLI timestamp migration'ları hesap
+silmede 0132 aktör referanslarını anonimleştirir; private cihaz bazlı
+`push_delivery_attempts` pg_net sonucunu izler. `accepted` telefon teslimi
+değildir; belirsiz yanıt yeniden gönderilmez, geçici ret en fazla üç denemedir.
+Retry öncesi cihaz revizyonu/hesap, tercih, maç takibi, DM engeli ve veli bağı
+yeniden denetlenir. `process_push_deliveries` yalnız backend/scheduler'dır;
+pg_cron yoksa scheduler ayrıca gerekir. Canlı uygulanmadı. Kilitli test
+bağımlılıkları `tools/package.json` / `tools/requirements-test.txt`; Flutter
+testleri paket dizininden koşar. Sürüm/kabul matrisi `docs/release-status.md`,
+kanıt/sınırlar `docs/reliability-foundation-verification.md`. Ana Sayfa
+görünümü ve sosyal spor ağı odağı kullanıcı tercihiyle korunur.
+
 0121 kulüp antrenman branşları resmi `club_sport_registrations` değildir.
 `club_training_sports` yalnız aktif kulüpte aktif `club_admin`/`coach` üyeliğiyle
 dar RPC üzerinden değiştirilir; tabloya doğrudan istemci yazısı yoktur.
@@ -371,6 +383,19 @@ Hepsi bu projede gerçekten yaşandı; hiçbiri kodu okuyarak öngörülemez.
 - `SwanBottomNav`: Ana Sayfa · Keşfet · + · Mesajlar · Profil. Parametre
   almaz; aktif sekmeyi açık rotadan çıkarır. Eskisi
   `selectedIndex/onSelect/onAction` istiyordu ve 31 ekranın 25'i boş geçiyordu.
+- **Dört sabit branch (GoRouter + StatefulShellRoute):**
+  `/akis`, `/kesfet`, `/mesajlar`, `/profil`. Durum ve branch yığını
+  `SwanAppShell` içinde korunur. Aktif sekmeye tekrar basıldığında branch
+  köküne dönülür; Android sistem geri tuşunda (`PopScope`) kök olmayan
+  branch'ten Ana Sayfa'ya dönülür.
+- **Ortak gezinme ve uyumluluk köprüsü:**
+  `LegacyNavigationBridge` mevcut named route yığınlarını branch bazlı izole
+  çalıştırır. Dış sözleşmeler, bildirim rotaları (`/topluluklar`, `/halisahalar`,
+  `/oyuncu-aranan`), QR ve derin bağlantılar `RouteLinkAdapter` ile çözülür;
+  hiçbir rota silinmez. Yeni rotalar ve dinamik parametreler `app_routes.dart`
+  ve `swan_destination.dart` metadata haritasında tanımlanır. Ekran içi
+  gezinmelerde `context.swanGo` / `context.swanPush` (`swan_navigation.dart`)
+  kullanılır.
 - **Rol-uyarlamalı yuvalar kaldırıldı** — aynı konum kişiden kişiye farklı
   şey açıyordu, kas hafızası kurulamıyordu. Rol farkı artık sekmede değil
   **içerikte**: antrenörün yoklaması Ana Sayfa'daki "Bugün" ve

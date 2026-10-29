@@ -2,7 +2,7 @@
 // Setup: npm install --prefix build/finance-sql-tests --no-audit --no-fund @electric-sql/pglite@0.5.8
 // Run: node --test tools/finance_rpc_test.mjs
 // PGlite uses one connection: multi-session contention needs native PostgreSQL.
-import { PGlite } from '../build/finance-sql-tests/node_modules/@electric-sql/pglite/dist/index.js';
+import { PGlite } from '@electric-sql/pglite';
 import { readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { test } from 'node:test';

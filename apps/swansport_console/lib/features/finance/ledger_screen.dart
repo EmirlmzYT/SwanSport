@@ -5,6 +5,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../app/modules/console_module.dart';
 import '../../app/theme/console_theme.dart';
 import '../../app/widgets/console_table.dart';
+import '../../app/widgets/console_detail_panel.dart';
 import '../../app/widgets/csv_export.dart';
 import '../../app/widgets/status_pill.dart';
 import 'accountants_dialog.dart';
@@ -24,9 +25,8 @@ class LedgerScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final t = Theme.of(context);
     final entries = ref.watch(ledgerProvider);
-    final totals = ref.watch(ledgerTotalsProvider).valueOrNull ??
-        const LedgerTotals.empty();
-    final drafts = ref.watch(draftExpensesProvider).valueOrNull ?? const [];
+    final totals = ref.watch(ledgerTotalsProvider);
+    final drafts = ref.watch(draftExpensesProvider);
 
     final columns = _columns(context);
 
@@ -37,11 +37,24 @@ class LedgerScreen extends ConsumerWidget {
           onExport: () => _exportCsv(context, ref),
         ),
         Divider(height: 1, color: t.colorScheme.outline),
-        _SummaryStrip(
-          income: totals.income,
-          outgo: totals.outgo,
-          net: totals.net,
-          draftCount: drafts.length,
+        totals.when(
+          skipLoadingOnRefresh: false,
+          loading: () => const Padding(
+              padding: EdgeInsets.all(ConsoleDensity.lg),
+              child: Text('Toplamlar yükleniyor…')),
+          error: (_, __) => Padding(
+              padding: const EdgeInsets.all(ConsoleDensity.lg),
+              child: Row(children: [
+                const Expanded(child: Text('Toplamlar alınamadı.')),
+                TextButton(
+                    onPressed: () => ref.invalidate(ledgerTotalsProvider),
+                    child: const Text('Tekrar dene'))
+              ])),
+          data: (value) => _SummaryStrip(
+              income: value.income,
+              outgo: value.outgo,
+              net: value.net,
+              draftCount: drafts.valueOrNull?.length ?? 0),
         ),
         Divider(height: 1, color: t.colorScheme.outline),
         Expanded(
@@ -57,13 +70,29 @@ class LedgerScreen extends ConsumerWidget {
             // Yalnızca gider satırları düzenlenebiliyor. Aidat ve bağış
             // kendi akışlarından geliyor; defterden değiştirilmeleri
             // ödeme onayını atlamak olurdu.
-            onRowTap: (e) => e.isIncome ? null : _editExpense(context, ref, e),
+            onRowTap: (entry) => _inspectEntry(context, ref, entry),
+            onRetry: () => ref.invalidate(ledgerProvider),
             onQueryChanged: (query) =>
                 ref.read(ledgerQueryProvider.notifier).state = query,
           ),
         ),
       ],
     );
+  }
+
+  void _inspectEntry(BuildContext context, WidgetRef ref, LedgerEntry entry) {
+    showConsoleDetailPanel<void>(context,
+        title: 'İşlem ayrıntısı',
+        action: entry.isIncome
+            ? null
+            : TextButton.icon(
+                onPressed: () {
+                  Navigator.of(context, rootNavigator: true).pop();
+                  _editExpense(context, ref, entry);
+                },
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('Gideri düzenle')),
+        child: _LedgerDetails(entry: entry));
   }
 
   /// Defterdeki bir gideri düzenlemek için tam kaydı getirip pencereyi açar.
@@ -226,60 +255,58 @@ class _Toolbar extends ConsumerWidget {
     final range = ref.watch(ledgerRangeProvider);
     final dir = ref.watch(ledgerDirectionProvider);
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(
-          horizontal: ConsoleDensity.lg, vertical: ConsoleDensity.sm),
-      child: Row(
-        children: [
-          OutlinedButton.icon(
+    final query = ref.watch(ledgerQueryProvider);
+    return ConsoleToolbar(
+      query: query,
+      showSearch: false,
+      onQueryChanged: (value) =>
+          ref.read(ledgerQueryProvider.notifier).state = value,
+      onResetFilters: () {
+        ref.read(ledgerDirectionProvider.notifier).state = null;
+        ref.read(ledgerRangeProvider.notifier).state = DateRange.thisMonth();
+        ref.read(ledgerQueryProvider.notifier).state =
+            query.copyWith(page: 0, search: '');
+      },
+      filters: [
+        OutlinedButton.icon(
             onPressed: () => _pickRange(context, ref, range),
             icon: const Icon(Icons.date_range_rounded, size: 17),
-            label: Text(range.label),
-          ),
-          const SizedBox(width: ConsoleDensity.sm),
-          SizedBox(
+            label: Text(range.label)),
+        SizedBox(
             width: 140,
             child: DropdownButtonFormField<String?>(
+              key: ValueKey(dir),
               initialValue: dir,
               isDense: true,
               decoration: const InputDecoration(labelText: 'Yön'),
               items: const [
                 DropdownMenuItem(value: null, child: Text('Hepsi')),
                 DropdownMenuItem(value: 'in', child: Text('Gelir')),
-                DropdownMenuItem(value: 'out', child: Text('Gider')),
+                DropdownMenuItem(value: 'out', child: Text('Gider'))
               ],
-              onChanged: (v) {
-                ref.read(ledgerDirectionProvider.notifier).state = v;
+              onChanged: (value) {
+                ref.read(ledgerDirectionProvider.notifier).state = value;
                 ref.read(ledgerQueryProvider.notifier).state =
-                    const ConsoleTableQuery();
+                    query.copyWith(page: 0);
               },
-            ),
-          ),
-          const Spacer(),
-          // Defter erişimi yönetimi yalnızca kulüp yöneticisine görünüyor.
-          // Sunucu da aynı şartı uyguluyor; burada gizlemek tek başına koruma
-          // değil, yalnızca ilgisiz kişiye anlamsız düğme göstermemek için.
-          if (ref.watch(consoleAccessProvider).isClubAdmin) ...[
-            OutlinedButton.icon(
-              onPressed: () => showAccountantsDialog(context),
-              icon: const Icon(Icons.people_outline_rounded, size: 17),
-              label: const Text('Defter erişimi'),
-            ),
-            const SizedBox(width: ConsoleDensity.sm),
-          ],
-          OutlinedButton.icon(
-            onPressed: onExport,
-            icon: const Icon(Icons.download_rounded, size: 17),
-            label: const Text('CSV'),
-          ),
-          const SizedBox(width: ConsoleDensity.sm),
-          FilledButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add_rounded, size: 17),
-            label: const Text('Gider ekle'),
-          ),
-        ],
-      ),
+            )),
+      ],
+      onExport: onExport,
+      trailing: Wrap(
+          spacing: ConsoleDensity.sm,
+          runSpacing: ConsoleDensity.sm,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            if (ref.watch(consoleAccessProvider).isClubAdmin)
+              OutlinedButton.icon(
+                  onPressed: () => showAccountantsDialog(context),
+                  icon: const Icon(Icons.people_outline_rounded, size: 17),
+                  label: const Text('Defter erişimi')),
+            FilledButton.icon(
+                onPressed: onAdd,
+                icon: const Icon(Icons.add_rounded, size: 17),
+                label: const Text('Gider ekle')),
+          ]),
     );
   }
 
@@ -294,7 +321,8 @@ class _Toolbar extends ConsumerWidget {
     if (picked == null) return;
     ref.read(ledgerRangeProvider.notifier).state =
         DateRange(picked.start, picked.end);
-    ref.read(ledgerQueryProvider.notifier).state = const ConsoleTableQuery();
+    ref.read(ledgerQueryProvider.notifier).state =
+        ref.read(ledgerQueryProvider).copyWith(page: 0);
   }
 }
 
@@ -390,5 +418,52 @@ class _Figure extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class _LedgerDetails extends StatelessWidget {
+  const _LedgerDetails({required this.entry});
+  final LedgerEntry entry;
+  @override
+  Widget build(BuildContext context) {
+    final t = Theme.of(context);
+    final fields = <(String, String)>[
+      ('Tarih', fmtDate(entry.movedOn)),
+      ('İşlem', entry.isIncome ? 'Gelir' : 'Gider'),
+      ('Tutar', fmtMoney(entry.amount)),
+      ('Kategori', entry.category),
+      ('Karşı taraf', entry.counterpart),
+      ('Hesap', entry.account),
+      (
+        'Durum',
+        _statusLabel(entry.status) ??
+            (entry.status == 'confirmed' ? 'Onaylandı' : entry.status)
+      ),
+    ];
+    return ListView(
+        padding: const EdgeInsets.all(ConsoleDensity.xl),
+        children: [
+          Text(entry.label, style: t.textTheme.headlineSmall),
+          const SizedBox(height: ConsoleDensity.xl),
+          for (final field in fields)
+            Padding(
+                padding:
+                    const EdgeInsets.symmetric(vertical: ConsoleDensity.md),
+                child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                          width: 120,
+                          child: Text(field.$1, style: t.textTheme.bodySmall)),
+                      Expanded(
+                          child: SelectableText(field.$2,
+                              style: t.textTheme.bodyMedium)),
+                    ])),
+          if (entry.isIncome) ...[
+            const SizedBox(height: ConsoleDensity.xl),
+            Text('Gelir kayıtları ilgili ödeme veya bağış akışından yönetilir.',
+                style: t.textTheme.bodySmall),
+          ],
+        ]);
   }
 }

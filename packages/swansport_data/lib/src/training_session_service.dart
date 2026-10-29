@@ -856,6 +856,83 @@ final trainingSessionServiceProvider = Provider<TrainingSessionService>((ref) {
   return TrainingSessionService(ref.watch(supabaseClientProvider));
 });
 
+abstract interface class TrainingOperationCommands {
+  Future<String> createProtocol({
+    required String clubId,
+    required String sportCode,
+    required String name,
+    required TrainingProtocolConfig config,
+  });
+  Future<({String id, String joinCode})> startClub({
+    required String clubId,
+    required String protocolId,
+  });
+  Future<String> startPersonal({
+    required String protocolId,
+    String? clubId,
+  });
+  Future<String> join(String code);
+  Future<void> advance(String sessionId);
+  Future<void> pause(String sessionId, bool paused);
+  Future<void> submitSet({
+    required String sessionId,
+    required int setNo,
+    required num total,
+  });
+  Future<int> lock(String sessionId);
+}
+
+final class _ServiceTrainingOperationCommands
+    implements TrainingOperationCommands {
+  const _ServiceTrainingOperationCommands(this.service);
+  final TrainingSessionService service;
+
+  @override
+  Future<String> createProtocol({
+    required String clubId,
+    required String sportCode,
+    required String name,
+    required TrainingProtocolConfig config,
+  }) =>
+      service.createProtocol(
+        clubId: clubId,
+        sportCode: sportCode,
+        name: name,
+        config: config,
+      );
+  @override
+  Future<({String id, String joinCode})> startClub({
+    required String clubId,
+    required String protocolId,
+  }) =>
+      service.startClubSession(clubId: clubId, protocolId: protocolId);
+  @override
+  Future<String> startPersonal({required String protocolId, String? clubId}) =>
+      service.startPersonalSession(protocolId: protocolId, clubId: clubId);
+  @override
+  Future<String> join(String code) => service.joinByCode(code);
+  @override
+  Future<void> advance(String sessionId) => service.advancePhase(sessionId);
+  @override
+  Future<void> pause(String sessionId, bool paused) =>
+      service.setPaused(sessionId, paused);
+  @override
+  Future<void> submitSet({
+    required String sessionId,
+    required int setNo,
+    required num total,
+  }) =>
+      service.submitSet(sessionId: sessionId, setNo: setNo, total: total);
+  @override
+  Future<int> lock(String sessionId) => service.lockResults(sessionId);
+}
+
+final trainingOperationCommandsProvider = Provider<TrainingOperationCommands>(
+  (ref) => _ServiceTrainingOperationCommands(
+    ref.watch(trainingSessionServiceProvider),
+  ),
+);
+
 /// Kulübün şablonları + platform şablonları.
 final trainingProtocolsProvider =
     FutureProvider.autoDispose<List<TrainingProtocol>>((ref) async {

@@ -14,6 +14,15 @@ const container='supabase_db_'+project;
 const cli=process.platform==='win32'?'npx.cmd':'npx';
 const flutter=process.platform==='win32'?'flutter.bat':'flutter';
 
+export function migrationNames(entries) {
+ return entries.filter(name=>/^(?:\d{4}|\d{14})_[a-z0-9_]+\.sql$/.test(name)).sort();
+}
+export function backendOnly(args) {
+ if(args.length===0)return false;
+ if(args.length===1&&args[0]==='--backend-only')return true;
+ throw Error('Yalnız --backend-only kabul edilir; uzak hedef/parametre yoktur.');
+}
+
 export function assertLocalDocker(endpoint) {
  if(!/^(?:npipe:\/{4}\.\/pipe\/[A-Za-z0-9_.-]+|unix:\/\/\/[^\s]+)$/.test(endpoint)) {
   throw Error('Yalnız yerel Docker socket/context kullanılabilir.');
@@ -60,10 +69,10 @@ export function statusKey(status) {
  return key;
 }
 async function main() {
- if(process.argv.length>2) throw Error('Bu betik uzak hedef/parametre kabul etmez.');
+ const headless=backendOnly(process.argv.slice(2));
  if(Number(process.versions.node.split('.')[0])<20) throw Error('Node.js 20 veya üstü gerekli.');
  const missing=[];
- for(const [command,label] of [[flutter,'Flutter SDK'],['docker','Docker Desktop']]) {
+ for(const [command,label] of [...(headless?[]:[[flutter,'Flutter SDK']]),['docker','Docker Desktop']]) {
   try {run(command,['--version']);} catch {missing.push(label);}
  }
  if(missing.length) throw Error('Önce kurulması gerekenler: '+missing.join(', ')+'. docs/local-test-center.md rehberine bakın.');
@@ -85,8 +94,9 @@ async function main() {
   insert into public._local_test_center_install values('${project}') on conflict do nothing;
   create table if not exists public._local_test_center_migrations(name text primary key,sha text not null);
   alter table public._local_test_center_migrations enable row level security;
-  revoke all on public._local_test_center_migrations from public,anon,authenticated;`);
- for(const name of readdirSync(resolve(root,'supabase/migrations')).filter(n=>/^\d{4}_[a-z0-9_]+\.sql$/.test(n)).sort()) {
+  revoke all on public._local_test_center_migrations from public,anon,authenticated;
+  `);
+ for(const name of migrationNames(readdirSync(resolve(root,'supabase/migrations')))) {
   const source=readFileSync(resolve(root,'supabase/migrations',name),'utf8');
   const hash=createHash('sha256').update(source).digest('hex');
   const previous=sql(`select sha from public._local_test_center_migrations where name='${name}'`);
@@ -111,6 +121,7 @@ async function main() {
   });
   if(!response.ok) throw Error('Yerel hesap giriş kontrolü başarısız: '+slug);
  }
+ if(headless){console.log('Yerel backend ve beş gerçek Auth girişi hazır.');return;}
  run(flutter,['pub','get'],{cwd:resolve(root,'apps/swansport_app')});
  console.log('Test Merkezi açılıyor: http://127.0.0.1:55430 · kapatmak için Ctrl+C');
  const spec=commandSpec(flutter,['run','-d','chrome','--web-hostname','127.0.0.1','--web-port','55430',

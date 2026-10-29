@@ -75,7 +75,6 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
               children: [
                 // 1. Header (Geri, Başlık, Yeni Sporcu Ekle)
 
-
                 // 2. Team Category Selector (Yatay Takım Listesi)
                 if (teams.isNotEmpty) ...[
                   const SizedBox(height: 10),
@@ -183,9 +182,12 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                     ),
                     const SizedBox(width: 6),
                   ],
-                  Flexible(child: Text(
+                  Flexible(
+                      child: Text(
                     t.name,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(
                       isSel ? context.swan.onAccent : c.inkMuted,
                       w: FontWeight.w700,
                     ),
@@ -597,9 +599,14 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
                       ],
                     ),
                   ),
-                  Flexible(child: Text(
+                  Flexible(
+                      child: Text(
                     '%${r.progress}',
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(r.progress >= 50 ? c.accent : c.inkMuted, w: FontWeight.w800),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.caption(
+                        r.progress >= 50 ? c.accent : c.inkMuted,
+                        w: FontWeight.w800),
                   )),
                 ],
               ),
@@ -621,7 +628,8 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(value,
-                style: SwanType.h2(c.ink).copyWith(fontWeight: FontWeight.w800)),
+                style:
+                    SwanType.h2(c.ink).copyWith(fontWeight: FontWeight.w800)),
             Text(label, style: SwanType.caption(c.inkMuted)),
           ],
         ),

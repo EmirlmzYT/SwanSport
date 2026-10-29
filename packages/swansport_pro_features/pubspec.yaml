@@ -1,0 +1,24 @@
+name: swansport_pro_features
+description: SwanSport ve SwanSport Pro icin ortak profesyonel operasyon arayuzleri.
+publish_to: none
+version: 0.1.0
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+
+resolution: workspace
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_riverpod: ^2.6.1
+  qr_flutter: ^4.1.0
+  swansport_branch_engine: ^0.1.0
+  swansport_core: ^0.1.0
+  swansport_data: ^0.1.0
+  swansport_models: ^0.1.0
+
+dev_dependencies:
+  flutter_lints: ^5.0.0
+  flutter_test:
+    sdk: flutter

@@ -51,7 +51,7 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
             ),
             children: [
               // Kulüp Personeli için Kulüp Yönetimi ve Ayarları EN TEPEDE
-              if (club != null && access.isClubStaff) ...[
+              if (club != null && access.hasActiveClubStaffMembership) ...[
                 _group('Kulüp Yönetimi & Ayarları', [
                   _clubHeaderCard(club, access),
                   SwanActionCard(
@@ -94,7 +94,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                     ),
                   ),
                 ]),
-              ] else if (club == null && (access.coachLevel > 0 || access.isClubAdmin)) ...[
+              ] else if (club == null &&
+                  (access.coachLevel > 0 || access.isClubAdmin)) ...[
                 _group('Kulüp İşlemleri', [
                   SwanActionCard(
                     title: 'Yeni Kulüp Kur',
@@ -163,8 +164,8 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
                   },
                 ),
                 const _PushToggleRow(),
-                _shortcut(
-                    'Bildirimler', '/bildirimler', Icons.notifications_outlined),
+                _shortcut('Bildirimler', '/bildirimler',
+                    Icons.notifications_outlined),
               ]),
 
               _group('Destek ve Oturum', [
@@ -233,13 +234,17 @@ class _ClubSettingsScreenState extends ConsumerState<ClubSettingsScreen> {
     );
   }
 
-  Widget _group(String title, List<Widget> children) => SwanSurface(child: Column(
-    crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-      Text(title, style: SwanType.h3(context.swan.ink)),
-      const SizedBox(height: SwanSpace.md), ...children,
-    ]));
+  Widget _group(String title, List<Widget> children) => SwanSurface(
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        Text(title, style: SwanType.h3(context.swan.ink)),
+        const SizedBox(height: SwanSpace.md),
+        ...children,
+      ]));
   Widget _shortcut(String title, String route, IconData icon) => SwanActionCard(
-    title: title, icon: icon, onTap: () => Navigator.pushNamed(context, route));
+      title: title,
+      icon: icon,
+      onTap: () => Navigator.pushNamed(context, route));
 
   Future<void> _signOut() async {
     final ok = await showDialog<bool>(
@@ -284,10 +289,8 @@ class _PushToggleRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textPrimary =
-        isDark ? context.swan.ink : SwanPalette.light.ink;
-    final textMuted =
-        isDark ? context.swan.inkMuted : context.swan.inkMuted;
+    final textPrimary = isDark ? context.swan.ink : SwanPalette.light.ink;
+    final textMuted = isDark ? context.swan.inkMuted : context.swan.inkMuted;
     final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final on = ref.watch(pushEnabledProvider).valueOrNull ?? false;
 
@@ -366,7 +369,8 @@ class _PushToggleRow extends ConsumerWidget {
                               PushFailure.unsupported =>
                                 'Bu tarayıcı bildirim desteklemiyor.',
                               PushFailure.failed => 'Açılamadı, tekrar dene.',
-                              PushFailure.apnsUnavailable => 'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırmasını kontrol et.',
+                              PushFailure.apnsUnavailable =>
+                                'iOS APNs kaydı hazır değil. İmza ve Firebase yapılandırmasını kontrol et.',
                             },
                           ),
                           backgroundColor: SwanPalette.light.danger,

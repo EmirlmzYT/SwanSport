@@ -2783,5 +2783,29 @@
         loadPublicLaunchState();
       })();
     </script>
+    <script>
+      (() => {
+        const match = location.hash.match(/^#\/swan-id\/dogrula\/([A-Za-z0-9_-]{20,})$/);
+        if (!match) return;
+
+        const token = match[1];
+        const appUrl = `swansport://swan-id/dogrula/${token}`;
+        const webUrl = `https://swansport.pages.dev/#/swan-id/dogrula/${token}`;
+        const overlay = document.createElement('div');
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.setAttribute('aria-label', 'SwanSport uygulamasında aç');
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:24px;background:rgba(3,8,18,.82);backdrop-filter:blur(12px)';
+        overlay.innerHTML = `
+          <div style="width:min(100%,420px);padding:28px;border:1px solid rgba(255,255,255,.14);border-radius:24px;background:#101827;color:#fff;font-family:system-ui,-apple-system,sans-serif;box-shadow:0 24px 80px rgba(0,0,0,.45)">
+            <div style="font-size:42px" aria-hidden="true">🦢</div>
+            <h1 style="margin:14px 0 8px;font-size:24px">Swan ID doğrulaması</h1>
+            <p style="margin:0 0 22px;color:#b8c2d4;line-height:1.55">Doğrulama kartını SwanSport uygulamasında açmak ister misin?</p>
+            <a href="${appUrl}" style="display:block;padding:14px 18px;border-radius:14px;background:#0d9488;color:#fff;text-align:center;font-weight:800;text-decoration:none">Uygulamada aç</a>
+            <a href="${webUrl}" style="display:block;margin-top:10px;padding:13px 18px;color:#d9e1ee;text-align:center;font-weight:700;text-decoration:none">Web'de devam et</a>
+          </div>`;
+        document.body.appendChild(overlay);
+      })();
+    </script>
   </body>
 </html>

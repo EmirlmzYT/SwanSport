@@ -8,6 +8,7 @@ import 'package:swansport_core/swansport_core.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../config/app_environment.dart';
+import '../app_navigator.dart';
 import '../diagnostics/diagnostic_runtime.dart';
 import '../push/push_service.dart';
 import '../swansport_app.dart';
@@ -34,10 +35,13 @@ Future<void> bootstrap(
   bool localTestCenter = false,
 }) async {
   WidgetsFlutterBinding.ensureInitialized();
-  if (localTestCenter && (!environment.isDevelopment ||
-      !environment.enableDebugTools || !isLocalTestBackend(supabaseConfig.url) ||
-      !supabaseConfig.isConfigured)) {
-    throw StateError('Test Merkezi yalnız yapılandırılmış yerel test backend ile açılır.');
+  if (localTestCenter &&
+      (!environment.isDevelopment ||
+          !environment.enableDebugTools ||
+          !isLocalTestBackend(supabaseConfig.url) ||
+          !supabaseConfig.isConfigured)) {
+    throw StateError(
+        'Test Merkezi yalnız yapılandırılmış yerel test backend ile açılır.');
   }
   unawaited(initializeAppDiagnostics());
 
@@ -82,8 +86,8 @@ Future<void> bootstrap(
         runApp(StartupFailureApp(
           environment: environment,
           error: error,
-          onRetry: () => bootstrap(environment, supabaseConfig: supabaseConfig,
-              localTestCenter: localTestCenter),
+          onRetry: () => bootstrap(environment,
+              supabaseConfig: supabaseConfig, localTestCenter: localTestCenter),
         ));
         return;
       }
@@ -108,7 +112,8 @@ Future<void> bootstrap(
   }
 
   if (localTestCenter) {
-    runApp(LocalTestCenterRoot(environment: environment, config: effectiveConfig));
+    runApp(
+        LocalTestCenterRoot(environment: environment, config: effectiveConfig));
     return;
   }
   runApp(
@@ -119,7 +124,9 @@ Future<void> bootstrap(
         supabaseConfigProvider.overrideWithValue(effectiveConfig),
         localTestCenterRequestedProvider.overrideWithValue(localTestCenter),
       ],
-      child: const PushLifecycleObserver(child: SwanSportApp()),
+      child: const SwanDeepLinkObserver(
+        child: PushLifecycleObserver(child: SwanSportApp()),
+      ),
     ),
   );
 }

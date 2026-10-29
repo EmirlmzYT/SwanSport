@@ -173,6 +173,7 @@ void main() {
     });
 
     testWidgets('hata varsa satır yerine hata gösterir', (tester) async {
+      var retries = 0;
       await tester.pumpWidget(wrap(ConsoleTable<_Row>(
         columns: columns,
         rows: const [],
@@ -180,11 +181,15 @@ void main() {
         totalCount: 0,
         rowId: (r) => r.name,
         error: 'RLS reddetti',
+        onRetry: () => retries++,
         onQueryChanged: (_) {},
       )));
 
       expect(find.text('Veri alınamadı'), findsOneWidget);
-      expect(find.textContaining('RLS reddetti'), findsOneWidget);
+      expect(find.text('Bağlantınızı kontrol edip tekrar deneyin.'), findsOneWidget);
+      expect(find.textContaining('RLS reddetti'), findsNothing);
+      await tester.tap(find.text('Tekrar dene'));
+      expect(retries, 1);
     });
   });
 }

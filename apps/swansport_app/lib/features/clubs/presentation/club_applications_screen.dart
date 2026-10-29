@@ -6,6 +6,7 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 import '../../../app/widgets/action_gate.dart';
 import '../../../app/widgets/premium.dart';
+import '../../../app/widgets/swan_module_app_bar.dart';
 import 'coach_accept_sheet.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
@@ -31,6 +32,11 @@ class ClubApplicationsScreen extends ConsumerWidget {
     return SwanScaffold(
       extendBody: true,
       backgroundColor: bg,
+      appBar: swanModuleAppBar(
+        context,
+        title: 'Başvurular',
+        subtitle: (club?.name ?? 'SWANSPORT').toUpperCase(),
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -45,12 +51,6 @@ class ClubApplicationsScreen extends ConsumerWidget {
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(20, 12, 20, 132),
                 children: [
-                  Text((club?.name ?? 'SWANSPORT').toUpperCase(),
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
-                  const SizedBox(height: 3),
-                  Text('Başvurular', style: SwanType.h2(ink)),
-                  const SizedBox(height: 18),
-
                   if (canReview) ...[
                     Text('Kulübüne Gelenler', style: SwanType.h3(ink)),
                     const SizedBox(height: 10),
