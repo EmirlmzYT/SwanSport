@@ -43,8 +43,7 @@ class ProDashboardScreen extends ConsumerWidget {
               _WorkspaceHeader(
                 workspaceLabel: workspace.label,
                 onRefresh: () {
-                  ref.invalidate(proAuthorizedClubsProvider);
-                  ref.invalidate(activeClubProvider);
+                  refreshProWorkspaceData(ref, workspace);
                 },
               ),
               const SizedBox(height: 20),

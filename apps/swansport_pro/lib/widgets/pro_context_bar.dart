@@ -5,6 +5,7 @@ import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 import '../app/pro_theme.dart';
 import '../features/operations/pro_club_context_selector.dart';
+import '../features/operations/pro_tasks_controller.dart';
 import '../workspaces/pro_workspace_controller.dart';
 import '../workspaces/pro_workspace_switcher.dart';
 
@@ -161,6 +162,7 @@ class ProContextBar extends ConsumerWidget {
             onPressed: () {
               ref.invalidateSwanAccess();
               invalidateProFeatureState(ref);
+              refreshProWorkspaceData(ref, workspace);
             },
           ),
           const SizedBox(width: 8),

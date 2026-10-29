@@ -759,5 +759,58 @@ void main() {
       expect(find.byType(ProErrorState), findsOneWidget);
       expect(find.text('Bekleyen operasyon görevi bulunmuyor'), findsNothing);
     });
+
+    testWidgets('refresh actions invoke scoped data invalidation',
+        (tester) async {
+      var refereeFetchCount = 0;
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('ref-refresh-user')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: false,
+              clubRole: null,
+              coachLevel: 0,
+              athleteKind: null,
+              refereeProfile: RefereeProfile(
+                id: 'ref-1',
+                profileId: 'ref-refresh-user',
+                licenseNumber: 'TFF-888',
+                badgeTier: RefereeBadgeTier.national,
+                sportCode: 'futbol',
+                cityCode: '34',
+                isActive: true,
+              ),
+            ),
+          ),
+          refereeDutyMatchesProvider.overrideWith((ref) async {
+            refereeFetchCount++;
+            return const [];
+          }),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.referee;
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: const MaterialApp(home: ProTasksScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(refereeFetchCount, 1);
+
+      final refreshBtn = find.byTooltip('Yenile');
+      expect(refreshBtn, findsOneWidget);
+      await tester.tap(refreshBtn);
+      await tester.pumpAndSettle();
+
+      expect(refereeFetchCount, 2);
+    });
   });
 }
