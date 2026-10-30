@@ -4,6 +4,7 @@ import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/pro_theme.dart';
+import '../../widgets/pro_ui_components.dart';
 
 class ProOperationsFeatureHost extends StatelessWidget {
   const ProOperationsFeatureHost({required this.child, super.key});
@@ -21,9 +22,9 @@ class ProOperationsFeatureHost extends StatelessWidget {
           ink: ProTheme.ink,
           inkMuted: ProTheme.muted,
           accent: ProTheme.primary,
-          danger: Color(0xFFEF4444),
-          warning: Color(0xFFF59E0B),
-          success: Color(0xFF10B981),
+          danger: ProTheme.danger,
+          warning: ProTheme.warning,
+          success: ProTheme.success,
         ),
         child: child,
       );
@@ -183,24 +184,13 @@ final class _ProChrome implements ProFeatureChrome {
     required String confirmLabel,
     String cancelLabel = 'Vazgeç',
   }) async =>
-      await showDialog<bool>(
+      showProDangerDialog(
         context: context,
-        builder: (dialogContext) => AlertDialog(
-          title: Text(title),
-          content: Text(message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext, false),
-              child: Text(cancelLabel),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(dialogContext, true),
-              child: Text(confirmLabel),
-            ),
-          ],
-        ),
-      ) ??
-      false;
+        title: title,
+        message: message,
+        confirmLabel: confirmLabel,
+        cancelLabel: cancelLabel,
+      );
 
   @override
   void showMessage(
@@ -208,20 +198,33 @@ final class _ProChrome implements ProFeatureChrome {
     String message, {
     ProFeatureMessageTone tone = ProFeatureMessageTone.info,
   }) {
+    if (tone == ProFeatureMessageTone.success ||
+        tone == ProFeatureMessageTone.warning) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: ProTheme.background.withValues(alpha: 0),
+          elevation: 0,
+          content: tone == ProFeatureMessageTone.success
+              ? ProSuccessBanner(message: message)
+              : ProUncertainStateBanner(message: message),
+        ),
+      );
+      return;
+    }
     final (bg, fg, icon) = switch (tone) {
       ProFeatureMessageTone.success => (
-          const Color(0xFF10B981),
-          const Color(0xFF03201D),
+          ProTheme.success,
+          ProTheme.onSuccess,
           Icons.check_circle_outline_rounded,
         ),
       ProFeatureMessageTone.danger => (
-          const Color(0xFFEF4444),
-          Colors.white,
+          ProTheme.danger,
+          ProTheme.onDanger,
           Icons.error_outline_rounded,
         ),
       ProFeatureMessageTone.warning => (
-          const Color(0xFFF59E0B),
-          const Color(0xFF1F1300),
+          ProTheme.warning,
+          ProTheme.onWarning,
           Icons.warning_amber_rounded,
         ),
       ProFeatureMessageTone.info => (

@@ -1,9 +1,9 @@
 # SwanSport Pro — Cihaz ve Ölçek Dayanıklılığı Kabul Belgesi
 
-**Tarih**: 30 Ekim 2026  
-**Kapsam**: SwanSport Pro (`apps/swansport_pro`, `packages/swansport_pro_features`)  
-**Başlangıç SHA**: `924be93dc3dc09bac973538bf481a792e23104ac`  
-**Branch**: `gemini/pro-visual-completion`  
+**Tarih**: 30 Ekim 2026
+**Kapsam**: SwanSport Pro (`apps/swansport_pro`, `packages/swansport_pro_features`)
+**Başlangıç SHA**: `924be93dc3dc09bac973538bf481a792e23104ac`
+**Branch**: `gemini/pro-visual-completion`
 **Fiziksel Cihaz Durumu**: **BEKLİYOR — Fiziksel cihaz gerekli** (Simülatör/fiziksel cihaz erişimi bulunmadığından otomatik widget ve render kabul matrisi ile doğrulanmıştır)
 
 ---

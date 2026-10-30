@@ -110,6 +110,13 @@ class _SharedLiveAttendanceScreenState
             safe.kind == OperationErrorKind.unknown;
         if (!_uncertain) _onlineOperationId = null;
         _syncDirty();
+        if (_uncertain && mounted) {
+          ProFeatureHostScope.of(context).chrome.showMessage(
+                context,
+                safe.userMessage,
+                tone: ProFeatureMessageTone.warning,
+              );
+        }
         rethrow;
       }
     });

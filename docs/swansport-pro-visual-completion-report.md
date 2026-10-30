@@ -1,12 +1,12 @@
 # SwanSport Pro — Görsel Tamamlama ve Denetim Kapanış Raporu
 
-**Tarih**: 30 Ekim 2026  
-**Uygulayıcı**: Gemini Ajanı  
-**Denetçi**: Supervising Codex  
-**Branch**: `gemini/pro-visual-completion`  
-**Hedef Branch**: `main`  
-**Başlangıç SHA**: `924be93dc3dc09bac973538bf481a792e23104ac`  
-**Pull Request**: [#8 (Draft)](https://github.com/EmirlmzYT/SwanSport/pull/8)  
+**Tarih**: 30 Ekim 2026
+**Uygulayıcı**: Gemini Ajanı
+**Denetçi**: Supervising Codex
+**Branch**: `gemini/pro-visual-completion`
+**Hedef Branch**: `main`
+**Başlangıç SHA**: `924be93dc3dc09bac973538bf481a792e23104ac`
+**Pull Request**: [#8 (Draft)](https://github.com/EmirlmzYT/SwanSport/pull/8)
 **Çalışma Alanı**: İzole Git Worktree (`%TEMP%\swansport-gemini-pro-visual.f39509`), ana kirli çalışma dizinine kesinlikle dokunulmamıştır.
 
 ---
@@ -27,6 +27,17 @@ SwanSport Pro’nun 5 fazdan oluşan görsel kapanış programı, operasyonel i�
 | **V4** | **Marka, Login, İkon ve Splash**<br>- Beyaz parlama (white flash) engelleme (`#07111F`)<br>- Android splash drawable ve color tokenları<br>- Web splash background-color ve manifest<br>- `ProLoginScreen` resmi başlık ve kurumsal destek<br>- `ProBrand` rozet standardı | **TAMAMLANDI** | `de0a5b7`, `ada11a5`, `06f6c4d`<br>Test: `test/pro_brand_and_login_visual_test.dart` |
 | **V5** | **Son Etkileşim ve Görsel Kapanış**<br>- Hover ve focus halkaları (`InkWell`, `ProTheme`)<br>- Klavye dolaşımı (Tab/Enter) ve semantik etiketler<br>- Kritik aksiyonlar için `showProDangerDialog`<br>- Minimum 48x48 dokunma hedefleri (`FilledButton`, `OutlinedButton`, `TextButton`, `FilterChip`) | **TAMAMLANDI** | `712ace9`, bu rapor<br>Test: `test/pro_interaction_and_focus_test.dart` |
 
+### Supervising Codex entegrasyon düzeltmesi
+
+- Başarı ve belirsiz ağ sonucu bileşenleri gerçek `ProFeatureChrome` mesaj
+  köprüsüne bağlandı.
+- Canlı yoklama ağ sonucu belirsiz olduğunda aynı işlem kimliğini korurken
+  `ProFeatureMessageTone.warning` üzerinden standart uyarıyı gösterir.
+- Operasyon yetki kapıları standart `ProUnauthorizedState` ile fail-closed
+  çalışır.
+- Gerçek host onay akışı `showProDangerDialog` kullanır.
+- Başarı, uyarı ve tehlike renkleri `ProTheme` anlamsal tokenlarından gelir.
+
 ---
 
 ## 3. Otomatik Test Sonuçları ve Kabul Kanıtları
@@ -35,7 +46,7 @@ Tüm otomatik testler ve statik analiz denetimleri sıfır hata ile geçmiştir:
 
 ```
 apps/swansport_pro:
-  00:28 +195: All tests passed! (195/195 PASS)
+  00:24 +198: All tests passed! (198/198 PASS)
   flutter analyze: No issues found!
 
 packages/swansport_pro_features:
@@ -43,7 +54,7 @@ packages/swansport_pro_features:
   flutter analyze: No issues found!
 
 Genel Pro Test Toplamı:
-  336 / 336 test BAŞARILI (100% PASS)
+  339 / 339 test BAŞARILI (100% PASS)
 
 Dart Format Denetimi:
   dart format --output=none --set-exit-if-changed: 24 dosya biçimlendirildi (0 değişiklik, 100% uyumlu)

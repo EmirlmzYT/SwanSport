@@ -33,6 +33,7 @@ void main() {
 
   testWidgets('online save preserves version and uncertain retry operation id',
       (tester) async {
+    final chrome = _Chrome();
     final ids = <String>[];
     var calls = 0;
     List<Map<String, dynamic>>? sent;
@@ -40,6 +41,7 @@ void main() {
       tester,
       now: now,
       operationId: () => 'stable-operation',
+      chrome: chrome,
       save: ({required eventId, required opId, required marks}) async {
         ids.add(opId);
         sent = marks;
@@ -57,6 +59,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('PRIVATE DETAIL'), findsNothing);
     expect(find.text('Aynı işlemi tekrar dene'), findsOneWidget);
+    expect(chrome.messages, hasLength(1));
+    expect(chrome.messages.single.$2, ProFeatureMessageTone.warning);
     expect(
       tester
           .widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Yok'))
@@ -303,6 +307,7 @@ final class _Chrome implements ProFeatureChrome {
 
   bool confirmResult;
   int confirmCalls = 0;
+  final messages = <(String, ProFeatureMessageTone)>[];
 
   @override
   Widget buildPage(
@@ -335,5 +340,7 @@ final class _Chrome implements ProFeatureChrome {
     BuildContext context,
     String message, {
     ProFeatureMessageTone tone = ProFeatureMessageTone.info,
-  }) {}
+  }) {
+    messages.add((message, tone));
+  }
 }

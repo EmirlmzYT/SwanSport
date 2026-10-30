@@ -10,6 +10,12 @@ class ProTheme {
   static const line = Color(0xFF263A55);
   static const primary = Color(0xFF2DD4BF);
   static const secondary = Color(0xFF38BDF8);
+  static const success = Color(0xFF10B981);
+  static const onSuccess = Color(0xFF03201D);
+  static const warning = Color(0xFFF59E0B);
+  static const onWarning = Color(0xFF1F1300);
+  static const danger = Color(0xFFEF4444);
+  static const onDanger = Color(0xFFFFFFFF);
   static const ink = Color(0xFFF8FAFC);
   static const muted = Color(0xFF94A3B8);
 

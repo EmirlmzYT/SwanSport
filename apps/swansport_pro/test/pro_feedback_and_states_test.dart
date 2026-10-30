@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/app/pro_theme.dart';
+import 'package:swansport_pro/features/operations/pro_feature_host.dart';
+import 'package:swansport_pro/features/operations/pro_operations_gate.dart';
 import 'package:swansport_pro/widgets/pro_ui_components.dart';
+import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 void main() {
   group('Pro Durum Ekranları ve Geri Bildirim Sözleşmeleri', () {
@@ -152,6 +156,107 @@ void main() {
 
       expect(find.byIcon(Icons.check_circle_outline_rounded), findsOneWidget);
       expect(find.text('Yoklama başarıyla kaydedildi.'), findsOneWidget);
+    });
+
+    testWidgets(
+        'gerçek Pro host başarı ve belirsiz sonuç bileşenlerini kullanır',
+        (tester) async {
+      final messengerKey = GlobalKey<ScaffoldMessengerState>();
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            scaffoldMessengerKey: messengerKey,
+            theme: ProTheme.dark(),
+            home: ProOperationsFeatureHost(
+              child: Scaffold(
+                body: Builder(
+                  builder: (context) => Column(
+                    children: [
+                      FilledButton(
+                        onPressed: () =>
+                            ProFeatureHostScope.of(context).chrome.showMessage(
+                                  context,
+                                  'İşlem tamamlandı.',
+                                  tone: ProFeatureMessageTone.success,
+                                ),
+                        child: const Text('Başarı'),
+                      ),
+                      FilledButton(
+                        onPressed: () =>
+                            ProFeatureHostScope.of(context).chrome.showMessage(
+                                  context,
+                                  'Aynı işlem kimliği korunuyor.',
+                                  tone: ProFeatureMessageTone.warning,
+                                ),
+                        child: const Text('Belirsiz'),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Başarı'));
+      await tester.pump();
+      expect(find.byType(ProSuccessBanner), findsOneWidget);
+      messengerKey.currentState!.hideCurrentSnackBar();
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Belirsiz'));
+      await tester.pump(const Duration(milliseconds: 500));
+      expect(find.byType(ProUncertainStateBanner), findsOneWidget);
+    });
+
+    testWidgets(
+        'gerçek Pro host kritik onayda standart tehlike diyaloğunu kullanır',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          child: MaterialApp(
+            theme: ProTheme.dark(),
+            home: ProOperationsFeatureHost(
+              child: Builder(
+                builder: (context) => FilledButton(
+                  onPressed: () =>
+                      ProFeatureHostScope.of(context).chrome.confirm(
+                            context,
+                            title: 'Kritik işlem',
+                            message: 'Bu işlem geri alınamaz.',
+                            confirmLabel: 'Onayla',
+                          ),
+                  child: const Text('Aç'),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('Aç'));
+      await tester.pumpAndSettle();
+      expect(find.text('Kritik işlem'), findsOneWidget);
+      expect(find.byIcon(Icons.warning_amber_rounded), findsOneWidget);
+    });
+
+    testWidgets('gerçek operasyon kapısı yetkisiz durumda standart ekranı açar',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            swanAccessProvider.overrideWithValue(SwanAccess.none),
+          ],
+          child: MaterialApp(
+            theme: ProTheme.dark(),
+            home: const ProRefereeOperationsGate(child: SizedBox()),
+          ),
+        ),
+      );
+
+      expect(find.byType(ProUnauthorizedState), findsOneWidget);
+      expect(find.textContaining('aktif hakem operasyonu'), findsOneWidget);
     });
   });
 }

@@ -1,7 +1,7 @@
 # SwanSport Pro — Derin Operasyon Ekranları Görsel Envanteri
 
-**Tarih**: 30 Ekim 2026  
-**Kapsam**: SwanSport Pro Derin Operasyon Ekranları (`apps/swansport_pro`, `packages/swansport_pro_features`)  
+**Tarih**: 30 Ekim 2026
+**Kapsam**: SwanSport Pro Derin Operasyon Ekranları (`apps/swansport_pro`, `packages/swansport_pro_features`)
 **Hedef**: Resmî operasyon dilli, karanlık tema uyumlu, 48px dokunma hedefli ve responsive görsel standardizasyon.
 
 ---

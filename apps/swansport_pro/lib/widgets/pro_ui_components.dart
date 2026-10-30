@@ -347,12 +347,12 @@ class ProUnauthorizedState extends StatelessWidget {
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+                  color: ProTheme.danger.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: const Icon(
                   Icons.lock_person_outlined,
-                  color: Color(0xFFEF4444),
+                  color: ProTheme.danger,
                   size: 28,
                 ),
               ),
@@ -426,17 +426,17 @@ class ProSuccessBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF10B981).withValues(alpha: 0.12),
+        color: ProTheme.success.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: const Color(0xFF10B981).withValues(alpha: 0.30),
+          color: ProTheme.success.withValues(alpha: 0.30),
         ),
       ),
       child: Row(
         children: [
           const Icon(
             Icons.check_circle_outline_rounded,
-            color: Color(0xFF10B981),
+            color: ProTheme.success,
             size: 20,
           ),
           const SizedBox(width: 12),
@@ -444,7 +444,7 @@ class ProSuccessBanner extends StatelessWidget {
             child: Text(
               message,
               style: const TextStyle(
-                color: Color(0xFF10B981),
+                color: ProTheme.success,
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
               ),
@@ -477,10 +477,10 @@ class ProUncertainStateBanner extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF59E0B).withValues(alpha: 0.12),
+        color: ProTheme.warning.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
-          color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
+          color: ProTheme.warning.withValues(alpha: 0.35),
         ),
       ),
       child: Row(
@@ -490,7 +490,7 @@ class ProUncertainStateBanner extends StatelessWidget {
             padding: EdgeInsets.only(top: 2),
             child: Icon(
               Icons.sync_problem_rounded,
-              color: Color(0xFFF59E0B),
+              color: ProTheme.warning,
               size: 20,
             ),
           ),
@@ -503,7 +503,7 @@ class ProUncertainStateBanner extends StatelessWidget {
                 const Text(
                   'İşlem sonucu doğrulanıyor',
                   style: TextStyle(
-                    color: Color(0xFFF59E0B),
+                    color: ProTheme.warning,
                     fontSize: 14,
                     fontWeight: FontWeight.w800,
                   ),
@@ -522,8 +522,8 @@ class ProUncertainStateBanner extends StatelessWidget {
                   OutlinedButton.icon(
                     style: OutlinedButton.styleFrom(
                       minimumSize: const Size(48, 48),
-                      side: const BorderSide(color: Color(0xFFF59E0B)),
-                      foregroundColor: const Color(0xFFF59E0B),
+                      side: const BorderSide(color: ProTheme.warning),
+                      foregroundColor: ProTheme.warning,
                     ),
                     onPressed: onRetry,
                     icon: const Icon(Icons.refresh_rounded, size: 16),
@@ -724,19 +724,19 @@ Future<bool> showProDangerDialog({
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
             side: BorderSide(
-              color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+              color: ProTheme.danger.withValues(alpha: 0.35),
             ),
           ),
           icon: Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+              color: ProTheme.danger.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(
               Icons.warning_amber_rounded,
-              color: Color(0xFFEF4444),
+              color: ProTheme.danger,
               size: 24,
             ),
           ),
@@ -776,8 +776,8 @@ Future<bool> showProDangerDialog({
                 Expanded(
                   child: FilledButton(
                     style: FilledButton.styleFrom(
-                      backgroundColor: const Color(0xFFEF4444),
-                      foregroundColor: Colors.white,
+                      backgroundColor: ProTheme.danger,
+                      foregroundColor: ProTheme.onDanger,
                       minimumSize: const Size(48, 48),
                     ),
                     onPressed: () => Navigator.pop(dialogContext, true),
