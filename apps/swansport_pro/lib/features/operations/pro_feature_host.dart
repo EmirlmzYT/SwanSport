@@ -208,7 +208,44 @@ final class _ProChrome implements ProFeatureChrome {
     String message, {
     ProFeatureMessageTone tone = ProFeatureMessageTone.info,
   }) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
+    final (bg, fg, icon) = switch (tone) {
+      ProFeatureMessageTone.success => (
+          const Color(0xFF10B981),
+          const Color(0xFF03201D),
+          Icons.check_circle_outline_rounded,
+        ),
+      ProFeatureMessageTone.danger => (
+          const Color(0xFFEF4444),
+          Colors.white,
+          Icons.error_outline_rounded,
+        ),
+      ProFeatureMessageTone.warning => (
+          const Color(0xFFF59E0B),
+          const Color(0xFF1F1300),
+          Icons.warning_amber_rounded,
+        ),
+      ProFeatureMessageTone.info => (
+          ProTheme.surfaceRaised,
+          ProTheme.ink,
+          Icons.info_outline_rounded,
+        ),
+    };
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: bg,
+        content: Row(
+          children: [
+            Icon(icon, color: fg, size: 20),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(color: fg, fontWeight: FontWeight.w600),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

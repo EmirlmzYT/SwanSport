@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/app/pro_theme.dart';
 import 'package:swansport_pro/widgets/pro_ui_components.dart';
