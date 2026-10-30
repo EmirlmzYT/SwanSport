@@ -1,4 +1,4 @@
-package com.swansport.swansport_pro
+package com.swansport.pro
 
 import android.app.NotificationChannel
 import android.app.NotificationManager

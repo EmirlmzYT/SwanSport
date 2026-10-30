@@ -60,6 +60,42 @@ class ProAppContractTest(unittest.TestCase):
         manifest_content = manifest.read_text(encoding='utf-8')
         self.assertIn('android:label="SwanSport Pro"', manifest_content)
 
+        activity = (
+            PRO_DIR
+            / 'android'
+            / 'app'
+            / 'src'
+            / 'main'
+            / 'kotlin'
+            / 'com'
+            / 'swansport'
+            / 'pro'
+            / 'MainActivity.kt'
+        )
+        self.assertTrue(
+            activity.is_file(),
+            'MainActivity must match the com.swansport.pro application ID',
+        )
+        self.assertIn(
+            'package com.swansport.pro',
+            activity.read_text(encoding='utf-8'),
+        )
+        self.assertFalse(
+            (
+                PRO_DIR
+                / 'android'
+                / 'app'
+                / 'src'
+                / 'main'
+                / 'kotlin'
+                / 'com'
+                / 'swansport'
+                / 'swansport_pro'
+                / 'MainActivity.kt'
+            ).exists(),
+            'Legacy MainActivity package would crash the production APK',
+        )
+
     def test_ios_identity_and_display_name(self):
         pbxproj = PRO_DIR / 'ios' / 'Runner.xcodeproj' / 'project.pbxproj'
         self.assertTrue(pbxproj.is_file(), "project.pbxproj must exist")
