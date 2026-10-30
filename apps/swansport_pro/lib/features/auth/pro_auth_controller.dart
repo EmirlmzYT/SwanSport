@@ -6,10 +6,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../app/push/pro_push_client.dart';
 
 class ProAuthState {
-  const ProAuthState({
-    this.isSubmitting = false,
-    this.errorMessage,
-  });
+  const ProAuthState({this.isSubmitting = false, this.errorMessage});
 
   final bool isSubmitting;
   final String? errorMessage;
@@ -30,8 +27,8 @@ class ProAuthController extends StateNotifier<ProAuthState> {
   ProAuthController(
     this._sessionService, {
     Future<void> Function()? beforeSignOut,
-  })  : _beforeSignOut = beforeSignOut,
-        super(const ProAuthState());
+  }) : _beforeSignOut = beforeSignOut,
+       super(const ProAuthState());
 
   final AccountSessionService _sessionService;
   final Future<void> Function()? _beforeSignOut;
@@ -56,13 +53,13 @@ class ProAuthController extends StateNotifier<ProAuthState> {
     } on AuthException catch (e) {
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: e.message,
+        errorMessage: _safeSignInErrorMessage(e),
       );
       return false;
-    } catch (e) {
+    } catch (_) {
       state = state.copyWith(
         isSubmitting: false,
-        errorMessage: 'Giriş yapılırken bir hata oluştu: $e',
+        errorMessage: 'Giriş yapılamadı. İnternetini kontrol edip tekrar dene.',
       );
       return false;
     }
@@ -80,11 +77,26 @@ class ProAuthController extends StateNotifier<ProAuthState> {
   }
 }
 
+String _safeSignInErrorMessage(AuthException error) {
+  final message = error.message.toLowerCase();
+  if (message.contains('invalid login credentials') ||
+      message.contains('invalid credentials')) {
+    return 'E-posta adresi veya şifre hatalı.';
+  }
+  if (message.contains('email not confirmed')) {
+    return 'E-posta adresini doğruladıktan sonra tekrar dene.';
+  }
+  if (message.contains('too many requests') || error.statusCode == '429') {
+    return 'Çok fazla giriş denemesi yapıldı. Biraz bekleyip tekrar dene.';
+  }
+  return 'Giriş yapılamadı. Bilgilerini kontrol edip tekrar dene.';
+}
+
 final proAuthControllerProvider =
     StateNotifierProvider<ProAuthController, ProAuthState>((ref) {
-  final sessionService = ref.watch(accountSessionServiceProvider);
-  return ProAuthController(
-    sessionService,
-    beforeSignOut: ref.watch(proPushClientProvider).unregisterFromServer,
-  );
-});
+      final sessionService = ref.watch(accountSessionServiceProvider);
+      return ProAuthController(
+        sessionService,
+        beforeSignOut: ref.watch(proPushClientProvider).unregisterFromServer,
+      );
+    });
