@@ -125,6 +125,9 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                   icon:
                       const Icon(Icons.refresh_rounded, color: ProTheme.muted),
                   tooltip: 'Yenile',
+                  style: IconButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () {
                     refreshProWorkspaceData(ref, workspace);
                   },
@@ -155,12 +158,12 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                       tasksAsync.when(
                         loading: () => const Padding(
                           padding: EdgeInsets.symmetric(vertical: 48),
-                          child: Center(
-                            child: CircularProgressIndicator(),
+                          child: ProLoadingState(
+                            message: 'Görevler kontrol ediliyor…',
                           ),
                         ),
                         error: (err, _) => ProErrorState(
-                          message: 'Görevler yüklenirken bir hata oluştu.',
+                          message: classifyOperationError(err).userMessage,
                           onRetry: () =>
                               refreshProWorkspaceData(ref, workspace),
                         ),
