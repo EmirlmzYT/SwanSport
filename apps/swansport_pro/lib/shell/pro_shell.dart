@@ -99,66 +99,73 @@ class _ProDesktopNavigation extends StatelessWidget {
     return Container(
       width: 252,
       color: ProTheme.surface,
-      padding: const EdgeInsets.fromLTRB(14, 22, 14, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 8),
-            child: _ProBrand(),
-          ),
-          const SizedBox(height: 30),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 12),
-            child: Text(
-              'ÇALIŞMA ALANI',
-              style: TextStyle(
-                color: ProTheme.muted,
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
+      child: SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.fromLTRB(14, 22, 14, 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: _ProBrand(),
               ),
-            ),
-          ),
-          const SizedBox(height: 8),
-          for (var i = 0; i < proNavigationItems.length; i++)
-            Padding(
-              padding: const EdgeInsets.only(bottom: 4),
-              child: _DesktopDestination(
-                item: proNavigationItems[i],
-                selected: currentIndex == i,
-                onTap: () => onDestinationSelected(i),
-                badgeCount: badgeForIndex?.call(i),
-              ),
-            ),
-          const Spacer(),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: ProTheme.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: ProTheme.primary.withValues(alpha: 0.18),
-              ),
-            ),
-            child: const Row(
-              children: [
-                Icon(Icons.verified_user_outlined, color: ProTheme.primary),
-                SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'Yetkiler sunucuda doğrulanır',
-                    style: TextStyle(
-                      color: ProTheme.muted,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                    ),
+              const SizedBox(height: 30),
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 12),
+                child: Text(
+                  'ÇALIŞMA ALANI',
+                  style: TextStyle(
+                    color: ProTheme.muted,
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 1.2,
                   ),
                 ),
-              ],
-            ),
+              ),
+              const SizedBox(height: 8),
+              for (var i = 0; i < proNavigationItems.length; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: _DesktopDestination(
+                    item: proNavigationItems[i],
+                    selected: currentIndex == i,
+                    onTap: () => onDestinationSelected(i),
+                    badgeCount: badgeForIndex?.call(i),
+                  ),
+                ),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: ProTheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: ProTheme.primary.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(
+                      Icons.verified_user_outlined,
+                      color: ProTheme.primary,
+                    ),
+                    SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Yetkiler sunucuda doğrulanır',
+                        style: TextStyle(
+                          color: ProTheme.muted,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

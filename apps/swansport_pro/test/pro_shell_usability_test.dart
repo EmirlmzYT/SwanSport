@@ -210,5 +210,44 @@ void main() {
       expect(tester.takeException(), isNull);
       expect(find.byType(ProShell), findsOneWidget);
     });
+
+    testWidgets('desktop shell survives 1024x768 at text scale 2.0',
+        (tester) async {
+      tester.view.physicalSize = const Size(1024, 768);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountSessionServiceProvider
+                .overrideWithValue(_FakeAccountSessionService()),
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-shell-desktop-scale')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+            proUnreadNotificationsCountProvider.overrideWith((ref) async => 4),
+          ],
+          child: const MediaQuery(
+            data: MediaQueryData(textScaler: TextScaler.linear(2.0)),
+            child: ProApp(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.byType(ProShell), findsOneWidget);
+    });
   });
 }

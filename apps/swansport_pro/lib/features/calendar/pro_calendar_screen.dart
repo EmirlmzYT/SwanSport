@@ -249,24 +249,27 @@ class _CalendarHeader extends StatelessWidget {
                 onPressed: onPrevious,
                 icon: const Icon(Icons.chevron_left_rounded),
                 tooltip: 'Önceki ay',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               ),
-              TextButton(
-                onPressed: onToday,
-                style: TextButton.styleFrom(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  minimumSize: const Size(48, 36),
+              Flexible(
+                child: TextButton(
+                  onPressed: onToday,
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    minimumSize: const Size(48, 48),
+                  ),
+                  child: const Text(
+                    'Bugün',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
-                child: const Text('Bugün'),
               ),
               IconButton(
                 onPressed: onNext,
                 icon: const Icon(Icons.chevron_right_rounded),
                 tooltip: 'Sonraki ay',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
               ),
             ],
           );
@@ -446,11 +449,14 @@ class _MonthGrid extends StatelessWidget {
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             itemCount: leading + days,
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
               mainAxisSpacing: 4,
               crossAxisSpacing: 4,
-              childAspectRatio: 0.95,
+              mainAxisExtent: MediaQuery.textScalerOf(context).scale(32).clamp(
+                    44,
+                    64,
+                  ),
             ),
             itemBuilder: (context, index) {
               if (index < leading) return const SizedBox.shrink();
@@ -488,40 +494,44 @@ class _MonthGrid extends StatelessWidget {
                                 : ProTheme.line.withValues(alpha: 0.7),
                       ),
                     ),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '$dayNumber',
-                          style: TextStyle(
-                            fontSize: 12.5,
-                            color: selected ? ProTheme.primary : ProTheme.ink,
-                            fontWeight: selected || today
-                                ? FontWeight.w900
-                                : FontWeight.w600,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            '$dayNumber',
+                            style: TextStyle(
+                              fontSize: 12.5,
+                              color: selected ? ProTheme.primary : ProTheme.ink,
+                              fontWeight: selected || today
+                                  ? FontWeight.w900
+                                  : FontWeight.w600,
+                            ),
                           ),
-                        ),
-                        if (dayEvents.isNotEmpty) ...[
-                          const SizedBox(height: 3),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              for (final event in dayEvents.take(3))
-                                Container(
-                                  width: 4,
-                                  height: 4,
-                                  margin:
-                                      const EdgeInsets.symmetric(horizontal: 1),
-                                  decoration: BoxDecoration(
-                                    color: _eventColor(event.type),
-                                    shape: BoxShape.circle,
+                          if (dayEvents.isNotEmpty) ...[
+                            const SizedBox(height: 3),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                for (final event in dayEvents.take(3))
+                                  Container(
+                                    width: 4,
+                                    height: 4,
+                                    margin: const EdgeInsets.symmetric(
+                                      horizontal: 1,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _eventColor(event.type),
+                                      shape: BoxShape.circle,
+                                    ),
                                   ),
-                                ),
-                            ],
-                          ),
+                              ],
+                            ),
+                          ],
                         ],
-                      ],
+                      ),
                     ),
                   ),
                 ),

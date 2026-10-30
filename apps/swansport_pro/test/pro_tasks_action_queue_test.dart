@@ -161,5 +161,63 @@ void main() {
       expect(find.textContaining('görev'), findsAtLeastNWidgets(1));
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('actionable task stays usable at 320px and text scale 1.3',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-tasks-responsive')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(
+                  id: 'club-responsive',
+                  name: 'Uzun İsimli Spor Kulübü',
+                  role: 'club_admin',
+                ),
+              ]),
+            ),
+            activeClubProvider.overrideWith(
+              (ref) async => const ClubRef(
+                id: 'club-responsive',
+                name: 'Uzun İsimli Spor Kulübü',
+                role: 'club_admin',
+              ),
+            ),
+            clubTodayAttendanceProvider.overrideWith(
+              (ref) async =>
+                  const ClubTodayAttendance(trainingCount: 3, markedCount: 0),
+            ),
+          ],
+          child: const MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(1.3)),
+              child: ProTasksScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Yoklama Al'), findsOneWidget);
+      expect(tester.takeException(), isNull);
+    });
   });
 }

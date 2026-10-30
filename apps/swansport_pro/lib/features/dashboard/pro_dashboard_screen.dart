@@ -675,7 +675,11 @@ class _QuickActionButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: onTap,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 240),
+          constraints: const BoxConstraints(
+            minWidth: 48,
+            minHeight: 48,
+            maxWidth: 240,
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
@@ -741,9 +745,11 @@ class _TodayItemCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(14),
         border: Border.all(color: ProTheme.line),
       ),
-      child: Row(
-        children: [
-          Container(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 460 ||
+              MediaQuery.textScalerOf(context).scale(14) >= 18;
+          final leading = Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
@@ -751,57 +757,82 @@ class _TodayItemCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: accent, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: ProTheme.ink,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 14,
-                  ),
+          );
+          final details = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  color: ProTheme.ink,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
                 ),
-                const SizedBox(height: 2),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: ProTheme.muted,
-                    fontSize: 12,
-                  ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                subtitle,
+                maxLines: compact ? 3 : 2,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  color: ProTheme.muted,
+                  fontSize: 12,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
+              ),
+            ],
+          );
+          final action = TextButton.icon(
             onPressed: onTap,
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               minimumSize: const Size(48, 48),
             ),
-            child: Row(
+            iconAlignment: IconAlignment.end,
+            icon: const Icon(
+              Icons.chevron_right_rounded,
+              size: 16,
+              color: ProTheme.primary,
+            ),
+            label: Text(
+              actionLabel,
+              style: const TextStyle(
+                color: ProTheme.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+              ),
+            ),
+          );
+
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(
-                  actionLabel,
-                  style: const TextStyle(
-                    color: ProTheme.primary,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 13,
-                  ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    leading,
+                    const SizedBox(width: 12),
+                    Expanded(child: details),
+                  ],
                 ),
-                const SizedBox(width: 4),
-                const Icon(Icons.chevron_right_rounded,
-                    size: 16, color: ProTheme.primary),
+                const SizedBox(height: 6),
+                Align(alignment: Alignment.centerRight, child: action),
               ],
-            ),
-          ),
-        ],
+            );
+          }
+
+          return Row(
+            children: [
+              leading,
+              const SizedBox(width: 12),
+              Expanded(child: details),
+              const SizedBox(width: 8),
+              action,
+            ],
+          );
+        },
       ),
     );
   }

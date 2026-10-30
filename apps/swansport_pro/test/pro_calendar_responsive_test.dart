@@ -117,5 +117,55 @@ void main() {
         await tester.pumpWidget(const SizedBox());
       }
     });
+
+    testWidgets('calendar header and month grid survive 320px at scale 2.0',
+        (tester) async {
+      tester.view.physicalSize = const Size(320, 568);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-cal-scale-two')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+            unifiedCalendarMonthProvider.overrideWith(
+              (ref, month) async => UnifiedCalendarData(
+                [
+                  UnifiedCalendarEvent(
+                    id: 'ev-scale',
+                    type: CalendarEventType.clubTraining,
+                    title: 'Çok Uzun İsimli Profesyonel Takım Antrenmanı',
+                    startsAt: DateTime(month.year, month.month, 15, 18),
+                    status: 'scheduled',
+                  ),
+                ],
+              ),
+            ),
+          ],
+          child: const MaterialApp(
+            home: MediaQuery(
+              data: MediaQueryData(textScaler: TextScaler.linear(2.0)),
+              child: ProCalendarScreen(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+    });
   });
 }

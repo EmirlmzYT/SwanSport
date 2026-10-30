@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/pro_theme.dart';
 import '../../app/push/pro_push_client.dart';
+import '../../widgets/pro_ui_components.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 import '../auth/pro_auth_controller.dart';
 
@@ -53,44 +54,23 @@ class ProAccountScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Row(
-                    children: [
-                      DecoratedBox(
-                        decoration: BoxDecoration(
-                          color: ProTheme.surfaceRaised,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Padding(
-                          padding: EdgeInsets.all(12),
-                          child: Icon(
-                            Icons.manage_accounts_outlined,
-                            color: ProTheme.primary,
-                          ),
+                  const ProPageHeader(
+                    title: 'Hesap & Yetkiler',
+                    subtitle:
+                        'Oturumunuzu, çalışma alanlarınızı ve bildirimlerinizi yönetin.',
+                    leading: DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: ProTheme.surfaceRaised,
+                        shape: BoxShape.circle,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Icon(
+                          Icons.manage_accounts_outlined,
+                          color: ProTheme.primary,
                         ),
                       ),
-                      SizedBox(width: 14),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Hesap & Yetkiler',
-                              style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w800,
-                                color: ProTheme.ink,
-                                letterSpacing: -0.5,
-                              ),
-                            ),
-                            SizedBox(height: 3),
-                            Text(
-                              'Oturumunuzu, çalışma alanlarınızı ve bildirimlerinizi yönetin.',
-                              style: TextStyle(color: ProTheme.muted),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                   const SizedBox(height: 24),
                   Container(
@@ -109,27 +89,29 @@ class ProAccountScreen extends ConsumerWidget {
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF94A3B8),
+                            color: ProTheme.muted,
                           ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           email,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                            color: ProTheme.ink,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const Divider(color: Color(0xFF334155), height: 1),
+                        const Divider(color: ProTheme.line, height: 1),
                         const SizedBox(height: 12),
                         const Text(
                           'Yetkili Çalışma Alanları',
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
-                            color: Color(0xFF94A3B8),
+                            color: ProTheme.muted,
                           ),
                         ),
                         const SizedBox(height: 8),
@@ -143,14 +125,13 @@ class ProAccountScreen extends ConsumerWidget {
                                   horizontal: 10, vertical: 5),
                               decoration: BoxDecoration(
                                 color: isSelected
-                                    ? const Color(0xFF0284C7)
-                                        .withValues(alpha: 0.3)
-                                    : const Color(0xFF0F172A),
-                                borderRadius: BorderRadius.circular(6),
+                                    ? ProTheme.primary.withValues(alpha: 0.14)
+                                    : ProTheme.surfaceRaised,
+                                borderRadius: BorderRadius.circular(10),
                                 border: Border.all(
                                   color: isSelected
-                                      ? const Color(0xFF38BDF8)
-                                      : const Color(0xFF334155),
+                                      ? ProTheme.primary
+                                      : ProTheme.line,
                                 ),
                               ),
                               child: Text(
@@ -161,8 +142,8 @@ class ProAccountScreen extends ConsumerWidget {
                                       ? FontWeight.w600
                                       : FontWeight.normal,
                                   color: isSelected
-                                      ? const Color(0xFF38BDF8)
-                                      : const Color(0xFF94A3B8),
+                                      ? ProTheme.primary
+                                      : ProTheme.muted,
                                 ),
                               ),
                             );
@@ -188,15 +169,17 @@ class ProAccountScreen extends ConsumerWidget {
                             Icon(
                               Icons.notifications_active_outlined,
                               size: 18,
-                              color: Color(0xFF38BDF8),
+                              color: ProTheme.primary,
                             ),
                             SizedBox(width: 8),
-                            Text(
-                              'Profesyonel Bildirim Tercihleri',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                            Expanded(
+                              child: Text(
+                                'Profesyonel Bildirim Tercihleri',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: ProTheme.ink,
+                                ),
                               ),
                             ),
                           ],
@@ -206,11 +189,11 @@ class ProAccountScreen extends ConsumerWidget {
                           'Saha ve operasyon bildirimlerinizi kategorilere göre yönetin.',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Color(0xFF94A3B8),
+                            color: ProTheme.muted,
                           ),
                         ),
                         const SizedBox(height: 12),
-                        const Divider(color: Color(0xFF334155), height: 1),
+                        const Divider(color: ProTheme.line, height: 1),
                         _buildPrefTile(
                           ref: ref,
                           category: 'kulup',
@@ -268,55 +251,68 @@ class ProAccountScreen extends ConsumerWidget {
                           },
                         ),
                         const SizedBox(height: 12),
-                        const Divider(color: Color(0xFF334155), height: 1),
+                        const Divider(color: ProTheme.line, height: 1),
                         const SizedBox(height: 12),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Cihaz Bildirim Durumu',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final status = const Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Cihaz Bildirim Durumu',
+                                  style: TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: ProTheme.ink,
                                   ),
-                                  SizedBox(height: 2),
-                                  Text(
-                                    'Bu cihazda push bildirimleri aktiftir.',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Color(0xFF94A3B8),
-                                    ),
+                                ),
+                                SizedBox(height: 2),
+                                Text(
+                                  'Bu cihazda push bildirimleri aktiftir.',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: ProTheme.muted,
                                   ),
-                                ],
-                              ),
-                            ),
-                            OutlinedButton(
+                                ),
+                              ],
+                            );
+                            final action = OutlinedButton(
                               onPressed: () async {
                                 final client = ref.read(proPushClientProvider);
                                 await client.requestPermission();
                                 await client.registerWithServer();
                               },
                               style: OutlinedButton.styleFrom(
-                                foregroundColor: const Color(0xFF38BDF8),
-                                side:
-                                    const BorderSide(color: Color(0xFF0284C7)),
+                                foregroundColor: ProTheme.primary,
+                                side: const BorderSide(color: ProTheme.primary),
+                                minimumSize: const Size(48, 48),
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 12,
-                                  vertical: 8,
                                 ),
                               ),
                               child: const Text(
                                 'İzin Doğrula',
                                 style: TextStyle(fontSize: 12),
                               ),
-                            ),
-                          ],
+                            );
+                            if (constraints.maxWidth < 480) {
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  status,
+                                  const SizedBox(height: 12),
+                                  action,
+                                ],
+                              );
+                            }
+                            return Row(
+                              children: [
+                                Expanded(child: status),
+                                const SizedBox(width: 12),
+                                action,
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -327,8 +323,8 @@ class ProAccountScreen extends ConsumerWidget {
                     icon: const Icon(Icons.open_in_new_rounded, size: 18),
                     label: const Text("SwanSport'u Aç"),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF38BDF8),
-                      side: const BorderSide(color: Color(0xFF0284C7)),
+                      foregroundColor: ProTheme.primary,
+                      side: const BorderSide(color: ProTheme.primary),
                       minimumSize: const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -344,7 +340,7 @@ class ProAccountScreen extends ConsumerWidget {
                     label: const Text('Çıkış Yap'),
                     style: FilledButton.styleFrom(
                       backgroundColor: ProTheme.surfaceRaised,
-                      foregroundColor: Colors.white,
+                      foregroundColor: ProTheme.ink,
                       minimumSize: const Size(double.infinity, 48),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
@@ -377,18 +373,18 @@ class ProAccountScreen extends ConsumerWidget {
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: Colors.white,
+            color: ProTheme.ink,
           ),
         ),
         subtitle: Text(
           subtitle,
           style: const TextStyle(
             fontSize: 11,
-            color: Color(0xFF94A3B8),
+            color: ProTheme.muted,
           ),
         ),
         value: enabled,
-        activeTrackColor: const Color(0xFF38BDF8),
+        activeTrackColor: ProTheme.primary,
         onChanged: (bool value) async {
           if (ref.read(isSupabaseEnabledProvider)) {
             try {

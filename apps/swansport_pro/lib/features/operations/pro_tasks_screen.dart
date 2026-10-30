@@ -554,10 +554,11 @@ class _TaskTile extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: ProTheme.line),
       ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Container(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 520 ||
+              MediaQuery.textScalerOf(context).scale(14) >= 18;
+          final leading = Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
@@ -565,45 +566,36 @@ class _TaskTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(task.icon, color: accentColor, size: 22),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Row(
-                  children: [
-                    Flexible(
-                      child: Text(
-                        task.title,
-                        style: const TextStyle(
-                          fontSize: 14.5,
-                          fontWeight: FontWeight.w700,
-                          color: ProTheme.ink,
-                        ),
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    ProStatusBadge(label: task.status, tone: badgeTone),
-                  ],
+          );
+          final details = Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                task.title,
+                style: const TextStyle(
+                  fontSize: 14.5,
+                  fontWeight: FontWeight.w700,
+                  color: ProTheme.ink,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  task.context,
-                  style: const TextStyle(
-                    fontSize: 12.5,
-                    color: ProTheme.muted,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                maxLines: compact ? 2 : 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 5),
+              ProStatusBadge(label: task.status, tone: badgeTone),
+              const SizedBox(height: 5),
+              Text(
+                task.context,
+                style: const TextStyle(
+                  fontSize: 12.5,
+                  color: ProTheme.muted,
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 12),
-          FilledButton(
+                maxLines: compact ? 3 : 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          );
+          final action = FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: ProTheme.primary,
               foregroundColor: const Color(0xFF07111F),
@@ -621,8 +613,38 @@ class _TaskTile extends StatelessWidget {
                 fontSize: 13,
               ),
             ),
-          ),
-        ],
+          );
+
+          if (compact) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    leading,
+                    const SizedBox(width: 12),
+                    Expanded(child: details),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                SizedBox(width: double.infinity, child: action),
+              ],
+            );
+          }
+
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              leading,
+              const SizedBox(width: 14),
+              Expanded(child: details),
+              const SizedBox(width: 12),
+              action,
+            ],
+          );
+        },
       ),
     );
   }
