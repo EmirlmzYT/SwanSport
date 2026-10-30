@@ -370,4 +370,89 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   });
+
+  group('Derin Operasyon Ekranları — Responsive Parite Matrisi', () {
+    for (final size in const [
+      Size(320, 568),
+      Size(390, 844),
+      Size(768, 1024),
+      Size(1024, 768),
+      Size(1440, 900),
+    ]) {
+      testWidgets(
+          'Kadro ve Takım ekranı ${size.width.toInt()}x${size.height.toInt()} taşmasız',
+          (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        await tester.pumpWidget(
+          wrapWithHost(
+            const SharedTeamDirectoryScreen(),
+            size: size,
+            overrides: [
+              activeClubProvider.overrideWith((ref) async => testClub),
+              featureFlagsProvider.overrideWith(
+                (ref) async => const FeatureFlags({FeatureFlags.teamHub}),
+              ),
+              teamsProvider.overrideWith((ref) async => const <TeamRow>[]),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Takımlar & Kadrolar'), findsOneWidget);
+      });
+
+      testWidgets(
+          'Hakem operasyonları ${size.width.toInt()}x${size.height.toInt()} taşmasız',
+          (tester) async {
+        tester.view.physicalSize = size;
+        tester.view.devicePixelRatio = 1.0;
+        addTearDown(() {
+          tester.view.resetPhysicalSize();
+          tester.view.resetDevicePixelRatio();
+        });
+
+        await tester.pumpWidget(
+          wrapWithHost(
+            const SharedRefereeOperationsPanel(),
+            size: size,
+            overrides: [
+              swanAccessProvider.overrideWithValue(
+                const SwanAccess(
+                  isPlatformAdmin: false,
+                  clubRole: null,
+                  coachLevel: 0,
+                  athleteKind: null,
+                  refereeProfile: RefereeProfile(
+                    id: 'ref-test',
+                    profileId: 'u-1',
+                    licenseNumber: 'TFF-06-TEST',
+                    badgeTier: RefereeBadgeTier.national,
+                    sportCode: 'futbol',
+                    cityCode: '06',
+                    isActive: true,
+                  ),
+                ),
+              ),
+              featureFlagsProvider.overrideWith(
+                (ref) async =>
+                    const FeatureFlags({FeatureFlags.refereeCockpit}),
+              ),
+              refereeDutyMatchesProvider.overrideWith(
+                (ref) async => const [],
+              ),
+            ],
+          ),
+        );
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+        expect(find.text('Hakem Operasyonları'), findsOneWidget);
+      });
+    }
+  });
 }
