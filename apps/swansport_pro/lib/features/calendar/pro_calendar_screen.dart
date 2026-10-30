@@ -171,7 +171,8 @@ class _CalendarHeader extends StatelessWidget {
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isCompact = constraints.maxWidth < 620;
+          final isCompact = constraints.maxWidth < 620 ||
+              MediaQuery.textScalerOf(context).scale(14) >= 20;
 
           final titleRow = Row(
             children: [

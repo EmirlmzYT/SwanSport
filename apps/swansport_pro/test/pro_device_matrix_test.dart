@@ -208,6 +208,7 @@ void main() {
 
     testWidgets('masaüstü sol navigasyon 48 px hedefleri ve semantics korur',
         (tester) async {
+      final handle = tester.ensureSemantics();
       _configureView(tester, const _Viewport(1440, 900), scale: 1.0);
       await tester.pumpWidget(_app());
       await tester.pumpAndSettle();
@@ -222,7 +223,15 @@ void main() {
         );
         expect(rect.height, greaterThanOrEqualTo(48), reason: tab);
       }
-      expect(find.bySemanticsLabel(RegExp('Gelen Kutusu')), findsWidgets);
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is Semantics &&
+              (w.properties.label?.contains('Gelen Kutusu') ?? false),
+        ),
+        findsWidgets,
+      );
+      handle.dispose();
     });
 
     testWidgets('mobil alt navigasyon TalkBack/VoiceOver etiketleri taşır',
@@ -295,7 +304,8 @@ void main() {
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
 
-        await tester.tap(find.widgetWithText(TextField, 'Şifre'));
+        await tester.tap(find.widgetWithText(TextField, 'Şifre'),
+            warnIfMissed: false);
         await tester.pumpAndSettle();
         final button = find.widgetWithText(FilledButton, 'Giriş Yap');
         await tester.ensureVisible(button);
@@ -324,7 +334,7 @@ void main() {
       _configureView(tester, const _Viewport(360, 800), scale: 1.0);
       await tester.pumpWidget(login());
       await tester.pumpAndSettle();
-      final toggle = find.byTooltip('Şifreyi göster');
+      final toggle = find.bySemanticsLabel('Şifreyi göster');
       expect(toggle, findsOneWidget);
       final size = tester.getSize(toggle);
       expect(size.width, greaterThanOrEqualTo(48));

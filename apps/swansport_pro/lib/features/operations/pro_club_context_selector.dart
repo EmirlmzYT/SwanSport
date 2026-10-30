@@ -44,10 +44,18 @@ class ProClubContextSelector extends ConsumerWidget {
       child: DropdownButton<String>(
         key: const Key('pro-club-selector'),
         value: selected.id,
+        isExpanded: true,
         dropdownColor: const Color(0xFF1C2541),
         items: [
           for (final club in clubs)
-            DropdownMenuItem(value: club.id, child: Text(club.name)),
+            DropdownMenuItem(
+              value: club.id,
+              child: Text(
+                club.name,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
         ],
         onChanged: (id) async {
           if (id == null || !clubs.any((club) => club.id == id)) return;
