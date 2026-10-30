@@ -32,6 +32,33 @@ Session makeSession(String userId) {
 
 void main() {
   group('Pro Accessibility and Responsiveness', () {
+    testWidgets('uses Turkish Material semantics', (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            accountSessionServiceProvider
+                .overrideWithValue(FakeAccountSessionService()),
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(makeSession('user-tr-localizations')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: true,
+                clubRole: 'club_admin',
+                coachLevel: 2,
+                athleteKind: null,
+              ),
+            ),
+          ],
+          child: const ProApp(),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(ProNavigationItem).first);
+      expect(MaterialLocalizations.of(context).backButtonTooltip, 'Geri');
+    });
+
     testWidgets('renders without overflow at 320px width and text scale 2.0',
         (tester) async {
       tester.view.physicalSize = const Size(320 * 3, 640 * 3);

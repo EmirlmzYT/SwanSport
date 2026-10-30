@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/auth/pro_auth_gate.dart';
 import '../features/operations/pro_feature_host.dart';
@@ -16,6 +17,9 @@ class ProApp extends ConsumerWidget {
     return MaterialApp.router(
       title: 'SwanSport Pro',
       debugShowCheckedModeBanner: false,
+      locale: const Locale('tr', 'TR'),
+      supportedLocales: const [Locale('tr', 'TR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       theme: ProTheme.dark(),
       routerConfig: router,
       builder: (context, child) {
