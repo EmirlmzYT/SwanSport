@@ -176,7 +176,7 @@ void main() {
                   officialId: 'off-1',
                   matchId: '11111111-1111-4111-8111-111111111111',
                   duty: MatchOfficialDuty.headReferee,
-                  status: MatchOfficialStatus.assigned,
+                  status: MatchOfficialStatus.accepted,
                   assignedAt: now.subtract(const Duration(hours: 1)),
                   startsAt: now.add(const Duration(hours: 2)),
                   location: 'Kadıköy Stadı',
@@ -245,7 +245,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Kulüp Bütçesi & Finansal Projeksiyon'), findsOneWidget);
+      expect(find.text('Bütçe & Nakit Tahmini'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
       // Geniş ekrana geçişte taşma olmamalı
@@ -337,7 +337,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Puan Durumu'), findsOneWidget);
+      expect(find.text('Lig & Puan Durumu'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 
@@ -366,7 +366,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Tesis Rezervasyonları'), findsOneWidget);
+      expect(find.text('Aktif ve Bekleyen Rezervasyonlar'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

@@ -49,6 +49,9 @@ final class SharedTeamDirectoryScreen extends ConsumerWidget {
         if (canManage)
           IconButton(
             tooltip: 'Takım Ekle',
+            style: IconButton.styleFrom(
+              minimumSize: const Size(48, 48),
+            ),
             icon: Icon(Icons.add_rounded, color: host.theme.inkMuted),
             onPressed: () => _createTeam(context, ref, club.id),
           ),

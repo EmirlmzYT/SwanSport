@@ -325,6 +325,8 @@ class ProStatusBadge extends StatelessWidget {
     };
 
     return Semantics(
+      container: true,
+      excludeSemantics: true,
       label: label,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

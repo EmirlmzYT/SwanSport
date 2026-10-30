@@ -341,6 +341,7 @@ class _SharedLiveAttendanceScreenState
               children: [
                 for (final choice in _labels.entries)
                   ChoiceChip(
+                    materialTapTargetSize: MaterialTapTargetSize.padded,
                     key: Key(
                       'attendance-choice-${row.athleteId}-${choice.key}',
                     ),
