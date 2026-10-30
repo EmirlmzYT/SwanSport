@@ -144,6 +144,9 @@ final class SharedPlatformStatusScreen extends ConsumerWidget {
                     ),
                   ),
                   OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                    ),
                     onPressed: () => host.navigator.openPlatformWebConsole(
                       PlatformWebConsoleSection.missionControl,
                     ),
@@ -181,6 +184,9 @@ final class SharedPlatformAuditScreen extends ConsumerWidget {
                 itemBuilder: (context, index) {
                   if (index == rows.length) {
                     return OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
                       onPressed: () => host.navigator.openPlatformWebConsole(
                         PlatformWebConsoleSection.audit,
                       ),
@@ -226,6 +232,9 @@ final class _SharedPlatformPlansScreenState
       actions: [
         IconButton(
           key: const Key('platform-plan-add'),
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+          ),
           onPressed: _busy || !ref.watch(swanAccessProvider).isPlatformAdmin
               ? null
               : () => _editPlan(),
@@ -258,6 +267,9 @@ final class _SharedPlatformPlansScreenState
                       ),
                     ),
                   OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                    ),
                     onPressed: () => host.navigator.openPlatformWebConsole(
                       PlatformWebConsoleSection.plans,
                     ),
@@ -331,6 +343,9 @@ final class _SharedLaunchWaitlistScreenState
       title: 'Lansman Bekleme Listesi',
       actions: [
         IconButton(
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+          ),
           onPressed: () => host.navigator.openPlatformWebConsole(
             PlatformWebConsoleSection.waitlist,
           ),
@@ -345,6 +360,9 @@ final class _SharedLaunchWaitlistScreenState
                 padding: const EdgeInsets.all(12),
                 child: FilledButton.icon(
                   key: const Key('waitlist-mark-notified'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: _busy ? null : _markNotified,
                   icon: const Icon(Icons.mark_email_read_outlined),
                   label: Text('${_selected.length} kaydı bildirildi işaretle'),
