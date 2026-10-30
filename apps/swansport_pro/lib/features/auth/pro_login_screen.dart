@@ -128,7 +128,7 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                       ),
                     ),
                     Text(
-                      'Profesyonel operasyon merkezi',
+                      'Profesyonel Operasyon Merkezi',
                       style: TextStyle(color: ProTheme.muted, fontSize: 12),
                     ),
                   ],
@@ -268,6 +268,16 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Kurumsal destek: destek@swansport.app',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: ProTheme.muted.withValues(alpha: 0.8),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),
