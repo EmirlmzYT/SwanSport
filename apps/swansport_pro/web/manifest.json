@@ -1,11 +1,11 @@
 {
-    "name": "swansport_pro",
-    "short_name": "swansport_pro",
+    "name": "SwanSport Pro",
+    "short_name": "SwanSport Pro",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#07111F",
+    "theme_color": "#07111F",
+    "description": "SwanSport Pro — Profesyonel Operasyon Merkezi",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
