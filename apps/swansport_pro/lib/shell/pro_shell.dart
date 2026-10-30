@@ -64,7 +64,7 @@ class ProShell extends ConsumerWidget {
         return Scaffold(
           appBar: AppBar(
             titleSpacing: 16,
-            title: const _ProBrand(compact: true),
+            title: const ProBrand(compact: true),
           ),
           body: Column(
             children: [
@@ -107,7 +107,7 @@ class _ProDesktopNavigation extends StatelessWidget {
             children: [
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8),
-                child: _ProBrand(),
+                child: ProBrand(),
               ),
               const SizedBox(height: 30),
               const Padding(
@@ -256,8 +256,8 @@ class _DesktopDestination extends StatelessWidget {
   }
 }
 
-class _ProBrand extends StatelessWidget {
-  const _ProBrand({this.compact = false});
+class ProBrand extends StatelessWidget {
+  const ProBrand({super.key, this.compact = false});
 
   final bool compact;
 
