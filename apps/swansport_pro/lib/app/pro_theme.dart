@@ -17,6 +17,10 @@ class ProTheme {
     final base = SwanTheme.dark();
     return base.copyWith(
       scaffoldBackgroundColor: background,
+      focusColor: primary.withValues(alpha: 0.16),
+      hoverColor: primary.withValues(alpha: 0.08),
+      highlightColor: primary.withValues(alpha: 0.12),
+      splashColor: primary.withValues(alpha: 0.14),
       colorScheme: base.colorScheme.copyWith(
         primary: primary,
         onPrimary: const Color(0xFF03201D),
@@ -79,7 +83,17 @@ class ProTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           foregroundColor: ink,
+          minimumSize: const Size(48, 48),
           side: const BorderSide(color: line),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primary,
+          minimumSize: const Size(48, 48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

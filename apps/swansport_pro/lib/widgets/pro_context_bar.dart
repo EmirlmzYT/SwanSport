@@ -285,6 +285,10 @@ class ProContextBar extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(14),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(14),
+                              hoverColor:
+                                  ProTheme.primary.withValues(alpha: 0.08),
+                              focusColor:
+                                  ProTheme.primary.withValues(alpha: 0.16),
                               onTap: () async {
                                 Navigator.pop(sheetContext);
                                 if (club.id != selected.id) {

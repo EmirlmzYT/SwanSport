@@ -154,6 +154,8 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
           child: InkWell(
             key: const ValueKey('pro_workspace_dropdown_button'),
             borderRadius: BorderRadius.circular(10),
+            hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+            focusColor: ProTheme.primary.withValues(alpha: 0.16),
             onTap: () =>
                 _showMobileBottomSheet(context, ref, available, selected),
             child: Container(
@@ -321,6 +323,8 @@ class _WorkspaceSheetTile extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
+          hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+          focusColor: ProTheme.primary.withValues(alpha: 0.16),
           child: Container(
             constraints: const BoxConstraints(minHeight: 56),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

@@ -202,6 +202,8 @@ class _DesktopDestination extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
+          hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+          focusColor: ProTheme.primary.withValues(alpha: 0.16),
           child: Container(
             constraints: const BoxConstraints(minHeight: 48),
             padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 12),

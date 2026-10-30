@@ -680,6 +680,8 @@ class _FilterChip extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
+          hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+          focusColor: ProTheme.primary.withValues(alpha: 0.16),
           child: Container(
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -705,4 +707,87 @@ class _FilterChip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Kritik veya geri alınamaz işlemler için tehlike teyit diyaloğu.
+Future<bool> showProDangerDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  String confirmLabel = 'Onayla',
+  String cancelLabel = 'Vazgeç',
+}) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: ProTheme.surfaceRaised,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: const Color(0xFFEF4444).withValues(alpha: 0.35),
+            ),
+          ),
+          icon: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: const Color(0xFFEF4444).withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: Color(0xFFEF4444),
+              size: 24,
+            ),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: ProTheme.ink,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontSize: 13.5,
+              color: ProTheme.muted,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: Text(cancelLabel),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFFEF4444),
+                      foregroundColor: Colors.white,
+                      minimumSize: const Size(48, 48),
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: Text(confirmLabel),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ) ??
+      false;
 }
