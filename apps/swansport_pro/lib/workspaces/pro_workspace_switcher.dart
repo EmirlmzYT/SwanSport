@@ -78,19 +78,29 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                for (final ws in available) ...[
-                  _WorkspaceSheetTile(
-                    workspace: ws,
-                    isSelected: ws == selected,
-                    onTap: () async {
-                      Navigator.pop(sheetContext);
-                      if (ws != selected) {
-                        await _performTransition(context, ref, ws);
-                      }
-                    },
+                Flexible(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        for (final ws in available) ...[
+                          _WorkspaceSheetTile(
+                            workspace: ws,
+                            isSelected: ws == selected,
+                            onTap: () async {
+                              Navigator.pop(sheetContext);
+                              if (ws != selected) {
+                                await _performTransition(context, ref, ws);
+                              }
+                            },
+                          ),
+                          const SizedBox(height: 6),
+                        ],
+                      ],
+                    ),
                   ),
-                  const SizedBox(height: 6),
-                ],
+                ),
               ],
             ),
           ),
@@ -115,12 +125,16 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
         children: [
           Icon(selected.icon, size: 18, color: ProTheme.primary),
           const SizedBox(width: 8),
-          Text(
-            selected.label,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: ProTheme.ink,
+          Flexible(
+            child: Text(
+              selected.label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: ProTheme.ink,
+              ),
             ),
           ),
         ],
@@ -140,9 +154,12 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
           child: InkWell(
             key: const ValueKey('pro_workspace_dropdown_button'),
             borderRadius: BorderRadius.circular(10),
+            hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+            focusColor: ProTheme.primary.withValues(alpha: 0.16),
             onTap: () =>
                 _showMobileBottomSheet(context, ref, available, selected),
             child: Container(
+              constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
               padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(10),
@@ -153,12 +170,16 @@ class ProWorkspaceSwitcher extends ConsumerWidget {
                 children: [
                   Icon(selected.icon, size: 17, color: ProTheme.primary),
                   const SizedBox(width: 8),
-                  Text(
-                    selected.label,
-                    style: const TextStyle(
-                      fontSize: 13.5,
-                      fontWeight: FontWeight.w700,
-                      color: ProTheme.ink,
+                  Flexible(
+                    child: Text(
+                      selected.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 13.5,
+                        fontWeight: FontWeight.w700,
+                        color: ProTheme.ink,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 5),
@@ -302,6 +323,8 @@ class _WorkspaceSheetTile extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(14),
+          hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+          focusColor: ProTheme.primary.withValues(alpha: 0.16),
           child: Container(
             constraints: const BoxConstraints(minHeight: 56),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),

@@ -525,11 +525,17 @@ final class _SharedDisciplinaryDecisionDialogState
         ),
         actions: [
           TextButton(
+            style: TextButton.styleFrom(
+              minimumSize: const Size(48, 48),
+            ),
             onPressed: locked ? null : () => Navigator.of(context).pop(false),
             child: const Text('Vazgeç'),
           ),
           FilledButton(
             key: const Key('disciplinary-submit-btn'),
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(48, 48),
+            ),
             onPressed: _busy ? null : _submit,
             child: Text(
               _pendingPayload == null

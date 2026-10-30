@@ -59,7 +59,7 @@ class ProContextBar extends ConsumerWidget {
 
     if (compact) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: const BoxDecoration(
           color: ProTheme.surface,
           border: Border(bottom: BorderSide(color: ProTheme.line)),
@@ -74,7 +74,7 @@ class ProContextBar extends ConsumerWidget {
               ),
               child: Icon(workspace.icon, size: 16, color: ProTheme.primary),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Expanded(
               child: InkWell(
                 onTap: (workspace.supportsClubOperations && clubs.length > 1)
@@ -87,6 +87,8 @@ class ProContextBar extends ConsumerWidget {
                   children: [
                     Text(
                       workspace.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12.5,
                         fontWeight: FontWeight.w800,
@@ -110,7 +112,7 @@ class ProContextBar extends ConsumerWidget {
                           ),
                           if (workspace.supportsClubOperations &&
                               clubs.length > 1) ...[
-                            const SizedBox(width: 3),
+                            const SizedBox(width: 2),
                             const Icon(
                               Icons.unfold_more_rounded,
                               size: 13,
@@ -128,7 +130,7 @@ class ProContextBar extends ConsumerWidget {
                 key: const Key('pro-mobile-club-selector-button'),
                 style: IconButton.styleFrom(
                   minimumSize: const Size(48, 48),
-                  padding: const EdgeInsets.all(12),
+                  padding: const EdgeInsets.all(10),
                 ),
                 tooltip: 'Kulüp Değiştir',
                 icon: const Icon(
@@ -138,17 +140,20 @@ class ProContextBar extends ConsumerWidget {
                 ),
                 onPressed: () => _showMobileClubPicker(context, ref, clubs),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
             ],
-            const ProWorkspaceSwitcher(),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 120),
+              child: const ProWorkspaceSwitcher(),
+            ),
           ],
         ),
       );
     }
 
     return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 24),
+      constraints: const BoxConstraints(minHeight: 72),
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       decoration: const BoxDecoration(
         color: ProTheme.background,
         border: Border(bottom: BorderSide(color: ProTheme.line)),
@@ -164,37 +169,46 @@ class ProContextBar extends ConsumerWidget {
             child: Icon(workspace.icon, size: 20, color: ProTheme.primary),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                '${workspace.label} Merkezi',
-                style: const TextStyle(
-                  color: ProTheme.ink,
-                  fontSize: 17,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.3,
-                ),
-              ),
-              if (scopeLabel != null)
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
                 Text(
-                  scopeLabel,
+                  '${workspace.label} Merkezi',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    color: ProTheme.muted,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+                    color: ProTheme.ink,
+                    fontSize: 17,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.3,
                   ),
                 ),
-            ],
+                if (scopeLabel != null)
+                  Text(
+                    scopeLabel,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      color: ProTheme.muted,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 12),
           if (workspace.supportsClubOperations && clubs.length > 1) ...[
             const SizedBox(width: 220, child: ProClubContextSelector()),
             const SizedBox(width: 12),
           ],
           IconButton(
             tooltip: 'Yenile',
+            style: IconButton.styleFrom(
+              minimumSize: const Size(48, 48),
+            ),
             icon: const Icon(Icons.refresh_rounded,
                 size: 20, color: ProTheme.muted),
             onPressed: () {
@@ -271,6 +285,10 @@ class ProContextBar extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(14),
                             child: InkWell(
                               borderRadius: BorderRadius.circular(14),
+                              hoverColor:
+                                  ProTheme.primary.withValues(alpha: 0.08),
+                              focusColor:
+                                  ProTheme.primary.withValues(alpha: 0.16),
                               onTap: () async {
                                 Navigator.pop(sheetContext);
                                 if (club.id != selected.id) {

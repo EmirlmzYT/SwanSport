@@ -128,7 +128,7 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                       ),
                     ),
                     Text(
-                      'Profesyonel operasyon merkezi',
+                      'Profesyonel Operasyon Merkezi',
                       style: TextStyle(color: ProTheme.muted, fontSize: 12),
                     ),
                   ],
@@ -206,22 +206,29 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
             decoration: InputDecoration(
               labelText: 'Şifre',
               prefixIcon: const Icon(Icons.lock_outline_rounded),
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _obscurePassword
-                      ? Icons.visibility_off_outlined
-                      : Icons.visibility_outlined,
-                  semanticLabel:
-                      _obscurePassword ? 'Şifreyi göster' : 'Şifreyi gizle',
+              suffixIcon: Semantics(
+                label: _obscurePassword ? 'Şifreyi göster' : 'Şifreyi gizle',
+                button: true,
+                child: IconButton(
+                  constraints:
+                      const BoxConstraints(minWidth: 48, minHeight: 48),
+                  icon: Icon(
+                    _obscurePassword
+                        ? Icons.visibility_off_outlined
+                        : Icons.visibility_outlined,
+                  ),
+                  onPressed: () {
+                    setState(() => _obscurePassword = !_obscurePassword);
+                  },
                 ),
-                onPressed: () {
-                  setState(() => _obscurePassword = !_obscurePassword);
-                },
               ),
             ),
           ),
           const SizedBox(height: 22),
           FilledButton(
+            style: FilledButton.styleFrom(
+              minimumSize: const Size(double.infinity, 48),
+            ),
             onPressed: authState.isSubmitting ? null : _submit,
             child: authState.isSubmitting
                 ? const SizedBox(
@@ -235,7 +242,13 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                 : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text('Giriş Yap'),
+                      Flexible(
+                        child: Text(
+                          'Giriş Yap',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
                       SizedBox(width: 8),
                       Icon(Icons.arrow_forward_rounded, size: 19),
                     ],
@@ -255,6 +268,16 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                 ),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Kurumsal destek: destek@swansport.app',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: ProTheme.muted.withValues(alpha: 0.8),
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+            ),
           ),
         ],
       ),

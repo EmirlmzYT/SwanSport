@@ -122,9 +122,10 @@ final class _SharedProInboxScreenState
         Expanded(
           child: filtered.isEmpty
               ? Center(
-                  child: Padding(
+                  child: SingleChildScrollView(
                     padding: const EdgeInsets.all(32),
                     child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Icon(
@@ -289,9 +290,10 @@ final class _SharedProInboxScreenState
         child: CircularProgressIndicator(color: Color(0xFF38BDF8)),
       ),
       error: (e, _) => Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(

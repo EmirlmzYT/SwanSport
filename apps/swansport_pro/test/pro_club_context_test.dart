@@ -118,7 +118,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.textContaining('aktif kulüp operasyon yetkin'), findsOneWidget);
+    expect(find.text('Yetkisiz Erişim'), findsOneWidget);
+    expect(find.textContaining('aktif kulüp operasyonu'), findsOneWidget);
     expect(find.text('PRIVATE OPERATION'), findsNothing);
   });
 }

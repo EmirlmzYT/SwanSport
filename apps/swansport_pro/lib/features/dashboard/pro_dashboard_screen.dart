@@ -220,16 +220,10 @@ class _TodaySection extends ConsumerWidget {
         itemsAsync.when(
           loading: () => const Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              ),
-            ),
+            child: ProLoadingState(message: 'Operasyon verileri yükleniyor…'),
           ),
           error: (err, _) => ProErrorState(
-            message: 'Bugün operasyon verileri yüklenemedi.',
+            message: classifyOperationError(err).userMessage,
             onRetry: () => refreshProWorkspaceData(ref, workspace),
           ),
           data: (items) {

@@ -77,11 +77,17 @@ class SharedTrainingListScreen extends ConsumerWidget {
               spacing: 8,
               children: [
                 OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () => _join(context, ref, host),
                   icon: const Icon(Icons.login),
                   label: const Text('Kodla katıl'),
                 ),
                 OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: host.navigator.openTrainingProtocols,
                   icon: const Icon(Icons.self_improvement),
                   label: const Text('Şablon seç'),
@@ -248,6 +254,9 @@ class _SharedProtocolListScreenState
                           '${protocol.sportCode} · ${protocol.config.mode.label} · ${protocol.config.setCount} set',
                         ),
                         trailing: FilledButton(
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size(48, 48),
+                          ),
                           onPressed: () => _start(context, protocol),
                           child: const Text('Başlat'),
                         ),

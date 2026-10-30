@@ -42,6 +42,8 @@ final class _SharedRefereeDutyListScreenState
 
   Future<void> _respond(RefereeMatchSummary match, bool accept) async {
     if (_busyIds.contains(match.officialId)) return;
+    final host = ProFeatureHostScope.of(context);
+    final theme = host.theme;
     final actorId = ref.read(authSessionProvider).valueOrNull?.user.id;
     String? reason;
     if (!accept) {
@@ -64,11 +66,18 @@ final class _SharedRefereeDutyListScreenState
               ),
               actions: [
                 TextButton(
+                  style: TextButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () => Navigator.of(dialogContext).pop(),
                   child: const Text('Vazgeç'),
                 ),
                 FilledButton(
                   key: const Key('referee-decline-submit-btn'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: theme.danger,
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () {
                     final text = controller.text.trim();
                     if (text.isNotEmpty) {
@@ -183,6 +192,9 @@ final class _SharedRefereeDutyListScreenState
       actions: [
         IconButton(
           tooltip: 'Yenile',
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+          ),
           onPressed: () {
             ref.invalidate(myRefereeMatchesProvider);
             ref.invalidate(refereeDutyMatchesProvider);
@@ -336,12 +348,18 @@ final class _SharedRefereeDutyListScreenState
               children: [
                 FilledButton.icon(
                   key: Key('referee-duty-accept-${match.officialId}'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () => _respond(match, true),
                   icon: const Icon(Icons.check_rounded, size: 18),
                   label: const Text('Kabul Et'),
                 ),
                 OutlinedButton.icon(
                   key: Key('referee-duty-decline-${match.officialId}'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () => _respond(match, false),
                   icon: const Icon(Icons.close_rounded, size: 18),
                   label: const Text('Mazeret Bildir'),
@@ -358,6 +376,9 @@ final class _SharedRefereeDutyListScreenState
               children: [
                 FilledButton.icon(
                   key: Key('referee-duty-lineup-${match.matchId}'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () =>
                       host.navigator.openRefereeLineup(match.matchId),
                   icon: const Icon(Icons.fact_check_outlined, size: 18),
@@ -365,6 +386,9 @@ final class _SharedRefereeDutyListScreenState
                 ),
                 OutlinedButton.icon(
                   key: Key('referee-duty-live-${match.matchId}'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () =>
                       host.navigator.openRefereeLiveCockpit(match.matchId),
                   icon: const Icon(Icons.timer_outlined, size: 18),
@@ -372,6 +396,9 @@ final class _SharedRefereeDutyListScreenState
                 ),
                 OutlinedButton.icon(
                   key: Key('referee-duty-report-${match.matchId}'),
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: () =>
                       host.navigator.openRefereeMatchReport(match.matchId),
                   icon: const Icon(Icons.description_outlined, size: 18),

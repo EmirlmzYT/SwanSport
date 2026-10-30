@@ -4,6 +4,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 import '../../workspaces/pro_workspace_controller.dart';
+import '../../widgets/pro_ui_components.dart';
 import 'pro_club_context_selector.dart';
 import 'pro_feature_host.dart';
 
@@ -24,17 +25,7 @@ class ProOperationsGate extends ConsumerWidget {
       ),
       data: (clubs) {
         if (clubs.isEmpty) {
-          return const Scaffold(
-            body: Center(
-              child: Padding(
-                padding: EdgeInsets.all(24),
-                child: Text(
-                  'Bu çalışma alanında aktif kulüp operasyon yetkin bulunmuyor.',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          );
+          return _unauthorized('aktif kulüp operasyonu');
         }
         final selectedId = ref.watch(selectedClubIdProvider);
         final selected =
@@ -71,17 +62,7 @@ class ProFederationOperationsGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final access = ref.watch(swanAccessProvider);
     if (!access.canOpenFederationOperations) {
-      return const Scaffold(
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Bu çalışma alanında aktif federasyon operasyon yetkin bulunmuyor.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
+      return _unauthorized('aktif federasyon operasyonu');
     }
     final workspace = ref.watch(selectedProWorkspaceProvider);
     final scopeKey = ref.watch(selectedFederationScopeKeyProvider);
@@ -106,17 +87,7 @@ class ProRefereeOperationsGate extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final access = ref.watch(swanAccessProvider);
     if (!access.isReferee) {
-      return const Scaffold(
-        body: Center(
-          child: Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Bu çalışma alanında aktif hakem operasyon yetkin bulunmuyor.',
-              textAlign: TextAlign.center,
-            ),
-          ),
-        ),
-      );
+      return _unauthorized('aktif hakem operasyonu');
     }
     final workspace = ref.watch(selectedProWorkspaceProvider);
     final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
@@ -144,9 +115,7 @@ class ProAccountingOperationsGate extends ConsumerWidget {
     if (!access.isAccountant ||
         clubId == null ||
         !access.accountantClubIds.contains(clubId)) {
-      return const Scaffold(
-        body: Center(child: Text('Aktif muhasebe kulüp kapsamı gerekli.')),
-      );
+      return _unauthorized('aktif muhasebe kulüp kapsamı');
     }
     if (ref.watch(selectedClubIdProvider) != clubId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -183,9 +152,7 @@ class ProFacilityOperationsGate extends ConsumerWidget {
     if (!access.canOpenTurfCenter ||
         scopeId == null ||
         !authorizedScopes.contains(scopeId)) {
-      return const Scaffold(
-        body: Center(child: Text('Aktif tesis operasyon kapsamı gerekli.')),
-      );
+      return _unauthorized('aktif tesis operasyon kapsamı');
     }
     final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
     return ProFeatureContextBoundary(
@@ -206,9 +173,7 @@ class ProPlatformOperationsGate extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     if (!ref.watch(swanAccessProvider).isPlatformAdmin) {
-      return const Scaffold(
-        body: Center(child: Text('Platform yöneticisi yetkisi gerekli.')),
-      );
+      return _unauthorized('platform yöneticisi');
     }
     final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
     return ProFeatureContextBoundary(
@@ -232,9 +197,7 @@ class ProClubSpecialistOperationsGate extends ConsumerWidget {
             access.canReadClubHealth(clubId) ||
             access.canReadClubPlanning(clubId));
     if (!allowed) {
-      return const Scaffold(
-        body: Center(child: Text('Aktif kulüp ihtisas kapsamı gerekli.')),
-      );
+      return _unauthorized('aktif kulüp ihtisas kapsamı');
     }
     final userId = ref.watch(authSessionProvider).valueOrNull?.user.id ?? '';
     return ProFeatureContextBoundary(
@@ -247,3 +210,7 @@ class ProClubSpecialistOperationsGate extends ConsumerWidget {
     );
   }
 }
+
+Widget _unauthorized(String roleName) => Scaffold(
+      body: ProUnauthorizedState(roleName: roleName),
+    );

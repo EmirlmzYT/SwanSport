@@ -263,6 +263,9 @@ class ProErrorState extends StatelessWidget {
               if (onRetry != null) ...[
                 const SizedBox(height: 14),
                 OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    minimumSize: const Size(48, 48),
+                  ),
                   onPressed: onRetry,
                   icon: const Icon(Icons.refresh_rounded, size: 16),
                   label: const Text('Tekrar Dene'),
@@ -271,6 +274,266 @@ class ProErrorState extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Standart yüklenme durumu bileşeni.
+class ProLoadingState extends StatelessWidget {
+  const ProLoadingState({
+    super.key,
+    this.message = 'Yükleniyor…',
+  });
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 16),
+            Text(
+              message,
+              style: const TextStyle(
+                color: ProTheme.muted,
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Standart yetkisiz erişim (Fail-Closed) durumu bileşeni.
+class ProUnauthorizedState extends StatelessWidget {
+  const ProUnauthorizedState({
+    super.key,
+    required this.roleName,
+    this.onBack,
+    this.onChangeWorkspace,
+  });
+
+  final String roleName;
+  final VoidCallback? onBack;
+  final VoidCallback? onChangeWorkspace;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 36),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 420),
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            color: ProTheme.surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: ProTheme.line),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                  color: ProTheme.danger.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: const Icon(
+                  Icons.lock_person_outlined,
+                  color: ProTheme.danger,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'Yetkisiz Erişim',
+                style: TextStyle(
+                  color: ProTheme.ink,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w800,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Bu işlem veya çalışma alanı için $roleName yetkisi gereklidir.',
+                style: const TextStyle(
+                  color: ProTheme.muted,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 20),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                alignment: WrapAlignment.center,
+                children: [
+                  if (onBack != null)
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      onPressed: onBack,
+                      icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                      label: const Text('Geri Dön'),
+                    ),
+                  if (onChangeWorkspace != null)
+                    FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
+                      onPressed: onChangeWorkspace,
+                      icon: const Icon(Icons.swap_horiz_rounded, size: 18),
+                      label: const Text('Çalışma Alanı Değiştir'),
+                    ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Standart işlem başarısı geri bildirim çubuğu.
+class ProSuccessBanner extends StatelessWidget {
+  const ProSuccessBanner({
+    super.key,
+    required this.message,
+    this.action,
+  });
+
+  final String message;
+  final Widget? action;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: ProTheme.success.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: ProTheme.success.withValues(alpha: 0.30),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.check_circle_outline_rounded,
+            color: ProTheme.success,
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(
+                color: ProTheme.success,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          if (action != null) ...[
+            const SizedBox(width: 8),
+            action!,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Ağ gecikmesi veya onay bekleyen mutasyonlar için koruma banner'ı.
+class ProUncertainStateBanner extends StatelessWidget {
+  const ProUncertainStateBanner({
+    super.key,
+    this.message =
+        'Ağ gecikmesi nedeniyle işlem sonucu doğrulanıyor… Lütfen tekrar tıklamayın.',
+    this.onRetry,
+  });
+
+  final String message;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: ProTheme.warning.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: ProTheme.warning.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(top: 2),
+            child: Icon(
+              Icons.sync_problem_rounded,
+              color: ProTheme.warning,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'İşlem sonucu doğrulanıyor',
+                  style: TextStyle(
+                    color: ProTheme.warning,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  message,
+                  style: const TextStyle(
+                    color: ProTheme.ink,
+                    fontSize: 12.5,
+                    height: 1.35,
+                  ),
+                ),
+                if (onRetry != null) ...[
+                  const SizedBox(height: 10),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                      side: const BorderSide(color: ProTheme.warning),
+                      foregroundColor: ProTheme.warning,
+                    ),
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded, size: 16),
+                    label: const Text('Durumu Kontrol Et'),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -325,6 +588,8 @@ class ProStatusBadge extends StatelessWidget {
     };
 
     return Semantics(
+      container: true,
+      excludeSemantics: true,
       label: label,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -415,6 +680,8 @@ class _FilterChip extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
+          hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+          focusColor: ProTheme.primary.withValues(alpha: 0.16),
           child: Container(
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -440,4 +707,87 @@ class _FilterChip extends StatelessWidget {
       ),
     );
   }
+}
+
+/// Kritik veya geri alınamaz işlemler için tehlike teyit diyaloğu.
+Future<bool> showProDangerDialog({
+  required BuildContext context,
+  required String title,
+  required String message,
+  String confirmLabel = 'Onayla',
+  String cancelLabel = 'Vazgeç',
+}) async {
+  return await showDialog<bool>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          backgroundColor: ProTheme.surfaceRaised,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+            side: BorderSide(
+              color: ProTheme.danger.withValues(alpha: 0.35),
+            ),
+          ),
+          icon: Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: ProTheme.danger.withValues(alpha: 0.12),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(
+              Icons.warning_amber_rounded,
+              color: ProTheme.danger,
+              size: 24,
+            ),
+          ),
+          title: Text(
+            title,
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
+              color: ProTheme.ink,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          content: Text(
+            message,
+            style: const TextStyle(
+              fontSize: 13.5,
+              color: ProTheme.muted,
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          actionsPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(48, 48),
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, false),
+                    child: Text(cancelLabel),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ProTheme.danger,
+                      foregroundColor: ProTheme.onDanger,
+                      minimumSize: const Size(48, 48),
+                    ),
+                    onPressed: () => Navigator.pop(dialogContext, true),
+                    child: Text(confirmLabel),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ) ??
+      false;
 }

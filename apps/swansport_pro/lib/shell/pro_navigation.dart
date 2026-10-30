@@ -78,6 +78,8 @@ class ProNavigationItem extends StatelessWidget {
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
+        hoverColor: ProTheme.primary.withValues(alpha: 0.08),
+        focusColor: ProTheme.primary.withValues(alpha: 0.16),
         child: ConstrainedBox(
           constraints: const BoxConstraints(minWidth: 56, minHeight: 48),
           child: AnimatedContainer(
