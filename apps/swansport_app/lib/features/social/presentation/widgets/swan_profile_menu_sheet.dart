@@ -77,19 +77,6 @@ class _ProfileMenu extends ConsumerWidget {
           ),
         );
 
-    final isStaff = access.isClubStaff;
-    final isAccountant = access.isAccountant && !isStaff;
-    final isParent = access.isParent &&
-        ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
-    final isReferee = !profile.isClub &&
-        access.isReferee &&
-        ref.watch(featureEnabledProvider(FeatureFlags.refereeCockpit));
-    final hasTraining = ref.watch(
-      featureEnabledProvider(FeatureFlags.sportTrainingSessions),
-    );
-    final hasTurf =
-        ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
-            ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation));
     final hasDevReport =
         ref.watch(featureEnabledProvider(FeatureFlags.developmentReport));
 
@@ -132,70 +119,8 @@ class _ProfileMenu extends ConsumerWidget {
             ),
             const SizedBox(height: SwanSpace.md),
 
-            // 1. KULÜP YÖNETİMİ
-            if (isStaff) ...[
-              InkWell(
-                onTap: () => open('/kulup-yonetim'),
-                borderRadius: BorderRadius.circular(SwanRadius.md),
-                child: Container(
-                  padding: const EdgeInsets.all(SwanSpace.md),
-                  decoration: BoxDecoration(
-                    color: c.accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                    border: Border.all(color: c.accent.withValues(alpha: 0.35)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(SwanSpace.sm),
-                        decoration: BoxDecoration(
-                          color: c.accentFill,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        ),
-                        child: Icon(
-                          Icons.space_dashboard_rounded,
-                          color: c.onAccent,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: SwanSpace.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Kulüp Yönetim Kokpiti',
-                              style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                            ),
-                            const SizedBox(height: SwanSpace.xs),
-                            Text(
-                              'Kadro, antrenman, aidat ve operasyonlar',
-                              style: SwanType.caption(c.inkMuted),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: c.accent,
-                        size: 22,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: SwanSpace.md),
-            ] else if (isAccountant) ...[
-              entry(
-                Icons.payments_rounded,
-                'Mali İşler & Aidat',
-                '/finans',
-                subtitle: 'Kulüp aidat ve tahsilat takibi',
-              ),
-              const SizedBox(height: SwanSpace.sm),
-            ],
-
-            // 2. KİŞİSEL
+            // Sosyal uygulamada kişisel alanlar kalır; yönetim operasyonları
+            // SwanSport Pro'dan yürütülür.
             sectionHeader('KİŞİSEL'),
             entry(
               Icons.qr_code_2_rounded,
@@ -211,33 +136,12 @@ class _ProfileMenu extends ConsumerWidget {
             entry(Icons.receipt_long_outlined, 'Aidatlarım', '/aidatlarim'),
             entry(Icons.folder_outlined, 'Belgelerim', '/documents'),
             entry(Icons.verified_user_outlined, 'Doğrulama', '/dogrulama'),
-            if (hasTraining)
-              entry(Icons.sports_rounded, 'Antrenmanlarım', '/antrenmanlarim'),
-            if (isReferee)
-              entry(
-                Icons.sports_outlined,
-                'Hakem Görevlerim',
-                '/hakem/gorevler',
-              ),
             if (hasDevReport)
               entry(
                 Icons.insights_rounded,
                 'Gelişim Raporu',
                 '/gelisim-raporu',
               ),
-            if (hasTurf)
-              entry(
-                Icons.sports_tennis_rounded,
-                'Saha İşlemlerim',
-                '/saha-islemlerim',
-              ),
-            if (isParent)
-              entry(
-                Icons.family_restroom_rounded,
-                'Veli İşlem Merkezi',
-                '/veli-izinleri',
-              ),
-
             Divider(color: c.line, height: SwanSpace.xl),
 
             // 3. HESAP VE DESTEK

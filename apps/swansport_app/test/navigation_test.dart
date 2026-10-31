@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// **Neden dosya okuyarak test ediyor:** rota tablosu `MaterialApp` içinde
 /// gömülü; onu çalıştırmadan okumanın tek yolu kaynağı taramak. Kırılganlığı
 /// kabul ediyorum çünkü koruduğu şey daha değerli: 34 girişlik modül menüsü
-/// silindi ve **rotaların erişilebilirliği artık Keşfet ile Profil > Yönetim'e
-/// bağlı.** Oradan bir satır düşerse rota tanımlı kalır ama hiçbir yerden
-/// açılamaz — sessiz kayıp. Bu test onu yakalıyor.
+/// silindi ve sosyal uygulamadaki yönetim girişleri SwanSport Pro'ya
+/// taşınmaya başlandı. Bu test, sosyal menünün operasyon rotalarını yeniden
+/// görünür kılmadığını korur.
 void main() {
   final root = Directory.current.path;
   String read(String rel) => File('$root/$rel').readAsStringSync();
@@ -41,7 +41,7 @@ void main() {
     '/organizasyonlar',
     '/canli-skor',
     '/federasyon-merkezi',
-    // Profil > Yönetim
+    // Kulüp operasyonları (geçiş dönemi: eski ekranlar tanımlı kalır)
     '/kulup-yonetim',
     '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
     '/announcements', '/performance-analytics', '/home-command',
@@ -51,7 +51,6 @@ void main() {
     '/bagis', '/basvurular', '/veli-bagla', '/rehber', '/settings',
     // Profil kısayolları
     '/aidatlarim', '/documents', '/dogrulama', '/antrenmanlarim',
-    '/hakem/gorevler',
     '/kulup/malzeme-zimmet', '/kulup/saglik-takibi', '/kulup/kadro-planlama',
     // Antrenman oturumu (0071-0073). '/antrenman-sonuc' burada YOK:
     // oturum ekranindan acilan bir alt sayfa, girisi kendi baglaminda.
@@ -59,23 +58,17 @@ void main() {
   ];
 
   group('rota bütünlüğü', () {
-    test('profil menüsü rol ve özellik kapılarını birlikte uygular', () {
-      expect(profileMenu.contains('access.isParent &&'), isTrue);
-      expect(
-        profileMenu.contains(
-          'featureEnabledProvider(FeatureFlags.parentHub)',
-        ),
-        isTrue,
-      );
-      expect(profileMenu.contains('access.isReferee &&'), isTrue);
-      expect(
-        profileMenu.contains(
-          'featureEnabledProvider(FeatureFlags.refereeCockpit)',
-        ),
-        isTrue,
-      );
-      expect(profileMenu.contains('if (isStaff)'), isTrue);
-      expect(profileMenu.contains("open('/kulup-yonetim')"), isTrue);
+    test('profil menüsü sosyal ve kişisel alanlarla sınırlı kalır', () {
+      for (final route in [
+        '/kulup-yonetim',
+        '/finans',
+        '/antrenmanlarim',
+        '/hakem/gorevler',
+        '/saha-islemlerim',
+        '/veli-izinleri',
+      ]) {
+        expect(profileMenu.contains("'$route'"), isFalse);
+      }
     });
 
     test('kulüp operasyonları tek kokpit girişinin arkasında kalır', () {
