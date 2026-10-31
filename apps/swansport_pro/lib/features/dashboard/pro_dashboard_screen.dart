@@ -543,6 +543,29 @@ class _TodaySection extends ConsumerWidget {
               ),
             );
           }
+          final duesAsync = ref.watch(clubDuesOverviewProvider);
+          if (duesAsync.isLoading) return const AsyncValue.loading();
+          if (duesAsync.hasError) {
+            return AsyncValue.error(
+              duesAsync.error!,
+              duesAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final dues = duesAsync.valueOrNull?.summary;
+          if (dues != null &&
+              (dues.pendingPaymentCount > 0 || dues.overdueCount > 0)) {
+            list.add(
+              _TodayItemCard(
+                icon: Icons.payments_outlined,
+                tone: _ItemTone.warning,
+                title: 'Aidat & Ödeme İşlemleri',
+                subtitle: '${dues.pendingPaymentCount} ödeme onayı, '
+                    '${dues.overdueCount} gecikmiş aidat bekliyor.',
+                actionLabel: 'İncele',
+                onTap: () => context.push(ProRoutes.clubDues),
+              ),
+            );
+          }
         }
         if (todayAttendance != null) {
           final unrecorded =
@@ -588,7 +611,7 @@ class _QuickActionsRow extends ConsumerWidget {
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: actions.take(4).toList(),
+          children: actions.take(5).toList(),
         ),
       ],
     );
@@ -629,6 +652,13 @@ class _QuickActionsRow extends ConsumerWidget {
               icon: Icons.family_restroom_outlined,
               label: 'Veli Bağlantıları',
               onTap: () => context.push(ProRoutes.guardianLinks),
+            ),
+          );
+          list.add(
+            _QuickActionButton(
+              icon: Icons.payments_outlined,
+              label: 'Aidat Takibi',
+              onTap: () => context.push(ProRoutes.clubDues),
             ),
           );
         }

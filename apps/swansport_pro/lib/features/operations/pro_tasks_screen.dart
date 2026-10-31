@@ -443,6 +443,44 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
               ),
             );
           }
+          final duesAsync = ref.watch(clubDuesOverviewProvider);
+          if (duesAsync.isLoading) return const AsyncValue.loading();
+          if (duesAsync.hasError) {
+            return AsyncValue.error(
+              duesAsync.error!,
+              duesAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final dues = duesAsync.valueOrNull?.summary;
+          if (dues != null && dues.pendingPaymentCount > 0) {
+            list.add(
+              ProTaskItem(
+                id: 'club-pending-payments',
+                icon: Icons.pending_actions_outlined,
+                title: 'Ödeme Bildirimleri',
+                context:
+                    '${dues.pendingPaymentCount} ödeme bildirimi karar bekliyor',
+                priority: ProTaskPriority.now,
+                status: 'Onay Bekliyor',
+                actionLabel: 'İncele',
+                onAction: () => context.push(ProRoutes.clubDues),
+              ),
+            );
+          }
+          if (dues != null && dues.overdueCount > 0) {
+            list.add(
+              ProTaskItem(
+                id: 'club-overdue-dues',
+                icon: Icons.warning_amber_outlined,
+                title: 'Gecikmiş Aidatlar',
+                context: '${dues.overdueCount} aidatın vadesi geçmiş',
+                priority: ProTaskPriority.today,
+                status: 'Gecikmiş',
+                actionLabel: 'Listeyi Aç',
+                onAction: () => context.push(ProRoutes.clubDues),
+              ),
+            );
+          }
         }
         if (todayAttendance != null) {
           final unrecorded =

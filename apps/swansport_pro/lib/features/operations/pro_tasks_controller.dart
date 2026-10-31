@@ -46,7 +46,12 @@ final proPendingTasksCountProvider =
         final guardianOverview =
             ref.watch(clubGuardianLinkOverviewProvider).valueOrNull ??
                 await ref.watch(clubGuardianLinkOverviewProvider.future);
-        return unrecorded + (guardianOverview?.pendingCount ?? 0);
+        final duesOverview = ref.watch(clubDuesOverviewProvider).valueOrNull ??
+            await ref.watch(clubDuesOverviewProvider.future);
+        return unrecorded +
+            (guardianOverview?.pendingCount ?? 0) +
+            (duesOverview?.summary.pendingPaymentCount ?? 0) +
+            (duesOverview?.summary.overdueCount ?? 0);
 
       case ProWorkspace.facility:
         final duties = ref.watch(turfDutiesProvider(0)).valueOrNull ??
@@ -106,6 +111,7 @@ void refreshProWorkspaceData(WidgetRef ref, ProWorkspace workspace) {
     case ProWorkspace.coaching:
       ref.invalidate(clubTodayAttendanceProvider);
       ref.invalidate(clubGuardianLinkOverviewProvider);
+      ref.invalidate(clubDuesOverviewProvider);
       ref.invalidate(activeClubProvider);
       break;
     case ProWorkspace.federation:

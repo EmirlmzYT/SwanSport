@@ -5,6 +5,7 @@ import '../features/account/pro_account_screen.dart';
 import '../features/calendar/pro_calendar_screen.dart';
 import '../features/dashboard/pro_dashboard_screen.dart';
 import '../features/operations/pro_club_management_screen.dart';
+import '../features/operations/pro_club_dues_screen.dart';
 import '../features/operations/pro_guardian_links_screen.dart';
 import '../features/operations/pro_operations_gate.dart';
 import '../features/operations/pro_tasks_screen.dart';
@@ -32,6 +33,7 @@ abstract final class ProRoutes {
   static const trainingResult = '/operasyon/antrenman-sonuc';
   static const clubManagement = '/operasyon/kulup-yonetimi';
   static const guardianLinks = '/operasyon/veli-sporcu-baglantilari';
+  static const clubDues = '/operasyon/aidat-takibi';
 
   // Federation
   static const federationMatches = '/operasyon/federasyon-maclar';
@@ -97,6 +99,7 @@ abstract final class ProRoutes {
     trainingResult,
     clubManagement,
     guardianLinks,
+    clubDues,
     federationMatches,
     refereeAssignments,
     leagueStandings,
@@ -289,6 +292,13 @@ final proRouterProvider = Provider<GoRouter>((ref) {
         path: ProRoutes.guardianLinks,
         builder: (context, state) => const ProOperationsGate(
           child: ProGuardianLinksScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.clubDues,
+        builder: (context, state) => const ProOperationsGate(
+          child: ProClubDuesScreen(),
         ),
       ),
       GoRoute(

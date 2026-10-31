@@ -41,9 +41,6 @@ void main() {
         'bank_unmatched',
         'period_closed',
         'period_blocked',
-        'fee',
-        'fee_reminder',
-        'payment',
         'donation',
       ];
       for (final kind in financeKinds) {
@@ -51,6 +48,15 @@ void main() {
           resolveProNotificationRoute(kind: kind),
           equals('/operasyon/muhasebe'),
           reason: 'Expected $kind to route to /operasyon/muhasebe',
+        );
+      }
+    });
+
+    test('dues notifications route to club dues screen', () {
+      for (final kind in ['fee', 'fee_reminder', 'payment']) {
+        expect(
+          resolveProNotificationRoute(kind: kind),
+          equals('/operasyon/aidat-takibi'),
         );
       }
     });
