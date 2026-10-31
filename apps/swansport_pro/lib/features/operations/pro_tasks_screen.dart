@@ -392,6 +392,33 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
         }
         final todayAttendance = attendanceAsync.valueOrNull;
         final list = <ProTaskItem>[];
+        final access = ref.watch(swanAccessProvider);
+        if (access.isClubAdmin) {
+          final applicationsAsync = ref.watch(clubPendingApplicationsProvider);
+          if (applicationsAsync.isLoading) return const AsyncValue.loading();
+          if (applicationsAsync.hasError) {
+            return AsyncValue.error(
+              applicationsAsync.error!,
+              applicationsAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final applications = applicationsAsync.valueOrNull ?? const [];
+          if (applications.isNotEmpty) {
+            list.add(
+              ProTaskItem(
+                id: 'club-applications',
+                icon: Icons.person_add_alt_1_outlined,
+                title: 'Bekleyen Başvurular',
+                context:
+                    '${applications.length} kulüp başvurusu karar bekliyor',
+                priority: ProTaskPriority.now,
+                status: 'İnceleme Bekliyor',
+                actionLabel: 'İncele',
+                onAction: () => context.push(ProRoutes.clubManagement),
+              ),
+            );
+          }
+        }
         if (todayAttendance != null) {
           final unrecorded =
               (todayAttendance.trainingCount - todayAttendance.markedCount)

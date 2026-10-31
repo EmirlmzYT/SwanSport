@@ -496,6 +496,31 @@ class _TodaySection extends ConsumerWidget {
         }
         final todayAttendance = attendanceAsync.valueOrNull;
         final list = <Widget>[];
+        final access = ref.watch(swanAccessProvider);
+        if (access.isClubAdmin) {
+          final applicationsAsync = ref.watch(clubPendingApplicationsProvider);
+          if (applicationsAsync.isLoading) return const AsyncValue.loading();
+          if (applicationsAsync.hasError) {
+            return AsyncValue.error(
+              applicationsAsync.error!,
+              applicationsAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final applications = applicationsAsync.valueOrNull ?? const [];
+          if (applications.isNotEmpty) {
+            list.add(
+              _TodayItemCard(
+                icon: Icons.person_add_alt_1_outlined,
+                tone: _ItemTone.warning,
+                title: 'Bekleyen Başvurular',
+                subtitle:
+                    '${applications.length} kulüp başvurusu karar bekliyor.',
+                actionLabel: 'İncele',
+                onTap: () => context.push(ProRoutes.clubManagement),
+              ),
+            );
+          }
+        }
         if (todayAttendance != null) {
           final unrecorded =
               (todayAttendance.trainingCount - todayAttendance.markedCount)
@@ -568,6 +593,13 @@ class _QuickActionsRow extends ConsumerWidget {
             ),
           ]);
         }
+        list.add(
+          _QuickActionButton(
+            icon: Icons.business_center_outlined,
+            label: 'Kulüp Yönetimi',
+            onTap: () => context.push(ProRoutes.clubManagement),
+          ),
+        );
         break;
       case ProWorkspace.accounting:
         list.addAll([
