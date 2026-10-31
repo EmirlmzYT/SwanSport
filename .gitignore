@@ -49,3 +49,4 @@ __pycache__/
 
 # Yerel yedek arsivleri — depoya girmemeli (193 MB)
 *.zip
+repomix-output.xml

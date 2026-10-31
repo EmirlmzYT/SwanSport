@@ -1,0 +1,65 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "SwanSport Pro (Chrome - Canlı DB)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/swansport_pro/lib/main_development.dart",
+      "deviceId": "chrome",
+      "args": [
+        "--dart-define-from-file=env/dev.json"
+      ]
+    },
+    {
+      "name": "SwanSport Pro (Edge - Canlı DB)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/swansport_pro/lib/main_development.dart",
+      "deviceId": "edge",
+      "args": [
+        "--dart-define-from-file=env/dev.json"
+      ]
+    },
+    {
+      "name": "SwanSport Pro (Windows Desktop - Canlı DB)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/swansport_pro/lib/main_development.dart",
+      "deviceId": "windows",
+      "args": [
+        "--dart-define-from-file=env/dev.json"
+      ]
+    },
+    {
+      "name": "SwanSport (Chrome - Canlı DB)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/swansport_app/lib/main_development.dart",
+      "deviceId": "chrome",
+      "args": [
+        "--dart-define-from-file=env/dev.json"
+      ]
+    },
+    {
+      "name": "SwanSport (Edge - Canlı DB)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/swansport_app/lib/main_development.dart",
+      "deviceId": "edge",
+      "args": [
+        "--dart-define-from-file=env/dev.json"
+      ]
+    },
+    {
+      "name": "SwanSport (Windows Desktop - Canlı DB)",
+      "request": "launch",
+      "type": "dart",
+      "program": "apps/swansport_app/lib/main_development.dart",
+      "deviceId": "windows",
+      "args": [
+        "--dart-define-from-file=env/dev.json"
+      ]
+    }
+  ]
+}

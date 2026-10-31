@@ -9,10 +9,10 @@
       ]
     },
     "context7": {
-      "command": "npx",
+      "command": "node",
       "args": [
-        "-y",
-        "@upstash/context7-mcp@4.0.4"
+        ".agents/scripts/start-mcp.mjs",
+        "context7"
       ]
     },
     "playwright": {
@@ -21,6 +21,17 @@
         "-y",
         "@playwright/mcp@0.0.79",
         "--isolated"
+      ]
+    }
+  },
+  "_disabled_swansport_postgres_readonly": {
+    "_neden": "Yalnız local veya staging için ayrı SELECT-only rol ve SWANSPORT_READONLY_DATABASE_URL gerekir. URL doldurulmadan açma.",
+    "_geri_almak_icin": "Bu bloktaki config içeriğini mcpServers altına swansport-postgres-readonly adıyla taşı.",
+    "config": {
+      "command": "node",
+      "args": [
+        ".agents/scripts/start-mcp.mjs",
+        "postgres-readonly"
       ]
     }
   },

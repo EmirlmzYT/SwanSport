@@ -36,3 +36,15 @@ melos:
     run:web:
       run: cd apps/swansport_app && flutter run -d edge -t lib/main_development.dart
       description: Run the Flutter web app with the development entrypoint.
+
+    run:app:live:
+      run: cd apps/swansport_app && flutter run -d chrome -t lib/main_development.dart --dart-define-from-file=../../env/dev.json
+      description: Run SwanSport main app in web browser with live database.
+
+    run:pro:dev:
+      run: cd apps/swansport_pro && flutter run -t lib/main_development.dart --dart-define-from-file=../../env/dev.json
+      description: Run SwanSport Pro with development entrypoint and live database.
+
+    run:pro:web:
+      run: cd apps/swansport_pro && flutter run -d chrome -t lib/main_development.dart --dart-define-from-file=../../env/dev.json
+      description: Run SwanSport Pro in web browser with live database.

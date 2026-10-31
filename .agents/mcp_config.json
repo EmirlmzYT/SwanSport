@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "dart": {
+      "command": "dart",
+      "args": [
+        "mcp-server",
+        "--disable",
+        "flutter_driver,widget_inspector,create_project"
+      ]
+    },
+    "context7": {
+      "command": "node",
+      "args": [
+        ".agents/scripts/start-mcp.mjs",
+        "context7"
+      ],
+      "cwd": "."
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@playwright/mcp@0.0.79",
+        "--isolated"
+      ]
+    },
+    "swansport-postgres-readonly": {
+      "command": "node",
+      "args": [
+        ".agents/scripts/start-mcp.mjs",
+        "postgres-readonly"
+      ],
+      "cwd": ".",
+      "disabled": true
+    }
+  }
+}
