@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../widgets/pro_ui_components.dart';
+import 'pro_club_settings_view.dart';
 
 /// Kulüp operasyonlarının sosyal uygulamadan Pro'ya taşınan ilk bölümü.
 class ProClubManagementScreen extends ConsumerWidget {
@@ -14,7 +15,7 @@ class ProClubManagementScreen extends ConsumerWidget {
     final announcements = ref.watch(announcementsProvider);
     final documents = ref.watch(clubDocumentsProvider);
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Kulüp Yönetimi'),
@@ -23,6 +24,7 @@ class ProClubManagementScreen extends ConsumerWidget {
               Tab(text: 'Başvurular'),
               Tab(text: 'Duyurular'),
               Tab(text: 'Belgeler'),
+              Tab(text: 'Ayarlar'),
             ],
           ),
         ),
@@ -48,8 +50,9 @@ class ProClubManagementScreen extends ConsumerWidget {
                         return Card(
                           child: ListTile(
                             title: Text(row.personName ?? 'Başvuru sahibi'),
-                            subtitle:
-                                Text('${row.roleLabel}\n${row.message ?? ''}'),
+                            subtitle: Text(
+                              '${row.roleLabel}\n${row.message ?? ''}',
+                            ),
                             isThreeLine: row.message?.isNotEmpty ?? false,
                             trailing: Wrap(
                               spacing: 4,
@@ -122,22 +125,27 @@ class ProClubManagementScreen extends ConsumerWidget {
                 ],
               ),
             ),
+            const ProClubSettingsView(),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _review(BuildContext context, WidgetRef ref,
-      ClubApplicationRow row, bool accept) async {
+  Future<void> _review(
+    BuildContext context,
+    WidgetRef ref,
+    ClubApplicationRow row,
+    bool accept,
+  ) async {
     try {
       await ref.read(clubApplicationServiceProvider).review(row.id, accept);
       ref.invalidate(clubPendingApplicationsProvider);
     } catch (error) {
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('İşlem tamamlanamadı: $error')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('İşlem tamamlanamadı: $error')));
       }
     }
   }
@@ -180,12 +188,9 @@ class ProClubManagementScreen extends ConsumerWidget {
     }
     final club = await ref.read(activeClubProvider.future);
     if (club == null) return;
-    await ref.read(clubDataServiceProvider).addAnnouncement(
-          club.id,
-          title.text.trim(),
-          body.text.trim(),
-          false,
-        );
+    await ref
+        .read(clubDataServiceProvider)
+        .addAnnouncement(club.id, title.text.trim(), body.text.trim(), false);
     ref.invalidate(announcementsProvider);
   }
 
@@ -274,9 +279,9 @@ class _AnnouncementList extends StatelessWidget {
             ),
           for (final row in rows)
             ListTile(
-              leading: Icon(row.pinned
-                  ? Icons.push_pin_rounded
-                  : Icons.campaign_outlined),
+              leading: Icon(
+                row.pinned ? Icons.push_pin_rounded : Icons.campaign_outlined,
+              ),
               title: Text(row.title),
               subtitle: Text(row.body),
             ),
