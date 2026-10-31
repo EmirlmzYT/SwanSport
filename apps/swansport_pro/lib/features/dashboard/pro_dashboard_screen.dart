@@ -520,6 +520,29 @@ class _TodaySection extends ConsumerWidget {
               ),
             );
           }
+          final guardianAsync = ref.watch(clubGuardianLinkOverviewProvider);
+          if (guardianAsync.isLoading) return const AsyncValue.loading();
+          if (guardianAsync.hasError) {
+            return AsyncValue.error(
+              guardianAsync.error!,
+              guardianAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final pendingGuardianInvites =
+              guardianAsync.valueOrNull?.pendingCount ?? 0;
+          if (pendingGuardianInvites > 0) {
+            list.add(
+              _TodayItemCard(
+                icon: Icons.family_restroom_outlined,
+                tone: _ItemTone.warning,
+                title: 'Bekleyen Veli Davetleri',
+                subtitle:
+                    '$pendingGuardianInvites veli bağlantısı kod kullanımı bekliyor.',
+                actionLabel: 'İncele',
+                onTap: () => context.push(ProRoutes.guardianLinks),
+              ),
+            );
+          }
         }
         if (todayAttendance != null) {
           final unrecorded =
@@ -600,6 +623,15 @@ class _QuickActionsRow extends ConsumerWidget {
             onTap: () => context.push(ProRoutes.clubManagement),
           ),
         );
+        if (ref.watch(swanAccessProvider).isClubAdmin) {
+          list.add(
+            _QuickActionButton(
+              icon: Icons.family_restroom_outlined,
+              label: 'Veli Bağlantıları',
+              onTap: () => context.push(ProRoutes.guardianLinks),
+            ),
+          );
+        }
         break;
       case ProWorkspace.accounting:
         list.addAll([

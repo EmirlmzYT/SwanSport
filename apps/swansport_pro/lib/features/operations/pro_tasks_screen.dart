@@ -418,6 +418,31 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
               ),
             );
           }
+          final guardianAsync = ref.watch(clubGuardianLinkOverviewProvider);
+          if (guardianAsync.isLoading) return const AsyncValue.loading();
+          if (guardianAsync.hasError) {
+            return AsyncValue.error(
+              guardianAsync.error!,
+              guardianAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final pendingGuardianInvites =
+              guardianAsync.valueOrNull?.pendingCount ?? 0;
+          if (pendingGuardianInvites > 0) {
+            list.add(
+              ProTaskItem(
+                id: 'guardian-invites',
+                icon: Icons.family_restroom_outlined,
+                title: 'Bekleyen Veli Davetleri',
+                context:
+                    '$pendingGuardianInvites kullanılmamış veli bağlantı daveti bekliyor',
+                priority: ProTaskPriority.now,
+                status: 'Bağlantı Bekliyor',
+                actionLabel: 'İncele',
+                onAction: () => context.push(ProRoutes.guardianLinks),
+              ),
+            );
+          }
         }
         if (todayAttendance != null) {
           final unrecorded =
