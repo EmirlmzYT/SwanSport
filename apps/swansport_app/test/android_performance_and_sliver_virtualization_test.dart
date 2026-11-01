@@ -157,7 +157,7 @@ void main() {
             'Ana haber kartı görseli hedef ekrana göre ResizeImage ile sınırlandırılmalıdır.',
       );
       expect(
-        file.contains('cacheWidth: (240 *'),
+        RegExp(r'cacheWidth:\s*\(240\s*\*').hasMatch(file),
         isTrue,
         reason:
             'Haber karuseli görseli kart genişliğine göre cacheWidth ile sınırlandırılmalıdır.',
