@@ -137,7 +137,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     } catch (e) {
       final msg = '$e'.contains('duplicate') || '$e'.contains('unique')
           ? 'Bu kullanıcı adı alınmış, başka bir tane dene.'
-          : friendlyErrorMessage(e, defaultMessage: 'Profil güncellenemedi. Lütfen tekrar deneyin.');
+          : friendlyErrorMessage(e,
+              defaultMessage: 'Profil güncellenemedi. Lütfen tekrar deneyin.');
       if (mounted) _snack(msg, context.swan.danger);
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -666,5 +667,4 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
       ),
     );
   }
-
 }

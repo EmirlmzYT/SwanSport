@@ -59,8 +59,16 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Kulüp Finansı', actions: [
-        IconButton(tooltip: 'Banka bilgileri', icon: Icon(Icons.account_balance_outlined, color: context.swan.inkMuted), onPressed: _editBank),
-        IconButton(tooltip: 'Mali iş kuyruğu', icon: Icon(Icons.notifications_active_outlined, color: context.swan.inkMuted), onPressed: () => context.swanPush(AppRoutes.financeTasks)),
+        IconButton(
+            tooltip: 'Banka bilgileri',
+            icon: Icon(Icons.account_balance_outlined,
+                color: context.swan.inkMuted),
+            onPressed: _editBank),
+        IconButton(
+            tooltip: 'Mali iş kuyruğu',
+            icon: Icon(Icons.notifications_active_outlined,
+                color: context.swan.inkMuted),
+            onPressed: () => context.swanPush(AppRoutes.financeTasks)),
       ]),
       extendBody: true,
       backgroundColor: bg,
@@ -71,8 +79,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(
               children: [
-                Padding(padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.md),
-                  child: _buildTabSwitcher(pendingCount)),
+                Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                        SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.md),
+                    child: _buildTabSwitcher(pendingCount)),
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -80,9 +90,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       await ref.read(financeSummaryProvider.future);
                     },
                     child: ListView(
-                      padding: const EdgeInsets.fromLTRB(16, 12, 16, SwanSpace.xl * 5),
+                      padding: const EdgeInsets.fromLTRB(
+                          16, 12, 16, SwanSpace.xl * 5),
                       children: [
-                        Text(club?.name ?? 'Kulüp seçilmedi', style: SwanType.caption(palette.inkMuted)),
+                        Text(club?.name ?? 'Kulüp seçilmedi',
+                            style: SwanType.caption(palette.inkMuted)),
                         const SizedBox(height: SwanSpace.sm),
                         // Live Projection Header Strip
                         _buildProjectionStrip(palette),
@@ -115,7 +127,6 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
 
                         const SizedBox(height: 8),
 
-
                         // Active Tab Content
                         switch (_tab) {
                           1 => _buildPaymentsSection(palette),
@@ -135,19 +146,24 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
     );
   }
 
-
-
   Widget _buildProjectionStrip(SwanPalette palette) => Row(children: [
-    Expanded(child: Text('Aidat ve tahsilat özeti', maxLines: 1,
-        overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.inkMuted))),
-    const SizedBox(width: SwanSpace.sm),
-    Flexible(child: TextButton.icon(
-      onPressed: () => setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
-      icon: Icon(Icons.calendar_month_rounded, color: palette.accent),
-      label: Text(_period.isEmpty ? 'Tüm Dönemler' : _period, maxLines: 1,
-          overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.ink)),
-    )),
-  ]);
+        Expanded(
+            child: Text('Aidat ve tahsilat özeti',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.caption(palette.inkMuted))),
+        const SizedBox(width: SwanSpace.sm),
+        Flexible(
+            child: TextButton.icon(
+          onPressed: () =>
+              setState(() => _period = _period.isEmpty ? _thisPeriod : ''),
+          icon: Icon(Icons.calendar_month_rounded, color: palette.accent),
+          label: Text(_period.isEmpty ? 'Tüm Dönemler' : _period,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.caption(palette.ink)),
+        )),
+      ]);
 
   Widget _buildCashflowCard(
     FinanceSummary? summary,
@@ -194,15 +210,21 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                           ),
                         ),
                         const SizedBox(width: 6),
-                        Flexible(child: Text(
-                          'KULÜP FİNANS ÖZETİ', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
+                        Flexible(
+                            child: Text(
+                          'KULÜP FİNANS ÖZETİ',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: SwanType.caption(context.swan.accent,
+                              w: FontWeight.w700),
                         )),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       'Tüm dönemlerin aidatları',
-                      style: SwanType.h3(context.swan.ink).copyWith(fontWeight: FontWeight.w700),
+                      style: SwanType.h3(context.swan.ink)
+                          .copyWith(fontWeight: FontWeight.w700),
                     ),
                     const SizedBox(height: 2),
                     Text(
@@ -223,7 +245,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   children: [
                     Text(
                       '%${(rate * 100).round()}',
-                      style: SwanType.h3(context.swan.ink).copyWith(fontWeight: FontWeight.w800),
+                      style: SwanType.h3(context.swan.ink)
+                          .copyWith(fontWeight: FontWeight.w800),
                     ),
                     Text(
                       'oran',
@@ -237,7 +260,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           const SizedBox(height: 16),
 
           // 2x2 Snapshot KPIs
-          _responsiveCards([
+          _responsiveCards(
+            [
               _snapshotTile(
                 title: 'Toplam Tahsilat',
                 icon: Icons.account_balance_wallet_rounded,
@@ -299,8 +323,13 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(
-                title, maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w600),
+              Expanded(
+                  child: Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    SwanType.caption(context.swan.inkMuted, w: FontWeight.w600),
               )),
               Icon(icon, size: 14, color: iconColor),
             ],
@@ -310,7 +339,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             children: [
               Text(
                 amount,
-                style: SwanType.h3(context.swan.ink).copyWith(fontWeight: FontWeight.w700),
+                style: SwanType.h3(context.swan.ink)
+                    .copyWith(fontWeight: FontWeight.w700),
               ),
               const SizedBox(height: 2),
               Text(
@@ -327,45 +357,50 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   Widget _buildMetricsGrid(FinanceSummary? summary, SwanPalette palette) {
     final rate = summary?.rate ?? 0.0;
 
-    return _responsiveCards([
+    return _responsiveCards(
+      [
         _buildMetricCard(
-            icon: Icons.pie_chart_rounded,
-            iconColor: palette.accent,
-            badge: '%${(rate * 100).round()}',
-            title: 'Tahsilat Oranı',
-            value: money(summary?.collected ?? 0),
-            subtext: 'Bütçelenen',
-            palette: palette,
-          ),
+          icon: Icons.pie_chart_rounded,
+          iconColor: palette.accent,
+          badge: '%${(rate * 100).round()}',
+          title: 'Tahsilat Oranı',
+          value: money(summary?.collected ?? 0),
+          subtext: 'Bütçelenen',
+          palette: palette,
+        ),
         _buildMetricCard(
-            icon: Icons.account_balance_rounded,
-            iconColor: context.swan.accent,
-            badge: 'Aylık',
-            title: 'Toplam Tahakkuk',
-            value: money(summary?.billed ?? 0),
-            subtext: 'Genel Borç',
-            palette: palette,
-          ),
+          icon: Icons.account_balance_rounded,
+          iconColor: context.swan.accent,
+          badge: 'Aylık',
+          title: 'Toplam Tahakkuk',
+          value: money(summary?.billed ?? 0),
+          subtext: 'Genel Borç',
+          palette: palette,
+        ),
         _buildMetricCard(
-            icon: Icons.shield_rounded,
-            iconColor: palette.warning,
-            badge: 'Kalan',
-            title: 'Gecikmiş Tutar',
-            value: money(summary?.overdueTotal ?? 0),
-            subtext: '${summary?.overdueCount ?? 0} Sporcu',
-            palette: palette,
-          ),
-      ], maxColumns: 3,
+          icon: Icons.shield_rounded,
+          iconColor: palette.warning,
+          badge: 'Kalan',
+          title: 'Gecikmiş Tutar',
+          value: money(summary?.overdueTotal ?? 0),
+          subtext: '${summary?.overdueCount ?? 0} Sporcu',
+          palette: palette,
+        ),
+      ],
+      maxColumns: 3,
     );
   }
 
   Widget _responsiveCards(List<Widget> cards, {int maxColumns = 2}) =>
       LayoutBuilder(builder: (context, constraints) {
         final columns = (constraints.maxWidth / (SwanSpace.xl * 6))
-            .floor().clamp(1, maxColumns);
-        final width = (constraints.maxWidth - SwanSpace.sm * (columns - 1)) / columns;
-        return Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm,
-          children: [for (final card in cards) SizedBox(width: width, child: card)]);
+            .floor()
+            .clamp(1, maxColumns);
+        final width =
+            (constraints.maxWidth - SwanSpace.sm * (columns - 1)) / columns;
+        return Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm, children: [
+          for (final card in cards) SizedBox(width: width, child: card)
+        ]);
       });
 
   Widget _buildMetricCard({
@@ -508,9 +543,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
               color: isPrimary ? context.swan.onAccent : palette.ink,
             ),
             const SizedBox(width: 6),
-            Flexible(child: Text(
+            Flexible(
+                child: Text(
               label,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.caption(
                 isPrimary ? context.swan.onAccent : palette.ink,
                 w: FontWeight.w700,
               ),
@@ -540,10 +578,15 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Row(
+              Expanded(
+                  child: Row(
                 children: [
-                  Flexible(child: Text(
-                    'İşlem Bekleyenler', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+                  Flexible(
+                      child: Text(
+                    'İşlem Bekleyenler',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
                   )),
                   const SizedBox(width: 6),
                   Container(
@@ -557,7 +600,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                     ),
                     child: Text(
                       '${pendingCount + (summary?.overdueCount ?? 0)}',
-                      style: SwanType.caption(context.swan.onAccent, w: FontWeight.w700),
+                      style: SwanType.caption(context.swan.onAccent,
+                          w: FontWeight.w700),
                     ),
                   ),
                 ],
@@ -627,8 +671,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       ),
                       child: Text(
                         'Hatırlat',
-                        style:
-                            SwanType.caption(context.swan.onAccent, w: FontWeight.w700),
+                        style: SwanType.caption(context.swan.onAccent,
+                            w: FontWeight.w700),
                       ),
                     ),
                   ),
@@ -704,10 +748,10 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
   }
 
   Widget _buildTabSwitcher(int pendingCount) => SwanSegmentedTabs(
-    labels: ['Borçlar', 'Ödemeler ($pendingCount)', 'Planlar'],
-    selected: _tab,
-    onSelect: (i) => setState(() => _tab = i),
-  );
+        labels: ['Borçlar', 'Ödemeler ($pendingCount)', 'Planlar'],
+        selected: _tab,
+        onSelect: (i) => setState(() => _tab = i),
+      );
 
   // ------------------------- TAB 0: BORÇLAR -------------------------
   Widget _buildLedgerSection(SwanPalette palette) {
@@ -719,12 +763,19 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: Text(
-              'Borç Listesi', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+            Expanded(
+                child: Text(
+              'Borç Listesi',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
             )),
-            Flexible(child: Text(
+            Flexible(
+                child: Text(
               _period.isEmpty ? 'Tüm Kayıtlar' : _period,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.accent, w: FontWeight.w600),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.caption(palette.accent, w: FontWeight.w600),
             )),
           ],
         ),
@@ -798,7 +849,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
             ),
           ),
           const SizedBox(width: 8),
-          Flexible(child: Column(
+          Flexible(
+              child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
@@ -930,7 +982,11 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                   ],
                 ),
               ),
-              Flexible(child: Text(money(p.amount), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(palette.accent))),
+              Flexible(
+                  child: Text(money(p.amount),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.h3(palette.accent))),
             ],
           ),
           if (p.note != null && p.note!.trim().isNotEmpty) ...[
@@ -1023,8 +1079,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: Text(
-              'Aidat Planları', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
+            Expanded(
+                child: Text(
+              'Aidat Planları',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.bodySm(palette.ink, w: FontWeight.w700),
             )),
             GestureDetector(
               onTap: _addPlan,
@@ -1043,9 +1103,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                       color: context.swan.onAccent,
                     ),
                     const SizedBox(width: 4),
-                    Flexible(child: Text(
+                    Flexible(
+                        child: Text(
                       'Plan Ekle',
-                      maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.caption(
                         context.swan.onAccent,
                         w: FontWeight.w700,
                       ),
@@ -1096,9 +1159,12 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                                 ],
                               ),
                             ),
-                            Flexible(child: Text(
+                            Flexible(
+                                child: Text(
                               money(p.amount),
-                              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: SwanType.bodySm(
                                 palette.accent,
                                 w: FontWeight.w700,
                               ),
@@ -1327,7 +1393,8 @@ class _FinanceScreenState extends ConsumerState<FinanceScreen> {
                 ),
                 subtitle: Text(
                   money(p.amount),
-                  style: SwanType.caption(context.swan.accent, w: FontWeight.w600),
+                  style:
+                      SwanType.caption(context.swan.accent, w: FontWeight.w600),
                 ),
                 onTap: () => Navigator.pop(ctx, p.id),
               ),

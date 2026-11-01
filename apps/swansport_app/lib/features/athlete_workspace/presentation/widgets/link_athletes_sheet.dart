@@ -97,8 +97,8 @@ class _LinkSheetState extends ConsumerState<_LinkSheet> {
                   onTap: () => setState(() => _picked = null),
                   child: Padding(
                     padding: const EdgeInsets.only(right: SwanSpace.sm),
-                    child: Icon(Icons.arrow_back_rounded,
-                        size: 18, color: c.ink),
+                    child:
+                        Icon(Icons.arrow_back_rounded, size: 18, color: c.ink),
                   ),
                 ),
               Expanded(
@@ -124,14 +124,12 @@ class _LinkSheetState extends ConsumerState<_LinkSheet> {
               ),
             ]),
           ),
-
           if (_error != null)
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.sm),
               child: Text(_error!, style: SwanType.bodySm(c.danger)),
             ),
-
           Flexible(
             child: _busy
                 ? const Padding(
@@ -172,7 +170,8 @@ class _LinkSheetState extends ConsumerState<_LinkSheet> {
               shrinkWrap: true,
               itemCount: rows.length,
               itemBuilder: (_, i) => ListTile(
-                leading: Icon(Icons.link_off_rounded, size: 20, color: c.warning),
+                leading:
+                    Icon(Icons.link_off_rounded, size: 20, color: c.warning),
                 title: Text(rows[i].fullName, style: SwanType.body(c.ink)),
                 trailing: Icon(Icons.chevron_right_rounded,
                     size: 18, color: c.inkMuted),
@@ -213,12 +212,10 @@ class _LinkSheetState extends ConsumerState<_LinkSheet> {
                       : NetworkImage(rows[i].avatarUrl!),
                   child: rows[i].avatarUrl != null
                       ? null
-                      : Icon(Icons.person_rounded,
-                          size: 18, color: c.inkMuted),
+                      : Icon(Icons.person_rounded, size: 18, color: c.inkMuted),
                 ),
                 title: Text(rows[i].displayName,
-                    style: SwanType.body(
-                        rows[i].hasName ? c.ink : c.inkMuted)),
+                    style: SwanType.body(rows[i].hasName ? c.ink : c.inkMuted)),
                 trailing: Text('Bağla', style: SwanType.bodySm(c.accent)),
                 onTap: () => _link(rows[i]),
               ),

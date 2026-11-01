@@ -37,7 +37,10 @@ class _PhoneVerificationSectionState
     _timer?.cancel();
     setState(() => _countdown = 60);
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (!mounted) { timer.cancel(); return; }
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
       if (_countdown <= 1) {
         timer.cancel();
         setState(() => _countdown = 0);
@@ -55,8 +58,10 @@ class _PhoneVerificationSectionState
     if (message.contains('invalid token') || message.contains('invalid otp')) {
       return 'Girdiğiniz doğrulama kodu hatalı. Lütfen kontrol edip tekrar deneyin.';
     }
-    if (message.contains('sms provider') || message.contains('phone provider') ||
-        message.contains('phone auth is disabled') || message.contains('not enabled')) {
+    if (message.contains('sms provider') ||
+        message.contains('phone provider') ||
+        message.contains('phone auth is disabled') ||
+        message.contains('not enabled')) {
       return 'SMS doğrulama servisi henüz aktif değil. Lütfen aşağıdaki Kimlik Belgesi Doğrulama adımıyla devam edin.';
     }
     return '$error';
@@ -107,7 +112,8 @@ class _PhoneVerificationSectionState
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
         Text('Telefon doğrulaması', style: SwanType.h3(c.ink)),
         const SizedBox(height: SwanSpace.sm),
-        if (access.hasVerificationTier('phone') || access.hasVerificationTier('id'))
+        if (access.hasVerificationTier('phone') ||
+            access.hasVerificationTier('id'))
           Container(
             padding: const EdgeInsets.all(SwanSpace.md),
             decoration: BoxDecoration(
@@ -118,8 +124,10 @@ class _PhoneVerificationSectionState
             child: Row(children: [
               Icon(Icons.check_circle_rounded, color: c.success, size: 20),
               const SizedBox(width: SwanSpace.sm),
-              Expanded(child: Text('Tesis ve partner işlemleri için doğrulamanız tamam.',
-                style: SwanType.bodySm(c.success, w: FontWeight.w600))),
+              Expanded(
+                  child: Text(
+                      'Tesis ve partner işlemleri için doğrulamanız tamam.',
+                      style: SwanType.bodySm(c.success, w: FontWeight.w600))),
             ]),
           )
         else ...[
@@ -144,8 +152,8 @@ class _PhoneVerificationSectionState
               keyboardType: TextInputType.number,
               autofillHints: const [AutofillHints.oneTimeCode],
               style: SwanType.bodySm(c.ink),
-              decoration:
-                  const InputDecoration(labelText: '6 Haneli SMS Kodu', hintText: '123456'),
+              decoration: const InputDecoration(
+                  labelText: '6 Haneli SMS Kodu', hintText: '123456'),
             ),
             TextButton(
                 onPressed: _busy
@@ -157,13 +165,16 @@ class _PhoneVerificationSectionState
                           _countdown = 0;
                           _timer?.cancel();
                         }),
-                child: Text('Numarayı Değiştir', style: SwanType.bodySm(c.accent))),
+                child: Text('Numarayı Değiştir',
+                    style: SwanType.bodySm(c.accent))),
             if (_countdown > 0)
-              Text('Tekrar gönder: ${_countdown}s', style: SwanType.caption(c.inkMuted))
+              Text('Tekrar gönder: ${_countdown}s',
+                  style: SwanType.caption(c.inkMuted))
             else
               TextButton(
                 onPressed: _busy ? null : () => _submit(resend: true),
-                child: Text('Tekrar Kod Gönder', style: SwanType.bodySm(c.accent)),
+                child:
+                    Text('Tekrar Kod Gönder', style: SwanType.bodySm(c.accent)),
               ),
           ],
           if (_error != null) ...[

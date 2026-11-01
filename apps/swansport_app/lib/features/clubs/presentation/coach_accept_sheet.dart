@@ -61,9 +61,9 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
             const SizedBox(height: 16),
             Text('Antrenörü Kabul Et', style: SwanType.h2(ink)),
             const SizedBox(height: 4),
-            Text(widget.personName, style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
+            Text(widget.personName,
+                style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
             const SizedBox(height: 18),
-
             Text('Kademe', style: SwanType.h3(ink)),
             const SizedBox(height: 8),
             Container(
@@ -89,7 +89,9 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         child: Text('$n',
-                            style: SwanType.bodySm(on ? Colors.white : SwanColors.textSecondary, w: FontWeight.w800)),
+                            style: SwanType.bodySm(
+                                on ? Colors.white : SwanColors.textSecondary,
+                                w: FontWeight.w800)),
                       ),
                     ),
                   );
@@ -98,9 +100,8 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
             ),
             const SizedBox(height: 6),
             Text(_levelLabel(_level),
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
-
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600)),
             if (_needsSupervisor) ...[
               const SizedBox(height: 18),
               Text('Süpervizör', style: SwanType.h3(ink)),
@@ -122,7 +123,8 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                   child: Text(
                       'Kulüpte uygun süpervizör yok. Önce 2. kademe veya üstü '
                       'bir antrenör eklemelisin.',
-                      style: SwanType.caption(SwanPalette.light.danger, w: FontWeight.w600)),
+                      style: SwanType.caption(SwanPalette.light.danger,
+                          w: FontWeight.w600)),
                 )
               else
                 ...widget.supervisors.map((s) {
@@ -158,7 +160,6 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
                   );
                 }),
             ],
-
             const SizedBox(height: 20),
             GestureDetector(
               onTap: _canSubmit
@@ -184,7 +185,8 @@ class _CoachAcceptSheetState extends State<CoachAcceptSheet> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
                 child: Text('Vazgeç',
-                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                    style: SwanType.bodySm(SwanColors.textSecondary,
+                        w: FontWeight.w700)),
               ),
             ),
           ],

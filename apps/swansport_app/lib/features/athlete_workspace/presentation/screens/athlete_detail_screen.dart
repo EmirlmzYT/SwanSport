@@ -40,9 +40,13 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
     return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
-      header: async.valueOrNull == null ? null : SwanTopBar(
-        title: 'Sporcu Detayı', subtitle: async.valueOrNull!.position ?? 'Sporcu',
-        showBack: true, onBack: () => Navigator.maybePop(context)),
+      header: async.valueOrNull == null
+          ? null
+          : SwanTopBar(
+              title: 'Sporcu Detayı',
+              subtitle: async.valueOrNull!.position ?? 'Sporcu',
+              showBack: true,
+              onBack: () => Navigator.maybePop(context)),
       body: SafeArea(
         bottom: false,
         child: Center(
@@ -67,7 +71,6 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
                 return Column(
                   children: [
                     // Stitch Top Bar
-
 
                     Expanded(
                       child: ListView(

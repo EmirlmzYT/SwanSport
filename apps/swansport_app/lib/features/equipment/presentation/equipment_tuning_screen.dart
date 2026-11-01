@@ -103,7 +103,8 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Kayıtlı Malzemeler', style: SwanType.h3(c.ink)),
+                              Text('Kayıtlı Malzemeler',
+                                  style: SwanType.h3(c.ink)),
                               FilledButton.icon(
                                 onPressed: () => _openAddEquipmentModal(
                                   context: context,
@@ -288,7 +289,8 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
                       [
                         eq.categoryLabel,
                         if ((eq.brandModel ?? '').isNotEmpty) eq.brandModel!,
-                        if ((eq.serialNo ?? '').isNotEmpty) 'S/N: ${eq.serialNo}',
+                        if ((eq.serialNo ?? '').isNotEmpty)
+                          'S/N: ${eq.serialNo}',
                       ].join(' · '),
                       style: SwanType.caption(c.inkMuted),
                     ),
@@ -395,8 +397,7 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
     required String? profileId,
   }) async {
     if (profileId == null) return;
-    final athlete =
-        await ref.read(athleteByProfileProvider(profileId).future);
+    final athlete = await ref.read(athleteByProfileProvider(profileId).future);
     if (athlete == null) return;
 
     final nameController = TextEditingController();
@@ -642,8 +643,12 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
                                 setModalState(() => isSaving = true);
                                 try {
                                   final tuning = <String, dynamic>{};
-                                  if (tuneKeyController.text.trim().isNotEmpty &&
-                                      tuneValController.text.trim().isNotEmpty) {
+                                  if (tuneKeyController.text
+                                          .trim()
+                                          .isNotEmpty &&
+                                      tuneValController.text
+                                          .trim()
+                                          .isNotEmpty) {
                                     tuning[tuneKeyController.text.trim()] =
                                         tuneValController.text.trim();
                                   }
@@ -922,8 +927,8 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content:
-                                            Text('Kalibrasyon ve bakım güncellendi.'),
+                                        content: Text(
+                                            'Kalibrasyon ve bakım güncellendi.'),
                                         backgroundColor: Color(0xFF10B981),
                                       ),
                                     );
@@ -933,7 +938,8 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        content: Text('Güncelleme başarısız: $e'),
+                                        content:
+                                            Text('Güncelleme başarısız: $e'),
                                         backgroundColor: c.danger,
                                       ),
                                     );
@@ -975,4 +981,3 @@ class _EquipmentTuningScreenState extends ConsumerState<EquipmentTuningScreen> {
     );
   }
 }
-

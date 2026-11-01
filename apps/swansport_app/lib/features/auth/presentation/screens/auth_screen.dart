@@ -39,8 +39,7 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
 
     if (!mounted) return;
     if (success) {
-      final isSignUp =
-          ref.read(authControllerProvider).mode == AuthMode.signUp;
+      final isSignUp = ref.read(authControllerProvider).mode == AuthMode.signUp;
       final accountId = controller.accountId;
       final needsGuide = isSignUp ||
           (accountId != null && await setupWizardRequired(accountId));
@@ -346,7 +345,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                             if (!isSignUp) ...[
                               const SizedBox(height: 6),
                               TextButton.icon(
-                                onPressed: () => _showTestAccountsSheet(context, c),
+                                onPressed: () =>
+                                    _showTestAccountsSheet(context, c),
                                 icon: Icon(Icons.key_rounded,
                                     size: 17, color: c.accent),
                                 label: Text(
@@ -518,7 +518,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Test Hesapları (Hızlı Giriş)', style: SwanType.h3(c.ink)),
+                  Text('Test Hesapları (Hızlı Giriş)',
+                      style: SwanType.h3(c.ink)),
                   IconButton(
                     onPressed: () => Navigator.pop(ctx),
                     icon: Icon(Icons.close_rounded, color: c.inkMuted),
@@ -534,7 +535,8 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: _kQuickTestAccounts.length,
-                  separatorBuilder: (_, __) => Divider(height: 1, color: c.line),
+                  separatorBuilder: (_, __) =>
+                      Divider(height: 1, color: c.line),
                   itemBuilder: (_, index) {
                     final item = _kQuickTestAccounts[index];
                     return ListTile(
@@ -544,8 +546,10 @@ class _AuthScreenState extends ConsumerState<AuthScreen> {
                         backgroundColor: c.accent.withValues(alpha: 0.12),
                         child: Icon(item.icon, color: c.accent, size: 20),
                       ),
-                      title: Text(item.title, style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                      subtitle: Text(item.subtitle, style: SwanType.caption(c.inkMuted)),
+                      title: Text(item.title,
+                          style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
+                      subtitle: Text(item.subtitle,
+                          style: SwanType.caption(c.inkMuted)),
                       onTap: () {
                         setState(() {
                           _emailController.text = item.email;

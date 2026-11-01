@@ -21,8 +21,7 @@ class FederationAdminScreen extends ConsumerStatefulWidget {
       _FederationAdminScreenState();
 }
 
-class _FederationAdminScreenState
-    extends ConsumerState<FederationAdminScreen> {
+class _FederationAdminScreenState extends ConsumerState<FederationAdminScreen> {
   final _search = TextEditingController();
   CommunityRow? _channel;
   List<SuggestionRow> _results = const [];
@@ -108,8 +107,7 @@ class _FederationAdminScreenState
                     ),
                   ),
                   const SizedBox(width: 14),
-                  Text('Federasyon Yetkilileri',
-                      style: SwanType.h3(ink)),
+                  Text('Federasyon Yetkilileri', style: SwanType.h3(ink)),
                 ]),
               ),
               Expanded(
@@ -117,7 +115,8 @@ class _FederationAdminScreenState
                   padding: const EdgeInsets.fromLTRB(20, 0, 20, 30),
                   children: [
                     Text('1 · KANAL SEÇ',
-                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                        style: SwanType.caption(SwanColors.textSecondary,
+                            w: FontWeight.w800)),
                     const SizedBox(height: 10),
                     channels.when(
                       loading: () => premiumLoading(),
@@ -133,19 +132,18 @@ class _FederationAdminScreenState
                                 padding: const EdgeInsets.symmetric(
                                     horizontal: 13, vertical: 9),
                                 decoration: BoxDecoration(
-                                  color: _channel?.id == c.id
-                                      ? kTeal
-                                      : surf,
+                                  color: _channel?.id == c.id ? kTeal : surf,
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                      color: _channel?.id == c.id
-                                          ? kTeal
-                                          : line),
+                                      color:
+                                          _channel?.id == c.id ? kTeal : line),
                                 ),
                                 child: Text(c.name,
-                                    style: SwanType.caption(_channel?.id == c.id
+                                    style: SwanType.caption(
+                                        _channel?.id == c.id
                                             ? Colors.white
-                                            : ink, w: FontWeight.w700)),
+                                            : ink,
+                                        w: FontWeight.w700)),
                               ),
                             ),
                         ],
@@ -153,7 +151,8 @@ class _FederationAdminScreenState
                     ),
                     const SizedBox(height: 24),
                     Text('2 · KİŞİ ARA',
-                        style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                        style: SwanType.caption(SwanColors.textSecondary,
+                            w: FontWeight.w800)),
                     const SizedBox(height: 10),
                     TextField(
                       controller: _search,
@@ -173,7 +172,8 @@ class _FederationAdminScreenState
                     const SizedBox(height: 12),
                     if (_channel == null)
                       Text('Önce bir kanal seç.',
-                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600))
+                          style: SwanType.caption(SwanColors.textSecondary,
+                              w: FontWeight.w600))
                     else
                       for (final r in _results)
                         Container(
@@ -186,8 +186,7 @@ class _FederationAdminScreenState
                           ),
                           child: Row(children: [
                             SocialAvatar(
-                                initials:
-                                    r.name.isEmpty ? '?' : r.name[0],
+                                initials: r.name.isEmpty ? '?' : r.name[0],
                                 imageUrl: r.avatarUrl,
                                 size: 38),
                             const SizedBox(width: 11),
@@ -196,12 +195,14 @@ class _FederationAdminScreenState
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(r.name,
-                                      style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                                      style: SwanType.bodySm(ink,
+                                          w: FontWeight.w700)),
                                   if (r.subtitle != null)
                                     Text(r.subtitle!,
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
-                                        style: SwanType.caption(SwanColors.textSecondary)),
+                                        style: SwanType.caption(
+                                            SwanColors.textSecondary)),
                                 ],
                               ),
                             ),
@@ -216,7 +217,8 @@ class _FederationAdminScreenState
                                   borderRadius: BorderRadius.circular(11),
                                 ),
                                 child: Text('Yetkili yap',
-                                    style: SwanType.caption(Colors.white, w: FontWeight.w800)),
+                                    style: SwanType.caption(Colors.white,
+                                        w: FontWeight.w800)),
                               ),
                             ),
                           ]),

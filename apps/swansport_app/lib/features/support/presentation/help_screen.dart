@@ -68,7 +68,6 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: SwanSpace.lg),
                 child: StitchInlineSearchField(

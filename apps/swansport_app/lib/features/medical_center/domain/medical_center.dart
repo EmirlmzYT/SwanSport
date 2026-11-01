@@ -376,9 +376,7 @@ class MedicalFilter {
       final matchBranch = trContains(profile.branch, q);
       final matchTeam = trContains(profile.team, q);
       final matchInjury = profile.injuries.any(
-        (i) =>
-            trContains(i.type, q) ||
-            trContains(i.bodyRegion, q),
+        (i) => trContains(i.type, q) || trContains(i.bodyRegion, q),
       );
       if (!matchName && !matchBranch && !matchTeam && !matchInjury) {
         return false;

@@ -37,10 +37,9 @@ Future<UpdateInfo?> checkForUpdate() async {
     final info = await PackageInfo.fromPlatform();
     final localVersion = '${info.version}+${info.buildNumber}';
 
-    final res = await http
-        .get(Uri.parse(kReleasesUrl),
-            headers: {'Accept': 'application/vnd.github+json'})
-        .timeout(const Duration(seconds: 8));
+    final res = await http.get(Uri.parse(kReleasesUrl), headers: {
+      'Accept': 'application/vnd.github+json'
+    }).timeout(const Duration(seconds: 8));
     if (res.statusCode != 200) return null;
 
     final body = jsonDecode(res.body) as Map<String, dynamic>;

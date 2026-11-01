@@ -8,8 +8,13 @@ import 'package:swansport_app/features/social/presentation/widgets/feed_entry.da
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   test('feed starts with content, not administrative or fake story blocks', () {
-    final source = File('lib/features/social/presentation/feed_screen.dart').readAsStringSync();
-    for (final removed in ['StitchStoriesBar', 'TodayTasks', 'AttendanceQueueBanner']) {
+    final source = File('lib/features/social/presentation/feed_screen.dart')
+        .readAsStringSync();
+    for (final removed in [
+      'StitchStoriesBar',
+      'TodayTasks',
+      'AttendanceQueueBanner'
+    ]) {
       expect(source.contains(removed), isFalse);
     }
     expect(source.contains('Tümü (Keşfet)'), isTrue);
@@ -17,7 +22,9 @@ void main() {
     expect(source.contains('newsProvider'), isTrue);
   });
   test('wordmark and inbox use shared tokens and real counts', () {
-    final header = File('lib/features/social/presentation/widgets/stitch_feed_widgets.dart').readAsStringSync();
+    final header = File(
+            'lib/features/social/presentation/widgets/stitch_feed_widgets.dart')
+        .readAsStringSync();
     expect(header.contains('GoogleFonts'), isFalse);
     expect(header.contains('Color(0x'), isFalse);
     expect(header.contains('unreadNotificationsProvider'), isTrue);
@@ -26,28 +33,51 @@ void main() {
     expect(type.contains('grandHotel'), isFalse);
   });
   test('post actions and animation survive borderless shell', () {
-    final source = File('lib/features/social/presentation/widgets/post_card.dart').readAsStringSync();
-    for (final action in ['_likePop.dispose()', '_toggleLike', '_openComments', '_openMenu', '_toggleSaved', 'showShareSheet', 'showRepostSheet']) {
+    final source =
+        File('lib/features/social/presentation/widgets/post_card.dart')
+            .readAsStringSync();
+    for (final action in [
+      '_likePop.dispose()',
+      '_toggleLike',
+      '_openComments',
+      '_openMenu',
+      '_toggleSaved',
+      'showShareSheet',
+      'showRepostSheet'
+    ]) {
       expect(source.contains(action), isTrue);
     }
     expect(source.contains('Border.all'), isFalse);
     expect(source.contains('BoxShadow'), isFalse);
     expect(source.contains('Color(0x'), isFalse);
   });
-  for (final scheme in ['https://example.com/news', 'javascript:alert(1)', '']) {
+  for (final scheme in [
+    'https://example.com/news',
+    'javascript:alert(1)',
+    ''
+  ]) {
     testWidgets('news editorial label and safe link: $scheme', (tester) async {
-      final item = NewsItem(title: 'Günün spor haberi', sourceName: 'Spor Kaynağı', publishedAt: DateTime(2026, 10, 12), summary: 'Haber özeti', link: scheme);
-      await tester.pumpWidget(MaterialApp(home: Scaffold(body: ListView(children: [NewsCard(item: item)]))));
+      final item = NewsItem(
+          title: 'Günün spor haberi',
+          sourceName: 'Spor Kaynağı',
+          publishedAt: DateTime(2026, 10, 12),
+          summary: 'Haber özeti',
+          link: scheme);
+      await tester.pumpWidget(MaterialApp(
+          home: Scaffold(body: ListView(children: [NewsCard(item: item)]))));
       expect(find.text('SPOR GÜNDEMİ'), findsOneWidget);
       expect(find.text('Günün spor haberi'), findsOneWidget);
       expect(find.text('Haber özeti'), findsOneWidget);
-      expect(tester.widget<AspectRatio>(find.byType(AspectRatio)).aspectRatio, 16 / 9);
-      expect(find.text('Haberi Oku ↗'), scheme.startsWith('https') ? findsOneWidget : findsNothing);
+      expect(tester.widget<AspectRatio>(find.byType(AspectRatio)).aspectRatio,
+          16 / 9);
+      expect(find.text('Haberi Oku ↗'),
+          scheme.startsWith('https') ? findsOneWidget : findsNothing);
       expect(tester.takeException(), isNull);
     });
   }
 
-  testWidgets('NewsCarouselCard renders horizontal scroll list with news items', (tester) async {
+  testWidgets('NewsCarouselCard renders horizontal scroll list with news items',
+      (tester) async {
     final items = List.generate(
       5,
       (i) => NewsItem(
@@ -72,7 +102,8 @@ void main() {
     expect(find.text('Günün Spor Gündemi'), findsOneWidget);
     expect(find.text('5 Haber'), findsOneWidget);
     expect(find.text('Haber Başlığı 0'), findsOneWidget);
-    expect(find.byType(ListView), findsNWidgets(2)); // Outer vertical and inner horizontal ListView
+    expect(find.byType(ListView),
+        findsNWidgets(2)); // Outer vertical and inner horizontal ListView
     expect(tester.takeException(), isNull);
   });
 }

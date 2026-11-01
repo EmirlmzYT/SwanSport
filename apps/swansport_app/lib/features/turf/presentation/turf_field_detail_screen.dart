@@ -43,7 +43,10 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
 
     return SwanScaffold(
       backgroundColor: bg,
-      appBar: swanModuleAppBar(context, title: _field.name, subtitle: '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}'),
+      appBar: swanModuleAppBar(context,
+          title: _field.name,
+          subtitle:
+              '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}'),
       body: async.when(
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
@@ -71,33 +74,40 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                   Text('Bu saha için müsait saat bulunmuyor.',
                       style: SwanType.bodySm(ink)),
                 if (isManager) _managerBanner(isDark, ink),
-                Wrap(spacing: SwanSpace.sm, runSpacing: SwanSpace.sm, children: [
-                if (ref
-                    .watch(featureEnabledProvider(FeatureFlags.turfDelegation)))
-                  ActionChip(
-                    backgroundColor: context.swan.surface,
-                    avatar: Icon(Icons.schedule_rounded, color: context.swan.inkMuted),
-                    onPressed: () =>
-                        Navigator.pushNamed(context, '/saha-islemlerim'),
-                    label: const Text('Saha görevlerim'),
-                  ),
-                if (ref.watch(
-                      featureEnabledProvider(FeatureFlags.turfDelegation),
-                    ) &&
-                    ref.watch(swanAccessProvider).isTurfManagerOf(_field.id))
-                  ActionChip(
-                    backgroundColor: context.swan.surface,
-                    avatar: Icon(Icons.person_add_outlined, color: context.swan.inkMuted),
-                    onPressed: _busy
-                        ? null
-                        : () => showDialog<void>(
-                              context: context,
-                              builder: (_) =>
-                                  TurfDutyInviteDialog(fieldId: _field.id),
-                            ),
-                    label: const Text('Görev devret'),
-                  ),
-                ]),
+                Wrap(
+                    spacing: SwanSpace.sm,
+                    runSpacing: SwanSpace.sm,
+                    children: [
+                      if (ref.watch(
+                          featureEnabledProvider(FeatureFlags.turfDelegation)))
+                        ActionChip(
+                          backgroundColor: context.swan.surface,
+                          avatar: Icon(Icons.schedule_rounded,
+                              color: context.swan.inkMuted),
+                          onPressed: () =>
+                              Navigator.pushNamed(context, '/saha-islemlerim'),
+                          label: const Text('Saha görevlerim'),
+                        ),
+                      if (ref.watch(
+                            featureEnabledProvider(FeatureFlags.turfDelegation),
+                          ) &&
+                          ref
+                              .watch(swanAccessProvider)
+                              .isTurfManagerOf(_field.id))
+                        ActionChip(
+                          backgroundColor: context.swan.surface,
+                          avatar: Icon(Icons.person_add_outlined,
+                              color: context.swan.inkMuted),
+                          onPressed: _busy
+                              ? null
+                              : () => showDialog<void>(
+                                    context: context,
+                                    builder: (_) => TurfDutyInviteDialog(
+                                        fieldId: _field.id),
+                                  ),
+                          label: const Text('Görev devret'),
+                        ),
+                    ]),
                 for (final day in byDay.entries) ...[
                   _dayHeader(ink, day.value.first.startsAt),
                   const SizedBox(height: 8),

@@ -79,13 +79,14 @@ void main() {
     return ProviderScope(
       overrides: [
         isSupabaseEnabledProvider.overrideWithValue(true),
-        activeClubProvider.overrideWith((ref) => Future.value(
-              const ClubRef(
-                id: 'club-100',
-                name: 'Swan Spor Kulübü',
-                role: 'manager',
-              ),
+        activeClubProvider.overrideWith(
+          (ref) => Future.value(
+            const ClubRef(
+              id: 'club-100',
+              name: 'Swan Spor Kulübü',
+              role: 'manager',
             ),
+          ),
         ),
         financeAdjustmentsProvider.overrideWith((ref) => Future.value([])),
         financeOpsServiceProvider.overrideWithValue(opsService),
@@ -112,7 +113,8 @@ void main() {
     await tester.pumpAndSettle();
 
     // 1. Sayfa yüklendi: toplam 120 kayıt olmalı (50'şer sayfalama)
-    expect(find.textContaining('Toplam 120 kayıt (Sayfa 1 / 3)'), findsOneWidget);
+    expect(
+        find.textContaining('Toplam 120 kayıt (Sayfa 1 / 3)'), findsOneWidget);
 
     // Dropdown'ı açarak ilk sayfa kaydını doğrula
     await tester.tap(find.byType(DropdownButtonFormField<String>));
@@ -135,7 +137,9 @@ void main() {
 
     // 3. Sunucu araması: "İşlem Kaydı #8" yaz
     final searchInput = find.byWidgetPredicate(
-      (w) => w is TextField && w.decoration?.hintText?.contains('Hedef kayıtlarda ara') == true,
+      (w) =>
+          w is TextField &&
+          w.decoration?.hintText?.contains('Hedef kayıtlarda ara') == true,
     );
     await tester.enterText(searchInput, 'İşlem Kaydı #8');
     await tester.pumpAndSettle();

@@ -109,8 +109,8 @@ class _ClubEditSheetState extends ConsumerState<_ClubEditSheet> {
           _founded.text = c.foundedYear?.toString() ?? '';
           if (c.city != null && c.city!.isNotEmpty) {
             _selectedCity = kTurkeyCities
-                    .where((ci) =>
-                        ci.name.toLowerCase() == c.city!.toLowerCase())
+                    .where(
+                        (ci) => ci.name.toLowerCase() == c.city!.toLowerCase())
                     .firstOrNull ??
                 CityRow(code: '', name: c.city!);
           }

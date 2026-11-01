@@ -213,8 +213,10 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
       return SwanScaffold(
         backgroundColor: context.swan.bg,
         appBar: swanModuleAppBar(context, title: 'Sezon Açılışı'),
-        body: premiumEmpty(context, icon: Icons.lock_outline_rounded,
-          title: 'Sezon açılışı şu anda hesabına açık değil.', subtitle: 'Yetkini ve etkin özellikleri kontrol et.'),
+        body: premiumEmpty(context,
+            icon: Icons.lock_outline_rounded,
+            title: 'Sezon açılışı şu anda hesabına açık değil.',
+            subtitle: 'Yetkini ve etkin özellikleri kontrol et.'),
       );
     }
     final club = ref.watch(activeClubProvider);
@@ -226,16 +228,25 @@ class _SeasonSetupScreenState extends ConsumerState<SeasonSetupScreen> {
         appBar: swanModuleAppBar(context, title: 'Sezon Açılışı'),
         body: club.when(
           loading: () => const Center(child: CircularProgressIndicator()),
-          error: (_, __) => premiumEmpty(context, icon: Icons.error_outline_rounded,
-            title: 'Kulüp yüklenemedi. Sayfayı yeniden aç.', subtitle: 'Bağlantını kontrol edip yeniden dene.'),
+          error: (_, __) => premiumEmpty(context,
+              icon: Icons.error_outline_rounded,
+              title: 'Kulüp yüklenemedi. Sayfayı yeniden aç.',
+              subtitle: 'Bağlantını kontrol edip yeniden dene.'),
           data: (value) {
             if (value == null || !value.isActive) {
-              return premiumEmpty(context, icon: Icons.groups_outlined, title: 'Aktif bir kulüp seçmelisin.', subtitle: 'Kulüp seçiminin ardından tekrar aç.');
+              return premiumEmpty(context,
+                  icon: Icons.groups_outlined,
+                  title: 'Aktif bir kulüp seçmelisin.',
+                  subtitle: 'Kulüp seçiminin ardından tekrar aç.');
             }
             _clubId ??= value.id;
             if (value.id != _clubId) {
-              return premiumEmpty(context, icon: Icons.sync_rounded,
-                title: 'Aktif kulüp değişti. Hazırlık için sayfayı yeniden aç.', subtitle: 'Kaydedilmemiş sezon taslağı başka kulübe uygulanmaz.');
+              return premiumEmpty(context,
+                  icon: Icons.sync_rounded,
+                  title:
+                      'Aktif kulüp değişti. Hazırlık için sayfayı yeniden aç.',
+                  subtitle:
+                      'Kaydedilmemiş sezon taslağı başka kulübe uygulanmaz.');
             }
             if (_result != null) return _success();
             return Column(

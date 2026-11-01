@@ -40,7 +40,11 @@ Future<List<PickedImage>> showImagePickerSheet(
           MaterialPageRoute(
             fullscreenDialog: true,
             builder: (_) => _ImageReview(
-                images: images, title: title, limit: limit, picker: picker,),
+              images: images,
+              title: title,
+              limit: limit,
+              picker: picker,
+            ),
           ),
         ) ??
         [];
@@ -167,7 +171,8 @@ class _ImageSourceSheetState extends State<_ImageSourceSheet> {
               Row(
                 children: [
                   Expanded(
-                      child: Text(widget.title, style: SwanType.h3(c.ink)),),
+                    child: Text(widget.title, style: SwanType.h3(c.ink)),
+                  ),
                   IconButton(
                     tooltip: 'Vazgeç',
                     onPressed: _busy ? null : () => Navigator.pop(context),

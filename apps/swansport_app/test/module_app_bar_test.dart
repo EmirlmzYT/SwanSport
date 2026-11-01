@@ -8,33 +8,60 @@ void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   test('all 42 opted-in screens use the standard Scaffold AppBar', () {
     const titles = {
-      'venues': 'Sahalar & Kortlar', 'marketplace': 'Pazaryeri',
-      'discover': 'Kulüpler & Akademiler', 'coach_discovery': 'Antrenör Bul',
-      'organizations': 'Turnuva & Organizasyonlar', 'finance': 'Kulüp Finansı',
-      'team_roster_directory': 'Takımlar & Kadrolar', 'athlete_workspace': 'Sporcular',
-      'attendance_history': 'Yoklama Geçmişi', 'document_vault': 'Belge Kasası',
-      'announcements': 'Kulüp Duyuruları', 'club_settings': 'Kulüp Ayarları',
-      'my_fees': 'Aidatlarım', 'my_training': 'Antrenmanlarım',
-      'nutrition_tracker': 'Beslenme Günlüğü', 'readiness_rpe': 'Hazırbulunuşluk & RPE',
-      'help': 'Yardım & SSS', 'support': 'Destek Talepleri',
-      'notifications': 'Bildirimler', 'saved_posts': 'Kaydedilen Gönderiler',
-      'listings': 'İlanlar', 'create_listing': 'İlan Ver',
-      'store_application': 'Mağaza Başvurusu', 'campaigns': 'Dayanışma & Fon',
-      'facility_management': 'Tesisler', 'facility_reservation': 'Tesis Rezervasyonu',
-      'saha_operations': 'Saha İşlemlerim', 'privacy': 'Gizlilik ve Güvenlik',
-      'parent_consent_center': 'Veli İşlem Merkezi', 'guardian_link': 'Davet Kodu',
-      'medical_center': 'Medikal & Sağlık Merkezi', 'equipment_tuning': 'Ekipman ve Kalibrasyon',
-      'closed_period_reversal': 'Ters İşlem ve Düzeltme', 'accountant_privacy_ledger': 'Muhasebeci Defteri',
-      'session_result': 'Oturum Sonucu', 'communication_detail': 'İleti Ayrıntısı',
-      'event_roster_detail': 'Etkinlik Detayı', 'reports': 'Raporlar',
-      'report_detail': 'Rapor Ayrıntısı', 'development_report': 'Dönem Gelişim Raporu',
-      'admin_user_detail': 'Kullanıcı Ayrıntısı', 'configuration': 'Yapılandırma',
+      'venues': 'Sahalar & Kortlar',
+      'marketplace': 'Pazaryeri',
+      'discover': 'Kulüpler & Akademiler',
+      'coach_discovery': 'Antrenör Bul',
+      'organizations': 'Turnuva & Organizasyonlar',
+      'finance': 'Kulüp Finansı',
+      'team_roster_directory': 'Takımlar & Kadrolar',
+      'athlete_workspace': 'Sporcular',
+      'attendance_history': 'Yoklama Geçmişi',
+      'document_vault': 'Belge Kasası',
+      'announcements': 'Kulüp Duyuruları',
+      'club_settings': 'Kulüp Ayarları',
+      'my_fees': 'Aidatlarım',
+      'my_training': 'Antrenmanlarım',
+      'nutrition_tracker': 'Beslenme Günlüğü',
+      'readiness_rpe': 'Hazırbulunuşluk & RPE',
+      'help': 'Yardım & SSS',
+      'support': 'Destek Talepleri',
+      'notifications': 'Bildirimler',
+      'saved_posts': 'Kaydedilen Gönderiler',
+      'listings': 'İlanlar',
+      'create_listing': 'İlan Ver',
+      'store_application': 'Mağaza Başvurusu',
+      'campaigns': 'Dayanışma & Fon',
+      'facility_management': 'Tesisler',
+      'facility_reservation': 'Tesis Rezervasyonu',
+      'saha_operations': 'Saha İşlemlerim',
+      'privacy': 'Gizlilik ve Güvenlik',
+      'parent_consent_center': 'Veli İşlem Merkezi',
+      'guardian_link': 'Davet Kodu',
+      'medical_center': 'Medikal & Sağlık Merkezi',
+      'equipment_tuning': 'Ekipman ve Kalibrasyon',
+      'closed_period_reversal': 'Ters İşlem ve Düzeltme',
+      'accountant_privacy_ledger': 'Muhasebeci Defteri',
+      'session_result': 'Oturum Sonucu',
+      'communication_detail': 'İleti Ayrıntısı',
+      'event_roster_detail': 'Etkinlik Detayı',
+      'reports': 'Raporlar',
+      'report_detail': 'Rapor Ayrıntısı',
+      'development_report': 'Dönem Gelişim Raporu',
+      'admin_user_detail': 'Kullanıcı Ayrıntısı',
+      'configuration': 'Yapılandırma',
     };
-    final files = Directory('lib/features').listSync(recursive: true).whereType<File>().toList();
+    final files = Directory('lib/features')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .toList();
     for (final entry in titles.entries) {
-      final file = files.singleWhere((f) => f.path.replaceAll('\\', '/').endsWith('/${entry.key}_screen.dart'));
+      final file = files.singleWhere((f) =>
+          f.path.replaceAll('\\', '/').endsWith('/${entry.key}_screen.dart'));
       final source = file.readAsStringSync();
-      final literal = RegExp("appBar:\\s*swanModuleAppBar\\(\\s*context,\\s*title:\\s*'${RegExp.escape(entry.value)}'").hasMatch(source);
+      final literal = RegExp(
+              "appBar:\\s*swanModuleAppBar\\(\\s*context,\\s*title:\\s*'${RegExp.escape(entry.value)}'")
+          .hasMatch(source);
       final accountAware = entry.key == 'club_settings' &&
           source.contains('appBar: swanModuleAppBar(') &&
           source.contains("'Kulüp Ayarları'") &&
@@ -44,26 +71,41 @@ void main() {
     }
   });
   for (final brightness in [Brightness.light, Brightness.dark]) {
-    testWidgets('root/pushed route back contract and actions: $brightness', (tester) async {
+    testWidgets('root/pushed route back contract and actions: $brightness',
+        (tester) async {
       var actions = 0;
-      await tester.pumpWidget(MaterialApp(theme: ThemeData(brightness: brightness),
-        home: Builder(builder: (context) => Scaffold(
-          appBar: swanModuleAppBar(context, title: 'Modül', actions: [
-            IconButton(tooltip: 'Test aksiyonu', icon: const Icon(Icons.search), onPressed: () => actions++),
-          ]),
-          body: TextButton(onPressed: () => Navigator.push(context, MaterialPageRoute<void>(
-            builder: (context) => Scaffold(appBar: swanModuleAppBar(context, title: 'Alt Sayfa')))),
-            child: const Text('Alt sayfayı aç')),
-        ))));
+      await tester.pumpWidget(MaterialApp(
+          theme: ThemeData(brightness: brightness),
+          home: Builder(
+              builder: (context) => Scaffold(
+                    appBar: swanModuleAppBar(context, title: 'Modül', actions: [
+                      IconButton(
+                          tooltip: 'Test aksiyonu',
+                          icon: const Icon(Icons.search),
+                          onPressed: () => actions++),
+                    ]),
+                    body: TextButton(
+                        onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute<void>(
+                                builder: (context) => Scaffold(
+                                    appBar: swanModuleAppBar(context,
+                                        title: 'Alt Sayfa')))),
+                        child: const Text('Alt sayfayı aç')),
+                  ))));
       await tester.pumpAndSettle();
       expect(find.byTooltip('Geri dön'), findsNothing);
       final appBar = tester.widget<AppBar>(find.byType(AppBar));
-      expect(appBar.elevation, 0); expect(appBar.scrolledUnderElevation, 0);
+      expect(appBar.elevation, 0);
+      expect(appBar.scrolledUnderElevation, 0);
       expect(appBar.centerTitle, isFalse);
-      await tester.tap(find.byTooltip('Test aksiyonu')); expect(actions, 1);
-      await tester.tap(find.text('Alt sayfayı aç')); await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Test aksiyonu'));
+      expect(actions, 1);
+      await tester.tap(find.text('Alt sayfayı aç'));
+      await tester.pumpAndSettle();
       expect(find.byTooltip('Geri dön'), findsOneWidget);
-      await tester.tap(find.byTooltip('Geri dön')); await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Geri dön'));
+      await tester.pumpAndSettle();
       expect(find.text('Modül'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });

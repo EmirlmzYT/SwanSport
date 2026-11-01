@@ -294,7 +294,8 @@ class _CreateListingScreenState extends ConsumerState<CreateListingScreen> {
       );
 
   Future<void> _publish() async {
-    if (!await requireSwanAction(context, ref, SwanAction.listing) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.listing) || !mounted)
+      return;
     final c = context.swan;
     if (_title.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

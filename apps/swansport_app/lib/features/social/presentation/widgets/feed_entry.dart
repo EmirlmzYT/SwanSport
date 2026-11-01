@@ -269,21 +269,23 @@ class NewsCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(SwanRadius.md),
                     child: AspectRatio(
                       aspectRatio: 16 / 9,
-                      child:
-                          item.imageUrl == null || item.imageUrl!.trim().isEmpty
-                              ? _NewsImageFallback(c: c)
-                              : Image(
-                                  image: ResizeImage(
-                                    NetworkImage(item.imageUrl!),
-                                    width: (MediaQuery.sizeOf(context).width.clamp(320.0, 620.0) *
-                                            MediaQuery.devicePixelRatioOf(context))
-                                        .round()
-                                        .clamp(320, 1600),
-                                  ),
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) =>
-                                      _NewsImageFallback(c: c),
-                                ),
+                      child: item.imageUrl == null ||
+                              item.imageUrl!.trim().isEmpty
+                          ? _NewsImageFallback(c: c)
+                          : Image(
+                              image: ResizeImage(
+                                NetworkImage(item.imageUrl!),
+                                width: (MediaQuery.sizeOf(context)
+                                            .width
+                                            .clamp(320.0, 620.0) *
+                                        MediaQuery.devicePixelRatioOf(context))
+                                    .round()
+                                    .clamp(320, 1600),
+                              ),
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) =>
+                                  _NewsImageFallback(c: c),
+                            ),
                     ),
                   ),
                   Padding(
@@ -525,8 +527,12 @@ class _CarouselNewsItemCard extends StatelessWidget {
                     : Image.network(
                         item.imageUrl!,
                         fit: BoxFit.cover,
-                        cacheWidth: (240 * MediaQuery.devicePixelRatioOf(context)).round(),
-                        cacheHeight: (116 * MediaQuery.devicePixelRatioOf(context)).round(),
+                        cacheWidth:
+                            (240 * MediaQuery.devicePixelRatioOf(context))
+                                .round(),
+                        cacheHeight:
+                            (116 * MediaQuery.devicePixelRatioOf(context))
+                                .round(),
                         errorBuilder: (_, __, ___) => _NewsImageFallback(c: c),
                       ),
               ),
@@ -549,8 +555,14 @@ class _CarouselNewsItemCard extends StatelessWidget {
                                 item.sourceIconUrl!,
                                 width: 14,
                                 height: 14,
-                                cacheWidth: (14 * MediaQuery.devicePixelRatioOf(context)).round().clamp(14, 64),
-                                cacheHeight: (14 * MediaQuery.devicePixelRatioOf(context)).round().clamp(14, 64),
+                                cacheWidth: (14 *
+                                        MediaQuery.devicePixelRatioOf(context))
+                                    .round()
+                                    .clamp(14, 64),
+                                cacheHeight: (14 *
+                                        MediaQuery.devicePixelRatioOf(context))
+                                    .round()
+                                    .clamp(14, 64),
                                 fit: BoxFit.cover,
                                 errorBuilder: (_, __, ___) =>
                                     const SizedBox.shrink(),

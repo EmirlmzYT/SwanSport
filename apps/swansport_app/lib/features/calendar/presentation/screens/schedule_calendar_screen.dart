@@ -99,7 +99,6 @@ class _ScheduleCalendarScreenState
           child: ListView(
             padding: const EdgeInsets.all(SwanSpace.lg),
             children: [
-
               const SizedBox(height: SwanSpace.md),
               UnifiedCalendarFilters(
                 selected: _selectedType,

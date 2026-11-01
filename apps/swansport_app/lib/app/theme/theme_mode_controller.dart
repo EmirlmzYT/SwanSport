@@ -63,9 +63,8 @@ class ThemeModeController extends StateNotifier<ThemeMode> {
   static ThemeMode decode(String? v) => _decode(v);
 }
 
-final themeModeProvider =
-    StateNotifierProvider<ThemeModeController, ThemeMode>(
-        (ref) => ThemeModeController());
+final themeModeProvider = StateNotifierProvider<ThemeModeController, ThemeMode>(
+    (ref) => ThemeModeController());
 
 String themeModeLabel(ThemeMode m) => switch (m) {
       ThemeMode.light => 'Açık',

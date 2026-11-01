@@ -51,7 +51,6 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.lg, SwanSpace.md, SwanSpace.lg, 120),
               children: [
-
                 const SizedBox(height: SwanSpace.md),
                 TextField(
                     key: const Key('communication-search-field'),

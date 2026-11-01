@@ -11,12 +11,11 @@ import '../../../../app/widgets/swan_tabs.dart';
 import 'score_pad.dart';
 import 'structured_metric_pad.dart';
 
-typedef SubmitDrill =
-    Future<void> Function({
-      num? total,
-      List<num?>? entries,
-      DrillMetricPayload? metricPayload,
-    });
+typedef SubmitDrill = Future<void> Function({
+  num? total,
+  List<num?>? entries,
+  DrillMetricPayload? metricPayload,
+});
 
 class BranchDrillPad extends ConsumerWidget {
   const BranchDrillPad({
@@ -35,49 +34,61 @@ class BranchDrillPad extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final matches = sets.where((s) => s.setNo == session.currentSet);
     final existing = matches.isEmpty ? null : matches.first;
-    final scopeKey = ValueKey((session.id, session.currentSet,
-      ref.watch(authSessionProvider).valueOrNull?.user.id));
+    final scopeKey = ValueKey((
+      session.id,
+      session.currentSet,
+      ref.watch(authSessionProvider).valueOrNull?.user.id
+    ));
     return switch (config.archetype) {
       TrainingArchetype.targetScore => TargetScorePad(
-        key: scopeKey,
-        session: session,
-        config: config,
-        existing: existing,
-        onSubmit: onSubmit,
-      ),
+          key: scopeKey,
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
       TrainingArchetype.attemptDrill => AttemptDrillPad(
-        key: scopeKey,
-        session: session,
-        config: config,
-        existing: existing,
-        onSubmit: onSubmit,
-      ),
+          key: scopeKey,
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
       TrainingArchetype.lapInterval => LapIntervalPad(
-        key: scopeKey,
-        session: session,
-        config: config,
-        existing: existing,
-        onSubmit: onSubmit,
-      ),
+          key: scopeKey,
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
       TrainingArchetype.combatRally => CombatRallyPad(
-        key: scopeKey,
-        session: session,
-        config: config,
-        existing: existing,
-        onSubmit: onSubmit,
-      ),
+          key: scopeKey,
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
       TrainingArchetype.strengthSet => StrengthSetPad(
-        key: ValueKey((scopeKey, config.archetype)),
-        session: session, config: config, existing: existing, onSubmit: onSubmit,
-      ),
+          key: ValueKey((scopeKey, config.archetype)),
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
       TrainingArchetype.routineJudge => RoutineJudgePad(
-        key: ValueKey((scopeKey, config.archetype)),
-        session: session, config: config, existing: existing, onSubmit: onSubmit,
-      ),
+          key: ValueKey((scopeKey, config.archetype)),
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
       TrainingArchetype.mindTactical => MindTacticalPad(
-        key: ValueKey((scopeKey, config.archetype)),
-        session: session, config: config, existing: existing, onSubmit: onSubmit,
-      ),
+          key: ValueKey((scopeKey, config.archetype)),
+          session: session,
+          config: config,
+          existing: existing,
+          onSubmit: onSubmit,
+        ),
     };
   }
 }
@@ -105,8 +116,7 @@ class _TargetScorePadState extends State<TargetScorePad> {
   Widget build(BuildContext context) {
     final legacy =
         widget.existing != null && widget.existing!.metricPayload == null;
-    final rings =
-        widget.config.maxUnitScore == 10 &&
+    final rings = widget.config.maxUnitScore == 10 &&
         widget.config.entryMode.allowsDetailed &&
         !legacy;
     return Column(
@@ -126,8 +136,7 @@ class _TargetScorePadState extends State<TargetScorePad> {
           )
         else
           AbsorbPointer(
-            absorbing:
-                widget.session.paused ||
+            absorbing: widget.session.paused ||
                 !(widget.session.isLive || widget.session.awaitingApproval),
             child: ScorePad(
               key: ValueKey(widget.session.currentSet),
@@ -212,7 +221,8 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
     if (widget.config.archetype == TrainingArchetype.lapInterval) {
       final metric = widget.existing?.metricPayload;
       final draft = ref.read(structuredDrillDraftProvider(_key));
-      _distance.text = draft['distance_meters'] ?? '${_profile.defaultDistances.firstOrNull ?? 50}';
+      _distance.text = draft['distance_meters'] ??
+          '${_profile.defaultDistances.firstOrNull ?? 50}';
       _rate.text = draft['stroke_rate'] ?? '';
       if (metric is LapIntervalMetric) {
         _distance.text = draft['distance_meters'] ?? '${metric.distanceMeters}';
@@ -266,22 +276,23 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
       final payload = switch (widget.config.archetype) {
         TrainingArchetype.targetScore => TargetScoreMetric(d.marks),
         TrainingArchetype.attemptDrill => AttemptDrillMetric(
-          drillName: d.drillName.isEmpty ? _drills.first : d.drillName,
-          successful: d.successful,
-          faults: d.faults,
-          totalAttempts: d.successful + d.faults,
-        ),
+            drillName: d.drillName.isEmpty ? _drills.first : d.drillName,
+            successful: d.successful,
+            faults: d.faults,
+            totalAttempts: d.successful + d.faults,
+          ),
         TrainingArchetype.lapInterval => LapIntervalMetric(
-          lapNumber: widget.session.currentSet,
-          splitMillis: d.elapsedMillis,
-          distanceMeters: int.tryParse(_distance.text.trim()) ?? 0,
-          strokeRate: _rate.text.trim().isEmpty ? null : int.parse(_rate.text.trim()),
-        ),
+            lapNumber: widget.session.currentSet,
+            splitMillis: d.elapsedMillis,
+            distanceMeters: int.tryParse(_distance.text.trim()) ?? 0,
+            strokeRate:
+                _rate.text.trim().isEmpty ? null : int.parse(_rate.text.trim()),
+          ),
         TrainingArchetype.combatRally => CombatRallyMetric(
-          rallies: d.rallies,
-          winners: d.winners,
-          unforcedErrors: d.errors,
-        ),
+            rallies: d.rallies,
+            winners: d.winners,
+            unforcedErrors: d.errors,
+          ),
         _ => throw StateError('Yapılandırılmış metrik pedi gerekli'),
       };
       await widget.onSubmit(metricPayload: payload);
@@ -297,19 +308,21 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
     }
   }
 
-  BranchTrainingProfile get _profile => branchTrainingProfileFor(widget.session.sportCode);
+  BranchTrainingProfile get _profile =>
+      branchTrainingProfileFor(widget.session.sportCode);
   List<String> get _drills => _profile.presetDrills;
-  void _rememberLap() => ref.read(structuredDrillDraftProvider(_key).notifier).state = {
-    'distance_meters': _distance.text, 'stroke_rate': _rate.text,
-  };
+  void _rememberLap() =>
+      ref.read(structuredDrillDraftProvider(_key).notifier).state = {
+        'distance_meters': _distance.text,
+        'stroke_rate': _rate.text,
+      };
 
   Widget _action(String label, VoidCallback action, {bool error = false}) =>
       FilledButton(
         onPressed: _enabled ? action : null,
         style: FilledButton.styleFrom(
-          backgroundColor: error
-              ? context.swan.surfaceAlt
-              : context.swan.successFill,
+          backgroundColor:
+              error ? context.swan.surfaceAlt : context.swan.successFill,
           foregroundColor: error
               ? context.swan.ink
               : Theme.of(context).colorScheme.onPrimary,
@@ -337,169 +350,186 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('${widget.session.currentSet}. ${_profile.setLabel}', style: SwanType.h3(c.ink)),
+          Text('${widget.session.currentSet}. ${_profile.setLabel}',
+              style: SwanType.h3(c.ink)),
           if (widget.existing?.locked == true)
             Text('Sonuç kilitli', style: SwanType.caption(c.inkMuted)),
           const SizedBox(height: SwanSpace.md),
           ...switch (widget.config.archetype) {
             TrainingArchetype.targetScore => [
-              Text(
-                d.marks.isEmpty ? 'Hedef halkasını seç' : d.marks.join(' · '),
-                style: SwanType.h2(c.ink),
-              ),
-              Wrap(
-                spacing: SwanSpace.sm,
-                runSpacing: SwanSpace.sm,
-                children: [
-                  for (final mark in [
-                    'X',
-                    '10',
-                    '9',
-                    '8',
-                    '7',
-                    '6',
-                    '5',
-                    '4',
-                    '3',
-                    '2',
-                    '1',
-                    'M',
-                  ])
-                    OutlinedButton(
-                      onPressed:
-                          _enabled && d.marks.length < widget.config.unitsPerSet
-                          ? () => _controller.mark(
-                              mark,
-                              widget.config.unitsPerSet,
-                            )
+                Text(
+                  d.marks.isEmpty ? 'Hedef halkasını seç' : d.marks.join(' · '),
+                  style: SwanType.h2(c.ink),
+                ),
+                Wrap(
+                  spacing: SwanSpace.sm,
+                  runSpacing: SwanSpace.sm,
+                  children: [
+                    for (final mark in [
+                      'X',
+                      '10',
+                      '9',
+                      '8',
+                      '7',
+                      '6',
+                      '5',
+                      '4',
+                      '3',
+                      '2',
+                      '1',
+                      'M',
+                    ])
+                      OutlinedButton(
+                        onPressed: _enabled &&
+                                d.marks.length < widget.config.unitsPerSet
+                            ? () => _controller.mark(
+                                  mark,
+                                  widget.config.unitsPerSet,
+                                )
+                            : null,
+                        child: Text(mark),
+                      ),
+                    TextButton(
+                      onPressed: _enabled && d.marks.isNotEmpty
+                          ? _controller.undoMark
                           : null,
-                      child: Text(mark),
+                      child: const Text('Son oku geri al'),
                     ),
-                  TextButton(
-                    onPressed: _enabled && d.marks.isNotEmpty
-                        ? _controller.undoMark
-                        : null,
-                    child: const Text('Son oku geri al'),
-                  ),
-                ],
-              ),
-              Text(
-                '${d.marks.length}/${widget.config.unitsPerSet} ${_profile.unitLabel.toLowerCase()}',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ],
+                  ],
+                ),
+                Text(
+                  '${d.marks.length}/${widget.config.unitsPerSet} ${_profile.unitLabel.toLowerCase()}',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+              ],
             TrainingArchetype.attemptDrill => [
-              AbsorbPointer(
-                absorbing: !_enabled || d.successful + d.faults > 0,
-                child: SwanPillTabs(
-                  labels: _drills,
-                  selected: _drills
-                      .indexOf(d.drillName)
-                      .clamp(0, _drills.length - 1),
-                  onSelect: (i) => _controller.selectDrill(_drills[i]),
+                AbsorbPointer(
+                  absorbing: !_enabled || d.successful + d.faults > 0,
+                  child: SwanPillTabs(
+                    labels: _drills,
+                    selected: _drills
+                        .indexOf(d.drillName)
+                        .clamp(0, _drills.length - 1),
+                    onSelect: (i) => _controller.selectDrill(_drills[i]),
+                  ),
                 ),
-              ),
-              const SizedBox(height: SwanSpace.lg),
-              Text(
-                '${d.successful} / ${d.successful + d.faults}',
-                textAlign: TextAlign.center,
-                style: SwanType.h2(c.ink),
-              ),
-              Text(
-                d.successful + d.faults == 0
-                    ? 'Henüz deneme yok'
-                    : '%${(100 * d.successful / (d.successful + d.faults)).round()} İsabet',
-                textAlign: TextAlign.center,
-                style: SwanType.display(c.ink),
-              ),
-              const SizedBox(height: SwanSpace.lg),
-              _action('+ ${_profile.successLabel}', () => _controller.attempt(true)),
-              const SizedBox(height: SwanSpace.sm),
-              _action(
-                '+ ${_profile.faultLabel}',
-                () => _controller.attempt(false),
-                error: true,
-              ),
-              Text(
-                'Her set tek drill içerir. Yeni drill için sonraki sete geç.',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ],
+                const SizedBox(height: SwanSpace.lg),
+                Text(
+                  '${d.successful} / ${d.successful + d.faults}',
+                  textAlign: TextAlign.center,
+                  style: SwanType.h2(c.ink),
+                ),
+                Text(
+                  d.successful + d.faults == 0
+                      ? 'Henüz deneme yok'
+                      : '%${(100 * d.successful / (d.successful + d.faults)).round()} İsabet',
+                  textAlign: TextAlign.center,
+                  style: SwanType.display(c.ink),
+                ),
+                const SizedBox(height: SwanSpace.lg),
+                _action('+ ${_profile.successLabel}',
+                    () => _controller.attempt(true)),
+                const SizedBox(height: SwanSpace.sm),
+                _action(
+                  '+ ${_profile.faultLabel}',
+                  () => _controller.attempt(false),
+                  error: true,
+                ),
+                Text(
+                  'Her set tek drill içerir. Yeni drill için sonraki sete geç.',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+              ],
             TrainingArchetype.lapInterval => [
-              Wrap(
-                spacing: SwanSpace.sm,
-                children: [for (final distance in _profile.defaultDistances)
-                  ActionChip(label: Text('$distance m'), onPressed: _enabled && !lapSaved
-                    ? () { _distance.text = '$distance'; _rememberLap(); } : null)],
-              ),
-              Text(
-                formatLapTime(d.elapsedAt(DateTime.now())),
-                textAlign: TextAlign.center,
-                style: SwanType.display(c.ink),
-              ),
-              TextField(
-                controller: _distance,
-                onChanged: (_) => _rememberLap(),
-                enabled: _enabled && !lapSaved,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Tur mesafesi (metre)',
+                Wrap(
+                  spacing: SwanSpace.sm,
+                  children: [
+                    for (final distance in _profile.defaultDistances)
+                      ActionChip(
+                          label: Text('$distance m'),
+                          onPressed: _enabled && !lapSaved
+                              ? () {
+                                  _distance.text = '$distance';
+                                  _rememberLap();
+                                }
+                              : null)
+                  ],
                 ),
-              ),
-              const SizedBox(height: SwanSpace.md),
-              if (_profile.rateLabel != null) TextField(
-                controller: _rate, enabled: _enabled && !lapSaved,
-                keyboardType: TextInputType.number,
-                decoration: InputDecoration(labelText: '${_profile.rateLabel} (isteğe bağlı · 0–300)'),
-                onChanged: (_) => _rememberLap()),
-              OutlinedButton(
-                onPressed:
-                    _enabled &&
-                        !lapSaved &&
-                        widget.session.isLive &&
-                        widget.session.phase == SessionPhase.lapActive
-                    ? () {
-                        if (d.startedAt == null) {
-                          _controller.startLap(DateTime.now());
-                        } else {
-                          _controller.pauseLap(DateTime.now());
+                Text(
+                  formatLapTime(d.elapsedAt(DateTime.now())),
+                  textAlign: TextAlign.center,
+                  style: SwanType.display(c.ink),
+                ),
+                TextField(
+                  controller: _distance,
+                  onChanged: (_) => _rememberLap(),
+                  enabled: _enabled && !lapSaved,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Tur mesafesi (metre)',
+                  ),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                if (_profile.rateLabel != null)
+                  TextField(
+                      controller: _rate,
+                      enabled: _enabled && !lapSaved,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                          labelText:
+                              '${_profile.rateLabel} (isteğe bağlı · 0–300)'),
+                      onChanged: (_) => _rememberLap()),
+                OutlinedButton(
+                  onPressed: _enabled &&
+                          !lapSaved &&
+                          widget.session.isLive &&
+                          widget.session.phase == SessionPhase.lapActive
+                      ? () {
+                          if (d.startedAt == null) {
+                            _controller.startLap(DateTime.now());
+                          } else {
+                            _controller.pauseLap(DateTime.now());
+                          }
                         }
-                      }
-                    : null,
-                child: Text(
-                  d.startedAt == null
-                      ? 'Kronometreyi başlat / sürdür'
-                      : 'Kronometreyi duraklat',
+                      : null,
+                  child: Text(
+                    d.startedAt == null
+                        ? 'Kronometreyi başlat / sürdür'
+                        : 'Kronometreyi duraklat',
+                  ),
                 ),
-              ),
-              Text(
-                lapSaved
-                    ? 'Tur kaydedildi. Sonraki tur aşamasını bekle.'
-                    : 'Her tur bir set olarak kaydedilir.',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ],
+                Text(
+                  lapSaved
+                      ? 'Tur kaydedildi. Sonraki tur aşamasını bekle.'
+                      : 'Her tur bir set olarak kaydedilir.',
+                  style: SwanType.caption(c.inkMuted),
+                ),
+              ],
             TrainingArchetype.combatRally => [
-              Text(
-                '${d.rallies} ralli · ${d.winners} winner · ${d.errors} basit hata',
-                style: SwanType.h3(c.ink),
-              ),
-              const SizedBox(height: SwanSpace.lg),
-              _action('+ ${_profile.successLabel}', () => _controller.rally(winner: true)),
-              const SizedBox(height: SwanSpace.sm),
-              _action(
-                '+ ${_profile.faultLabel}',
-                () => _controller.rally(winner: false),
-                error: true,
-              ),
-              const SizedBox(height: SwanSpace.sm),
-              if (const {'tenis', 'badminton', 'masa-tenisi'}.contains(_profile.sportCode))
-                _action('Ace', () => _controller.rally(winner: true)),
-              if (const {'tenis', 'badminton', 'masa-tenisi'}.contains(_profile.sportCode)) Text(
-                'Ace, winner toplamına dahildir.',
-                style: SwanType.caption(c.inkMuted),
-              ),
-            ],
+                Text(
+                  '${d.rallies} ralli · ${d.winners} winner · ${d.errors} basit hata',
+                  style: SwanType.h3(c.ink),
+                ),
+                const SizedBox(height: SwanSpace.lg),
+                _action('+ ${_profile.successLabel}',
+                    () => _controller.rally(winner: true)),
+                const SizedBox(height: SwanSpace.sm),
+                _action(
+                  '+ ${_profile.faultLabel}',
+                  () => _controller.rally(winner: false),
+                  error: true,
+                ),
+                const SizedBox(height: SwanSpace.sm),
+                if (const {'tenis', 'badminton', 'masa-tenisi'}
+                    .contains(_profile.sportCode))
+                  _action('Ace', () => _controller.rally(winner: true)),
+                if (const {'tenis', 'badminton', 'masa-tenisi'}
+                    .contains(_profile.sportCode))
+                  Text(
+                    'Ace, winner toplamına dahildir.',
+                    style: SwanType.caption(c.inkMuted),
+                  ),
+              ],
             _ => <Widget>[],
           },
           if (_error != null) Text(_error!, style: SwanType.bodySm(c.danger)),
@@ -510,8 +540,8 @@ class _MetricPadState extends ConsumerState<_MetricPad> {
               _busy
                   ? 'Kaydediliyor…'
                   : widget.config.archetype == TrainingArchetype.lapInterval
-                  ? 'TUR AL (SPLIT)'
-                  : 'Seti kaydet',
+                      ? 'TUR AL (SPLIT)'
+                      : 'Seti kaydet',
             ),
           ),
         ],

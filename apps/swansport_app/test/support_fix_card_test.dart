@@ -14,20 +14,25 @@ class Service extends Fake implements DiagnosticsService {
   @override
   Future<DiagnosticFixContext?> fixContext(String ticket) async =>
       DiagnosticFixContext(
-          issueId: 'i',
-          issueState: 'resolved',
-          ticketStatus:
-              response == 'confirmed' ? 'resolved' : 'awaiting_user_response',
-          fixId: 'f',
-          release: '0.5.2+17',
-          platform: 'android',
-          application: 'app',
-          response: response,);
+        issueId: 'i',
+        issueState: 'resolved',
+        ticketStatus:
+            response == 'confirmed' ? 'resolved' : 'awaiting_user_response',
+        fixId: 'f',
+        release: '0.5.2+17',
+        platform: 'android',
+        application: 'app',
+        response: response,
+      );
   @override
-  Future<void> respondFix(String ticket, String fix, String result,
-      {required String release,
-      required String platform,
-      required String application,}) async {
+  Future<void> respondFix(
+    String ticket,
+    String fix,
+    String result, {
+    required String release,
+    required String platform,
+    required String application,
+  }) async {
     calls++;
     sent = [ticket, fix, result, release, platform, application];
     if (error != null) throw error!;
@@ -51,16 +56,22 @@ void main() {
     t.view.devicePixelRatio = 1;
     addTearDown(t.view.resetPhysicalSize);
     addTearDown(t.view.resetDevicePixelRatio);
-    await t.pumpWidget(ProviderScope(
+    await t.pumpWidget(
+      ProviderScope(
         overrides: [
           isSupabaseEnabledProvider.overrideWithValue(enabled),
           diagnosticsProvider.overrideWithValue(recorder),
           diagnosticsServiceProvider.overrideWithValue(service),
         ],
         child: const MaterialApp(
-            home: Scaffold(
-                body: SingleChildScrollView(
-                    child: SupportFixCard(ticketId: 't'),),),),),);
+          home: Scaffold(
+            body: SingleChildScrollView(
+              child: SupportFixCard(ticketId: 't'),
+            ),
+          ),
+        ),
+      ),
+    );
     await t.pumpAndSettle();
   }
 
@@ -72,11 +83,13 @@ void main() {
     await t.tap(find.text('Sorun çözüldü'));
     await t.pump();
     expect(
-        t
-            .widget<FilledButton>(
-                find.widgetWithText(FilledButton, 'Sorun çözüldü'),)
-            .onPressed,
-        isNull,);
+      t
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Sorun çözüldü'),
+          )
+          .onPressed,
+      isNull,
+    );
     expect(service.calls, 1);
     service.held!.complete();
     await t.pumpAndSettle();
@@ -90,19 +103,25 @@ void main() {
     recorder.release = '0.5.1+999';
     await mount(t);
     expect(
-        t
-            .widget<FilledButton>(
-                find.widgetWithText(FilledButton, 'Sorun çözüldü'),)
-            .onPressed,
-        isNull,);
+      t
+          .widget<FilledButton>(
+            find.widgetWithText(FilledButton, 'Sorun çözüldü'),
+          )
+          .onPressed,
+      isNull,
+    );
     expect(
-        t
-            .widget<OutlinedButton>(
-                find.widgetWithText(OutlinedButton, 'Sorun devam ediyor'),)
-            .onPressed,
-        isNull,);
-    expect(find.textContaining('Teyit için belirtilen platformda'),
-        findsOneWidget,);
+      t
+          .widget<OutlinedButton>(
+            find.widgetWithText(OutlinedButton, 'Sorun devam ediyor'),
+          )
+          .onPressed,
+      isNull,
+    );
+    expect(
+      find.textContaining('Teyit için belirtilen platformda'),
+      findsOneWidget,
+    );
     expect(service.calls, 0);
     expect(t.takeException(), isNull);
   });

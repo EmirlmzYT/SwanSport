@@ -8,7 +8,8 @@ import 'package:swansport_data/swansport_data.dart';
 
 void main() {
   group('RatioImage Android Akıcılık & Placeholder Güvencesi', () {
-    testWidgets('Oran çözülene kadar 4/3 varsayılan oran ve hafif statik ikon kullanır',
+    testWidgets(
+        'Oran çözülene kadar 4/3 varsayılan oran ve hafif statik ikon kullanır',
         (tester) async {
       await tester.pumpWidget(
         const MaterialApp(
@@ -33,7 +34,9 @@ void main() {
   });
 
   group('FeedEntry Eleman Anahtarları (ValueKey) Güvencesi', () {
-    test('Her akış kartına yeniden çizimi ve kaydırma durumunu koruyan ValueKey atanır', () {
+    test(
+        'Her akış kartına yeniden çizimi ve kaydırma durumunu koruyan ValueKey atanır',
+        () {
       final now = DateTime.now();
 
       final post = PostRow(
@@ -79,12 +82,17 @@ void main() {
     });
   });
 
-  group('Profil Ekranı Sanallaştırma & Görsel Bellek Sınırları (Statik Kod Sözleşmesi)', () {
-    test('Profil ekranı shrinkWrap GridView yerine CustomScrollView ve sanallaştırılmış sliver kullanır', () {
+  group(
+      'Profil Ekranı Sanallaştırma & Görsel Bellek Sınırları (Statik Kod Sözleşmesi)',
+      () {
+    test(
+        'Profil ekranı shrinkWrap GridView yerine CustomScrollView ve sanallaştırılmış sliver kullanır',
+        () {
       final root = Directory.current.path;
       var path = '$root/lib/features/social/presentation/profile_screen.dart';
       if (!File(path).existsSync()) {
-        path = '$root/apps/swansport_app/lib/features/social/presentation/profile_screen.dart';
+        path =
+            '$root/apps/swansport_app/lib/features/social/presentation/profile_screen.dart';
       }
       final file = File(path).readAsStringSync();
 
@@ -92,12 +100,14 @@ void main() {
       expect(
         file.contains('shrinkWrap: true'),
         isFalse,
-        reason: 'shrinkWrap: true profil kaydırma performansını ve sanallaştırmayı bozar.',
+        reason:
+            'shrinkWrap: true profil kaydırma performansını ve sanallaştırmayı bozar.',
       );
       expect(
         file.contains('posts.map((post) => PostCard(post: post)).toList()'),
         isFalse,
-        reason: 'Tüm gönderilerin Column içinde eager oluşturulması kaldırılmalıdır.',
+        reason:
+            'Tüm gönderilerin Column içinde eager oluşturulması kaldırılmalıdır.',
       );
 
       // CustomScrollView ve SliverGrid / SliverList kullanılmalıdır.
@@ -109,39 +119,48 @@ void main() {
       expect(
         file.contains('SliverGrid(') && file.contains('SliverList('),
         isTrue,
-        reason: 'Kare ızgara ve liste görünümleri sliver tabanlı sanallaştırılmalıdır.',
+        reason:
+            'Kare ızgara ve liste görünümleri sliver tabanlı sanallaştırılmalıdır.',
       );
 
       // Avatar ve ızgara görsellerinde cacheWidth sınırlandırması olmalıdır.
       expect(
         file.contains('cacheWidth: (80 *'),
         isTrue,
-        reason: 'Profil avatarında hedef boyuta uygun cacheWidth sınırı bulunmalıdır.',
+        reason:
+            'Profil avatarında hedef boyuta uygun cacheWidth sınırı bulunmalıdır.',
       );
       expect(
         file.contains('cacheWidth: cacheWidth'),
         isTrue,
-        reason: 'Profil ızgara fotoğraflarında ekran sütununa uygun cacheWidth sınırı bulunmalıdır.',
+        reason:
+            'Profil ızgara fotoğraflarında ekran sütununa uygun cacheWidth sınırı bulunmalıdır.',
       );
     });
 
-    test('Haber kartlarında bellek optimizasyonu (ResizeImage ve cacheWidth) bulunur', () {
+    test(
+        'Haber kartlarında bellek optimizasyonu (ResizeImage ve cacheWidth) bulunur',
+        () {
       final root = Directory.current.path;
-      var path = '$root/lib/features/social/presentation/widgets/feed_entry.dart';
+      var path =
+          '$root/lib/features/social/presentation/widgets/feed_entry.dart';
       if (!File(path).existsSync()) {
-        path = '$root/apps/swansport_app/lib/features/social/presentation/widgets/feed_entry.dart';
+        path =
+            '$root/apps/swansport_app/lib/features/social/presentation/widgets/feed_entry.dart';
       }
       final file = File(path).readAsStringSync();
 
       expect(
         file.contains('ResizeImage('),
         isTrue,
-        reason: 'Ana haber kartı görseli hedef ekrana göre ResizeImage ile sınırlandırılmalıdır.',
+        reason:
+            'Ana haber kartı görseli hedef ekrana göre ResizeImage ile sınırlandırılmalıdır.',
       );
       expect(
         file.contains('cacheWidth: (240 *'),
         isTrue,
-        reason: 'Haber karuseli görseli kart genişliğine göre cacheWidth ile sınırlandırılmalıdır.',
+        reason:
+            'Haber karuseli görseli kart genişliğine göre cacheWidth ile sınırlandırılmalıdır.',
       );
     });
   });

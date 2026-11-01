@@ -49,8 +49,8 @@ class SwanType {
   static TextStyle display(Color c) => _sora(32, FontWeight.w800, c);
 
   /// Sabit genişlikli rakamlarla kronometre; başlık font ailesi korunur.
-  static TextStyle stopwatch(Color c) => display(c).copyWith(
-      fontFeatures: const [FontFeature.tabularFigures()]);
+  static TextStyle stopwatch(Color c) =>
+      display(c).copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
 
   /// 28 — ekran başlığı.
   static TextStyle h1(Color c) => _sora(28, FontWeight.w800, c);

@@ -84,8 +84,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text(friendlyErrorMessage(e,
-                defaultMessage:
-                    'Yorum gönderilemedi. Lütfen tekrar deneyin.')),
+                defaultMessage: 'Yorum gönderilemedi. Lütfen tekrar deneyin.')),
             backgroundColor: context.swan.danger));
       }
     } finally {

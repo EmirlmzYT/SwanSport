@@ -18,7 +18,9 @@ import 'package:swansport_app/app/design/swan_palette.dart';
 double _luminance(Color c) {
   double channel(double v) {
     v = v / 255.0;
-    return v <= 0.03928 ? v / 12.92 : math.pow((v + 0.055) / 1.055, 2.4) as double;
+    return v <= 0.03928
+        ? v / 12.92
+        : math.pow((v + 0.055) / 1.055, 2.4) as double;
   }
 
   // ignore: deprecated_member_use
@@ -74,10 +76,10 @@ void main() {
       test('dolu düğmede beyaz metin okunur', () {
         // "Giriş Yap", "+" gibi dolu zeminli düğmeler — kalın, büyük.
         // `accent` DEĞİL `accentFill`: ikisi farklı iş yapıyor.
-        check('$theme beyaz/accentFill',
-            const Color(0xFFFFFFFF), p.accentFill, large);
-        check('$theme beyaz/successFill',
-            const Color(0xFFFFFFFF), p.successFill, large);
+        check('$theme beyaz/accentFill', const Color(0xFFFFFFFF), p.accentFill,
+            large);
+        check('$theme beyaz/successFill', const Color(0xFFFFFFFF),
+            p.successFill, large);
       });
 
       test('rozetlerde beyaz metin okunur', () {

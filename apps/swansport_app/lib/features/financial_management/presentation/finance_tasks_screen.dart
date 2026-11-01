@@ -62,7 +62,6 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
             constraints: const BoxConstraints(maxWidth: 440),
             child: Column(
               children: [
-
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
@@ -92,7 +91,8 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
                           loading: () => const SizedBox.shrink(),
                           error: (_, __) => const SizedBox.shrink(),
                           data: (approvals) {
-                            if (approvals.isEmpty) return const SizedBox.shrink();
+                            if (approvals.isEmpty)
+                              return const SizedBox.shrink();
                             return Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
@@ -680,7 +680,8 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
         color: palette.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: f.overdue ? palette.danger.withValues(alpha: 0.3) : palette.line,
+          color:
+              f.overdue ? palette.danger.withValues(alpha: 0.3) : palette.line,
         ),
       ),
       child: Column(
@@ -701,7 +702,8 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
                     child: Center(
                       child: Text(
                         (f.athleteName ?? 'SP').substring(0, 1).toUpperCase(),
-                        style: SwanType.caption(palette.ink, w: FontWeight.w700),
+                        style:
+                            SwanType.caption(palette.ink, w: FontWeight.w700),
                       ),
                     ),
                   ),

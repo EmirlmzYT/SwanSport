@@ -22,10 +22,12 @@ class AdminUserDetailScreen extends ConsumerWidget {
     final state = ref.watch(administrationControllerProvider);
     final users = state.users.where((u) => u.id.value == args!.userId.value);
     if (state.loading) {
-      return const SwanScaffold(body: Center(child: CircularProgressIndicator()));
+      return const SwanScaffold(
+          body: Center(child: CircularProgressIndicator()));
     }
     if (users.isEmpty) {
-      return const SwanScaffold(body: Center(child: Text('Kullanıcı bulunamadı.')));
+      return const SwanScaffold(
+          body: Center(child: Text('Kullanıcı bulunamadı.')));
     }
     final user = users.single;
     final c = context.swan;

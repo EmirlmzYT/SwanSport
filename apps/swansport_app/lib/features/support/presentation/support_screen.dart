@@ -29,7 +29,11 @@ class SupportScreen extends ConsumerWidget {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Destek Talepleri', actions: [
-        IconButton(tooltip: 'Sık sorulan sorular', icon: Icon(Icons.help_outline_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/yardim')),
+        IconButton(
+            tooltip: 'Sık sorulan sorular',
+            icon:
+                Icon(Icons.help_outline_rounded, color: context.swan.inkMuted),
+            onPressed: () => Navigator.pushNamed(context, '/yardim')),
       ]),
       extendBody: true,
       backgroundColor: c.bg,
@@ -37,50 +41,57 @@ class SupportScreen extends ConsumerWidget {
         backgroundColor: c.accentFill,
         onPressed: () => _newTicket(context),
         icon: const Icon(Icons.add_rounded, color: Colors.white, size: 20),
-        label: Text('Sorun bildir',
-            style: SwanType.bodySm(Colors.white, w: FontWeight.w800),),
+        label: Text(
+          'Sorun bildir',
+          style: SwanType.bodySm(Colors.white, w: FontWeight.w800),
+        ),
       ),
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
-            child: Column(children: [
-
-              Expanded(
-                child: tickets.when(
-                  loading: premiumLoading,
-                  error: (e, _) => premiumError(context, '$e'),
-                  data: (list) => list.isEmpty
-                      ? premiumEmpty(
-                          context,
-                          icon: Icons.support_agent_rounded,
-                          title: 'Destek talebin yok',
-                          subtitle: 'Bir sorunla karşılaşırsan buradan yaz. '
-                              'Önce SSS\'ye bakmanı öneririz — çoğu sorunun '
-                              'cevabı orada.',
-                        )
-                      : ListView(
-                          padding: const EdgeInsets.fromLTRB(
-                              SwanSpace.lg, 0, SwanSpace.lg, 132,),
-                          children: [
-                            StitchHeroCard(
-                              title: 'Destek merkezi',
-                              subtitle:
-                                  'Açık taleplerini tek yerden takip et; cevap gelince bildirim merkezine düşer.',
-                              icon: Icons.support_agent_rounded,
-                              actionLabel: 'SSS’ye bak',
-                              onAction: () =>
-                                  Navigator.pushNamed(context, '/yardim'),
+            child: Column(
+              children: [
+                Expanded(
+                  child: tickets.when(
+                    loading: premiumLoading,
+                    error: (e, _) => premiumError(context, '$e'),
+                    data: (list) => list.isEmpty
+                        ? premiumEmpty(
+                            context,
+                            icon: Icons.support_agent_rounded,
+                            title: 'Destek talebin yok',
+                            subtitle: 'Bir sorunla karşılaşırsan buradan yaz. '
+                                'Önce SSS\'ye bakmanı öneririz — çoğu sorunun '
+                                'cevabı orada.',
+                          )
+                        : ListView(
+                            padding: const EdgeInsets.fromLTRB(
+                              SwanSpace.lg,
+                              0,
+                              SwanSpace.lg,
+                              132,
                             ),
-                            const SizedBox(height: SwanSpace.md),
-                            const StitchSectionTitle(title: 'Taleplerim'),
-                            for (final ticket in list) _TicketTile(t: ticket),
-                          ],
-                        ),
+                            children: [
+                              StitchHeroCard(
+                                title: 'Destek merkezi',
+                                subtitle:
+                                    'Açık taleplerini tek yerden takip et; cevap gelince bildirim merkezine düşer.',
+                                icon: Icons.support_agent_rounded,
+                                actionLabel: 'SSS’ye bak',
+                                onAction: () =>
+                                    Navigator.pushNamed(context, '/yardim'),
+                              ),
+                              const SizedBox(height: SwanSpace.md),
+                              const StitchSectionTitle(title: 'Taleplerim'),
+                              for (final ticket in list) _TicketTile(t: ticket),
+                            ],
+                          ),
+                  ),
                 ),
-              ),
-            ],),
+              ],
+            ),
           ),
         ),
       ),
@@ -118,20 +129,27 @@ class _TicketTile extends StatelessWidget {
           borderRadius: BorderRadius.circular(SwanRadius.md),
           border: Border.all(color: c.line),
         ),
-        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-          Row(children: [
-            Expanded(
-              child: Text(t.subject,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    t.subject,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                  ),
+                ),
+                const SizedBox(width: SwanSpace.sm),
+                Text(t.statusLabel, style: SwanType.caption(tone)),
+              ],
             ),
-            const SizedBox(width: SwanSpace.sm),
-            Text(t.statusLabel, style: SwanType.caption(tone)),
-          ],),
-          const SizedBox(height: 2),
-          Text(fmtDate(t.createdAt), style: SwanType.caption(c.inkMuted)),
-        ],),
+            const SizedBox(height: 2),
+            Text(fmtDate(t.createdAt), style: SwanType.caption(c.inkMuted)),
+          ],
+        ),
       ),
     );
   }
@@ -204,118 +222,156 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
-            child: Column(children: [
-              Padding(
-                padding: const EdgeInsets.all(SwanSpace.lg),
-                child: Row(children: [
-                  GestureDetector(
-                    onTap: () => Navigator.maybePop(context),
-                    child: Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                          color: c.surface,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                          border: Border.all(color: c.line),),
-                      child: Icon(Icons.arrow_back_ios_new_rounded,
-                          size: 15, color: c.ink,),
-                    ),
-                  ),
-                  const SizedBox(width: SwanSpace.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(ticket.subject,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: SwanType.bodySm(c.ink, w: FontWeight.w800),),
-                        Text(ticket.statusLabel,
-                            style: SwanType.caption(c.inkMuted),),
-                      ],
-                    ),
-                  ),
-                  if (!closed)
-                    GestureDetector(
-                      onTap: _close,
-                      child: Text('Kapat',
-                          style:
-                              SwanType.caption(c.inkMuted, w: FontWeight.w700),),
-                    ),
-                ],),
-              ),
-              Expanded(
-                child: ListView(
-                  padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg,),
-                  children: [
-                    SupportFixCard(ticketId: widget.ticket.id),
-                    // İlk mesaj talebin kendi gövdesi.
-                    if ((widget.ticket.body ?? '').isNotEmpty)
-                      _bubble(c, widget.ticket.body!, false,
-                          widget.ticket.createdAt,),
-                    ...msgs.maybeWhen(
-                      orElse: () => <Widget>[],
-                      data: (list) => [
-                        for (final m in list)
-                          _bubble(c, m.body, m.isStaff, m.createdAt),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              if (closed)
+            child: Column(
+              children: [
                 Padding(
                   padding: const EdgeInsets.all(SwanSpace.lg),
-                  child: Text('Bu talep kapatıldı.',
-                      style: SwanType.caption(c.inkMuted),),
-                )
-              else
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                      SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg,),
-                  child: Row(children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _body,
-                        minLines: 1,
-                        maxLines: 4,
-                        style: SwanType.bodySm(c.ink),
-                        decoration: InputDecoration(
-                          isDense: true,
-                          hintText: 'Yanıt yaz…',
-                          hintStyle: SwanType.bodySm(c.inkMuted),
-                          border: OutlineInputBorder(
+                  child: Row(
+                    children: [
+                      GestureDetector(
+                        onTap: () => Navigator.maybePop(context),
+                        child: Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            color: c.surface,
                             borderRadius: BorderRadius.circular(SwanRadius.sm),
-                            borderSide: BorderSide(color: c.line),
+                            border: Border.all(color: c.line),
+                          ),
+                          child: Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 15,
+                            color: c.ink,
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(width: SwanSpace.sm),
-                    GestureDetector(
-                      onTap: _busy ? null : _send,
-                      child: Container(
-                        width: 44,
-                        height: 44,
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: c.accentFill,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
+                      const SizedBox(width: SwanSpace.md),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              ticket.subject,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: SwanType.bodySm(c.ink, w: FontWeight.w800),
+                            ),
+                            Text(
+                              ticket.statusLabel,
+                              style: SwanType.caption(c.inkMuted),
+                            ),
+                          ],
                         ),
-                        child: _busy
-                            ? const SizedBox(
-                                width: 18,
-                                height: 18,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white,),)
-                            : const Icon(Icons.send_rounded,
-                                size: 18, color: Colors.white,),
                       ),
-                    ),
-                  ],),
+                      if (!closed)
+                        GestureDetector(
+                          onTap: _close,
+                          child: Text(
+                            'Kapat',
+                            style: SwanType.caption(c.inkMuted,
+                                w: FontWeight.w700),
+                          ),
+                        ),
+                    ],
+                  ),
                 ),
-            ],),
+                Expanded(
+                  child: ListView(
+                    padding: const EdgeInsets.fromLTRB(
+                      SwanSpace.lg,
+                      0,
+                      SwanSpace.lg,
+                      SwanSpace.lg,
+                    ),
+                    children: [
+                      SupportFixCard(ticketId: widget.ticket.id),
+                      // İlk mesaj talebin kendi gövdesi.
+                      if ((widget.ticket.body ?? '').isNotEmpty)
+                        _bubble(
+                          c,
+                          widget.ticket.body!,
+                          false,
+                          widget.ticket.createdAt,
+                        ),
+                      ...msgs.maybeWhen(
+                        orElse: () => <Widget>[],
+                        data: (list) => [
+                          for (final m in list)
+                            _bubble(c, m.body, m.isStaff, m.createdAt),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                if (closed)
+                  Padding(
+                    padding: const EdgeInsets.all(SwanSpace.lg),
+                    child: Text(
+                      'Bu talep kapatıldı.',
+                      style: SwanType.caption(c.inkMuted),
+                    ),
+                  )
+                else
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      SwanSpace.lg,
+                      0,
+                      SwanSpace.lg,
+                      SwanSpace.lg,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _body,
+                            minLines: 1,
+                            maxLines: 4,
+                            style: SwanType.bodySm(c.ink),
+                            decoration: InputDecoration(
+                              isDense: true,
+                              hintText: 'Yanıt yaz…',
+                              hintStyle: SwanType.bodySm(c.inkMuted),
+                              border: OutlineInputBorder(
+                                borderRadius:
+                                    BorderRadius.circular(SwanRadius.sm),
+                                borderSide: BorderSide(color: c.line),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: SwanSpace.sm),
+                        GestureDetector(
+                          onTap: _busy ? null : _send,
+                          child: Container(
+                            width: 44,
+                            height: 44,
+                            alignment: Alignment.center,
+                            decoration: BoxDecoration(
+                              color: c.accentFill,
+                              borderRadius:
+                                  BorderRadius.circular(SwanRadius.sm),
+                            ),
+                            child: _busy
+                                ? const SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.send_rounded,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
           ),
         ),
       ),
@@ -353,15 +409,20 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (isStaff)
-                Text('SwanSport ekibi',
-                    style: SwanType.caption(c.accent, w: FontWeight.w800),),
-              Text(body,
-                  style: SwanType.bodySm(isStaff ? c.ink : Colors.white)
-                      .copyWith(height: 1.4),),
+                Text(
+                  'SwanSport ekibi',
+                  style: SwanType.caption(c.accent, w: FontWeight.w800),
+                ),
+              Text(
+                body,
+                style: SwanType.bodySm(isStaff ? c.ink : Colors.white)
+                    .copyWith(height: 1.4),
+              ),
               const SizedBox(height: 2),
-              Text(fmtDate(at),
-                  style:
-                      SwanType.caption(isStaff ? c.inkMuted : Colors.white70),),
+              Text(
+                fmtDate(at),
+                style: SwanType.caption(isStaff ? c.inkMuted : Colors.white70),
+              ),
             ],
           ),
         ),
@@ -371,11 +432,12 @@ class _TicketThreadScreenState extends ConsumerState<TicketThreadScreen> {
 /// Destek talebi; teknik bilgi ve görsel yalnızca kullanıcının seçimiyle eklenir.
 Future<void> _newTicket(BuildContext context) async {
   final sent = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      isDismissible: false,
-      enableDrag: false,
-      builder: (_) => const ReportProblemSheet(),);
+    context: context,
+    isScrollControlled: true,
+    isDismissible: false,
+    enableDrag: false,
+    builder: (_) => const ReportProblemSheet(),
+  );
   if (sent == true && context.mounted) {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('Talebin alındı')),

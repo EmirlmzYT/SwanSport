@@ -10,7 +10,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+          unifiedCalendarMonthProvider.overrideWith(
+            (ref, month) async => const UnifiedCalendarData([]),
+          ),
         ],
         child: MaterialApp(
           theme: SwanTheme.light(),
@@ -22,6 +24,8 @@ void main() {
     await tester.pump();
 
     expect(find.text('Bugün'), findsWidgets);
+    await tester.drag(find.byType(ListView).first, const Offset(0, -600));
+    await tester.pumpAndSettle();
     expect(find.text('Henüz etkinlik yok'), findsOneWidget);
     expect(find.text('Seçili tarih ve filtrede görüntülenebilen etkinlik yok.'),
         findsOneWidget);
@@ -32,7 +36,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+          unifiedCalendarMonthProvider.overrideWith(
+            (ref, month) async => const UnifiedCalendarData([]),
+          ),
         ],
         child: MaterialApp(
           theme: SwanTheme.light(),

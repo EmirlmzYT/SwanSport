@@ -128,7 +128,6 @@ class _NutritionTrackerScreenState
                   120,
                 ),
                 children: [
-
                   const SizedBox(height: SwanSpace.md),
                   _buildDateSelector(c),
                   const SizedBox(height: SwanSpace.lg),
@@ -252,8 +251,7 @@ class _NutritionTrackerScreenState
             icon: Icon(Icons.chevron_left_rounded, color: c.ink),
             onPressed: () {
               setState(() {
-                _selectedDate =
-                    _selectedDate.subtract(const Duration(days: 1));
+                _selectedDate = _selectedDate.subtract(const Duration(days: 1));
               });
             },
             tooltip: 'Önceki gün',
@@ -287,7 +285,8 @@ class _NutritionTrackerScreenState
     DailyNutritionSummary summary,
     String? profileId,
   ) {
-    final hasTarget = summary.targetWaterMl != null && summary.targetWaterMl! > 0;
+    final hasTarget =
+        summary.targetWaterMl != null && summary.targetWaterMl! > 0;
     final progress = hasTarget
         ? (summary.totalWaterMl / summary.targetWaterMl!).clamp(0.0, 1.0)
         : 0.0;
@@ -345,7 +344,9 @@ class _NutritionTrackerScreenState
                                   : 'Hedef Belirlenmedi',
                               style: SwanType.caption(
                                 hasTarget ? c.inkMuted : c.accent,
-                                w: hasTarget ? FontWeight.normal : FontWeight.w600,
+                                w: hasTarget
+                                    ? FontWeight.normal
+                                    : FontWeight.w600,
                               ),
                             ),
                             const SizedBox(width: 4),
@@ -651,8 +652,7 @@ class _NutritionTrackerScreenState
     required List<NutritionLog> logs,
     required String? profileId,
   }) {
-    final totalCals =
-        logs.fold<int>(0, (sum, item) => sum + item.calories);
+    final totalCals = logs.fold<int>(0, (sum, item) => sum + item.calories);
 
     return Container(
       padding: const EdgeInsets.all(SwanSpace.md),
@@ -755,8 +755,7 @@ class _NutritionTrackerScreenState
       );
       return;
     }
-    final athlete =
-        await ref.read(athleteByProfileProvider(profileId).future);
+    final athlete = await ref.read(athleteByProfileProvider(profileId).future);
     if (athlete == null) {
       if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -1209,9 +1208,7 @@ class _NutritionTrackerScreenState
                             final waterVal =
                                 int.tryParse(waterCtrl.text.trim());
 
-                            await ref
-                                .read(nutritionServiceProvider)
-                                .setTargets(
+                            await ref.read(nutritionServiceProvider).setTargets(
                                   athleteId: athlete.id,
                                   targetCalories: calVal,
                                   targetWaterMl: waterVal,
@@ -1261,4 +1258,3 @@ class _NutritionTrackerScreenState
     );
   }
 }
-

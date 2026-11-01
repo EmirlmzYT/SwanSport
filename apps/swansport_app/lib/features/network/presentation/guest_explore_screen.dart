@@ -40,11 +40,12 @@ class GuestExploreScreen extends ConsumerWidget {
             subtitle: 'Resmi takvim, fikstür, canlı skorlar ve sonuçlar',
             onTap: () => Navigator.pushNamed(context, '/federasyon-merkezi'),
           ),
-          if(ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub))) SwanActionCard(
-            icon: Icons.scoreboard_outlined,
-            title: 'Canlı Skor Merkezi',
-            onTap:()=>Navigator.pushNamed(context,'/canli-skor'),
-          ),
+          if (ref.watch(featureEnabledProvider(FeatureFlags.liveMatchHub)))
+            SwanActionCard(
+              icon: Icons.scoreboard_outlined,
+              title: 'Canlı Skor Merkezi',
+              onTap: () => Navigator.pushNamed(context, '/canli-skor'),
+            ),
           FilledButton(
             onPressed: () => Navigator.pushNamed(context, '/auth'),
             child: const Text('Giriş Yap / Kayıt Ol'),

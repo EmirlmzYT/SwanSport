@@ -47,7 +47,9 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
         ref.read(swanAccessProvider).hasVerifiedIdentity;
     final creds = ref.read(myCredentialsProvider).valueOrNull;
     final isApprovedCoach = creds?.any((cr) =>
-            cr.isCoach && cr.status == 'approved' && (cr.coachLevel ?? 0) >= 2) ??
+            cr.isCoach &&
+            cr.status == 'approved' &&
+            (cr.coachLevel ?? 0) >= 2) ??
         false;
 
     // Doğrulanmış hesap kontrolü (Yönlendirmeli uyarı)
@@ -123,7 +125,9 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
     final hasVerifiedIdentity =
         ref.watch(swanAccessProvider).hasVerifiedIdentity;
     final isApprovedCoach = creds?.any((cr) =>
-            cr.isCoach && cr.status == 'approved' && (cr.coachLevel ?? 0) >= 2) ??
+            cr.isCoach &&
+            cr.status == 'approved' &&
+            (cr.coachLevel ?? 0) >= 2) ??
         false;
 
     return Container(
@@ -204,7 +208,8 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
                     decoration: BoxDecoration(
                       color: c.danger.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(SwanRadius.md),
-                      border: Border.all(color: c.danger.withValues(alpha: 0.3)),
+                      border:
+                          Border.all(color: c.danger.withValues(alpha: 0.3)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -349,8 +354,8 @@ class _ClubCreateSheetState extends ConsumerState<_ClubCreateSheet> {
                               !hasVerifiedIdentity
                                   ? 'Kimlik Doğrulamaya Git'
                                   : 'Antrenör Belgesi Yükle',
-                              style: SwanType.caption(c.ink,
-                                  w: FontWeight.w700),
+                              style:
+                                  SwanType.caption(c.ink, w: FontWeight.w700),
                             ),
                           ),
                         ),

@@ -10,13 +10,20 @@ import 'package:swansport_data/swansport_data.dart';
 void main() {
   setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
   test('opt-in, development, debug and local endpoint are all required', () {
-    for (final env in [const AppEnvironment.production(), const AppEnvironment.development()]) {
+    for (final env in [
+      const AppEnvironment.production(),
+      const AppEnvironment.development()
+    ]) {
       for (final enabled in [false, true]) {
-        for (final url in ['http://127.0.0.1:55421', 'https://api.swansport.com.tr']) {
+        for (final url in [
+          'http://127.0.0.1:55421',
+          'https://api.swansport.com.tr'
+        ]) {
           final container = ProviderContainer(overrides: [
             appEnvironmentProvider.overrideWithValue(env),
             localTestCenterRequestedProvider.overrideWithValue(enabled),
-            supabaseConfigProvider.overrideWithValue(SupabaseConfig(url: url, anonKey: 'public')),
+            supabaseConfigProvider
+                .overrideWithValue(SupabaseConfig(url: url, anonKey: 'public')),
           ]);
           expect(container.read(localTestCenterEnabledProvider),
               enabled && env.isDevelopment && isLocalTestBackend(url));
@@ -25,16 +32,21 @@ void main() {
       }
     }
   });
-  testWidgets('production/direct widget never constructs a local login service', (tester) async {
+  testWidgets('production/direct widget never constructs a local login service',
+      (tester) async {
     await tester.pumpWidget(ProviderScope(overrides: [
-      appEnvironmentProvider.overrideWithValue(const AppEnvironment.production()),
+      appEnvironmentProvider
+          .overrideWithValue(const AppEnvironment.production()),
       localTestCenterRequestedProvider.overrideWithValue(true),
-      localTestAccountServiceProvider.overrideWith((_) => throw StateError('must not read')),
+      localTestAccountServiceProvider
+          .overrideWith((_) => throw StateError('must not read')),
     ], child: const MaterialApp(home: TestCenterScreen())));
     expect(find.text('Test Merkezi bu ortamda kapalı.'), findsOneWidget);
     expect(find.byType(FilledButton), findsNothing);
   });
-  testWidgets('five roles render on a narrow screen without opening backend queries', (tester) async {
+  testWidgets(
+      'five roles render on a narrow screen without opening backend queries',
+      (tester) async {
     tester.view.physicalSize = const Size(320, 740);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);

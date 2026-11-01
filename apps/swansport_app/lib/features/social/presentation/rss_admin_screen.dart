@@ -64,16 +64,13 @@ class RssAdminScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text('Platform Yöneticisi', style: SwanType.h3(ink)),
-                          Text('Haber Kaynakları',
-                              style: SwanType.h2(ink)),
+                          Text('Haber Kaynakları', style: SwanType.h2(ink)),
                         ],
                       ),
                     ),
-                    if (isAdmin)
-                      AddButton(onTap: () => _add(context, ref)),
+                    if (isAdmin) AddButton(onTap: () => _add(context, ref)),
                   ]),
                   const SizedBox(height: 18),
-
                   if (!isAdmin)
                     premiumEmpty(
                       context,
@@ -98,7 +95,8 @@ class RssAdminScreen extends ConsumerWidget {
                               'Eklediğin RSS akışları herkesin ana sayfasında '
                               'haber olarak görünür. Kapattığın kaynak akıştan '
                               'çıkar ama silinmez.',
-                              style: SwanType.caption(SwanColors.textSecondary)),
+                              style:
+                                  SwanType.caption(SwanColors.textSecondary)),
                         ),
                       ]),
                     ),
@@ -112,8 +110,7 @@ class RssAdminScreen extends ConsumerWidget {
                             context,
                             icon: Icons.rss_feed_rounded,
                             title: 'Kaynak yok',
-                            subtitle:
-                                'Sağ üstteki + ile bir RSS adresi ekle.',
+                            subtitle: 'Sağ üstteki + ile bir RSS adresi ekle.',
                           );
                         }
                         return Column(
@@ -133,8 +130,7 @@ class RssAdminScreen extends ConsumerWidget {
     );
   }
 
-  Widget _row(
-      BuildContext context, WidgetRef ref, bool isDark, RssSource s) {
+  Widget _row(BuildContext context, WidgetRef ref, bool isDark, RssSource s) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -157,8 +153,7 @@ class RssAdminScreen extends ConsumerWidget {
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(Icons.rss_feed_rounded,
-              size: 19,
-              color: s.active ? kCoral : SwanColors.textSecondary),
+              size: 19, color: s.active ? kCoral : SwanColors.textSecondary),
         ),
         const SizedBox(width: 12),
         Expanded(
@@ -202,7 +197,8 @@ class RssAdminScreen extends ConsumerWidget {
     final ok = await showQuickForm(
       context,
       title: 'Haber Kaynağı Ekle',
-      note: 'Sitenin RSS/feed adresini gir (genelde /rss veya /feed ile biter).',
+      note:
+          'Sitenin RSS/feed adresini gir (genelde /rss veya /feed ile biter).',
       fields: [name, url],
       onSubmit: () async {
         final u = url.value;
@@ -216,8 +212,7 @@ class RssAdminScreen extends ConsumerWidget {
     }
   }
 
-  Future<void> _remove(
-      BuildContext context, WidgetRef ref, RssSource s) async {
+  Future<void> _remove(BuildContext context, WidgetRef ref, RssSource s) async {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -233,13 +228,14 @@ class RssAdminScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
             child: Text('Vazgeç',
-                style:
-                    SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                style: SwanType.bodySm(SwanColors.textSecondary,
+                    w: FontWeight.w700)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text('Sil',
-                style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                style: SwanType.bodySm(SwanPalette.light.danger,
+                    w: FontWeight.w800)),
           ),
         ],
       ),

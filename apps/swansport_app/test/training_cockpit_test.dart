@@ -11,50 +11,51 @@ import 'package:swansport_app/features/training/presentation/widgets/phase_timer
 import 'package:swansport_data/swansport_data.dart';
 
 TrainingProtocolConfig config(TrainingArchetype a) => TrainingProtocolConfig(
-  setCount: 3,
-  unitsPerSet: 3,
-  prepSeconds: 5,
-  shootSeconds: 60,
-  collectSeconds: a == TrainingArchetype.targetScore ? 20 : 0,
-  restSeconds: 10,
-  maxUnitScore: 10,
-  entryMode: ScoreEntryMode.detailed,
-  mode: TrainingMode.technique,
-  archetype: a,
-);
+      setCount: 3,
+      unitsPerSet: 3,
+      prepSeconds: 5,
+      shootSeconds: 60,
+      collectSeconds: a == TrainingArchetype.targetScore ? 20 : 0,
+      restSeconds: 10,
+      maxUnitScore: 10,
+      entryMode: ScoreEntryMode.detailed,
+      mode: TrainingMode.technique,
+      archetype: a,
+    );
 TrainingSession session(
   TrainingArchetype a, {
   bool coach = false,
   bool paused = false,
   int set = 1,
   String status = 'live',
-}) => TrainingSession(
-  id: 's',
-  clubId: 'club',
-  kind: coach ? 'club' : 'personal',
-  status: status,
-  phase: status != 'live'
-      ? SessionPhase.done
-      : switch (a) {
-          TrainingArchetype.targetScore => SessionPhase.score,
-          TrainingArchetype.lapInterval => SessionPhase.lapActive,
-          _ => SessionPhase.activeDrill,
-        },
-  currentSet: set,
-  setCount: 3,
-  rhythm: SessionRhythm.individual,
-  protocolName: 'Canlı antrenman',
-  sportCode: switch (a) {
-    TrainingArchetype.attemptDrill => 'volleyball',
-    TrainingArchetype.combatRally => 'tenis',
-    TrainingArchetype.lapInterval => 'yuzme',
-    TrainingArchetype.strengthSet => 'halter',
-    TrainingArchetype.routineJudge => 'cimnastik',
-    TrainingArchetype.mindTactical => 'satranc',
-    _ => 'archery',
-  },
-  paused: paused,
-);
+}) =>
+    TrainingSession(
+      id: 's',
+      clubId: 'club',
+      kind: coach ? 'club' : 'personal',
+      status: status,
+      phase: status != 'live'
+          ? SessionPhase.done
+          : switch (a) {
+              TrainingArchetype.targetScore => SessionPhase.score,
+              TrainingArchetype.lapInterval => SessionPhase.lapActive,
+              _ => SessionPhase.activeDrill,
+            },
+      currentSet: set,
+      setCount: 3,
+      rhythm: SessionRhythm.individual,
+      protocolName: 'Canlı antrenman',
+      sportCode: switch (a) {
+        TrainingArchetype.attemptDrill => 'volleyball',
+        TrainingArchetype.combatRally => 'tenis',
+        TrainingArchetype.lapInterval => 'yuzme',
+        TrainingArchetype.strengthSet => 'halter',
+        TrainingArchetype.routineJudge => 'cimnastik',
+        TrainingArchetype.mindTactical => 'satranc',
+        _ => 'archery',
+      },
+      paused: paused,
+    );
 const staff = SwanAccess(
   isPlatformAdmin: false,
   clubRole: 'coach',
@@ -64,13 +65,13 @@ const staff = SwanAccess(
 
 class RecordingService extends TrainingSessionService {
   RecordingService()
-    : super(
-        SupabaseClient(
-          'http://localhost',
-          'test',
-          authOptions: const AuthClientOptions(autoRefreshToken: false),
-        ),
-      );
+      : super(
+          SupabaseClient(
+            'http://localhost',
+            'test',
+            authOptions: const AuthClientOptions(autoRefreshToken: false),
+          ),
+        );
   final List<DrillMetricPayload?> payloads = [];
   final List<({String athlete, String text, String tag})> notes = [];
   Completer<void>? pending;
@@ -160,7 +161,9 @@ void main() {
     (TrainingArchetype.routineJudge, ['Yer serisi', '5.5', '8.5', '1']),
     (TrainingArchetype.mindTactical, ['Mat problemi', '3', '1', '120']),
   ]) {
-    testWidgets('${scenario.$1.wireName} saves typed metrics and preserves failed draft', (tester) async {
+    testWidgets(
+        '${scenario.$1.wireName} saves typed metrics and preserves failed draft',
+        (tester) async {
       final service = RecordingService()..fail = true;
       await screen(tester, scenario.$1, service);
       for (var index = 0; index < scenario.$2.length; index++) {
@@ -173,7 +176,12 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.textContaining('Kaydedilemedi:'), findsOneWidget);
       expect(service.payloads.single?.archetype, scenario.$1);
-      expect(tester.widget<TextField>(find.byType(TextField).first).controller!.text, scenario.$2.first);
+      expect(
+          tester
+              .widget<TextField>(find.byType(TextField).first)
+              .controller!
+              .text,
+          scenario.$2.first);
       service.fail = false;
       await tester.ensureVisible(find.text('Seti kaydet'));
       await tester.tap(find.text('Seti kaydet'));
@@ -327,7 +335,8 @@ void main() {
     expect(find.text('16 / 20'), findsOneWidget);
     expect(
       tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, '+ Ace / Sayı'))
+          .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '+ Ace / Sayı'))
           .onPressed,
       isNull,
     );
@@ -345,7 +354,8 @@ void main() {
     await screen(tester, TrainingArchetype.attemptDrill, svc, paused: true);
     expect(
       tester
-          .widget<FilledButton>(find.widgetWithText(FilledButton, '+ Ace / Sayı'))
+          .widget<FilledButton>(
+              find.widgetWithText(FilledButton, '+ Ace / Sayı'))
           .onPressed,
       isNull,
     );

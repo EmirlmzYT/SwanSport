@@ -68,7 +68,8 @@ void main() {
           isSupabaseEnabledProvider.overrideWithValue(false),
           currentProfileProvider.overrideWith((_) async => null),
           conversationsProvider.overrideWith((_) async => dms ?? sampleDms),
-          communityListProvider.overrideWith((_) async => groups ?? sampleGroups),
+          communityListProvider
+              .overrideWith((_) async => groups ?? sampleGroups),
           ...overrides,
         ],
         child: MaterialApp(
@@ -80,7 +81,9 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Modern mesajlar arayüzü başlık, aksiyonlar, arama ve filtre jetonlarını gösterir', (tester) async {
+  testWidgets(
+      'Modern mesajlar arayüzü başlık, aksiyonlar, arama ve filtre jetonlarını gösterir',
+      (tester) async {
     await render(tester);
 
     expect(find.text('Mesajlar'), findsOneWidget);
@@ -104,7 +107,8 @@ void main() {
     expect(find.text('3'), findsOneWidget);
   });
 
-  testWidgets('Kategori filtreleri gerçek grupları ve diyalogları doğru ayırır', (tester) async {
+  testWidgets('Kategori filtreleri gerçek grupları ve diyalogları doğru ayırır',
+      (tester) async {
     await render(tester);
 
     // Gruplar filtresine tıkla
@@ -133,7 +137,8 @@ void main() {
     expect(find.text('Yüzme Takımı Grubu'), findsNothing);
   });
 
-  testWidgets('Arama kutusu anlık olarak gerçek sohbetleri filtreler', (tester) async {
+  testWidgets('Arama kutusu anlık olarak gerçek sohbetleri filtreler',
+      (tester) async {
     await render(tester);
 
     await tester.enterText(find.byType(TextField), 'Ali');

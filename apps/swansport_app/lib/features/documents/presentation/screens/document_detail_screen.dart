@@ -46,15 +46,18 @@ class DocumentDetailScreen extends ConsumerWidget {
                             key: const Key('document-detail-title'),
                             style: SwanType.h2(c.ink)),
                         const SizedBox(height: SwanSpace.md),
-                        SwanSurface(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(d.typeLabel, style: SwanType.body(c.ink)),
-                        Text('Sahip: ${d.ownerLabel}',
-                            style: SwanType.bodySm(c.inkMuted)),
-                        Text('Durum: ${d.state}',
-                            style: SwanType.bodySm(c.inkMuted)),
-                        Text(d.verified ? 'Doğrulanmış' : 'Doğrulanmamış',
-                            style: SwanType.bodySm(c.inkMuted)),
-                        ])),
+                        SwanSurface(
+                            child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                              Text(d.typeLabel, style: SwanType.body(c.ink)),
+                              Text('Sahip: ${d.ownerLabel}',
+                                  style: SwanType.bodySm(c.inkMuted)),
+                              Text('Durum: ${d.state}',
+                                  style: SwanType.bodySm(c.inkMuted)),
+                              Text(d.verified ? 'Doğrulanmış' : 'Doğrulanmamış',
+                                  style: SwanType.bodySm(c.inkMuted)),
+                            ])),
                         if (d.storagePath != null) ...[
                           const SizedBox(height: SwanSpace.lg),
                           FilledButton.icon(

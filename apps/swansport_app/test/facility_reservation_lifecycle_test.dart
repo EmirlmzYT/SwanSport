@@ -44,17 +44,27 @@ class MockClubOpsService extends Fake implements ClubOpsService {
 
   @override
   Future<String> createFacilityReservation({
-    required String clubId, required String facilityId, required String title,
-    String kind = 'rental', required DateTime startsAt, required DateTime endsAt,
-    String? reservedByName, String? reservedByPhone, double fee = 0,
-    String? notes, bool allowConflict = false,
-  }) async => 'reservation-1';
+    required String clubId,
+    required String facilityId,
+    required String title,
+    String kind = 'rental',
+    required DateTime startsAt,
+    required DateTime endsAt,
+    String? reservedByName,
+    String? reservedByPhone,
+    double fee = 0,
+    String? notes,
+    bool allowConflict = false,
+  }) async =>
+      'reservation-1';
 
   @override
   Future<void> cancelFacilityReservation(String reservationId) async {}
 
   @override
-  Future<List<FacilityReservation>> facilityReservations(String facilityId) async => [];
+  Future<List<FacilityReservation>> facilityReservations(
+          String facilityId) async =>
+      [];
 }
 
 void main() {
@@ -68,25 +78,27 @@ void main() {
     return ProviderScope(
       overrides: [
         isSupabaseEnabledProvider.overrideWithValue(true),
-        activeClubProvider.overrideWith((ref) => Future.value(
-              const ClubRef(
-                id: 'club-100',
-                name: 'Swan Spor Kulübü',
-                role: 'manager',
-              ),
+        activeClubProvider.overrideWith(
+          (ref) => Future.value(
+            const ClubRef(
+              id: 'club-100',
+              name: 'Swan Spor Kulübü',
+              role: 'manager',
             ),
+          ),
         ),
-        facilityLoadProvider.overrideWith((ref) => Future.value([
-              const FacilityLoad(
-                facilityId: 'fac-1',
-                name: '1 Nolu Kapalı Kort',
-                status: 'Müsait',
-                eventCount: 2,
-                busyMinutes: 120,
-                loadPercent: 50,
-                kind: 'Kort',
-              ),
-            ]),
+        facilityLoadProvider.overrideWith(
+          (ref) => Future.value([
+            const FacilityLoad(
+              facilityId: 'fac-1',
+              name: '1 Nolu Kapalı Kort',
+              status: 'Müsait',
+              eventCount: 2,
+              busyMinutes: 120,
+              loadPercent: 50,
+              kind: 'Kort',
+            ),
+          ]),
         ),
         facilityScheduleProvider('fac-1').overrideWith(
           (ref) => Future.value([]),
@@ -171,8 +183,8 @@ void main() {
       endsAt: DateTime(2026, 10, 7, 19, 30),
     );
 
-    mockOps.nextConflictsCompleter =
-        Completer<List<FacilitySlot>>()..complete([conflictSlot]);
+    mockOps.nextConflictsCompleter = Completer<List<FacilitySlot>>()
+      ..complete([conflictSlot]);
 
     await tester.pumpWidget(buildTestWidget(opsService: mockOps));
     await tester.pumpAndSettle();
@@ -201,7 +213,8 @@ void main() {
     await tester.tap(find.text('Çakışma Kontrolü Yap'));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('Çakışma kontrolü başarısız oldu'), findsOneWidget);
+    expect(
+        find.textContaining('Çakışma kontrolü başarısız oldu'), findsOneWidget);
     expect(find.text('Tekrar Dene'), findsOneWidget);
 
     // Hatayı kaldırıp Tekrar Dene'ye bas
