@@ -58,8 +58,8 @@ class SummarySection extends StatelessWidget {
                         horizontal: SwanSpace.xs, vertical: SwanSpace.sm),
                     child: Row(children: [
                       Text(seeAllLabel,
-                          style: SwanType.caption(c.accent,
-                              w: FontWeight.w700)),
+                          style:
+                              SwanType.caption(c.accent, w: FontWeight.w700)),
                       Icon(Icons.chevron_right_rounded,
                           size: 16, color: c.accent),
                     ]),

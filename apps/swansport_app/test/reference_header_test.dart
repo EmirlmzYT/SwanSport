@@ -89,8 +89,7 @@ void main() {
     expect(selections, [true, false]);
   });
 
-  testWidgets('create action remains outside the feed header',
-      (tester) async {
+  testWidgets('create action remains outside the feed header', (tester) async {
     await tester.pumpWidget(referenceHost(brightness: Brightness.light));
     await tester.pumpAndSettle();
     expect(find.byTooltip('İçerik oluştur'), findsNothing);

@@ -65,7 +65,6 @@ class _AthletePerformanceScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
                 children: [
-
                   if (ref.watch(
                     featureEnabledProvider(FeatureFlags.developmentReport),
                   ))

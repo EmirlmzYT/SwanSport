@@ -40,8 +40,7 @@ class DemoRoleScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Demo Modu',
-                            style: SwanType.h2(ink)),
+                        Text('Demo Modu', style: SwanType.h2(ink)),
                         Text('Rol seç — her rol farklı ekranları görür',
                             style: SwanType.caption(SwanColors.textSecondary)),
                       ],
@@ -54,9 +53,7 @@ class DemoRoleScreen extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
-                    color: active == null
-                        ? surf
-                        : kTeal.withValues(alpha: .10),
+                    color: active == null ? surf : kTeal.withValues(alpha: .10),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                         color: active == null
@@ -69,16 +66,17 @@ class DemoRoleScreen extends ConsumerWidget {
                             ? Icons.person_outline_rounded
                             : Icons.theater_comedy_rounded,
                         size: 20,
-                        color: active == null
-                            ? SwanColors.textSecondary
-                            : kTeal),
+                        color:
+                            active == null ? SwanColors.textSecondary : kTeal),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                           active == null
                               ? 'Demo kapalı — gerçek rolündesin'
                               : 'Aktif demo rolü: ${active.shortLabel}',
-                          style: SwanType.caption(active == null ? SwanColors.textSecondary : ink, w: FontWeight.w700)),
+                          style: SwanType.caption(
+                              active == null ? SwanColors.textSecondary : ink,
+                              w: FontWeight.w700)),
                     ),
                     if (active != null)
                       GestureDetector(
@@ -88,7 +86,8 @@ class DemoRoleScreen extends ConsumerWidget {
                               context, '/dashboard', (_) => false);
                         },
                         child: Text('Gerçeğe dön',
-                            style: SwanType.caption(kCoral, w: FontWeight.w800)),
+                            style:
+                                SwanType.caption(kCoral, w: FontWeight.w800)),
                       ),
                   ]),
                 ),
@@ -117,15 +116,15 @@ class DemoRoleScreen extends ConsumerWidget {
 
   List<Widget> _group(BuildContext context, WidgetRef ref, bool isDark,
       DemoRole? active, String title, DemoRoleGroup group) {
-    final roles =
-        kDemoRolesOrdered.where((r) => r.group == group).toList();
+    final roles = kDemoRolesOrdered.where((r) => r.group == group).toList();
     if (roles.isEmpty) return const [];
     final isCoach = group == DemoRoleGroup.coach;
     return [
       Padding(
         padding: const EdgeInsets.fromLTRB(2, 4, 2, 10),
         child: Text(title,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       ),
       for (final r in roles)
         _roleCard(context, ref, isDark, r, active == r, isCoach),
@@ -171,8 +170,7 @@ class DemoRoleScreen extends ConsumerWidget {
               borderRadius: BorderRadius.circular(13),
             ),
             child: kademe != null
-                ? Text('$kademe',
-                    style: SwanType.h3(Colors.white))
+                ? Text('$kademe', style: SwanType.h3(Colors.white))
                 : Icon(_roleIcon(role), size: 20, color: Colors.white),
           ),
           const SizedBox(width: 13),
@@ -180,7 +178,8 @@ class DemoRoleScreen extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(role.shortLabel, style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                Text(role.shortLabel,
+                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
                 Text(_roleHint(role, count),
                     style: SwanType.caption(SwanColors.textSecondary)),
@@ -228,7 +227,6 @@ class DemoRoleScreen extends ConsumerWidget {
         DemoRole.member => Icons.person_rounded,
         _ => Icons.sports_rounded,
       };
-
 
   /// Demo modunun sınırını açıkça yazar.
   ///

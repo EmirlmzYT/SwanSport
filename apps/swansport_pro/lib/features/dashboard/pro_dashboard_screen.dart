@@ -496,6 +496,77 @@ class _TodaySection extends ConsumerWidget {
         }
         final todayAttendance = attendanceAsync.valueOrNull;
         final list = <Widget>[];
+        final access = ref.watch(swanAccessProvider);
+        if (access.isClubAdmin) {
+          final applicationsAsync = ref.watch(clubPendingApplicationsProvider);
+          if (applicationsAsync.isLoading) return const AsyncValue.loading();
+          if (applicationsAsync.hasError) {
+            return AsyncValue.error(
+              applicationsAsync.error!,
+              applicationsAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final applications = applicationsAsync.valueOrNull ?? const [];
+          if (applications.isNotEmpty) {
+            list.add(
+              _TodayItemCard(
+                icon: Icons.person_add_alt_1_outlined,
+                tone: _ItemTone.warning,
+                title: 'Bekleyen Başvurular',
+                subtitle:
+                    '${applications.length} kulüp başvurusu karar bekliyor.',
+                actionLabel: 'İncele',
+                onTap: () => context.push(ProRoutes.clubManagement),
+              ),
+            );
+          }
+          final guardianAsync = ref.watch(clubGuardianLinkOverviewProvider);
+          if (guardianAsync.isLoading) return const AsyncValue.loading();
+          if (guardianAsync.hasError) {
+            return AsyncValue.error(
+              guardianAsync.error!,
+              guardianAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final pendingGuardianInvites =
+              guardianAsync.valueOrNull?.pendingCount ?? 0;
+          if (pendingGuardianInvites > 0) {
+            list.add(
+              _TodayItemCard(
+                icon: Icons.family_restroom_outlined,
+                tone: _ItemTone.warning,
+                title: 'Bekleyen Veli Davetleri',
+                subtitle:
+                    '$pendingGuardianInvites veli bağlantısı kod kullanımı bekliyor.',
+                actionLabel: 'İncele',
+                onTap: () => context.push(ProRoutes.guardianLinks),
+              ),
+            );
+          }
+          final duesAsync = ref.watch(clubDuesOverviewProvider);
+          if (duesAsync.isLoading) return const AsyncValue.loading();
+          if (duesAsync.hasError) {
+            return AsyncValue.error(
+              duesAsync.error!,
+              duesAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final dues = duesAsync.valueOrNull?.summary;
+          if (dues != null &&
+              (dues.pendingPaymentCount > 0 || dues.overdueCount > 0)) {
+            list.add(
+              _TodayItemCard(
+                icon: Icons.payments_outlined,
+                tone: _ItemTone.warning,
+                title: 'Aidat & Ödeme İşlemleri',
+                subtitle: '${dues.pendingPaymentCount} ödeme onayı, '
+                    '${dues.overdueCount} gecikmiş aidat bekliyor.',
+                actionLabel: 'İncele',
+                onTap: () => context.push(ProRoutes.clubDues),
+              ),
+            );
+          }
+        }
         if (todayAttendance != null) {
           final unrecorded =
               (todayAttendance.trainingCount - todayAttendance.markedCount)
@@ -540,7 +611,7 @@ class _QuickActionsRow extends ConsumerWidget {
         Wrap(
           spacing: 10,
           runSpacing: 10,
-          children: actions.take(4).toList(),
+          children: actions.take(5).toList(),
         ),
       ],
     );
@@ -567,6 +638,29 @@ class _QuickActionsRow extends ConsumerWidget {
               onTap: () => context.push(ProRoutes.attendanceHistory),
             ),
           ]);
+        }
+        list.add(
+          _QuickActionButton(
+            icon: Icons.business_center_outlined,
+            label: 'Kulüp Yönetimi',
+            onTap: () => context.push(ProRoutes.clubManagement),
+          ),
+        );
+        if (ref.watch(swanAccessProvider).isClubAdmin) {
+          list.add(
+            _QuickActionButton(
+              icon: Icons.family_restroom_outlined,
+              label: 'Veli Bağlantıları',
+              onTap: () => context.push(ProRoutes.guardianLinks),
+            ),
+          );
+          list.add(
+            _QuickActionButton(
+              icon: Icons.payments_outlined,
+              label: 'Aidat Takibi',
+              onTap: () => context.push(ProRoutes.clubDues),
+            ),
+          );
         }
         break;
       case ProWorkspace.accounting:

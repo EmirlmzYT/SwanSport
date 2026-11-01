@@ -30,9 +30,7 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
       _error = null;
     });
     try {
-      await ref
-          .read(trainingSessionServiceProvider)
-          .submitCoachDrillNote(
+      await ref.read(trainingSessionServiceProvider).submitCoachDrillNote(
             widget.sessionId,
             _athleteId!,
             text.trim(),
@@ -55,9 +53,8 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final people = ref.watch(sessionParticipantsProvider(widget.sessionId));
-    final session = ref
-        .watch(trainingSessionProvider(widget.sessionId))
-        .valueOrNull;
+    final session =
+        ref.watch(trainingSessionProvider(widget.sessionId)).valueOrNull;
     final notes = ref.watch(sessionCoachDrillNotesProvider(widget.sessionId));
     final access = ref.watch(swanAccessProvider);
     if (!access.isClubStaff ||
@@ -106,9 +103,8 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
                           child: Text(p.name),
                         ),
                     ],
-                    onChanged: _busy
-                        ? null
-                        : (id) => setState(() => _athleteId = id),
+                    onChanged:
+                        _busy ? null : (id) => setState(() => _athleteId = id),
                   ),
                   if (list.isEmpty)
                     Text(
@@ -141,9 +137,8 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
                     decoration: const InputDecoration(labelText: 'Özel not'),
                   ),
                   OutlinedButton(
-                    onPressed: enabled
-                        ? () => _send('Özel not', _note.text)
-                        : null,
+                    onPressed:
+                        enabled ? () => _send('Özel not', _note.text) : null,
                     child: Text(_busy ? 'Kaydediliyor…' : 'Notu kaydet'),
                   ),
                 ],

@@ -81,9 +81,12 @@ class ClubIdentitySection extends ConsumerWidget {
                 if ((d.email ?? '').isNotEmpty)
                   _line(ink, Icons.mail_rounded, d.email!, copyable: true),
                 if ((d.website ?? '').isNotEmpty)
-                  _line(ink, Icons.language_rounded, d.website!, copyable: true),
+                  _line(ink, Icons.language_rounded, d.website!,
+                      copyable: true),
                 if ((d.instagram ?? '').isNotEmpty)
-                  _line(ink, Icons.camera_alt_rounded,
+                  _line(
+                      ink,
+                      Icons.camera_alt_rounded,
                       d.instagram!.startsWith('@')
                           ? d.instagram!
                           : '@${d.instagram!}',
@@ -109,8 +112,8 @@ class ClubIdentitySection extends ConsumerWidget {
             Text(value, style: SwanType.h3(ink)),
             const SizedBox(height: 2),
             Text(label,
-                style:
-                    SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                style: SwanType.caption(SwanColors.textSecondary,
+                    w: FontWeight.w600)),
           ],
         ),
       );
@@ -126,7 +129,8 @@ class ClubIdentitySection extends ConsumerWidget {
           Icon(icon, size: 15, color: SwanColors.textSecondary),
           const SizedBox(width: 10),
           Expanded(
-            child: Text(value, style: SwanType.caption(ink, w: FontWeight.w600)),
+            child:
+                Text(value, style: SwanType.caption(ink, w: FontWeight.w600)),
           ),
           if (copyable)
             const Icon(Icons.copy_rounded,
@@ -146,20 +150,20 @@ class ClubIdentitySection extends ConsumerWidget {
     });
   }
 
-  Future<void> _edit(
-      BuildContext context, WidgetRef ref, ClubDetails d) async {
+  Future<void> _edit(BuildContext context, WidgetRef ref, ClubDetails d) async {
     final district = FormField_('İlçe', hint: 'Selçuklu', required: false)
       ..controller.text = d.district ?? '';
-    final address = FormField_('Adres', hint: 'Mahalle, cadde, no',
-        required: false)
-      ..controller.text = d.address ?? '';
+    final address =
+        FormField_('Adres', hint: 'Mahalle, cadde, no', required: false)
+          ..controller.text = d.address ?? '';
     final phone = FormField_('Telefon', hint: '0332 000 00 00', required: false)
       ..controller.text = d.phone ?? '';
-    final email = FormField_('E-posta', hint: 'kulup@ornek.com', required: false)
-      ..controller.text = d.email ?? '';
-    final website = FormField_('Web sitesi', hint: 'ornekkulup.com',
-        required: false)
-      ..controller.text = d.website ?? '';
+    final email =
+        FormField_('E-posta', hint: 'kulup@ornek.com', required: false)
+          ..controller.text = d.email ?? '';
+    final website =
+        FormField_('Web sitesi', hint: 'ornekkulup.com', required: false)
+          ..controller.text = d.website ?? '';
     final insta = FormField_('Instagram', hint: 'kullaniciadi', required: false)
       ..controller.text = d.instagram ?? '';
     final founded = FormField_('Kuruluş yılı', hint: '1998', required: false)
@@ -236,7 +240,9 @@ class ClubCoachesSection extends ConsumerWidget {
                             overflow: TextOverflow.ellipsis,
                             style: SwanType.bodySm(ink, w: FontWeight.w700)),
                         Text(c.title,
-                            style: SwanType.caption(c.isAdmin ? kTeal : SwanColors.textSecondary, w: FontWeight.w600)),
+                            style: SwanType.caption(
+                                c.isAdmin ? kTeal : SwanColors.textSecondary,
+                                w: FontWeight.w600)),
                       ],
                     ),
                   ),
@@ -281,19 +287,19 @@ class ClubAchievementsSection extends ConsumerWidget {
             if (canManage)
               GestureDetector(
                 onTap: () => _add(context, ref),
-                child:
-                    Text('Ekle', style: SwanType.caption(kTeal, w: FontWeight.w800)),
+                child: Text('Ekle',
+                    style: SwanType.caption(kTeal, w: FontWeight.w800)),
               ),
           ]),
           const SizedBox(height: 10),
           if (list.isEmpty)
             Text('Henüz başarı eklenmemiş.',
-                style:
-                    SwanType.caption(SwanColors.textSecondary))
+                style: SwanType.caption(SwanColors.textSecondary))
           else
             for (final a in list)
               GestureDetector(
-                onLongPress: a.canManage ? () => _remove(context, ref, a) : null,
+                onLongPress:
+                    a.canManage ? () => _remove(context, ref, a) : null,
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 8),
                   padding: const EdgeInsets.all(12),
@@ -327,13 +333,15 @@ class ClubAchievementsSection extends ConsumerWidget {
                                   if ((a.rank ?? '').isNotEmpty) a.rank!,
                                   if ((a.note ?? '').isNotEmpty) a.note!,
                                 ].join(' · '),
-                                style: SwanType.caption(SwanColors.textSecondary)),
+                                style:
+                                    SwanType.caption(SwanColors.textSecondary)),
                         ],
                       ),
                     ),
                     if (a.year != null)
                       Text('${a.year}',
-                          style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                          style: SwanType.caption(SwanColors.textSecondary,
+                              w: FontWeight.w800)),
                   ]),
                 ),
               ),

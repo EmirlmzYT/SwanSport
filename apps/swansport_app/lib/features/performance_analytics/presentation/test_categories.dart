@@ -35,7 +35,8 @@ const Map<String, Color> _catDark = {
 
 /// Kategori rengi — kimlik rengidir, sıraya göre değişmez.
 Color categoryColor(String key, bool isDark) =>
-    (isDark ? _catDark : _catLight)[key] ?? (isDark ? _catDark : _catLight)['surat']!;
+    (isDark ? _catDark : _catLight)[key] ??
+    (isDark ? _catDark : _catLight)['surat']!;
 
 String categoryLabel(String key) {
   for (final c in kTestCategories) {

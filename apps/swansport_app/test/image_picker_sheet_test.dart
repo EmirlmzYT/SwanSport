@@ -21,19 +21,24 @@ void main() {
     ImageSelectionLoader loader,
     ValueChanged<List<PickedImage>> onResult,
   ) async {
-    await tester.pumpWidget(MaterialApp(
-      home: Builder(
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Builder(
           builder: (context) => Scaffold(
-                body: TextButton(
-                  onPressed: () async => onResult(await showImagePickerSheet(
-                    context,
-                    limit: 8,
-                    picker: loader,
-                  ),),
-                  child: const Text('Aç'),
+            body: TextButton(
+              onPressed: () async => onResult(
+                await showImagePickerSheet(
+                  context,
+                  limit: 8,
+                  picker: loader,
                 ),
-              ),),
-    ),);
+              ),
+              child: const Text('Aç'),
+            ),
+          ),
+        ),
+      ),
+    );
     await tester.tap(find.text('Aç'));
     await tester.pumpAndSettle();
   }
@@ -41,10 +46,14 @@ void main() {
   testWidgets('vazgeçmek seçim başlatmaz ve dosya döndürmez', (tester) async {
     var calls = 0;
     List<PickedImage>? result;
-    await host(tester, ({required source, required limit}) async {
-      calls++;
-      return [first];
-    }, (images) => result = images,);
+    await host(
+      tester,
+      ({required source, required limit}) async {
+        calls++;
+        return [first];
+      },
+      (images) => result = images,
+    );
     await tester.tap(find.byTooltip('Vazgeç'));
     await tester.pumpAndSettle();
     expect(calls, 0);
@@ -54,9 +63,13 @@ void main() {
   testWidgets('izin reddi kullanıcıya açıklanır, seçim kaybolmaz',
       (tester) async {
     List<PickedImage>? result;
-    await host(tester, ({required source, required limit}) async {
-      throw PlatformException(code: 'photo_access_denied');
-    }, (images) => result = images,);
+    await host(
+      tester,
+      ({required source, required limit}) async {
+        throw PlatformException(code: 'photo_access_denied');
+      },
+      (images) => result = images,
+    );
     await tester.tap(find.text('Galeriden seç'));
     await tester.pumpAndSettle();
     expect(find.textContaining('Fotoğraf erişimi kapalı'), findsOneWidget);
@@ -69,11 +82,15 @@ void main() {
   testWidgets('sıra değişikliği onaylanan dosya sırasına yansır',
       (tester) async {
     List<PickedImage>? result;
-    await host(tester, ({required source, required limit}) async {
-      expect(source, ImagePickSource.gallery);
-      expect(limit, 8);
-      return [first, second];
-    }, (images) => result = images,);
+    await host(
+      tester,
+      ({required source, required limit}) async {
+        expect(source, ImagePickSource.gallery);
+        expect(limit, 8);
+        return [first, second];
+      },
+      (images) => result = images,
+    );
     await tester.runAsync(() async {
       await tester.tap(find.text('Galeriden seç'));
       // Native görüntü çözücüsü gerçek event loop'ta tamamlanır.

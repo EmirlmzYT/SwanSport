@@ -123,6 +123,21 @@ final class _ProNavigator extends ProFeatureNavigatorBase {
       context.push('/operasyon/platform-bekleme-listesi');
 
   @override
+  void openPlatformRssSources() => context.push('/operasyon/platform-rss');
+
+  @override
+  void openPlatformProfessionalReview() =>
+      context.push('/operasyon/platform-profesyonel-inceleme');
+
+  @override
+  void openPlatformAccessReview() =>
+      context.push('/operasyon/platform-erisim-inceleme');
+
+  @override
+  void openPlatformFederationAuthority() =>
+      context.push('/operasyon/platform-federasyon-yetkileri');
+
+  @override
   bool openPlatformWebConsole([
     PlatformWebConsoleSection section =
         PlatformWebConsoleSection.missionControl,

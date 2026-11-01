@@ -36,8 +36,8 @@ class GettingStartedCard extends ConsumerWidget {
     if (card == null || card!.hasData) return const SizedBox.shrink();
 
     final c = context.swan;
-    final training = ref.watch(
-        featureEnabledProvider(FeatureFlags.sportTrainingSessions));
+    final training =
+        ref.watch(featureEnabledProvider(FeatureFlags.sportTrainingSessions));
 
     return Container(
       margin: const EdgeInsets.only(bottom: SwanSpace.lg),

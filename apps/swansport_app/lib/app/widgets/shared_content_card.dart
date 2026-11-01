@@ -171,8 +171,8 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
           );
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$n sohbete gönderildi')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('$n sohbete gönderildi')));
     } catch (e) {
       if (mounted) {
         setState(() => _busy = false);
@@ -190,13 +190,13 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
     return Container(
       decoration: BoxDecoration(
         color: c.bg,
-        borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(SwanRadius.lg)),
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
       ),
       // Klavye açılınca gövde `viewInsets` kadar yukarı kayıyor. Scaffold
       // burada yok, bu yüzden çift sayım riski de yok.
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         top: false,
         child: Column(mainAxisSize: MainAxisSize.min, children: [
@@ -225,8 +225,7 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
             child: targets.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(SwanSpace.xl),
-                child: Center(
-                    child: CircularProgressIndicator(strokeWidth: 2)),
+                child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
               ),
               error: (e, _) => Padding(
                 padding: const EdgeInsets.all(SwanSpace.lg),
@@ -250,13 +249,11 @@ class _ShareSheetState extends ConsumerState<_ShareSheet> {
                         return CheckboxListTile(
                           value: on,
                           dense: true,
-                          onChanged: (v) => setState(() =>
-                              v == true ? _selected.add(t.id)
-                                        : _selected.remove(t.id)),
-                          title: Text(t.name,
-                              style: SwanType.bodySm(c.ink)),
-                          subtitle: Text(
-                              t.isCommunity ? 'Kanal' : 'Sohbet',
+                          onChanged: (v) => setState(() => v == true
+                              ? _selected.add(t.id)
+                              : _selected.remove(t.id)),
+                          title: Text(t.name, style: SwanType.bodySm(c.ink)),
+                          subtitle: Text(t.isCommunity ? 'Kanal' : 'Sohbet',
                               style: SwanType.caption(c.inkMuted)),
                           secondary: Icon(
                               t.isCommunity

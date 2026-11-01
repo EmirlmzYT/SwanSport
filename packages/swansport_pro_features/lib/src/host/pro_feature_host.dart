@@ -100,6 +100,14 @@ abstract interface class ProFeatureNavigator {
 
   void openLaunchWaitlist();
 
+  void openPlatformRssSources();
+
+  void openPlatformProfessionalReview();
+
+  void openPlatformAccessReview();
+
+  void openPlatformFederationAuthority();
+
   bool openPlatformWebConsole([
     PlatformWebConsoleSection section =
         PlatformWebConsoleSection.missionControl,
@@ -120,6 +128,17 @@ abstract interface class ProFeatureNavigator {
 
 /// Convenience base for hosts that do not support optional destinations.
 abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
+  @override
+  void openPlatformRssSources() {}
+
+  @override
+  void openPlatformProfessionalReview() {}
+
+  @override
+  void openPlatformAccessReview() {}
+
+  @override
+  void openPlatformFederationAuthority() {}
   @override
   void openFederationMatches() {}
 

@@ -87,13 +87,12 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
               },
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(
-                    SwanSpace.lg,
-                    SwanSpace.md,
-                    SwanSpace.lg,
-                    120,
+                  SwanSpace.lg,
+                  SwanSpace.md,
+                  SwanSpace.lg,
+                  120,
                 ),
                 children: [
-
                   const SizedBox(height: SwanSpace.md),
                   historyAsync.when(
                     loading: () => const Center(
@@ -132,7 +131,8 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text('Antrenman Seansları', style: SwanType.h3(c.ink)),
+                              Text('Antrenman Seansları',
+                                  style: SwanType.h3(c.ink)),
                               Text(
                                 '${history.length} kayıt',
                                 style: SwanType.caption(c.inkMuted),
@@ -174,9 +174,8 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
                 ? 'Dengeli Antrenman Yükü'
                 : 'Yüksek Yük • Dinlenme Önerilir';
 
-    final statusColor = avgRpe == null
-        ? c.inkMuted
-        : _rpeColor(avgRpe.round(), c);
+    final statusColor =
+        avgRpe == null ? c.inkMuted : _rpeColor(avgRpe.round(), c);
 
     return Container(
       padding: const EdgeInsets.all(SwanSpace.lg),
@@ -204,9 +203,7 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
                     textBaseline: TextBaseline.alphabetic,
                     children: [
                       Text(
-                        avgRpe != null
-                            ? avgRpe.toStringAsFixed(1)
-                            : '--',
+                        avgRpe != null ? avgRpe.toStringAsFixed(1) : '--',
                         style: SwanType.h1(statusColor),
                       ),
                       const SizedBox(width: 4),
@@ -217,8 +214,8 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                    horizontal: SwanSpace.sm,
-                    vertical: 6,
+                  horizontal: SwanSpace.sm,
+                  vertical: 6,
                 ),
                 decoration: BoxDecoration(
                   color: statusColor.withValues(alpha: 0.12),
@@ -396,7 +393,8 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
   ) async {
     if (profileId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Değerlendirme için sporcu profili gereklidir.')),
+        const SnackBar(
+            content: Text('Değerlendirme için sporcu profili gereklidir.')),
       );
       return;
     }
@@ -443,7 +441,8 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
               ),
               decoration: BoxDecoration(
                 color: c.surface,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: SingleChildScrollView(
                 child: Column(
@@ -591,7 +590,8 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
                                   if (context.mounted) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('RPE ve değerlendirme kaydedildi.'),
+                                        content: Text(
+                                            'RPE ve değerlendirme kaydedildi.'),
                                         backgroundColor: Color(0xFF10B981),
                                       ),
                                     );
@@ -643,4 +643,3 @@ class _ReadinessRpeScreenState extends ConsumerState<ReadinessRpeScreen> {
     );
   }
 }
-

@@ -35,7 +35,9 @@ void main() {
       expect(msg, isNot(contains('errno = 7')));
     });
 
-    test('Zaman aşımı ve bağlantı kopmalarını anlaşılır Türkçe mesaja dönüştürür', () {
+    test(
+        'Zaman aşımı ve bağlantı kopmalarını anlaşılır Türkçe mesaja dönüştürür',
+        () {
       const timeoutErr = 'TimeoutException after 0:00:10.000000: timed out';
       final msg = friendlyErrorMessage(timeoutErr);
       expect(msg, contains('Sunucu yanıt vermedi'));
@@ -51,7 +53,8 @@ void main() {
       expect(msg, isNot(contains('PostgrestException')));
     });
 
-    testWidgets('premiumError widget onRetry tetiklendiğinde callback çalıştırır',
+    testWidgets(
+        'premiumError widget onRetry tetiklendiğinde callback çalıştırır',
         (tester) async {
       var retried = false;
       await tester.pumpWidget(
@@ -97,11 +100,13 @@ void main() {
                 hasAccount: true,
               ),
             ),
-            platformConfigProvider.overrideWith((ref) async => const PlatformConfig.empty()),
+            platformConfigProvider
+                .overrideWith((ref) async => const PlatformConfig.empty()),
             feedProvider.overrideWith((ref) => []),
             discoverProvider.overrideWith((ref) {
               if (!feedRetried) {
-                throw const SocketException('No address associated with hostname');
+                throw const SocketException(
+                    'No address associated with hostname');
               }
               return [];
             }),
@@ -262,7 +267,8 @@ void main() {
           overrides: [
             swanAccessProvider.overrideWithValue(_adminAccess),
             activeClubProvider.overrideWith((ref) async => _mockClub),
-            clubPendingApplicationsProvider.overrideWith((ref) async => const []),
+            clubPendingApplicationsProvider
+                .overrideWith((ref) async => const []),
             clubAthletesProvider.overrideWith((ref) async => const []),
             pendingPaymentsProvider.overrideWith((ref) async => const []),
             featureEnabledProvider(FeatureFlags.sportTrainingSessions)

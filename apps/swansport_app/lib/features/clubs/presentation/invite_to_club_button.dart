@@ -59,8 +59,8 @@ class InviteToClubButton extends ConsumerWidget {
     );
   }
 
-  Future<void> _open(
-      BuildContext context, WidgetRef ref, String clubId, String clubName) async {
+  Future<void> _open(BuildContext context, WidgetRef ref, String clubId,
+      String clubName) async {
     final sent = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -170,9 +170,9 @@ class _InviteSheetState extends ConsumerState<_InviteSheet> {
           Text('${widget.personName} → ${widget.clubName}',
               style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
           const SizedBox(height: 18),
-
           Text('HANGİ ROLLE?',
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w800)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(4),
@@ -184,9 +184,9 @@ class _InviteSheetState extends ConsumerState<_InviteSheet> {
             ]),
           ),
           const SizedBox(height: 16),
-
           Text('MESAJIN (İSTEĞE BAĞLI)',
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w800)),
           const SizedBox(height: 8),
           TextField(
             controller: _msg,
@@ -195,8 +195,7 @@ class _InviteSheetState extends ConsumerState<_InviteSheet> {
             style: SwanType.bodySm(ink),
             decoration: InputDecoration(
               hintText: 'Kulübümüze katılmak ister misin?',
-              hintStyle:
-                  SwanType.bodySm(SwanColors.textSecondary),
+              hintStyle: SwanType.bodySm(SwanColors.textSecondary),
               filled: true,
               fillColor: alt,
               contentPadding: const EdgeInsets.all(14),
@@ -209,7 +208,6 @@ class _InviteSheetState extends ConsumerState<_InviteSheet> {
             ),
           ),
           const SizedBox(height: 18),
-
           GestureDetector(
             onTap: _busy ? null : _send,
             child: Container(
@@ -226,8 +224,7 @@ class _InviteSheetState extends ConsumerState<_InviteSheet> {
           const SizedBox(height: 8),
           Center(
             child: Text('Kişi kabul ederse kulübe katılır.',
-                style:
-                    SwanType.caption(SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary)),
           ),
         ],
       ),
@@ -247,7 +244,8 @@ class _InviteSheetState extends ConsumerState<_InviteSheet> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(label,
-              style: SwanType.caption(on ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(on ? ink : SwanColors.textSecondary,
+                  w: FontWeight.w800)),
         ),
       ),
     );

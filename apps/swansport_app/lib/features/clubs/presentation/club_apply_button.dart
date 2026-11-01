@@ -37,9 +37,8 @@ class ClubApplyButton extends ConsumerWidget {
     }
 
     final apps = ref.watch(myApplicationsProvider).valueOrNull ?? const [];
-    final existing =
-        apps.where((a) => a.clubId == clubId).toList()
-          ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final existing = apps.where((a) => a.clubId == clubId).toList()
+      ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     if (existing.isNotEmpty && existing.first.isPending) {
       return _info(surf, line, ink, Icons.schedule_rounded,
@@ -106,7 +105,8 @@ class ClubApplyButton extends ConsumerWidget {
   }
 
   Future<void> _openSheet(BuildContext context, WidgetRef ref) async {
-    if (!await requireSwanAction(context, ref, SwanAction.clubApplication) || !context.mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.clubApplication) ||
+        !context.mounted) return;
     final sent = await showModalBottomSheet<bool>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -140,7 +140,8 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
   }
 
   Future<void> _send() async {
-    if (!await requireSwanAction(context, ref, SwanAction.clubApplication) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.clubApplication) ||
+        !mounted) return;
     setState(() => _busy = true);
     try {
       await ref.read(clubApplicationServiceProvider).apply(
@@ -207,9 +208,9 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
           Text(widget.clubName,
               style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
           const SizedBox(height: 18),
-
           Text('NE OLARAK KATILMAK İSTİYORSUN?',
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w800)),
           const SizedBox(height: 8),
           Container(
             padding: const EdgeInsets.all(4),
@@ -221,9 +222,9 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             ]),
           ),
           const SizedBox(height: 16),
-
           Text('MESAJIN (İSTEĞE BAĞLI)',
-              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w800)),
           const SizedBox(height: 8),
           TextField(
             controller: _msg,
@@ -232,8 +233,7 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             style: SwanType.bodySm(ink),
             decoration: InputDecoration(
               hintText: 'Kendini kısaca tanıt…',
-              hintStyle:
-                  SwanType.bodySm(SwanColors.textSecondary),
+              hintStyle: SwanType.bodySm(SwanColors.textSecondary),
               filled: true,
               fillColor: alt,
               contentPadding: const EdgeInsets.all(14),
@@ -246,7 +246,6 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             ),
           ),
           const SizedBox(height: 18),
-
           GestureDetector(
             onTap: _busy ? null : _send,
             child: Container(
@@ -270,8 +269,7 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
           const SizedBox(height: 8),
           Center(
             child: Text('Kulüp yetkilisi başvurunu inceleyip karar verecek.',
-                style:
-                    SwanType.caption(SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary)),
           ),
         ],
       ),
@@ -291,7 +289,8 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(label,
-              style: SwanType.caption(on ? ink : SwanColors.textSecondary, w: FontWeight.w800)),
+              style: SwanType.caption(on ? ink : SwanColors.textSecondary,
+                  w: FontWeight.w800)),
         ),
       ),
     );

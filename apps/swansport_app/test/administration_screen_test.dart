@@ -53,7 +53,13 @@ void main() {
     tester.view.physicalSize = const Size(800, 1200);
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
-    await tester.pumpWidget(ProviderScope(overrides: [swanAccessProvider.overrideWithValue(const SwanAccess(isPlatformAdmin: false, clubRole: null, coachLevel: 0, athleteKind: null))], child: const SwanSportApp()));
+    await tester.pumpWidget(ProviderScope(overrides: [
+      swanAccessProvider.overrideWithValue(const SwanAccess(
+          isPlatformAdmin: false,
+          clubRole: null,
+          coachLevel: 0,
+          athleteKind: null))
+    ], child: const SwanSportApp()));
     await tester.pumpAndSettle();
     final nav = tester.state<NavigatorState>(find.byType(Navigator));
     unawaited(nav.pushNamed('/onay-paneli'));

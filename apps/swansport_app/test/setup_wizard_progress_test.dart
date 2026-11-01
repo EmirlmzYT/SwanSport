@@ -5,11 +5,13 @@ import 'package:swansport_app/features/onboarding/application/setup_wizard_progr
 void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
-  test('existing accounts are not queued merely because seen is absent', () async {
+  test('existing accounts are not queued merely because seen is absent',
+      () async {
     expect(await setupWizardRequired('existing'), isFalse);
   });
 
-  test('registration survives confirmation delay and is account scoped', () async {
+  test('registration survives confirmation delay and is account scoped',
+      () async {
     await queueSetupWizard('new-account');
     expect(await setupWizardRequired('new-account'), isTrue);
     expect(await setupWizardRequired('another-account'), isFalse);

@@ -73,7 +73,6 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
-
                           _gallery(c, images),
                           Padding(
                             padding: const EdgeInsets.all(SwanSpace.md),

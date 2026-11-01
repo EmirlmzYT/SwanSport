@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
 
@@ -250,8 +250,7 @@ class _TargetPainter extends CustomPainter {
       final off = arrowOffsets[i % arrowOffsets.length];
 
       // Draw arrow dot
-      canvas.drawCircle(
-          off, 5, Paint()..color = const Color(0xFF00666D));
+      canvas.drawCircle(off, 5, Paint()..color = const Color(0xFF00666D));
       canvas.drawCircle(
         off,
         6,

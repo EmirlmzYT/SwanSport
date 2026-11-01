@@ -37,8 +37,8 @@ class JoinRequestsSheet extends ConsumerWidget {
         Container(
           width: 38,
           height: 4,
-          decoration:
-              BoxDecoration(color: line, borderRadius: BorderRadius.circular(2)),
+          decoration: BoxDecoration(
+              color: line, borderRadius: BorderRadius.circular(2)),
         ),
         const SizedBox(height: 14),
         Text('Katılmak isteyenler', style: SwanType.h3(ink)),
@@ -52,7 +52,8 @@ class JoinRequestsSheet extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.symmetric(vertical: 26),
                 child: Text('Henüz isteyen yok.',
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w600)),
               );
             }
             return Column(
@@ -93,7 +94,8 @@ class JoinRequestsSheet extends ConsumerWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(label,
-                style: SwanType.caption(accept ? Colors.white : color, w: FontWeight.w800)),
+                style: SwanType.caption(accept ? Colors.white : color,
+                    w: FontWeight.w800)),
           ),
         );
 

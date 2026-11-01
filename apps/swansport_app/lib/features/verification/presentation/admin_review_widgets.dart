@@ -25,8 +25,7 @@ Widget adminReportRow(
     decoration: BoxDecoration(
       color: SwanPalette.light.danger.withValues(alpha: .06),
       borderRadius: BorderRadius.circular(16),
-      border:
-          Border.all(color: SwanPalette.light.danger.withValues(alpha: .3)),
+      border: Border.all(color: SwanPalette.light.danger.withValues(alpha: .3)),
     ),
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -57,8 +56,7 @@ Widget adminReportRow(
         ]),
         if (r.detail != null && r.detail!.trim().isNotEmpty) ...[
           const SizedBox(height: 9),
-          Text(r.detail!,
-              style: SwanType.caption(SwanColors.textSecondary)),
+          Text(r.detail!, style: SwanType.caption(SwanColors.textSecondary)),
         ],
         const SizedBox(height: 11),
         Row(children: [
@@ -72,7 +70,8 @@ Widget adminReportRow(
                 decoration: BoxDecoration(
                     color: surf, borderRadius: BorderRadius.circular(12)),
                 child: Text("Yok say",
-                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w800)),
+                    style: SwanType.caption(SwanColors.textSecondary,
+                        w: FontWeight.w800)),
               ),
             ),
           ),
@@ -143,7 +142,9 @@ Widget adminMiniButton(Color color, IconData icon, VoidCallback onTap) {
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-          color: color, borderRadius: BorderRadius.circular(11),),
+        color: color,
+        borderRadius: BorderRadius.circular(11),
+      ),
       child: Icon(icon, color: Colors.white, size: 18),
     ),
   );
@@ -156,14 +157,19 @@ Widget adminCrest() => Container(
         gradient: const LinearGradient(colors: [kTealBright, kTealDeep]),
         borderRadius: BorderRadius.circular(13),
       ),
-      child: const Icon(Icons.account_balance_rounded,
-          color: Colors.white, size: 20,),
+      child: const Icon(
+        Icons.account_balance_rounded,
+        color: Colors.white,
+        size: 20,
+      ),
     );
 
 Widget adminNoneText(bool isDark, String text) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Text(text,
-          style: SwanType.caption(SwanColors.textSecondary),),
+      child: Text(
+        text,
+        style: SwanType.caption(SwanColors.textSecondary),
+      ),
     );
 
 String adminDocLabel(String t) => switch (t) {
@@ -174,8 +180,13 @@ String adminDocLabel(String t) => switch (t) {
       _ => t,
     };
 
-Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType,
-    String ownerId, String title,) async {
+Future<void> showAdminDocs(
+  BuildContext context,
+  WidgetRef ref,
+  String ownerType,
+  String ownerId,
+  String title,
+) async {
   final isDark = Theme.of(context).brightness == Brightness.dark;
   final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
   final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -186,13 +197,16 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
     builder: (ctx) => AlertDialog(
       backgroundColor: surf,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
-      title: Text('Belgeler · $title',
-          style: SwanType.h3(ink),),
+      title: Text(
+        'Belgeler · $title',
+        style: SwanType.h3(ink),
+      ),
       content: SizedBox(
         width: 360,
         child: FutureBuilder<List<({String docType, String url})>>(
-          future:
-              ref.read(verificationServiceProvider).documentsFor(ownerType, ownerId),
+          future: ref
+              .read(verificationServiceProvider)
+              .documentsFor(ownerType, ownerId),
           builder: (c, snap) {
             if (snap.connectionState != ConnectionState.done) {
               return const Padding(
@@ -201,13 +215,17 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
               );
             }
             if (snap.hasError) {
-              return Text('Yüklenemedi: ${snap.error}',
-                  style: SwanType.caption(SwanColors.textSecondary),);
+              return Text(
+                'Yüklenemedi: ${snap.error}',
+                style: SwanType.caption(SwanColors.textSecondary),
+              );
             }
             final docs = snap.data ?? const [];
             if (docs.isEmpty) {
-              return Text('Bu başvuruya belge eklenmemiş.',
-                  style: SwanType.caption(SwanColors.textSecondary),);
+              return Text(
+                'Bu başvuruya belge eklenmemiş.',
+                style: SwanType.caption(SwanColors.textSecondary),
+              );
             }
             return Column(
               mainAxisSize: MainAxisSize.min,
@@ -216,10 +234,12 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
                   GestureDetector(
                     onTap: () {
                       Clipboard.setData(ClipboardData(text: d.url));
-                      ScaffoldMessenger.of(ctx).showSnackBar(const SnackBar(
-                          content:
-                              Text('Bağlantı kopyalandı — tarayıcıda aç'),
-                          backgroundColor: kTeal,),);
+                      ScaffoldMessenger.of(ctx).showSnackBar(
+                        const SnackBar(
+                          content: Text('Bağlantı kopyalandı — tarayıcıda aç'),
+                          backgroundColor: kTeal,
+                        ),
+                      );
                     },
                     child: Container(
                       margin: const EdgeInsets.only(bottom: 8),
@@ -228,22 +248,34 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
                         borderRadius: BorderRadius.circular(13),
                         border: Border.all(color: line),
                       ),
-                      child: Row(children: [
-                        const Icon(Icons.description_rounded,
-                            size: 18, color: Color(0xFF2563EB),),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(adminDocLabel(d.docType),
-                              style: SwanType.bodySm(ink, w: FontWeight.w700),),
-                        ),
-                        const Icon(Icons.copy_rounded,
-                            size: 15, color: SwanColors.textSecondary,),
-                      ],),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.description_rounded,
+                            size: 18,
+                            color: Color(0xFF2563EB),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: Text(
+                              adminDocLabel(d.docType),
+                              style: SwanType.bodySm(ink, w: FontWeight.w700),
+                            ),
+                          ),
+                          const Icon(
+                            Icons.copy_rounded,
+                            size: 15,
+                            color: SwanColors.textSecondary,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 const SizedBox(height: 2),
-                Text('Bağlantıyı kopyalayıp tarayıcıda aç (1 saat geçerli).',
-                    style: SwanType.caption(SwanColors.textSecondary),),
+                Text(
+                  'Bağlantıyı kopyalayıp tarayıcıda aç (1 saat geçerli).',
+                  style: SwanType.caption(SwanColors.textSecondary),
+                ),
               ],
             );
           },
@@ -252,8 +284,10 @@ Future<void> showAdminDocs(BuildContext context, WidgetRef ref, String ownerType
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(ctx),
-          child: Text('Kapat',
-              style: SwanType.bodySm(kTeal, w: FontWeight.w800),),
+          child: Text(
+            'Kapat',
+            style: SwanType.bodySm(kTeal, w: FontWeight.w800),
+          ),
         ),
       ],
     ),

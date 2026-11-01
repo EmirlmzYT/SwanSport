@@ -8,7 +8,8 @@ void main() {
   testWidgets(
     'production entrypoint reports missing Supabase configuration',
     (tester) async {
-      await bootstrap(const AppEnvironment.production(), supabaseConfig: SupabaseConfig.empty);
+      await bootstrap(const AppEnvironment.production(),
+          supabaseConfig: SupabaseConfig.empty);
       await tester.pump();
 
       expect(find.byType(StartupFailureApp), findsOneWidget);

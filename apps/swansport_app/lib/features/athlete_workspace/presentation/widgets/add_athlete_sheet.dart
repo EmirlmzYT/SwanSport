@@ -65,11 +65,11 @@ class _AddAthleteSheet extends ConsumerWidget {
     return Container(
       decoration: BoxDecoration(
         color: c.bg,
-        borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(SwanRadius.lg)),
+        borderRadius:
+            const BorderRadius.vertical(top: Radius.circular(SwanRadius.lg)),
       ),
-      padding: EdgeInsets.only(
-          bottom: MediaQuery.of(context).viewInsets.bottom),
+      padding:
+          EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: SafeArea(
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const SizedBox(height: SwanSpace.md),
@@ -82,22 +82,20 @@ class _AddAthleteSheet extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.lg,
-                SwanSpace.lg, SwanSpace.sm),
-            child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Sporcu ekle', style: SwanType.h2(c.ink)),
-                  const SizedBox(height: SwanSpace.xs),
-                  Text(
-                    'Kulübüne katılmış ama kadroda olmayan üyeler. Buradan '
-                    'eklenen sporcu kendi hesabıyla giriş yapıp antrenmanlarını '
-                    'görebilir.',
-                    style: SwanType.bodySm(c.inkMuted),
-                  ),
-                ]),
+            padding: const EdgeInsets.fromLTRB(
+                SwanSpace.lg, SwanSpace.lg, SwanSpace.lg, SwanSpace.sm),
+            child:
+                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text('Sporcu ekle', style: SwanType.h2(c.ink)),
+              const SizedBox(height: SwanSpace.xs),
+              Text(
+                'Kulübüne katılmış ama kadroda olmayan üyeler. Buradan '
+                'eklenen sporcu kendi hesabıyla giriş yapıp antrenmanlarını '
+                'görebilir.',
+                style: SwanType.bodySm(c.inkMuted),
+              ),
+            ]),
           ),
-
           Flexible(
             child: candidates.when(
               loading: () => const Padding(
@@ -110,8 +108,8 @@ class _AddAthleteSheet extends ConsumerWidget {
               ),
               data: (list) => list.isEmpty
                   ? Padding(
-                      padding: const EdgeInsets.fromLTRB(SwanSpace.lg, 0,
-                          SwanSpace.lg, SwanSpace.lg),
+                      padding: const EdgeInsets.fromLTRB(
+                          SwanSpace.lg, 0, SwanSpace.lg, SwanSpace.lg),
                       child: Text(
                         'Kadroda karşılığı olmayan üye yok. Sporcu önce '
                         'kulübüne katılmalı — başvurusunu onayladığında '
@@ -126,7 +124,6 @@ class _AddAthleteSheet extends ConsumerWidget {
                     ),
             ),
           ),
-
           Divider(color: c.line, height: 1),
           Padding(
             padding: const EdgeInsets.all(SwanSpace.lg),
@@ -171,8 +168,7 @@ class _AddAthleteSheet extends ConsumerWidget {
             ? null
             // Profilinde ad yazmayan hesap: eklenebilir ama antrenörün adı
             // elle yazması gerekecek, bunu önceden söylemek gerekiyor.
-            : Text('Adını sen yazacaksın',
-                style: SwanType.caption(c.inkMuted)),
+            : Text('Adını sen yazacaksın', style: SwanType.caption(c.inkMuted)),
         trailing: Text('Ekle', style: SwanType.bodySm(c.accent)),
         onTap: () => Navigator.pop(
             context, AddAthleteFromMember(m.profileId, m.fullName)),

@@ -45,7 +45,9 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
 
     return SwanScaffold(
       backgroundColor: bg,
-      appBar: swanModuleAppBar(context, title: _court.name, subtitle: '${_court.opensAt} – ${_court.closesAt}'),
+      appBar: swanModuleAppBar(context,
+          title: _court.name,
+          subtitle: '${_court.opensAt} – ${_court.closesAt}'),
       body: async.when(
         loading: premiumLoading,
         error: (e, _) => premiumError(context, '$e'),
@@ -65,9 +67,9 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
               const SizedBox(height: 4),
               if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)))
                 SwanActionCard(
-                  title: 'Bekleme listem', icon: Icons.schedule_rounded,
-                  onTap: () =>
-                      Navigator.pushNamed(context, '/saha-islemlerim'),
+                  title: 'Bekleme listem',
+                  icon: Icons.schedule_rounded,
+                  onTap: () => Navigator.pushNamed(context, '/saha-islemlerim'),
                 ),
               for (final s in slots) ...[
                 _slotRow(isDark, ink, s, verified),

@@ -58,7 +58,6 @@ class _PerformanceAnalyticsScreenState
               child: ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
                 children: [
-
                   const SizedBox(height: 14),
 
                   // Search Field

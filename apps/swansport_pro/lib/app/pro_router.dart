@@ -4,6 +4,9 @@ import 'package:go_router/go_router.dart';
 import '../features/account/pro_account_screen.dart';
 import '../features/calendar/pro_calendar_screen.dart';
 import '../features/dashboard/pro_dashboard_screen.dart';
+import '../features/operations/pro_club_management_screen.dart';
+import '../features/operations/pro_club_dues_screen.dart';
+import '../features/operations/pro_guardian_links_screen.dart';
 import '../features/operations/pro_operations_gate.dart';
 import '../features/operations/pro_tasks_screen.dart';
 import '../shell/pro_shell.dart';
@@ -28,6 +31,9 @@ abstract final class ProRoutes {
   static const trainingBuilder = '/operasyon/antrenman-olustur';
   static const trainingSession = '/operasyon/antrenman-oturumu';
   static const trainingResult = '/operasyon/antrenman-sonuc';
+  static const clubManagement = '/operasyon/kulup-yonetimi';
+  static const guardianLinks = '/operasyon/veli-sporcu-baglantilari';
+  static const clubDues = '/operasyon/aidat-takibi';
 
   // Federation
   static const federationMatches = '/operasyon/federasyon-maclar';
@@ -74,6 +80,12 @@ abstract final class ProRoutes {
   static const platformAudit = '/operasyon/platform-denetim';
   static const platformPlans = '/operasyon/platform-planlar';
   static const platformWaitlist = '/operasyon/platform-bekleme-listesi';
+  static const platformRss = '/operasyon/platform-rss';
+  static const platformProfessionalReview =
+      '/operasyon/platform-profesyonel-inceleme';
+  static const platformAccessReview = '/operasyon/platform-erisim-inceleme';
+  static const platformFederationAuthority =
+      '/operasyon/platform-federasyon-yetkileri';
 
   /// Immutable contract of all patterns registered in pro_router
   static const registeredPatterns = <String>{
@@ -91,6 +103,9 @@ abstract final class ProRoutes {
     trainingBuilder,
     trainingSession,
     trainingResult,
+    clubManagement,
+    guardianLinks,
+    clubDues,
     federationMatches,
     refereeAssignments,
     leagueStandings,
@@ -119,6 +134,10 @@ abstract final class ProRoutes {
     platformAudit,
     platformPlans,
     platformWaitlist,
+    platformRss,
+    platformProfessionalReview,
+    platformAccessReview,
+    platformFederationAuthority,
   };
 }
 
@@ -270,6 +289,27 @@ final proRouterProvider = Provider<GoRouter>((ref) {
             ),
           );
         },
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.clubManagement,
+        builder: (context, state) => const ProOperationsGate(
+          child: ProClubManagementScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.guardianLinks,
+        builder: (context, state) => const ProOperationsGate(
+          child: ProGuardianLinksScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.clubDues,
+        builder: (context, state) => const ProOperationsGate(
+          child: ProClubDuesScreen(),
+        ),
       ),
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
@@ -438,7 +478,7 @@ final proRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: ProRoutes.developmentReport,
         builder: (context, state) => const ProClubSpecialistOperationsGate(
-          child: SharedDevelopmentReportScreen(),
+          child: ProDevelopmentAnalyticsScreen(),
         ),
       ),
       GoRoute(
@@ -474,6 +514,34 @@ final proRouterProvider = Provider<GoRouter>((ref) {
         path: ProRoutes.platformWaitlist,
         builder: (context, state) => const ProPlatformOperationsGate(
           child: SharedLaunchWaitlistScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformRss,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformRssSourcesScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformProfessionalReview,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformProfessionalReviewScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformAccessReview,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformAccessReviewScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformFederationAuthority,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformFederationAuthorityScreen(),
         ),
       ),
     ],

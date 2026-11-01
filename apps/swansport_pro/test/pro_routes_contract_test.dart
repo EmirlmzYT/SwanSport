@@ -9,6 +9,7 @@ import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/app/pro_router.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
+import 'package:swansport_pro/features/operations/pro_club_management_screen.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_controller.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
 import 'package:swansport_pro/widgets/pro_context_bar.dart';
@@ -1094,8 +1095,7 @@ void main() {
       expect(find.byType(SharedRefereeDutyListScreen), findsOneWidget);
     });
 
-    testWidgets(
-        'club applications action is omitted (fail-closed) when no real route exists',
+    testWidgets('club applications action opens real club management route',
         (tester) async {
       tester.view.physicalSize = const Size(1280, 900);
       tester.view.devicePixelRatio = 1.0;
@@ -1143,6 +1143,12 @@ void main() {
               ),
             ],
           ),
+          announcementsProvider.overrideWith(
+            (ref) async => const <AnnouncementRow>[],
+          ),
+          clubDocumentsProvider.overrideWith(
+            (ref) async => const <DocumentRow>[],
+          ),
           featureFlagsProvider.overrideWith(
             (ref) async => const FeatureFlags({
               FeatureFlags.coachWorkspace,
@@ -1164,8 +1170,12 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Başvurular'), findsNothing);
-      expect(find.text('Bekleyen Başvurular'), findsNothing);
+      expect(find.text('Bekleyen Başvurular'), findsOneWidget);
+      final action = find.widgetWithText(TextButton, 'İncele');
+      expect(action, findsOneWidget);
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+      expect(find.byType(ProClubManagementScreen), findsOneWidget);
     });
 
     test(

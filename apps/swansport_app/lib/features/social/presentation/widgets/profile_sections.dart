@@ -27,9 +27,8 @@ class CoachProfileSection extends ConsumerWidget {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
     // En yüksek kademe ve en eski katılım tarihi künyeyi belirler.
-    final topLevel = clubs
-        .map((c) => c.level ?? 0)
-        .fold<int>(0, (a, b) => a > b ? a : b);
+    final topLevel =
+        clubs.map((c) => c.level ?? 0).fold<int>(0, (a, b) => a > b ? a : b);
     final since = clubs
         .map((c) => c.since)
         .whereType<DateTime>()
@@ -87,8 +86,8 @@ class CoachProfileSection extends ConsumerWidget {
                 ),
                 if (years != null && years > 0)
                   Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
                       color: kTeal.withValues(alpha: .12),
                       borderRadius: BorderRadius.circular(999),
@@ -101,8 +100,7 @@ class CoachProfileSection extends ConsumerWidget {
               ...clubs.map((c) => Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: GestureDetector(
-                      onTap: () => Navigator.pushNamed(
-                          context, '/kulup-profil',
+                      onTap: () => Navigator.pushNamed(context, '/kulup-profil',
                           arguments: c.clubId),
                       child: Row(children: [
                         const Icon(Icons.account_balance_rounded,
@@ -116,7 +114,8 @@ class CoachProfileSection extends ConsumerWidget {
                         ),
                         if (c.level != null)
                           Text('${c.level}. kademe',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+                              style: SwanType.caption(SwanColors.textSecondary,
+                                  w: FontWeight.w700)),
                       ]),
                     ),
                   )),
@@ -153,8 +152,8 @@ class ClubMembersSection extends ConsumerWidget {
             child: Text('Kadro', style: SwanType.h3(ink)),
           ),
           Text('${members.length} kişi',
-              style:
-                  SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+              style: SwanType.caption(SwanColors.textSecondary,
+                  w: FontWeight.w600)),
         ]),
         const SizedBox(height: 10),
         ...members.take(12).map((m) => GestureDetector(
@@ -170,9 +169,8 @@ class ClubMembersSection extends ConsumerWidget {
                 ),
                 child: Row(children: [
                   SocialAvatar(
-                      initials: m.name.isNotEmpty
-                          ? m.name[0].toUpperCase()
-                          : '?',
+                      initials:
+                          m.name.isNotEmpty ? m.name[0].toUpperCase() : '?',
                       imageUrl: m.avatarUrl,
                       size: 38,
                       gradientIndex: m.name.length % 4),
@@ -198,8 +196,7 @@ class ClubMembersSection extends ConsumerWidget {
             )),
         if (members.length > 12)
           Text('ve ${members.length - 12} kişi daha',
-              style:
-                  SwanType.caption(SwanColors.textSecondary)),
+              style: SwanType.caption(SwanColors.textSecondary)),
       ],
     );
   }

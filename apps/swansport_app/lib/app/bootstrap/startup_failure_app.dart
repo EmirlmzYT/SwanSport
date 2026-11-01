@@ -73,8 +73,7 @@ class StartupFailureApp extends StatelessWidget {
                     'Bağlantın varsa sunucu geçici olarak yanıt vermiyor '
                     'olabilir.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: muted, fontSize: 14, height: 1.5),
+                    style: TextStyle(color: muted, fontSize: 14, height: 1.5),
                   ),
                   if (onRetry != null) ...[
                     const SizedBox(height: 26),

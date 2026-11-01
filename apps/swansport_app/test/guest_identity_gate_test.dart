@@ -194,6 +194,9 @@ void main() {
     await tester.pumpWidget(ProviderScope(overrides: [
       swanAccessProvider.overrideWithValue(SwanAccess.none),
       onboardingSeenProvider.overrideWith((ref) async => true),
+      unifiedCalendarMonthProvider.overrideWith(
+        (ref, month) async => const UnifiedCalendarData([]),
+      ),
     ], child: const SwanSportApp()));
     await tester.pumpAndSettle();
     final router = swanGoRouter;
@@ -226,6 +229,8 @@ void main() {
     } else {
       unawaited(nav!.pushNamed('/federasyon-takvimi'));
     }
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(ListView).first, const Offset(0, -600));
     await tester.pumpAndSettle();
     expect(find.text('Henüz etkinlik yok'), findsOneWidget);
   });

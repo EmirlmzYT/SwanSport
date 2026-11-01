@@ -56,8 +56,7 @@ class PublicLandingScreen extends ConsumerWidget {
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: Text('S',
-                        style: SwanType.h1(Colors.white)),
+                    child: Text('S', style: SwanType.h1(Colors.white)),
                   ),
                   const SizedBox(width: 12),
                   Text('SwanSport', style: SwanType.h2(ink)),
@@ -71,18 +70,21 @@ class PublicLandingScreen extends ConsumerWidget {
                   'Kadro, antrenman, yoklama, aidat ve sağlık takibi tek '
                   'platformda. Roller belgeyle doğrulanır — kim ne yapabilir, '
                   'net.',
-                  style:
-                      SwanType.bodySm(SwanColors.textSecondary),
+                  style: SwanType.bodySm(SwanColors.textSecondary),
                 ),
                 const SizedBox(height: 28),
 
                 // Öne çıkanlar
-                _feature(isDark, Icons.verified_user_rounded,
+                _feature(
+                    isDark,
+                    Icons.verified_user_rounded,
                     'Belgeyle doğrulanmış roller',
                     'Antrenör kademeleri ve sporcu lisansları platformca onaylanır.'),
                 _feature(isDark, Icons.groups_rounded, 'Kadro & yoklama',
                     'Sporcuları yönet, tek dokunuşla yoklama al.'),
-                _feature(isDark, Icons.calendar_month_rounded,
+                _feature(
+                    isDark,
+                    Icons.calendar_month_rounded,
                     'Antrenman & maç takvimi',
                     'Program herkese anında ulaşsın.'),
                 _feature(isDark, Icons.family_restroom_rounded, 'Veli erişimi',
@@ -149,7 +151,8 @@ class PublicLandingScreen extends ConsumerWidget {
 
                 const SizedBox(height: 20),
                 Center(
-                  child: Text('Kulüpler, antrenörler, sporcular ve veliler için',
+                  child: Text(
+                      'Kulüpler, antrenörler, sporcular ve veliler için',
                       textAlign: TextAlign.center,
                       style: SwanType.caption(SwanColors.textSecondary)),
                 ),
@@ -217,8 +220,7 @@ class PublicLandingScreen extends ConsumerWidget {
               children: [
                 Text(title, style: SwanType.bodySm(ink, w: FontWeight.w800)),
                 const SizedBox(height: 2),
-                Text(sub,
-                    style: SwanType.caption(SwanColors.textSecondary)),
+                Text(sub, style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

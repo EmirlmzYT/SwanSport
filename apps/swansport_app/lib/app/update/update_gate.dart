@@ -44,7 +44,8 @@ class _AppUpdateGateState extends State<AppUpdateGate> {
     // hatırlatalım — güncellemeyi unutmak kolay olmasın diye kalıcı olarak
     // susturmuyoruz.
     final prefs = await SharedPreferences.getInstance();
-    if (prefs.getString('update_dismissed_run') == _dismissKey(update.version)) {
+    if (prefs.getString('update_dismissed_run') ==
+        _dismissKey(update.version)) {
       return;
     }
 

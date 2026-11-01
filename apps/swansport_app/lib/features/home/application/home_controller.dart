@@ -65,9 +65,7 @@ class HomeCommandCenterState {
     final q = filter.query.toLowerCase();
     return ordered
         .where(
-          (t) =>
-              trContains(t.title, q) ||
-              trContains(t.category, q),
+          (t) => trContains(t.title, q) || trContains(t.category, q),
         )
         .toList();
   }
@@ -88,8 +86,7 @@ class HomeCommandCenterState {
           currentRole != HomeRole.administrator) {
         return false;
       }
-      return trContains(result.title, q) ||
-          trContains(result.category, q);
+      return trContains(result.title, q) || trContains(result.category, q);
     }).toList();
   }
 
@@ -116,9 +113,7 @@ class HomeCommandCenterState {
     final q = filter.query.toLowerCase();
     return scoped
         .where(
-          (a) =>
-              trContains(a.title, q) ||
-              trContains(a.message, q),
+          (a) => trContains(a.title, q) || trContains(a.message, q),
         )
         .toList();
   }

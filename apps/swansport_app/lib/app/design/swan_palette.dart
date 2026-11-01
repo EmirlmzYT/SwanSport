@@ -74,9 +74,8 @@ class SwanPalette {
   Color get onAccent => light.surface;
 
   /// Koyu temada gölge yerine yüzey hiyerarşisi kullanılır.
-  Color get shadow => isDark
-      ? bg.withValues(alpha: 0)
-      : light.ink.withValues(alpha: .06);
+  Color get shadow =>
+      isDark ? bg.withValues(alpha: 0) : light.ink.withValues(alpha: .06);
 
   /// Onay düğmesi zemini — üstünde beyaz metin durur.
   ///

@@ -84,8 +84,14 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Sahalar & Kortlar', actions: [
-        IconButton(tooltip: 'Yakınımdakiler', icon: Icon(Icons.near_me_outlined, color: context.swan.inkMuted), onPressed: _locate),
-        TextButton(onPressed: () => Navigator.pushNamed(context, '/partner-ara'), child: Text('Partner Bul', style: SwanType.caption(context.swan.accent))),
+        IconButton(
+            tooltip: 'Yakınımdakiler',
+            icon: Icon(Icons.near_me_outlined, color: context.swan.inkMuted),
+            onPressed: _locate),
+        TextButton(
+            onPressed: () => Navigator.pushNamed(context, '/partner-ara'),
+            child: Text('Partner Bul',
+                style: SwanType.caption(context.swan.accent))),
       ]),
       extendBody: true,
       backgroundColor: bg,
@@ -95,7 +101,6 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(
                     SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.md),

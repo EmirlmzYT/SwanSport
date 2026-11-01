@@ -71,8 +71,11 @@ class MemberHomeScreen extends ConsumerWidget {
                           Text(profile?.fullName ?? 'Üye',
                               style: SwanType.bodySm(ink, w: FontWeight.w800)),
                           Text(
-                              club?.name != null ? 'Üye · ${club!.name}' : 'Üye',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                              club?.name != null
+                                  ? 'Üye · ${club!.name}'
+                                  : 'Üye',
+                              style: SwanType.caption(SwanColors.textSecondary,
+                                  w: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -100,10 +103,13 @@ class MemberHomeScreen extends ConsumerWidget {
                   // Ne yapabilirim
                   Text('Ne Yapabilirsin', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
-                  _infoRow(isDark, Icons.verified_user_rounded,
-                      'Antrenör ya da sporcu isen', 'Belgeni yükle, onaylanınca yetkilerin açılır'),
-                  _infoRow(isDark, Icons.family_restroom_rounded,
-                      'Veli isen', 'Kulüpten davet kodu iste, çocuğuna bağlan'),
+                  _infoRow(
+                      isDark,
+                      Icons.verified_user_rounded,
+                      'Antrenör ya da sporcu isen',
+                      'Belgeni yükle, onaylanınca yetkilerin açılır'),
+                  _infoRow(isDark, Icons.family_restroom_rounded, 'Veli isen',
+                      'Kulüpten davet kodu iste, çocuğuna bağlan'),
                   _infoRow(isDark, Icons.campaign_rounded, 'Şimdilik',
                       'Kulüp duyurularını takip edebilirsin'),
 
@@ -116,7 +122,8 @@ class MemberHomeScreen extends ConsumerWidget {
                         '/announcements'),
                   ]),
                   // Onaylı sporcu ve kulübü yoksa ferdi sporcu kaydı
-                  if (_isApprovedAthlete(creds.valueOrNull) && club == null) ...[
+                  if (_isApprovedAthlete(creds.valueOrNull) &&
+                      club == null) ...[
                     const SizedBox(height: 10),
                     _individualCta(context, ref, isDark),
                   ],
@@ -162,7 +169,6 @@ class MemberHomeScreen extends ConsumerWidget {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
-
 
   /// Onaylı sporcu kimliği var mı?
   bool _isApprovedAthlete(List<CredentialRow>? creds) {
@@ -234,8 +240,8 @@ class MemberHomeScreen extends ConsumerWidget {
   /// Kulüp kurma şartı: onaylı, en az 2. kademe antrenör kimliği.
   bool _canFoundClub(List<CredentialRow>? creds) {
     if (creds == null) return false;
-    return creds.any((c) =>
-        c.isCoach && c.status == 'approved' && (c.coachLevel ?? 0) >= 2);
+    return creds.any(
+        (c) => c.isCoach && c.status == 'approved' && (c.coachLevel ?? 0) >= 2);
   }
 
   Widget _verifyCta(BuildContext context) {
@@ -274,8 +280,7 @@ class MemberHomeScreen extends ConsumerWidget {
               ),
               const SizedBox(width: 14),
               Expanded(
-                child: Text('Rolünü doğrula',
-                    style: SwanType.h3(Colors.white)),
+                child: Text('Rolünü doğrula', style: SwanType.h3(Colors.white)),
               ),
               const Icon(Icons.chevron_right_rounded,
                   color: Colors.white, size: 22),
@@ -300,8 +305,7 @@ class MemberHomeScreen extends ConsumerWidget {
       _ => (SwanPalette.light.warning, Icons.schedule_rounded),
     };
     final sub = switch (c.status) {
-      'approved' =>
-        'Onaylandı — kulübe başvurabilir ya da teklif alabilirsin.',
+      'approved' => 'Onaylandı — kulübe başvurabilir ya da teklif alabilirsin.',
       'rejected' => c.note ?? 'Reddedildi. Belgeni kontrol edip tekrar yükle.',
       _ => 'Platform yöneticisi belgeni inceliyor.',
     };
@@ -341,8 +345,7 @@ class MemberHomeScreen extends ConsumerWidget {
                       label: c.statusLabel, color: color, icon: icon),
                 ]),
                 const SizedBox(height: 4),
-                Text(sub,
-                    style: SwanType.caption(SwanColors.textSecondary)),
+                Text(sub, style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),
@@ -378,9 +381,7 @@ class MemberHomeScreen extends ConsumerWidget {
             children: [
               Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text(sub,
-                  style:
-                      SwanType.caption(SwanColors.textSecondary)),
+              Text(sub, style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),
@@ -401,9 +402,10 @@ class MemberHomeScreen extends ConsumerWidget {
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Expanded(
       child: GestureDetector(
-        onTap: onTap ?? () {
-          if (route != null) Navigator.pushNamed(context, route);
-        },
+        onTap: onTap ??
+            () {
+              if (route != null) Navigator.pushNamed(context, route);
+            },
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 14),
           decoration: BoxDecoration(
@@ -446,13 +448,13 @@ class MemberHomeScreen extends ConsumerWidget {
   Widget _label(String t) => Padding(
         padding: const EdgeInsets.fromLTRB(2, 22, 2, 10),
         child: Text(t,
-            style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+            style:
+                SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
       );
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Text(text,
-            style: SwanType.caption(SwanColors.textSecondary)),
+        child: Text(text, style: SwanType.caption(SwanColors.textSecondary)),
       );
 
   Widget _annCard(bool isDark, String title, String body, bool pinned) {
@@ -490,5 +492,4 @@ class MemberHomeScreen extends ConsumerWidget {
       ),
     );
   }
-
 }

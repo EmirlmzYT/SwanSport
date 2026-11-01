@@ -16,6 +16,7 @@ const _staticProRoutes = <String>{
   '/operasyon/federasyon-maclar',
   '/operasyon/hakem-gorevleri',
   '/operasyon/muhasebe',
+  '/operasyon/aidat-takibi',
   '/operasyon/tesis-gorevleri',
   '/operasyon/platform',
 };
@@ -74,11 +75,13 @@ String resolveProNotificationRoute({
     case 'bank_unmatched':
     case 'period_closed':
     case 'period_blocked':
+    case 'donation':
+      return '/operasyon/muhasebe';
+
     case 'fee':
     case 'fee_reminder':
     case 'payment':
-    case 'donation':
-      return '/operasyon/muhasebe';
+      return '/operasyon/aidat-takibi';
 
     case 'turf_slot_request':
     case 'turf_field':

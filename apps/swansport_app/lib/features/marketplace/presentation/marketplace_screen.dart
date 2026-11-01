@@ -41,7 +41,11 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Pazaryeri', actions: [
-        TextButton.icon(onPressed: () => Navigator.pushNamed(context, '/ilan-ver'), icon: Icon(Icons.add_box_outlined), label: Text('İlan Ver', style: SwanType.caption(context.swan.accent))),
+        TextButton.icon(
+            onPressed: () => Navigator.pushNamed(context, '/ilan-ver'),
+            icon: Icon(Icons.add_box_outlined),
+            label:
+                Text('İlan Ver', style: SwanType.caption(context.swan.accent))),
       ]),
       extendBody: true,
       backgroundColor: palette.bg,
@@ -56,15 +60,19 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 await ref.read(marketSearchProvider(_filter).future);
               },
               child: ListView(
-                padding: const EdgeInsets.fromLTRB(SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.xl * 5),
+                padding: const EdgeInsets.fromLTRB(
+                    SwanSpace.lg, SwanSpace.xs, SwanSpace.lg, SwanSpace.xl * 5),
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(bottom: SwanSpace.md),
-                    child: SwanSegmentedTabs(labels: const ['Resmi Mağaza', 'Kulüp İçi 2. El'],
-                      selected: _storeSection, onSelect: (i) => setState(() {
-                        _storeSection = i;
-                        _filter = _filter.copyWith(sellerType: i == 0 ? null : 'individual');
-                      })),
+                    child: SwanSegmentedTabs(
+                        labels: const ['Resmi Mağaza', 'Kulüp İçi 2. El'],
+                        selected: _storeSection,
+                        onSelect: (i) => setState(() {
+                              _storeSection = i;
+                              _filter = _filter.copyWith(
+                                  sellerType: i == 0 ? null : 'individual');
+                            })),
                   ),
 
                   // 2. Search & Filter Bar
@@ -132,7 +140,6 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
   // --- Top Bar ---
 
-
   // --- Search Bar ---
   Widget _buildSearchBar(SwanPalette palette) {
     return StitchInlineSearchField(
@@ -152,33 +159,38 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
   }
 
   // --- Section Tabs ---
-  Widget _buildOfficialHeroBanner(SwanPalette palette, bool isDark) => Container(
-    padding: const EdgeInsets.all(SwanSpace.lg),
-    decoration: BoxDecoration(color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(SwanRadius.md)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Mağaza ilanları', style: SwanType.h3(palette.ink)),
-      const SizedBox(height: SwanSpace.sm),
-      Text('Ürün, fiyat ve teslimat bilgilerini ilanın ayrıntılarında incele.',
-          style: SwanType.bodySm(palette.inkMuted)),
-    ]),
-  );
+  Widget _buildOfficialHeroBanner(SwanPalette palette, bool isDark) =>
+      Container(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        decoration: BoxDecoration(
+            color: palette.surfaceAlt,
+            borderRadius: BorderRadius.circular(SwanRadius.md)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('Mağaza ilanları', style: SwanType.h3(palette.ink)),
+          const SizedBox(height: SwanSpace.sm),
+          Text(
+              'Ürün, fiyat ve teslimat bilgilerini ilanın ayrıntılarında incele.',
+              style: SwanType.bodySm(palette.inkMuted)),
+        ]),
+      );
 
   // --- Coach Guarantee Banner for Used Market ---
-  Widget _buildCoachGuaranteeBanner(SwanPalette palette, bool isDark) => Container(
-    padding: const EdgeInsets.all(SwanSpace.lg),
-    decoration: BoxDecoration(color: palette.surfaceAlt,
-        borderRadius: BorderRadius.circular(SwanRadius.md)),
-    child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('İkinci el ekipmanlar', style: SwanType.h3(palette.ink)),
-      const SizedBox(height: SwanSpace.sm),
-      Text('Ürünün durumunu ve teslimat koşullarını satıcıyla görüşerek doğrula.',
-          style: SwanType.bodySm(palette.inkMuted)),
-    ]),
-  );
+  Widget _buildCoachGuaranteeBanner(SwanPalette palette, bool isDark) =>
+      Container(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        decoration: BoxDecoration(
+            color: palette.surfaceAlt,
+            borderRadius: BorderRadius.circular(SwanRadius.md)),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text('İkinci el ekipmanlar', style: SwanType.h3(palette.ink)),
+          const SizedBox(height: SwanSpace.sm),
+          Text(
+              'Ürünün durumunu ve teslimat koşullarını satıcıyla görüşerek doğrula.',
+              style: SwanType.bodySm(palette.inkMuted)),
+        ]),
+      );
 
   // --- Locker Delivery Strip ---
-
 
   // --- Category Filter Pills ---
   Widget _buildCategoryPills(SwanPalette palette) {
@@ -208,9 +220,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
             label: 'Onaylı İkinci El',
             isSelected: _filter.sellerType == 'individual',
             onTap: () => setState(() => _filter = _filter.copyWith(
-                  sellerType: _filter.sellerType == 'individual'
-                      ? null
-                      : 'individual',
+                  sellerType:
+                      _filter.sellerType == 'individual' ? null : 'individual',
                 )),
           ),
           _filterPill(
@@ -272,12 +283,16 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
           children: [
             if (icon != null) ...[
               Icon(icon,
-                  size: 14, color: isSelected ? context.swan.onAccent : palette.inkMuted),
+                  size: 14,
+                  color: isSelected ? context.swan.onAccent : palette.inkMuted),
               const SizedBox(width: 4),
             ],
-            Flexible(child: Text(
+            Flexible(
+                child: Text(
               label,
-              maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: SwanType.caption(
                 isSelected ? context.swan.onAccent : palette.inkMuted,
                 w: isSelected ? FontWeight.w700 : FontWeight.w600,
               ),
@@ -290,10 +305,13 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
 
   // --- Products Header ---
   Widget _buildProductsHeader(SwanPalette palette) => Text(
-    _storeSection == 0 ? 'Mağaza & Bireysel İlanlar' : 'İkinci El Ekipmanlar',
-    maxLines: 1, overflow: TextOverflow.ellipsis,
-    style: SwanType.h3(palette.ink),
-  );
+        _storeSection == 0
+            ? 'Mağaza & Bireysel İlanlar'
+            : 'İkinci El Ekipmanlar',
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: SwanType.h3(palette.ink),
+      );
 
   // --- Product Card ---
   Widget _buildProductCard(
@@ -330,7 +348,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                 children: [
                   if (it.imagePath != null)
                     Image.network(
-                      ref.read(marketplaceServiceProvider).imageUrl(it.imagePath!),
+                      ref
+                          .read(marketplaceServiceProvider)
+                          .imageUrl(it.imagePath!),
                       fit: BoxFit.cover,
                       errorBuilder: (_, __, ___) => _noImage(palette),
                     )
@@ -352,12 +372,19 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(it.isStore ? Icons.storefront_outlined : Icons.person_outline_rounded,
-                              size: 11, color: context.swan.accent),
+                          Icon(
+                              it.isStore
+                                  ? Icons.storefront_outlined
+                                  : Icons.person_outline_rounded,
+                              size: 11,
+                              color: context.swan.accent),
                           const SizedBox(width: 3),
-                          Flexible(child: Text(
+                          Flexible(
+                              child: Text(
                             it.isStore ? 'Mağaza' : 'Bireysel',
-                            maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(palette.ink,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.caption(palette.ink,
                                 w: FontWeight.w700),
                           )),
                         ],
@@ -377,8 +404,8 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                         alignment: Alignment.center,
                         child: Text(
                           it.status.label,
-                          style: SwanType.caption(palette.ink,
-                              w: FontWeight.w800),
+                          style:
+                              SwanType.caption(palette.ink, w: FontWeight.w800),
                         ),
                       ),
                     ),
@@ -389,7 +416,9 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                     right: 6,
                     child: GestureDetector(
                       onTap: () async {
-                        await ref.read(marketplaceServiceProvider).setFavorite(it.id, !isFav);
+                        await ref
+                            .read(marketplaceServiceProvider)
+                            .setFavorite(it.id, !isFav);
                         ref.invalidate(marketFavoritesProvider);
                       },
                       child: Container(
@@ -428,8 +457,13 @@ class _MarketplaceScreenState extends ConsumerState<MarketplaceScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Expanded(child: Text(
-                        it.price == null ? 'Fiyat yok' : money(it.price!), maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(context.swan.accent, w: FontWeight.w800),
+                      Expanded(
+                          child: Text(
+                        it.price == null ? 'Fiyat yok' : money(it.price!),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.bodySm(context.swan.accent,
+                            w: FontWeight.w800),
                       )),
                       Container(
                         width: 28,

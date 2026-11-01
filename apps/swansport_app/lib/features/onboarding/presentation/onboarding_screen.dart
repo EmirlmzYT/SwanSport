@@ -139,8 +139,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   child: TextButton(
                     onPressed: _finish,
                     child: Text('Atla',
-                        style: SwanType.bodySm(c.inkMuted,
-                            w: FontWeight.w700)),
+                        style: SwanType.bodySm(c.inkMuted, w: FontWeight.w700)),
                   ),
                 ),
                 Expanded(
@@ -182,8 +181,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         borderRadius: BorderRadius.circular(SwanRadius.md),
                       ),
                       child: Text(last ? 'Başla' : 'Devam',
-                          style: SwanType.body(Colors.white,
-                              w: FontWeight.w800)),
+                          style:
+                              SwanType.body(Colors.white, w: FontWeight.w800)),
                     ),
                   ),
                 ),
@@ -225,8 +224,7 @@ class _Page extends StatelessWidget {
               textAlign: TextAlign.center, style: SwanType.h1(c.ink)),
           const SizedBox(height: SwanSpace.md),
           Text(page.body,
-              textAlign: TextAlign.center,
-              style: SwanType.body(c.inkMuted)),
+              textAlign: TextAlign.center, style: SwanType.body(c.inkMuted)),
         ],
       ),
     );

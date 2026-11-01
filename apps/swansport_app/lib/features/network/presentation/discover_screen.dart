@@ -45,11 +45,13 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     final async = ref.watch(discoverClubsProvider(_filter));
 
     return SwanScaffold(
-      appBar: swanModuleAppBar(context, title: 'Kulüpler & Akademiler', actions: [
+      appBar:
+          swanModuleAppBar(context, title: 'Kulüpler & Akademiler', actions: [
         TextButton.icon(
           onPressed: () => showClubCreateSheet(context),
           icon: const Icon(Icons.add_circle_outline),
-          label: Text('Kulüp Kur', style: SwanType.caption(context.swan.accent)),
+          label:
+              Text('Kulüp Kur', style: SwanType.caption(context.swan.accent)),
         ),
       ]),
       extendBody: true,
@@ -148,8 +150,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
-
-
 
   Widget _filterBar(bool isDark, Color ink) {
     final opts = ref.watch(filterOptionsProvider).valueOrNull ?? const [];

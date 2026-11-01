@@ -185,8 +185,8 @@ class TagSuggestions extends ConsumerWidget {
                 visualDensity: VisualDensity.compact,
                 leading: Icon(Icons.tag_rounded, size: 18, color: c.inkMuted),
                 title: Text('#${h.tag}', style: SwanType.bodySm(c.ink)),
-                trailing: Text('${h.postCount}',
-                    style: SwanType.caption(c.inkMuted)),
+                trailing:
+                    Text('${h.postCount}', style: SwanType.caption(c.inkMuted)),
                 onTap: () => _insert('#${h.tag}', token.start),
               );
             },

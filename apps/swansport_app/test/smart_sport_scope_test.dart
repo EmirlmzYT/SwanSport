@@ -8,21 +8,26 @@ void main() {
   Future<void> render(WidgetTester tester, List<String> codes) async {
     await tester.pumpWidget(ProviderScope(overrides: [
       activeClubProvider.overrideWith((ref) async => null),
-      sportContextOptionsProvider.overrideWithValue(AsyncData(catalogSportsFor(codes))),
+      sportContextOptionsProvider
+          .overrideWithValue(AsyncData(catalogSportsFor(codes))),
     ], child: const MaterialApp(home: Scaffold(body: SmartSportScopeBar()))));
     await tester.pumpAndSettle();
   }
-  testWidgets('single sport is a badge without another selection step', (tester) async {
+
+  testWidgets('single sport is a badge without another selection step',
+      (tester) async {
     await render(tester, ['yuzme']);
     expect(find.byType(Chip), findsOneWidget);
     expect(find.text('Yüzme'), findsOneWidget);
     expect(find.byType(TextButton), findsNothing);
   });
-  testWidgets('multi-sport pills update the shared effective filter', (tester) async {
+  testWidgets('multi-sport pills update the shared effective filter',
+      (tester) async {
     await render(tester, ['yuzme', 'okculuk']);
     await tester.tap(find.text('Okçuluk'));
     await tester.pump();
-    final container = ProviderScope.containerOf(tester.element(find.byType(SmartSportScopeBar)));
+    final container = ProviderScope.containerOf(
+        tester.element(find.byType(SmartSportScopeBar)));
     expect(container.read(effectiveSportContextProvider), 'okculuk');
     await tester.tap(find.text('Tümü'));
     await tester.pump();
@@ -37,7 +42,8 @@ void main() {
     expect(find.widgetWithText(ListTile, 'Satranç'), findsOneWidget);
     await tester.tap(find.widgetWithText(ListTile, 'Satranç'));
     await tester.pumpAndSettle();
-    final container = ProviderScope.containerOf(tester.element(find.byType(SmartSportScopeBar)));
+    final container = ProviderScope.containerOf(
+        tester.element(find.byType(SmartSportScopeBar)));
     expect(container.read(effectiveSportContextProvider), 'satranc');
   });
 }

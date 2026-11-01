@@ -134,8 +134,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final surf = isDark ? context.swan.bg : SwanPalette.light.surface;
-    final surfContainer =
-        isDark ? context.swan.surface : context.swan.surface;
+    final surfContainer = isDark ? context.swan.surface : context.swan.surface;
     final surfHigh = isDark ? context.swan.surfaceAlt : context.swan.surfaceAlt;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     final line = isDark ? context.swan.line : SwanPalette.light.line;
@@ -202,11 +201,13 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                   controller: _ctrl,
                                   onChanged: _onChanged,
                                   onSubmitted: _run,
-                                  style: SwanType.bodySm(ink, w: FontWeight.w600),
+                                  style:
+                                      SwanType.bodySm(ink, w: FontWeight.w600),
                                   decoration: InputDecoration(
                                     hintText:
                                         'Sporcu, hareket, antrenman ara...',
-                                    hintStyle: SwanType.bodySm(context.swan.inkMuted),
+                                    hintStyle:
+                                        SwanType.bodySm(context.swan.inkMuted),
                                     border: InputBorder.none,
                                     isDense: true,
                                     contentPadding: EdgeInsets.zero,
@@ -269,7 +270,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                             boxShadow: on
                                 ? [
                                     BoxShadow(
-                                      color: context.swan.accent.withValues(alpha: 0.35),
+                                      color: context.swan.accent
+                                          .withValues(alpha: 0.35),
                                       blurRadius: 12,
                                       offset: const Offset(0, 4),
                                     ),
@@ -287,9 +289,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                     : context.swan.inkMuted,
                               ),
                               const SizedBox(width: 6),
-                              Flexible(child: Text(
+                              Flexible(
+                                  child: Text(
                                 cat.$1,
-                                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(on ? context.swan.onAccent : ink, w: FontWeight.w700),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: SwanType.caption(
+                                    on ? context.swan.onAccent : ink,
+                                    w: FontWeight.w700),
                               )),
                             ],
                           ),
@@ -369,9 +376,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Flexible(child: Text(
+                      Flexible(
+                          child: Text(
                         item.$1,
-                        maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(on ? context.swan.onAccent : ink, w: FontWeight.w700),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.caption(
+                            on ? context.swan.onAccent : ink,
+                            w: FontWeight.w700),
                       )),
                       if (item.$2 > 0) ...[
                         const SizedBox(width: 5),
@@ -386,7 +398,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           ),
                           child: Text(
                             '${item.$2}',
-                            style: SwanType.caption(on ? context.swan.onAccent : context.swan.accent, w: FontWeight.w800),
+                            style: SwanType.caption(
+                                on
+                                    ? context.swan.onAccent
+                                    : context.swan.accent,
+                                w: FontWeight.w800),
                           ),
                         ),
                       ],
@@ -421,7 +437,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         const SizedBox(height: 12),
                         Text(
                           'Sonuç bulunamadı',
-                          style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
+                          style: SwanType.h3(ink)
+                              .copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 6),
                         Text(
@@ -467,12 +484,20 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(
-                'Önerilen Sporcular & Antrenörler', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                  child: Text(
+                'Önerilen Sporcular & Antrenörler',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
               )),
-              Flexible(child: Text(
+              Flexible(
+                  child: Text(
                 '${suggestions.length} Öneri',
-                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style:
+                    SwanType.caption(context.swan.accent, w: FontWeight.w700),
               )),
             ],
           ),
@@ -538,9 +563,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         children: [
                           Row(
                             children: [
-                              Flexible(child: Text(
+                              Flexible(
+                                  child: Text(
                                 s.name,
-                                maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.bodySm(ink, w: FontWeight.w700),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: SwanType.bodySm(ink, w: FontWeight.w700),
                               )),
                               if (s.kind == 'club') ...[
                                 const SizedBox(width: 4),
@@ -564,8 +592,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         if (s.kind == 'club') {
                           context.swanPush(AppRoutes.clubs);
                         } else {
-                          context.swanPush(AppRoutes.profile,
-                              extra: {'id': s.id});
+                          context
+                              .swanPush(AppRoutes.profile, extra: {'id': s.id});
                         }
                       },
                       child: Container(
@@ -577,7 +605,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ),
                         child: Text(
                           'Görüntüle',
-                          style: SwanType.caption(context.swan.onAccent, w: FontWeight.w800),
+                          style: SwanType.caption(context.swan.onAccent,
+                              w: FontWeight.w800),
                         ),
                       ),
                     ),
@@ -591,14 +620,19 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(child: Text(
-                'Kulüp Ağlarım', maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
+              Expanded(
+                  child: Text(
+                'Kulüp Ağlarım',
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
               )),
               GestureDetector(
                 onTap: () => context.swanPush(AppRoutes.clubs),
                 child: Text(
                   'Tüm Kulüpler',
-                  style: SwanType.caption(context.swan.accent, w: FontWeight.w700),
+                  style:
+                      SwanType.caption(context.swan.accent, w: FontWeight.w700),
                 ),
               ),
             ],
@@ -614,7 +648,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.shield_outlined, color: context.swan.accent, size: 28),
+                  Icon(Icons.shield_outlined,
+                      color: context.swan.accent, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -655,8 +690,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Center(
-                        child:
-                            Icon(Icons.shield_rounded, color: context.swan.accent, size: 22),
+                        child: Icon(Icons.shield_rounded,
+                            color: context.swan.accent, size: 22),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -667,8 +702,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           Text(c.name,
                               style: SwanType.bodySm(ink, w: FontWeight.w700)),
                           Text(c.role ?? 'Üye',
-                              style:
-                                  SwanType.caption(context.swan.inkMuted)),
+                              style: SwanType.caption(context.swan.inkMuted)),
                         ],
                       ),
                     ),
@@ -782,12 +816,15 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               children: [
                 Icon(Icons.groups_rounded, size: 16, color: c.accent),
                 const SizedBox(width: 4),
-                Flexible(child: Text('Kadro & Tesisler',
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: SwanType.caption(c.ink, w: FontWeight.w600))),
+                Flexible(
+                    child: Text('Kadro & Tesisler',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.caption(c.ink, w: FontWeight.w600))),
                 const Spacer(),
                 InkWell(
-                  onTap: () => context.swanPush(AppRoutes.clubDetail,
-                      extra: r.id),
+                  onTap: () =>
+                      context.swanPush(AppRoutes.clubDetail, extra: r.id),
                   borderRadius: BorderRadius.circular(999),
                   child: Container(
                     padding:
@@ -798,7 +835,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     ),
                     child: Text(
                       'İncele',
-                      style: SwanType.caption(context.swan.onAccent, w: FontWeight.w700),
+                      style: SwanType.caption(context.swan.onAccent,
+                          w: FontWeight.w700),
                     ),
                   ),
                 ),
@@ -854,8 +892,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             ),
           ),
           InkWell(
-            onTap: () =>
-                context.swanPush(AppRoutes.profile, extra: r.id),
+            onTap: () => context.swanPush(AppRoutes.profile, extra: r.id),
             borderRadius: BorderRadius.circular(999),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),

@@ -83,6 +83,34 @@ final class SharedPlatformOperationsPanel extends ConsumerWidget {
                 onTap: host.navigator.openLaunchWaitlist,
                 theme: host.theme,
               ),
+              ClubOperationCard(
+                icon: Icons.rss_feed_outlined,
+                title: 'RSS Kaynakları',
+                detail: 'Haber beslemelerini yönet',
+                onTap: host.navigator.openPlatformRssSources,
+                theme: host.theme,
+              ),
+              ClubOperationCard(
+                icon: Icons.badge_outlined,
+                title: 'Profesyonel Hesaplar',
+                detail: 'Bekleyen belge ve rol kapsamı',
+                onTap: host.navigator.openPlatformProfessionalReview,
+                theme: host.theme,
+              ),
+              ClubOperationCard(
+                icon: Icons.admin_panel_settings_outlined,
+                title: 'Rol ve Erişim',
+                detail: 'Yönetici erişimi ve feature flag görünümü',
+                onTap: host.navigator.openPlatformAccessReview,
+                theme: host.theme,
+              ),
+              ClubOperationCard(
+                icon: Icons.account_balance_outlined,
+                title: 'Federasyon Yetkilileri',
+                detail: 'Federasyon yayın yetkilerini incele',
+                onTap: host.navigator.openPlatformFederationAuthority,
+                theme: host.theme,
+              ),
             ];
             return Wrap(
               spacing: 12,

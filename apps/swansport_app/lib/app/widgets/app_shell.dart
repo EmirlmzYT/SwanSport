@@ -20,11 +20,8 @@ class SwanAppShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final location = GoRouter.maybeOf(context)
-        ?.routeInformationProvider
-        .value
-        .uri
-        .path;
+    final location =
+        GoRouter.maybeOf(context)?.routeInformationProvider.value.uri.path;
     final hideNav = SwanDestination.shouldHideBottomNav(location);
     final isRootBranch = navigationShell.currentIndex == 0;
 

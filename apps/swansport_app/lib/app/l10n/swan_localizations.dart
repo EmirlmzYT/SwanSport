@@ -36,7 +36,8 @@ class SwanLocalizations {
   String get success => isTurkish ? 'Başarılı' : 'Success';
   String get seeAll => isTurkish ? 'Tümünü Gör' : 'See All';
   String get back => isTurkish ? 'Geri' : 'Back';
-  String get emptyState => isTurkish ? 'Henüz bir içerik yok' : 'No content yet';
+  String get emptyState =>
+      isTurkish ? 'Henüz bir içerik yok' : 'No content yet';
 
   // --- Alt Gezinme (Bottom Navigation) ---
   String get navFeed => isTurkish ? 'Akış' : 'Feed';
@@ -47,27 +48,43 @@ class SwanLocalizations {
 
   // --- Keşfet & Arama (Explore & Discovery) ---
   String get exploreTitle => isTurkish ? 'Keşfet' : 'Explore';
-  String get exploreSubtitle => isTurkish ? 'Kulüpler, sahalar ve topluluk' : 'Clubs, venues and community';
-  String get searchHint => isTurkish ? 'Sporcu, kulüp, etkinlik veya branş ara...' : 'Search athlete, club, event or branch...';
-  String get quickModuleHub => isTurkish ? 'Hızlı Modül Hub\'ı' : 'Quick Module Hub';
+  String get exploreSubtitle => isTurkish
+      ? 'Kulüpler, sahalar ve topluluk'
+      : 'Clubs, venues and community';
+  String get searchHint => isTurkish
+      ? 'Sporcu, kulüp, etkinlik veya branş ara...'
+      : 'Search athlete, club, event or branch...';
+  String get quickModuleHub =>
+      isTurkish ? 'Hızlı Modül Hub\'ı' : 'Quick Module Hub';
   String get allServices => isTurkish ? 'Tüm Servisler →' : 'All Services →';
   String get sportSection => isTurkish ? 'Spor yap' : 'Play Sports';
-  String get communitySection => isTurkish ? 'Topluluğa katıl' : 'Join Community';
+  String get communitySection =>
+      isTurkish ? 'Topluluğa katıl' : 'Join Community';
   String get needsSection => isTurkish ? 'İhtiyacını bul' : 'Find Your Needs';
-  String get featuredAnnouncements => isTurkish ? 'Öne Çıkan Duyurular' : 'Featured Announcements';
-  String get popularAthletes => isTurkish ? 'Popüler Sporcular & Antrenörler' : 'Popular Athletes & Coaches';
-  String get performanceBento => isTurkish ? 'Performans & Keşif Kinetiği' : 'Performance & Discovery Kinetics';
+  String get featuredAnnouncements =>
+      isTurkish ? 'Öne Çıkan Duyurular' : 'Featured Announcements';
+  String get popularAthletes => isTurkish
+      ? 'Popüler Sporcular & Antrenörler'
+      : 'Popular Athletes & Coaches';
+  String get performanceBento => isTurkish
+      ? 'Performans & Keşif Kinetiği'
+      : 'Performance & Discovery Kinetics';
   String get bentoBadge => isTurkish ? 'KEŞİF IZGARASI' : 'BENTO GRID';
-  String get movementOfTheDay => isTurkish ? 'GÜNÜN HAREKETİ' : 'MOVEMENT OF THE DAY';
-  String get clubPostsTrends => isTurkish ? 'Kulüp Gönderileri & Trendler' : 'Club Posts & Trends';
+  String get movementOfTheDay =>
+      isTurkish ? 'GÜNÜN HAREKETİ' : 'MOVEMENT OF THE DAY';
+  String get clubPostsTrends =>
+      isTurkish ? 'Kulüp Gönderileri & Trendler' : 'Club Posts & Trends';
   String get latestPosts => isTurkish ? 'En yeniler' : 'Latest';
 
   // --- Spor & Tesisler ---
-  String get courtsAndVenues => isTurkish ? 'Kortlar & Sahalar' : 'Courts & Pitches';
+  String get courtsAndVenues =>
+      isTurkish ? 'Kortlar & Sahalar' : 'Courts & Pitches';
   String get findPartner => isTurkish ? 'Partner bul' : 'Find Partner';
   String get organizations => isTurkish ? 'Organizasyonlar' : 'Organizations';
-  String get leaderboard => isTurkish ? 'Liderlik & Ligler' : 'Leaderboard & Leagues';
-  String get nutrition => isTurkish ? 'Beslenme & Makrolar' : 'Nutrition & Macros';
+  String get leaderboard =>
+      isTurkish ? 'Liderlik & Ligler' : 'Leaderboard & Leagues';
+  String get nutrition =>
+      isTurkish ? 'Beslenme & Makrolar' : 'Nutrition & Macros';
   String get clubs => isTurkish ? 'Kulüpler' : 'Clubs';
   String get communities => isTurkish ? 'Topluluklar' : 'Communities';
   String get teams => isTurkish ? 'Takımlar' : 'Teams';
@@ -84,9 +101,11 @@ class SwanLocalizations {
   String get stop => isTurkish ? 'Durdur' : 'Stop';
   String get reset => isTurkish ? 'Sıfırla' : 'Reset';
   String get lap => isTurkish ? 'Tur' : 'Lap';
-  String get recordingVoice => isTurkish ? 'Ses kaydediliyor...' : 'Recording voice...';
+  String get recordingVoice =>
+      isTurkish ? 'Ses kaydediliyor...' : 'Recording voice...';
   String get voiceMessage => isTurkish ? 'Sesli Mesaj' : 'Voice Message';
-  String get workoutBuilder => isTurkish ? 'Antrenman Planlayıcı' : 'Workout Builder';
+  String get workoutBuilder =>
+      isTurkish ? 'Antrenman Planlayıcı' : 'Workout Builder';
   String get exercises => isTurkish ? 'Egzersizler' : 'Exercises';
   String get sets => isTurkish ? 'Setler' : 'Sets';
   String get reps => isTurkish ? 'Tekrar' : 'Reps';
@@ -97,7 +116,8 @@ class SwanLocalizations {
   String get languagePreference => isTurkish ? 'Uygulama Dili' : 'App Language';
   String get themePreference => isTurkish ? 'Tema Tercihi' : 'Theme Preference';
   String get notifications => isTurkish ? 'Bildirimler' : 'Notifications';
-  String get privacy => isTurkish ? 'Gizlilik ve Güvenlik' : 'Privacy & Security';
+  String get privacy =>
+      isTurkish ? 'Gizlilik ve Güvenlik' : 'Privacy & Security';
   String get support => isTurkish ? 'Yardım & Destek' : 'Help & Support';
   String get logout => isTurkish ? 'Çıkış Yap' : 'Log Out';
 }

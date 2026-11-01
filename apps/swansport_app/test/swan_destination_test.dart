@@ -18,8 +18,8 @@ void main() {
       expect(SwanShellBranch.profile.rootRoute, AppRoutes.profile);
 
       expect(SwanShellBranch.fromRoute(AppRoutes.feed), SwanShellBranch.feed);
-      expect(
-          SwanShellBranch.fromRoute(AppRoutes.explore), SwanShellBranch.explore);
+      expect(SwanShellBranch.fromRoute(AppRoutes.explore),
+          SwanShellBranch.explore);
       expect(SwanShellBranch.fromRoute(AppRoutes.messages),
           SwanShellBranch.messages);
       expect(SwanShellBranch.fromRoute(AppRoutes.profile),
@@ -29,22 +29,26 @@ void main() {
     test('tam ekran ve operasyon rotalarında alt gezinme gizlenir', () {
       expect(SwanDestination.shouldHideBottomNav(AppRoutes.auth), isTrue);
       expect(SwanDestination.shouldHideBottomNav(AppRoutes.demoRole), isTrue);
-      expect(SwanDestination.shouldHideBottomNav(AppRoutes.credentials), isTrue);
-      expect(SwanDestination.shouldHideBottomNav('/dogrulama'), isTrue);
       expect(
-          SwanDestination.shouldHideBottomNav(AppRoutes.trainingSession), isTrue);
+          SwanDestination.shouldHideBottomNav(AppRoutes.credentials), isTrue);
+      expect(SwanDestination.shouldHideBottomNav('/dogrulama'), isTrue);
+      expect(SwanDestination.shouldHideBottomNav(AppRoutes.trainingSession),
+          isTrue);
       expect(
           SwanDestination.shouldHideBottomNav(AppRoutes.createWorkout), isTrue);
-      expect(
-          SwanDestination.shouldHideBottomNav(AppRoutes.trainingResult), isTrue);
+      expect(SwanDestination.shouldHideBottomNav(AppRoutes.trainingResult),
+          isTrue);
       expect(SwanDestination.shouldHideBottomNav('/sepet'), isTrue);
 
       // Dinamik operasyon yolları
-      expect(SwanDestination.shouldHideBottomNav('/hakem/canli/abc-123'), isTrue);
-      expect(SwanDestination.shouldHideBottomNav('/hakem/rapor/abc-123'), isTrue);
-      expect(SwanDestination.shouldHideBottomNav('/hakem/esame/abc-123'), isTrue);
       expect(
-          SwanDestination.shouldHideBottomNav('/swan-id/dogrula/token123'), isTrue);
+          SwanDestination.shouldHideBottomNav('/hakem/canli/abc-123'), isTrue);
+      expect(
+          SwanDestination.shouldHideBottomNav('/hakem/rapor/abc-123'), isTrue);
+      expect(
+          SwanDestination.shouldHideBottomNav('/hakem/esame/abc-123'), isTrue);
+      expect(SwanDestination.shouldHideBottomNav('/swan-id/dogrula/token123'),
+          isTrue);
       expect(
           SwanDestination.shouldHideBottomNav('/canli-mac/match-123'), isTrue);
     });

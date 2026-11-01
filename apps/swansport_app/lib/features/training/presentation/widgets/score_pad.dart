@@ -155,7 +155,6 @@ class _ScorePadState extends State<ScorePad> {
             ),
         ]),
         const SizedBox(height: SwanSpace.md),
-
         if (locked)
           Text(
             widget.existing?.totalScore == null
@@ -169,10 +168,8 @@ class _ScorePadState extends State<ScorePad> {
             const SizedBox(height: SwanSpace.md),
           ],
           _grid(c),
-        ]
-        else
+        ] else
           _totalField(c),
-
         if (!locked && _detailed) ...[
           const SizedBox(height: SwanSpace.sm),
           Text(
@@ -181,12 +178,10 @@ class _ScorePadState extends State<ScorePad> {
             style: SwanType.caption(c.inkMuted),
           ),
         ],
-
         if (_error != null) ...[
           const SizedBox(height: SwanSpace.sm),
           Text(_error!, style: SwanType.bodySm(c.danger)),
         ],
-
         if (!locked) ...[
           const SizedBox(height: SwanSpace.md),
           SizedBox(
@@ -234,15 +229,15 @@ class _ScorePadState extends State<ScorePad> {
             SizedBox(
               width: 56,
               child: TextFormField(
-                initialValue:
-                    _entries[i] == null ? '' : _fmt(_entries[i]!),
+                initialValue: _entries[i] == null ? '' : _fmt(_entries[i]!),
                 textAlign: TextAlign.center,
                 keyboardType:
                     const TextInputType.numberWithOptions(decimal: true),
                 style: SwanType.h3(c.ink),
                 onChanged: (v) {
                   final t = v.trim().replaceAll(',', '.');
-                  setState(() => _entries[i] = t.isEmpty ? null : num.tryParse(t));
+                  setState(
+                      () => _entries[i] = t.isEmpty ? null : num.tryParse(t));
                 },
                 decoration: InputDecoration(
                   isDense: true,

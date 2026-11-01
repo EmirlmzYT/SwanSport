@@ -77,7 +77,8 @@ class ClubApplicationsScreen extends ConsumerWidget {
                             : Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text('Sana Gelen Teklifler', style: SwanType.h3(ink)),
+                                  Text('Sana Gelen Teklifler',
+                                      style: SwanType.h3(ink)),
                                   const SizedBox(height: 10),
                                   ...offers.map(
                                       (o) => _offer(context, ref, isDark, o)),
@@ -115,12 +116,11 @@ class ClubApplicationsScreen extends ConsumerWidget {
 
   Widget _mini(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Text(text,
-            style: SwanType.caption(SwanColors.textSecondary)),
+        child: Text(text, style: SwanType.caption(SwanColors.textSecondary)),
       );
 
-  Widget _incoming(BuildContext context, WidgetRef ref, bool isDark,
-      ClubApplicationRow a) {
+  Widget _incoming(
+      BuildContext context, WidgetRef ref, bool isDark, ClubApplicationRow a) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -181,8 +181,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(a.message!,
-                  style: SwanType.caption(ink)
-                      .copyWith(height: 1.4)),
+                  style: SwanType.caption(ink).copyWith(height: 1.4)),
             ),
           ],
         ],
@@ -196,16 +195,16 @@ class ClubApplicationsScreen extends ConsumerWidget {
       child: Container(
         width: 36,
         height: 36,
-        decoration:
-            BoxDecoration(color: color, borderRadius: BorderRadius.circular(11)),
+        decoration: BoxDecoration(
+            color: color, borderRadius: BorderRadius.circular(11)),
         child: Icon(icon, color: Colors.white, size: 18),
       ),
     );
   }
 
   /// Kulüpten sana gelen katılım teklifi — kabul/ret sende.
-  Widget _offer(BuildContext context, WidgetRef ref, bool isDark,
-      ClubApplicationRow a) {
+  Widget _offer(
+      BuildContext context, WidgetRef ref, bool isDark, ClubApplicationRow a) {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
     return Container(
@@ -255,8 +254,7 @@ class ClubApplicationsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(a.message!,
-                  style:
-                      SwanType.caption(ink).copyWith(height: 1.4)),
+                  style: SwanType.caption(ink).copyWith(height: 1.4)),
             ),
           ],
           const SizedBox(height: 12),
@@ -272,7 +270,8 @@ class ClubApplicationsScreen extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text('Reddet',
-                      style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w800)),
+                      style: SwanType.bodySm(SwanColors.textSecondary,
+                          w: FontWeight.w800)),
                 ),
               ),
             ),
@@ -337,8 +336,8 @@ class ClubApplicationsScreen extends ConsumerWidget {
 
   /// Antrenör başvurusu kabul edilirken kademe ve (1. kademe için) süpervizör
   /// sorulur — hiyerarşi kuralı: 1. kademe tek başına olamaz.
-  Future<void> _acceptCoach(BuildContext context, WidgetRef ref,
-      ClubApplicationRow a) async {
+  Future<void> _acceptCoach(
+      BuildContext context, WidgetRef ref, ClubApplicationRow a) async {
     final service = ref.read(clubApplicationServiceProvider);
     final supervisors = await service.eligibleSupervisors(a.clubId);
     if (!context.mounted) return;
@@ -387,7 +386,8 @@ class ClubApplicationsScreen extends ConsumerWidget {
       if (accept) ref.invalidateSwanAccess();
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(accept ? 'Başvuru kabul edildi' : 'Başvuru reddedildi'),
+            content:
+                Text(accept ? 'Başvuru kabul edildi' : 'Başvuru reddedildi'),
             backgroundColor: kTeal));
       }
     } catch (e) {

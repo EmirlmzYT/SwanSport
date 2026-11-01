@@ -43,9 +43,14 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
     final async = ref.watch(organizationsProvider(_query));
 
     return SwanScaffold(
-      appBar: swanModuleAppBar(context, title: 'Turnuva & Organizasyonlar', actions: [
-        IconButton(tooltip: 'Organizasyon aç', icon: Icon(Icons.add_rounded, color: context.swan.inkMuted), onPressed: _create),
-      ]),
+      appBar: swanModuleAppBar(context,
+          title: 'Turnuva & Organizasyonlar',
+          actions: [
+            IconButton(
+                tooltip: 'Organizasyon aç',
+                icon: Icon(Icons.add_rounded, color: context.swan.inkMuted),
+                onPressed: _create),
+          ]),
       extendBody: true,
       backgroundColor: bg,
       body: SafeArea(
@@ -54,7 +59,6 @@ class _OrganizationsScreenState extends ConsumerState<OrganizationsScreen> {
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 620),
             child: Column(children: [
-
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
                 child: StitchInlineSearchField(

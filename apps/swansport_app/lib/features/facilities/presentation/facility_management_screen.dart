@@ -99,10 +99,13 @@ class _FacilityManagementScreenState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Puta ve Hat Tahsisi (Rezervasyon)',
-                                    style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                                    style: SwanType.bodySm(ink,
+                                        w: FontWeight.w800)),
                                 const SizedBox(height: 2),
-                                Text('70m/18m antrenman hatları ve ekstra ekipman ayırt.',
-                                    style: SwanType.caption(SwanColors.textSecondary)),
+                                Text(
+                                    '70m/18m antrenman hatları ve ekstra ekipman ayırt.',
+                                    style: SwanType.caption(
+                                        SwanColors.textSecondary)),
                               ],
                             ),
                           ),

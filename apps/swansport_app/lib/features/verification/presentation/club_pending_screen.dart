@@ -68,7 +68,8 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: SwanPalette.light.warning.withValues(alpha: .34),
+                          color:
+                              SwanPalette.light.warning.withValues(alpha: .34),
                           blurRadius: 26,
                           offset: const Offset(0, 12),
                         ),
@@ -80,8 +81,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text('Kulübün inceleniyor',
-                    textAlign: TextAlign.center,
-                    style: SwanType.h1(ink)),
+                    textAlign: TextAlign.center, style: SwanType.h1(ink)),
                 const SizedBox(height: 8),
                 Text(
                   club != null
@@ -90,8 +90,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                       : 'Kulüp belgelerini yükle; platform yöneticisi inceleyip '
                           'onaylayınca panelin açılır.',
                   textAlign: TextAlign.center,
-                  style:
-                      SwanType.bodySm(SwanColors.textSecondary),
+                  style: SwanType.bodySm(SwanColors.textSecondary),
                 ),
                 const SizedBox(height: 26),
 
@@ -112,8 +111,12 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                           'Belgeler yüklendi',
                           'Kulüp tescil + federasyon kaydı'),
                       _stepDivider(line),
-                      _step(ink, true, Icons.hourglass_top_rounded,
-                          'İnceleme sürüyor', 'Platform yöneticisi kontrol ediyor',
+                      _step(
+                          ink,
+                          true,
+                          Icons.hourglass_top_rounded,
+                          'İnceleme sürüyor',
+                          'Platform yöneticisi kontrol ediyor',
                           active: true),
                       _stepDivider(line),
                       _step(ink, false, Icons.verified_rounded, 'Onay',
@@ -127,9 +130,10 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                 if (club != null) ...[
                   Text('Kulüp Belgeleri', style: SwanType.h3(ink)),
                   const SizedBox(height: 10),
-                  _uploadTile(isDark, club.id, 'tescil', 'Kulüp tescil belgesi'),
                   _uploadTile(
-                      isDark, club.id, 'federasyon', 'Federasyon kayıt belgesi'),
+                      isDark, club.id, 'tescil', 'Kulüp tescil belgesi'),
+                  _uploadTile(isDark, club.id, 'federasyon',
+                      'Federasyon kayıt belgesi'),
                   const SizedBox(height: 2),
                   Text(
                       'ⓘ PDF veya fotoğraf (JPG/PNG). Belgeler yalnızca sana ve '
@@ -166,7 +170,8 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                             size: 19, color: Colors.white),
                         const SizedBox(width: 8),
                         Text('Durumu Yenile',
-                            style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+                            style: SwanType.bodySm(Colors.white,
+                                w: FontWeight.w800)),
                       ],
                     ),
                   ),
@@ -185,8 +190,8 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                         color: SwanPalette.light.warning.withValues(alpha: .10),
                         borderRadius: BorderRadius.circular(15),
                         border: Border.all(
-                            color:
-                                SwanPalette.light.warning.withValues(alpha: .4)),
+                            color: SwanPalette.light.warning
+                                .withValues(alpha: .4)),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -195,7 +200,8 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                               size: 18, color: SwanPalette.light.warning),
                           const SizedBox(width: 8),
                           Text('Onay Paneli (Yönetici)',
-                              style: SwanType.bodySm(SwanPalette.light.warning, w: FontWeight.w800)),
+                              style: SwanType.bodySm(SwanPalette.light.warning,
+                                  w: FontWeight.w800)),
                         ],
                       ),
                     ),
@@ -213,7 +219,8 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
                       }
                     },
                     child: Text('Çıkış Yap',
-                        style: SwanType.bodySm(SwanPalette.light.danger, w: FontWeight.w800)),
+                        style: SwanType.bodySm(SwanPalette.light.danger,
+                            w: FontWeight.w800)),
                   ),
                 ),
               ],
@@ -224,8 +231,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
     );
   }
 
-  Widget _uploadTile(
-      bool isDark, String clubId, String docType, String label) {
+  Widget _uploadTile(bool isDark, String clubId, String docType, String label) {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final alt = (isDark ? SwanPalette.dark : SwanPalette.light).surfaceAlt;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
@@ -249,7 +255,8 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: done ? SwanPalette.light.success.withValues(alpha: .12) : alt,
+              color:
+                  done ? SwanPalette.light.success.withValues(alpha: .12) : alt,
               borderRadius: BorderRadius.circular(12),
             ),
             child: uploading
@@ -346,8 +353,7 @@ class _ClubPendingScreenState extends ConsumerState<ClubPendingScreen> {
             children: [
               Text(title, style: SwanType.bodySm(ink, w: FontWeight.w700)),
               const SizedBox(height: 2),
-              Text(sub,
-                  style: SwanType.caption(SwanColors.textSecondary)),
+              Text(sub, style: SwanType.caption(SwanColors.textSecondary)),
             ],
           ),
         ),

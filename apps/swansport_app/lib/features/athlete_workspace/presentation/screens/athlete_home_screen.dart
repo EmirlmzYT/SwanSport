@@ -146,8 +146,7 @@ class AthleteHomeScreen extends ConsumerWidget {
                           'Yaklaşan etkinlik yok',
                           'Yeni etkinlikler eklendiğinde burada görünür.',
                           actionLabel: 'Takvimi aç',
-                          onAction: () =>
-                              context.swanPush(AppRoutes.calendar),
+                          onAction: () => context.swanPush(AppRoutes.calendar),
                         );
                       }
                       return _hero(context, upcoming.first);
@@ -277,8 +276,7 @@ class AthleteHomeScreen extends ConsumerWidget {
 
                   SummarySection(
                     title: 'Sağlık',
-                    onSeeAll: () =>
-                        context.swanPush(AppRoutes.medicalCenter),
+                    onSeeAll: () => context.swanPush(AppRoutes.medicalCenter),
                     child: _sum(injuries, (list) {
                       final mine = myAthlete == null
                           ? null
@@ -365,8 +363,7 @@ class AthleteHomeScreen extends ConsumerWidget {
 
                   SummarySection(
                     title: 'Duyurular',
-                    onSeeAll: () =>
-                        context.swanPush(AppRoutes.announcements),
+                    onSeeAll: () => context.swanPush(AppRoutes.announcements),
                     child: _sum(anns, (list) {
                       if (list.isEmpty) return SummaryLine.empty('Duyuru yok');
                       return Column(

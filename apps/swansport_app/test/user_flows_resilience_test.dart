@@ -37,8 +37,11 @@ void main() {
       expect(n3.resultRoute, contains('/resmi-sonuc'));
     });
 
-    test('notifications_screen.dart does not have null onTap and handles all notification kinds', () {
-      final file = File('lib/features/social/presentation/notifications_screen.dart');
+    test(
+        'notifications_screen.dart does not have null onTap and handles all notification kinds',
+        () {
+      final file =
+          File('lib/features/social/presentation/notifications_screen.dart');
       final content = file.readAsStringSync();
 
       // onTap must not be null anymore
@@ -53,8 +56,11 @@ void main() {
   });
 
   group('Post composer hardening contracts', () {
-    test('post_composer_sheet.dart uses friendly errors and invalidates author and feed providers', () {
-      final file = File('lib/features/social/presentation/post_composer_sheet.dart');
+    test(
+        'post_composer_sheet.dart uses friendly errors and invalidates author and feed providers',
+        () {
+      final file =
+          File('lib/features/social/presentation/post_composer_sheet.dart');
       final content = file.readAsStringSync();
 
       expect(content.contains('friendlyErrorMessage'), isTrue);
@@ -69,7 +75,9 @@ void main() {
   });
 
   group('Comments and Repost hardening contracts', () {
-    test('comments_sheet.dart uses friendly errors and token-based danger colors', () {
+    test(
+        'comments_sheet.dart uses friendly errors and token-based danger colors',
+        () {
       final file = File('lib/features/social/presentation/comments_sheet.dart');
       final content = file.readAsStringSync();
 
@@ -79,8 +87,11 @@ void main() {
       expect(content.contains('SwanPalette.light.danger'), isFalse);
     });
 
-    test('saved_posts_screen.dart _RepostSheet invalidates authorPostsProvider and uses friendly error', () {
-      final file = File('lib/features/social/presentation/saved_posts_screen.dart');
+    test(
+        'saved_posts_screen.dart _RepostSheet invalidates authorPostsProvider and uses friendly error',
+        () {
+      final file =
+          File('lib/features/social/presentation/saved_posts_screen.dart');
       final content = file.readAsStringSync();
 
       expect(content.contains('friendlyErrorMessage'), isTrue);

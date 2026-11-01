@@ -101,12 +101,11 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
             const SizedBox(height: 16),
             Text('Şikayet Et', style: SwanType.h2(ink)),
             const SizedBox(height: 6),
-            Text('Şikayetin platform yöneticisine iletilir; kimliğin '
+            Text(
+                'Şikayetin platform yöneticisine iletilir; kimliğin '
                 'içeriği paylaşan kişiyle paylaşılmaz.',
-                style:
-                    SwanType.caption(SwanColors.textSecondary)),
+                style: SwanType.caption(SwanColors.textSecondary)),
             const SizedBox(height: 18),
-
             Text('Sebep', style: SwanType.h3(ink)),
             const SizedBox(height: 8),
             ...kReportReasons.map((r) {
@@ -129,12 +128,12 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
                         size: 19,
                         color: on ? kTeal : SwanColors.textSecondary),
                     const SizedBox(width: 11),
-                    Text(r.label, style: SwanType.bodySm(ink, w: FontWeight.w700)),
+                    Text(r.label,
+                        style: SwanType.bodySm(ink, w: FontWeight.w700)),
                   ]),
                 ),
               );
             }),
-
             const SizedBox(height: 8),
             TextField(
               controller: _detail,
@@ -143,8 +142,7 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               style: SwanType.bodySm(ink),
               decoration: InputDecoration(
                 hintText: 'Eklemek istediğin bir şey var mı? (isteğe bağlı)',
-                hintStyle:
-                    SwanType.caption(SwanColors.textSecondary),
+                hintStyle: SwanType.caption(SwanColors.textSecondary),
                 filled: true,
                 fillColor: alt,
                 contentPadding: const EdgeInsets.all(14),
@@ -157,7 +155,6 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               ),
             ),
             const SizedBox(height: 18),
-
             GestureDetector(
               onTap: _busy ? null : _send,
               child: Container(
@@ -175,7 +172,8 @@ class _ReportSheetState extends ConsumerState<_ReportSheet> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text('Vazgeç',
-                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                    style: SwanType.bodySm(SwanColors.textSecondary,
+                        w: FontWeight.w700)),
               ),
             ),
           ],

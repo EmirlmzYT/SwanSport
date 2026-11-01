@@ -59,6 +59,7 @@ class PushMessage {
 enum PushFailure {
   /// iOS izin verdi ancak APNs kaydı oluşmadı (imza/capability/ağ kontrolü).
   apnsUnavailable,
+
   /// Platform push desteklemiyor (ör. iOS'ta ana ekrana eklenmemiş Safari).
   unsupported,
 
@@ -72,9 +73,10 @@ enum PushFailure {
 class PushException implements Exception {
   const PushException(this.reason);
   final PushFailure reason;
-  @override String toString()=>reason==PushFailure.apnsUnavailable
-    ? 'iOS APNs cihaz kaydı hazır değil. Uygulama imzası, Push Notifications yetkisi ve Firebase APNs yapılandırması kontrol edilmeli.'
-    : 'Bildirim aboneliği kurulamadı (${reason.name}).';
+  @override
+  String toString() => reason == PushFailure.apnsUnavailable
+      ? 'iOS APNs cihaz kaydı hazır değil. Uygulama imzası, Push Notifications yetkisi ve Firebase APNs yapılandırması kontrol edilmeli.'
+      : 'Bildirim aboneliği kurulamadı (${reason.name}).';
 }
 
 /// Bu platformda push bildirimi kurulabilir mi?

@@ -334,8 +334,7 @@ class _StitchSavedCardState extends ConsumerState<_StitchSavedCard> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(friendlyErrorMessage(e,
-                defaultMessage:
-                    'Kayıt kaldırılamadı. Lütfen tekrar deneyin.')),
+                defaultMessage: 'Kayıt kaldırılamadı. Lütfen tekrar deneyin.')),
             backgroundColor: context.swan.danger,
           ),
         );

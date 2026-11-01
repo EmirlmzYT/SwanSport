@@ -76,7 +76,8 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
     setState(() => _leaving = true);
     if (accountId != null) await markSetupWizardSeen(accountId);
     if (!mounted) return;
-    if (accountId != null) ref.invalidate(setupWizardRequiredProvider(accountId));
+    if (accountId != null)
+      ref.invalidate(setupWizardRequiredProvider(accountId));
 
     // Phone proof is not identity proof. Every new role starts with the
     // server-owned identity axis before the role-specific next step.
@@ -90,8 +91,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
       return;
     }
 
-    if (_selectedRole == _PrimaryRole.staff &&
-        _staffType == _StaffType.admin) {
+    if (_selectedRole == _PrimaryRole.staff && _staffType == _StaffType.admin) {
       Navigator.pushReplacementNamed(context, '/kulupler');
       return;
     }
@@ -226,8 +226,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
                             vertical: SwanSpace.md,
                           ),
                           shape: RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(SwanRadius.md),
+                            borderRadius: BorderRadius.circular(SwanRadius.md),
                           ),
                         ),
                         child: Text('Geri', style: SwanType.body(c.ink)),
@@ -237,9 +236,11 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
                   Expanded(
                     flex: 2,
                     child: ElevatedButton(
-                      onPressed: _leaving ? null : _currentStep == _totalSteps - 1
-                          ? _goToVerification
-                          : _next,
+                      onPressed: _leaving
+                          ? null
+                          : _currentStep == _totalSteps - 1
+                              ? _goToVerification
+                              : _next,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: c.accentFill,
                         foregroundColor: Colors.white,
@@ -425,10 +426,9 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.workspace_premium_rounded,
               title: 'Lisanslı Sporcu',
               subtitle:
-                'Resmi bir spor kulübünün sporcusuyum ve federasyon lisansım var.',
+                  'Resmi bir spor kulübünün sporcusuyum ve federasyon lisansım var.',
               selected: _athleteType == _AthleteType.licensed,
-              onTap: () =>
-                  setState(() => _athleteType = _AthleteType.licensed),
+              onTap: () => setState(() => _athleteType = _AthleteType.licensed),
             ),
             const SizedBox(height: SwanSpace.md),
             _selectableCard(
@@ -436,7 +436,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.fitness_center_rounded,
               title: 'Ferdi Sporcu',
               subtitle:
-                'Bir kulübe bağlı değilim; bağımsız olarak antrenman yapıyor ve turnuvalara katılıyorum.',
+                  'Bir kulübe bağlı değilim; bağımsız olarak antrenman yapıyor ve turnuvalara katılıyorum.',
               selected: _athleteType == _AthleteType.individual,
               onTap: () =>
                   setState(() => _athleteType = _AthleteType.individual),
@@ -462,7 +462,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.sports_tennis_rounded,
               title: 'Antrenör / Teknik Ekip',
               subtitle:
-                'Sporcuları çalıştırıyorum; antrenman oturumu başlatacak ve yoklama alacağım.',
+                  'Sporcuları çalıştırıyorum; antrenman oturumu başlatacak ve yoklama alacağım.',
               selected: _staffType == _StaffType.coach,
               onTap: () => setState(() => _staffType = _StaffType.coach),
             ),
@@ -472,7 +472,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.account_balance_rounded,
               title: 'Kulüp Yöneticisi / Kurucusu',
               subtitle:
-                'Kulübün idari, tescil, aidat ve harcama onay süreçlerini yöneteceğim.',
+                  'Kulübün idari, tescil, aidat ve harcama onay süreçlerini yöneteceğim.',
               selected: _staffType == _StaffType.admin,
               onTap: () => setState(() => _staffType = _StaffType.admin),
             ),
@@ -498,7 +498,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.key_rounded,
               title: 'Kulüpten Davet Kodu Al',
               body:
-                'Kulüp yöneticisi veya antrenör, çocuğun adına sistemden 6 haneli özel bir veli davet kodu üretir.',
+                  'Kulüp yöneticisi veya antrenör, çocuğun adına sistemden 6 haneli özel bir veli davet kodu üretir.',
             ),
             const SizedBox(height: SwanSpace.md),
             _infoBox(
@@ -506,7 +506,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.link_rounded,
               title: 'Veli Bağla Menüsünden Kodu Gir',
               body:
-                'Önce Kimlik sekmesinden belge yükle ve platform onayını bekle. Ardından Profil > Yönetim > Hesabım > Davet Kodu alanından kodu gir.',
+                  'Önce Kimlik sekmesinden belge yükle ve platform onayını bekle. Ardından Profil > Yönetim > Hesabım > Davet Kodu alanından kodu gir.',
             ),
             const SizedBox(height: SwanSpace.md),
             _infoBox(
@@ -514,7 +514,7 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               icon: Icons.notifications_active_rounded,
               title: 'Canlı Bildirimleri Al',
               body:
-                'Antrenman yoklamaları, sağlık durumu ve aidat bildirimleri telefonuna anında gelir.',
+                  'Antrenman yoklamaları, sağlık durumu ve aidat bildirimleri telefonuna anında gelir.',
             ),
           ],
         ),
@@ -533,7 +533,8 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
 
     if (_selectedRole == _PrimaryRole.athlete) {
       final isLic = _athleteType == _AthleteType.licensed;
-      roleTitle = isLic ? 'Lisanslı Sporcu Doğrulaması' : 'Ferdi Sporcu Doğrulaması';
+      roleTitle =
+          isLic ? 'Lisanslı Sporcu Doğrulaması' : 'Ferdi Sporcu Doğrulaması';
       whyText =
           'Kimlik ve lisans doğrulaması neden zorunlu? İşte sağladığı haklar:';
       perks = [
@@ -824,7 +825,9 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  needsIdentity ? 'Seçenek 1: Kimliğini Doğrula' : 'Seçenek 1: Rolüne Göre Devam Et',
+                  needsIdentity
+                      ? 'Seçenek 1: Kimliğini Doğrula'
+                      : 'Seçenek 1: Rolüne Göre Devam Et',
                   style: SwanType.body(c.ink, w: FontWeight.w700),
                 ),
                 const SizedBox(height: SwanSpace.xs),
@@ -838,7 +841,9 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
                 ElevatedButton.icon(
                   onPressed: _leaving ? null : _goToVerification,
                   icon: const Icon(Icons.file_upload_outlined, size: 18),
-                  label: Text(needsIdentity ? 'Kimlik Belgesi Yükle' : 'Sonraki Adıma Git'),
+                  label: Text(needsIdentity
+                      ? 'Kimlik Belgesi Yükle'
+                      : 'Sonraki Adıma Git'),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: c.accentFill,
                     foregroundColor: Colors.white,
@@ -1026,7 +1031,8 @@ class _SetupWizardScreenState extends ConsumerState<SetupWizardScreen> {
     );
   }
 
-  Widget _perkRow(SwanPalette c, {required String title, required String desc}) {
+  Widget _perkRow(SwanPalette c,
+      {required String title, required String desc}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [

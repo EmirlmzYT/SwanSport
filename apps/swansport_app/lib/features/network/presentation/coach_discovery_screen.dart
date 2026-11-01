@@ -62,7 +62,11 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
 
     return SwanScaffold(
       appBar: swanModuleAppBar(context, title: 'Antrenör Bul', actions: [
-        IconButton(tooltip: 'Bildirimler', icon: Icon(Icons.notifications_none_rounded, color: context.swan.inkMuted), onPressed: () => Navigator.pushNamed(context, '/bildirimler')),
+        IconButton(
+            tooltip: 'Bildirimler',
+            icon: Icon(Icons.notifications_none_rounded,
+                color: context.swan.inkMuted),
+            onPressed: () => Navigator.pushNamed(context, '/bildirimler')),
       ]),
       extendBody: true,
       backgroundColor: bg,
@@ -74,7 +78,6 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 132),
               children: [
-
                 const SizedBox(height: 14),
                 _buildHeadline(ink),
                 const SizedBox(height: 14),
@@ -146,8 +149,6 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
-
-
 
   Widget _buildHeadline(Color ink) {
     return Column(

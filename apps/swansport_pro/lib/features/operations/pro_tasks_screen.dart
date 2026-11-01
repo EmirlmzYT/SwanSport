@@ -392,6 +392,96 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
         }
         final todayAttendance = attendanceAsync.valueOrNull;
         final list = <ProTaskItem>[];
+        final access = ref.watch(swanAccessProvider);
+        if (access.isClubAdmin) {
+          final applicationsAsync = ref.watch(clubPendingApplicationsProvider);
+          if (applicationsAsync.isLoading) return const AsyncValue.loading();
+          if (applicationsAsync.hasError) {
+            return AsyncValue.error(
+              applicationsAsync.error!,
+              applicationsAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final applications = applicationsAsync.valueOrNull ?? const [];
+          if (applications.isNotEmpty) {
+            list.add(
+              ProTaskItem(
+                id: 'club-applications',
+                icon: Icons.person_add_alt_1_outlined,
+                title: 'Bekleyen Başvurular',
+                context:
+                    '${applications.length} kulüp başvurusu karar bekliyor',
+                priority: ProTaskPriority.now,
+                status: 'İnceleme Bekliyor',
+                actionLabel: 'İncele',
+                onAction: () => context.push(ProRoutes.clubManagement),
+              ),
+            );
+          }
+          final guardianAsync = ref.watch(clubGuardianLinkOverviewProvider);
+          if (guardianAsync.isLoading) return const AsyncValue.loading();
+          if (guardianAsync.hasError) {
+            return AsyncValue.error(
+              guardianAsync.error!,
+              guardianAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final pendingGuardianInvites =
+              guardianAsync.valueOrNull?.pendingCount ?? 0;
+          if (pendingGuardianInvites > 0) {
+            list.add(
+              ProTaskItem(
+                id: 'guardian-invites',
+                icon: Icons.family_restroom_outlined,
+                title: 'Bekleyen Veli Davetleri',
+                context:
+                    '$pendingGuardianInvites kullanılmamış veli bağlantı daveti bekliyor',
+                priority: ProTaskPriority.now,
+                status: 'Bağlantı Bekliyor',
+                actionLabel: 'İncele',
+                onAction: () => context.push(ProRoutes.guardianLinks),
+              ),
+            );
+          }
+          final duesAsync = ref.watch(clubDuesOverviewProvider);
+          if (duesAsync.isLoading) return const AsyncValue.loading();
+          if (duesAsync.hasError) {
+            return AsyncValue.error(
+              duesAsync.error!,
+              duesAsync.stackTrace ?? StackTrace.current,
+            );
+          }
+          final dues = duesAsync.valueOrNull?.summary;
+          if (dues != null && dues.pendingPaymentCount > 0) {
+            list.add(
+              ProTaskItem(
+                id: 'club-pending-payments',
+                icon: Icons.pending_actions_outlined,
+                title: 'Ödeme Bildirimleri',
+                context:
+                    '${dues.pendingPaymentCount} ödeme bildirimi karar bekliyor',
+                priority: ProTaskPriority.now,
+                status: 'Onay Bekliyor',
+                actionLabel: 'İncele',
+                onAction: () => context.push(ProRoutes.clubDues),
+              ),
+            );
+          }
+          if (dues != null && dues.overdueCount > 0) {
+            list.add(
+              ProTaskItem(
+                id: 'club-overdue-dues',
+                icon: Icons.warning_amber_outlined,
+                title: 'Gecikmiş Aidatlar',
+                context: '${dues.overdueCount} aidatın vadesi geçmiş',
+                priority: ProTaskPriority.today,
+                status: 'Gecikmiş',
+                actionLabel: 'Listeyi Aç',
+                onAction: () => context.push(ProRoutes.clubDues),
+              ),
+            );
+          }
+        }
         if (todayAttendance != null) {
           final unrecorded =
               (todayAttendance.trainingCount - todayAttendance.markedCount)

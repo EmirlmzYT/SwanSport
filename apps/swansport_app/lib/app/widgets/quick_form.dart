@@ -125,7 +125,6 @@ class _QuickFormState extends State<_QuickForm> {
                   style: SwanType.caption(SwanColors.textSecondary)),
             ],
             const SizedBox(height: 18),
-
             for (final f in widget.fields) ...[
               Text(f.label.toUpperCase(),
                   style: jakarta(
@@ -138,12 +137,11 @@ class _QuickFormState extends State<_QuickForm> {
                 style: SwanType.bodySm(ink, w: FontWeight.w600),
                 decoration: InputDecoration(
                   hintText: f.hint,
-                  hintStyle:
-                      SwanType.bodySm(SwanColors.textSecondary),
+                  hintStyle: SwanType.bodySm(SwanColors.textSecondary),
                   filled: true,
                   fillColor: alt,
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 15, vertical: 13),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 15, vertical: 13),
                   enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
                       borderSide: BorderSide(color: line)),
@@ -154,7 +152,6 @@ class _QuickFormState extends State<_QuickForm> {
               ),
               const SizedBox(height: 14),
             ],
-
             if (_error != null) ...[
               Container(
                 width: double.infinity,
@@ -166,11 +163,11 @@ class _QuickFormState extends State<_QuickForm> {
                       color: const Color(0xFFF43F5E).withValues(alpha: .35)),
                 ),
                 child: Text(_error!,
-                    style: SwanType.caption(const Color(0xFFF43F5E), w: FontWeight.w600)),
+                    style: SwanType.caption(const Color(0xFFF43F5E),
+                        w: FontWeight.w600)),
               ),
               const SizedBox(height: 14),
             ],
-
             GestureDetector(
               onTap: _busy ? null : _submit,
               child: Container(
@@ -196,7 +193,8 @@ class _QuickFormState extends State<_QuickForm> {
               child: TextButton(
                 onPressed: () => Navigator.pop(context, false),
                 child: Text('Vazgeç',
-                    style: SwanType.bodySm(SwanColors.textSecondary, w: FontWeight.w700)),
+                    style: SwanType.bodySm(SwanColors.textSecondary,
+                        w: FontWeight.w700)),
               ),
             ),
           ],

@@ -22,7 +22,8 @@ void main() {
       expect(isVersionNewer('0.2.0', '0.1.9'), isTrue);
     });
 
-    test('aynı sürüm adında yalnızca build numarası artmışsa yine yeni '
+    test(
+        'aynı sürüm adında yalnızca build numarası artmışsa yine yeni '
         'sayılır — hızlı düzeltme yayınlanınca haber gitsin diye', () {
       expect(isVersionNewer('0.1.0+2', '0.1.0+1'), isTrue);
     });
@@ -32,7 +33,8 @@ void main() {
       expect(isVersionNewer('0.1.0', '0.1.0+1'), isFalse);
     });
 
-    test('ayrıştırılamayan sürüm yeni sayılmaz — belirsizlikte kullanıcıyı '
+    test(
+        'ayrıştırılamayan sürüm yeni sayılmaz — belirsizlikte kullanıcıyı '
         'gereksiz APK indirmeye yönlendirmemeli', () {
       expect(isVersionNewer('yanlış-format', '0.1.0'), isFalse);
       expect(isVersionNewer('0.1.0', ''), isFalse);

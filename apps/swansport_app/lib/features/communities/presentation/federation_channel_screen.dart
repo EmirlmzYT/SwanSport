@@ -58,7 +58,8 @@ class _FederationChannelScreenState
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
 
-    final async = ref.watch(federationAnnouncementsProvider(widget.communityId));
+    final async =
+        ref.watch(federationAnnouncementsProvider(widget.communityId));
 
     return SwanScaffold(
       backgroundColor: bg,
@@ -94,7 +95,8 @@ class _FederationChannelScreenState
                               overflow: TextOverflow.ellipsis,
                               style: SwanType.h3(ink)),
                           Text('Resmî duyuru kanalı',
-                              style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                              style: SwanType.caption(SwanColors.textSecondary,
+                                  w: FontWeight.w600)),
                         ],
                       ),
                     ),
@@ -104,9 +106,11 @@ class _FederationChannelScreenState
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: () async {
-                      ref.invalidate(federationAnnouncementsProvider(widget.communityId));
+                      ref.invalidate(
+                          federationAnnouncementsProvider(widget.communityId));
                       await ref.read(
-                          federationAnnouncementsProvider(widget.communityId).future);
+                          federationAnnouncementsProvider(widget.communityId)
+                              .future);
                     },
                     child: async.when(
                       loading: () => ListView(children: [premiumLoading()]),
@@ -188,14 +192,14 @@ class _FederationChannelScreenState
                       overflow: TextOverflow.ellipsis,
                       style: SwanType.caption(ink, w: FontWeight.w800)),
                   Text(shortAgo(a.createdAt),
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
                 ],
               ),
             ),
             // Hedef rozeti: duyurunun kime gittiği bir bakışta belli olsun.
             Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: kTeal.withValues(alpha: .10),
                 borderRadius: BorderRadius.circular(999),
@@ -214,8 +218,7 @@ class _FederationChannelScreenState
             ),
           ]),
           const SizedBox(height: 12),
-          Text(a.body,
-              style: SwanType.bodySm(ink).copyWith(height: 1.45)),
+          Text(a.body, style: SwanType.bodySm(ink).copyWith(height: 1.45)),
           const SizedBox(height: 12),
           Divider(color: line, height: 1),
           const SizedBox(height: 4),
@@ -228,11 +231,10 @@ class _FederationChannelScreenState
                 Icon(Icons.mode_comment_outlined,
                     size: 15, color: SwanColors.textSecondary),
                 const SizedBox(width: 7),
-                Text(
-                    a.replyCount == 0
-                        ? 'Soru sor'
-                        : '${a.replyCount} yanıt',
-                    style: SwanType.caption(a.replyCount == 0 ? SwanColors.textSecondary : kTeal, w: FontWeight.w700)),
+                Text(a.replyCount == 0 ? 'Soru sor' : '${a.replyCount} yanıt',
+                    style: SwanType.caption(
+                        a.replyCount == 0 ? SwanColors.textSecondary : kTeal,
+                        w: FontWeight.w700)),
                 const Spacer(),
                 const Icon(Icons.chevron_right_rounded,
                     size: 17, color: SwanColors.textSecondary),
@@ -261,8 +263,7 @@ class _FederationChannelScreenState
         return Container(
           decoration: BoxDecoration(
             color: surf,
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(28)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: EdgeInsets.fromLTRB(
               20, 16, 20, 20 + MediaQuery.of(ctx).viewInsets.bottom),
@@ -277,19 +278,20 @@ class _FederationChannelScreenState
               style: SwanType.bodySm(ink),
               decoration: InputDecoration(
                 hintText: 'Duyuru metni…',
-                hintStyle:
-                    SwanType.bodySm(SwanColors.textSecondary),
-                border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(15)),
+                hintStyle: SwanType.bodySm(SwanColors.textSecondary),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
               ),
             ),
             const SizedBox(height: 14),
             // Hedef seçimi: tüm ülke ya da tek il.
             Row(children: [
-              Icon(Icons.send_rounded, size: 16, color: SwanColors.textSecondary),
+              Icon(Icons.send_rounded,
+                  size: 16, color: SwanColors.textSecondary),
               const SizedBox(width: 8),
               Text('Kime:',
-                  style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w700)),
+                  style: SwanType.caption(SwanColors.textSecondary,
+                      w: FontWeight.w700)),
               const SizedBox(width: 10),
               Expanded(
                 child: GestureDetector(
@@ -395,8 +397,8 @@ class _FederationChannelScreenState
               ),
               for (final c in cities)
                 ListTile(
-                  title:
-                      Text(c.name, style: SwanType.bodySm(ink, w: FontWeight.w600)),
+                  title: Text(c.name,
+                      style: SwanType.bodySm(ink, w: FontWeight.w600)),
                   trailing: c.code == current
                       ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
                       : null,
@@ -446,7 +448,8 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
   }
 
   Future<void> _send() async {
-    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted) return;
+    if (!await requireSwanAction(context, ref, SwanAction.message) || !mounted)
+      return;
     final text = _ctrl.text.trim();
     if (text.isEmpty || _sending) return;
     setState(() => _sending = true);
@@ -510,7 +513,8 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
               if (list.isEmpty) {
                 return Center(
                   child: Text('İlk soruyu sen sor',
-                      style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
                 );
               }
               return ListView.builder(
@@ -539,10 +543,13 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
                                   child: Text(r.senderName,
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
-                                      style: SwanType.caption(ink, w: FontWeight.w800)),
+                                      style: SwanType.caption(ink,
+                                          w: FontWeight.w800)),
                                 ),
                                 Text(shortAgo(r.createdAt),
-                                    style: SwanType.caption(SwanColors.textSecondary, w: FontWeight.w600)),
+                                    style: SwanType.caption(
+                                        SwanColors.textSecondary,
+                                        w: FontWeight.w600)),
                               ]),
                               const SizedBox(height: 2),
                               Text(r.body,
@@ -570,8 +577,7 @@ class _ThreadSheetState extends ConsumerState<_ThreadSheet> {
               onSubmitted: (_) => _send(),
               decoration: InputDecoration(
                 hintText: 'Sorunu yaz…',
-                hintStyle:
-                    SwanType.caption(SwanColors.textSecondary),
+                hintStyle: SwanType.caption(SwanColors.textSecondary),
                 filled: true,
                 fillColor: alt,
                 contentPadding:

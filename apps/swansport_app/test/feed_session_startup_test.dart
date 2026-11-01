@@ -20,7 +20,8 @@ void main() {
       isSupabaseEnabledProvider.overrideWithValue(true),
       authSessionProvider.overrideWith((_) => sessions.stream),
       swanAccessProvider.overrideWithValue(SwanAccess.none),
-      platformConfigProvider.overrideWith((_) async => PlatformConfig.fromMap({})),
+      platformConfigProvider
+          .overrideWith((_) async => PlatformConfig.fromMap({})),
       discoverProvider.overrideWith((_) async => []),
       announcementsProvider.overrideWith((_) async => []),
       newsProvider.overrideWith((_) async => []),
@@ -28,17 +29,25 @@ void main() {
     ], child: const MaterialApp(home: FeedScreen())));
     expect(find.byType(GuestExploreScreen), findsNothing);
     sessions.add(Session(
-      accessToken: 'test-token', tokenType: 'bearer',
-      user: User(id: 'startup-user', appMetadata: {}, userMetadata: {},
-          aud: 'authenticated', createdAt: '2026-10-17T00:00:00Z'),
+      accessToken: 'test-token',
+      tokenType: 'bearer',
+      user: User(
+          id: 'startup-user',
+          appMetadata: {},
+          userMetadata: {},
+          aud: 'authenticated',
+          createdAt: '2026-10-17T00:00:00Z'),
     ));
     await tester.pump();
     await tester.pump();
     expect(find.byType(GuestExploreScreen), findsNothing);
     expect(find.byKey(const Key('feed-floating-header')), findsOneWidget);
     // The visual shell does not grant any account/club permissions.
-    expect(ProviderScope.containerOf(tester.element(find.byType(FeedScreen)))
-        .read(swanAccessProvider).hasAccount, isFalse);
+    expect(
+        ProviderScope.containerOf(tester.element(find.byType(FeedScreen)))
+            .read(swanAccessProvider)
+            .hasAccount,
+        isFalse);
     await tester.pumpWidget(const SizedBox.shrink());
   });
 }

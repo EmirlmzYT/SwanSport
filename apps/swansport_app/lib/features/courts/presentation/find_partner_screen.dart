@@ -214,8 +214,7 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
   Widget _emptyLine(String text) => Padding(
         padding: const EdgeInsets.symmetric(vertical: 4),
         child: Text(text,
-            style:
-                SwanType.caption(context.swan.inkMuted, w: FontWeight.w600)),
+            style: SwanType.caption(context.swan.inkMuted, w: FontWeight.w600)),
       );
 
   Widget _verifyBanner(bool isDark, Color ink) => Container(
@@ -233,8 +232,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
           Text(
               'İlan açmak ve partner iletişimi için doğrulanmış telefon veya '
               'onaylı kimlik gereklidir.',
-              style: SwanType.caption(context.swan.inkMuted,
-                  w: FontWeight.w600)),
+              style:
+                  SwanType.caption(context.swan.inkMuted, w: FontWeight.w600)),
         ]),
       );
 
@@ -415,8 +414,8 @@ class _FindPartnerScreenState extends ConsumerState<FindPartnerScreen> {
               style: SwanType.bodySm(ink, w: FontWeight.w800)),
           const SizedBox(height: 4),
           Text('${req.acceptedByName} müsait olduğunu söyledi.',
-              style: SwanType.caption(context.swan.inkMuted,
-                  w: FontWeight.w600)),
+              style:
+                  SwanType.caption(context.swan.inkMuted, w: FontWeight.w600)),
           const SizedBox(height: 12),
           GestureDetector(
             onTap: () => Navigator.pushNamed(context, '/sohbet', arguments: {
