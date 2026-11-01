@@ -468,7 +468,7 @@ final proRouterProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: _rootNavigatorKey,
         path: ProRoutes.developmentReport,
         builder: (context, state) => const ProClubSpecialistOperationsGate(
-          child: SharedDevelopmentReportScreen(),
+          child: ProDevelopmentAnalyticsScreen(),
         ),
       ),
       GoRoute(

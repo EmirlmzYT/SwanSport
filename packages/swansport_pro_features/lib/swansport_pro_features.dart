@@ -13,6 +13,7 @@ export 'src/attendance/live_attendance_screen.dart';
 export 'src/club/club_operation_card.dart';
 export 'src/club/club_operations_panel.dart';
 export 'src/club_staff/club_staff_operations.dart';
+export 'src/club_staff/development_analytics_screen.dart';
 export 'src/facility/facility_operations_panel.dart';
 export 'src/facility/facility_reservations_screen.dart';
 export 'src/facility/facility_schedule_screen.dart';

@@ -1,16 +1,55 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
 import 'feature_flags.dart';
 import 'supabase_scope.dart';
 
 class ReportAthlete {
-  const ReportAthlete({required this.id, required this.name, this.clubName});
+  const ReportAthlete({
+    required this.id,
+    required this.name,
+    this.clubName,
+    this.teamId,
+    this.teamName,
+    this.sportCode,
+  });
   final String id, name;
-  final String? clubName;
+  final String? clubName, teamId, teamName, sportCode;
   factory ReportAthlete.fromMap(Map<String, dynamic> m) => ReportAthlete(
         id: m['id'] as String,
         name: m['full_name'] as String,
         clubName: m['club_name'] as String?,
+        teamId: m['team_id'] as String?,
+        teamName: m['team_name'] as String?,
+        sportCode: m['sport_code'] as String?,
+      );
+}
+
+class ReportTrainingResult {
+  const ReportTrainingResult({
+    required this.sessionId,
+    required this.protocolName,
+    required this.sportCode,
+    required this.startedAt,
+    required this.setsRecorded,
+    this.totalScore,
+    this.averageSet,
+    this.bestSet,
+  });
+  final String sessionId, protocolName, sportCode;
+  final DateTime startedAt;
+  final int setsRecorded;
+  final num? totalScore, averageSet, bestSet;
+  factory ReportTrainingResult.fromMap(Map<String, dynamic> m) =>
+      ReportTrainingResult(
+        sessionId: m['session_id'] as String,
+        protocolName: m['protocol_name'] as String,
+        sportCode: m['sport_code'] as String,
+        startedAt: DateTime.parse(m['started_at'] as String),
+        setsRecorded: (m['sets_recorded'] as num).toInt(),
+        totalScore: m['total_score'] as num?,
+        averageSet: m['average_set'] as num?,
+        bestSet: m['best_set'] as num?,
       );
 }
 
@@ -113,7 +152,7 @@ class ReportGoal {
         'done' => 'Tamamlandı',
         'at_risk' => 'Riskli',
         'active' => 'Sürüyor',
-        _ => 'Durum bilinmiyor'
+        _ => 'Durum bilinmiyor',
       };
   factory ReportGoal.fromMap(Map<String, dynamic> m) => ReportGoal(
         title: m['title'] as String,
@@ -137,6 +176,7 @@ class DevelopmentReport {
     required this.attendance,
     required this.metrics,
     required this.goals,
+    this.trainingResults = const [],
   });
   final ReportAthlete athlete;
   final DateTime from, to, generatedAt;
@@ -144,7 +184,10 @@ class DevelopmentReport {
   final ReportAttendance attendance;
   final List<ReportMetric> metrics;
   final List<ReportGoal> goals;
-  factory DevelopmentReport.fromMap(Map<String, dynamic> m) =>
+  final List<ReportTrainingResult> trainingResults;
+  factory DevelopmentReport.fromMap(
+    Map<String, dynamic> m,
+  ) =>
       DevelopmentReport(
         athlete: ReportAthlete.fromMap(
           (m['athlete'] as Map).cast<String, dynamic>(),
@@ -158,12 +201,15 @@ class DevelopmentReport {
         ),
         metrics: (m['metrics'] as List)
             .map(
-              (r) => ReportMetric.fromMap((r as Map).cast<String, dynamic>()),
-            )
+                (r) => ReportMetric.fromMap((r as Map).cast<String, dynamic>()))
             .toList(),
         goals: (m['goals'] as List)
+            .map((r) => ReportGoal.fromMap((r as Map).cast<String, dynamic>()))
+            .toList(),
+        trainingResults: (m['training_results'] as List? ?? const [])
             .map(
-              (r) => ReportGoal.fromMap((r as Map).cast<String, dynamic>()),
+              (r) => ReportTrainingResult.fromMap(
+                  (r as Map).cast<String, dynamic>()),
             )
             .toList(),
       );
@@ -178,6 +224,8 @@ class DevelopmentReport {
         if (metrics.any((m) => m.count < 2))
           'Bazı testlerde karşılaştırma için ikinci ölçüm yok.',
         if (goals.isEmpty) 'Dönem sonuna kadar açılmış hedef kaydı yok.',
+        if (trainingResults.isEmpty)
+          'Bu dönemde kaydedilmiş kulüp antrenmanı sonucu yok.',
       ];
   String text({bool includeIdentity = false}) {
     final a = attendance;
@@ -196,6 +244,10 @@ class DevelopmentReport {
       'DÖNEM ÖLÇÜMLERİ',
       for (final metric in metrics)
         '${metric.category} · ${metric.name} [${metric.unit.isEmpty ? 'birimsiz' : metric.unit}; ${metric.lowerIsBetter ? 'düşük iyi' : 'yüksek iyi'}] (${metric.count} kayıt): ${metric.summary} · ${reportDate(metric.firstDate)} – ${reportDate(metric.lastDate)}',
+      '',
+      'ANTRENMAN SONUÇLARI',
+      for (final result in trainingResults)
+        '${reportDate(result.startedAt)} · ${result.protocolName} · ${result.setsRecorded} set${result.totalScore == null ? ' · skor kaydı yok' : ' · toplam ${reportNumber(result.totalScore!)}'}',
       '',
       'HEDEFLER · GÜNCEL DURUM',
       'Dönem sonuna kadar açılan hedeflerin rapor oluşturma anındaki durumu. Geçmiş ilerleme yüzdesi değildir.',
@@ -220,7 +272,7 @@ String reportIsoDate(DateTime d) =>
 typedef DevelopmentReportRequest = ({
   String athleteId,
   DateTime from,
-  DateTime to
+  DateTime to,
 });
 
 class DevelopmentReportService {
