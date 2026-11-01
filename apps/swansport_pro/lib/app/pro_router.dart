@@ -80,6 +80,12 @@ abstract final class ProRoutes {
   static const platformAudit = '/operasyon/platform-denetim';
   static const platformPlans = '/operasyon/platform-planlar';
   static const platformWaitlist = '/operasyon/platform-bekleme-listesi';
+  static const platformRss = '/operasyon/platform-rss';
+  static const platformProfessionalReview =
+      '/operasyon/platform-profesyonel-inceleme';
+  static const platformAccessReview = '/operasyon/platform-erisim-inceleme';
+  static const platformFederationAuthority =
+      '/operasyon/platform-federasyon-yetkileri';
 
   /// Immutable contract of all patterns registered in pro_router
   static const registeredPatterns = <String>{
@@ -128,6 +134,10 @@ abstract final class ProRoutes {
     platformAudit,
     platformPlans,
     platformWaitlist,
+    platformRss,
+    platformProfessionalReview,
+    platformAccessReview,
+    platformFederationAuthority,
   };
 }
 
@@ -504,6 +514,34 @@ final proRouterProvider = Provider<GoRouter>((ref) {
         path: ProRoutes.platformWaitlist,
         builder: (context, state) => const ProPlatformOperationsGate(
           child: SharedLaunchWaitlistScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformRss,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformRssSourcesScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformProfessionalReview,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformProfessionalReviewScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformAccessReview,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformAccessReviewScreen(),
+        ),
+      ),
+      GoRoute(
+        parentNavigatorKey: _rootNavigatorKey,
+        path: ProRoutes.platformFederationAuthority,
+        builder: (context, state) => const ProPlatformOperationsGate(
+          child: PlatformFederationAuthorityScreen(),
         ),
       ),
     ],

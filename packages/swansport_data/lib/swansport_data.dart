@@ -54,6 +54,7 @@ export 'src/offline_attendance.dart';
 export 'src/operation_error.dart';
 export 'src/parent_actions.dart';
 export 'src/platform_mission_control.dart';
+export 'src/platform_admin_parity.dart';
 export 'src/performance_service.dart';
 export 'src/saha_operations.dart';
 export 'src/season_setup.dart';

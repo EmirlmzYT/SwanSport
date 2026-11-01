@@ -31,6 +31,7 @@ export 'src/host/pro_feature_state.dart';
 export 'src/host/pro_feature_theme.dart';
 export 'src/inbox/shared_pro_inbox_screen.dart';
 export 'src/platform/platform_operations.dart';
+export 'src/platform/platform_parity_screens.dart';
 export 'src/referee/referee_duty_list_screen.dart';
 export 'src/referee/referee_lineup_approval_screen.dart';
 export 'src/referee/referee_live_cockpit_screen.dart';

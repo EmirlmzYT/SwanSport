@@ -194,9 +194,41 @@ void main() {
       findsOneWidget,
     );
     expect(find.text('4 kayıt'), findsOneWidget);
+    expect(find.text('RSS Kaynakları'), findsOneWidget);
+    expect(find.text('Profesyonel Hesaplar'), findsOneWidget);
+    expect(find.text('Rol ve Erişim'), findsOneWidget);
+    expect(find.text('Federasyon Yetkilileri'), findsOneWidget);
     await tester.tap(find.text('Platform Durumu'));
     await tester.tap(find.text('Denetim Kayıtları'));
-    expect(navigator.calls, containsAll(['platform-status', 'platform-audit']));
+    await tester.tap(find.text('RSS Kaynakları'));
+    expect(
+      navigator.calls,
+      containsAll(['platform-status', 'platform-audit', 'platform-rss']),
+    );
+  });
+
+  testWidgets('platform parity screens do not query when access is absent',
+      (tester) async {
+    var calls = 0;
+    final container = ProviderContainer(
+      overrides: [
+        swanAccessProvider.overrideWithValue(SwanAccess.none),
+        platformRssSourcesProvider.overrideWith((ref) async {
+          calls++;
+          return const [];
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      _host(
+        container: container,
+        child: const PlatformRssSourcesScreen(),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Platform yöneticisi yetkisi gerekli'), findsOneWidget);
+    expect(calls, 0);
   });
 }
 
@@ -251,6 +283,8 @@ final class _Navigator extends ProFeatureNavigatorBase {
   void openPlatformStatus() => calls.add('platform-status');
   @override
   void openPlatformAudit() => calls.add('platform-audit');
+  @override
+  void openPlatformRssSources() => calls.add('platform-rss');
 }
 
 final class _Chrome implements ProFeatureChrome {
