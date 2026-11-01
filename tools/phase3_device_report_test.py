@@ -24,7 +24,7 @@ class Phase3DeviceReportTest(unittest.TestCase):
             'checks': {name: {'status': 'pass', 'evidence': f'{platform}-{name}'} for name in CHECKS},
         }
         return {
-            'app_version': '1.0.5+62',
+            'app_version': '1.1.0+63',
             'backend_environment': 'staging',
             'tester_alias': 'tester-1',
             'observed_at': '2026-10-25T12:00:00+03:00',
