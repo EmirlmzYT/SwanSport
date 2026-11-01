@@ -514,15 +514,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 line,
                               ),
 
-                              if (p.isMe &&
-                                  !p.isClub &&
-                                  ref
-                                      .watch(swanAccessProvider)
-                                      .isClubStaff) ...[
-                                const SizedBox(height: 14),
-                                _clubCockpitBanner(context, ref),
-                              ],
-
                               const SizedBox(height: 18),
 
                               SwanSegmentedTabs(
@@ -624,81 +615,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ),
       ),
       bottomNavigationBar: const SwanBottomNav(),
-    );
-  }
-
-  Widget _clubCockpitBanner(BuildContext context, WidgetRef ref) {
-    final c = context.swan;
-    final club = ref.watch(activeClubProvider).valueOrNull;
-    final pendingApps =
-        ref.watch(clubPendingApplicationsProvider).valueOrNull?.length ?? 0;
-
-    return InkWell(
-      onTap: () => Navigator.pushNamed(context, '/kulup-yonetim'),
-      borderRadius: BorderRadius.circular(SwanRadius.lg),
-      child: Container(
-        padding: const EdgeInsets.all(SwanSpace.md),
-        decoration: BoxDecoration(
-          color: c.accent.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(SwanRadius.lg),
-          border: Border.all(color: c.accent.withValues(alpha: 0.4)),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                color: c.accent,
-                borderRadius: BorderRadius.circular(SwanRadius.md),
-              ),
-              child: Icon(
-                Icons.space_dashboard_rounded,
-                color: c.onAccent,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: SwanSpace.md),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    club != null
-                        ? '${club.name} • Kokpit'
-                        : 'Kulüp Yönetim Kokpiti',
-                    style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 2),
-                  Text(
-                    pendingApps > 0
-                        ? '$pendingApps yeni başvuru • Kadro, yoklama ve aidatlar'
-                        : 'Kadro, başvurular, yoklama ve aidatları tek yerden yönet',
-                    style: SwanType.caption(c.inkMuted),
-                  ),
-                ],
-              ),
-            ),
-            if (pendingApps > 0) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: c.warning,
-                  borderRadius: BorderRadius.circular(SwanRadius.sm),
-                ),
-                child: Text(
-                  '$pendingApps',
-                  style: SwanType.caption(c.onAccent, w: FontWeight.w700),
-                ),
-              ),
-              const SizedBox(width: SwanSpace.xs),
-            ],
-            Icon(Icons.chevron_right_rounded, color: c.accent, size: 22),
-          ],
-        ),
-      ),
     );
   }
 

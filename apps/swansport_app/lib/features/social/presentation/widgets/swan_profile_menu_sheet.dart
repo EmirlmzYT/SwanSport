@@ -77,19 +77,11 @@ class _ProfileMenu extends ConsumerWidget {
           ),
         );
 
-    final isStaff = access.isClubStaff;
-    final isAccountant = access.isAccountant && !isStaff;
     final isParent = access.isParent &&
         ref.watch(featureEnabledProvider(FeatureFlags.parentHub));
-    final isReferee = !profile.isClub &&
-        access.isReferee &&
-        ref.watch(featureEnabledProvider(FeatureFlags.refereeCockpit));
     final hasTraining = ref.watch(
       featureEnabledProvider(FeatureFlags.sportTrainingSessions),
     );
-    final hasTurf =
-        ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)) ||
-            ref.watch(featureEnabledProvider(FeatureFlags.turfDelegation));
     final hasDevReport =
         ref.watch(featureEnabledProvider(FeatureFlags.developmentReport));
 
@@ -132,70 +124,9 @@ class _ProfileMenu extends ConsumerWidget {
             ),
             const SizedBox(height: SwanSpace.md),
 
-            // 1. KULÜP YÖNETİMİ
-            if (isStaff) ...[
-              InkWell(
-                onTap: () => open('/kulup-yonetim'),
-                borderRadius: BorderRadius.circular(SwanRadius.md),
-                child: Container(
-                  padding: const EdgeInsets.all(SwanSpace.md),
-                  decoration: BoxDecoration(
-                    color: c.accent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                    border: Border.all(color: c.accent.withValues(alpha: 0.35)),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(SwanSpace.sm),
-                        decoration: BoxDecoration(
-                          color: c.accentFill,
-                          borderRadius: BorderRadius.circular(SwanRadius.sm),
-                        ),
-                        child: Icon(
-                          Icons.space_dashboard_rounded,
-                          color: c.onAccent,
-                          size: 20,
-                        ),
-                      ),
-                      const SizedBox(width: SwanSpace.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Kulüp Yönetim Kokpiti',
-                              style: SwanType.bodySm(c.ink, w: FontWeight.w700),
-                            ),
-                            const SizedBox(height: SwanSpace.xs),
-                            Text(
-                              'Kadro, antrenman, aidat ve operasyonlar',
-                              style: SwanType.caption(c.inkMuted),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Icon(
-                        Icons.chevron_right_rounded,
-                        color: c.accent,
-                        size: 22,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: SwanSpace.md),
-            ] else if (isAccountant) ...[
-              entry(
-                Icons.payments_rounded,
-                'Mali İşler & Aidat',
-                '/finans',
-                subtitle: 'Kulüp aidat ve tahsilat takibi',
-              ),
-              const SizedBox(height: SwanSpace.sm),
-            ],
-
-            // 2. KİŞİSEL
+            // Sosyal uygulama kişisel sporcu/veli deneyimine odaklanır.
+            // Kulüp, muhasebe, hakem, tesis ve platform operasyonları
+            // SwanSport Pro çalışma alanındadır.
             sectionHeader('KİŞİSEL'),
             entry(
               Icons.qr_code_2_rounded,
@@ -213,23 +144,11 @@ class _ProfileMenu extends ConsumerWidget {
             entry(Icons.verified_user_outlined, 'Doğrulama', '/dogrulama'),
             if (hasTraining)
               entry(Icons.sports_rounded, 'Antrenmanlarım', '/antrenmanlarim'),
-            if (isReferee)
-              entry(
-                Icons.sports_outlined,
-                'Hakem Görevlerim',
-                '/hakem/gorevler',
-              ),
             if (hasDevReport)
               entry(
                 Icons.insights_rounded,
                 'Gelişim Raporu',
                 '/gelisim-raporu',
-              ),
-            if (hasTurf)
-              entry(
-                Icons.sports_tennis_rounded,
-                'Saha İşlemlerim',
-                '/saha-islemlerim',
               ),
             if (isParent)
               entry(
@@ -247,27 +166,6 @@ class _ProfileMenu extends ConsumerWidget {
             entry(Icons.volunteer_activism_rounded, 'Bağış & Destek', '/bagis'),
             entry(Icons.group_add_rounded, 'Başvurularım', '/basvurular'),
             entry(Icons.vpn_key_rounded, 'Davet Kodu Ekle', '/veli-bagla'),
-
-            // 4. PLATFORM (Yalnızca platform admin)
-            if (access.isPlatformAdmin) ...[
-              Divider(color: c.line, height: SwanSpace.xl),
-              sectionHeader('PLATFORM'),
-              entry(
-                Icons.admin_panel_settings_rounded,
-                'Onay Paneli',
-                '/onay-paneli',
-              ),
-              entry(
-                Icons.rss_feed_rounded,
-                'Haber Kaynakları',
-                '/haber-kaynaklari',
-              ),
-              entry(
-                Icons.verified_rounded,
-                'Federasyon Yetkilileri',
-                '/federasyon-yetkili',
-              ),
-            ],
           ],
         ),
       ),
