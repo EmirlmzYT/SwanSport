@@ -57,10 +57,12 @@ anahtarıyla idempotenttir ve belirsiz ağ yanıtı istemcide başarı sayılmaz
 
 ## Faz G rota kanıtı ve sınıflandırma
 
-Normal SwanSport profilindeki `ManagementSection` girişleri ayrıca koddan
-tek tek karşılaştırılmıştır. Aşağıdaki “kişisel/sosyal” sınıfı, işlevin eksik
-olduğu anlamına gelmez; kulüp, federasyon veya platform adına yönetim
-mutasyonu yapmadığı için Pro kapsamına taşınmaz.
+Normal SwanSport profilindeki eski `ManagementSection` girişleri koddan tek tek
+karşılaştırılmış ve Pro karşılıkları tamamlandıktan sonra sosyal uygulamanın
+görünür menülerinden kaldırılmıştır. Eski rotalar bildirim ve deep link geçiş
+uyumluluğu için kayıtlı kalır. Aşağıdaki “kişisel/sosyal” sınıfı, işlevin eksik
+olduğu anlamına gelmez; kulüp, federasyon veya platform adına yönetim mutasyonu
+yapmadığı için Pro kapsamına taşınmaz.
 
 | SwanSport rotası | Kod rol kapısı | Pro karşılığı / sınıf | Kanıt |
 | --- | --- | --- | --- |

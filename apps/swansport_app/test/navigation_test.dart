@@ -7,9 +7,9 @@ import 'package:flutter_test/flutter_test.dart';
 /// **Neden dosya okuyarak test ediyor:** rota tablosu `MaterialApp` içinde
 /// gömülü; onu çalıştırmadan okumanın tek yolu kaynağı taramak. Kırılganlığı
 /// kabul ediyorum çünkü koruduğu şey daha değerli: 34 girişlik modül menüsü
-/// silindi ve **rotaların erişilebilirliği artık Keşfet ile Profil > Yönetim'e
-/// bağlı.** Oradan bir satır düşerse rota tanımlı kalır ama hiçbir yerden
-/// açılamaz — sessiz kayıp. Bu test onu yakalıyor.
+/// silindi; profesyonel operasyon girişleri SwanSport Pro'ya taşındı. Bu test
+/// sosyal uygulamanın kişisel girişlerini korurken yönetim rotalarının menülere
+/// geri sızmasını engelliyor.
 void main() {
   final root = Directory.current.path;
   String read(String rel) => File('$root/$rel').readAsStringSync();
@@ -18,8 +18,6 @@ void main() {
   final explore = read('lib/features/network/presentation/explore_screen.dart');
   final guest =
       read('lib/features/network/presentation/guest_explore_screen.dart');
-  final management =
-      read('lib/features/social/presentation/widgets/management_section.dart');
   final cockpit =
       read('lib/features/clubs/presentation/club_cockpit_screen.dart');
   final nav = read('lib/app/widgets/swan_bottom_nav.dart');
@@ -41,25 +39,42 @@ void main() {
     '/organizasyonlar',
     '/canli-skor',
     '/federasyon-merkezi',
-    // Profil > Yönetim
-    '/kulup-yonetim',
-    '/athletes', '/teams', '/calendar', '/attendance', '/devam-durumu',
-    '/announcements', '/performance-analytics', '/home-command',
-    '/sezon-acilisi', '/veli-izinleri', '/gelisim-raporu', '/saha-islemlerim',
-    '/finans', '/gider-ekle', '/medical-center', '/facilities',
-    '/onay-paneli', '/haber-kaynaklari', '/federasyon-yetkili',
+    // Kişisel hesap ve sporcu/veli öz-servisi
+    '/veli-izinleri', '/gelisim-raporu',
     '/bagis', '/basvurular', '/veli-bagla', '/rehber', '/settings',
     // Profil kısayolları
     '/aidatlarim', '/documents', '/dogrulama', '/antrenmanlarim',
+  ];
+
+  const proManagementRoutes = [
+    '/kulup-yonetim',
+    '/athletes',
+    '/teams',
+    '/calendar',
+    '/attendance',
+    '/devam-durumu',
+    '/announcements',
+    '/performance-analytics',
+    '/home-command',
+    '/sezon-acilisi',
+    '/saha-islemlerim',
+    '/finans',
+    '/gider-ekle',
+    '/medical-center',
+    '/facilities',
+    '/onay-paneli',
+    '/haber-kaynaklari',
+    '/federasyon-yetkili',
     '/hakem/gorevler',
-    '/kulup/malzeme-zimmet', '/kulup/saglik-takibi', '/kulup/kadro-planlama',
-    // Antrenman oturumu (0071-0073). '/antrenman-sonuc' burada YOK:
-    // oturum ekranindan acilan bir alt sayfa, girisi kendi baglaminda.
-    '/antrenman-oturumu', '/antrenman-sablonlari',
+    '/kulup/malzeme-zimmet',
+    '/kulup/saglik-takibi',
+    '/kulup/kadro-planlama',
+    '/antrenman-oturumu',
+    '/antrenman-sablonlari',
   ];
 
   group('rota bütünlüğü', () {
-    test('profil menüsü rol ve özellik kapılarını birlikte uygular', () {
+    test('profil menüsü kişisel sporcu ve veli kapsamını korur', () {
       expect(profileMenu.contains('access.isParent &&'), isTrue);
       expect(
         profileMenu.contains(
@@ -67,15 +82,26 @@ void main() {
         ),
         isTrue,
       );
-      expect(profileMenu.contains('access.isReferee &&'), isTrue);
-      expect(
-        profileMenu.contains(
-          'featureEnabledProvider(FeatureFlags.refereeCockpit)',
-        ),
-        isTrue,
-      );
-      expect(profileMenu.contains('if (isStaff)'), isTrue);
-      expect(profileMenu.contains("open('/kulup-yonetim')"), isTrue);
+      for (final route in [
+        '/aidatlarim',
+        '/documents',
+        '/antrenmanlarim',
+        '/gelisim-raporu',
+        '/veli-izinleri',
+      ]) {
+        expect(profileMenu.contains("'$route'"), isTrue);
+      }
+    });
+
+    test('profesyonel yönetim girişleri sosyal menülerde görünmez', () {
+      final socialEntryPoints = nav + createSheet + profile + profileMenu;
+      for (final route in proManagementRoutes) {
+        expect(
+          socialEntryPoints.contains("'$route'"),
+          isFalse,
+          reason: '$route yalnız SwanSport Pro çalışma alanında görünmeli',
+        );
+      }
     });
 
     test('kulüp operasyonları tek kokpit girişinin arkasında kalır', () {
@@ -145,7 +171,7 @@ void main() {
     test('kaldırılan prototip menülerinin eski bağlantıları korunur', () {
       for (final route in ['/reports', '/configuration']) {
         expect(routes.contains("'$route'"), isTrue);
-        expect(management.contains("'$route'"), isFalse);
+        expect(profileMenu.contains("'$route'"), isFalse);
       }
     });
     test('erişilebilir sayılan her rota tanımlı', () {
@@ -158,16 +184,21 @@ void main() {
       );
     });
 
+    test('eski profesyonel deep link rotaları geçiş döneminde kayıtlı', () {
+      for (final route in proManagementRoutes) {
+        expect(
+          routes.contains("'$route'"),
+          isTrue,
+          reason:
+              '$route eski bildirim/deep link uyumluluğu için kayıtlı kalmalı',
+        );
+      }
+    });
+
     test('her rotanın bir giriş noktası var', () {
       // Menü silindi; giriş noktaları artık bu dosyalar.
-      final entryPoints = explore +
-          management +
-          cockpit +
-          nav +
-          createSheet +
-          profile +
-          profileMenu +
-          guest;
+      final entryPoints =
+          explore + nav + createSheet + profile + profileMenu + guest;
       final orphans =
           reachable.where((r) => !entryPoints.contains("'$r'")).toList();
 

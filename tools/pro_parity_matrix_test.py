@@ -1,5 +1,4 @@
 from pathlib import Path
-import re
 import unittest
 
 
@@ -15,6 +14,26 @@ MANAGEMENT_SECTION = (
     / "presentation"
     / "widgets"
     / "management_section.dart"
+)
+SOCIAL_ENTRY_POINTS = (
+    ROOT / "apps" / "swansport_app" / "lib" / "app" / "widgets" / "create_sheet.dart",
+    ROOT
+    / "apps"
+    / "swansport_app"
+    / "lib"
+    / "features"
+    / "social"
+    / "presentation"
+    / "profile_screen.dart",
+    ROOT
+    / "apps"
+    / "swansport_app"
+    / "lib"
+    / "features"
+    / "social"
+    / "presentation"
+    / "widgets"
+    / "swan_profile_menu_sheet.dart",
 )
 
 
@@ -48,14 +67,23 @@ class ProParityMatrixTest(unittest.TestCase):
         self.assertNotIn("| Kısmi", text)
         self.assertNotIn("| Eksik", text)
 
-    def test_social_management_entry_routes_have_evidence(self):
+    def test_social_management_entry_points_are_removed_after_parity(self):
         text = MATRIX.read_text(encoding="utf-8")
-        source = MANAGEMENT_SECTION.read_text(encoding="utf-8")
-        routes = sorted(set(re.findall(r"'(/[^']+)'", source)))
-        self.assertTrue(routes)
+        self.assertFalse(MANAGEMENT_SECTION.exists())
+        source = "\n".join(path.read_text(encoding="utf-8") for path in SOCIAL_ENTRY_POINTS)
+        routes = (
+            "/kulup-yonetim",
+            "/calendar",
+            "/announcements",
+            "/finans",
+            "/hakem/gorevler",
+            "/saha-islemlerim",
+            "/onay-paneli",
+        )
         for route in routes:
             with self.subTest(route=route):
                 self.assertIn(f"`{route}`", text)
+                self.assertNotIn(f"'{route}'", source)
 
     def test_legacy_management_routes_have_evidence(self):
         text = MATRIX.read_text(encoding="utf-8")

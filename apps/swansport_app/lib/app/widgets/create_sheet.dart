@@ -36,22 +36,6 @@ class _CreateSheet extends ConsumerWidget {
         badge: 'Yeni',
         kind: _CreateKind.post,
       ),
-      if (access.canPublishClubPosts)
-        const _CreateItem(
-          icon: Icons.campaign_rounded,
-          title: 'Kulüp Duyurusu',
-          subtitle: 'Roster, müsabaka veya resmi bülten yayınlayın',
-          badge: 'Yetkili',
-          isStaffBadge: true,
-          route: '/announcements',
-        ),
-      if (access.canPublishClubPosts)
-        const _CreateItem(
-          icon: Icons.event_rounded,
-          title: 'Etkinlik & Antrenman',
-          subtitle: 'Takım için takvimde yeni bir oturum planlayın',
-          route: '/calendar',
-        ),
       if (access.hasVerificationTier('location'))
         const _CreateItem(
           icon: Icons.handshake_rounded,
@@ -106,7 +90,7 @@ class _CreateSheet extends ConsumerWidget {
                           Text('Oluştur ve Paylaş', style: SwanType.h2(c.ink)),
                           const SizedBox(height: 2),
                           Text(
-                            'Kulübünüz ve takipçileriniz için yeni içerik başlatın.',
+                            'Takipçilerin için yeni bir paylaşım başlat.',
                             style: SwanType.caption(c.inkMuted),
                           ),
                         ],
@@ -218,25 +202,16 @@ class _CreateSheet extends ConsumerWidget {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 7, vertical: 2),
                               decoration: BoxDecoration(
-                                color: item.isStaffBadge
-                                    ? c.accentFill
-                                    : c.accent.withValues(alpha: .15),
+                                color: c.accent.withValues(alpha: .15),
                                 borderRadius: BorderRadius.circular(999),
                               ),
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  if (item.isStaffBadge) ...[
-                                    const Icon(Icons.verified_user_rounded,
-                                        size: 10, color: Colors.white),
-                                    const SizedBox(width: 2),
-                                  ],
                                   Text(
                                     item.badge!,
                                     style: SwanType.caption(
-                                      item.isStaffBadge
-                                          ? Colors.white
-                                          : c.accent,
+                                      c.accent,
                                       w: FontWeight.w800,
                                     ),
                                   ),
@@ -274,7 +249,6 @@ class _CreateItem {
     required this.title,
     required this.subtitle,
     this.badge,
-    this.isStaffBadge = false,
     this.route,
     this.kind = _CreateKind.route,
   });
@@ -283,7 +257,6 @@ class _CreateItem {
   final String title;
   final String subtitle;
   final String? badge;
-  final bool isStaffBadge;
   final String? route;
   final _CreateKind kind;
 }
