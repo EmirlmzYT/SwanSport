@@ -88,8 +88,12 @@ void main() {
     await tester.runAsync(() => GoogleFonts.pendingFonts());
     await tester.pumpAndSettle();
     final layoutError = tester.takeException();
-    expect(find.text('Duyurular'), findsOneWidget);
-    expect(find.text('Sporcular ve antrenörler'), findsOneWidget);
+    expect(find.text('Bugün ne keşfetmek istersin?'), findsOneWidget);
+    expect(find.text('Kulüp ve kişiler'), findsOneWidget);
+    expect(find.text('Spor yap'), findsOneWidget);
+    expect(find.text('Spor gündemi'), findsOneWidget);
+    expect(find.text('Tüm keşif araçları'), findsOneWidget);
+    expect(find.text('İhtiyacını bul'), findsNothing);
     expect(find.text('Yeni sezon antrenman programı'), findsOneWidget);
     final render =
         boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary;
@@ -102,6 +106,9 @@ void main() {
       picture.dispose();
     });
     expect(layoutError == null || isUnavailableAppLinks(layoutError), isTrue);
+    await tester.tap(find.text('Tüm keşif araçları'));
+    await tester.pumpAndSettle();
+    expect(find.text('Daha az göster'), findsOneWidget);
     await tester.drag(find.byType(ListView).first, const Offset(0, -650));
     await tester.pumpAndSettle();
     final postScrollError = tester.takeException();
