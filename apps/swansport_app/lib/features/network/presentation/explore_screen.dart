@@ -27,6 +27,7 @@ class ExploreScreen extends ConsumerStatefulWidget {
 
 class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   bool _showAllTools = false;
+  final _allToolsKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -101,9 +102,21 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                       const SizedBox(height: SwanSpace.sm),
                       TextButton.icon(
                         key: const Key('explore-all-tools-toggle'),
-                        onPressed: () => setState(
-                          () => _showAllTools = !_showAllTools,
-                        ),
+                        onPressed: () {
+                          setState(() => _showAllTools = !_showAllTools);
+                          if (!_showAllTools) return;
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            final target = _allToolsKey.currentContext;
+                            if (target != null && mounted) {
+                              Scrollable.ensureVisible(
+                                target,
+                                duration: const Duration(milliseconds: 350),
+                                curve: Curves.easeOutCubic,
+                                alignment: 0.08,
+                              );
+                            }
+                          });
+                        },
                         icon: Icon(
                           _showAllTools
                               ? Icons.expand_less_rounded
@@ -184,7 +197,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
                 ),
 
                 if (_showAllTools) ...[
-                  const SizedBox(height: SwanSpace.lg),
+                  SizedBox(key: _allToolsKey, height: SwanSpace.lg),
 
                   // Ayrıntılı keşif kataloğu isteğe bağlı açılır.
                   StitchSectionTitle(
