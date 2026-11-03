@@ -28,23 +28,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   String _query = '';
   int _searchFilter = 0; // 0 hepsi, 1 kulüp, 2 antrenör, 3 sporcu
-  int _selectedExploreCategory = 0;
   final Set<String> _followingIds = <String>{};
 
   List<SuggestionRow> _results = const [];
   bool _loading = false;
   String? _error;
-
-  static const _exploreCategories = [
-    ('#Tümü', Icons.bolt_rounded),
-    ('#Kuvvet', Icons.fitness_center_rounded),
-    ('#Koşu', Icons.directions_run_rounded),
-    ('#Calisthenics', Icons.sports_gymnastics_rounded),
-    ('#HIIT', Icons.timer_outlined),
-    ('#Beslenme', Icons.restaurant_rounded),
-    ('#Yoga', Icons.self_improvement_rounded),
-    ('#Crossfit', Icons.speed_rounded),
-  ];
 
   @override
   void initState() {
@@ -205,7 +193,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                                       SwanType.bodySm(ink, w: FontWeight.w600),
                                   decoration: InputDecoration(
                                     hintText:
-                                        'Sporcu, hareket, antrenman ara...',
+                                        'Kulüp, antrenör veya sporcu ara...',
                                     hintStyle:
                                         SwanType.bodySm(context.swan.inkMuted),
                                     border: InputBorder.none,
@@ -238,75 +226,16 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   ),
                 ),
 
-                // Horizontal Filter Badges (Stitch Screen 25)
-                SizedBox(
-                  height: 40,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: _exploreCategories.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 8),
-                    itemBuilder: (_, i) {
-                      final cat = _exploreCategories[i];
-                      final on = _selectedExploreCategory == i;
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() => _selectedExploreCategory = i);
-                          if (i > 0 && !hasQuery) {
-                            _ctrl.text = cat.$1.replaceAll('#', '');
-                            _run(_ctrl.text);
-                          } else if (i == 0 && !hasQuery) {
-                            _ctrl.clear();
-                            _run('');
-                          }
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 14, vertical: 8),
-                          decoration: BoxDecoration(
-                            color: on ? context.swan.accentFill : surfContainer,
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: on
-                                ? [
-                                    BoxShadow(
-                                      color: context.swan.accent
-                                          .withValues(alpha: 0.35),
-                                      blurRadius: 12,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ]
-                                : null,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                cat.$2,
-                                size: 15,
-                                color: on
-                                    ? context.swan.onAccent
-                                    : context.swan.inkMuted,
-                              ),
-                              const SizedBox(width: 6),
-                              Flexible(
-                                  child: Text(
-                                cat.$1,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: SwanType.caption(
-                                    on ? context.swan.onAccent : ink,
-                                    w: FontWeight.w700),
-                              )),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 8),
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Kulüpler, antrenörler ve sporcular',
+                      style: SwanType.caption(context.swan.inkMuted),
+                    ),
                   ),
                 ),
-
-                const SizedBox(height: 8),
 
                 // Body: Either Live Search Results or Stitch Explore Bento Grid
                 Expanded(
@@ -321,13 +250,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                           ink: ink,
                           line: line,
                         )
-                      : _buildRealExploreFeed(
-                          context: context,
-                          surfContainer: surfContainer,
-                          surfHigh: surfHigh,
-                          ink: ink,
-                          line: line,
-                        ),
+                      : _buildSearchPrompt(context, ink),
                 ),
               ],
             ),
@@ -464,257 +387,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  /// Real explore feed connected to real providers
-  Widget _buildRealExploreFeed({
-    required BuildContext context,
-    required Color surfContainer,
-    required Color surfHigh,
-    required Color ink,
-    required Color line,
-  }) {
-    final suggestions = ref.watch(suggestionsProvider).valueOrNull ?? const [];
-    final clubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
-
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 8, 16, SwanSpace.xl * 5),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 1. Önerilen Sporcular & Antrenörler
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildSearchPrompt(BuildContext context, Color ink) => Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                  child: Text(
-                'Önerilen Sporcular & Antrenörler',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
-              )),
-              Flexible(
-                  child: Text(
-                '${suggestions.length} Öneri',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style:
-                    SwanType.caption(context.swan.accent, w: FontWeight.w700),
-              )),
-            ],
-          ),
-          const SizedBox(height: 12),
-          if (suggestions.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: surfContainer,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: line),
-              ),
-              child: Text(
-                'Şimdilik önerilecek hesap bulunamadı.',
+              Icon(Icons.manage_search_rounded,
+                  size: 44, color: context.swan.accent),
+              const SizedBox(height: 12),
+              Text('Aramaya başla', style: SwanType.h3(ink)),
+              const SizedBox(height: 6),
+              Text(
+                'Kulüp, antrenör veya sporcu adı yaz.',
+                textAlign: TextAlign.center,
                 style: SwanType.bodySm(context.swan.inkMuted),
               ),
-            )
-          else
-            for (final s in suggestions.take(5))
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: surfContainer,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: line),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: surfHigh,
-                        shape: BoxShape.circle,
-                      ),
-                      child: ClipOval(
-                        child: s.avatarUrl != null && s.avatarUrl!.isNotEmpty
-                            ? Image.network(
-                                s.avatarUrl!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Center(
-                                  child: Text(
-                                    s.initials,
-                                    style: SwanType.bodySm(context.swan.accent,
-                                        w: FontWeight.w800),
-                                  ),
-                                ),
-                              )
-                            : Center(
-                                child: Text(
-                                  s.initials,
-                                  style: SwanType.bodySm(context.swan.accent,
-                                      w: FontWeight.w800),
-                                ),
-                              ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Flexible(
-                                  child: Text(
-                                s.name,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: SwanType.bodySm(ink, w: FontWeight.w700),
-                              )),
-                              if (s.kind == 'club') ...[
-                                const SizedBox(width: 4),
-                                Icon(Icons.shield_rounded,
-                                    size: 14, color: context.swan.accent),
-                              ],
-                            ],
-                          ),
-                          if (s.subtitle != null && s.subtitle!.isNotEmpty) ...[
-                            const SizedBox(height: 2),
-                            Text(
-                              s.subtitle!,
-                              style: SwanType.caption(context.swan.inkMuted),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () {
-                        if (s.kind == 'club') {
-                          context.swanPush(AppRoutes.clubs);
-                        } else {
-                          context
-                              .swanPush(AppRoutes.profile, extra: {'id': s.id});
-                        }
-                      },
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 12, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: context.swan.accentFill,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          'Görüntüle',
-                          style: SwanType.caption(context.swan.onAccent,
-                              w: FontWeight.w800),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-          const SizedBox(height: 20),
-
-          // 2. Aktif Kulüplerim
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                  child: Text(
-                'Kulüp Ağlarım',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.h3(ink).copyWith(fontWeight: FontWeight.w700),
-              )),
-              GestureDetector(
-                onTap: () => context.swanPush(AppRoutes.clubs),
-                child: Text(
-                  'Tüm Kulüpler',
-                  style:
-                      SwanType.caption(context.swan.accent, w: FontWeight.w700),
-                ),
-              ),
             ],
           ),
-          const SizedBox(height: 12),
-          if (clubs.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: surfContainer,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: line),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.shield_outlined,
-                      color: context.swan.accent, size: 28),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Henüz bir kulübe katılmadınız',
-                          style: SwanType.bodySm(ink, w: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'SwanSport ağındaki doğrulanmış kulüpleri inceleyin.',
-                          style: SwanType.caption(context.swan.inkMuted),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else
-            for (final c in clubs)
-              Container(
-                margin: const EdgeInsets.only(bottom: 8),
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: surfContainer,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: line),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        color: context.swan.accent.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Icon(Icons.shield_rounded,
-                            color: context.swan.accent, size: 22),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(c.name,
-                              style: SwanType.bodySm(ink, w: FontWeight.w700)),
-                          Text(c.role ?? 'Üye',
-                              style: SwanType.caption(context.swan.inkMuted)),
-                        ],
-                      ),
-                    ),
-                    Icon(Icons.chevron_right_rounded,
-                        color: context.swan.inkMuted),
-                  ],
-                ),
-              ),
-        ],
-      ),
-    );
-  }
+        ),
+      );
 
   Widget _buildResultCard(SwanPalette c, SuggestionRow r) {
     if (r.isClub) {
