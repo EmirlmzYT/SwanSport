@@ -11,6 +11,10 @@ import 'package:swansport_app/app/theme/app_theme.dart';
 import 'package:swansport_app/features/network/presentation/explore_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+bool isUnavailableAppLinks(Object? error) =>
+    error is MissingPluginException &&
+    error.message?.contains('com.llfbandit.app_links/events') == true;
+
 void main() {
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -49,6 +53,11 @@ void main() {
     expect(find.text('Federasyon'), findsOneWidget);
     expect(find.text('Canlı skor'), findsOneWidget);
     expect(find.text('Pazaryeri'), findsOneWidget);
+    final platformError = tester.takeException();
+    expect(
+      platformError == null || isUnavailableAppLinks(platformError),
+      isTrue,
+    );
   });
 
   testWidgets('Keşfet geniş web görünümünde taşma yapmaz', (tester) async {
