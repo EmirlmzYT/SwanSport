@@ -56,6 +56,11 @@ void main() {
     expect(find.text('Spor bilgileri'), findsOneWidget);
     expect(find.text('Antrenörlük ve belgeler'), findsOneWidget);
     expect(find.text('Açık Su Yüzme · 1. Kademe Antrenör'), findsOneWidget);
+    final latePlatformError = tester.takeException();
+    expect(
+      latePlatformError == null || _isUnavailableAppLinks(latePlatformError),
+      isTrue,
+    );
   });
 
   testWidgets('ziyaretçi profili takip mesaj ve güvenlik seçeneklerini korur',
