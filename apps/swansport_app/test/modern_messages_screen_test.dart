@@ -87,15 +87,13 @@ void main() {
     await render(tester);
 
     expect(find.text('Mesajlar'), findsOneWidget);
-    expect(find.byTooltip('Yeni Grup veya Kişi'), findsOneWidget);
     expect(find.byTooltip('Yeni Sohbet'), findsOneWidget);
 
     expect(find.text('Kişi, grup veya kulüp ara...'), findsOneWidget);
 
     expect(find.text('Tümü'), findsOneWidget);
-    expect(find.text('Gruplar'), findsOneWidget);
-    expect(find.text('Kulüpler'), findsOneWidget);
-    expect(find.text('Antrenörler'), findsOneWidget);
+    expect(find.text('Kişiler'), findsOneWidget);
+    expect(find.text('Topluluklar'), findsOneWidget);
 
     // Gerçek konuşmalar ve gruplar listelenir
     expect(find.text('Başantrenör Ali'), findsOneWidget);
@@ -111,30 +109,22 @@ void main() {
       (tester) async {
     await render(tester);
 
-    // Gruplar filtresine tıkla
-    await tester.tap(find.text('Gruplar'));
+    // Topluluklar filtresine tıkla
+    await tester.tap(find.text('Topluluklar'));
     await tester.pumpAndSettle();
 
     expect(find.text('Yüzme Takımı Grubu'), findsOneWidget);
     expect(find.text('Başantrenör Ali'), findsNothing);
-    expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsNothing);
-
-    // Kulüpler/Federasyon filtresine tıkla
-    await tester.tap(find.text('Kulüpler'));
-    await tester.pumpAndSettle();
-
     expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsOneWidget);
-    expect(find.text('Yüzme Takımı Grubu'), findsNothing);
-    expect(find.text('Başantrenör Ali'), findsNothing);
 
-    // Antrenörler/Diyalog filtresine tıkla
-    await tester.ensureVisible(find.text('Antrenörler'));
-    await tester.tap(find.text('Antrenörler'));
+    // Kişiler filtresine tıkla
+    await tester.tap(find.text('Kişiler'));
     await tester.pumpAndSettle();
 
     expect(find.text('Başantrenör Ali'), findsOneWidget);
     expect(find.text('Can Yılmaz'), findsOneWidget);
     expect(find.text('Yüzme Takımı Grubu'), findsNothing);
+    expect(find.text('Yüzme Federasyonu Duyuru Kanalı'), findsNothing);
   });
 
   testWidgets('Arama kutusu anlık olarak gerçek sohbetleri filtreler',

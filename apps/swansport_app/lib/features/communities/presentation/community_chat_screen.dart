@@ -27,8 +27,8 @@ class CommunityChatScreen extends ConsumerStatefulWidget {
 class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   final _ctrl = TextEditingController();
   final _scroll = ScrollController();
-  Future<void> _sendQueue = Future.value();
   bool _checkingSend = false;
+  String? _sendError;
   int _messageCount = 0;
 
   @override
@@ -50,30 +50,28 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   }
 
   Future<void> _send() async {
-    if (_checkingSend || _ctrl.text.trim().isEmpty) return;
-    _checkingSend = true;
+    final draft = _ctrl.text;
+    final text = draft.trim();
+    if (_checkingSend || text.isEmpty) return;
+    setState(() {
+      _checkingSend = true;
+      _sendError = null;
+    });
     try {
       if (!await requireSwanAction(context, ref, SwanAction.message) ||
           !mounted) return;
-      final text = _ctrl.text.trim();
-      if (text.isEmpty) return;
-      _ctrl.clear();
-      _sendQueue = _sendQueue.then((_) async {
-        try {
-          await ref
-              .read(communityServiceProvider)
-              .send(widget.communityId, text);
-          if (mounted) ref.invalidate(communityListProvider);
-        } catch (_) {
-          if (!mounted) return;
-          _ctrl.text = _ctrl.text.isEmpty ? text : '$text\n${_ctrl.text}';
-          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Mesaj gönderilemedi. Metin geri getirildi.'),
-          ));
-        }
-      });
+      await ref.read(communityServiceProvider).send(widget.communityId, text);
+      if (!mounted) return;
+      if (_ctrl.text == draft) _ctrl.clear();
+      ref.invalidate(communityListProvider);
+    } catch (_) {
+      if (mounted) {
+        setState(() {
+          _sendError = 'Mesaj gönderilemedi. Metnin korunuyor.';
+        });
+      }
     } finally {
-      _checkingSend = false;
+      if (mounted) setState(() => _checkingSend = false);
     }
   }
 
@@ -84,6 +82,10 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
           duration: const Duration(milliseconds: 220), curve: Curves.easeOut);
     });
   }
+
+  bool get _isNearEnd =>
+      !_scroll.hasClients ||
+      _scroll.position.maxScrollExtent - _scroll.position.pixels < 96;
 
   Future<void> _leave() async {
     final leave = await showDialog<bool>(
@@ -135,6 +137,15 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
     final members =
         ref.watch(communityMembersProvider(widget.communityId)).valueOrNull ??
             const <String, CommunityMember>{};
+    final communities = ref.watch(communityListProvider).valueOrNull;
+    CommunityRow? currentCommunity;
+    for (final community in communities ?? const <CommunityRow>[]) {
+      if (community.id == widget.communityId) {
+        currentCommunity = community;
+        break;
+      }
+    }
+    final canWrite = currentCommunity?.canWrite ?? true;
 
     return SwanScaffold(
       backgroundColor: c.surfaceAlt,
@@ -160,7 +171,9 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                         final byTime = a.createdAt.compareTo(b.createdAt);
                         return byTime != 0 ? byTime : a.id.compareTo(b.id);
                       });
-                    if (ordered.length > _messageCount) _scrollToEnd();
+                    final hasNewMessages = ordered.length > _messageCount;
+                    final shouldFollow = _messageCount == 0 || _isNearEnd;
+                    if (hasNewMessages && shouldFollow) _scrollToEnd();
                     _messageCount = ordered.length;
                     if (ordered.isEmpty) return _empty(c);
                     return ListView.builder(
@@ -185,7 +198,7 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
                   },
                 ),
               ),
-              _composer(c),
+              _composer(c, canWrite: canWrite),
             ]),
           ),
         ),
@@ -252,90 +265,150 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
   Widget _bubble(
       SwanPalette c, CommunityMessageRow message, CommunityMember? sender,
       {required bool compact}) {
-    return Padding(
-      padding: EdgeInsets.only(top: compact ? 2 : 8),
-      child: Row(
-        mainAxisAlignment:
-            message.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          if (!message.isMine) ...[
-            SizedBox(
-                width: 30,
-                child: compact
-                    ? null
-                    : SocialAvatar(
-                        initials: sender?.initials ?? '?',
-                        size: 28,
-                        gradientIndex: message.senderId.hashCode.abs() % 4)),
-            const SizedBox(width: 7),
+    final senderName = sender?.name ?? 'Üye';
+    return Semantics(
+      label: message.isMine
+          ? 'Gönderilen mesaj, ${message.body}'
+          : '$senderName tarafından gönderilen mesaj, ${message.body}',
+      child: Padding(
+        padding: EdgeInsets.only(top: compact ? 2 : 8),
+        child: Row(
+          mainAxisAlignment:
+              message.isMine ? MainAxisAlignment.end : MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            if (!message.isMine) ...[
+              SizedBox(
+                  width: 30,
+                  child: compact
+                      ? null
+                      : SocialAvatar(
+                          initials: sender?.initials ?? '?',
+                          size: 28,
+                          gradientIndex: message.senderId.hashCode.abs() % 4)),
+              const SizedBox(width: 7),
+            ],
+            Flexible(child: LayoutBuilder(builder: (context, constraints) {
+              return Container(
+                constraints: BoxConstraints(
+                  maxWidth:
+                      (constraints.maxWidth * .86).clamp(220, 420).toDouble(),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
+                decoration: BoxDecoration(
+                  color: message.isMine ? c.accentFill : c.surface,
+                  border: message.isMine ? null : Border.all(color: c.line),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!message.isMine && !compact) ...[
+                        Text(senderName,
+                            style:
+                                SwanType.caption(c.accent, w: FontWeight.w800)),
+                        const SizedBox(height: 3),
+                      ],
+                      Text(message.body,
+                          style: SwanType.bodySm(
+                                  message.isMine ? c.onAccent : c.ink)
+                              .copyWith(height: 1.35)),
+                      const SizedBox(height: 3),
+                      Text(
+                          '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}',
+                          style: SwanType.caption(message.isMine
+                              ? c.onAccent.withValues(alpha: .72)
+                              : c.inkMuted)),
+                    ]),
+              );
+            })),
           ],
-          Flexible(
-              child: Container(
-            constraints: const BoxConstraints(maxWidth: 320),
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
-            decoration: BoxDecoration(
-              color: message.isMine ? c.accentFill : c.surface,
-              border: message.isMine ? null : Border.all(color: c.line),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child:
-                Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              if (!message.isMine && !compact) ...[
-                Text(sender?.name ?? 'Üye',
-                    style: SwanType.caption(c.accent, w: FontWeight.w800)),
-                const SizedBox(height: 3),
-              ],
-              Text(message.body,
-                  style: SwanType.bodySm(message.isMine ? c.onAccent : c.ink)
-                      .copyWith(height: 1.35)),
-              const SizedBox(height: 3),
-              Text(
-                  '${message.createdAt.hour.toString().padLeft(2, '0')}:${message.createdAt.minute.toString().padLeft(2, '0')}',
-                  style: SwanType.caption(message.isMine
-                      ? c.onAccent.withValues(alpha: .72)
-                      : c.inkMuted)),
-            ]),
-          )),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _composer(SwanPalette c) => Container(
+  Widget _composer(SwanPalette c, {required bool canWrite}) => Container(
         padding: const EdgeInsets.fromLTRB(14, 8, 14, 12),
         decoration: BoxDecoration(
             color: c.surface, border: Border(top: BorderSide(color: c.line))),
-        child: Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
-          Expanded(
-              child: TextField(
-            controller: _ctrl,
-            minLines: 1,
-            maxLines: 5,
-            textCapitalization: TextCapitalization.sentences,
-            textInputAction: TextInputAction.newline,
-            decoration: InputDecoration(
-              hintText: 'Mesaj yaz…',
-              filled: true,
-              fillColor: c.surfaceAlt,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(24),
-                  borderSide: BorderSide.none),
-            ),
-          )),
-          const SizedBox(width: 6),
-          ValueListenableBuilder<TextEditingValue>(
-            valueListenable: _ctrl,
-            builder: (context, value, _) => IconButton.filled(
-              tooltip: 'Gönder',
-              onPressed: value.text.trim().isEmpty ? null : _send,
-              icon: const Icon(Icons.send_rounded),
-              style: IconButton.styleFrom(
-                  backgroundColor: c.accentFill, foregroundColor: c.onAccent),
-            ),
-          ),
-        ]),
+        child: canWrite
+            ? Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (_sendError != null) ...[
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
+                      child: Text(
+                        _sendError!,
+                        style: SwanType.caption(c.danger, w: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                  Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                    Expanded(
+                        child: TextField(
+                      controller: _ctrl,
+                      readOnly: _checkingSend,
+                      minLines: 1,
+                      maxLines: 5,
+                      keyboardType: TextInputType.multiline,
+                      textCapitalization: TextCapitalization.sentences,
+                      textInputAction: TextInputAction.newline,
+                      decoration: InputDecoration(
+                        hintText: 'Mesaj yaz…',
+                        filled: true,
+                        fillColor: c.surfaceAlt,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 12),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(24),
+                            borderSide: BorderSide.none),
+                      ),
+                    )),
+                    const SizedBox(width: 6),
+                    ValueListenableBuilder<TextEditingValue>(
+                      valueListenable: _ctrl,
+                      builder: (context, value, _) => IconButton.filled(
+                        tooltip: _checkingSend ? 'Gönderiliyor' : 'Gönder',
+                        onPressed: _checkingSend || value.text.trim().isEmpty
+                            ? null
+                            : _send,
+                        icon: _checkingSend
+                            ? const SizedBox.square(
+                                dimension: 18,
+                                child:
+                                    CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : const Icon(Icons.send_rounded),
+                        style: IconButton.styleFrom(
+                          backgroundColor: c.accentFill,
+                          foregroundColor: c.onAccent,
+                          disabledBackgroundColor: c.surfaceAlt,
+                          disabledForegroundColor: c.inkMuted,
+                        ),
+                      ),
+                    ),
+                  ]),
+                ],
+              )
+            : Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Row(
+                  children: [
+                    Icon(Icons.lock_outline_rounded,
+                        size: 18, color: c.inkMuted),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Bu toplulukta mesaj gönderme yetkiniz yok.',
+                        style: SwanType.bodySm(c.inkMuted),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
       );
 }
