@@ -78,7 +78,7 @@ void main() {
     expect(find.text('SwanSport Bakımda'), findsNothing);
     await tester.tap(find.byTooltip('Akış seçimi'));
     await tester.pumpAndSettle();
-    expect(find.text('Tümü (Keşfet)'), findsOneWidget);
+    expect(find.text('Genel Akış'), findsOneWidget);
     expect(find.text('Takip Ettiklerim'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });

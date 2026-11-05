@@ -84,7 +84,7 @@ void main() {
     expect(selections, [true]);
     await tester.tap(find.byTooltip('Akış seçimi'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Tümü (Keşfet)'));
+    await tester.tap(find.text('Genel Akış'));
     await tester.pumpAndSettle();
     expect(selections, [true, false]);
   });

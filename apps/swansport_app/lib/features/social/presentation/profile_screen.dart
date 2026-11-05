@@ -23,6 +23,7 @@ import 'edit_profile_sheet.dart';
 import 'post_composer_sheet.dart';
 import 'widgets/post_card.dart';
 import 'widgets/profile_sections.dart';
+import 'widgets/report_sheet.dart';
 import 'widgets/swan_profile_menu_sheet.dart';
 
 /// Detaylı profil sayfası — Stitch Calm Athletic Modernism.
@@ -42,6 +43,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   int _selectedTab = 0; // Gönderiler / Hakkında
   bool _isGridView = false;
   bool _changingAvatar = false;
+  bool _bioExpanded = false;
 
   Future<void> _changeAvatar(SocialProfile profile) async {
     if (_changingAvatar) return;
@@ -107,8 +109,84 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               tooltip: 'Profil menüsü',
               onPressed: () => showSwanProfileMenu(context, p),
             ),
+          if (!p.isMe && !p.isClub)
+            SwanHeaderIconButton(
+              icon: Icons.more_horiz_rounded,
+              tooltip: 'Profil seçenekleri',
+              onPressed: () => _showVisitorOptions(p),
+            ),
         ],
       );
+
+  Future<void> _showVisitorOptions(SocialProfile profile) async {
+    final action = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              minTileHeight: 56,
+              leading: const Icon(Icons.flag_outlined),
+              title: const Text('Profili şikâyet et'),
+              onTap: () => Navigator.pop(sheetContext, 'report'),
+            ),
+            ListTile(
+              minTileHeight: 56,
+              leading: Icon(
+                Icons.block_rounded,
+                color: sheetContext.swan.danger,
+              ),
+              title: const Text('Kullanıcıyı engelle'),
+              onTap: () => Navigator.pop(sheetContext, 'block'),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (!mounted || action == null) return;
+    if (action == 'report') {
+      await showReportSheet(
+        context,
+        targetType: 'profile',
+        targetId: profile.id,
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Kullanıcıyı engelle'),
+        content: Text(
+          '${profile.name} artık gönderilerini göremez ve sen de bu kullanıcının içeriklerini görmezsin.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('Engelle'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    try {
+      await ref.read(moderationServiceProvider).block(profile.id);
+      ref.invalidate(hiddenProfilesProvider);
+      if (mounted) Navigator.maybePop(context);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Kullanıcı engellenemedi. Tekrar dene.'),
+          ),
+        );
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -147,17 +225,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       extendBody: true,
       scrollUnderHeader: true,
       backgroundColor: bg,
-      appBar: async.valueOrNull == null
-          ? null
-          : PreferredSize(
-              preferredSize: const Size.fromHeight(SwanChrome.headerHeight),
-              child: _profileTopBar(async.valueOrNull!, ink),
-            ),
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(SwanChrome.headerHeight),
+        child: async.valueOrNull == null
+            ? SwanFloatingHeader(
+                leading: Navigator.canPop(context)
+                    ? SwanHeaderIconButton(
+                        icon: Icons.arrow_back_ios_new_rounded,
+                        tooltip: 'Geri dön',
+                        onPressed: () => Navigator.maybePop(context),
+                      )
+                    : null,
+                title: Text('Profil', style: SwanType.h3(ink)),
+              )
+            : _profileTopBar(async.valueOrNull!, ink),
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 620),
+            constraints: const BoxConstraints(maxWidth: 960),
             child: async.when(
               loading: () => premiumLoading(),
               error: (e, _) => premiumError(
@@ -267,8 +354,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                     ),
                                             ),
                                           ),
-                                          if (p.isVerified ||
-                                              (p.isMe && !p.isClub))
+                                          if (p.isMe && !p.isClub)
                                             Positioned(
                                               bottom: -2,
                                               right: -2,
@@ -279,7 +365,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                   color: context.swan.accent,
                                                   shape: BoxShape.circle,
                                                   border: Border.all(
-                                                      color: bg, width: 2),
+                                                    color: bg,
+                                                    width: 2,
+                                                  ),
                                                 ),
                                                 child: _changingAvatar
                                                     ? const Padding(
@@ -291,11 +379,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                                         ),
                                                       )
                                                     : Icon(
-                                                        p.isMe && !p.isClub
-                                                            ? Icons
-                                                                .photo_camera_rounded
-                                                            : Icons
-                                                                .check_rounded,
+                                                        Icons
+                                                            .photo_camera_rounded,
                                                         size: 14,
                                                         color: context
                                                             .swan.onAccent,
@@ -315,12 +400,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                         horizontal: 10,
                                         vertical: 12,
                                       ),
-                                      decoration: BoxDecoration(
-                                        color: surfContainer.withValues(
-                                            alpha: 0.85),
-                                        borderRadius: BorderRadius.circular(16),
-                                        border: Border.all(color: line),
-                                      ),
+                                      decoration: const BoxDecoration(),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceAround,
@@ -393,14 +473,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                       ).copyWith(fontWeight: FontWeight.w800),
                                     ),
                                   ),
-                                  if (p.isVerified) ...[
-                                    const SizedBox(width: 6),
-                                    Icon(
-                                      Icons.verified_rounded,
-                                      size: 19,
-                                      color: context.swan.accent,
-                                    ),
-                                  ],
                                 ],
                               ),
                               const SizedBox(height: 2),
@@ -413,8 +485,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                               if ((p.roleLabel != null &&
                                       p.roleLabel!.isNotEmpty) ||
                                   (p.primarySport != null &&
-                                      p.primarySport!.trim().isNotEmpty) ||
-                                  p.credentials.isNotEmpty) ...[
+                                      p.primarySport!.trim().isNotEmpty)) ...[
                                 Wrap(
                                   spacing: 6,
                                   runSpacing: 6,
@@ -425,83 +496,65 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                     if (p.primarySport != null &&
                                         p.primarySport!.trim().isNotEmpty)
                                       _sportBadge(
-                                          context, p.primarySport!, p.position),
-                                    ...p.credentials.map((cred) =>
-                                        _credentialBadge(context, cred)),
+                                        context,
+                                        p.primarySport!,
+                                        p.position,
+                                      ),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
                               ],
-                              if (p.heightCm != null ||
-                                  p.weightKg != null ||
-                                  (p.dominantSide != null &&
-                                      p.dominantSide!.trim().isNotEmpty)) ...[
-                                const SizedBox(height: 4),
-                                Row(
-                                  children: [
-                                    if (p.heightCm != null) ...[
-                                      Text(
-                                        '${p.heightCm} cm',
-                                        style: SwanType.caption(
-                                          context.swan.ink,
-                                          w: FontWeight.w600,
-                                        ),
-                                      ),
-                                      if (p.weightKg != null ||
-                                          (p.dominantSide != null &&
-                                              p.dominantSide!
-                                                  .trim()
-                                                  .isNotEmpty))
-                                        Text(
-                                          '  ·  ',
-                                          style: SwanType.caption(
-                                              context.swan.inkMuted),
-                                        ),
-                                    ],
-                                    if (p.weightKg != null) ...[
-                                      Text(
-                                        '${p.weightKg} kg',
-                                        style: SwanType.caption(
-                                          context.swan.ink,
-                                          w: FontWeight.w600,
-                                        ),
-                                      ),
-                                      if (p.dominantSide != null &&
-                                          p.dominantSide!.trim().isNotEmpty)
-                                        Text(
-                                          '  ·  ',
-                                          style: SwanType.caption(
-                                              context.swan.inkMuted),
-                                        ),
-                                    ],
-                                    if (p.dominantSide != null &&
-                                        p.dominantSide!.trim().isNotEmpty)
-                                      Text(
-                                        '${p.dominantSide!} Ayak/El',
-                                        style: SwanType.caption(
-                                          context.swan.ink,
-                                          w: FontWeight.w600,
-                                        ),
-                                      ),
-                                  ],
-                                ),
+                              if (_coachCredentials(p).isNotEmpty) ...[
+                                _credentialSummaryButton(context, p),
+                                const SizedBox(height: SwanSpace.xs),
                               ],
-                              const SizedBox(height: 6),
-                              Text(
-                                p.bio != null && p.bio!.trim().isNotEmpty
-                                    ? p.bio!
-                                    : 'Henüz bir biyografi eklenmedi.',
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                                style: SwanType.bodySm(context.swan.inkMuted),
-                              ),
+                              if (p.bio != null &&
+                                  p.bio!.trim().isNotEmpty) ...[
+                                const SizedBox(height: SwanSpace.xs),
+                                Text(
+                                  p.bio!,
+                                  maxLines: _bioExpanded ? null : 3,
+                                  overflow: _bioExpanded
+                                      ? TextOverflow.visible
+                                      : TextOverflow.ellipsis,
+                                  style: SwanType.bodySm(context.swan.inkMuted),
+                                ),
+                                if (p.bio!.trim().length > 120)
+                                  TextButton(
+                                    onPressed: () => setState(
+                                      () => _bioExpanded = !_bioExpanded,
+                                    ),
+                                    child: Text(
+                                      _bioExpanded
+                                          ? 'Daha az göster'
+                                          : 'Devamını gör',
+                                    ),
+                                  ),
+                              ],
 
                               if (_hasLinksOrContact(p)) ...[
-                                const SizedBox(height: 10),
-                                _socialAndContactChips(context, p),
+                                const SizedBox(height: SwanSpace.xs),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: TextButton.icon(
+                                    onPressed: () =>
+                                        setState(() => _selectedTab = 1),
+                                    icon: const Icon(Icons.link_rounded),
+                                    label: const Text(
+                                      'İletişim ve bağlantılar',
+                                    ),
+                                    style: TextButton.styleFrom(
+                                      minimumSize: const Size(0, 40),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: SwanSpace.xs,
+                                      ),
+                                      visualDensity: VisualDensity.compact,
+                                    ),
+                                  ),
+                                ),
                               ],
 
-                              const SizedBox(height: 14),
+                              const SizedBox(height: SwanSpace.sm),
 
                               // Profile Action Controls (Stitch Screen 26)
                               _actions(
@@ -527,31 +580,51 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.end,
                                   children: [
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.grid_on_rounded,
-                                        size: 20,
-                                        color: _isGridView
-                                            ? context.swan.accent
-                                            : context.swan.inkMuted,
+                                    Semantics(
+                                      selected: _isGridView,
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.grid_on_rounded,
+                                          size: 20,
+                                        ),
+                                        onPressed: () => setState(
+                                          () => _isGridView = true,
+                                        ),
+                                        tooltip: 'Kare ızgara',
+                                        style: IconButton.styleFrom(
+                                          foregroundColor: _isGridView
+                                              ? context.swan.accent
+                                              : context.swan.inkMuted,
+                                          backgroundColor: _isGridView
+                                              ? context.swan.accent
+                                                  .withValues(alpha: .1)
+                                              : Colors.transparent,
+                                        ),
+                                        visualDensity: VisualDensity.compact,
                                       ),
-                                      onPressed: () =>
-                                          setState(() => _isGridView = true),
-                                      tooltip: 'Kare Izgara',
-                                      visualDensity: VisualDensity.compact,
                                     ),
-                                    IconButton(
-                                      icon: Icon(
-                                        Icons.view_agenda_outlined,
-                                        size: 20,
-                                        color: !_isGridView
-                                            ? context.swan.accent
-                                            : context.swan.inkMuted,
+                                    Semantics(
+                                      selected: !_isGridView,
+                                      child: IconButton(
+                                        icon: const Icon(
+                                          Icons.view_agenda_outlined,
+                                          size: 20,
+                                        ),
+                                        onPressed: () => setState(
+                                          () => _isGridView = false,
+                                        ),
+                                        tooltip: 'Akış görünümü',
+                                        style: IconButton.styleFrom(
+                                          foregroundColor: !_isGridView
+                                              ? context.swan.accent
+                                              : context.swan.inkMuted,
+                                          backgroundColor: !_isGridView
+                                              ? context.swan.accent
+                                                  .withValues(alpha: .1)
+                                              : Colors.transparent,
+                                        ),
+                                        visualDensity: VisualDensity.compact,
                                       ),
-                                      onPressed: () =>
-                                          setState(() => _isGridView = false),
-                                      tooltip: 'Akış Görünümü',
-                                      visualDensity: VisualDensity.compact,
                                     ),
                                   ],
                                 ),
@@ -572,35 +645,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         SliverPadding(
                           padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                           sliver: SliverToBoxAdapter(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Profil bilgileri',
-                                    style: SwanType.h3(ink)),
-                                const SizedBox(height: SwanSpace.sm),
-                                Text(
-                                  p.roleLabel ?? 'Üye',
-                                  style: SwanType.bodySm(context.swan.inkMuted),
-                                ),
-                                if (p.bio != null && p.bio!.trim().isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: SwanSpace.md,
-                                    ),
-                                    child:
-                                        Text(p.bio!, style: SwanType.body(ink)),
-                                  ),
-                                if (!p.isClub) ...[
-                                  AthleteProfileSection(profileId: p.id),
-                                  CoachProfileSection(profileId: p.id),
-                                ] else ...[
-                                  ClubIdentitySection(clubId: p.id),
-                                  ClubCoachesSection(clubId: p.id),
-                                  ClubAchievementsSection(clubId: p.id),
-                                  ClubMembersSection(clubId: p.id),
-                                ],
-                              ],
-                            ),
+                            child: _aboutContent(context, p, ink),
                           ),
                         ),
                       const SliverToBoxAdapter(
@@ -617,6 +662,90 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       bottomNavigationBar: const SwanBottomNav(),
     );
   }
+
+  Widget _aboutContent(BuildContext context, SocialProfile p, Color ink) {
+    final c = context.swan;
+    final hasSportDetails = p.primarySport?.trim().isNotEmpty == true ||
+        p.position?.trim().isNotEmpty == true ||
+        p.heightCm != null ||
+        p.weightKg != null ||
+        p.dominantSide?.trim().isNotEmpty == true;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (p.bio?.trim().isNotEmpty == true) ...[
+          Text(
+            p.isClub ? 'Kulüp hakkında' : 'Tanıtım',
+            style: SwanType.h3(ink),
+          ),
+          const SizedBox(height: SwanSpace.sm),
+          Text(p.bio!, style: SwanType.body(ink)),
+          const SizedBox(height: SwanSpace.xl),
+        ],
+        if (!p.isClub && hasSportDetails) ...[
+          Text('Spor bilgileri', style: SwanType.h3(ink)),
+          const SizedBox(height: SwanSpace.sm),
+          Wrap(
+            spacing: SwanSpace.lg,
+            runSpacing: SwanSpace.sm,
+            children: [
+              if (p.primarySport?.trim().isNotEmpty == true)
+                _aboutFact('Branş', p.primarySport!),
+              if (p.position?.trim().isNotEmpty == true)
+                _aboutFact('Pozisyon', p.position!),
+              if (p.heightCm != null) _aboutFact('Boy', '${p.heightCm} cm'),
+              if (p.weightKg != null) _aboutFact('Kilo', '${p.weightKg} kg'),
+              if (p.dominantSide?.trim().isNotEmpty == true)
+                _aboutFact('Baskın taraf', p.dominantSide!),
+            ],
+          ),
+          const SizedBox(height: SwanSpace.xl),
+        ],
+        if (!p.isClub && _coachCredentials(p).isNotEmpty) ...[
+          Text('Antrenörlük ve belgeler', style: SwanType.h3(ink)),
+          const SizedBox(height: SwanSpace.sm),
+          _CoachCredentialList(credentials: _coachCredentials(p)),
+          const SizedBox(height: SwanSpace.xl),
+        ],
+        if (_hasLinksOrContact(p)) ...[
+          Text('İletişim ve bağlantılar', style: SwanType.h3(ink)),
+          const SizedBox(height: SwanSpace.sm),
+          _socialAndContactChips(context, p),
+          const SizedBox(height: SwanSpace.xl),
+        ],
+        if (!p.isClub) ...[
+          AthleteProfileSection(profileId: p.id),
+          CoachProfileSection(profileId: p.id),
+        ] else ...[
+          ClubIdentitySection(clubId: p.id),
+          ClubCoachesSection(clubId: p.id),
+          ClubAchievementsSection(clubId: p.id),
+          ClubMembersSection(clubId: p.id),
+        ],
+        if (p.bio?.trim().isNotEmpty != true &&
+            !hasSportDetails &&
+            !_hasLinksOrContact(p))
+          Text(
+            p.isMe
+                ? 'Profil bilgilerini düzenleyerek spor kimliğini tamamlayabilirsin.'
+                : 'Bu profil henüz ek bilgi paylaşmadı.',
+            style: SwanType.bodySm(c.inkMuted),
+          ),
+      ],
+    );
+  }
+
+  Widget _aboutFact(String label, String value) => ConstrainedBox(
+        constraints: const BoxConstraints(minWidth: 120),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: SwanType.caption(context.swan.inkMuted)),
+            const SizedBox(height: SwanSpace.xs),
+            Text(value, style: SwanType.bodySm(context.swan.ink)),
+          ],
+        ),
+      );
 
   Widget _roleBadge(BuildContext context, String roleLabel) {
     final c = context.swan;
@@ -655,9 +784,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Icon(icon, size: 13, color: c.accent),
           const SizedBox(width: 4.5),
-          Text(
-            roleLabel,
-            style: SwanType.caption(c.accent, w: FontWeight.w700),
+          Flexible(
+            child: Text(
+              roleLabel,
+              style: SwanType.caption(c.accent, w: FontWeight.w700),
+            ),
           ),
         ],
       ),
@@ -705,37 +836,121 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Icon(icon, size: 13, color: c.inkMuted),
           const SizedBox(width: 4.5),
-          Text(
-            text,
-            style: SwanType.caption(c.ink, w: FontWeight.w600),
+          Flexible(
+            child: Text(
+              text,
+              style: SwanType.caption(c.ink, w: FontWeight.w600),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _credentialBadge(BuildContext context, String cred) {
-    final c = context.swan;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
-      decoration: BoxDecoration(
-        color: c.surfaceAlt,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: c.line.withValues(alpha: 0.5),
-          width: 0.8,
+  List<SocialCredentialSummary> _coachCredentials(SocialProfile profile) {
+    final unique = <String, SocialCredentialSummary>{};
+    for (final credential in profile.credentialDetails) {
+      if (credential.isCoach) unique[credential.id] = credential;
+    }
+    if (unique.isEmpty) {
+      // Eski fixture/projeksiyon uyumluluğu. Canlı profil sorgusu kimlikli
+      // credentialDetails üretir; düz metin yalnızca eski çağıranlar içindir.
+      for (final label in profile.credentials) {
+        if (!label.toLowerCase().contains('antrenör')) continue;
+        unique['legacy:$label'] = SocialCredentialSummary(
+          id: 'legacy:$label',
+          kind: 'coach',
+          sportName: label,
+        );
+      }
+    }
+    return unique.values.toList(growable: false);
+  }
+
+  Widget _credentialSummaryButton(
+    BuildContext context,
+    SocialProfile profile,
+  ) {
+    final credentials = _coachCredentials(profile);
+    final label = credentials.length == 1
+        ? credentials.single.detailLabel
+        : '${credentials.length} antrenörlük belgesi';
+    return Semantics(
+      button: true,
+      label: '$label, ayrıntıları aç',
+      child: InkWell(
+        onTap: () => _showCredentialSheet(context, credentials),
+        borderRadius: BorderRadius.circular(SwanSpace.sm),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: SwanSpace.sm),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.workspace_premium_outlined,
+                size: 19,
+                color: context.swan.accent,
+              ),
+              const SizedBox(width: SwanSpace.sm),
+              Expanded(
+                child: Text(
+                  label,
+                  style: SwanType.bodySm(
+                    context.swan.ink,
+                    w: FontWeight.w700,
+                  ),
+                ),
+              ),
+              const SizedBox(width: SwanSpace.xs),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: context.swan.inkMuted,
+              ),
+            ],
+          ),
         ),
       ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.workspace_premium_rounded, size: 13, color: c.accent),
-          const SizedBox(width: 4.5),
-          Text(
-            cred,
-            style: SwanType.caption(c.ink, w: FontWeight.w600),
+    );
+  }
+
+  Future<void> _showCredentialSheet(
+    BuildContext context,
+    List<SocialCredentialSummary> credentials,
+  ) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: .48,
+        minChildSize: .32,
+        maxChildSize: .85,
+        builder: (context, controller) => SafeArea(
+          top: false,
+          child: ListView(
+            controller: controller,
+            padding: const EdgeInsets.fromLTRB(
+              SwanSpace.lg,
+              SwanSpace.xs,
+              SwanSpace.lg,
+              SwanSpace.xl,
+            ),
+            children: [
+              Text(
+                'Antrenörlük ve belgeler',
+                style: SwanType.h2(context.swan.ink),
+              ),
+              const SizedBox(height: SwanSpace.xs),
+              Text(
+                'Profilde paylaşılabilen onaylı antrenörlük bilgileri.',
+                style: SwanType.bodySm(context.swan.inkMuted),
+              ),
+              const SizedBox(height: SwanSpace.lg),
+              _CoachCredentialList(credentials: credentials),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -926,8 +1141,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              friendlyErrorMessage(e,
-                  defaultMessage: 'Gönderiler yüklenemedi.'),
+              friendlyErrorMessage(
+                e,
+                defaultMessage: 'Gönderiler yüklenemedi.',
+              ),
               style: SwanType.caption(context.swan.inkMuted),
             ),
           ),
@@ -1193,39 +1410,19 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             Expanded(child: _FollowButton(profile: p, isClub: false)),
             const SizedBox(width: 10),
             Expanded(
-              child: GestureDetector(
-                behavior: HitTestBehavior.opaque,
-                onTap: () => Navigator.pushNamed(
+              child: OutlinedButton.icon(
+                onPressed: () => Navigator.pushNamed(
                   context,
                   '/sohbet',
                   arguments: {'id': p.id, 'name': p.name},
                 ),
-                child: Container(
-                  height: 46,
-                  alignment: Alignment.center,
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(SwanRadius.md),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.chat_bubble_outline_rounded,
-                        size: 18,
-                        color: c.ink,
-                      ),
-                      const SizedBox(width: 7),
-                      Flexible(
-                        child: Text(
-                          'Mesaj',
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: SwanType.bodySm(c.ink, w: FontWeight.w800),
-                        ),
-                      ),
-                    ],
-                  ),
+                icon: const Icon(Icons.chat_bubble_outline_rounded),
+                label: const Text('Mesaj'),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: c.ink,
+                  backgroundColor: c.surfaceAlt,
+                  side: BorderSide.none,
+                  minimumSize: const Size.fromHeight(48),
                 ),
               ),
             ),
@@ -1265,6 +1462,89 @@ Future<void> _editClub(
 }
 
 /// Takip et / Takiptesin düğmesi — anında tepki verir.
+class _CoachCredentialList extends StatelessWidget {
+  const _CoachCredentialList({required this.credentials});
+
+  final List<SocialCredentialSummary> credentials;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: c.surfaceAlt,
+        borderRadius: BorderRadius.circular(SwanSpace.md),
+      ),
+      child: Column(
+        children: [
+          for (var index = 0; index < credentials.length; index++) ...[
+            _CoachCredentialTile(credential: credentials[index]),
+            if (index != credentials.length - 1)
+              Divider(height: 1, indent: SwanSpace.lg, color: c.line),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _CoachCredentialTile extends StatelessWidget {
+  const _CoachCredentialTile({required this.credential});
+
+  final SocialCredentialSummary credential;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = context.swan;
+    final statusLabel = switch (credential.status) {
+      'approved' => 'Onaylandı',
+      'pending' => 'İnceleniyor',
+      'rejected' => 'Reddedildi',
+      _ => null,
+    };
+    return Padding(
+      padding: const EdgeInsets.all(SwanSpace.md),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.workspace_premium_outlined,
+            color: c.accent,
+            semanticLabel: 'Antrenörlük belgesi',
+          ),
+          const SizedBox(width: SwanSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  credential.title,
+                  style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                ),
+                const SizedBox(height: SwanSpace.xs),
+                Text(
+                  credential.detailLabel,
+                  style: SwanType.bodySm(c.inkMuted),
+                ),
+                if (statusLabel != null) ...[
+                  const SizedBox(height: SwanSpace.xs),
+                  Text(
+                    statusLabel,
+                    style: SwanType.caption(
+                      credential.status == 'approved' ? c.accent : c.inkMuted,
+                      w: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _FollowButton extends ConsumerStatefulWidget {
   const _FollowButton({required this.profile, required this.isClub});
   final SocialProfile profile;
@@ -1293,7 +1573,14 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
           );
       ref.invalidate(feedProvider);
     } catch (_) {
-      if (mounted) setState(() => _following = !next);
+      if (mounted) {
+        setState(() => _following = !next);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Takip durumu güncellenemedi. Tekrar dene.'),
+          ),
+        );
+      }
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -1306,54 +1593,41 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
-    return GestureDetector(
-      onTap: _toggle,
-      child: Container(
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          gradient: _following
-              ? null
-              : LinearGradient(
-                  colors: [context.swan.accent, context.swan.accent],
-                ),
-          color: _following ? surf : null,
-          borderRadius: BorderRadius.circular(SwanRadius.md),
-          border:
-              _following ? Border.all(color: line.withValues(alpha: .5)) : null,
-          boxShadow: _following
-              ? null
-              : [
-                  BoxShadow(
-                    color: context.swan.accent.withValues(alpha: .3),
-                    blurRadius: 14,
-                    offset: const Offset(0, 6),
-                  ),
-                ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              _following ? Icons.check_rounded : Icons.add_rounded,
-              size: 18,
-              color: _following ? ink : context.swan.onAccent,
-            ),
-            const SizedBox(width: 7),
-            Flexible(
-              child: Text(
-                _following ? 'Takiptesin' : 'Takip Et',
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: SwanType.bodySm(
-                  _following ? ink : context.swan.onAccent,
-                  w: FontWeight.w800,
-                ),
+    final label = _following ? 'Takiptesin' : 'Takip et';
+    return Semantics(
+      button: true,
+      selected: _following,
+      label: _busy ? '$label, işlem sürüyor' : label,
+      child: _following
+          ? OutlinedButton.icon(
+              onPressed: _busy ? null : _toggle,
+              icon: _busy
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.check_rounded),
+              label: Text(label),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: ink,
+                backgroundColor: surf,
+                side: BorderSide(color: line),
+                minimumSize: const Size.fromHeight(48),
+              ),
+            )
+          : FilledButton.icon(
+              onPressed: _busy ? null : _toggle,
+              icon: _busy
+                  ? const SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.add_rounded),
+              label: Text(label),
+              style: FilledButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 }

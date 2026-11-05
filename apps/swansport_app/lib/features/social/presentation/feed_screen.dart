@@ -100,7 +100,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
       appBar: StitchFeedTopBar(
         key: const Key('feed-floating-header'),
         followingOnly: _followingOnly,
-        allLabel: 'Tümü (Keşfet)',
+        allLabel: 'Genel Akış',
         followingLabel: 'Takip Ettiklerim',
         onFeedChanged: (value) {
           if (value != _followingOnly) setState(() => _followingOnly = value);

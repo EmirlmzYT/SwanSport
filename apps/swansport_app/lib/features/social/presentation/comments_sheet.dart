@@ -21,13 +21,20 @@ Future<int?> showCommentsSheet(BuildContext context, String postId) {
       final sheetHeight = availableHeight > 0
           ? availableHeight * (keyboard > 0 ? 1 : .84)
           : 0.0;
-      return AnimatedPadding(
-        duration: const Duration(milliseconds: 180),
-        curve: Curves.easeOut,
-        padding: EdgeInsets.only(bottom: keyboard),
-        child: SizedBox(
-          height: sheetHeight,
-          child: _CommentsSheet(postId: postId),
+      return Align(
+        alignment: Alignment.bottomCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: AnimatedPadding(
+            duration: const Duration(milliseconds: 180),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.only(bottom: keyboard),
+            child: SizedBox(
+              width: double.infinity,
+              height: sheetHeight,
+              child: _CommentsSheet(postId: postId),
+            ),
+          ),
         ),
       );
     },
@@ -45,7 +52,10 @@ class _CommentsSheet extends ConsumerStatefulWidget {
 class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
   final _ctrl = TextEditingController();
   final _inputFocus = FocusNode();
+  final _scrollController = ScrollController();
   CommentRow? _replyTo;
+  List<CommentRow>? _lastComments;
+  String? _composerError;
   bool _sending = false;
   int _added = 0;
 
@@ -63,32 +73,75 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
   void dispose() {
     _ctrl.dispose();
     _inputFocus.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
   Future<void> _send() async {
-    final text = _ctrl.text.trim();
+    final draft = _ctrl.text;
+    final text = draft.trim();
     if (text.isEmpty || _sending) return;
-    setState(() => _sending = true);
+    final reply = _replyTo;
+    setState(() {
+      _sending = true;
+      _composerError = null;
+    });
+    var sent = false;
     try {
       await ref.read(socialServiceProvider).addComment(
             widget.postId,
             text,
-            parentCommentId: _replyTo?.id,
+            parentCommentId: reply?.id,
           );
-      _ctrl.clear();
-      if (mounted) setState(() => _replyTo = null);
+      sent = true;
       _added++;
-      ref.invalidate(postCommentsProvider(widget.postId));
+      if (mounted) {
+        setState(() {
+          if (_ctrl.text == draft) {
+            _ctrl.clear();
+            if (_replyTo?.id == reply?.id) _replyTo = null;
+          }
+        });
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(friendlyErrorMessage(e,
-                defaultMessage: 'Yorum gönderilemedi. Lütfen tekrar deneyin.')),
-            backgroundColor: context.swan.danger));
+        setState(() {
+          _composerError = friendlyErrorMessage(
+            e,
+            defaultMessage: 'Yorum gönderilemedi. Lütfen tekrar deneyin.',
+          );
+        });
       }
     } finally {
       if (mounted) setState(() => _sending = false);
+    }
+    if (sent) await _reloadComments(scrollToBottom: true);
+  }
+
+  Future<void> _reloadComments({
+    bool scrollToBottom = false,
+    String failureMessage = 'Yorum gönderildi ancak liste yenilenemedi.',
+  }) async {
+    final provider = postCommentsProvider(widget.postId);
+    ref.invalidate(provider);
+    try {
+      final comments = await ref.read(provider.future);
+      if (!mounted) return;
+      setState(() => _lastComments = comments);
+      if (scrollToBottom) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted || !_scrollController.hasClients) return;
+          _scrollController.animateTo(
+            _scrollController.position.maxScrollExtent,
+            duration: const Duration(milliseconds: 220),
+            curve: Curves.easeOut,
+          );
+        });
+      }
+    } catch (_) {
+      if (mounted) {
+        setState(() => _composerError = failureMessage);
+      }
     }
   }
 
@@ -129,14 +182,23 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
   Widget build(BuildContext context) {
     final c = context.swan;
     final async = ref.watch(postCommentsProvider(widget.postId));
+    final loadedComments = async.valueOrNull;
+    if (loadedComments != null) _lastComments = loadedComments;
+    final visibleComments = loadedComments ?? _lastComments;
+    final keyboardVisible = MediaQuery.viewInsetsOf(context).bottom > 0;
     final viewBottom = MediaQuery.viewPaddingOf(context).bottom;
     final gestureBottom = MediaQuery.systemGestureInsetsOf(context).bottom;
-    final safeBottom = viewBottom > gestureBottom ? viewBottom : gestureBottom;
+    final safeBottom = keyboardVisible
+        ? 0.0
+        : viewBottom > gestureBottom
+            ? viewBottom
+            : gestureBottom;
 
     return PopScope(
       canPop: true,
       onPopInvokedWithResult: (_, __) {},
       child: Container(
+        key: const Key('comments-sheet'),
         decoration: BoxDecoration(
           color: c.surface,
           borderRadius: const BorderRadius.vertical(
@@ -147,6 +209,7 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
           children: [
             const SizedBox(height: SwanSpace.sm),
             Container(
+              key: const Key('comments-drag-handle'),
               width: 36,
               height: 4,
               decoration: BoxDecoration(
@@ -163,9 +226,9 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
               ),
               child: Row(children: [
                 Text('Yorumlar', style: SwanType.h3(c.ink)),
-                if (async.valueOrNull != null) ...[
+                if (visibleComments != null) ...[
                   const SizedBox(width: SwanSpace.sm),
-                  Text('${async.valueOrNull!.length}',
+                  Text('${visibleComments.length}',
                       style: SwanType.bodySm(c.inkMuted)),
                 ],
                 const Spacer(),
@@ -178,68 +241,42 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
             ),
             Divider(color: c.line, height: 1),
             Expanded(
-              child: async.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(SwanSpace.xl),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.error_outline_rounded,
-                            size: 32, color: c.inkMuted),
-                        const SizedBox(height: SwanSpace.sm),
-                        Text('Yorumlar yüklenemedi',
-                            style: SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                        TextButton(
-                          onPressed: () => ref
-                              .invalidate(postCommentsProvider(widget.postId)),
-                          child: const Text('Yeniden dene'),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                data: (list) {
-                  if (list.isEmpty) {
-                    return Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 64,
-                            height: 64,
-                            decoration: BoxDecoration(
-                              color: c.surfaceAlt,
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(Icons.mode_comment_outlined,
-                                size: 28, color: c.inkMuted),
+              child: visibleComments != null
+                  ? _commentsList(visibleComments)
+                  : async.when(
+                      loading: () =>
+                          const Center(child: CircularProgressIndicator()),
+                      error: (e, _) => Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(SwanSpace.xl),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                size: 32,
+                                color: c.inkMuted,
+                              ),
+                              const SizedBox(height: SwanSpace.sm),
+                              Text(
+                                'Yorumlar yüklenemedi',
+                                style: SwanType.bodySm(
+                                  c.ink,
+                                  w: FontWeight.w700,
+                                ),
+                              ),
+                              TextButton(
+                                onPressed: () => ref.invalidate(
+                                  postCommentsProvider(widget.postId),
+                                ),
+                                child: const Text('Yeniden dene'),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: SwanSpace.md),
-                          Text('Henüz yorum yok',
-                              style:
-                                  SwanType.bodySm(c.ink, w: FontWeight.w700)),
-                          const SizedBox(height: SwanSpace.xs),
-                          Text('İlk yorumu sen yaz.',
-                              style: SwanType.bodySm(c.inkMuted)),
-                        ],
+                        ),
                       ),
-                    );
-                  }
-                  final threaded = _threaded(list);
-                  return ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(
-                        SwanSpace.lg, SwanSpace.sm, SwanSpace.lg, SwanSpace.lg),
-                    itemCount: threaded.length,
-                    itemBuilder: (_, i) => Column(children: [
-                      _tile(threaded[i].$1, depth: threaded[i].$2),
-                      if (i + 1 < threaded.length && threaded[i + 1].$2 == 0)
-                        Divider(color: c.line, height: SwanSpace.lg),
-                    ]),
-                  );
-                },
-              ),
+                      data: _commentsList,
+                    ),
             ),
             Container(
               decoration: BoxDecoration(
@@ -253,6 +290,27 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                 SwanSpace.md + safeBottom,
               ),
               child: Column(children: [
+                if (_composerError != null)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: SwanSpace.sm),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.error_outline_rounded,
+                          size: 18,
+                          color: c.danger,
+                        ),
+                        const SizedBox(width: SwanSpace.xs),
+                        Expanded(
+                          child: Text(
+                            _composerError!,
+                            style: SwanType.caption(c.danger),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 if (_replyTo != null)
                   Padding(
                     padding: const EdgeInsets.only(bottom: SwanSpace.sm),
@@ -282,8 +340,10 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                       focusNode: _inputFocus,
                       minLines: 1,
                       maxLines: 4,
+                      readOnly: _sending,
+                      keyboardType: TextInputType.multiline,
+                      textInputAction: TextInputAction.newline,
                       style: SwanType.bodySm(c.ink),
-                      onSubmitted: (_) => _send(),
                       decoration: InputDecoration(
                         hintText:
                             _replyTo == null ? 'Yorum yaz…' : 'Yanıtını yaz…',
@@ -328,22 +388,100 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
     );
   }
 
+  Widget _commentsList(List<CommentRow> list) {
+    final c = context.swan;
+    if (list.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 64,
+              height: 64,
+              decoration: BoxDecoration(
+                color: c.surfaceAlt,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.mode_comment_outlined,
+                size: 28,
+                color: c.inkMuted,
+              ),
+            ),
+            const SizedBox(height: SwanSpace.md),
+            Text(
+              'Henüz yorum yok',
+              style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+            ),
+            const SizedBox(height: SwanSpace.xs),
+            Text('İlk yorumu sen yaz.', style: SwanType.bodySm(c.inkMuted)),
+          ],
+        ),
+      );
+    }
+
+    final byId = {for (final comment in list) comment.id: comment};
+    final threaded = _threaded(list);
+    return ListView.builder(
+      key: const PageStorageKey('comments-list'),
+      controller: _scrollController,
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(
+        SwanSpace.lg,
+        SwanSpace.sm,
+        SwanSpace.lg,
+        SwanSpace.lg,
+      ),
+      itemCount: threaded.length,
+      itemBuilder: (_, i) {
+        final comment = threaded[i].$1;
+        final parent = byId[comment.parentCommentId];
+        return Column(
+          children: [
+            _tile(
+              comment,
+              depth: threaded[i].$2,
+              replyToName: parent?.authorName,
+            ),
+            if (i + 1 < threaded.length && threaded[i + 1].$2 == 0)
+              Divider(color: c.line, height: SwanSpace.lg),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _delete(String id) async {
     try {
       await ref.read(socialServiceProvider).deleteComment(id);
-      ref.invalidate(postCommentsProvider(widget.postId));
-      if (_added > 0) _added--;
+      if (mounted) {
+        setState(() {
+          _lastComments = _lastComments
+              ?.where((comment) => comment.id != id)
+              .toList(growable: false);
+          if (_added > 0) _added--;
+        });
+      }
+      await _reloadComments(
+        failureMessage: 'Yorum silindi ancak liste yenilenemedi.',
+      );
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text(friendlyErrorMessage(e,
-                defaultMessage: 'Yorum silinemedi. Lütfen tekrar deneyin.')),
-            backgroundColor: context.swan.danger));
+        setState(() {
+          _composerError = friendlyErrorMessage(
+            e,
+            defaultMessage: 'Yorum silinemedi. Lütfen tekrar deneyin.',
+          );
+        });
       }
     }
   }
 
-  Widget _tile(CommentRow comment, {required int depth}) {
+  Widget _tile(
+    CommentRow comment, {
+    required int depth,
+    String? replyToName,
+  }) {
     final c = context.swan;
     final isReply = depth > 0;
     final isMine =
@@ -366,11 +504,14 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            SocialAvatar(
-              initials: comment.initials,
-              imageUrl: comment.authorAvatarUrl,
-              size: isReply ? 32 : 38,
-              gradientIndex: (comment.authorName ?? 'x').length % 4,
+            _profileTarget(
+              comment,
+              child: SocialAvatar(
+                initials: comment.initials,
+                imageUrl: comment.authorAvatarUrl,
+                size: isReply ? 32 : 38,
+                gradientIndex: (comment.authorName ?? 'x').length % 4,
+              ),
             ),
             const SizedBox(width: SwanSpace.sm),
             Expanded(
@@ -379,11 +520,14 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                 children: [
                   Row(children: [
                     Flexible(
-                      child: Text(
-                        comment.authorName ?? 'Kullanıcı',
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                      child: _profileTarget(
+                        comment,
+                        child: Text(
+                          comment.authorName ?? 'Kullanıcı',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+                        ),
                       ),
                     ),
                     const SizedBox(width: SwanSpace.sm),
@@ -403,6 +547,16 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
                       ),
                     ],
                   ]),
+                  if (replyToName?.trim().isNotEmpty == true)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(
+                        '${replyToName!.trim()} kişisine yanıt',
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.caption(c.inkMuted),
+                      ),
+                    ),
                   Text(
                     comment.body,
                     style: SwanType.bodySm(c.ink).copyWith(height: 1.4),
@@ -432,6 +586,25 @@ class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _profileTarget(CommentRow comment, {required Widget child}) {
+    final canOpen = comment.profileId.trim().isNotEmpty &&
+        comment.authorName?.trim().isNotEmpty == true;
+    if (!canOpen) return child;
+    return Semantics(
+      button: true,
+      label: '${comment.authorName} profilini aç',
+      child: InkWell(
+        borderRadius: BorderRadius.circular(SwanRadius.sm),
+        onTap: () => Navigator.pushNamed(
+          context,
+          '/profil',
+          arguments: comment.profileId,
+        ),
+        child: child,
       ),
     );
   }
