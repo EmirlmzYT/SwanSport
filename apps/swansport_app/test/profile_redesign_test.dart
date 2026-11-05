@@ -14,9 +14,22 @@ import 'package:swansport_data/swansport_data.dart';
 void main() {
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.llfbandit.app_links/events'),
+      (_) async => null,
+    );
     await (FontLoader('MaterialIcons')
           ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
         .load();
+  });
+
+  tearDownAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.llfbandit.app_links/events'),
+      null,
+    );
   });
 
   testWidgets('kişisel profil sosyal kimliği ve gönderileri öne çıkarır',
