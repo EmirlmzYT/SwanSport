@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,6 +12,13 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 /// okuyor; istemci hiç başlatılmadığında test daha ekran çizilmeden düşüyordu.
 Future<void> testExecutable(FutureOr<void> Function() testMain) async {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('com.llfbandit.app_links/events'),
+      (_) async => null,
+    );
+  });
   setUpAll(() async {
     SharedPreferences.setMockInitialValues({});
     await Supabase.initialize(
