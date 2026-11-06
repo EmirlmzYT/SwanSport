@@ -61,6 +61,11 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
   bool _busy = false;
   bool _picking = false;
   bool _postCreated = false;
+  bool _checkingPermission = true;
+  bool _canPostPersonally = false;
+  bool _canPostAsClub = false;
+  bool _permissionFailed = false;
+  String? _permissionClubId;
 
   static const _maxMedia = 8;
 
@@ -68,9 +73,43 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
   void initState() {
     super.initState();
     _media = [...widget.initialMedia.take(_maxMedia)];
+    WidgetsBinding.instance.addPostFrameCallback((_) => _refreshPermissions());
     if (widget.startWithImage) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _pickImage();
+      });
+    }
+  }
+
+  Future<void> _refreshPermissions() async {
+    final club = ref.read(activeClubProvider).valueOrNull;
+    final access = ref.read(swanAccessProvider);
+    final clubId = club != null && access.canPublishClubPosts ? club.id : null;
+    if (mounted) setState(() => _checkingPermission = true);
+    try {
+      final service = ref.read(socialServiceProvider);
+      final results = await Future.wait<bool>([
+        service.canCreatePost(),
+        if (clubId != null) service.canCreatePost(clubId: clubId),
+      ]);
+      if (!mounted) return;
+      setState(() {
+        _canPostPersonally = results.first;
+        _canPostAsClub = clubId != null && results.length > 1 && results[1];
+        _permissionFailed = false;
+        _permissionClubId = clubId;
+        _checkingPermission = false;
+        if (!_canPostPersonally && _canPostAsClub) _asClub = true;
+        if (_canPostPersonally && !_canPostAsClub) _asClub = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _canPostPersonally = false;
+        _canPostAsClub = false;
+        _permissionFailed = true;
+        _permissionClubId = clubId;
+        _checkingPermission = false;
       });
     }
   }
@@ -265,24 +304,27 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
     final c = context.swan;
     final clubAsync = ref.watch(activeClubProvider);
     final profileAsync = ref.watch(currentProfileProvider);
-    final credentialsAsync = ref.watch(myCredentialsProvider);
     final club = clubAsync.valueOrNull;
     final access = ref.watch(swanAccessProvider);
     final profile = profileAsync.valueOrNull;
-    final creds = credentialsAsync.valueOrNull ?? const [];
-    final identityLoading = clubAsync.isLoading ||
-        profileAsync.isLoading ||
-        credentialsAsync.isLoading;
-    final canPostPersonally = creds.any((c) => c.status == 'approved');
-    final canPostAsClub = club != null && access.canPublishClubPosts;
+    final identityLoading =
+        clubAsync.isLoading || profileAsync.isLoading || _checkingPermission;
+    final expectedClubId =
+        club != null && access.canPublishClubPosts ? club.id : null;
+    if (!identityLoading && expectedClubId != _permissionClubId) {
+      WidgetsBinding.instance
+          .addPostFrameCallback((_) => _refreshPermissions());
+    }
+    final canPostPersonally = _canPostPersonally;
+    final canPostAsClub = expectedClubId != null && _canPostAsClub;
     final effectiveAsClub = canPostAsClub &&
         ((_asClub ?? (!canPostPersonally && canPostAsClub)) ||
             !canPostPersonally);
     final canShare = canPostAsClub || canPostPersonally;
     final hasContent = _ctrl.text.trim().isNotEmpty || _media.isNotEmpty;
+    final postingClub = effectiveAsClub ? club : null;
 
-    final displayName =
-        effectiveAsClub ? club.name : (profile?.fullName ?? 'Kullanıcı');
+    final displayName = postingClub?.name ?? profile?.fullName ?? 'Kullanıcı';
 
     return PopScope(
       canPop: !_hasDraft && !_busy,
@@ -330,7 +372,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                               !hasContent ||
                               _postCreated)
                           ? null
-                          : () => _share(effectiveAsClub ? club.id : null),
+                          : () => _share(postingClub?.id),
                       child: _busy
                           ? const SizedBox.square(
                               dimension: 18,
@@ -376,10 +418,17 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  'Paylaşım yapabilmek için onaylı sporcu/antrenör belgesi veya kulüp yetkisi gerekiyor.',
+                                  _permissionFailed
+                                      ? 'Paylaşım yetkisi doğrulanamadı. Bağlantını kontrol edip yeniden dene.'
+                                      : 'Paylaşım yapabilmek için onaylı sporcu/antrenör belgesi veya kulüp yetkisi gerekiyor.',
                                   style: SwanType.caption(c.inkMuted),
                                 ),
                               ),
+                              if (_permissionFailed)
+                                TextButton(
+                                  onPressed: _refreshPermissions,
+                                  child: const Text('Yeniden dene'),
+                                ),
                             ],
                           ),
                         ),
@@ -392,8 +441,8 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                               backgroundColor: c.accent.withValues(alpha: .15),
                               child: Text(
                                 effectiveAsClub
-                                    ? (club.name.isNotEmpty
-                                        ? club.name[0].toUpperCase()
+                                    ? ((postingClub?.name.isNotEmpty ?? false)
+                                        ? postingClub!.name[0].toUpperCase()
                                         : 'K')
                                     : (profile?.initials ?? 'S'),
                                 style:
@@ -484,7 +533,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                           c,
                                           profileName: profile?.fullName ??
                                               'Kişisel profil',
-                                          clubName: club.name,
+                                          clubName: club?.name ?? 'Kulüp',
                                           effectiveAsClub: effectiveAsClub,
                                         ),
                                 icon: const Icon(Icons.swap_horiz_rounded),

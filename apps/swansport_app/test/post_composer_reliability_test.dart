@@ -26,6 +26,25 @@ void main() {
     expect(find.text('Taslak metin'), findsOneWidget);
   });
 
+  testWidgets('sunucu kişisel paylaşımı reddediyorsa yetkili kulübü seçer',
+      (tester) async {
+    final service = _RecordingSocialService()
+      ..allowPersonal = false
+      ..allowClub = true;
+    await _pumpComposer(tester, social: service);
+
+    expect(find.text('Kulüp gönderisi'), findsOneWidget);
+    await tester.enterText(find.byType(TextField).first, 'Kulüp duyurusu');
+    await tester.pump();
+    final shareButton = find.widgetWithText(FilledButton, 'Paylaş');
+    expect(tester.widget<FilledButton>(shareButton).onPressed, isNotNull);
+    await tester.tap(shareButton);
+    await tester.pumpAndSettle();
+
+    expect(service.createCalls, 1);
+    expect(service.lastClubId, 'club-1');
+  });
+
   testWidgets('@ ve hashtag geçerli imleç konumuna eklenir', (tester) async {
     await _pumpComposer(tester);
     final field = find.byType(TextField).first;
@@ -223,9 +242,16 @@ class _RecordingSocialService extends SocialService {
 
   int createCalls = 0;
   String? lastBody;
+  String? lastClubId;
   bool holdCreate = false;
   bool failCreate = false;
   Completer<String>? _pending;
+  bool allowPersonal = true;
+  bool allowClub = true;
+
+  @override
+  Future<bool> canCreatePost({String? clubId}) async =>
+      clubId == null ? allowPersonal : allowClub;
 
   @override
   Future<String> createPost({
@@ -240,6 +266,7 @@ class _RecordingSocialService extends SocialService {
   }) {
     createCalls++;
     lastBody = body;
+    lastClubId = clubId;
     if (failCreate) return Future.error(StateError('network failure'));
     if (!holdCreate) return Future.value('post-1');
     _pending = Completer<String>();

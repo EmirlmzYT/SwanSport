@@ -341,6 +341,22 @@ class SocialService {
 
   String? get _uid => _c.auth.currentUser?.id;
 
+  /// Sunucunun gönderi RLS'iyle aynı yetki kararını döndürür.
+  ///
+  /// Arayüz belge ve üyelik listesinden bu kararı tahmin etmemeli: önbellekteki
+  /// kayıt ile RLS'in gördüğü aktif oturum ayrışırsa kullanıcı ancak gönderim
+  /// sırasında 42501 hatası görüyordu.
+  Future<bool> canCreatePost({String? clubId}) async {
+    if (_uid == null) return false;
+    final result = clubId == null
+        ? await _c.rpc<dynamic>('can_post_personally')
+        : await _c.rpc<dynamic>(
+            'can_post_for_club',
+            params: {'p_club': clubId},
+          );
+    return result == true;
+  }
+
   /// NOT: `posts` ile `profiles` arasında birden fazla ilişki var (yazar FK'sı
   /// ve post_likes üzerinden dolaylı yol). PostgREST'e hangisini istediğimizi
   /// açıkça söylemek için FK adını belirtiyoruz.
