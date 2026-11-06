@@ -13,6 +13,10 @@ import 'package:swansport_app/features/communities/presentation/community_chat_s
 import 'package:swansport_app/features/social/presentation/messages_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
 
+bool _isUnavailableAppLinks(Object? error) =>
+    error is MissingPluginException &&
+    error.message?.contains('com.llfbandit.app_links/events') == true;
+
 void main() {
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
@@ -37,6 +41,11 @@ void main() {
     expect(find.textContaining('Başantrenör Selin'), findsOneWidget);
     await tester.runAsync(
       () => _capture(boundary, 'build/design-review/messages-list-current.png'),
+    );
+    final platformError = tester.takeException();
+    expect(
+      platformError == null || _isUnavailableAppLinks(platformError),
+      isTrue,
     );
   });
 
