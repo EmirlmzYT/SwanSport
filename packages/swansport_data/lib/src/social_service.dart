@@ -671,6 +671,14 @@ class SocialService {
     return _hydrate(rows as List);
   }
 
+  /// Bildirim hedefindeki gönderi mevcut oturum ve RLS kapsamında görülebilir mi?
+  Future<bool> canViewPost(String postId) async {
+    if (_uid == null || postId.isEmpty) return false;
+    final row =
+        await _c.from('posts').select('id').eq('id', postId).maybeSingle();
+    return row != null;
+  }
+
   /// Gönderi oluştur. [clubId] verilirse kulüp adına paylaşılır.
   /// Gönderi oluşturur ve kimliğini döner.
   ///

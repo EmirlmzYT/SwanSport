@@ -1,18 +1,20 @@
-import 'package:swansport_app/app/widgets/swan_scaffold.dart';
-import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_app/app/widgets/swan_module_app_bar.dart';
+import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-import '../../../app/push/push.dart';
-import '../../../app/push/push_service.dart';
+import '../../../app/app_navigator.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/navigation/swan_navigation.dart';
+import '../../../app/push/push.dart';
+import '../../../app/push/push_service.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
-import 'widgets/social_widgets.dart';
 import 'comments_sheet.dart';
+import 'widgets/social_widgets.dart';
 
 /// Kişisel bildirim akışı ve telefon bildirim tercihleri.
 class NotificationsScreen extends ConsumerStatefulWidget {
@@ -23,27 +25,80 @@ class NotificationsScreen extends ConsumerStatefulWidget {
       _NotificationsScreenState();
 }
 
+@visibleForTesting
+String? notificationRouteFor(NotificationRow notification) {
+  final special = notification.resultRoute ??
+      notification.refereeRoute ??
+      notification.liveMatchRoute;
+  if (special != null) return special;
+  switch (notification.kind) {
+    case 'application':
+    case 'review':
+    case 'offer':
+      return '/basvurular';
+    case 'fee':
+    case 'fee_reminder':
+      return '/aidatlarim';
+    case 'payment':
+      return '/finans';
+    case 'donation':
+      return '/bagis';
+    case 'training':
+    case 'training_session':
+      return '/antrenman-oturumu';
+    case 'training_result':
+      return '/antrenman-sonuc';
+    case 'attendance':
+    case 'attendance_reminder':
+      return '/attendance';
+    case 'event':
+      return '/calendar';
+    case 'announcement':
+      return '/announcements';
+    case 'achievement':
+      return '/performance-analytics';
+    case 'document':
+    case 'documents':
+    case 'document_expiry':
+      return '/documents';
+    case 'partner_request':
+    case 'partner_request_accepted':
+      return '/partner-ara';
+    case 'turf_slot_request':
+    case 'turf_field':
+    case 'turf_manager':
+      return '/halisahalar';
+    case 'court_waitlist':
+    case 'turf_delegation':
+      return '/saha-islemlerim';
+    case 'store_decision':
+      return '/magaza-basvuru';
+    case 'moderation':
+      return '/pazaryeri';
+    case 'expense_approval':
+    case 'expense_rejected':
+    case 'commitment_due':
+    case 'account_negative':
+    case 'bank_unmatched':
+    case 'period_closed':
+    case 'period_blocked':
+      return '/mali-isler';
+    case 'support':
+      return '/destek';
+    case 'eligibility':
+      return '/athletes';
+    default:
+      return null;
+  }
+}
+
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  int _selectedFilter = 0;
-
-  final List<String> _filters = const [
-    'Tümü',
-    'Sosyal',
-    'Antrenman',
-    'Kulüp',
-  ];
-
-  String get _category => switch (_selectedFilter) {
-        1 => 'sosyal',
-        2 => 'antrenman',
-        3 => 'kulup',
-        _ => '',
-      };
+  final Set<String> _opening = {};
 
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final async = ref.watch(categorizedNotificationsProvider(_category));
+    final async = ref.watch(categorizedNotificationsProvider(''));
     final unreadCount = ref.watch(unreadNotificationsProvider).valueOrNull ?? 0;
 
     return SwanScaffold(
@@ -68,17 +123,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             child: Column(
               children: [
                 _buildSubheader(c, unreadCount),
-                _buildFilterChips(c),
                 const SizedBox(height: SwanSpace.sm),
                 Expanded(
                   child: RefreshIndicator(
                     color: c.accent,
                     backgroundColor: c.surface,
                     onRefresh: () async {
-                      ref.invalidate(
-                          categorizedNotificationsProvider(_category));
-                      await ref.read(
-                          categorizedNotificationsProvider(_category).future);
+                      ref.invalidate(categorizedNotificationsProvider(''));
+                      await ref
+                          .read(categorizedNotificationsProvider('').future);
                     },
                     child: async.when(
                       loading: () =>
@@ -89,7 +142,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                             context,
                             '$e',
                             onRetry: () => ref.invalidate(
-                              categorizedNotificationsProvider(_category),
+                              categorizedNotificationsProvider(''),
                             ),
                           ),
                         ],
@@ -119,17 +172,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      _selectedFilter == 0
-                                          ? 'Henüz bildirimin yok'
-                                          : 'Bu kategoride bildirim yok',
+                                      'Henüz bildirimin yok',
                                       style: SwanType.h3(c.ink).copyWith(
                                           fontWeight: FontWeight.w700),
                                     ),
                                     const SizedBox(height: 6),
                                     Text(
-                                      _selectedFilter == 0
-                                          ? 'Yeni gelişmeler olduğunda burada göreceksin.'
-                                          : 'Diğer bildirimlere Tümü sekmesinden bakabilirsin.',
+                                      'Yeni gelişmeler olduğunda burada göreceksin.',
                                       textAlign: TextAlign.center,
                                       style: SwanType.caption(c.inkMuted),
                                     ),
@@ -230,44 +279,6 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     );
   }
 
-  Widget _buildFilterChips(SwanPalette c) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      padding:
-          const EdgeInsets.symmetric(horizontal: SwanSpace.md, vertical: 6),
-      child: Row(
-        children: _filters.asMap().entries.map((entry) {
-          final idx = entry.key;
-          final label = entry.value;
-          final isSelected = _selectedFilter == idx;
-
-          return Padding(
-            padding: const EdgeInsets.only(right: 6),
-            child: InkWell(
-              onTap: () => setState(() => _selectedFilter = idx),
-              borderRadius: BorderRadius.circular(999),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 180),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                decoration: BoxDecoration(
-                  color: isSelected ? c.accentFill : c.surface,
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: isSelected ? c.accentFill : c.line),
-                ),
-                child: Text(
-                  label,
-                  style: SwanType.caption(isSelected ? c.onAccent : c.ink,
-                      w: isSelected ? FontWeight.w800 : FontWeight.w500),
-                ),
-              ),
-            ),
-          );
-        }).toList(),
-      ),
-    );
-  }
-
   String _dateHeading(DateTime date) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -286,186 +297,245 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         'referee_assignment' => Icons.sports_rounded,
         'training' || 'attendance' => Icons.fitness_center_rounded,
         'application' || 'offer' || 'review' => Icons.assignment_rounded,
+        'announcement' => Icons.campaign_rounded,
+        'fee' || 'fee_reminder' || 'payment' => Icons.receipt_long_rounded,
+        'document' ||
+        'documents' ||
+        'document_expiry' =>
+          Icons.description_rounded,
+        'support' => Icons.support_agent_rounded,
         _ => Icons.notifications_rounded,
       };
 
+  bool _usesActorAvatar(NotificationRow n) =>
+      (n.actorId?.isNotEmpty ?? false) &&
+      const {
+        'like',
+        'comment',
+        'follow',
+        'mention',
+        'post_repost',
+        'post_quote',
+      }.contains(n.kind);
+
+  String _categoryLabel(NotificationRow n) {
+    switch (n.category) {
+      case 'kulup':
+        return 'Kulüp';
+      case 'antrenman':
+        return 'Antrenman';
+      case 'musabaka':
+      case 'federasyon':
+        return 'Spor';
+      case 'aidat':
+        return 'Finans';
+      case 'kritik':
+        return 'Sistem';
+      case 'sosyal':
+        return 'Sosyal';
+    }
+    if (_usesActorAvatar(n)) return 'Sosyal';
+    if (n.kind == 'announcement') return 'Kulüp';
+    if (const {'fee', 'fee_reminder', 'payment'}.contains(n.kind)) {
+      return 'Finans';
+    }
+    return 'Bildirim';
+  }
+
   Future<void> _handleNotificationTap(NotificationRow n) async {
-    if (n.isUnread) {
-      try {
-        await ref.read(notificationServiceProvider).markRead(n.id);
-        if (mounted) {
-          ref.invalidate(unreadNotificationsProvider);
-          ref.invalidate(categorizedNotificationsProvider);
+    if (!_opening.add(n.id)) return;
+    try {
+      if (_targetsPost(n)) {
+        final postId = n.entityId;
+        if (postId == null || postId.isEmpty) {
+          _showUnavailable();
+          return;
         }
-      } catch (_) {
-        // Okundu işaretleme hatası gezinmeyi engellememeli
+        try {
+          final visible =
+              await ref.read(socialServiceProvider).canViewPost(postId);
+          if (!mounted) return;
+          if (!visible) {
+            _showUnavailable();
+            return;
+          }
+        } catch (error) {
+          if (!mounted) return;
+          _snack(friendlyErrorMessage(
+            error,
+            defaultMessage: 'İçerik kontrol edilemedi. Tekrar deneyin.',
+          ));
+          return;
+        }
+        await _markRead(n);
+        if (mounted) await showCommentsSheet(context, postId);
+        return;
       }
-    }
 
-    if (!mounted) return;
+      await _markRead(n);
+      if (!mounted) return;
 
-    final route = n.resultRoute ?? n.refereeRoute ?? n.liveMatchRoute;
-    if (route != null) {
-      Navigator.pushNamed(context, route);
-      return;
-    }
+      final route = notificationRouteFor(n);
+      if (route != null) {
+        await SwanNavigation.push(context, pushRouteOrNotifications(route));
+        return;
+      }
 
-    switch (n.kind) {
-      case 'follow':
-        if (n.actorId != null && n.actorId!.isNotEmpty) {
-          Navigator.pushNamed(context, '/profil', arguments: n.actorId);
-        }
-        break;
-      case 'message':
-        if (n.actorId != null && n.actorId!.isNotEmpty) {
-          Navigator.pushNamed(context, '/sohbet', arguments: {
-            'id': n.actorId,
-            'name': n.title.isNotEmpty ? n.title : 'Sohbet',
-          });
-        }
-        break;
-      case 'application':
-      case 'review':
-      case 'offer':
-        Navigator.pushNamed(context, '/basvurular');
-        break;
-      case 'like':
-      case 'comment':
-        if (n.entityType == 'post' &&
-            n.entityId != null &&
-            n.entityId!.isNotEmpty) {
-          showCommentsSheet(context, n.entityId!);
-        } else if (n.actorId != null && n.actorId!.isNotEmpty) {
-          Navigator.pushNamed(context, '/profil', arguments: n.actorId);
-        }
-        break;
-      case 'fee':
-      case 'fee_reminder':
-        Navigator.pushNamed(context, '/aidatlarim');
-        break;
-      case 'payment':
-        Navigator.pushNamed(context, '/finans');
-        break;
-      case 'donation':
-        Navigator.pushNamed(context, '/bagis');
-        break;
-      case 'training':
-      case 'training_session':
-        Navigator.pushNamed(context, '/antrenman-oturumu');
-        break;
-      case 'attendance':
-      case 'attendance_reminder':
-        Navigator.pushNamed(context, '/attendance');
-        break;
-      case 'event':
-        Navigator.pushNamed(context, '/calendar');
-        break;
-      case 'announcement':
-        Navigator.pushNamed(context, '/announcements');
-        break;
-      case 'document':
-      case 'documents':
-      case 'document_expiry':
-        Navigator.pushNamed(context, '/documents');
-        break;
-      case 'partner_request':
-      case 'partner_request_accepted':
-        Navigator.pushNamed(context, '/partner-ara');
-        break;
-      case 'turf_slot_request':
-      case 'turf_field':
-      case 'turf_manager':
-        Navigator.pushNamed(context, '/halisahalar');
-        break;
-      case 'store_decision':
-        Navigator.pushNamed(context, '/magaza-basvuru');
-        break;
-      case 'moderation':
-        Navigator.pushNamed(context, '/pazaryeri');
-        break;
-      default:
-        if (n.actorId != null && n.actorId!.isNotEmpty) {
-          Navigator.pushNamed(context, '/profil', arguments: n.actorId);
-        } else if (n.entityType == 'post' &&
-            n.entityId != null &&
-            n.entityId!.isNotEmpty) {
-          showCommentsSheet(context, n.entityId!);
-        }
-        break;
+      if (n.kind == 'follow' && (n.actorId?.isNotEmpty ?? false)) {
+        await SwanNavigation.push(context, '/profil', extra: n.actorId);
+        return;
+      }
+      if (n.kind == 'message' && (n.actorId?.isNotEmpty ?? false)) {
+        await SwanNavigation.push(context, '/sohbet', extra: {
+          'id': n.actorId,
+          'name': n.actorName ?? (n.title.isNotEmpty ? n.title : 'Sohbet'),
+        });
+        return;
+      }
+      if (n.actorId?.isNotEmpty ?? false) {
+        await SwanNavigation.push(context, '/profil', extra: n.actorId);
+        return;
+      }
+      _snack('Bu bildirim için açılabilir bir içerik bulunamadı.');
+    } finally {
+      _opening.remove(n.id);
     }
   }
 
+  Future<void> _markRead(NotificationRow notification) async {
+    if (!notification.isUnread) return;
+    try {
+      await ref.read(notificationServiceProvider).markRead(notification.id);
+      if (!mounted) return;
+      ref.invalidate(unreadNotificationsProvider);
+      ref.invalidate(categorizedNotificationsProvider);
+    } catch (_) {
+      if (mounted) {
+        _snack('Bildirim okundu olarak işaretlenemedi. Tekrar deneyin.');
+      }
+    }
+  }
+
+  bool _targetsPost(NotificationRow notification) =>
+      notification.entityType == 'post' &&
+      const {
+        'like',
+        'comment',
+        'mention',
+        'post_repost',
+        'post_quote',
+      }.contains(notification.kind);
+
+  void _showUnavailable() {
+    _snack('Bu içerik kaldırılmış veya artık erişimine açık değil.');
+  }
+
+  void _snack(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
   Widget _tile(SwanPalette c, NotificationRow n) {
-    return InkWell(
+    final category = _categoryLabel(n);
+    return Semantics(
+      button: true,
+      label: [
+        if (n.isUnread) 'Okunmamış bildirim',
+        n.title,
+        if ((n.body ?? '').trim().isNotEmpty) n.body!.trim(),
+        category,
+        shortAgo(n.createdAt),
+      ].join('. '),
+      child: InkWell(
         onTap: () => _handleNotificationTap(n),
         borderRadius: BorderRadius.circular(SwanRadius.md),
         child: Container(
           padding: const EdgeInsets.symmetric(
               horizontal: SwanSpace.sm, vertical: SwanSpace.md),
           decoration: BoxDecoration(
-            color: n.isUnread ? c.accentSoft : c.surface,
+            color: n.isUnread
+                ? c.surfaceAlt.withValues(alpha: 0.72)
+                : Colors.transparent,
             borderRadius: BorderRadius.circular(SwanRadius.md),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: n.isUnread ? c.surface : c.surfaceAlt,
-                  shape: BoxShape.circle,
+              if (_usesActorAvatar(n))
+                SocialAvatar(
+                  initials: n.actorInitials,
+                  imageUrl: n.actorAvatarUrl,
+                  size: 44,
+                  gradientIndex: n.actorId.hashCode.abs() % 5,
+                )
+              else
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: n.isUnread ? c.accentSoft : c.surfaceAlt,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    _iconFor(n),
+                    size: 20,
+                    color: n.isUnread ? c.accent : c.inkMuted,
+                  ),
                 ),
-                child: Icon(_iconFor(n),
-                    size: 19, color: n.isUnread ? c.accent : c.inkMuted),
-              ),
               const SizedBox(width: SwanSpace.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Expanded(
-                          child: Text(
-                            n.title,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: SwanType.bodySm(c.ink,
-                                w: n.isUnread
-                                    ? FontWeight.w800
-                                    : FontWeight.w600),
-                          ),
-                        ),
-                        const SizedBox(width: SwanSpace.sm),
-                        Text(shortAgo(n.createdAt),
-                            style: SwanType.caption(c.inkMuted)),
-                      ],
+                    Text(
+                      n.title,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.bodySm(
+                        c.ink,
+                        w: n.isUnread ? FontWeight.w800 : FontWeight.w600,
+                      ),
                     ),
-                    const SizedBox(height: 3),
+                    const SizedBox(height: SwanSpace.xs),
                     if ((n.body ?? '').trim().isNotEmpty)
                       Text(n.body!,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: SwanType.bodySm(c.inkMuted)),
+                    if ((n.body ?? '').trim().isNotEmpty)
+                      const SizedBox(height: SwanSpace.xs),
+                    Wrap(
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      spacing: SwanSpace.xs,
+                      runSpacing: 2,
+                      children: [
+                        if (n.isUnread)
+                          Text(
+                            'Yeni',
+                            style: SwanType.caption(
+                              c.accent,
+                              w: FontWeight.w800,
+                            ),
+                          ),
+                        if (n.isUnread)
+                          Text('•', style: SwanType.caption(c.inkMuted)),
+                        Text(category, style: SwanType.caption(c.inkMuted)),
+                        Text('•', style: SwanType.caption(c.inkMuted)),
+                        Text(
+                          shortAgo(n.createdAt),
+                          style: SwanType.caption(c.inkMuted),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
-              if (n.isUnread) ...[
-                const SizedBox(width: SwanSpace.sm),
-                Padding(
-                  padding: const EdgeInsets.only(top: SwanSpace.sm),
-                  child: Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                          color: c.accent, shape: BoxShape.circle)),
-                ),
-              ],
             ],
           ),
-        ));
+        ),
+      ),
+    );
   }
 
   Future<void> _openPrefs() async {

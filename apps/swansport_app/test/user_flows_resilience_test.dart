@@ -47,10 +47,11 @@ void main() {
       // onTap must not be null anymore
       expect(content.contains('onTap: route == null ? null :'), isFalse);
       expect(content.contains('_handleNotificationTap'), isTrue);
-      expect(content.contains("case 'follow':"), isTrue);
-      expect(content.contains("case 'message':"), isTrue);
       expect(content.contains("case 'application':"), isTrue);
-      expect(content.contains("case 'comment':"), isTrue);
+      expect(content.contains("n.kind == 'follow'"), isTrue);
+      expect(content.contains("n.kind == 'message'"), isTrue);
+      expect(content.contains("'comment',"), isTrue);
+      expect(content.contains('notificationRouteFor'), isTrue);
       expect(content.contains("markRead"), isTrue);
     });
   });
