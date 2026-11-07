@@ -29,15 +29,15 @@ void main() {
     expect(find.textContaining('Ayşe'), findsOneWidget);
     expect(find.textContaining('Merkez Kortu'), findsOneWidget);
     expect(find.text('İstek gönderildi'), findsOneWidget);
-    final platformError = tester.takeException();
-    expect(
-        platformError == null || _isUnavailableAppLinks(platformError), isTrue);
     await tester.runAsync(
       () => _capture(
         boundary,
         'build/design-review/partner-lobby-filled-current.png',
       ),
     );
+    final platformError = tester.takeException();
+    expect(
+        platformError == null || _isUnavailableAppLinks(platformError), isTrue);
   });
 
   testWidgets('aktif partner araması mobil görsel inceleme', (tester) async {
