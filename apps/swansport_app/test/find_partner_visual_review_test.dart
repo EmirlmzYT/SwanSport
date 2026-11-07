@@ -12,11 +12,20 @@ import 'package:swansport_app/features/courts/presentation/find_partner_screen.d
 import 'package:swansport_data/swansport_data.dart';
 
 void main() {
+  const appLinksEvents = MethodChannel('com.llfbandit.app_links/events');
+
   setUpAll(() async {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(appLinksEvents, (_) async => null);
     GoogleFonts.config.allowRuntimeFetching = false;
     await (FontLoader('MaterialIcons')
           ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
         .load();
+  });
+
+  tearDownAll(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(appLinksEvents, null);
   });
 
   testWidgets('dolu partner lobisi mobil görsel inceleme', (tester) async {
