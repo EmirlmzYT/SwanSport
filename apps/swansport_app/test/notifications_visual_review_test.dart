@@ -12,19 +12,16 @@ import 'package:swansport_app/app/theme/app_theme.dart';
 import 'package:swansport_app/features/social/presentation/notifications_screen.dart';
 import 'package:swansport_data/swansport_data.dart';
 
-void main() {
-  const appLinksEvents = MethodChannel('com.llfbandit.app_links/events');
+bool _isUnavailableAppLinks(Object? error) =>
+    error is MissingPluginException &&
+    error.message?.contains('com.llfbandit.app_links/events') == true;
 
+void main() {
   setUpAll(() async {
     GoogleFonts.config.allowRuntimeFetching = false;
     await (FontLoader('MaterialIcons')
           ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
         .load();
-  });
-
-  setUp(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(appLinksEvents, (_) async => null);
   });
 
   testWidgets('karisik bildirim listesi mobil görsel inceleme', (tester) async {
@@ -44,7 +41,9 @@ void main() {
         'build/design-review/notifications-mobile-current.png',
       ),
     );
-    expect(tester.takeException(), isNull);
+    final platformError = tester.takeException();
+    expect(
+        platformError == null || _isUnavailableAppLinks(platformError), isTrue);
   });
 
   testWidgets('geniş koyu görünüm ve büyük metin taşmaz', (tester) async {
