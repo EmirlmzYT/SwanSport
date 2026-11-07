@@ -15,17 +15,15 @@ void main() {
   const appLinksEvents = MethodChannel('com.llfbandit.app_links/events');
 
   setUpAll(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(appLinksEvents, (_) async => null);
     GoogleFonts.config.allowRuntimeFetching = false;
     await (FontLoader('MaterialIcons')
           ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf')))
         .load();
   });
 
-  tearDownAll(() {
+  setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(appLinksEvents, null);
+        .setMockMethodCallHandler(appLinksEvents, (_) async => null);
   });
 
   testWidgets('dolu partner lobisi mobil görsel inceleme', (tester) async {
