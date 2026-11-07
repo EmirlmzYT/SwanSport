@@ -193,7 +193,7 @@ void main() {
           host(const FindPartnerScreen(), access: access, courts: courts));
       await tester.pumpAndSettle();
       expect(find.text('Tenis daveti'), findsOneWidget);
-      await tester.tap(find.text('Oynayalım'));
+      await tester.tap(find.text('Oynamak istiyorum'));
       await tester.pumpAndSettle();
       expect(find.text(access.hasAccount ? phoneMessage : accountMessage),
           findsOneWidget);
@@ -208,7 +208,7 @@ void main() {
       await tester.pumpWidget(host(const FindPartnerScreen(),
           access: account(tier), courts: courts));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Oynayalım'));
+      await tester.tap(find.text('Oynamak istiyorum'));
       await tester.pumpAndSettle();
       expect(courts.writes, 1);
       expect(find.byType(SwanActionGateBottomSheet), findsNothing);
