@@ -32,7 +32,8 @@ test('document/workflow automation keys remain reachable and unchanged',async()=
 });
 test('common header preserves conditional back and subtitles; actions retain discovery labels',async()=>{
  const header=await read('apps/swansport_app/lib/app/widgets/swan_module_app_bar.dart');
- assert.match(header,/Navigator\.canPop\(context\)/);assert.match(header,/Navigator\.maybePop\(context\)/);
+ assert.match(header,/SwanBackNavigation\.shouldShow\(/);
+ assert.match(header,/SwanBackButton\(fallbackRoute: fallbackRoute\)/);
  assert.match(header,/SwanType\.caption\(c\.inkMuted\)/);
  assert.ok((await read(root+'courts/presentation/court_detail_screen.dart')).includes("title: 'Bekleme listem'"));
  const turf=await read(root+'turf/presentation/turf_field_detail_screen.dart');
