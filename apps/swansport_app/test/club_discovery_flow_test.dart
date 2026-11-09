@@ -15,6 +15,10 @@ import 'package:swansport_data/swansport_data.dart';
 
 const _clubId = 'club-meram';
 
+bool _isUnavailableAppLinks(Object? error) =>
+    error is MissingPluginException &&
+    error.message?.contains('com.llfbandit.app_links/events') == true;
+
 class _FailingApplications extends Fake implements ClubApplicationService {
   @override
   Future<void> apply(
@@ -130,6 +134,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Meram'), findsOneWidget);
     expect(find.text('Filtreler (1)'), findsOneWidget);
+    final platformError = tester.takeException();
+    expect(
+      platformError == null || _isUnavailableAppLinks(platformError),
+      isTrue,
+    );
   });
 
   testWidgets('başvuruya uygun kulüp profilinde üyelik ana eylemdir',
