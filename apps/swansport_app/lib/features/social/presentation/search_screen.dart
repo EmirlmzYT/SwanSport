@@ -1,5 +1,6 @@
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 import '../../../app/navigation/swan_navigation.dart';
 import 'dart:async';
 
@@ -152,12 +153,18 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   padding: const EdgeInsets.fromLTRB(16, 12, 16, 10),
                   child: Row(
                     children: [
-                      if (Navigator.canPop(context)) ...[
+                      if (SwanBackNavigation.shouldShow(
+                        context,
+                        fallbackRoute: AppRoutes.explore,
+                      )) ...[
                         IconButton(
                           tooltip: 'Geri dön',
                           icon: Icon(Icons.arrow_back_ios_new_rounded,
                               size: 18, color: ink),
-                          onPressed: () => Navigator.maybePop(context),
+                          onPressed: () => SwanBackNavigation.back(
+                            context,
+                            fallbackRoute: AppRoutes.explore,
+                          ),
                         ),
                         const SizedBox(width: 4),
                       ],

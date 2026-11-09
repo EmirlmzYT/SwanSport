@@ -32,6 +32,17 @@ class LegacyNavigationBridge extends StatelessWidget {
           key: navigatorKey,
           initialRoute: initialRoute,
           onGenerateRoute: onGenerateRoute,
+          // Navigator 1 normally expands `/a/b` into `/`, `/a`, `/a/b`.
+          // A branch bridge is already rooted by GoRouter, so those synthetic
+          // prefix routes create fake back history and can pop to a blank
+          // screen. Build exactly the requested legacy entry instead.
+          onGenerateInitialRoutes: (_, initialRouteName) {
+            final route = onGenerateRoute(
+              RouteSettings(name: initialRouteName),
+            );
+            assert(route != null, 'Unknown initial route: $initialRouteName');
+            return route == null ? const <Route<dynamic>>[] : [route];
+          },
           observers: observers,
         ),
       );

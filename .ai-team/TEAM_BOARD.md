@@ -1,5 +1,39 @@
 # SwanSport AI Team Board
 
+2026-11-09 Codex Writer: `apps/swansport_app` geri gezinme denetimi
+tamamlandı. GoRouter geliştirme kabuğu ile Navigator 1 production/Test
+Center yolları için ortak, rota ailesine duyarlı geri politikası eklendi;
+doğrudan bağlantıda güvenli üst hedef, normal girişte gerçek geçmiş ve
+PopScope/taslak koruması önceliği korundu. Özel profil, arama, mesaj, kulüp,
+sporcu, finans ve detay başlıkları ortak davranışa bağlandı; kulüp filtre
+paneline görünür `Vazgeç` eklendi. Güncel envanter 82 statik, 28 açık dinamik
+ve desen rotalarını; ayrıca 105 Screen/Page kaynak dosyasını kapsıyor. Odaklı
+gezinme testleri 65/65, tam uygulama 698/698 geçti; analyze 0 error/0 warning
+(mevcut 4534 info), mobil UI 24/24, push route ve diff kontrolleri geçti.
+Fiziksel Android hareketi ve gerçek web tarayıcı geçmişi UAT'si yapılmadı.
+Backend, env, deploy, commit ve push yapılmadı. Durum: `complete`; Writer:
+`free`.
+
+2026-11-09 Codex Writer: `apps/swansport_app` Keşfet -> Kulüpler -> kulüp
+profili -> üyelik başvurusu akışı tamamlandı. Kompakt filtre paneli ve geri
+dönüş durumu, sade kulüp satırı, üyelik/takip eylem hiyerarşisi, yüklemede
+fail-closed üyelik durumu, bekleyen/üye/reddedilen/hata halleri mevcut network,
+sosyal profil ve ClubApplicationService sözleşmeleriyle bağlandı. Fixture
+akışları 32/32, tam uygulama 693/693 geçti; analyze 0 error/0 warning (mevcut
+4535 info), mobil UI 24/24, push route ve diff kontrolleri geçti. Backend,
+migration, korunan env, canlı başvuru, deploy, commit ve push yapılmadı.
+Durum: `complete`; Writer: `free`.
+
+2026-11-09 Codex Writer: `apps/swansport_app` Sahalar ve Kortlar kullanıcı
+akışı tamamlandı. Birleşik listede tesis/kort ayrımı, fotoğraf fallback'i ve
+saat erişimi; kortta müsaitlik, çakışma yenilemesi, iptal ve kesin sonuç;
+halı sahada gün seçimi ile dürüst "Onay bekliyor" sonucu mevcut
+CourtService/TurfService sözleşmeleriyle bağlandı. Fixture görsel testleri
+5/5, ilgili regresyonlar 30/30 ve tam uygulama paketi 687/687 geçti; analyze
+0 error/0 warning (mevcut 4548 info), mobil UI 24/24, push route ve diff
+kontrolleri geçti. Backend, migration, korunan env, canlı bağlantı, deploy,
+commit ve push yapılmadı. Durum: `complete`; Writer: `free`.
+
 2026-10-27 Pro Faz 2 kaynak kabulü: Ortak operasyon paketi takım, kadro,
 yoklama, antrenman ve kulüp paneli dilimlerini iki hosta bağladı. SwanSport'ta
 sadeleşen mobil takım/antrenman/yoklama akışları tam sürümlerine geri alındı;

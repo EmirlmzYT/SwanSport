@@ -8,6 +8,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/shared_content_card.dart';
 import '../../../app/push/push_service.dart';
@@ -196,11 +197,11 @@ class _MessagesScreenState extends ConsumerState<MessagesScreen> {
   }
 
   Widget _buildHeader(SwanPalette c) => SwanFloatingHeader(
-        leading: Navigator.canPop(context)
+        leading: SwanBackNavigation.shouldShow(context)
             ? SwanHeaderIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
                 tooltip: 'Geri dön',
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => SwanBackNavigation.back(context),
               )
             : null,
         title: Text(

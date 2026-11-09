@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import '../navigation/swan_back_navigation.dart';
 import '../design/swan_palette.dart';
-import '../design/swan_shape.dart';
 import '../design/swan_type.dart';
 
 /// Partner Bul contract for secondary module screens. Main social surfaces
@@ -10,6 +10,7 @@ AppBar swanModuleAppBar(
   required String title,
   String? subtitle,
   List<Widget> actions = const [],
+  String? fallbackRoute,
 }) {
   final c = context.swan;
   return AppBar(
@@ -18,13 +19,11 @@ AppBar swanModuleAppBar(
     scrolledUnderElevation: 0,
     centerTitle: false,
     automaticallyImplyLeading: false,
-    leading: Navigator.canPop(context)
-        ? IconButton(
-            tooltip: 'Geri dön',
-            icon: Icon(Icons.arrow_back_ios_new_rounded,
-                size: SwanSpace.lg + SwanSpace.xs, color: c.ink),
-            onPressed: () => Navigator.maybePop(context),
-          )
+    leading: SwanBackNavigation.shouldShow(
+      context,
+      fallbackRoute: fallbackRoute,
+    )
+        ? SwanBackButton(fallbackRoute: fallbackRoute)
         : null,
     title: subtitle == null
         ? Text(title,

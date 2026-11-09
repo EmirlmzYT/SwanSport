@@ -69,18 +69,9 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 const SizedBox(height: 14),
 
                 // Search & Filter Section for Registered Clubs
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      'Tüm Kayıtlı Kulüpler',
-                      style: SwanType.bodySm(ink, w: FontWeight.w800),
-                    ),
-                    Text(
-                      'Veritabanı',
-                      style: SwanType.caption(kTeal, w: FontWeight.w700),
-                    ),
-                  ],
+                Text(
+                  'Kulüpleri keşfet',
+                  style: SwanType.bodySm(ink, w: FontWeight.w800),
                 ),
                 const SizedBox(height: 10),
 
@@ -104,7 +95,7 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                 ),
                 const SizedBox(height: 10),
 
-                _filterBar(isDark, ink),
+                _filterBar(isDark, ink, line),
                 const SizedBox(height: 12),
 
                 async.when(
@@ -130,9 +121,19 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                                   size: 36, color: SwanColors.textSecondary),
                               const SizedBox(height: 8),
                               Text(
-                                'Filtreye uygun kulüp bulunamadı',
+                                _filter.isEmpty
+                                    ? 'Henüz keşfedilecek kulüp yok'
+                                    : 'Filtrelere uygun kulüp bulunamadı',
                                 style: SwanType.bodySm(ink, w: FontWeight.w700),
                               ),
+                              if (!_filter.isEmpty) ...[
+                                const SizedBox(height: 8),
+                                TextButton.icon(
+                                  onPressed: _clearFilters,
+                                  icon: const Icon(Icons.close_rounded),
+                                  label: const Text('Filtreleri temizle'),
+                                ),
+                              ],
                             ],
                           ),
                         )
@@ -151,139 +152,185 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
     );
   }
 
-  Widget _filterBar(bool isDark, Color ink) {
+  Widget _filterBar(bool isDark, Color ink, Color line) {
     final opts = ref.watch(filterOptionsProvider).valueOrNull ?? const [];
     final sports = opts.where((o) => o.kind == 'sport').toList();
+    final sportLabel = sports
+            .where((option) => option.code == _filter.sport)
+            .map((option) => option.label)
+            .firstOrNull ??
+        'Branş';
+    final activeCount = (_filter.city.isNotEmpty ? 1 : 0) +
+        (_filter.sport.isNotEmpty ? 1 : 0) +
+        (_filter.verifiedOnly ? 1 : 0);
 
-    Widget chip(String label, bool active, VoidCallback onTap,
-        {IconData? icon}) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.only(right: 8),
-          padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
-          decoration: BoxDecoration(
-            color: active
-                ? kTeal
-                : (isDark ? SwanPalette.dark.surfaceAlt : Colors.white),
-            borderRadius: BorderRadius.circular(11),
-            border: Border.all(
-                color: active
-                    ? kTeal
-                    : (isDark
-                        ? SwanPalette.dark.line
-                        : SwanPalette.light.line)),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        OutlinedButton.icon(
+          onPressed: () => _showFilters(sports),
+          icon: const Icon(Icons.tune_rounded),
+          label:
+              Text(activeCount == 0 ? 'Filtreler' : 'Filtreler ($activeCount)'),
+          style: OutlinedButton.styleFrom(
+            foregroundColor: ink,
+            side: BorderSide(color: line),
+            minimumSize: const Size(0, 44),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            if (icon != null) ...[
-              Icon(icon, size: 13, color: active ? Colors.white : ink),
-              const SizedBox(width: 5),
-            ],
-            Text(label,
-                style: SwanType.caption(active ? Colors.white : ink,
-                    w: FontWeight.w700)),
-          ]),
         ),
-      );
-    }
-
-    return SizedBox(
-      height: 38,
-      child: ListView(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 20),
-        children: [
-          chip(
-            _filter.city.isEmpty ? 'Şehir' : _filter.city,
-            _filter.city.isNotEmpty,
-            () async {
-              final picked = await showSwanCityPicker(
-                context,
-                selectedCity: _filter.city,
-              );
-              if (picked != null) {
-                setState(() => _filter = _filter.copyWith(city: picked.name));
-              }
-            },
-            icon: Icons.location_on_rounded,
+        if (activeCount > 0) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              if (_filter.city.isNotEmpty)
+                InputChip(
+                  label: Text(_filter.city),
+                  onDeleted: () => setState(
+                    () => _filter = _filter.copyWith(city: ''),
+                  ),
+                ),
+              if (_filter.sport.isNotEmpty)
+                InputChip(
+                  label: Text(sportLabel),
+                  onDeleted: () => setState(
+                    () => _filter = _filter.copyWith(sport: ''),
+                  ),
+                ),
+              if (_filter.verifiedOnly)
+                InputChip(
+                  label: const Text('Doğrulanmış'),
+                  onDeleted: () => setState(
+                    () => _filter = _filter.copyWith(verifiedOnly: false),
+                  ),
+                ),
+              TextButton(
+                onPressed: _clearFilters,
+                child: const Text('Temizle'),
+              ),
+            ],
           ),
-          chip(
-            _filter.sport.isEmpty
-                ? 'Branş'
-                : (sports
-                        .where((s) => s.code == _filter.sport)
-                        .map((s) => s.label)
-                        .firstOrNull ??
-                    'Branş'),
-            _filter.sport.isNotEmpty,
-            () => _pick('Branş', sports, _filter.sport,
-                (v) => setState(() => _filter = _filter.copyWith(sport: v))),
-            icon: Icons.sports_volleyball_rounded,
-          ),
-          chip(
-              'Doğrulanmış',
-              _filter.verifiedOnly,
-              () => setState(() => _filter =
-                  _filter.copyWith(verifiedOnly: !_filter.verifiedOnly)),
-              icon: Icons.verified_rounded),
-          if (!_filter.isEmpty)
-            chip('Temizle', false, () {
-              _search.clear();
-              setState(() => _filter = const DiscoverFilter());
-            }, icon: Icons.close_rounded),
         ],
-      ),
+      ],
     );
   }
 
-  Future<void> _pick(String title, List<FilterOption> options, String current,
-      ValueChanged<String> onPick) async {
-    if (options.isEmpty) return;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+  void _clearFilters() {
+    _search.clear();
+    setState(() => _filter = const DiscoverFilter());
+  }
 
-    final picked = await showModalBottomSheet<String>(
+  Future<void> _showFilters(List<FilterOption> sports) async {
+    var draft = _filter;
+    final selected = await showModalBottomSheet<DiscoverFilter>(
       context: context,
-      backgroundColor: Colors.transparent,
+      showDragHandle: true,
       isScrollControlled: true,
-      builder: (ctx) => Container(
-        height: MediaQuery.of(ctx).size.height * 0.7,
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-        child: Column(children: [
-          Text(title, style: SwanType.h3(ink)),
-          const SizedBox(height: 10),
-          Expanded(
-            child: ListView(children: [
-              ListTile(
-                title: Text('Hepsi',
-                    style: SwanType.bodySm(ink, w: FontWeight.w600)),
-                trailing: current.isEmpty
-                    ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
-                    : null,
-                onTap: () => Navigator.pop(ctx, ''),
-              ),
-              for (final o in options)
-                ListTile(
-                  title: Text(o.label,
-                      style: SwanType.bodySm(ink, w: FontWeight.w600)),
-                  subtitle: Text('${o.count} kulüp',
-                      style: SwanType.caption(SwanColors.textSecondary)),
-                  trailing: o.code == current
-                      ? const Icon(Icons.check_rounded, color: kTeal, size: 19)
-                      : null,
-                  onTap: () => Navigator.pop(ctx, o.code),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (context, setSheetState) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 4, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Kulüpleri filtrele',
+                        style: SwanType.h2(context.swan.ink),
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(sheetContext),
+                      child: const Text('Vazgeç'),
+                    ),
+                  ],
                 ),
-            ]),
+                const SizedBox(height: 16),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.location_on_outlined),
+                  title: const Text('Konum'),
+                  subtitle:
+                      Text(draft.city.isEmpty ? 'Tüm şehirler' : draft.city),
+                  trailing: const Icon(Icons.chevron_right_rounded),
+                  onTap: () async {
+                    final picked = await showSwanCityPicker(
+                      context,
+                      selectedCity: draft.city,
+                    );
+                    if (picked != null) {
+                      setSheetState(
+                        () => draft = draft.copyWith(city: picked.name),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                Text('Branş',
+                    style:
+                        SwanType.bodySm(context.swan.ink, w: FontWeight.w700)),
+                const SizedBox(height: 8),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 220),
+                  child: SingleChildScrollView(
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        ChoiceChip(
+                          label: const Text('Tümü'),
+                          selected: draft.sport.isEmpty,
+                          onSelected: (_) => setSheetState(
+                            () => draft = draft.copyWith(sport: ''),
+                          ),
+                        ),
+                        for (final sport in sports)
+                          ChoiceChip(
+                            label: Text(sport.label),
+                            selected: draft.sport == sport.code,
+                            onSelected: (_) => setSheetState(
+                              () => draft = draft.copyWith(sport: sport.code),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                SwitchListTile.adaptive(
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Yalnızca doğrulanmış kulüpler'),
+                  value: draft.verifiedOnly,
+                  onChanged: (value) => setSheetState(
+                    () => draft = draft.copyWith(verifiedOnly: value),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    TextButton(
+                      onPressed: () => setSheetState(
+                        () => draft = DiscoverFilter(query: draft.query),
+                      ),
+                      child: const Text('Temizle'),
+                    ),
+                    const Spacer(),
+                    FilledButton(
+                      onPressed: () => Navigator.pop(sheetContext, draft),
+                      child: const Text('Sonuçları göster'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ]),
+        ),
       ),
     );
-    if (picked != null) onPick(picked);
+    if (selected != null && mounted) setState(() => _filter = selected);
   }
 
   Widget _card(bool isDark, Color ink, DiscoveredClub c) {
@@ -335,9 +382,6 @@ class _DiscoverScreenState extends ConsumerState<DiscoverScreen> {
                     overflow: TextOverflow.ellipsis,
                     style: SwanType.caption(SwanColors.textSecondary,
                         w: FontWeight.w600)),
-                const SizedBox(height: 3),
-                Text('${c.athleteCount} sporcu · ${c.coachCount} antrenör',
-                    style: SwanType.caption(SwanColors.textSecondary)),
               ],
             ),
           ),

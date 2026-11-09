@@ -5,6 +5,7 @@ import '../design/swan_shape.dart';
 import '../design/swan_palette.dart';
 
 import '../design/swan_chrome.dart';
+import '../navigation/swan_back_navigation.dart';
 import 'scroll_chrome.dart';
 import 'swan_bottom_nav.dart';
 
@@ -38,6 +39,7 @@ class SwanScaffold extends StatefulWidget {
       this.drawerEdgeDragWidth,
       this.drawerEnableOpenDragGesture = true,
       this.endDrawerEnableOpenDragGesture = true,
+      this.backFallbackRoute,
       this.restorationId});
 
   final PreferredSizeWidget? appBar;
@@ -69,6 +71,7 @@ class SwanScaffold extends StatefulWidget {
   final DragStartBehavior drawerDragStartBehavior;
   final double? drawerEdgeDragWidth;
   final String? restorationId;
+  final String? backFallbackRoute;
 
   @override
   State<SwanScaffold> createState() => _SwanScaffoldState();
@@ -90,138 +93,153 @@ class _SwanScaffoldState extends State<SwanScaffold> {
   }
 
   @override
-  Widget build(BuildContext context) => ScrollChromeScope(
-        controller: _chrome,
-        child: Builder(builder: (context) {
-          final chrome = ScrollChromeScope.maybeOf(context)!;
-          final reducedMotion = MediaQuery.disableAnimationsOf(context);
-          final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
-          final hidden = chrome.compact && !reducedMotion && !keyboard;
-          final bar = widget.appBar ??
-              (widget.header == null
-                  ? null
-                  : PreferredSize(
-                      preferredSize: Size.fromHeight(_headerHeight),
-                      child: _MeasuredHeader(
-                          onHeight: _measureHeader, child: widget.header!),
-                    ));
-          final preferredHeight = bar is AppBar
-              ? AppBar.preferredHeightFor(context, bar.preferredSize)
-              : bar?.preferredSize.height ?? 0;
-          // The full-height hit/viewport reservation is stable while the capsule
-          // animates, so list extent and forms cannot jump under the user's finger.
-          final bottom = widget.bottomNavigationBar;
-          final underlap = widget.scrollUnderHeader && bar != null;
-          final topInset =
-              widget.primary ? MediaQuery.paddingOf(context).top : 0.0;
-          return TweenAnimationBuilder<double>(
-            tween: Tween(
-                end: underlap
-                    ? 1
-                    : hidden
-                        ? 0
-                        : 1),
-            duration:
-                underlap || reducedMotion ? Duration.zero : SwanChrome.duration,
-            curve: Curves.easeOutCubic,
-            builder: (context, reveal, _) => Scaffold(
-              appBar: bar == null
-                  ? null
-                  : PreferredSize(
-                      preferredSize: Size.fromHeight(preferredHeight * reveal),
-                      child: SizedBox(
-                        height: preferredHeight * reveal +
+  Widget build(BuildContext context) {
+    final content = ScrollChromeScope(
+      controller: _chrome,
+      child: Builder(builder: (context) {
+        final chrome = ScrollChromeScope.maybeOf(context)!;
+        final reducedMotion = MediaQuery.disableAnimationsOf(context);
+        final keyboard = MediaQuery.viewInsetsOf(context).bottom > 0;
+        final hidden = chrome.compact && !reducedMotion && !keyboard;
+        final bar = widget.appBar ??
+            (widget.header == null
+                ? null
+                : PreferredSize(
+                    preferredSize: Size.fromHeight(_headerHeight),
+                    child: _MeasuredHeader(
+                        onHeight: _measureHeader, child: widget.header!),
+                  ));
+        final preferredHeight = bar is AppBar
+            ? AppBar.preferredHeightFor(context, bar.preferredSize)
+            : bar?.preferredSize.height ?? 0;
+        // The full-height hit/viewport reservation is stable while the capsule
+        // animates, so list extent and forms cannot jump under the user's finger.
+        final bottom = widget.bottomNavigationBar;
+        final underlap = widget.scrollUnderHeader && bar != null;
+        final topInset =
+            widget.primary ? MediaQuery.paddingOf(context).top : 0.0;
+        return TweenAnimationBuilder<double>(
+          tween: Tween(
+              end: underlap
+                  ? 1
+                  : hidden
+                      ? 0
+                      : 1),
+          duration:
+              underlap || reducedMotion ? Duration.zero : SwanChrome.duration,
+          curve: Curves.easeOutCubic,
+          builder: (context, reveal, _) => Scaffold(
+            appBar: bar == null
+                ? null
+                : PreferredSize(
+                    preferredSize: Size.fromHeight(preferredHeight * reveal),
+                    child: SizedBox(
+                      height: preferredHeight * reveal +
+                          (widget.primary
+                              ? MediaQuery.paddingOf(context).top
+                              : 0),
+                      child: ClipRect(
+                          child: OverflowBox(
+                        alignment: Alignment.topCenter,
+                        minHeight: preferredHeight +
                             (widget.primary
                                 ? MediaQuery.paddingOf(context).top
                                 : 0),
-                        child: ClipRect(
-                            child: OverflowBox(
-                          alignment: Alignment.topCenter,
-                          minHeight: preferredHeight +
-                              (widget.primary
-                                  ? MediaQuery.paddingOf(context).top
-                                  : 0),
-                          maxHeight: preferredHeight +
-                              (widget.primary
-                                  ? MediaQuery.paddingOf(context).top
-                                  : 0),
-                          child: IgnorePointer(
-                              ignoring: hidden,
-                              child: ExcludeSemantics(
-                                  excluding: hidden,
-                                  child: underlap
-                                      ? TweenAnimationBuilder<double>(
-                                          tween: Tween(end: hidden ? 0 : 1),
-                                          duration: reducedMotion
-                                              ? Duration.zero
-                                              : SwanChrome.duration,
-                                          curve: Curves.easeOutCubic,
-                                          child: _glassAppBar(bar),
-                                          builder: (_, visible, child) =>
-                                              Transform.translate(
-                                            offset: Offset(
-                                                0,
-                                                -(preferredHeight + topInset) *
-                                                    (1 - visible)),
-                                            child: child,
-                                          ),
-                                        )
-                                      : Transform.translate(
-                                          offset: Offset(0,
-                                              -preferredHeight * (1 - reveal)),
-                                          child: _glassAppBar(bar),
-                                        ))),
-                        )),
-                      ),
+                        maxHeight: preferredHeight +
+                            (widget.primary
+                                ? MediaQuery.paddingOf(context).top
+                                : 0),
+                        child: IgnorePointer(
+                            ignoring: hidden,
+                            child: ExcludeSemantics(
+                                excluding: hidden,
+                                child: underlap
+                                    ? TweenAnimationBuilder<double>(
+                                        tween: Tween(end: hidden ? 0 : 1),
+                                        duration: reducedMotion
+                                            ? Duration.zero
+                                            : SwanChrome.duration,
+                                        curve: Curves.easeOutCubic,
+                                        child: _glassAppBar(bar),
+                                        builder: (_, visible, child) =>
+                                            Transform.translate(
+                                          offset: Offset(
+                                              0,
+                                              -(preferredHeight + topInset) *
+                                                  (1 - visible)),
+                                          child: child,
+                                        ),
+                                      )
+                                    : Transform.translate(
+                                        offset: Offset(
+                                            0, -preferredHeight * (1 - reveal)),
+                                        child: _glassAppBar(bar),
+                                      ))),
+                      )),
                     ),
-              body: NotificationListener<ScrollNotification>(
-                  onNotification: _chrome.onScroll,
-                  child: _HeaderInset(
-                    extent: underlap ? preferredHeight + topInset : 0,
-                    child: underlap
-                        ? MediaQuery.removePadding(
-                            context: context,
-                            removeTop: true,
-                            child: widget.body ?? const SizedBox.shrink())
-                        : widget.body ?? const SizedBox.shrink(),
-                  )),
-              bottomNavigationBar: bottom is SwanBottomNav
-                  ? keyboard
-                      ? null
-                      : SizedBox(
-                          height: SwanChrome.expandedHeight +
-                              SwanChrome.bottomGap +
-                              SwanSpace.xs +
-                              MediaQuery.paddingOf(context).bottom,
-                          child: Align(
-                              alignment: Alignment.bottomCenter, child: bottom))
-                  : bottom,
-              backgroundColor: widget.backgroundColor,
-              floatingActionButton: widget.floatingActionButton,
-              floatingActionButtonLocation: widget.floatingActionButtonLocation,
-              floatingActionButtonAnimator: widget.floatingActionButtonAnimator,
-              persistentFooterButtons: widget.persistentFooterButtons,
-              persistentFooterAlignment: widget.persistentFooterAlignment,
-              drawer: widget.drawer,
-              onDrawerChanged: widget.onDrawerChanged,
-              endDrawer: widget.endDrawer,
-              onEndDrawerChanged: widget.onEndDrawerChanged,
-              bottomSheet: widget.bottomSheet,
-              resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
-              primary: widget.primary,
-              drawerDragStartBehavior: widget.drawerDragStartBehavior,
-              extendBody: widget.extendBody,
-              extendBodyBehindAppBar: underlap || widget.extendBodyBehindAppBar,
-              drawerScrimColor: widget.drawerScrimColor,
-              drawerEdgeDragWidth: widget.drawerEdgeDragWidth,
-              drawerEnableOpenDragGesture: widget.drawerEnableOpenDragGesture,
-              endDrawerEnableOpenDragGesture:
-                  widget.endDrawerEnableOpenDragGesture,
-              restorationId: widget.restorationId,
-            ),
-          );
-        }),
-      );
+                  ),
+            body: NotificationListener<ScrollNotification>(
+                onNotification: _chrome.onScroll,
+                child: _HeaderInset(
+                  extent: underlap ? preferredHeight + topInset : 0,
+                  child: underlap
+                      ? MediaQuery.removePadding(
+                          context: context,
+                          removeTop: true,
+                          child: widget.body ?? const SizedBox.shrink())
+                      : widget.body ?? const SizedBox.shrink(),
+                )),
+            bottomNavigationBar: bottom is SwanBottomNav
+                ? keyboard
+                    ? null
+                    : SizedBox(
+                        height: SwanChrome.expandedHeight +
+                            SwanChrome.bottomGap +
+                            SwanSpace.xs +
+                            MediaQuery.paddingOf(context).bottom,
+                        child: Align(
+                            alignment: Alignment.bottomCenter, child: bottom))
+                : bottom,
+            backgroundColor: widget.backgroundColor,
+            floatingActionButton: widget.floatingActionButton,
+            floatingActionButtonLocation: widget.floatingActionButtonLocation,
+            floatingActionButtonAnimator: widget.floatingActionButtonAnimator,
+            persistentFooterButtons: widget.persistentFooterButtons,
+            persistentFooterAlignment: widget.persistentFooterAlignment,
+            drawer: widget.drawer,
+            onDrawerChanged: widget.onDrawerChanged,
+            endDrawer: widget.endDrawer,
+            onEndDrawerChanged: widget.onEndDrawerChanged,
+            bottomSheet: widget.bottomSheet,
+            resizeToAvoidBottomInset: widget.resizeToAvoidBottomInset,
+            primary: widget.primary,
+            drawerDragStartBehavior: widget.drawerDragStartBehavior,
+            extendBody: widget.extendBody,
+            extendBodyBehindAppBar: underlap || widget.extendBodyBehindAppBar,
+            drawerScrimColor: widget.drawerScrimColor,
+            drawerEdgeDragWidth: widget.drawerEdgeDragWidth,
+            drawerEnableOpenDragGesture: widget.drawerEnableOpenDragGesture,
+            endDrawerEnableOpenDragGesture:
+                widget.endDrawerEnableOpenDragGesture,
+            restorationId: widget.restorationId,
+          ),
+        );
+      }),
+    );
+    final fallback = widget.backFallbackRoute;
+    if (fallback == null) return content;
+    return PopScope(
+      canPop: SwanBackNavigation.canPop(context),
+      onPopInvokedWithResult: (didPop, _) {
+        // A nested form/dialog may have vetoed the pop. In that case history
+        // still exists and its data-loss guard remains authoritative.
+        if (!didPop && !SwanBackNavigation.canPop(context)) {
+          SwanBackNavigation.back(context, fallbackRoute: fallback);
+        }
+      },
+      child: content,
+    );
+  }
 
   Widget _glassAppBar(PreferredSizeWidget bar) {
     if (bar is! AppBar)

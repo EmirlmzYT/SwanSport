@@ -4,6 +4,8 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 import '../../../app/widgets/action_gate.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_scaffold.dart';
@@ -213,7 +215,10 @@ class _CommunityChatScreenState extends ConsumerState<CommunityChatScreen> {
             border: Border(bottom: BorderSide(color: c.line))),
         child: Row(children: [
           IconButton(
-              onPressed: () => Navigator.maybePop(context),
+              onPressed: () => SwanBackNavigation.back(
+                    context,
+                    fallbackRoute: AppRoutes.messages,
+                  ),
               icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
               tooltip: 'Geri'),
           CircleAvatar(

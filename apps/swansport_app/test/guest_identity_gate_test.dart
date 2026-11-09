@@ -140,13 +140,13 @@ void main() {
         const Scaffold(body: ClubApplyButton(clubId: 'club', clubName: 'Club')),
         access: account));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Kulübe Başvur'));
+    await tester.tap(find.text('Üyelik başvurusu yap'));
     await tester.pumpAndSettle();
     expect(
         find.text(
             'Resmi kulüp kadrosuna katılmak için kimlik/lisans doğrulamanız gerekmektedir'),
         findsOneWidget);
-    expect(find.text('Başvuruyu Gönder'), findsNothing);
+    expect(find.text('Başvuruyu gönder'), findsNothing);
     await tester.tap(find.text('Kimlik ve belge yükle'));
     await tester.pumpAndSettle();
     expect(find.text('CREDENTIAL TARGET'), findsOneWidget);
@@ -158,11 +158,11 @@ void main() {
         const Scaffold(body: ClubApplyButton(clubId: 'club', clubName: 'Club')),
         access: verified));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Kulübe Başvur'));
+    await tester.tap(find.text('Üyelik başvurusu yap'));
     await tester.pumpAndSettle();
     expect(find.text('Sporcu'), findsOneWidget);
     expect(find.text('Antrenör'), findsOneWidget);
-    expect(find.text('Başvuruyu Gönder'), findsOneWidget);
+    expect(find.text('Başvuruyu gönder'), findsOneWidget);
   });
 
   testWidgets(

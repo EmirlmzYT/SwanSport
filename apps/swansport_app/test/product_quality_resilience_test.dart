@@ -202,7 +202,7 @@ void main() {
       await tester.tap(find.text('Tekrar Dene'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Filtreye uygun kulüp bulunamadı'), findsOneWidget);
+      expect(find.text('Henüz keşfedilecek kulüp yok'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

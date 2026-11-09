@@ -11,6 +11,8 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_picker_sheet.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -74,11 +76,18 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Widget _profileTopBar(SocialProfile p, Color ink) => SwanFloatingHeader(
-        leading: Navigator.canPop(context)
+        leading: SwanBackNavigation.shouldShow(
+          context,
+          fallbackRoute: widget.isClub ? AppRoutes.clubs : AppRoutes.explore,
+        )
             ? SwanHeaderIconButton(
                 icon: Icons.arrow_back_ios_new_rounded,
                 tooltip: 'Geri dön',
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => SwanBackNavigation.back(
+                  context,
+                  fallbackRoute:
+                      widget.isClub ? AppRoutes.clubs : AppRoutes.explore,
+                ),
               )
             : null,
         title: Row(
@@ -229,11 +238,20 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         preferredSize: const Size.fromHeight(SwanChrome.headerHeight),
         child: async.valueOrNull == null
             ? SwanFloatingHeader(
-                leading: Navigator.canPop(context)
+                leading: SwanBackNavigation.shouldShow(
+                  context,
+                  fallbackRoute:
+                      widget.isClub ? AppRoutes.clubs : AppRoutes.explore,
+                )
                     ? SwanHeaderIconButton(
                         icon: Icons.arrow_back_ios_new_rounded,
                         tooltip: 'Geri dön',
-                        onPressed: () => Navigator.maybePop(context),
+                        onPressed: () => SwanBackNavigation.back(
+                          context,
+                          fallbackRoute: widget.isClub
+                              ? AppRoutes.clubs
+                              : AppRoutes.explore,
+                        ),
                       )
                     : null,
                 title: Text('Profil', style: SwanType.h3(ink)),
@@ -1361,8 +1379,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       final isClubAdmin = myClub?.id == p.id && myClub?.role == 'club_admin';
       return Column(
         children: [
-          _FollowButton(profile: p, isClub: true),
-          const SizedBox(height: 10),
           if (isClubAdmin)
             GestureDetector(
               onTap: () => _editClub(context, ref, p),
@@ -1397,6 +1413,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             )
           else
             ClubApplyButton(clubId: p.id, clubName: p.name),
+          const SizedBox(height: 10),
+          _FollowButton(profile: p, isClub: true, secondary: true),
         ],
       );
     }
@@ -1546,9 +1564,14 @@ class _CoachCredentialTile extends StatelessWidget {
 }
 
 class _FollowButton extends ConsumerStatefulWidget {
-  const _FollowButton({required this.profile, required this.isClub});
+  const _FollowButton({
+    required this.profile,
+    required this.isClub,
+    this.secondary = false,
+  });
   final SocialProfile profile;
   final bool isClub;
+  final bool secondary;
 
   @override
   ConsumerState<_FollowButton> createState() => _FollowButtonState();
@@ -1598,7 +1621,7 @@ class _FollowButtonState extends ConsumerState<_FollowButton> {
       button: true,
       selected: _following,
       label: _busy ? '$label, işlem sürüyor' : label,
-      child: _following
+      child: _following || widget.secondary
           ? OutlinedButton.icon(
               onPressed: _busy ? null : _toggle,
               icon: _busy

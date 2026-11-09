@@ -28,6 +28,7 @@ class TurfFieldDetailScreen extends ConsumerStatefulWidget {
 
 class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
   bool _busy = false;
+  String? _selectedDayKey;
 
   TurfField get _field => widget.field;
 
@@ -49,7 +50,11 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
               '${_field.venueName} · ${_field.opensAt}–${_field.closesAt}'),
       body: async.when(
         loading: premiumLoading,
-        error: (e, _) => premiumError(context, '$e'),
+        error: (e, _) => premiumError(
+          context,
+          'Müsaitlik bilgisi yüklenemedi.',
+          onRetry: () => ref.invalidate(turfOccupancyGridProvider(_field.id)),
+        ),
         data: (slots) {
           final byDay = <String, List<TurfSlot>>{};
           for (final s in slots) {
@@ -57,6 +62,12 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                 '${s.startsAt.year}-${s.startsAt.month}-${s.startsAt.day}';
             byDay.putIfAbsent(key, () => []).add(s);
           }
+          final selectedKey = byDay.containsKey(_selectedDayKey)
+              ? _selectedDayKey
+              : (byDay.isEmpty ? null : byDay.keys.first);
+          final selectedSlots = selectedKey == null
+              ? const <TurfSlot>[]
+              : byDay[selectedKey] ?? const <TurfSlot>[];
 
           return RefreshIndicator(
             onRefresh: () async =>
@@ -70,9 +81,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                     photoUrls: _field.photoUrls,
                     lat: _field.lat,
                     lng: _field.lng),
-                if (slots.isEmpty)
-                  Text('Bu saha için müsait saat bulunmuyor.',
-                      style: SwanType.bodySm(ink)),
+                if (_busy) const LinearProgressIndicator(minHeight: 2),
                 if (isManager) _managerBanner(isDark, ink),
                 Wrap(
                     spacing: SwanSpace.sm,
@@ -108,18 +117,49 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
                           label: const Text('Görev devret'),
                         ),
                     ]),
-                for (final day in byDay.entries) ...[
-                  _dayHeader(ink, day.value.first.startsAt),
-                  const SizedBox(height: 8),
+                const SizedBox(height: SwanSpace.md),
+                Text('Gün ve saat seç', style: SwanType.h3(ink)),
+                const SizedBox(height: SwanSpace.xs),
+                Text(
+                  isManager
+                      ? 'Bir saate dokunarak doluluk durumunu yönetebilirsin.'
+                      : 'Müsait bir saat seçerek saha yöneticisine istek gönder.',
+                  style: SwanType.caption(context.swan.inkMuted),
+                ),
+                const SizedBox(height: SwanSpace.md),
+                if (byDay.isNotEmpty)
+                  SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(children: [
+                      for (final day in byDay.entries)
+                        Padding(
+                          padding: const EdgeInsets.only(right: SwanSpace.sm),
+                          child: ChoiceChip(
+                            label: Text(_shortDay(day.value.first.startsAt)),
+                            selected: selectedKey == day.key,
+                            onSelected: (_) =>
+                                setState(() => _selectedDayKey = day.key),
+                          ),
+                        ),
+                    ]),
+                  ),
+                const SizedBox(height: SwanSpace.md),
+                _legend(ink),
+                const SizedBox(height: SwanSpace.md),
+                if (selectedSlots.isEmpty)
+                  _emptyAvailability(ink)
+                else ...[
+                  _dayHeader(ink, selectedSlots.first.startsAt),
+                  const SizedBox(height: SwanSpace.sm),
                   Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+                    spacing: SwanSpace.sm,
+                    runSpacing: SwanSpace.sm,
                     children: [
-                      for (final s in day.value)
+                      for (final s in selectedSlots)
                         _cell(isDark, ink, s, isManager),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  const SizedBox(height: SwanSpace.lg),
                 ],
                 if (_field.phone != null && _field.phone!.isNotEmpty)
                   Text(
@@ -182,6 +222,55 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
     return Text(label, style: SwanType.bodySm(ink, w: FontWeight.w800));
   }
 
+  String _shortDay(DateTime day) {
+    const days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+    return '${days[day.weekday - 1]} ${day.day.toString().padLeft(2, '0')}.${day.month.toString().padLeft(2, '0')}';
+  }
+
+  Widget _legend(Color ink) => Wrap(
+        spacing: SwanSpace.md,
+        runSpacing: SwanSpace.xs,
+        children: [
+          _legendItem(const Color(0xFF3FB950), 'Müsait', ink),
+          _legendItem(const Color(0xFFD64545), 'Dolu', ink),
+          _legendItem(SwanPalette.light.warning, 'İstek gönderildi', ink),
+        ],
+      );
+
+  Widget _legendItem(Color color, String label, Color ink) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, size: 9, color: color),
+          const SizedBox(width: SwanSpace.xs),
+          Text(label, style: SwanType.caption(ink, w: FontWeight.w700)),
+        ],
+      );
+
+  Widget _emptyAvailability(Color ink) => Container(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        decoration: BoxDecoration(
+          color: context.swan.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.swan.line),
+        ),
+        child: Column(children: [
+          Icon(Icons.event_busy_outlined, color: context.swan.inkMuted),
+          const SizedBox(height: SwanSpace.sm),
+          Text('Bu gün için saat bulunmuyor',
+              style: SwanType.bodySm(ink, w: FontWeight.w800)),
+          const SizedBox(height: SwanSpace.xs),
+          Text('Başka bir gün seçebilir veya müsaitliği yenileyebilirsin.',
+              textAlign: TextAlign.center,
+              style: SwanType.caption(context.swan.inkMuted)),
+          TextButton.icon(
+            onPressed: () =>
+                ref.invalidate(turfOccupancyGridProvider(_field.id)),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Müsaitliği yenile'),
+          ),
+        ]),
+      );
+
   Widget _cell(bool isDark, Color ink, TurfSlot s, bool isManager) {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     const freeColor = Color(0xFF3FB950);
@@ -210,35 +299,39 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
       label = 'Boş';
     }
 
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        width: 68,
-        padding: const EdgeInsets.symmetric(vertical: 9),
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color:
-              fg.withValues(alpha: s.occupied || s.requestedByMe ? .12 : .10),
+    return Semantics(
+      button: onTap != null,
+      label: '${s.hourLabel}, $label',
+      child: InkWell(
+          onTap: onTap,
           borderRadius: BorderRadius.circular(11),
-          border: Border.all(
-            color: (s.occupied || s.requestedByMe)
-                ? fg.withValues(alpha: .3)
-                : line,
-          ),
-        ),
-        child: Column(
-          children: [
-            Text(
-              s.hourLabel,
-              style: SwanType.caption(
-                (s.occupied || s.requestedByMe) ? fg : ink,
-                w: FontWeight.w800,
+          child: Container(
+            width: 68,
+            padding: const EdgeInsets.symmetric(vertical: 9),
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: fg.withValues(
+                  alpha: s.occupied || s.requestedByMe ? .12 : .10),
+              borderRadius: BorderRadius.circular(11),
+              border: Border.all(
+                color: (s.occupied || s.requestedByMe)
+                    ? fg.withValues(alpha: .3)
+                    : line,
               ),
             ),
-            Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
-          ],
-        ),
-      ),
+            child: Column(
+              children: [
+                Text(
+                  s.hourLabel,
+                  style: SwanType.caption(
+                    (s.occupied || s.requestedByMe) ? fg : ink,
+                    w: FontWeight.w800,
+                  ),
+                ),
+                Text(label, style: SwanType.caption(fg, w: FontWeight.w700)),
+              ],
+            ),
+          )),
     );
   }
 
@@ -251,11 +344,10 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        title: Text('${s.hourLabel} için sor'),
-        content: const Text(
-            'Saha yöneticisine bu saati sorduğunu bildiren bir mesaj '
-            'gönderilecek ve sohbet açılacak. Rezervasyon, yönetici onaylayana '
-            'kadar kesinleşmiş sayılmaz.'),
+        title: const Text('İstek özeti'),
+        content: Text(
+            '${_field.name}\n${_field.venueName}\n${_shortDay(s.startsAt)} · ${s.hourLabel}\n\n'
+            'Saha yöneticisine mesaj gönderilir. Yönetici onaylayana kadar rezervasyon kesinleşmez.'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -263,7 +355,7 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           ),
           FilledButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Mesaj gönder'),
+            child: const Text('Rezervasyon isteği gönder'),
           ),
         ],
       ),
@@ -277,19 +369,35 @@ class _TurfFieldDetailScreenState extends ConsumerState<TurfFieldDetailScreen> {
           .requestSlot(fieldId: _field.id, startsAt: s.startsAt);
       ref.invalidate(turfOccupancyGridProvider(_field.id));
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Mesajın gönderildi.'),
-          action: SnackBarAction(
-            label: 'Sohbete git',
-            onPressed: () => Navigator.pushNamed(context, '/mesajlar'),
+      setState(() => _busy = false);
+      await showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          icon: Icon(Icons.schedule_send_rounded, color: context.swan.accent),
+          title: const Text('İstek gönderildi'),
+          content: Text(
+            '${_field.name} · ${_shortDay(s.startsAt)} ${s.hourLabel}\n\n'
+            'Durum: Onay bekliyor. Yöneticiyle mevcut sohbet akışından görüşebilirsin.',
           ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                Navigator.pushNamed(context, '/mesajlar');
+              },
+              child: const Text('Sohbete git'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tamam'),
+            ),
+          ],
         ),
       );
     } catch (e) {
       _say(_readable(e));
     } finally {
-      if (mounted) setState(() => _busy = false);
+      if (mounted && _busy) setState(() => _busy = false);
     }
   }
 

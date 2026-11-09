@@ -6,6 +6,7 @@ import '../design/swan_type.dart';
 import 'premium.dart';
 import 'scroll_chrome.dart';
 import '../design/swan_chrome.dart';
+import '../navigation/swan_back_navigation.dart';
 
 typedef SwanTopBar = StitchTopBar;
 
@@ -37,7 +38,8 @@ class StitchTopBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
-    final canPop = showBack ?? Navigator.canPop(context);
+    final canPop =
+        showBack ?? (!isBrand && SwanBackNavigation.shouldShow(context));
 
     return Container(
       height: preferredSize.height,
@@ -66,7 +68,7 @@ class StitchTopBar extends StatelessWidget implements PreferredSizeWidget {
                   message: 'Geri dön',
                   child: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: onBack ?? () => Navigator.maybePop(context),
+                    onTap: onBack ?? () => SwanBackNavigation.back(context),
                     child: Padding(
                       padding: const EdgeInsets.only(right: SwanSpace.sm),
                       child: Container(
