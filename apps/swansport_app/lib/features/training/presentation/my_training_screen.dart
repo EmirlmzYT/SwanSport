@@ -117,7 +117,7 @@ class MyTrainingScreen extends ConsumerWidget {
                   context, '/antrenman-oturumu',
                   arguments: {'id': s.id}),
               style: FilledButton.styleFrom(backgroundColor: c.accent),
-              child: const Text('Oturuma dön'),
+              child: const Text('Devam et'),
             ),
           ),
         ]),
@@ -137,7 +137,7 @@ class MyTrainingScreen extends ConsumerWidget {
           child: OutlinedButton.icon(
             onPressed: () => _startPersonal(context, ref),
             icon: const Icon(Icons.self_improvement_rounded, size: 18),
-            label: Text('Kendi başıma', style: SwanType.bodySm(c.ink)),
+            label: Text('Antrenman başlat', style: SwanType.bodySm(c.ink)),
           ),
         ),
       ]);

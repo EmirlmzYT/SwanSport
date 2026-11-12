@@ -485,8 +485,15 @@ class _AthleteRun extends ConsumerWidget {
           sets.when(
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
-            data: (list) =>
-                DrillResultCard(archetype: cfg.archetype, sets: list),
+            data: (list) => DrillResultCard(
+              archetype: cfg.archetype,
+              sets: list,
+              sportName: SportsCatalog.findByCode(session.sportCode)?.name ??
+                  session.sportCode,
+              workName: session.protocolName,
+              performedAt: session.startedAt,
+              sourceLabel: session.isPersonal ? 'Bireysel' : 'Antrenörlü',
+            ),
           ),
         const SizedBox(height: SwanSpace.sm),
         sets.when(

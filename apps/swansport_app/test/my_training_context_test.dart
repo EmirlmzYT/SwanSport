@@ -54,7 +54,7 @@ void main() {
       (tester) async {
     await render(tester);
 
-    await tester.tap(find.text('Kendi başıma'));
+    await tester.tap(find.text('Antrenman başlat'));
     await tester.pumpAndSettle();
 
     expect(find.text('Yüzme · Temel Teknik'), findsOneWidget);

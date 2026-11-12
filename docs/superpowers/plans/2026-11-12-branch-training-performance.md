@@ -89,12 +89,12 @@
 - Consumes: Task 2 `TrainingLaunchContext` ve platform şablonu sağlayıcısı.
 - Produces: Geleneksel okçuluk, tenis ve yüzme için doğrulanmış başlat–ölç–dön–bitir–sonuç akışı.
 
-- [ ] Pilot üç branşın gerekli ölçümlerini ve mevcut payload boşluklarını testlerle sabitle.
-- [ ] `Antrenman başlat` / `Devam et` ana eylem hiyerarşisini uygula; kodla katılım ve geçmişi koru.
-- [ ] Branşa özel minimum kontrolleri göster; kaydetme hatası ve çift dokunuş testlerini genişlet.
-- [ ] Son ölçümü mevcut kilit kuralları içinde düzeltme davranışıyla doğrula.
-- [ ] Sonuç kartına branş, çalışma, tarih ve `Bireysel` kaynağını ekle.
-- [ ] Dar ekran, büyük yazı, açık/koyu tema testlerini çalıştır.
+- [x] Pilot üç branşın gerekli ölçümlerini ve mevcut payload boşluklarını testlerle sabitle.
+- [x] `Antrenman başlat` / `Devam et` ana eylem hiyerarşisini uygula; kodla katılım ve geçmişi koru.
+- [x] Branşa özel minimum kontrolleri göster; kaydetme hatası ve çift dokunuş testlerini genişlet.
+- [x] Son ölçümü mevcut kilit kuralları içinde düzeltme davranışıyla doğrula.
+- [x] Sonuç kartına branş, çalışma, tarih ve `Bireysel` kaynağını ekle.
+- [x] Dar ekran, büyük yazı, açık/koyu tema testlerini çalıştır.
 
 ### Task 4: Faz 3 — Antrenör çalışma alanı
 

@@ -125,6 +125,15 @@ void main() {
   });
 
   group('Oturum modeli', () {
+    test('başlangıç zamanı sonuç bağlamı için korunur', () {
+      final session = TrainingSession.fromMap({
+        'id': 'session-time',
+        'started_at': '2026-11-12T09:30:00Z',
+      });
+
+      expect(session.startedAt, DateTime.utc(2026, 11, 12, 9, 30));
+    });
+
     TrainingSession session({
       String status = 'live',
       String phase = 'shoot',

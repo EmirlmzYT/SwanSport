@@ -92,6 +92,7 @@ class TrainingSession {
     this.eventId,
     this.sportCode = '',
     this.pausedAt,
+    this.startedAt,
   });
 
   factory TrainingSession.fromMap(Map<String, dynamic> m) => TrainingSession(
@@ -111,6 +112,7 @@ class TrainingSession {
         eventId: m['event_id'] as String?,
         sportCode: m['sport_code'] is String ? m['sport_code'] as String : '',
         pausedAt: _time(m['paused_at']),
+        startedAt: _time(m['started_at']),
       );
 
   final String id;
@@ -133,6 +135,7 @@ class TrainingSession {
   final String? eventId;
   final String sportCode;
   final DateTime? pausedAt;
+  final DateTime? startedAt;
 
   bool get isPersonal => kind == 'personal';
   bool get isLive => status == 'live';
