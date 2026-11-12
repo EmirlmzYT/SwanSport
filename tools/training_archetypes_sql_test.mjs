@@ -13,6 +13,7 @@ const rally={rallies:20,winners:8,unforced_errors:4};
 const target={marks:['X','10','9','M']};
 const metrics={target_score:target,attempt_drill:attempt,lap_interval:lap,combat_rally:rally};
 const multiBranchMigration=await sql('0120_multi_branch_training_engine');
+const sessionContextMigration=await sql('20261112090000_training_session_context');
 test('0120 club sport projection preserves private registry ACL and denies outsider/inactive/anon',async()=>{
  const db=await setup();try{
  await db.query("update clubs set sport_code='okculuk' where id=$1",[club]);
@@ -50,6 +51,21 @@ test('0120: 60 catalog profiles, 120 idempotent platform templates and matching 
    assert.equal(row.config.archetype,wires[match[1]],row.sport_code);
    assert.equal(await call(db,'valid_training_config',[row.config]),true);
  }
+ }finally{await db.close();}
+});
+test('training history preserves source club and coach display context',async()=>{
+ const db=await setup();try{
+  const protocol=id(870),session=id(871);
+  await db.query("update profiles set full_name='Ayşe Antrenör' where id=$1",[coach]);
+  await db.query("insert into training_protocols(id,club_id,sport_code,name,config) values($1,$2,'tenis','Servis',$3)",[protocol,club,config('combat_rally')]);
+  await db.query("insert into training_sessions(id,club_id,protocol_id,created_by) values($1,$2,$3,$4)",[session,club,protocol,coach]);
+  await db.query('insert into training_session_participants(session_id,athlete_id) values($1,$2)',[session,athlete]);
+  await actor(db,player);
+  const history=(await db.query('select * from my_training_history_v2(30)')).rows.find(row=>row.session_id===session);
+  assert.equal(history.kind,'club');
+  assert.equal(history.club_id,club);
+  assert.equal(history.club_name,'Training Club');
+  assert.equal(history.coach_name,'Ayşe Antrenör');
  }finally{await db.close();}
 });
 for(const [archetype,metric] of Object.entries(newMetrics)){
@@ -138,7 +154,7 @@ async function setup(){const db=new PGlite();try{
  create table faq_entries(question text,answer text,category text,audience text,feature text,route text,sort_order int);
  revoke all on club_sport_registrations from public,anon,authenticated;`);
  for(const code of catalogCodes) await db.query('insert into sports(code,name) values($1,$1) on conflict do nothing',[code]);
- await apply(db,multiBranchMigration);await actor(db,player);return db;
+ await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await actor(db,player);return db;
  }catch(e){await db.close();throw e;}}
 async function session(db,a='target_score',cfg={}){
  const p=id(100+Object.keys(metrics).indexOf(a));const s=id(200+Object.keys(metrics).indexOf(a));

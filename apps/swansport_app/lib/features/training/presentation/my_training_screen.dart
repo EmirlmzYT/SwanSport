@@ -204,9 +204,15 @@ class MyTrainingScreen extends ConsumerWidget {
 
   Future<void> _startPersonal(BuildContext context, WidgetRef ref) async {
     final sport = ref.read(effectiveSportContextProvider);
-    final protocols = (await ref.read(trainingProtocolsProvider.future))
-        .where((p) => matchesTrainingSportContext(p.sportCode, sport))
-        .toList();
+    if (sport == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Önce antrenman branşını seç')),
+      );
+      return;
+    }
+    final protocols =
+        await ref.read(personalTrainingProtocolsProvider(sport).future);
+    final sportName = SportsCatalog.findByCode(sport)?.name ?? sport;
     if (!context.mounted) return;
     if (protocols.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -225,7 +231,7 @@ class MyTrainingScreen extends ConsumerWidget {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Bireysel antrenman', style: SwanType.h3(c.ink)),
+                    Text('$sportName · Bireysel', style: SwanType.h3(c.ink)),
                     const SizedBox(height: SwanSpace.xs),
                     Text('Bu kayıt yalnızca senin geçmişinde görünür.',
                         style: SwanType.caption(c.inkMuted)),
@@ -283,8 +289,13 @@ class MyTrainingScreen extends ConsumerWidget {
                     Text(h.protocolName, style: SwanType.body(c.ink)),
                     const SizedBox(height: 2),
                     Text(
-                      '${_date(h.startedAt)}  ·  ${h.kindLabel}'
-                      '  ·  ${h.setsDone}/${h.setCount} set',
+                      [
+                        _date(h.startedAt),
+                        h.kindLabel,
+                        if (h.clubName != null) h.clubName!,
+                        if (h.coachName != null) h.coachName!,
+                        '${h.setsDone}/${h.setCount} set',
+                      ].join('  ·  '),
                       style: SwanType.caption(c.inkMuted),
                     ),
                   ]),
