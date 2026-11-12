@@ -472,6 +472,29 @@ class CoachDrillNote {
   final DateTime createdAt;
 }
 
+/// Athlete-visible feedback. Private staff notes remain in [CoachDrillNote].
+class SharedTrainingFeedback {
+  const SharedTrainingFeedback({
+    required this.sessionId,
+    required this.athleteId,
+    required this.feedback,
+    required this.sharedAt,
+  });
+
+  factory SharedTrainingFeedback.fromMap(Map<String, dynamic> row) =>
+      SharedTrainingFeedback(
+        sessionId: row['session_id'] as String,
+        athleteId: row['athlete_id'] as String,
+        feedback: row['feedback'] as String,
+        sharedAt: _time(row['shared_at'])!,
+      );
+
+  final String sessionId;
+  final String athleteId;
+  final String feedback;
+  final DateTime sharedAt;
+}
+
 // ================================= Servis ==================================
 
 class TrainingSessionService {
@@ -773,6 +796,29 @@ class TrainingSessionService {
         'p_tag': tag,
       });
 
+  Future<void> shareTrainingFeedback(
+    String sessionId,
+    String athleteId,
+    String feedback,
+  ) =>
+      _db.rpc<void>('share_training_feedback', params: {
+        'p_session': sessionId,
+        'p_athlete': athleteId,
+        'p_feedback': feedback,
+      });
+
+  Future<List<SharedTrainingFeedback>> sharedFeedback(String sessionId) async {
+    final rows = await _db
+        .from('training_shared_feedback')
+        .select('session_id, athlete_id, feedback, shared_at')
+        .eq('session_id', sessionId)
+        .order('shared_at', ascending: false);
+    return [
+      for (final row in rows as List)
+        SharedTrainingFeedback.fromMap((row as Map).cast<String, dynamic>()),
+    ];
+  }
+
   Future<List<SessionParticipant>> participants(String sessionId) async {
     final rows = await _db
         .from('training_session_participants')
@@ -1030,6 +1076,12 @@ final sessionCoachDrillNotesProvider = FutureProvider.autoDispose
     .family<List<CoachDrillNote>, String>((ref, sessionId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(trainingSessionServiceProvider).coachDrillNotes(sessionId);
+});
+
+final sessionSharedTrainingFeedbackProvider = FutureProvider.autoDispose
+    .family<List<SharedTrainingFeedback>, String>((ref, sessionId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(trainingSessionServiceProvider).sharedFeedback(sessionId);
 });
 
 final sessionParticipantsProvider = FutureProvider.autoDispose

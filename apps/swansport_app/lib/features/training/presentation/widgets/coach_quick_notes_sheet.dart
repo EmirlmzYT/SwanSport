@@ -30,9 +30,7 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
       _error = null;
     });
     try {
-      await ref
-          .read(trainingSessionServiceProvider)
-          .submitCoachDrillNote(
+      await ref.read(trainingSessionServiceProvider).submitCoachDrillNote(
             widget.sessionId,
             _athleteId!,
             text.trim(),
@@ -51,14 +49,40 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
     }
   }
 
+  Future<void> _share(String text) async {
+    if (_busy || text.trim().isEmpty || _athleteId == null) return;
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      await ref.read(trainingSessionServiceProvider).shareTrainingFeedback(
+            widget.sessionId,
+            _athleteId!,
+            text.trim(),
+          );
+      if (!mounted) return;
+      _note.clear();
+      ref.invalidate(sessionSharedTrainingFeedbackProvider(widget.sessionId));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Geri bildirim sporcu ile paylaşıldı.')),
+      );
+    } catch (e) {
+      if (mounted) setState(() => _error = 'Paylaşılamadı: $e');
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
     final people = ref.watch(sessionParticipantsProvider(widget.sessionId));
-    final session = ref
-        .watch(trainingSessionProvider(widget.sessionId))
-        .valueOrNull;
+    final session =
+        ref.watch(trainingSessionProvider(widget.sessionId)).valueOrNull;
     final notes = ref.watch(sessionCoachDrillNotesProvider(widget.sessionId));
+    final shared =
+        ref.watch(sessionSharedTrainingFeedbackProvider(widget.sessionId));
     final access = ref.watch(swanAccessProvider);
     if (!access.isClubStaff ||
         session == null ||
@@ -106,9 +130,8 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
                           child: Text(p.name),
                         ),
                     ],
-                    onChanged: _busy
-                        ? null
-                        : (id) => setState(() => _athleteId = id),
+                    onChanged:
+                        _busy ? null : (id) => setState(() => _athleteId = id),
                   ),
                   if (list.isEmpty)
                     Text(
@@ -141,10 +164,22 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
                     decoration: const InputDecoration(labelText: 'Özel not'),
                   ),
                   OutlinedButton(
-                    onPressed: enabled
-                        ? () => _send('Özel not', _note.text)
-                        : null,
+                    onPressed:
+                        enabled ? () => _send('Özel not', _note.text) : null,
                     child: Text(_busy ? 'Kaydediliyor…' : 'Notu kaydet'),
+                  ),
+                  const SizedBox(height: SwanSpace.sm),
+                  FilledButton.icon(
+                    onPressed: enabled ? () => _share(_note.text) : null,
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    label: Text(
+                      _busy ? 'Paylaşılıyor…' : 'Sporcuyla paylaş',
+                    ),
+                  ),
+                  Text(
+                    'Özel not yalnız antrenör ekibinde kalır; paylaşılan geri '
+                    'bildirim sporcu tarafından görülebilir.',
+                    style: SwanType.caption(c.inkMuted),
                   ),
                 ],
               );
@@ -166,6 +201,26 @@ class _CoachQuickNotesState extends ConsumerState<CoachQuickNotesSheet> {
                     child: Text(
                       '${people.valueOrNull?.where((p) => p.athleteId == note.athleteId).firstOrNull?.name ?? 'Sporcu'} · ${note.note}',
                       style: SwanType.bodySm(c.ink),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          shared.when(
+            loading: () => const SizedBox.shrink(),
+            error: (e, _) => Text(
+              'Paylaşım durumu yüklenemedi: $e',
+              style: SwanType.caption(c.danger),
+            ),
+            data: (list) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                for (final item in list.take(5))
+                  Padding(
+                    padding: const EdgeInsets.only(top: SwanSpace.sm),
+                    child: Text(
+                      'Paylaşıldı · ${people.valueOrNull?.where((p) => p.athleteId == item.athleteId).firstOrNull?.name ?? 'Sporcu'}',
+                      style: SwanType.caption(c.success),
                     ),
                   ),
               ],

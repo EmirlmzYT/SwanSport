@@ -113,13 +113,13 @@
 - Consumes: Task 2 launch context; mevcut `teamId`, participant ve private note sözleşmeleri.
 - Produces: Yetkili takım/grup/sporcu seçimi; güvenli aktif sporcu state’i; özel nottan ayrı paylaşılan geri bildirim.
 
-- [ ] Kulüp/branş/takım yetkisi ve sporcu değiştirme yarış durumları için başarısız testleri yaz.
-- [ ] Yetkili takım/grup/sporcu sağlayıcısını `swansport_data` içinde mevcut üyelik modellerini kullanarak ekle.
-- [ ] Başlatma ekranında kapsam zincirini ve özetini göster; `teamId` çağrısını gerçek seçimle besle.
-- [ ] Sporcu değişmeden bekleyen taslağın kaydedilmesini/atılmasını açıkça iste; otomatik başka sporcuya bağlama.
-- [ ] Paylaşılan geri bildirim RPC/tablo alanını özel nottan ayır ve RLS/RPC erişimini sınırla.
-- [ ] Kilit/paylaşım durumunu sonuç ekranında yalnız desteklenen işlemlerle göster.
-- [ ] Odaklı testler, format, analyze ve tools SQL testlerini çalıştır.
+- [x] Kulüp/branş/takım yetkisi ve sporcu değiştirme yarış durumları için başarısız testleri yaz.
+- [x] Yetkili takım/grup/sporcu sağlayıcısını `swansport_data` içinde mevcut üyelik modellerini kullanarak ekle.
+- [x] Başlatma ekranında kapsam zincirini ve özetini göster; `teamId` çağrısını gerçek seçimle besle.
+- [x] Sporcu değişmeden bekleyen taslağın kaydedilmesini/atılmasını açıkça iste; otomatik başka sporcuya bağlama.
+- [x] Paylaşılan geri bildirim RPC/tablo alanını özel nottan ayır ve RLS/RPC erişimini sınırla.
+- [x] Kilit/paylaşım durumunu sonuç ekranında yalnız desteklenen işlemlerle göster.
+- [x] Odaklı testler, format, analyze ve tools SQL testlerini çalıştır.
 
 ### Task 5: Faz 4 — Branş/kaynak bazlı gelişim ve veli görünümü
 

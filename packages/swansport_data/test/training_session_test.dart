@@ -42,6 +42,28 @@ void main() {
           '$root/packages/swansport_data/lib/src/training_session_service.dart')
       .readAsStringSync();
 
+  test('takım satırı branş kapsamını korur', () {
+    final team = TeamRow.fromMap({
+      'id': 'team-1',
+      'name': 'Tenis A',
+      'sport_code': 'tenis',
+    });
+
+    expect(team.sportCode, 'tenis');
+  });
+
+  test('paylaşılan geri bildirim özel not sözleşmesinden ayrıdır', () {
+    final feedback = SharedTrainingFeedback.fromMap({
+      'session_id': 'session-1',
+      'athlete_id': 'athlete-1',
+      'feedback': 'Servis ritmin gelişiyor.',
+      'shared_at': '2026-11-12T12:00:00Z',
+    });
+
+    expect(feedback.feedback, 'Servis ritmin gelişiyor.');
+    expect(feedback.sharedAt, DateTime.utc(2026, 11, 12, 12));
+  });
+
   group('SQL ↔ Dart sözleşmesi', () {
     test('araç çalışıyor — sütunlar gerçekten okunuyor', () {
       // Boş kümeyi boş kümeyle karşılaştırıp "sorun yok" demek, bu depoda

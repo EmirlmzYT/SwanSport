@@ -37,6 +37,7 @@ class SessionResultScreen extends ConsumerWidget {
     final rows = ref.watch(sessionSummaryProvider(id));
     final config = ref.watch(sessionConfigProvider(id)).valueOrNull;
     final metrics = ref.watch(sessionMetricSetsProvider(id));
+    final shared = ref.watch(sessionSharedTrainingFeedbackProvider(id));
 
     return SwanScaffold(
       extendBody: true,
@@ -73,7 +74,15 @@ class SessionResultScreen extends ConsumerWidget {
                       : Column(
                           children: [
                             for (final r in list) ...[
-                              _row(c, r, config?.archetype),
+                              _row(
+                                c,
+                                r,
+                                config?.archetype,
+                                feedbackShared: shared.valueOrNull?.any(
+                                      (item) => item.athleteId == r.athleteId,
+                                    ) ??
+                                    false,
+                              ),
                               if (config != null)
                                 metrics.when(
                                   loading: () =>
@@ -181,7 +190,11 @@ class SessionResultScreen extends ConsumerWidget {
       ]);
 
   Widget _row(
-          SwanPalette c, SessionSummaryRow r, TrainingArchetype? archetype) =>
+    SwanPalette c,
+    SessionSummaryRow r,
+    TrainingArchetype? archetype, {
+    required bool feedbackShared,
+  }) =>
       Container(
         margin: const EdgeInsets.only(bottom: SwanSpace.sm),
         padding: const EdgeInsets.all(SwanSpace.md),
@@ -243,6 +256,13 @@ class SessionResultScreen extends ConsumerWidget {
                       Text(r.flagLabel(f), style: SwanType.caption(c.warning)),
                 ),
             ]),
+          ],
+          if (feedbackShared) ...[
+            const SizedBox(height: SwanSpace.sm),
+            Text(
+              'Geri bildirim sporcuyla paylaşıldı',
+              style: SwanType.caption(c.success),
+            ),
           ],
         ]),
       );

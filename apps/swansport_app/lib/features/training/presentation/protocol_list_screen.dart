@@ -327,42 +327,94 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
   }
 
   Future<void> _start(BuildContext context, TrainingProtocol p) async {
-    final rhythm = await showModalBottomSheet<SessionRhythm>(
+    final club = await ref.read(activeClubProvider.future);
+    if (club == null || !context.mounted) return;
+    final teams = await ref.read(teamsProvider.future);
+    final scopedTeams = teams
+        .where(
+            (team) => team.sportCode == null || team.sportCode == p.sportCode)
+        .toList();
+    final selection = await showModalBottomSheet<_TrainingScopeSelection>(
       context: context,
       builder: (ctx) {
         final c = ctx.swan;
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(SwanSpace.lg),
-                child: Text('Katılım biçimi', style: SwanType.h3(c.ink)),
+        String? teamId;
+        var rhythm = SessionRhythm.shared;
+        return StatefulBuilder(
+          builder: (ctx, setSheetState) => SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(SwanSpace.lg),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text('Antrenman kapsamı', style: SwanType.h3(c.ink)),
+                  const SizedBox(height: SwanSpace.xs),
+                  Text(
+                    '${club.name} · ${SportsCatalog.findByCode(p.sportCode)?.name ?? p.sportCode}',
+                    style: SwanType.caption(c.inkMuted),
+                  ),
+                  const SizedBox(height: SwanSpace.md),
+                  DropdownButtonFormField<String?>(
+                    initialValue: teamId,
+                    decoration:
+                        const InputDecoration(labelText: 'Takım / grup'),
+                    items: [
+                      const DropdownMenuItem<String?>(
+                        value: null,
+                        child: Text('Tüm branş katılımcıları'),
+                      ),
+                      for (final team in scopedTeams)
+                        DropdownMenuItem<String?>(
+                          value: team.id,
+                          child: Text(team.name),
+                        ),
+                    ],
+                    onChanged: (value) => setSheetState(() => teamId = value),
+                  ),
+                  const SizedBox(height: SwanSpace.md),
+                  DropdownButtonFormField<SessionRhythm>(
+                    initialValue: rhythm,
+                    decoration:
+                        const InputDecoration(labelText: 'Katılım biçimi'),
+                    items: [
+                      for (final value in SessionRhythm.values)
+                        DropdownMenuItem(
+                          value: value,
+                          child: Text(value.label),
+                        ),
+                    ],
+                    onChanged: (value) => setSheetState(
+                      () => rhythm = value ?? SessionRhythm.shared,
+                    ),
+                  ),
+                  const SizedBox(height: SwanSpace.xs),
+                  Text(_rhythmHint(rhythm),
+                      style: SwanType.caption(c.inkMuted)),
+                  const SizedBox(height: SwanSpace.lg),
+                  FilledButton(
+                    onPressed: () => Navigator.pop(
+                      ctx,
+                      _TrainingScopeSelection(teamId: teamId, rhythm: rhythm),
+                    ),
+                    child: const Text('Kapsamı onayla'),
+                  ),
+                ],
               ),
-              for (final r in SessionRhythm.values)
-                ListTile(
-                  title: Text(r.label, style: SwanType.body(c.ink)),
-                  subtitle:
-                      Text(_rhythmHint(r), style: SwanType.caption(c.inkMuted)),
-                  onTap: () => Navigator.pop(ctx, r),
-                ),
-              const SizedBox(height: SwanSpace.md),
-            ],
+            ),
           ),
         );
       },
     );
-    if (rhythm == null) return;
-
-    final club = await ref.read(activeClubProvider.future);
-    if (club == null) return;
+    if (selection == null) return;
 
     try {
       final res =
           await ref.read(trainingSessionServiceProvider).startClubSession(
                 clubId: club.id,
                 protocolId: p.id,
-                rhythm: rhythm,
+                teamId: selection.teamId,
+                rhythm: selection.rhythm,
               );
       if (context.mounted) {
         unawaited(
@@ -391,4 +443,11 @@ class _ProtocolListScreenState extends ConsumerState<ProtocolListScreen> {
       };
   static String _summary(TrainingProtocol p) =>
       '${p.config.setCount} set · ${p.config.unitsPerSet} tekrar/set · ${p.config.mode.label}';
+}
+
+final class _TrainingScopeSelection {
+  const _TrainingScopeSelection({required this.teamId, required this.rhythm});
+
+  final String? teamId;
+  final SessionRhythm rhythm;
 }

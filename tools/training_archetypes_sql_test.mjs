@@ -14,6 +14,7 @@ const target={marks:['X','10','9','M']};
 const metrics={target_score:target,attempt_drill:attempt,lap_interval:lap,combat_rally:rally};
 const multiBranchMigration=await sql('0120_multi_branch_training_engine');
 const sessionContextMigration=await sql('20261112090000_training_session_context');
+const feedbackMigration=await sql('20261112120000_training_feedback_visibility');
 test('0120 club sport projection preserves private registry ACL and denies outsider/inactive/anon',async()=>{
  const db=await setup();try{
  await db.query("update clubs set sport_code='okculuk' where id=$1",[club]);
@@ -154,7 +155,7 @@ async function setup(){const db=new PGlite();try{
  create table faq_entries(question text,answer text,category text,audience text,feature text,route text,sort_order int);
  revoke all on club_sport_registrations from public,anon,authenticated;`);
  for(const code of catalogCodes) await db.query('insert into sports(code,name) values($1,$1) on conflict do nothing',[code]);
- await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await actor(db,player);return db;
+ await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await apply(db,feedbackMigration);await actor(db,player);return db;
  }catch(e){await db.close();throw e;}}
 async function session(db,a='target_score',cfg={}){
  const p=id(100+Object.keys(metrics).indexOf(a));const s=id(200+Object.keys(metrics).indexOf(a));
@@ -314,4 +315,19 @@ test('coach drill notes use existing audit store and reject outsiders, missing a
  await assert.rejects(call(db,'submit_coach_drill_note',[s,athlete,' ','servis']),/geçersiz/);
  await db.query("update training_sessions set kind='personal',athlete_id=$2 where id=$1",[s,athlete]);
  await actor(db,player);await assert.rejects(call(db,'submit_coach_drill_note',[s,athlete,'note','servis']),/yetkin/);
+ }finally{await db.close();}});
+test('shared feedback is athlete-visible but private coach notes stay staff-only',async()=>{const db=await setup();try{
+ const s=await session(db,'attempt_drill');
+ await actor(db,coach);await call(db,'submit_coach_drill_note',[s,athlete,'Özel teknik not','servis']);
+ await call(db,'share_training_feedback',[s,athlete,'Servis ritmin gelişiyor.']);
+ await actor(db,player);await db.exec('set role authenticated');
+ assert.equal((await db.query('select feedback from training_shared_feedback')).rows[0].feedback,'Servis ritmin gelişiyor.');
+ assert.equal((await db.query("select new_value from training_session_events where action='drill_note'")).rows.length,0);
+ await assert.rejects(call(db,'share_training_feedback',[s,athlete,'Sahte']),/yetkin/);
+ await db.exec('reset role');await actor(db,outsider);await db.exec('set role authenticated');
+ assert.equal((await db.query('select feedback from training_shared_feedback')).rows.length,0);
+ await db.exec('reset role');
+ await apply(db,feedbackMigration);
+ assert.equal((await db.query('select count(*)::int n from training_shared_feedback')).rows[0].n,1);
+ assert.equal((await db.query("select has_function_privilege('anon','share_training_feedback(uuid,uuid,text)','execute') v")).rows[0].v,false);
  }finally{await db.close();}});

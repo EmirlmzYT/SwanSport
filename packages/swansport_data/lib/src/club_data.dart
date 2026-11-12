@@ -265,17 +265,24 @@ class DocRow {
 }
 
 class TeamRow {
-  const TeamRow(
-      {required this.id, required this.name, this.ageGroup, this.gender});
+  const TeamRow({
+    required this.id,
+    required this.name,
+    this.ageGroup,
+    this.gender,
+    this.sportCode,
+  });
   final String id;
   final String name;
   final String? ageGroup;
   final String? gender;
+  final String? sportCode;
   factory TeamRow.fromMap(Map<String, dynamic> m) => TeamRow(
         id: (m['id'] as String?) ?? '',
         name: (m['name'] as String?) ?? '',
         ageGroup: m['age_group'] as String?,
         gender: m['gender'] as String?,
+        sportCode: m['sport_code'] as String?,
       );
 }
 
@@ -361,12 +368,14 @@ class ClubDataService {
   Future<List<AttendanceMark>> attendanceMarksForEvents(
       String clubId, List<String> eventIds) async {
     if (eventIds.isEmpty) return const [];
-    final rows = await _c.from('attendance')
+    final rows = await _c
+        .from('attendance')
         .select('event_id, athlete_id, status, taken_at')
         .eq('club_id', clubId)
         .inFilter('event_id', eventIds);
-    return (rows as List).map((r) =>
-        AttendanceMark.fromMap((r as Map).cast<String, dynamic>())).toList();
+    return (rows as List)
+        .map((r) => AttendanceMark.fromMap((r as Map).cast<String, dynamic>()))
+        .toList();
   }
 
   /// Tek hücreyi yazar (ızgarada bir tıklama).
@@ -461,7 +470,7 @@ class ClubDataService {
   Future<List<TeamRow>> teams(String clubId) async {
     final rows = await _c
         .from('teams')
-        .select('id, name, age_group, gender')
+        .select('id, name, age_group, gender, sport_code')
         .eq('club_id', clubId)
         .order('name');
     return (rows as List)
@@ -673,9 +682,7 @@ class ClubDataService {
       await _c.from('attendance').insert(rows);
       return;
     }
-    await _c
-        .from('attendance')
-        .upsert(rows, onConflict: 'event_id,athlete_id');
+    await _c.from('attendance').upsert(rows, onConflict: 'event_id,athlete_id');
   }
 
   /// Bir etkinliğin kadrosu: sporcu, RSVP'si ve varsa kaydedilmiş yoklaması.
