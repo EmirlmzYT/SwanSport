@@ -63,13 +63,13 @@
 - Consumes: `TrainingProtocol`, `TrainingSession`, `TrainingHistoryEntry`, `effectiveSportContextProvider`.
 - Produces: `TrainingLaunchContext`; kulüpsüz platform şablonu sağlayıcısı; geçmişte nullable `clubId`, `clubName`, `coachName`; bağlam sıfırlama davranışı.
 
-- [ ] Tek/çok branş, iki kulüp ve eksik eski bağlam testlerini önce yaz; mevcut kodda beklenen başarısızlığı doğrula.
-- [ ] Platform şablonlarını kulüp gerektirmeden, kulüp şablonlarını yalnız aktif kulüple getiren servis/provider arayüzünü ekle.
-- [ ] Migration ile geçmiş RPC çıktısına nullable kulüp/antrenör gösterim alanlarını ekle; eski satır için boş bırak.
-- [ ] `TrainingHistoryEntry` ve ekran satırını branş, kaynak ve kulüp gösterecek şekilde genişlet.
-- [ ] Branş/kulüp değişiminde launch seçimini sıfırla; aktif oturuma dönüşü seçiciden bağımsız tut.
-- [ ] Başlatmadan önce `Branş · Bireysel/Kulüp` özetini göster.
-- [ ] Paket ve araç testlerini çalıştır; Dart format/analyze kontrollerini doğrula.
+- [x] Tek/çok branş, iki kulüp ve eksik eski bağlam testlerini önce yaz; mevcut kodda beklenen başarısızlığı doğrula.
+- [x] Platform şablonlarını kulüp gerektirmeden, kulüp şablonlarını yalnız aktif kulüple getiren servis/provider arayüzünü ekle.
+- [x] Migration ile geçmiş RPC çıktısına nullable kulüp/antrenör gösterim alanlarını ekle; eski satır için boş bırak.
+- [x] `TrainingHistoryEntry` ve ekran satırını branş, kaynak ve kulüp gösterecek şekilde genişlet.
+- [x] Branş/kulüp değişiminde launch seçimini sıfırla; aktif oturuma dönüşü seçiciden bağımsız tut.
+- [x] Başlatmadan önce `Branş · Bireysel/Kulüp` özetini göster.
+- [x] Paket ve araç testlerini çalıştır; Dart format/analyze kontrollerini doğrula.
 
 ### Task 3: Faz 2 — Pilot bireysel araç akışı
 
