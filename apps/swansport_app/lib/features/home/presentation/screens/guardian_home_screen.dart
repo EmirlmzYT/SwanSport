@@ -252,6 +252,17 @@ class GuardianHomeScreen extends ConsumerWidget {
     final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
+    final today = DateTime.now();
+    final to = DateTime(today.year, today.month, today.day);
+    final progress = ref.watch(
+      trainingProgressProvider(
+        (
+          athleteId: c.athleteId,
+          from: to.subtract(const Duration(days: 89)),
+          to: to,
+        ),
+      ),
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
@@ -353,6 +364,47 @@ class GuardianHomeScreen extends ConsumerWidget {
               icon: const Icon(Icons.insights_rounded),
               label: const Text('Dönem gelişim raporu'),
             ),
+          progress.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (entries) {
+              final visible = entries
+                  .where(
+                    (entry) =>
+                        !entry.isPersonal && entry.sharedFeedback != null,
+                  )
+                  .toList()
+                ..sort((a, b) => b.startedAt.compareTo(a.startedAt));
+              if (visible.isEmpty) return const SizedBox.shrink();
+              final latest = visible.first;
+              return Container(
+                width: double.infinity,
+                margin: const EdgeInsets.only(top: 8),
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: kTeal.withValues(alpha: .08),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Paylaşılan antrenman sonucu',
+                      style: SwanType.caption(kTeal, w: FontWeight.w800),
+                    ),
+                    Text(
+                      '${SportsCatalog.findByCode(latest.sportCode)?.name ?? latest.sportCode} · ${latest.workName}',
+                      style: SwanType.bodySm(ink, w: FontWeight.w700),
+                    ),
+                    Text(
+                      '${latest.primaryValue} ${latest.unit} · ${latest.sharedFeedback}',
+                      style: SwanType.caption(SwanColors.textSecondary),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
           if (c.hasDebt) ...[
             const SizedBox(height: 12),
             GestureDetector(

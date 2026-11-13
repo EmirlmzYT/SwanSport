@@ -138,12 +138,12 @@
 - Consumes: Task 3 ölçüm anahtarları, Task 4 paylaşılan geri bildirim.
 - Produces: `TrainingProgressEntry`, karşılaştırma grupları ve veli için allowlist’li salt okunur sonuç RPC’si.
 
-- [ ] Aynı/farklı branş, kaynak, kulüp, mesafe ve çalışma türü karşılaştırma testlerini yaz.
-- [ ] Sunucu sorgusunu yalnız görünür kayıt ve allowlist alanları döndürecek biçimde ekle.
-- [ ] Gelişim raporuna branş → kaynak → gerekirse kulüp filtresi ve son sonuç bölümü ekle.
-- [ ] Karşılaştırılamayan veriyi grafikle zorlamadan son ölçümler olarak listele.
-- [ ] Veli çocuk ve branş seçimini mevcut ana ekrana bağla; yalnız paylaşılmış antrenörlü sonuç/geri bildirim göster.
-- [ ] Bireysel sonuç, başka sporcu/kulüp ve özel not negatif erişim testlerini çalıştır.
+- [x] Aynı/farklı branş, kaynak, kulüp, mesafe ve çalışma türü karşılaştırma testlerini yaz.
+- [x] Sunucu sorgusunu yalnız görünür kayıt ve allowlist alanları döndürecek biçimde ekle.
+- [x] Gelişim raporuna branş → kaynak → gerekirse kulüp filtresi ve son sonuç bölümü ekle.
+- [x] Karşılaştırılamayan veriyi grafikle zorlamadan son ölçümler olarak listele.
+- [x] Veli çocuk ve branş seçimini mevcut ana ekrana bağla; yalnız paylaşılmış antrenörlü sonuç/geri bildirim göster.
+- [x] Bireysel sonuç, başka sporcu/kulüp ve özel not negatif erişim testlerini çalıştır.
 
 ### Task 6: Faz 5 — Tüm katalog ve kabul doğrulaması
 

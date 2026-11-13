@@ -66,11 +66,23 @@ class Service extends Fake implements DevelopmentReportService {
   }
 }
 
+class ProgressService extends Fake implements TrainingProgressService {
+  List<TrainingProgressEntry> entries = const [];
+
+  @override
+  Future<List<TrainingProgressEntry>> load(
+    TrainingProgressRequest request,
+  ) async =>
+      entries;
+}
+
 void main() {
   late Service service;
+  late ProgressService progressService;
   late List<String> copies;
   setUp(() {
     service = Service();
+    progressService = ProgressService();
     copies = [];
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(SystemChannels.platform, (call) async {
@@ -104,6 +116,7 @@ void main() {
           authSessionProvider
               .overrideWith((_) => sessions ?? Stream.value(null)),
           developmentReportServiceProvider.overrideWithValue(service),
+          trainingProgressServiceProvider.overrideWithValue(progressService),
         ],
         child: MaterialApp(
           home: dialog
@@ -150,6 +163,50 @@ void main() {
     expect(find.text('Devam oranı: %0'), findsNothing);
     expect(find.text('Bu dönemde ölçüm kaydı yok.'), findsWidgets);
     expect(t.takeException(), isNull);
+  });
+  testWidgets('training progress keeps incomparable work in separate rows',
+      (t) async {
+    progressService.entries = [
+      TrainingProgressEntry(
+        sessionId: 's1',
+        setNo: 1,
+        sportCode: 'yuzme',
+        sourceKind: 'club',
+        clubId: 'club-a',
+        clubName: 'Swan Yüzme',
+        startedAt: DateTime.utc(2026, 11, 12),
+        archetype: 'lap_interval',
+        workName: '50 m',
+        comparisonKey: 'yuzme:club:club-a:lap_interval:50',
+        primaryValue: 42000,
+        unit: 'ms',
+      ),
+      TrainingProgressEntry(
+        sessionId: 's2',
+        setNo: 1,
+        sportCode: 'yuzme',
+        sourceKind: 'club',
+        clubId: 'club-a',
+        clubName: 'Swan Yüzme',
+        startedAt: DateTime.utc(2026, 11, 13),
+        archetype: 'lap_interval',
+        workName: '100 m',
+        comparisonKey: 'yuzme:club:club-a:lap_interval:100',
+        primaryValue: 88000,
+        unit: 'ms',
+      ),
+    ];
+    await mount(t);
+    await t.scrollUntilVisible(
+      find.text('Branş bazlı antrenman gelişimi'),
+      400,
+    );
+
+    expect(find.text('Branş bazlı antrenman gelişimi'), findsOneWidget);
+    expect(find.text('Yüzme · 50 m'), findsOneWidget);
+    expect(find.text('Yüzme · 100 m'), findsOneWidget);
+    expect(
+        find.text('Karşılaştırılabilir ikinci kayıt yok.'), findsNWidgets(2));
   });
   testWidgets('search and pagination send server query and reset offset',
       (t) async {

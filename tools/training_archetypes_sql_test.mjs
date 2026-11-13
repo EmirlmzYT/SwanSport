@@ -15,6 +15,7 @@ const metrics={target_score:target,attempt_drill:attempt,lap_interval:lap,combat
 const multiBranchMigration=await sql('0120_multi_branch_training_engine');
 const sessionContextMigration=await sql('20261112090000_training_session_context');
 const feedbackMigration=await sql('20261112120000_training_feedback_visibility');
+const progressMigration=await sql('20261113090000_training_progress_visibility');
 test('0120 club sport projection preserves private registry ACL and denies outsider/inactive/anon',async()=>{
  const db=await setup();try{
  await db.query("update clubs set sport_code='okculuk' where id=$1",[club]);
@@ -155,7 +156,7 @@ async function setup(){const db=new PGlite();try{
  create table faq_entries(question text,answer text,category text,audience text,feature text,route text,sort_order int);
  revoke all on club_sport_registrations from public,anon,authenticated;`);
  for(const code of catalogCodes) await db.query('insert into sports(code,name) values($1,$1) on conflict do nothing',[code]);
- await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await apply(db,feedbackMigration);await actor(db,player);return db;
+ await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await apply(db,feedbackMigration);await apply(db,progressMigration);await actor(db,player);return db;
  }catch(e){await db.close();throw e;}}
 async function session(db,a='target_score',cfg={}){
  const p=id(100+Object.keys(metrics).indexOf(a));const s=id(200+Object.keys(metrics).indexOf(a));
@@ -330,4 +331,23 @@ test('shared feedback is athlete-visible but private coach notes stay staff-only
  await apply(db,feedbackMigration);
  assert.equal((await db.query('select count(*)::int n from training_shared_feedback')).rows[0].n,1);
  assert.equal((await db.query("select has_function_privilege('anon','share_training_feedback(uuid,uuid,text)','execute') v")).rows[0].v,false);
+ }finally{await db.close();}});
+test('progress separates source and guardian sees only explicitly shared club metrics',async()=>{const db=await setup();try{
+ const clubSession=await session(db,'lap_interval');
+ const personalProtocol=id(940),personalSession=id(941);
+ await db.query("insert into training_protocols(id,club_id,sport_code,name,config) values($1,$2,'yuzme','50 m',$3)",[personalProtocol,club,config('lap_interval')]);
+ await db.query("insert into training_sessions(id,club_id,protocol_id,kind,athlete_id) values($1,$2,$3,'personal',$4)",[personalSession,club,personalProtocol,athlete]);
+ await actor(db,player);
+ await call(db,'submit_set_score',[clubSession,1,null,null,lap]);
+ await call(db,'submit_set_score',[personalSession,1,null,null,{...lap,split_millis:28000}]);
+ let own=(await db.query("select * from training_progress($1,current_date-1,current_date+1)",[athlete])).rows;
+ assert.equal(own.length,2);assert.equal(new Set(own.map(r=>r.source_kind)).size,2);
+ await actor(db,coach);await call(db,'share_training_feedback',[clubSession,athlete,'50 metre ritmi gelişti.']);
+ await db.query('insert into guardians(profile_id,athlete_id,display_name,relationship) values($1,$2,$3,$4)',[outsider,athlete,'Test Veli','parent']);
+ await actor(db,outsider);
+ const guardian=(await db.query("select * from training_progress($1,current_date-1,current_date+1)",[athlete])).rows;
+ assert.equal(guardian.length,1);assert.equal(guardian[0].source_kind,'club');
+ assert.equal(guardian[0].shared_feedback,'50 metre ritmi gelişti.');
+ await apply(db,progressMigration);
+ assert.equal((await db.query("select has_function_privilege('anon','training_progress(uuid,date,date)','execute') v")).rows[0].v,false);
  }finally{await db.close();}});
