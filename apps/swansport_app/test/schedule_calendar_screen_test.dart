@@ -7,10 +7,16 @@ import 'package:swansport_design_system/swansport_design_system.dart';
 
 void main() {
   testWidgets('renders the production empty calendar state', (tester) async {
+    tester.view.physicalSize = const Size(390, 900);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+          unifiedCalendarMonthProvider.overrideWith(
+            (ref, month) async => const UnifiedCalendarData([]),
+          ),
         ],
         child: MaterialApp(
           theme: SwanTheme.light(),
@@ -18,8 +24,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
-    await tester.pump();
+    await tester.pumpAndSettle();
 
     expect(find.text('Bugün'), findsWidgets);
     expect(find.text('Henüz etkinlik yok'), findsOneWidget);
@@ -32,7 +37,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+          unifiedCalendarMonthProvider.overrideWith(
+            (ref, month) async => const UnifiedCalendarData([]),
+          ),
         ],
         child: MaterialApp(
           theme: SwanTheme.light(),
@@ -40,8 +47,7 @@ void main() {
         ),
       ),
     );
-    await tester.pump();
-    await tester.pump();
+    await tester.pumpAndSettle();
     expect(find.text('Bugün'), findsWidgets);
     expect(find.byIcon(Icons.calendar_month_rounded), findsWidgets);
   });

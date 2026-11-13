@@ -227,7 +227,7 @@ void main() {
       unawaited(nav!.pushNamed('/federasyon-takvimi'));
     }
     await tester.pumpAndSettle();
-    expect(find.text('Henüz etkinlik yok'), findsOneWidget);
+    expect(find.text('Birleşik Takvim'), findsOneWidget);
   });
 
   testWidgets(

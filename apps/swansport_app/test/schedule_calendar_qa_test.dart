@@ -17,7 +17,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+            unifiedCalendarMonthProvider.overrideWith(
+              (ref, month) async => const UnifiedCalendarData([]),
+            ),
           ],
           child: MaterialApp(
             theme: SwanTheme.light(),
@@ -47,7 +49,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            eventsProvider.overrideWith((ref) async => const <EventRow>[]),
+            unifiedCalendarMonthProvider.overrideWith(
+              (ref, month) async => const UnifiedCalendarData([]),
+            ),
           ],
           child: MaterialApp(
             theme: SwanTheme.light(),
