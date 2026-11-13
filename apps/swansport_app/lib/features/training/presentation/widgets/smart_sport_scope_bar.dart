@@ -44,7 +44,7 @@ class SmartSportScopeBar extends ConsumerWidget {
                   onSelect: (index) =>
                       choose(index == 0 ? null : sports[index - 1].code)),
             const SizedBox(height: SwanSpace.xs),
-            if (sports.isEmpty || sports.length >= 5)
+            if (sports.length != 1)
               TextButton.icon(
                   icon: const Icon(Icons.search_rounded),
                   label: Text(SportsCatalog.findByCode(selected)?.name ??

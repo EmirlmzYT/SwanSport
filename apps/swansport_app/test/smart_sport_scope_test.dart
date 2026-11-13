@@ -24,6 +24,7 @@ void main() {
   testWidgets('multi-sport pills update the shared effective filter',
       (tester) async {
     await render(tester, ['yuzme', 'okculuk']);
+    expect(find.text('Tüm Branşlar (60)'), findsOneWidget);
     await tester.tap(find.text('Okçuluk'));
     await tester.pump();
     final container = ProviderScope.containerOf(

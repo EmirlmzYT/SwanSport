@@ -34,7 +34,7 @@ def main() -> int:
 
     version = re.search(r"^version:\s*([^\s]+)", pubspec, re.MULTILINE)
     require(version is not None, "pubspec sürümü bulunamadı")
-    require(version.group(1) == "1.1.0+83", "beklenen sürüm 1.1.0+83")
+    require(version.group(1) == "1.1.0+84", "beklenen sürüm 1.1.0+84")
     require(
         "https://swansport.com.tr/#/swan-id/dogrula/$token" in identity,
         "QR üretimi resmi alan adını kullanmıyor",
