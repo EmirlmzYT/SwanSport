@@ -22,6 +22,9 @@ class _DevelopmentReportScreenState
   String _query = '';
   int _offset = 0;
   String? _athleteId;
+  String? _trainingSport;
+  String? _trainingSource;
+  String? _trainingClub;
   late DateTime _from, _to;
   @override
   void initState() {
@@ -122,6 +125,8 @@ class _DevelopmentReportScreenState
                                     ),
                                     data: (report) => _report(report, c),
                                   ),
+                              const SizedBox(height: SwanSpace.lg),
+                              _trainingProgress(c),
                             ],
                           ],
                         ),
@@ -376,6 +381,178 @@ class _DevelopmentReportScreenState
       ],
     );
   }
+
+  Widget _trainingProgress(SwanPalette c) {
+    final request = (
+      athleteId: _athleteId!,
+      from: _from,
+      to: _to,
+    );
+    return ref.watch(trainingProgressProvider(request)).when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => Text(
+            'Antrenman gelişimi yüklenemedi.',
+            style: SwanType.bodySm(c.danger),
+          ),
+          data: (entries) {
+            final sports = entries.map((e) => e.sportCode).toSet().toList()
+              ..sort();
+            final sport =
+                sports.contains(_trainingSport) ? _trainingSport : null;
+            final bySport = entries
+                .where((e) => sport == null || e.sportCode == sport)
+                .toList();
+            final sources = bySport.map((e) => e.sourceKind).toSet().toList()
+              ..sort();
+            final source =
+                sources.contains(_trainingSource) ? _trainingSource : null;
+            final bySource = bySport
+                .where((e) => source == null || e.sourceKind == source)
+                .toList();
+            final clubs = bySource
+                .where((e) => e.clubId != null)
+                .map((e) => e.clubId!)
+                .toSet()
+                .toList();
+            final club = clubs.contains(_trainingClub) ? _trainingClub : null;
+            final filtered = bySource
+                .where((e) => club == null || e.clubId == club)
+                .toList();
+            final groups = groupComparableTrainingProgress(filtered);
+
+            return _box(
+              c,
+              'Branş bazlı antrenman gelişimi',
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Wrap(
+                    spacing: SwanSpace.sm,
+                    runSpacing: SwanSpace.sm,
+                    children: [
+                      DropdownButton<String?>(
+                        value: sport,
+                        hint: const Text('Tüm branşlar'),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('Tüm branşlar'),
+                          ),
+                          for (final code in sports)
+                            DropdownMenuItem<String?>(
+                              value: code,
+                              child: Text(
+                                SportsCatalog.findByCode(code)?.name ?? code,
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) => setState(() {
+                          _trainingSport = value;
+                          _trainingSource = null;
+                          _trainingClub = null;
+                        }),
+                      ),
+                      DropdownButton<String?>(
+                        value: source,
+                        hint: const Text('Tüm kaynaklar'),
+                        items: [
+                          const DropdownMenuItem<String?>(
+                            value: null,
+                            child: Text('Tüm kaynaklar'),
+                          ),
+                          for (final value in sources)
+                            DropdownMenuItem<String?>(
+                              value: value,
+                              child: Text(
+                                value == 'personal' ? 'Bireysel' : 'Antrenörlü',
+                              ),
+                            ),
+                        ],
+                        onChanged: (value) => setState(() {
+                          _trainingSource = value;
+                          _trainingClub = null;
+                        }),
+                      ),
+                      if (clubs.length > 1)
+                        DropdownButton<String?>(
+                          value: club,
+                          hint: const Text('Tüm kulüpler'),
+                          items: [
+                            const DropdownMenuItem<String?>(
+                              value: null,
+                              child: Text('Tüm kulüpler'),
+                            ),
+                            for (final id in clubs)
+                              DropdownMenuItem<String?>(
+                                value: id,
+                                child: Text(
+                                  bySource
+                                          .where((e) => e.clubId == id)
+                                          .firstOrNull
+                                          ?.clubName ??
+                                      'Kulüp',
+                                ),
+                              ),
+                          ],
+                          onChanged: (value) =>
+                              setState(() => _trainingClub = value),
+                        ),
+                    ],
+                  ),
+                  if (filtered.isEmpty)
+                    Text(
+                      'Bu kapsamda antrenman ölçümü yok.',
+                      style: SwanType.bodySm(c.inkMuted),
+                    ),
+                  for (final group in groups.values) _trainingGroup(c, group),
+                ],
+              ),
+            );
+          },
+        );
+  }
+
+  Widget _trainingGroup(
+    SwanPalette c,
+    List<TrainingProgressEntry> group,
+  ) {
+    final first = group.first;
+    final last = group.last;
+    final comparable = group.length > 1;
+    final delta = last.primaryValue - first.primaryValue;
+    return Padding(
+      padding: const EdgeInsets.only(top: SwanSpace.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${SportsCatalog.findByCode(last.sportCode)?.name ?? last.sportCode} · ${last.workName}',
+            style: SwanType.body(c.ink, w: FontWeight.w700),
+          ),
+          Text(
+            '${last.isPersonal ? 'Bireysel' : 'Antrenörlü'}${last.clubName == null ? '' : ' · ${last.clubName}'}',
+            style: SwanType.caption(c.inkMuted),
+          ),
+          Text(
+            comparable
+                ? '${_progressNumber(first.primaryValue)} → ${_progressNumber(last.primaryValue)} ${last.unit} '
+                    '(${delta >= 0 ? '+' : ''}${_progressNumber(delta)})'
+                : 'Son ölçüm: ${_progressNumber(last.primaryValue)} ${last.unit}',
+            style: SwanType.bodySm(c.ink),
+          ),
+          if (!comparable)
+            Text(
+              'Karşılaştırılabilir ikinci kayıt yok.',
+              style: SwanType.caption(c.inkMuted),
+            ),
+        ],
+      ),
+    );
+  }
+
+  static String _progressNumber(num value) => value == value.roundToDouble()
+      ? value.toInt().toString()
+      : value.toStringAsFixed(1);
 
   Widget _box(SwanPalette c, String title, Widget child) => Container(
         width: double.infinity,

@@ -92,6 +92,7 @@ class TrainingSession {
     this.eventId,
     this.sportCode = '',
     this.pausedAt,
+    this.startedAt,
   });
 
   factory TrainingSession.fromMap(Map<String, dynamic> m) => TrainingSession(
@@ -111,6 +112,7 @@ class TrainingSession {
         eventId: m['event_id'] as String?,
         sportCode: m['sport_code'] is String ? m['sport_code'] as String : '',
         pausedAt: _time(m['paused_at']),
+        startedAt: _time(m['started_at']),
       );
 
   final String id;
@@ -133,6 +135,7 @@ class TrainingSession {
   final String? eventId;
   final String sportCode;
   final DateTime? pausedAt;
+  final DateTime? startedAt;
 
   bool get isPersonal => kind == 'personal';
   bool get isLive => status == 'live';
@@ -342,6 +345,9 @@ class TrainingHistoryEntry {
     required this.status,
     required this.setsDone,
     required this.setCount,
+    this.clubId,
+    this.clubName,
+    this.coachName,
     this.totalScore,
     this.bestSet,
     this.avgSet,
@@ -358,6 +364,9 @@ class TrainingHistoryEntry {
         status: (m['status'] as String?) ?? 'completed',
         setsDone: (m['sets_done'] as num?)?.toInt() ?? 0,
         setCount: (m['set_count'] as num?)?.toInt() ?? 0,
+        clubId: m['club_id'] as String?,
+        clubName: m['club_name'] as String?,
+        coachName: m['coach_name'] as String?,
         totalScore: (m['total_score'] as num?)?.toDouble(),
         bestSet: (m['best_set'] as num?)?.toDouble(),
         avgSet: (m['avg_set'] as num?)?.toDouble(),
@@ -372,6 +381,9 @@ class TrainingHistoryEntry {
   final String status;
   final int setsDone;
   final int setCount;
+  final String? clubId;
+  final String? clubName;
+  final String? coachName;
   final double? totalScore;
   final double? bestSet;
   final double? avgSet;
@@ -380,7 +392,7 @@ class TrainingHistoryEntry {
   bool get isPersonal => kind == 'personal';
 
   /// Kişisel antrenman rozeti — bunu yalnızca sporcunun kendisi görüyor.
-  String get kindLabel => isPersonal ? 'Bireysel' : 'Kulüp';
+  String get kindLabel => isPersonal ? 'Bireysel' : 'Antrenörlü';
 
   bool get isComplete => setCount > 0 && setsDone >= setCount;
 }
@@ -460,6 +472,29 @@ class CoachDrillNote {
   final DateTime createdAt;
 }
 
+/// Athlete-visible feedback. Private staff notes remain in [CoachDrillNote].
+class SharedTrainingFeedback {
+  const SharedTrainingFeedback({
+    required this.sessionId,
+    required this.athleteId,
+    required this.feedback,
+    required this.sharedAt,
+  });
+
+  factory SharedTrainingFeedback.fromMap(Map<String, dynamic> row) =>
+      SharedTrainingFeedback(
+        sessionId: row['session_id'] as String,
+        athleteId: row['athlete_id'] as String,
+        feedback: row['feedback'] as String,
+        sharedAt: _time(row['shared_at'])!,
+      );
+
+  final String sessionId;
+  final String athleteId;
+  final String feedback;
+  final DateTime sharedAt;
+}
+
 // ================================= Servis ==================================
 
 class TrainingSessionService {
@@ -487,6 +522,29 @@ class TrainingSessionService {
     return [
       for (final r in rows as List)
         TrainingProtocol.fromMap((r as Map).cast<String, dynamic>()),
+    ];
+  }
+
+  /// Bireysel çalışma için yayımlanmış platform şablonları.
+  ///
+  /// Aktif kulüp gerektirmez. Oturumun değişmez kulüp bağlamı başlatma
+  /// RPC'sinde sporcunun kendi kaydından alınmaya devam eder.
+  Future<List<TrainingProtocol>> personalProtocols({String? sportCode}) async {
+    var query = _db
+        .from('training_protocols')
+        .select('id, club_id, sport_code, name, description, version, '
+            'config, published')
+        .isFilter('club_id', null)
+        .eq('published', true)
+        .isFilter('archived_at', null);
+    if (sportCode != null) {
+      query = query.eq('sport_code', sportCode);
+    }
+
+    final rows = await query.order('name');
+    return [
+      for (final row in rows as List)
+        TrainingProtocol.fromMap((row as Map).cast<String, dynamic>()),
     ];
   }
 
@@ -738,6 +796,29 @@ class TrainingSessionService {
         'p_tag': tag,
       });
 
+  Future<void> shareTrainingFeedback(
+    String sessionId,
+    String athleteId,
+    String feedback,
+  ) =>
+      _db.rpc<void>('share_training_feedback', params: {
+        'p_session': sessionId,
+        'p_athlete': athleteId,
+        'p_feedback': feedback,
+      });
+
+  Future<List<SharedTrainingFeedback>> sharedFeedback(String sessionId) async {
+    final rows = await _db
+        .from('training_shared_feedback')
+        .select('session_id, athlete_id, feedback, shared_at')
+        .eq('session_id', sessionId)
+        .order('shared_at', ascending: false);
+    return [
+      for (final row in rows as List)
+        SharedTrainingFeedback.fromMap((row as Map).cast<String, dynamic>()),
+    ];
+  }
+
   Future<List<SessionParticipant>> participants(String sessionId) async {
     final rows = await _db
         .from('training_session_participants')
@@ -817,7 +898,7 @@ class TrainingSessionService {
   // --- Sporcu tarafı ---
 
   Future<List<TrainingHistoryEntry>> history({int limit = 30}) async {
-    final rows = await _db.rpc<dynamic>('my_training_history',
+    final rows = await _db.rpc<dynamic>('my_training_history_v2',
         params: {'p_limit': limit}) as List;
     return [
       for (final r in rows)
@@ -942,6 +1023,16 @@ final trainingProtocolsProvider =
   return ref.watch(trainingSessionServiceProvider).protocols(clubId: club.id);
 });
 
+/// Sporcunun aktif kulüp seçmesine gerek kalmadan kullanabileceği platform
+/// şablonları. Branş süzme ekranda değil sorguda yapılır.
+final personalTrainingProtocolsProvider = FutureProvider.autoDispose
+    .family<List<TrainingProtocol>, String?>((ref, sportCode) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref
+      .watch(trainingSessionServiceProvider)
+      .personalProtocols(sportCode: sportCode);
+});
+
 /// Tek oturum. Canlı ekran bunu yenileyerek aşamayı izliyor.
 final trainingSessionProvider = FutureProvider.autoDispose
     .family<TrainingSession?, String>((ref, sessionId) async {
@@ -962,6 +1053,7 @@ final trainingSessionProvider = FutureProvider.autoDispose
       ref.invalidate(sessionOverviewProvider(sessionId));
       ref.invalidateSelf();
     });
+
     ref.onDispose(timer.cancel);
   }
   return session;
@@ -986,6 +1078,12 @@ final sessionCoachDrillNotesProvider = FutureProvider.autoDispose
   return ref.watch(trainingSessionServiceProvider).coachDrillNotes(sessionId);
 });
 
+final sessionSharedTrainingFeedbackProvider = FutureProvider.autoDispose
+    .family<List<SharedTrainingFeedback>, String>((ref, sessionId) async {
+  if (!ref.watch(isSupabaseEnabledProvider)) return const [];
+  return ref.watch(trainingSessionServiceProvider).sharedFeedback(sessionId);
+});
+
 final sessionParticipantsProvider = FutureProvider.autoDispose
     .family<List<SessionParticipant>, String>((ref, sessionId) async {
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
@@ -1007,7 +1105,8 @@ final sessionOverviewProvider = FutureProvider.autoDispose
 /// Sporcunun kendi geçmişi — kulüp ve bireysel oturumlar bir arada.
 final myTrainingHistoryProvider =
     FutureProvider.autoDispose<List<TrainingHistoryEntry>>((ref) async {
-  ref.watch(authSessionProvider.select((session) => session.valueOrNull?.user.id));
+  ref.watch(
+      authSessionProvider.select((session) => session.valueOrNull?.user.id));
   if (!ref.watch(isSupabaseEnabledProvider)) return const [];
   return ref.watch(trainingSessionServiceProvider).history();
 });

@@ -73,4 +73,22 @@ void main() {
     expect(() => MindTacticalMetric(taskName: 'X', solvedCount: 10001, failedCount: 0, durationSeconds: 1), throwsFormatException);
     expect(() => MindTacticalMetric(taskName: 'X', solvedCount: 0, failedCount: 0, durationSeconds: 86401), throwsFormatException);
   });
+
+  test('every catalog profile has a realistic default work fixture', () {
+    for (final profile in branchTrainingProfiles.values) {
+      expect(profile.presetDrills.first.trim(), isNotEmpty);
+      if (profile.defaultArchetype == TrainingArchetype.lapInterval) {
+        expect(profile.defaultDistances, isNotEmpty, reason: profile.sportCode);
+        expect(
+          profile.defaultDistances.every((distance) => distance > 0),
+          isTrue,
+        );
+      }
+      expect(
+        profile.supportedArchetypes,
+        contains(profile.defaultArchetype),
+        reason: profile.sportCode,
+      );
+    }
+  });
 }

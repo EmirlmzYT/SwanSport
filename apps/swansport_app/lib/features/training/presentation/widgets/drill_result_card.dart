@@ -9,10 +9,18 @@ class DrillResultCard extends StatelessWidget {
   const DrillResultCard({
     required this.archetype,
     required this.sets,
+    this.sportName,
+    this.workName,
+    this.performedAt,
+    this.sourceLabel,
     super.key,
   });
   final TrainingArchetype archetype;
   final List<TrainingSet> sets;
+  final String? sportName;
+  final String? workName;
+  final DateTime? performedAt;
+  final String? sourceLabel;
   @override
   Widget build(BuildContext context) {
     final c = context.swan;
@@ -68,6 +76,18 @@ class DrillResultCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text('Antrenman karnesi', style: SwanType.h3(c.ink)),
+          if (sportName != null && sourceLabel != null) ...[
+            const SizedBox(height: SwanSpace.xs),
+            Text(
+              '$sportName · $sourceLabel',
+              style: SwanType.bodySm(c.ink, w: FontWeight.w700),
+            ),
+          ],
+          if (workName != null && performedAt != null)
+            Text(
+              '$workName · ${_date(performedAt!)}',
+              style: SwanType.caption(c.inkMuted),
+            ),
           const SizedBox(height: SwanSpace.md),
           if (s.completedSets == 0)
             Text(
@@ -83,4 +103,8 @@ class DrillResultCard extends StatelessWidget {
       ),
     );
   }
+
+  static String _date(DateTime value) =>
+      '${value.day.toString().padLeft(2, '0')}.'
+      '${value.month.toString().padLeft(2, '0')}.${value.year}';
 }

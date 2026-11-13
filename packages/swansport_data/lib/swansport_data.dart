@@ -68,6 +68,7 @@ export 'src/supabase_athletes.dart';
 export 'src/swan_experience.dart';
 export 'src/supabase_scope.dart';
 export 'src/training_session_service.dart';
+export 'src/training_progress.dart';
 export 'src/training_cockpit.dart';
 export 'src/turf_service.dart';
 export 'src/vault_service.dart';

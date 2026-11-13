@@ -1,6 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:http/http.dart' as http;
+import 'package:http/testing.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 /// Antrenman oturumu veri katmanı.
@@ -38,6 +42,28 @@ void main() {
           '$root/packages/swansport_data/lib/src/training_session_service.dart')
       .readAsStringSync();
 
+  test('takım satırı branş kapsamını korur', () {
+    final team = TeamRow.fromMap({
+      'id': 'team-1',
+      'name': 'Tenis A',
+      'sport_code': 'tenis',
+    });
+
+    expect(team.sportCode, 'tenis');
+  });
+
+  test('paylaşılan geri bildirim özel not sözleşmesinden ayrıdır', () {
+    final feedback = SharedTrainingFeedback.fromMap({
+      'session_id': 'session-1',
+      'athlete_id': 'athlete-1',
+      'feedback': 'Servis ritmin gelişiyor.',
+      'shared_at': '2026-11-12T12:00:00Z',
+    });
+
+    expect(feedback.feedback, 'Servis ritmin gelişiyor.');
+    expect(feedback.sharedAt, DateTime.utc(2026, 11, 12, 12));
+  });
+
   group('SQL ↔ Dart sözleşmesi', () {
     test('araç çalışıyor — sütunlar gerçekten okunuyor', () {
       // Boş kümeyi boş kümeyle karşılaştırıp "sorun yok" demek, bu depoda
@@ -70,7 +96,66 @@ void main() {
     });
   });
 
+  test('bireysel şablonlar aktif kulüp olmadan yalnız platformdan okunur',
+      () async {
+    late Uri requestUri;
+    final client = SupabaseClient(
+      'https://example.supabase.co',
+      'test',
+      authOptions: const AuthClientOptions(autoRefreshToken: false),
+      httpClient: MockClient((request) async {
+        requestUri = request.url;
+        return http.Response(
+          jsonEncode([
+            {
+              'id': 'protocol-1',
+              'club_id': null,
+              'sport_code': 'yuzme',
+              'name': 'Yüzme · Temel Teknik',
+              'description': 'Platform şablonu',
+              'version': 1,
+              'config': {
+                'archetype': 'lap_interval',
+                'set_count': 3,
+                'units_per_set': 1,
+                'prep_seconds': 10,
+                'shoot_seconds': 120,
+                'collect_seconds': 0,
+                'rest_seconds': 30,
+                'entry_mode': 'flexible',
+                'mode': 'technique',
+              },
+              'published': true,
+            },
+          ]),
+          200,
+          request: request,
+          headers: {'content-type': 'application/json'},
+        );
+      }),
+    );
+    addTearDown(client.dispose);
+
+    final protocols = await TrainingSessionService(client)
+        .personalProtocols(sportCode: 'yuzme');
+
+    expect(protocols.single.sportCode, 'yuzme');
+    expect(protocols.single.isPlatformTemplate, isTrue);
+    expect(requestUri.queryParameters['club_id'], 'is.null');
+    expect(requestUri.queryParameters['published'], 'eq.true');
+    expect(requestUri.queryParameters['sport_code'], 'eq.yuzme');
+  });
+
   group('Oturum modeli', () {
+    test('başlangıç zamanı sonuç bağlamı için korunur', () {
+      final session = TrainingSession.fromMap({
+        'id': 'session-time',
+        'started_at': '2026-11-12T09:30:00Z',
+      });
+
+      expect(session.startedAt, DateTime.utc(2026, 11, 12, 9, 30));
+    });
+
     TrainingSession session({
       String status = 'live',
       String phase = 'shoot',
@@ -127,6 +212,47 @@ void main() {
       // `my_live_training_session` `session_id`, tablo okuması `id` dönüyor.
       final s = TrainingSession.fromMap({'session_id': 'x1'});
       expect(s.id, 'x1');
+    });
+  });
+
+  group('Geçmiş bağlamı', () {
+    test('kulüp ve antrenör oturum anındaki gösterim bağlamından okunur', () {
+      final entry = TrainingHistoryEntry.fromMap({
+        'session_id': 'session-1',
+        'kind': 'club',
+        'protocol_name': 'Servis',
+        'sport_code': 'tenis',
+        'club_id': 'club-1',
+        'club_name': 'Lmz Spor Kulübü',
+        'coach_name': 'Ayşe Antrenör',
+        'started_at': '2026-11-12T09:00:00Z',
+        'status': 'completed',
+        'sets_done': 3,
+        'set_count': 3,
+      });
+
+      expect(entry.clubId, 'club-1');
+      expect(entry.clubName, 'Lmz Spor Kulübü');
+      expect(entry.coachName, 'Ayşe Antrenör');
+      expect(entry.kindLabel, 'Antrenörlü');
+    });
+
+    test('eski kaydın eksik bağlamı tahmin edilmeden boş kalır', () {
+      final entry = TrainingHistoryEntry.fromMap({
+        'session_id': 'legacy',
+        'kind': 'personal',
+        'protocol_name': 'Eski çalışma',
+        'started_at': '2025-01-01T00:00:00Z',
+        'status': 'completed',
+        'sets_done': 1,
+        'set_count': 1,
+      });
+
+      expect(entry.sportCode, isEmpty);
+      expect(entry.clubId, isNull);
+      expect(entry.clubName, isNull);
+      expect(entry.coachName, isNull);
+      expect(entry.kindLabel, 'Bireysel');
     });
   });
 
@@ -262,7 +388,7 @@ void main() {
     test('bireysel antrenman ayırt ediliyor', () {
       expect(entry(kind: 'personal').isPersonal, isTrue);
       expect(entry(kind: 'personal').kindLabel, 'Bireysel');
-      expect(entry().kindLabel, 'Kulüp');
+      expect(entry().kindLabel, 'Antrenörlü');
     });
 
     test('tamamlanma hesabı', () {
