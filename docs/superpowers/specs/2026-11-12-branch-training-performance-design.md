@@ -28,7 +28,7 @@ Temel boşluklar:
 
 ## Branş kapsam matrisi
 
-Tüm satırların başlangıç yolu bugün `Antrenmanlarım > Kendi başıma` veya kulüp personeli için `Antrenman şablonları > Oturumu Başlat`; aktif oturum `Antrenmanlarım > Oturuma dön`; sonuç `Oturum sonucu` yoludur. Aşağıdaki gruplar, katalogdaki her branşı tek tek kapsar.
+Tüm satırların başlangıç yolu `Antrenmanlarım > Antrenman başlat` veya kulüp personeli için `Antrenman şablonları > Oturumu Başlat`; aktif oturum `Antrenmanlarım > Devam et`; sonuç `Oturum sonucu` yoludur. Aşağıdaki gruplar, katalogdaki her branşı tek tek kapsar.
 
 | Branşlar | Araç | Kaydedilen ölçüm | Mevcut sonuç özeti | Güvenli karşılaştırma anahtarı | Eksik |
 |---|---|---|---|---|---|
@@ -41,6 +41,30 @@ Tüm satırların başlangıç yolu bugün `Antrenmanlarım > Kendi başıma` ve
 | Basketbol, Bilardo, Bocce-Bowling-Dart, Buz Hokeyi, Curling, Futbol, Golf, Görme Engelliler, Hentbol, Hokey, İşitme Engelliler, Modern Pentatlon, Özel Sporcular, Ragbi, Su Topu, Voleybol | Deneme sayacı | Çalışma, başarılı, hata, toplam, oran | Başarı oranı | Branş + çalışma | Kaynak/kulüp ve gelişim görünümü yok |
 
 Bu matris “araç mevcut” ile “branş hazır”ı ayırır. Faz 5’te bir branş ancak başlangıç, ölçüm, bitiş, sonuç ve gelişim yolu birlikte doğrulanırsa hazır sayılır.
+
+## Faz 5 kabul sonucu — 13 Kasım 2026
+
+Katalogdaki 60 branşın tamamı `training_catalog_acceptance_test.dart` ile başlangıç → tipli ölçüm → bitiş → sonuç özeti → karşılaştırma anahtarı zincirinden geçti. “Hazır” ortak arketip akışının çalıştığını ifade eder; aşağıdaki olgunluk notları branşa özgü gelecekteki ayrıntıları açık bırakır.
+
+| Arketip | Branş sayısı | Kabul durumu | Olgunluk notu |
+|---|---:|---|---|
+| Hedef / puan | 3 | Hazır | Mesafe ve puanlama biçimi gelecekte açık ölçüm boyutu olabilir |
+| Kuvvet seti | 3 | Hazır | Hareket, kg, tekrar ve RPE karşılaştırılabilir |
+| Rutin / jüri | 6 | Hazır | Puanlama sürümü değişirse yeni karşılaştırma boyutu gerekir |
+| Zihinsel / taktik | 6 | Hazır | Görev adı karşılaştırma anahtarıdır |
+| Tur / interval | 14 | Hazır | Mesafe karşılaştırma anahtarına dahildir; farklı mesafeler birleşmez |
+| Raund / ralli | 12 | Hazır | Teniste ace winner toplamına dahildir; ayrı ace metriği yoktur |
+| Deneme / teknik | 16 | Hazır | Çalışma adı ve başarı oranı karşılaştırma anahtarıdır |
+
+Kapsam kanıtları:
+
+- Tek/çok branş ve kulüp değişiminde seçim sıfırlama: `sport_context_test.dart`.
+- Aynı branşta iki kulüp ve eksik eski bağlam: `training_session_test.dart` ve `my_training_context_test.dart`.
+- Kayıt hatası, çift dokunuş, kilit ve dar/koyu ekran: `training_cockpit_test.dart`.
+- Takım kapsamı ve yanlış branş takımını dışlama: `coach_training_flow_test.dart`.
+- Sporcu/veli/başka hesap ve özel not erişimi: `training_archetypes_sql_test.mjs`.
+- Kaynak, kulüp, mesafe ve çalışma türü ayrımı: `training_progress_test.dart`.
+- Veliye yalnız paylaşılmış antrenörlü sonuç: `guardian_training_results_test.dart`.
 
 ## Mevcut akış değerlendirmesi
 

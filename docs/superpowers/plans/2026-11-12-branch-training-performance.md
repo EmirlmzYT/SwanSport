@@ -156,8 +156,8 @@
 - Consumes: Faz 1–4’ün tamamlanmış akışları.
 - Produces: Her katalog branşı için hazır/eksik durumu ve uçtan uca regresyon kanıtı.
 
-- [ ] Her branş için gerçekçi örnek çalışmayı profile fixture olarak doğrula.
-- [ ] Yedi ortak arketipte başlat–ölç–bitir–sonuç–gelişim kabul testini çalıştır; tüm branşların bir gruba bağlı olduğunu doğrula.
-- [ ] Tek/çok branş, iki kulüp, grup sporcu değişimi, kayıt hatası, aktif oturum dönüşü ve yetkisiz erişim senaryolarını çalıştır.
-- [ ] Değişen Dart yollarında format; etkilenen paketlerde analyze/test; tools bağımlılıkları varsa `npm ci` ve `npm test` çalıştır.
-- [ ] Matrise hazır/eksik durumunu ve eksik ölçüm/veri gereksinimini işle; ekran görüntülerini yerel geliştirme girişi üzerinden al.
+- [x] Her branş için gerçekçi örnek çalışmayı profile fixture olarak doğrula.
+- [x] Yedi ortak arketipte başlat–ölç–bitir–sonuç–gelişim kabul testini çalıştır; tüm branşların bir gruba bağlı olduğunu doğrula.
+- [x] Tek/çok branş, iki kulüp, grup sporcu değişimi, kayıt hatası, aktif oturum dönüşü ve yetkisiz erişim senaryolarını çalıştır.
+- [x] Değişen Dart yollarında format; etkilenen paketlerde analyze/test; tools bağımlılıkları varsa `npm ci` ve `npm test` çalıştır.
+- [x] Matrise hazır/eksik durumunu ve eksik ölçüm/veri gereksinimini işle; ekran görüntülerini yerel geliştirme girişi üzerinden al.
