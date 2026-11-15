@@ -5,6 +5,8 @@ import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/quick_form.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
@@ -248,11 +250,10 @@ class _FinanceTasksScreenState extends ConsumerState<FinanceTasksScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                },
+                onTap: () => SwanBackNavigation.back(
+                  context,
+                  fallbackRoute: AppRoutes.finance,
+                ),
                 child: Container(
                   width: 38,
                   height: 38,

@@ -7,6 +7,8 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/navigation/app_routes.dart';
+import '../../../../app/navigation/swan_back_navigation.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/stitch_components.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
@@ -40,13 +42,15 @@ class _AthleteDetailScreenState extends ConsumerState<AthleteDetailScreen> {
     return SwanScaffold(
       extendBody: true,
       backgroundColor: c.bg,
-      header: async.valueOrNull == null
-          ? null
-          : SwanTopBar(
-              title: 'Sporcu Detayı',
-              subtitle: async.valueOrNull!.position ?? 'Sporcu',
-              showBack: true,
-              onBack: () => Navigator.maybePop(context)),
+      header: SwanTopBar(
+        title: 'Sporcu Detayı',
+        subtitle: async.valueOrNull?.position ?? 'Sporcu',
+        showBack: true,
+        onBack: () => SwanBackNavigation.back(
+          context,
+          fallbackRoute: AppRoutes.athletes,
+        ),
+      ),
       body: SafeArea(
         bottom: false,
         child: Center(

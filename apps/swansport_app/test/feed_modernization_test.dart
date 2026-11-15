@@ -17,7 +17,7 @@ void main() {
     ]) {
       expect(source.contains(removed), isFalse);
     }
-    expect(source.contains('Tümü (Keşfet)'), isTrue);
+    expect(source.contains('Genel Akış'), isTrue);
     expect(source.contains('Takip Ettiklerim'), isTrue);
     expect(source.contains('newsProvider'), isTrue);
   });
@@ -100,7 +100,7 @@ void main() {
     );
 
     expect(find.text('Günün Spor Gündemi'), findsOneWidget);
-    expect(find.text('5 Haber'), findsOneWidget);
+    expect(find.text('5 haber'), findsOneWidget);
     expect(find.text('Haber Başlığı 0'), findsOneWidget);
     expect(find.byType(ListView),
         findsNWidgets(2)); // Outer vertical and inner horizontal ListView

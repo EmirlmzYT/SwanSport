@@ -16,7 +16,7 @@ class StitchFeedTopBar extends ConsumerWidget implements PreferredSizeWidget {
       {super.key,
       this.followingOnly = false,
       this.onFeedChanged,
-      this.allLabel = 'Tümü (Keşfet)',
+      this.allLabel = 'Genel Akış',
       this.followingLabel = 'Takip Ettiklerim'});
   final bool followingOnly;
   final ValueChanged<bool>? onFeedChanged;

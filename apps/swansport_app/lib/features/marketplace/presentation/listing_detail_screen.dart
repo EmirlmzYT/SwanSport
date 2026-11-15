@@ -8,6 +8,8 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 import '../../../app/widgets/premium.dart';
 
 /// Gerçek ilan bilgileri, görseller, favori ve satıcıyla iletişim.
@@ -106,7 +108,10 @@ class _ListingDetailScreenState extends ConsumerState<ListingDetailScreen> {
           Row(
             children: [
               IconButton(
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => SwanBackNavigation.back(
+                  context,
+                  fallbackRoute: AppRoutes.marketplace,
+                ),
                 icon: Icon(Icons.arrow_back_ios_new_rounded,
                     size: 18, color: c.ink),
                 tooltip: 'Geri',

@@ -9,6 +9,54 @@ import 'package:swansport_data/swansport_data.dart';
 /// çakışmanın sessizce çözülmediğini. Bu tür güvenceler kod okunarak
 /// anlaşılmıyor ve ilk dokunanda sessizce kayboluyor.
 void main() {
+  group('Sosyal profil belge özeti', () {
+    test('kimlik branş ve kademeyi güvenli alanlardan ayrıştırır', () {
+      final credential = SocialCredentialSummary.fromMap({
+        'id': 'credential-1',
+        'kind': 'coach',
+        'coach_level': 3,
+        'status': 'approved',
+        'sports': {'name': 'Yüzme'},
+      });
+
+      expect(credential.id, 'credential-1');
+      expect(credential.isCoach, isTrue);
+      expect(credential.detailLabel, 'Yüzme · 3. Kademe Antrenör');
+      expect(credential.status, 'approved');
+    });
+
+    test('antrenör belgesi profil doğrulaması sayılmaz', () {
+      const coachProfile = SocialProfile(
+        id: 'coach',
+        name: 'Antrenör',
+        isClub: false,
+        credentialDetails: [
+          SocialCredentialSummary(
+            id: 'coach-credential',
+            kind: 'coach',
+            coachLevel: 2,
+            status: 'approved',
+          ),
+        ],
+      );
+      const identityProfile = SocialProfile(
+        id: 'identity',
+        name: 'Doğrulanmış kişi',
+        isClub: false,
+        credentialDetails: [
+          SocialCredentialSummary(
+            id: 'identity-credential',
+            kind: 'identity',
+            status: 'approved',
+          ),
+        ],
+      );
+
+      expect(coachProfile.isVerified, isFalse);
+      expect(identityProfile.isVerified, isTrue);
+    });
+  });
+
   group('Güvenli paylaşım kartı', () {
     test('kullanılamayan kart hiçbir alan taşımıyor', () {
       const c = SharedCard.unavailable();
@@ -193,8 +241,11 @@ void main() {
     });
 
     test('tekrar gönderim işaretli dönüyor', () {
-      final res = AttendanceOpResult.fromMap(
-          {'applied': 12, 'conflicts': <Map<String,dynamic>>[], 'replayed': true});
+      final res = AttendanceOpResult.fromMap({
+        'applied': 12,
+        'conflicts': <Map<String, dynamic>>[],
+        'replayed': true
+      });
       expect(res.replayed, isTrue);
       expect(res.hasConflicts, isFalse);
       // Uygulanan sayı ilk seferin sonucundan geliyor; sıfır değil.
@@ -299,7 +350,8 @@ void main() {
   group('Gönderi oluşturma sınırları', () {
     test('PickedMedia yalnızca bayt ve ad taşıyor', () {
       // swansport_data arayüze bağlanmıyor: XFile ya da ImageProvider yok.
-      final m = PickedMedia(bytes: Uint8List.fromList([1, 2, 3]), name: 'a.jpg');
+      final m =
+          PickedMedia(bytes: Uint8List.fromList([1, 2, 3]), name: 'a.jpg');
       expect(m.bytes.length, 3);
       expect(m.name, 'a.jpg');
     });

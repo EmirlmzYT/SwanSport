@@ -397,19 +397,6 @@ class NewsCarouselCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
             child: Row(
               children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: c.accent.withValues(alpha: .12),
-                    borderRadius: BorderRadius.circular(SwanRadius.sm),
-                  ),
-                  child: Icon(
-                    Icons.trending_up_rounded,
-                    size: 18,
-                    color: c.accent,
-                  ),
-                ),
-                const SizedBox(width: SwanSpace.sm),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,25 +412,9 @@ class NewsCarouselCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: c.surfaceAlt,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        '${items.length} Haber',
-                        style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
-                      ),
-                      const SizedBox(width: 4),
-                      Icon(Icons.arrow_forward_ios_rounded,
-                          size: 10, color: c.inkMuted),
-                    ],
-                  ),
+                Text(
+                  '${items.length} haber',
+                  style: SwanType.caption(c.inkMuted, w: FontWeight.w700),
                 ),
               ],
             ),

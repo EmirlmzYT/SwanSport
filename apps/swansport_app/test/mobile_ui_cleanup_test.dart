@@ -123,7 +123,8 @@ void main() {
                   kind: 'coach')
             ]),
       ]);
-      expect(find.text('Önerilen Sporcular & Antrenörler'), findsOneWidget);
+      expect(find.text('Aramaya başla'), findsOneWidget);
+      expect(find.text('Kulüpler, antrenörler ve sporcular'), findsOneWidget);
       expect(find.byIcon(Icons.photo_camera_rounded), findsNothing);
       expect(find.byIcon(Icons.tune_rounded), findsNothing);
       expect(tester.takeException(), isNull);

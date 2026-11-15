@@ -9,6 +9,8 @@ import '../../../app/widgets/premium.dart';
 import '../../social/presentation/widgets/social_widgets.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 
 /// Federasyon duyuru kanalı.
 ///
@@ -73,7 +75,10 @@ class _FederationChannelScreenState
                   padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
                   child: Row(children: [
                     GestureDetector(
-                      onTap: () => Navigator.maybePop(context),
+                      onTap: () => SwanBackNavigation.back(
+                        context,
+                        fallbackRoute: AppRoutes.messages,
+                      ),
                       child: Container(
                         width: 38,
                         height: 38,

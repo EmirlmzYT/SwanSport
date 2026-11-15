@@ -8,6 +8,8 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_shape.dart';
 import '../../../../app/design/swan_type.dart';
+import '../../../../app/navigation/app_routes.dart';
+import '../../../../app/navigation/swan_back_navigation.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_tabs.dart';
@@ -55,7 +57,10 @@ class ClubCockpitScreen extends ConsumerWidget {
         scrolledUnderElevation: 0,
         centerTitle: false,
         automaticallyImplyLeading: false,
-        leading: Navigator.canPop(context)
+        leading: SwanBackNavigation.shouldShow(
+          context,
+          fallbackRoute: AppRoutes.profile,
+        )
             ? IconButton(
                 tooltip: 'Geri dön',
                 icon: Icon(
@@ -63,7 +68,10 @@ class ClubCockpitScreen extends ConsumerWidget {
                   size: SwanSpace.lg,
                   color: c.ink,
                 ),
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => SwanBackNavigation.back(
+                  context,
+                  fallbackRoute: AppRoutes.profile,
+                ),
               )
             : null,
         title: Text(

@@ -81,6 +81,7 @@ class _PostCardState extends ConsumerState<PostCard>
           _liked = !next;
           _likes += next ? -1 : 1;
         });
+        _showActionFailure('Beğeni güncellenemedi. Tekrar deneyin.');
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -452,15 +453,19 @@ class _PostCardState extends ConsumerState<PostCard>
                             w: FontWeight.w800)),
                   ),
                 // Menü: kendi gönderinde sil, başkasınınkinde şikayet/engelle
-                GestureDetector(
-                  onTap: _openMenu,
-                  behavior: HitTestBehavior.opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: SwanSpace.sm),
-                    child: Icon(Icons.more_horiz_rounded,
-                        size: 20,
-                        color: (isDark ? SwanPalette.dark : SwanPalette.light)
-                            .inkMuted),
+                IconButton(
+                  onPressed: _openMenu,
+                  tooltip: 'Gönderi seçenekleri',
+                  visualDensity: VisualDensity.standard,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 48,
+                    height: 48,
+                  ),
+                  icon: Icon(
+                    Icons.more_horiz_rounded,
+                    size: 20,
+                    color: (isDark ? SwanPalette.dark : SwanPalette.light)
+                        .inkMuted,
                   ),
                 ),
               ]),
@@ -482,7 +487,10 @@ class _PostCardState extends ConsumerState<PostCard>
                           style: SwanType.bodySm(ink).copyWith(height: 1.45)),
                     ),
                   if (p.imageUrl != null)
-                    RatioImage(image: NetworkImage(p.imageUrl!)),
+                    RatioImage(
+                      image: NetworkImage(p.imageUrl!),
+                      borderRadius: 0,
+                    ),
                   if (p.sourcePostId != null)
                     Padding(
                       padding: const EdgeInsets.fromLTRB(
@@ -552,57 +560,76 @@ class _PostCardState extends ConsumerState<PostCard>
             Padding(
               padding: const EdgeInsets.fromLTRB(
                   SwanSpace.sm, SwanSpace.sm, SwanSpace.md, SwanSpace.sm),
-              child: Row(children: [
-                _action(
-                  icon: _liked
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                  color: _liked ? context.swan.danger : null,
-                  label: _likes > 0 ? compactCount(_likes) : '',
-                  tooltip: 'Beğen',
-                  onTap: _toggleLike,
-                  scale: _likeScale,
-                ),
-                _action(
-                  icon: Icons.mode_comment_outlined,
-                  label: _comments > 0 ? compactCount(_comments) : '',
-                  tooltip: 'Yorumlar',
-                  onTap: _openComments,
-                ),
-                _action(
-                  icon: Icons.repeat_rounded,
-                  label: '',
-                  tooltip: 'Alıntıla veya yeniden paylaş',
-                  onTap: () => showRepostSheet(
-                    context,
-                    ref,
-                    postId: widget.post.id,
-                    authorName: widget.post.displayName,
-                    preview: widget.post.body.isEmpty
-                        ? '(görsel gönderi)'
-                        : widget.post.body,
+              child: Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: _action(
+                      icon: _liked
+                          ? Icons.favorite_rounded
+                          : Icons.favorite_border_rounded,
+                      color: _liked ? context.swan.danger : null,
+                      label: _likes > 0 ? compactCount(_likes) : '',
+                      tooltip: 'Beğen',
+                      onTap: _toggleLike,
+                      scale: _likeScale,
+                    ),
                   ),
-                ),
-                _action(
-                  icon: Icons.send_outlined,
-                  label: '',
-                  tooltip: 'Mesajla gönder',
-                  onTap: () => showShareSheet(context,
-                      kind: ShareKind.post, id: widget.post.id),
-                ),
-                const Spacer(),
-                // Kaydetme kişisel bir yer imi: gönderi sahibine bildirim
-                // gitmiyor ve sayı gösterilmiyor. Sayı göstermek onu kamusal
-                // bir beğeniye çevirirdi.
-                _action(
-                  icon: _saved
-                      ? Icons.bookmark_rounded
-                      : Icons.bookmark_border_rounded,
-                  label: '',
-                  tooltip: 'Kaydet',
-                  onTap: _toggleSaved,
-                ),
-              ]),
+                  Expanded(
+                    flex: 3,
+                    child: _action(
+                      icon: Icons.mode_comment_outlined,
+                      label: _comments > 0 ? compactCount(_comments) : '',
+                      tooltip: 'Yorumlar',
+                      onTap: _openComments,
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: _action(
+                      icon: Icons.repeat_rounded,
+                      label: '',
+                      tooltip: 'Alıntıla veya yeniden paylaş',
+                      onTap: () => showRepostSheet(
+                        context,
+                        ref,
+                        postId: widget.post.id,
+                        authorName: widget.post.displayName,
+                        preview: widget.post.body.isEmpty
+                            ? '(görsel gönderi)'
+                            : widget.post.body,
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: _action(
+                      icon: Icons.send_outlined,
+                      label: '',
+                      tooltip: 'Mesajla gönder',
+                      onTap: () => showShareSheet(
+                        context,
+                        kind: ShareKind.post,
+                        id: widget.post.id,
+                      ),
+                    ),
+                  ),
+                  // Kaydetme kişisel bir yer imi: gönderi sahibine bildirim
+                  // gitmiyor ve sayı gösterilmiyor. Sayı göstermek onu kamusal
+                  // bir beğeniye çevirirdi.
+                  Expanded(
+                    flex: 2,
+                    child: _action(
+                      icon: _saved
+                          ? Icons.bookmark_rounded
+                          : Icons.bookmark_border_rounded,
+                      label: '',
+                      tooltip: 'Kaydet',
+                      onTap: _toggleSaved,
+                    ),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -623,8 +650,17 @@ class _PostCardState extends ConsumerState<PostCard>
           .toggleSaved(widget.post.id);
       if (mounted && now != _saved) setState(() => _saved = now);
     } catch (_) {
-      if (mounted) setState(() => _saved = before);
+      if (mounted) {
+        setState(() => _saved = before);
+        _showActionFailure('Gönderi kaydedilemedi. Tekrar deneyin.');
+      }
     }
+  }
+
+  void _showActionFailure(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
   }
 
   Widget _action({
@@ -644,19 +680,32 @@ class _PostCardState extends ConsumerState<PostCard>
             child: InkWell(
               borderRadius: BorderRadius.circular(SwanRadius.md),
               onTap: onTap,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: SwanSpace.md, vertical: SwanSpace.sm),
-                child: Row(children: [
-                  scale == null
-                      ? Icon(icon, size: 21, color: c)
-                      : ScaleTransition(
-                          scale: scale, child: Icon(icon, size: 21, color: c)),
-                  if (label.isNotEmpty) ...[
-                    const SizedBox(width: SwanSpace.sm),
-                    Text(label, style: SwanType.caption(c, w: FontWeight.w700)),
-                  ],
-                ]),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Center(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      scale == null
+                          ? Icon(icon, size: 21, color: c)
+                          : ScaleTransition(
+                              scale: scale,
+                              child: Icon(icon, size: 21, color: c),
+                            ),
+                      if (label.isNotEmpty) ...[
+                        const SizedBox(width: SwanSpace.xs),
+                        Flexible(
+                          child: Text(
+                            label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: SwanType.caption(c, w: FontWeight.w700),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ),
             )));
   }

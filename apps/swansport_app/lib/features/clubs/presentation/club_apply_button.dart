@@ -29,37 +29,62 @@ class ClubApplyButton extends ConsumerWidget {
     final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
     final ink = (isDark ? SwanPalette.dark : SwanPalette.light).ink;
 
-    final myClubs = ref.watch(myClubsProvider).valueOrNull ?? const [];
+    final clubsAsync = ref.watch(myClubsProvider);
+    final applicationsAsync = ref.watch(myApplicationsProvider);
+    if (clubsAsync.isLoading || applicationsAsync.isLoading) {
+      return _info(
+        surf,
+        line,
+        ink,
+        Icons.hourglass_top_rounded,
+        'Üyelik durumu kontrol ediliyor',
+        SwanColors.textSecondary,
+      );
+    }
+    if (clubsAsync.hasError || applicationsAsync.hasError) {
+      return OutlinedButton.icon(
+        onPressed: () {
+          ref.invalidate(myClubsProvider);
+          ref.invalidate(myApplicationsProvider);
+        },
+        icon: const Icon(Icons.refresh_rounded),
+        label: const Text('Üyelik durumunu yeniden dene'),
+        style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(48)),
+      );
+    }
+
+    final myClubs = clubsAsync.valueOrNull ?? const [];
     final isMember = myClubs.any((c) => c.id == clubId);
     if (isMember) {
       return _info(surf, line, ink, Icons.check_circle_rounded,
           'Bu kulübün üyesisin', SwanPalette.light.success);
     }
 
-    final apps = ref.watch(myApplicationsProvider).valueOrNull ?? const [];
+    final apps = applicationsAsync.valueOrNull ?? const [];
     final existing = apps.where((a) => a.clubId == clubId).toList()
       ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
 
     if (existing.isNotEmpty && existing.first.isPending) {
       return _info(surf, line, ink, Icons.schedule_rounded,
-          'Başvurun inceleniyor', SwanPalette.light.warning);
+          'Başvurun gönderildi · Onay bekliyor', SwanPalette.light.warning);
     }
     if (existing.isNotEmpty && existing.first.status == 'rejected') {
       return Column(children: [
         _info(surf, line, ink, Icons.cancel_rounded, 'Başvurun reddedildi',
             SwanPalette.light.danger),
         const SizedBox(height: 8),
-        _applyButton(context, ref, isDark, ink, label: 'Tekrar Başvur'),
+        _applyButton(context, ref, label: 'Yeniden başvur'),
       ]);
     }
 
-    return _applyButton(context, ref, isDark, ink);
+    return _applyButton(context, ref);
   }
 
   Widget _info(Color surf, Color line, Color ink, IconData icon, String text,
       Color color) {
     return Container(
-      height: 46,
+      constraints: const BoxConstraints(minHeight: 48),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color.withValues(alpha: .10),
@@ -71,35 +96,26 @@ class ClubApplyButton extends ConsumerWidget {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Text(text, style: SwanType.bodySm(color, w: FontWeight.w800)),
+          Flexible(
+            child: Text(
+              text,
+              textAlign: TextAlign.center,
+              style: SwanType.bodySm(color, w: FontWeight.w800),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _applyButton(
-      BuildContext context, WidgetRef ref, bool isDark, Color ink,
-      {String label = 'Kulübe Başvur'}) {
-    final surf = (isDark ? SwanPalette.dark : SwanPalette.light).surface;
-    final line = (isDark ? SwanPalette.dark : SwanPalette.light).line;
-    return GestureDetector(
-      onTap: () => _openSheet(context, ref),
-      child: Container(
-        height: 46,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: surf,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: line),
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.group_add_rounded, size: 18, color: kTeal),
-            const SizedBox(width: 8),
-            Text(label, style: SwanType.bodySm(ink, w: FontWeight.w800)),
-          ],
-        ),
+  Widget _applyButton(BuildContext context, WidgetRef ref,
+      {String label = 'Üyelik başvurusu yap'}) {
+    return FilledButton.icon(
+      onPressed: () => _openSheet(context, ref),
+      icon: const Icon(Icons.group_add_rounded),
+      label: Text(label),
+      style: FilledButton.styleFrom(
+        minimumSize: const Size.fromHeight(48),
       ),
     );
   }
@@ -151,7 +167,9 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
           );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-            content: Text('Başvurun gönderildi'), backgroundColor: kTeal));
+          content: Text('Başvurun gönderildi · Onay bekliyor'),
+          backgroundColor: kTeal,
+        ));
         Navigator.pop(context, true);
       }
     } catch (e) {
@@ -203,10 +221,15 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             ),
           ),
           const SizedBox(height: 16),
-          Text('Kulübe Başvur', style: SwanType.h2(ink)),
+          Text('Üyelik başvurusu', style: SwanType.h2(ink)),
           const SizedBox(height: 4),
           Text(widget.clubName,
               style: SwanType.bodySm(kTeal, w: FontWeight.w700)),
+          const SizedBox(height: 6),
+          Text(
+            'Başvurun kulüp yetkilisine iletilir. Onaylanana kadar üyeliğin başlamaz.',
+            style: SwanType.caption(SwanColors.textSecondary),
+          ),
           const SizedBox(height: 18),
           Text('NE OLARAK KATILMAK İSTİYORSUN?',
               style: SwanType.caption(SwanColors.textSecondary,
@@ -246,25 +269,17 @@ class _ApplySheetState extends ConsumerState<_ApplySheet> {
             ),
           ),
           const SizedBox(height: 18),
-          GestureDetector(
-            onTap: _busy ? null : _send,
-            child: Container(
-              height: 52,
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [kTealBright, kTeal]),
-                borderRadius: BorderRadius.circular(15),
-                boxShadow: [
-                  BoxShadow(
-                    color: kTeal.withValues(alpha: .32),
-                    blurRadius: 16,
-                    offset: const Offset(0, 7),
-                  ),
-                ],
-              ),
-              child: Text(_busy ? 'Gönderiliyor…' : 'Başvuruyu Gönder',
-                  style: SwanType.bodySm(Colors.white, w: FontWeight.w800)),
+          FilledButton(
+            onPressed: _busy ? null : _send,
+            style: FilledButton.styleFrom(
+              minimumSize: const Size.fromHeight(52),
             ),
+            child: _busy
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Text('Başvuruyu gönder'),
           ),
           const SizedBox(height: 8),
           Center(

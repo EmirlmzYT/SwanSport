@@ -8,6 +8,8 @@ import '../../../app/design/swan_palette.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/media/image_pick.dart';
 import '../../../app/media/image_picker_sheet.dart';
+import '../../../app/navigation/app_routes.dart';
+import '../../../app/navigation/swan_back_navigation.dart';
 
 /// Fişle hızlı gider girişi.
 ///
@@ -168,11 +170,10 @@ class _QuickExpenseScreenState extends ConsumerState<QuickExpenseScreen> {
           Row(
             children: [
               GestureDetector(
-                onTap: () {
-                  if (Navigator.canPop(context)) {
-                    Navigator.pop(context);
-                  }
-                },
+                onTap: () => SwanBackNavigation.back(
+                  context,
+                  fallbackRoute: AppRoutes.finance,
+                ),
                 child: Container(
                   width: 38,
                   height: 38,

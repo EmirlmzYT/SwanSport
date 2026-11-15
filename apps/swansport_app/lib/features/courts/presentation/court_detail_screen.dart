@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../../../app/design/swan_palette.dart';
+import '../../../app/design/swan_shape.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/location/place.dart';
 import '../../../app/widgets/premium.dart';
@@ -50,7 +51,11 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
           subtitle: '${_court.opensAt} – ${_court.closesAt}'),
       body: async.when(
         loading: premiumLoading,
-        error: (e, _) => premiumError(context, '$e'),
+        error: (e, _) => premiumError(
+          context,
+          'Saatler yüklenemedi.',
+          onRetry: () => ref.invalidate(courtTimelineProvider(_court.id)),
+        ),
         data: (slots) => RefreshIndicator(
           onRefresh: () async =>
               ref.invalidate(courtTimelineProvider(_court.id)),
@@ -63,14 +68,25 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
                   photoUrls: _court.photoUrls,
                   lat: _court.lat,
                   lng: _court.lng),
+              if (_busy) const LinearProgressIndicator(minHeight: 2),
               if (!verified) _verifyBanner(isDark, ink),
-              const SizedBox(height: 4),
+              const SizedBox(height: SwanSpace.sm),
+              Text('Müsait saatler', style: SwanType.h3(ink)),
+              const SizedBox(height: SwanSpace.xs),
+              Text(
+                'Bir saat seçerek ayrıntıları kontrol et. Dolu saatler yalnızca bilgi amaçlıdır.',
+                style: SwanType.caption(context.swan.inkMuted),
+              ),
+              const SizedBox(height: SwanSpace.sm),
+              _legend(ink),
+              const SizedBox(height: SwanSpace.md),
               if (ref.watch(featureEnabledProvider(FeatureFlags.courtWaitlist)))
                 SwanActionCard(
                   title: 'Bekleme listem',
                   icon: Icons.schedule_rounded,
                   onTap: () => Navigator.pushNamed(context, '/saha-islemlerim'),
                 ),
+              if (slots.isEmpty) _emptyTimeline(ink),
               for (final s in slots) ...[
                 _slotRow(isDark, ink, s, verified),
                 if (!s.isFree &&
@@ -244,7 +260,13 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
 
     if (s.mine) {
       // Kortta olduğunu henüz doğrulamadıysa asıl iş bu; başka her şey sonra.
-      if (!s.isPlaying) return button('Geldim', () => _checkIn(s));
+      if (!s.isPlaying) {
+        return Row(mainAxisSize: MainAxisSize.min, children: [
+          _cancelMenu(s),
+          const SizedBox(width: 4),
+          button('Geldim', () => _checkIn(s)),
+        ]);
+      }
       return Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -252,6 +274,8 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
             button('İstekler', () => _openRequests(s), filled: false),
             const SizedBox(width: 7),
           ],
+          _cancelMenu(s),
+          const SizedBox(width: 4),
           button('Devam et', () => _extend(s), filled: false),
         ],
       );
@@ -268,6 +292,56 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
 
     return const SizedBox.shrink();
   }
+
+  Widget _legend(Color ink) => Wrap(
+        spacing: SwanSpace.md,
+        runSpacing: SwanSpace.xs,
+        children: [
+          _legendItem(const Color(0xFF3FB950), 'Müsait', ink),
+          _legendItem(SwanPalette.light.warning, 'Dolu', ink),
+          _legendItem(kTeal, 'Senin saatin', ink),
+        ],
+      );
+
+  Widget _legendItem(Color color, String label, Color ink) => Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.circle, size: 9, color: color),
+          const SizedBox(width: 5),
+          Text(label, style: SwanType.caption(ink, w: FontWeight.w700)),
+        ],
+      );
+
+  Widget _emptyTimeline(Color ink) => Container(
+        padding: const EdgeInsets.all(SwanSpace.lg),
+        decoration: BoxDecoration(
+          color: context.swan.surface,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: context.swan.line),
+        ),
+        child: Column(children: [
+          Icon(Icons.event_busy_outlined, color: context.swan.inkMuted),
+          const SizedBox(height: SwanSpace.sm),
+          Text('Şu an seçilebilir saat yok',
+              style: SwanType.bodySm(ink, w: FontWeight.w800)),
+          const SizedBox(height: SwanSpace.xs),
+          Text('Biraz sonra yenileyerek yeni saatleri kontrol edebilirsin.',
+              textAlign: TextAlign.center,
+              style: SwanType.caption(context.swan.inkMuted)),
+          TextButton.icon(
+            onPressed: () => ref.invalidate(courtTimelineProvider(_court.id)),
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Saatleri yenile'),
+          ),
+        ]),
+      );
+
+  Widget _cancelMenu(TimelineSlot slot) => IconButton(
+        tooltip: 'Saati iptal et',
+        visualDensity: VisualDensity.compact,
+        onPressed: _busy ? null : () => _cancel(slot),
+        icon: Icon(Icons.close_rounded, color: context.swan.inkMuted, size: 19),
+      );
 
   // ------------------------------- eylemler --------------------------------
 
@@ -340,11 +414,77 @@ class _CourtDetailScreenState extends ConsumerState<CourtDetailScreen> {
             needed: result.needed,
           );
       ref.invalidate(courtTimelineProvider(_court.id));
-      _say('Sıran alındı. Korta varınca onaylamayı unutma.');
+      if (mounted) setState(() => _busy = false);
+      await _showClaimResult(s);
     } catch (e) {
-      _say(_readable(e));
+      _say(_claimFailure(e));
       // Başkası kapmış olabilir — şeridi tazele ki doğru durumu görsün.
       ref.invalidate(courtTimelineProvider(_court.id));
+    } finally {
+      if (mounted && _busy) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _showClaimResult(TimelineSlot slot) => showDialog<void>(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          icon: const Icon(Icons.check_circle_rounded, color: kTeal),
+          title: const Text('Saat ayrıldı'),
+          content: Text(
+            '${_court.name}\n${_dayLabel(slot.startsAt)} · ${slot.hourLabel}\n\n'
+            'Korta varınca uygulamadan “Geldim” diyerek konumunu doğrula.',
+          ),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Tamam'),
+            ),
+          ],
+        ),
+      );
+
+  String _dayLabel(DateTime value) =>
+      '${value.day.toString().padLeft(2, '0')}.${value.month.toString().padLeft(2, '0')}.${value.year}';
+
+  String _claimFailure(Object error) {
+    final readable = _readable(error);
+    final lower = readable.toLowerCase();
+    if (lower.contains('dolu') ||
+        lower.contains('alındı') ||
+        lower.contains('unique') ||
+        lower.contains('conflict')) {
+      return 'Bu saat az önce doldu. Saatleri yeniledik; başka bir saat seçebilirsin.';
+    }
+    return readable;
+  }
+
+  Future<void> _cancel(TimelineSlot slot) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('Saati iptal et?'),
+        content: Text(
+            '${_court.name} · ${slot.hourLabel} için ayırdığın saat boşalacak.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton.tonal(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: const Text('İptal et'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted || slot.slotId == null) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(courtServiceProvider).cancel(slot.slotId!);
+      ref.invalidate(courtTimelineProvider(_court.id));
+      _say('Saat iptal edildi.');
+    } catch (e) {
+      _say(_readable(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

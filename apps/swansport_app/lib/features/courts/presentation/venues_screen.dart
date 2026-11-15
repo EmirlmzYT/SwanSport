@@ -232,7 +232,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
   Widget _courtsTab(bool isDark, Color ink) {
     final async = ref.watch(courtsProvider(null));
     return async.when(
-      loading: premiumLoading,
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => premiumError(context, '$e'),
       data: (courts) {
         if (courts.isEmpty) {
@@ -262,10 +262,11 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
             padding:
                 const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 132),
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                runSpacing: SwanSpace.xs,
                 children: [
-                  Text('Kayıtlı Kortlar', style: SwanType.h3(ink)),
+                  Text('Halka açık kortlar', style: SwanType.h3(ink)),
                   Text(
                     '${sorted.length} kort',
                     style: SwanType.caption(SwanColors.textSecondary),
@@ -284,7 +285,7 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
   Widget _turfTab(bool isDark, Color ink) {
     final async = ref.watch(turfFieldsProvider(null));
     return async.when(
-      loading: premiumLoading,
+      loading: () => const Center(child: CircularProgressIndicator()),
       error: (e, _) => premiumError(context, '$e'),
       data: (fields) {
         if (fields.isEmpty) {
@@ -312,10 +313,11 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
             padding:
                 const EdgeInsets.fromLTRB(SwanSpace.lg, 0, SwanSpace.lg, 132),
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              Wrap(
+                alignment: WrapAlignment.spaceBetween,
+                runSpacing: SwanSpace.xs,
                 children: [
-                  Text('Kayıtlı Halı Sahalar', style: SwanType.h3(ink)),
+                  Text('Halı sahalar', style: SwanType.h3(ink)),
                   Text(
                     '${sorted.length} saha',
                     style: SwanType.caption(SwanColors.textSecondary),
@@ -383,6 +385,21 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
         child: Icon(icon, color: color, size: 21),
       );
 
+  Widget _venueImage(List<String> urls, IconData fallback, Color color) {
+    if (urls.isEmpty) return _badge(fallback, color);
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(13),
+      child: Image.network(
+        urls.first,
+        width: 54,
+        height: 54,
+        fit: BoxFit.cover,
+        semanticLabel: 'Tesis fotoğrafı',
+        errorBuilder: (_, __, ___) => _badge(fallback, color),
+      ),
+    );
+  }
+
   Widget _courtCard(bool isDark, Color ink, Court court) {
     final subtitle = [
       if ((court.venue ?? '').isNotEmpty) court.venue!,
@@ -395,38 +412,57 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
           context,
           MaterialPageRoute<void>(
               builder: (_) => CourtDetailScreen(court: court))),
-      child: Row(children: [
-        _badge(Icons.sports_tennis_rounded, kTeal),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(court.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
-              if (subtitle.isNotEmpty) ...[
-                const SizedBox(height: 3),
-                Text(subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: SwanType.caption(SwanColors.textSecondary,
-                        w: FontWeight.w600)),
-              ],
-              const SizedBox(height: 3),
-              Text('${court.opensAt} – ${court.closesAt}',
-                  style: SwanType.caption(SwanColors.textSecondary,
-                      w: FontWeight.w600)),
-            ],
-          ),
-        ),
-        if (court.distanceLabel.isNotEmpty)
-          PremiumStatusChip(
-              label: court.distanceLabel,
-              color: kTeal,
-              icon: Icons.near_me_rounded),
-      ]),
+      child: Semantics(
+          button: true,
+          label: '${court.name}, $subtitle, saatleri gör',
+          child: Row(children: [
+            _venueImage(court.photoUrls, Icons.sports_tennis_rounded, kTeal),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(court.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                  if ((court.sportName ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(court.sportName!,
+                        style: SwanType.caption(context.swan.accent,
+                            w: FontWeight.w700)),
+                  ],
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 3),
+                    Text(subtitle,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: SwanType.caption(SwanColors.textSecondary,
+                            w: FontWeight.w600)),
+                  ],
+                  const SizedBox(height: 3),
+                  Text('${court.opensAt} – ${court.closesAt}',
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              if (court.distanceLabel.isNotEmpty)
+                Text(court.distanceLabel,
+                    style: SwanType.caption(context.swan.inkMuted,
+                        w: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('Saatleri gör',
+                    style: SwanType.caption(context.swan.accent,
+                        w: FontWeight.w800)),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: context.swan.accent),
+              ]),
+            ]),
+          ])),
     );
   }
 
@@ -443,36 +479,49 @@ class _VenuesScreenState extends ConsumerState<VenuesScreen> {
           context,
           MaterialPageRoute<void>(
               builder: (_) => TurfFieldDetailScreen(field: field))),
-      child: Row(children: [
-        _badge(Icons.grass_rounded, green),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(field.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.bodySm(ink, w: FontWeight.w800)),
-              const SizedBox(height: 3),
-              Text(subtitle,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: SwanType.caption(SwanColors.textSecondary,
-                      w: FontWeight.w600)),
-              const SizedBox(height: 3),
-              Text('${field.opensAt} – ${field.closesAt}',
-                  style: SwanType.caption(SwanColors.textSecondary,
-                      w: FontWeight.w600)),
-            ],
-          ),
-        ),
-        if (field.distanceLabel.isNotEmpty)
-          PremiumStatusChip(
-              label: field.distanceLabel,
-              color: green,
-              icon: Icons.near_me_rounded),
-      ]),
+      child: Semantics(
+          button: true,
+          label: '${field.name}, $subtitle, doluluk saatlerini gör',
+          child: Row(children: [
+            _venueImage(field.photoUrls, Icons.grass_rounded, green),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(field.name,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.bodySm(ink, w: FontWeight.w800)),
+                  const SizedBox(height: 3),
+                  Text(subtitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
+                  const SizedBox(height: 3),
+                  Text('${field.opensAt} – ${field.closesAt}',
+                      style: SwanType.caption(SwanColors.textSecondary,
+                          w: FontWeight.w600)),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+              if (field.distanceLabel.isNotEmpty)
+                Text(field.distanceLabel,
+                    style: SwanType.caption(context.swan.inkMuted,
+                        w: FontWeight.w700)),
+              const SizedBox(height: 6),
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                Text('Saatleri gör',
+                    style: SwanType.caption(context.swan.accent,
+                        w: FontWeight.w800)),
+                Icon(Icons.chevron_right_rounded,
+                    size: 18, color: context.swan.accent),
+              ]),
+            ]),
+          ])),
     );
   }
 }

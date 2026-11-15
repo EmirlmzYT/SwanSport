@@ -136,6 +136,45 @@ class CommentRow {
 }
 
 /// Sosyal profil (kişi veya kulüp) — profil sayfası için.
+class SocialCredentialSummary {
+  const SocialCredentialSummary({
+    required this.id,
+    required this.kind,
+    this.sportName,
+    this.coachLevel,
+    this.status,
+  });
+
+  final String id;
+  final String kind;
+  final String? sportName;
+  final int? coachLevel;
+  final String? status;
+
+  bool get isCoach => kind == 'coach';
+
+  String get title => isCoach ? 'Antrenörlük belgesi' : 'Sporcu belgesi';
+
+  String get detailLabel {
+    final parts = <String>[
+      if (sportName?.trim().isNotEmpty == true) sportName!.trim(),
+      if (coachLevel != null) '$coachLevel. Kademe Antrenör',
+    ];
+    return parts.isEmpty ? title : parts.join(' · ');
+  }
+
+  factory SocialCredentialSummary.fromMap(Map<String, dynamic> map) {
+    final sport = map['sports'];
+    return SocialCredentialSummary(
+      id: map['id'] as String,
+      kind: (map['kind'] as String?) ?? '',
+      sportName: sport is Map ? sport['name'] as String? : null,
+      coachLevel: (map['coach_level'] as num?)?.toInt(),
+      status: map['status'] as String?,
+    );
+  }
+}
+
 class SocialProfile {
   const SocialProfile({
     required this.id,
@@ -151,6 +190,7 @@ class SocialProfile {
     this.isFollowedByMe = false,
     this.isMe = false,
     this.credentials = const [],
+    this.credentialDetails = const [],
     this.cityCode,
     this.coverUrl,
     this.brandColor,
@@ -187,6 +227,10 @@ class SocialProfile {
 
   /// Onaylanmış kimlikler (ör. "2. Kademe Antrenör") — doğrulama rozetleri.
   final List<String> credentials;
+
+  /// Profildə gösterilebilen güvenli belge özeti. Dosya yolu, not veya kişisel
+  /// bilgi taşımaz; ayrıntı ekranı yalnızca bu mevcut sosyal projeksiyonu kullanır.
+  final List<SocialCredentialSummary> credentialDetails;
 
   /// Kapak görseli. `post-media` bucket'ı public; kimlik görselleri profili
   /// görebilen herkese açık, imzalı URL burada koruma değil gecikme olurdu.
@@ -230,7 +274,17 @@ class SocialProfile {
   /// Avatar gradyan indeksi: seçim varsa o, yoksa eski türetme.
   int get effectiveTint => avatarTint ?? name.length % 4;
 
-  bool get isVerified => credentials.isNotEmpty;
+  bool get isVerified {
+    if (isClub) {
+      return credentials.any(
+        (credential) => credential == 'Onaylı Kulüp',
+      );
+    }
+    return credentialDetails.any(
+      (credential) =>
+          credential.kind == 'identity' && credential.status == 'approved',
+    );
+  }
 
   String get initials {
     final parts = name.trim().split(RegExp(r'\s+'));
@@ -288,6 +342,10 @@ class SocialService {
   String? get _uid => _c.auth.currentUser?.id;
 
   /// Sunucunun gönderi RLS'iyle aynı yetki kararını döndürür.
+  ///
+  /// Arayüz belge ve üyelik listesinden bu kararı tahmin etmemeli: önbellekteki
+  /// kayıt ile RLS'in gördüğü aktif oturum ayrışırsa kullanıcı ancak gönderim
+  /// sırasında 42501 hatası görüyordu.
   Future<bool> canCreatePost({String? clubId}) async {
     if (_uid == null) return false;
     final result = clubId == null
@@ -613,6 +671,14 @@ class SocialService {
     return _hydrate(rows as List);
   }
 
+  /// Bildirim hedefindeki gönderi mevcut oturum ve RLS kapsamında görülebilir mi?
+  Future<bool> canViewPost(String postId) async {
+    if (_uid == null || postId.isEmpty) return false;
+    final row =
+        await _c.from('posts').select('id').eq('id', postId).maybeSingle();
+    return row != null;
+  }
+
   /// Gönderi oluştur. [clubId] verilirse kulüp adına paylaşılır.
   /// Gönderi oluşturur ve kimliğini döner.
   ///
@@ -815,7 +881,7 @@ class SocialService {
 
     final creds = await _c
         .from('profile_credentials')
-        .select('kind, coach_level, status, sports(name)')
+        .select('id, kind, coach_level, status, sports(name)')
         .eq('profile_id', profileId)
         .eq('status', 'approved');
 
@@ -824,8 +890,10 @@ class SocialService {
     final hasClub = await _hasActiveClub(profileId);
 
     final labels = <String>[];
+    final credentialDetails = <SocialCredentialSummary>[];
     for (final r in creds) {
       final m = (r as Map).cast<String, dynamic>();
+      credentialDetails.add(SocialCredentialSummary.fromMap(m));
       final kind = m['kind'] as String?;
       if (kind == 'coach') {
         labels.add(_coachLabel(m));
@@ -906,6 +974,7 @@ class SocialService {
       isFollowedByMe: followed,
       isMe: uid == profileId,
       credentials: labels,
+      credentialDetails: credentialDetails,
       phone: privateProjection['phone'] as String?,
       phoneHidden: (row['phone_hidden'] as bool?) ?? true,
       instagram: row['instagram'] as String?,

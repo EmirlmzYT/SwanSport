@@ -8,6 +8,8 @@ import 'package:swansport_models/swansport_models.dart';
 import '../../../../app/design/swan_palette.dart';
 import '../../../../app/design/swan_type.dart';
 import '../../../../app/design/swan_shape.dart';
+import '../../../../app/navigation/app_routes.dart';
+import '../../../../app/navigation/swan_back_navigation.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_bottom_nav.dart';
 import '../../../../app/widgets/swan_tabs.dart';
@@ -127,7 +129,10 @@ class _TeamRosterScreenState extends ConsumerState<TeamRosterScreen> {
           padding: const EdgeInsets.fromLTRB(16, 10, 16, 4),
           child: Row(children: [
             IconButton(
-                onPressed: () => Navigator.maybePop(context),
+                onPressed: () => SwanBackNavigation.back(
+                      context,
+                      fallbackRoute: AppRoutes.teams,
+                    ),
                 tooltip: 'Geri',
                 icon: Icon(Icons.arrow_back, color: c.ink)),
             const SizedBox(width: 10),

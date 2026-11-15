@@ -21,6 +21,9 @@ class NotificationRow {
     this.entityType,
     this.entityId,
     this.readAt,
+    this.category,
+    this.actorName,
+    this.actorAvatarUrl,
   });
 
   final String id;
@@ -32,8 +35,34 @@ class NotificationRow {
   final String? entityType;
   final String? entityId;
   final DateTime? readAt;
+  final String? category;
+  final String? actorName;
+  final String? actorAvatarUrl;
 
   bool get isUnread => readAt == null;
+  String get actorInitials {
+    final value = (actorName ?? '').trim();
+    if (value.isEmpty) return '?';
+    final parts = value.split(RegExp(r'\s+'));
+    return '${parts.first[0]}${parts.length > 1 ? parts.last[0] : ''}'
+        .toUpperCase();
+  }
+
+  NotificationRow withActor({String? name, String? avatarUrl}) =>
+      NotificationRow(
+        id: id,
+        kind: kind,
+        title: title,
+        createdAt: createdAt,
+        body: body,
+        actorId: actorId,
+        entityType: entityType,
+        entityId: entityId,
+        readAt: readAt,
+        category: category,
+        actorName: name,
+        actorAvatarUrl: avatarUrl,
+      );
   String? get refereeRoute =>
       kind == 'referee_assignment' && entityType == 'match'
           ? '/hakem/gorevler'
@@ -63,6 +92,9 @@ class NotificationRow {
         readAt: m['read_at'] == null
             ? null
             : DateTime.tryParse('${m['read_at']}')?.toLocal(),
+        category: m['category'] as String?,
+        actorName: m['actor_name'] as String?,
+        actorAvatarUrl: m['actor_avatar_url'] as String?,
       );
 }
 
@@ -265,9 +297,10 @@ class NotificationService {
         .neq('kind', 'message')
         .order('created_at', ascending: false)
         .limit(limit);
-    return (rows as List)
+    final notifications = (rows as List)
         .map((r) => NotificationRow.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
+    return _withActors(notifications);
   }
 
   /// Server-filtered professional inbox. Social rows never cross this RPC.
@@ -377,9 +410,53 @@ class NotificationService {
   Future<List<NotificationRow>> byCategory(String category) async {
     final rows = await _c.rpc<List<dynamic>>('my_notifications',
         params: {if (category.isNotEmpty) 'p_category': category});
-    return rows
+    final notifications = rows
         .map((r) => NotificationRow.fromMap((r as Map).cast<String, dynamic>()))
         .toList();
+    return _withActors(notifications);
+  }
+
+  Future<List<NotificationRow>> _withActors(
+    List<NotificationRow> notifications,
+  ) async {
+    final actorIds = notifications
+        .map((notification) => notification.actorId)
+        .whereType<String>()
+        .where((id) => id.isNotEmpty)
+        .toSet();
+    if (actorIds.isEmpty) return notifications;
+
+    try {
+      final rows = await _c
+          .from('profiles')
+          .select('id, full_name, avatar_path')
+          .inFilter('id', actorIds.toList());
+      final actors = <String, ({String? name, String? avatarUrl})>{};
+      for (final raw in rows as List) {
+        final row = (raw as Map).cast<String, dynamic>();
+        final id = row['id'] as String;
+        final avatarPath = row['avatar_path'] as String?;
+        actors[id] = (
+          name: row['full_name'] as String?,
+          avatarUrl: avatarPath == null || avatarPath.isEmpty
+              ? null
+              : _c.storage.from('post-media').getPublicUrl(avatarPath),
+        );
+      }
+      return [
+        for (final notification in notifications)
+          if (actors[notification.actorId] case final actor?)
+            notification.withActor(
+              name: actor.name,
+              avatarUrl: actor.avatarUrl,
+            )
+          else
+            notification,
+      ];
+    } catch (_) {
+      // Aktör ayrıntıları sunulamazsa bildirim listesini kaybetme.
+      return notifications;
+    }
   }
 
   Future<List<ConversationRow>> conversations() async {

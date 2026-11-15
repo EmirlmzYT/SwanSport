@@ -127,7 +127,7 @@ class _ProfileMenu extends ConsumerWidget {
             // Sosyal uygulama kişisel sporcu/veli deneyimine odaklanır.
             // Kulüp, muhasebe, hakem, tesis ve platform operasyonları
             // SwanSport Pro çalışma alanındadır.
-            sectionHeader('KİŞİSEL'),
+            sectionHeader('KİMLİK VE İÇERİK'),
             entry(
               Icons.qr_code_2_rounded,
               'Sporcu Kartı (QR)',
@@ -139,6 +139,8 @@ class _ProfileMenu extends ConsumerWidget {
               'Kaydedilenler',
               '/kaydedilenler',
             ),
+
+            sectionHeader('SPOR YAŞAMI'),
             entry(Icons.receipt_long_outlined, 'Aidatlarım', '/aidatlarim'),
             entry(Icons.folder_outlined, 'Belgelerim', '/documents'),
             entry(Icons.verified_user_outlined, 'Doğrulama', '/dogrulama'),
@@ -157,6 +159,10 @@ class _ProfileMenu extends ConsumerWidget {
                 '/veli-izinleri',
               ),
 
+            sectionHeader('BAŞVURU VE BAĞLANTILAR'),
+            entry(Icons.group_add_rounded, 'Başvurularım', '/basvurular'),
+            entry(Icons.vpn_key_rounded, 'Davet Kodu Ekle', '/veli-bagla'),
+
             Divider(color: c.line, height: SwanSpace.xl),
 
             // 3. HESAP VE DESTEK
@@ -164,8 +170,6 @@ class _ProfileMenu extends ConsumerWidget {
             entry(Icons.settings_outlined, 'Ayarlar', '/settings'),
             entry(Icons.auto_stories_rounded, 'Kurulum Rehberi', '/rehber'),
             entry(Icons.volunteer_activism_rounded, 'Bağış & Destek', '/bagis'),
-            entry(Icons.group_add_rounded, 'Başvurularım', '/basvurular'),
-            entry(Icons.vpn_key_rounded, 'Davet Kodu Ekle', '/veli-bagla'),
           ],
         ),
       ),
