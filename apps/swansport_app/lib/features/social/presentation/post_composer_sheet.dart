@@ -8,9 +8,28 @@ import '../../../app/media/image_picker_sheet.dart';
 import '../../../app/widgets/tag_composer.dart';
 import '../../../app/widgets/friendly_error.dart';
 
+String _postCreationErrorMessage(Object error) {
+  if (error is PostCreationException) {
+    switch (error.stage) {
+      case PostCreationStage.mediaUpload:
+        return 'Fotoğraf yüklenemedi. Oturumunu ve medya yükleme iznini kontrol edip tekrar dene.';
+      case PostCreationStage.postInsert:
+        return 'Gönderi kaydedilemedi. Paylaşım yetkini kontrol edip tekrar dene.';
+      case PostCreationStage.galleryInsert:
+        return 'Gönderi oluşturuldu ancak fotoğraf galerisi tamamlanamadı.';
+    }
+  }
+  return friendlyErrorMessage(
+    error,
+    defaultMessage: 'Gönderi paylaşılamadı. Lütfen tekrar deneyin.',
+  );
+}
+
 /// Gönderi oluşturma sayfasını açar. Paylaşım yapıldıysa true döner.
-Future<bool?> showPostComposer(BuildContext context,
-    {bool startWithImage = false}) {
+Future<bool?> showPostComposer(
+  BuildContext context, {
+  bool startWithImage = false,
+}) {
   return showModalBottomSheet<bool>(
     context: context,
     backgroundColor: Colors.transparent,
@@ -66,6 +85,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
   bool _canPostAsClub = false;
   bool _permissionFailed = false;
   String? _permissionClubId;
+  String? _submitError;
 
   static const _maxMedia = 8;
 
@@ -125,11 +145,19 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
     if (_busy || _picking || _media.length >= _maxMedia) return;
     setState(() => _picking = true);
     try {
-      final images = await showImagePickerSheet(context,
-          title: 'Gönderiye fotoğraf ekle', limit: _maxMedia - _media.length);
+      final images = await showImagePickerSheet(
+        context,
+        title: 'Gönderiye fotoğraf ekle',
+        limit: _maxMedia - _media.length,
+      );
       if (!mounted) return;
-      setState(() => _media.addAll(images
-          .map((image) => PickedMedia(bytes: image.bytes, name: image.name))));
+      setState(
+        () => _media.addAll(
+          images.map(
+            (image) => PickedMedia(bytes: image.bytes, name: image.name),
+          ),
+        ),
+      );
     } catch (error) {
       if (mounted) {
         _snack(
@@ -157,15 +185,18 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
     final submittedClubId = clubId;
     final submittedVisibility = _visibility;
     final submittedMedia = List<PickedMedia>.unmodifiable(_media);
-    final submittedMentions = List<String>.unmodifiable(
-      _tags.mentionsIn(text),
-    );
+    final submittedMentions = List<String>.unmodifiable(_tags.mentionsIn(text));
     final submittedHashtags = List<String>.unmodifiable(
       TagState.hashtagsIn(text),
     );
-    setState(() => _busy = true);
+    setState(() {
+      _busy = true;
+      _submitError = null;
+    });
     try {
-      final postId = await ref.read(socialServiceProvider).createPost(
+      final postId = await ref
+          .read(socialServiceProvider)
+          .createPost(
             body: text,
             clubId: submittedClubId,
             images: submittedMedia,
@@ -179,7 +210,9 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
       String? partialMessage;
       if (submittedMentions.isNotEmpty || submittedHashtags.isNotEmpty) {
         try {
-          final done = await ref.read(socialShareServiceProvider).setTags(
+          final done = await ref
+              .read(socialShareServiceProvider)
+              .setTags(
                 postId,
                 mentions: submittedMentions,
                 hashtags: submittedHashtags,
@@ -227,11 +260,7 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
       if (mounted && !_postCreated) {
-        _snack(
-            friendlyErrorMessage(e,
-                defaultMessage:
-                    'Gönderi paylaşılamadı. Lütfen tekrar deneyin.'),
-            context.swan.danger);
+        setState(() => _submitError = _postCreationErrorMessage(e));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -309,15 +338,18 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
     final profile = profileAsync.valueOrNull;
     final identityLoading =
         clubAsync.isLoading || profileAsync.isLoading || _checkingPermission;
-    final expectedClubId =
-        club != null && access.canPublishClubPosts ? club.id : null;
+    final expectedClubId = club != null && access.canPublishClubPosts
+        ? club.id
+        : null;
     if (!identityLoading && expectedClubId != _permissionClubId) {
-      WidgetsBinding.instance
-          .addPostFrameCallback((_) => _refreshPermissions());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _refreshPermissions(),
+      );
     }
     final canPostPersonally = _canPostPersonally;
     final canPostAsClub = expectedClubId != null && _canPostAsClub;
-    final effectiveAsClub = canPostAsClub &&
+    final effectiveAsClub =
+        canPostAsClub &&
         ((_asClub ?? (!canPostPersonally && canPostAsClub)) ||
             !canPostPersonally);
     final canShare = canPostAsClub || canPostPersonally;
@@ -365,7 +397,8 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                       ),
                     ),
                     FilledButton(
-                      onPressed: (_busy ||
+                      onPressed:
+                          (_busy ||
                               _picking ||
                               identityLoading ||
                               !canShare ||
@@ -413,8 +446,11 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.info_outline_rounded,
-                                  color: c.accent, size: 20),
+                              Icon(
+                                Icons.info_outline_rounded,
+                                color: c.accent,
+                                size: 20,
+                              ),
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
@@ -433,6 +469,37 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                           ),
                         ),
 
+                      if (_submitError != null)
+                        Container(
+                          width: double.infinity,
+                          margin: const EdgeInsets.only(bottom: 12),
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: c.danger.withValues(alpha: .10),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: c.danger.withValues(alpha: .35),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.error_outline_rounded,
+                                color: c.danger,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  _submitError!,
+                                  style: SwanType.caption(c.danger),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+
                       if (!identityLoading)
                         Row(
                           children: [
@@ -442,11 +509,13 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                               child: Text(
                                 effectiveAsClub
                                     ? ((postingClub?.name.isNotEmpty ?? false)
-                                        ? postingClub!.name[0].toUpperCase()
-                                        : 'K')
+                                          ? postingClub!.name[0].toUpperCase()
+                                          : 'K')
                                     : (profile?.initials ?? 'S'),
-                                style:
-                                    SwanType.body(c.accent, w: FontWeight.w700),
+                                style: SwanType.body(
+                                  c.accent,
+                                  w: FontWeight.w700,
+                                ),
                               ),
                             ),
                             const SizedBox(width: 12),
@@ -456,8 +525,10 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                 children: [
                                   Text(
                                     displayName,
-                                    style: SwanType.body(c.ink,
-                                        w: FontWeight.w700),
+                                    style: SwanType.body(
+                                      c.ink,
+                                      w: FontWeight.w700,
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -466,17 +537,19 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                     onTap: _busy || effectiveAsClub
                                         ? null
                                         : () =>
-                                            _showVisibilityPicker(context, c),
+                                              _showVisibilityPicker(context, c),
                                     borderRadius: BorderRadius.circular(14),
                                     child: Container(
                                       padding: const EdgeInsets.symmetric(
-                                          horizontal: 8, vertical: 3),
+                                        horizontal: 8,
+                                        vertical: 3,
+                                      ),
                                       decoration: BoxDecoration(
                                         color: c.surfaceAlt,
                                         borderRadius: BorderRadius.circular(14),
                                         border: Border.all(
-                                            color:
-                                                c.line.withValues(alpha: .8)),
+                                          color: c.line.withValues(alpha: .8),
+                                        ),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -486,10 +559,10 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                                     PostVisibility.followers
                                                 ? Icons.people_alt_rounded
                                                 : _visibility ==
-                                                        PostVisibility
-                                                            .privateDraft
-                                                    ? Icons.lock_outline_rounded
-                                                    : Icons.public_rounded,
+                                                      PostVisibility
+                                                          .privateDraft
+                                                ? Icons.lock_outline_rounded
+                                                : Icons.public_rounded,
                                             size: 13,
                                             color: c.accent,
                                           ),
@@ -499,9 +572,10 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                               effectiveAsClub
                                                   ? 'Kulüp gönderisi'
                                                   : (_visibility != null
-                                                      ? visibilityLabel(
-                                                          _visibility!)
-                                                      : 'Varsayılan görünürlük'),
+                                                        ? visibilityLabel(
+                                                            _visibility!,
+                                                          )
+                                                        : 'Varsayılan görünürlük'),
                                               style: SwanType.caption(
                                                 c.ink,
                                                 w: FontWeight.w600,
@@ -529,13 +603,14 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                 onPressed: _busy
                                     ? null
                                     : () => _showIdentityPicker(
-                                          context,
-                                          c,
-                                          profileName: profile?.fullName ??
-                                              'Kişisel profil',
-                                          clubName: club?.name ?? 'Kulüp',
-                                          effectiveAsClub: effectiveAsClub,
-                                        ),
+                                        context,
+                                        c,
+                                        profileName:
+                                            profile?.fullName ??
+                                            'Kişisel profil',
+                                        clubName: club?.name ?? 'Kulüp',
+                                        effectiveAsClub: effectiveAsClub,
+                                      ),
                                 icon: const Icon(Icons.swap_horiz_rounded),
                                 label: const Text('Değiştir'),
                               ),
@@ -557,8 +632,9 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                         style: SwanType.body(c.ink),
                         decoration: InputDecoration(
                           hintText: 'Ne paylaşmak istersin?',
-                          hintStyle:
-                              SwanType.body(c.inkMuted.withValues(alpha: .7)),
+                          hintStyle: SwanType.body(
+                            c.inkMuted.withValues(alpha: .7),
+                          ),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
@@ -619,12 +695,19 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
                                       children: [
-                                        Icon(Icons.add_photo_alternate_rounded,
-                                            size: 28, color: c.accent),
+                                        Icon(
+                                          Icons.add_photo_alternate_rounded,
+                                          size: 28,
+                                          color: c.accent,
+                                        ),
                                         const SizedBox(height: 6),
-                                        Text('Fotoğraf ekle',
-                                            style: SwanType.caption(c.inkMuted,
-                                                w: FontWeight.w600)),
+                                        Text(
+                                          'Fotoğraf ekle',
+                                          style: SwanType.caption(
+                                            c.inkMuted,
+                                            w: FontWeight.w600,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -639,8 +722,9 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                 onOpen: () => _showMediaPreview(i),
                                 onRemove: () =>
                                     setState(() => _media.removeAt(i)),
-                                onEarlier:
-                                    i == 0 ? null : () => _moveMedia(i, i - 1),
+                                onEarlier: i == 0
+                                    ? null
+                                    : () => _moveMedia(i, i - 1),
                                 onLater: i == _media.length - 1
                                     ? null
                                     : () => _moveMedia(i, i + 1),
@@ -653,12 +737,15 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
 
                       Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 6),
+                          horizontal: 8,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: c.surfaceAlt,
                           borderRadius: BorderRadius.circular(16),
-                          border:
-                              Border.all(color: c.line.withValues(alpha: .7)),
+                          border: Border.all(
+                            color: c.line.withValues(alpha: .7),
+                          ),
                         ),
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
@@ -669,9 +756,11 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                                 color: c.accent,
                                 tooltip: 'Fotoğraf',
                                 label: 'Fotoğraf',
-                                badgeCount:
-                                    _media.isNotEmpty ? _media.length : null,
-                                onTap: _busy ||
+                                badgeCount: _media.isNotEmpty
+                                    ? _media.length
+                                    : null,
+                                onTap:
+                                    _busy ||
                                         _picking ||
                                         _media.length >= _maxMedia
                                     ? null
@@ -696,8 +785,9 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
                               if (_picking)
                                 const SizedBox.square(
                                   dimension: 20,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 ),
                             ],
                           ),
@@ -784,8 +874,9 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
       ),
       title: Text(title, maxLines: 2, overflow: TextOverflow.ellipsis),
       subtitle: Text(subtitle),
-      trailing:
-          selected ? Icon(Icons.check_circle_rounded, color: c.accent) : null,
+      trailing: selected
+          ? Icon(Icons.check_circle_rounded, color: c.accent)
+          : null,
     );
   }
 
@@ -844,8 +935,10 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
               children: [
                 Text('Gönderi Hedef Kitlesi', style: SwanType.h3(c.ink)),
                 const SizedBox(height: 6),
-                Text('Gönderinizi kimlerin görebileceğini belirleyin.',
-                    style: SwanType.caption(c.inkMuted)),
+                Text(
+                  'Gönderinizi kimlerin görebileceğini belirleyin.',
+                  style: SwanType.caption(c.inkMuted),
+                ),
                 const SizedBox(height: 16),
                 _visibilityTile(
                   icon: Icons.shield_outlined,
@@ -919,12 +1012,16 @@ class _PostComposerSheetState extends ConsumerState<PostComposerSheet> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color:
-                    selected ? c.accent.withValues(alpha: .15) : c.surfaceAlt,
+                color: selected
+                    ? c.accent.withValues(alpha: .15)
+                    : c.surfaceAlt,
                 shape: BoxShape.circle,
               ),
-              child:
-                  Icon(icon, color: selected ? c.accent : c.inkMuted, size: 20),
+              child: Icon(
+                icon,
+                color: selected ? c.accent : c.inkMuted,
+                size: 20,
+              ),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -984,10 +1081,7 @@ class _ToolbarIcon extends StatelessWidget {
               right: 0,
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                decoration: BoxDecoration(
-                  color: color,
-                  shape: BoxShape.circle,
-                ),
+                decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                 child: Text(
                   '$badgeCount',
                   style: const TextStyle(
@@ -1084,11 +1178,15 @@ class _MediaPreviewTile extends StatelessWidget {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 3),
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       child: Text(
                         '${index + 1}/$count',
-                        style:
-                            SwanType.caption(Colors.white, w: FontWeight.w700),
+                        style: SwanType.caption(
+                          Colors.white,
+                          w: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),

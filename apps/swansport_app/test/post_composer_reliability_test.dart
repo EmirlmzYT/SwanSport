@@ -10,8 +10,9 @@ import 'package:swansport_app/features/social/presentation/post_composer_sheet.d
 import 'package:swansport_data/swansport_data.dart';
 
 void main() {
-  testWidgets('iki kimlik varsa kişisel başlar ve geçiş taslağı korur',
-      (tester) async {
+  testWidgets('iki kimlik varsa kişisel başlar ve geçiş taslağı korur', (
+    tester,
+  ) async {
     await _pumpComposer(tester);
 
     expect(find.text('Deniz Yılmaz'), findsOneWidget);
@@ -26,8 +27,9 @@ void main() {
     expect(find.text('Taslak metin'), findsOneWidget);
   });
 
-  testWidgets('sunucu kişisel paylaşımı reddediyorsa yetkili kulübü seçer',
-      (tester) async {
+  testWidgets('sunucu kişisel paylaşımı reddediyorsa yetkili kulübü seçer', (
+    tester,
+  ) async {
     final service = _RecordingSocialService()
       ..allowPersonal = false
       ..allowClub = true;
@@ -71,24 +73,26 @@ void main() {
   });
 
   testWidgets(
-      'gönderim kilidi çift gönderimi engeller ve anlık kopyayı kullanır',
-      (tester) async {
-    final service = _RecordingSocialService()..holdCreate = true;
-    await _pumpComposer(tester, social: service);
-    await tester.enterText(find.byType(TextField).first, 'İlk metin');
+    'gönderim kilidi çift gönderimi engeller ve anlık kopyayı kullanır',
+    (tester) async {
+      final service = _RecordingSocialService()..holdCreate = true;
+      await _pumpComposer(tester, social: service);
+      await tester.enterText(find.byType(TextField).first, 'İlk metin');
 
-    await tester.tap(find.text('Paylaş'));
-    await tester.pump();
-    await tester.tap(find.text('Paylaş'));
-    expect(service.createCalls, 1);
-    expect(service.lastBody, 'İlk metin');
-    service.completeCreate();
-    await tester.pumpAndSettle();
-    expect(service.createCalls, 1);
-  });
+      await tester.tap(find.text('Paylaş'));
+      await tester.pump();
+      await tester.tap(find.text('Paylaş'));
+      expect(service.createCalls, 1);
+      expect(service.lastBody, 'İlk metin');
+      service.completeCreate();
+      await tester.pumpAndSettle();
+      expect(service.createCalls, 1);
+    },
+  );
 
-  testWidgets('etiket kısmi başarısında gönderi çoğaltılamaz ve uyarı kalır',
-      (tester) async {
+  testWidgets('etiket kısmi başarısında gönderi çoğaltılamaz ve uyarı kalır', (
+    tester,
+  ) async {
     final social = _RecordingSocialService();
     final shares = _FailingTagService();
     await _pumpComposer(tester, social: social, shares: shares);
@@ -102,12 +106,15 @@ void main() {
     expect(shares.calls, 1);
     expect(find.text('Gönderi paylaşıldı'), findsOneWidget);
     expect(
-        find.text('Gönderi paylaşıldı, etiketler eklenemedi.'), findsOneWidget);
+      find.text('Gönderi paylaşıldı, etiketler eklenemedi.'),
+      findsOneWidget,
+    );
     expect(social.createCalls, 1);
   });
 
-  testWidgets('fotoğraflar erişilebilir kontrollerle yeniden sıralanır',
-      (tester) async {
+  testWidgets('fotoğraflar erişilebilir kontrollerle yeniden sıralanır', (
+    tester,
+  ) async {
     final first = PickedMedia(bytes: Uint8List.fromList([1]), name: 'ilk.jpg');
     final second = PickedMedia(bytes: Uint8List.fromList([2]), name: 'son.jpg');
     await _pumpComposer(tester, initialMedia: [first, second]);
@@ -126,8 +133,9 @@ void main() {
     expect(after, [2, 1]);
   });
 
-  testWidgets('sekiz fotoğrafta sınır görünür ve seçici kapanır',
-      (tester) async {
+  testWidgets('sekiz fotoğrafta sınır görünür ve seçici kapanır', (
+    tester,
+  ) async {
     final media = List.generate(
       8,
       (index) => PickedMedia(
@@ -144,8 +152,9 @@ void main() {
     expect(photoButton.onPressed, isNull);
   });
 
-  testWidgets('görsel yükleme hatası kalıcı ve aşama özel gösterilir',
-      (tester) async {
+  testWidgets('görsel yükleme hatası kalıcı ve aşama özel gösterilir', (
+    tester,
+  ) async {
     final service = _RecordingSocialService()
       ..createError = PostCreationException(
         PostCreationStage.mediaUpload,
@@ -153,7 +162,9 @@ void main() {
       );
     await _pumpComposer(tester, social: service);
     await tester.enterText(
-        find.byType(TextField).first, 'Tekrar denenecek metin');
+      find.byType(TextField).first,
+      'Tekrar denenecek metin',
+    );
     await tester.pump();
     await tester.tap(find.text('Paylaş'));
     await tester.pump();
@@ -242,10 +253,10 @@ Future<void> _pumpComposer(
 }
 
 SupabaseClient _client() => SupabaseClient(
-      'https://example.supabase.co',
-      'anon-key',
-      authOptions: const AuthClientOptions(autoRefreshToken: false),
-    );
+  'https://example.supabase.co',
+  'anon-key',
+  authOptions: const AuthClientOptions(autoRefreshToken: false),
+);
 
 class _RecordingSocialService extends SocialService {
   _RecordingSocialService() : super(_client());
@@ -294,8 +305,7 @@ class _RecordingTagService extends SocialShareService {
     String postId, {
     List<String> mentions = const [],
     List<String> hashtags = const [],
-  }) async =>
-      mentions.length;
+  }) async => mentions.length;
 }
 
 class _FailingTagService extends SocialShareService {

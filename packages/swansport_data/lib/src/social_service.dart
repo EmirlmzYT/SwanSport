@@ -23,6 +23,18 @@ class PickedMedia {
   final String name;
 }
 
+enum PostCreationStage { mediaUpload, postInsert, galleryInsert }
+
+class PostCreationException implements Exception {
+  const PostCreationException(this.stage, this.cause);
+
+  final PostCreationStage stage;
+  final Object cause;
+
+  @override
+  String toString() => 'PostCreationException($stage): $cause';
+}
+
 class PostRow {
   const PostRow({
     required this.id,
@@ -276,9 +288,7 @@ class SocialProfile {
 
   bool get isVerified {
     if (isClub) {
-      return credentials.any(
-        (credential) => credential == 'Onaylı Kulüp',
-      );
+      return credentials.any((credential) => credential == 'Onaylı Kulüp');
     }
     return credentialDetails.any(
       (credential) =>
@@ -328,8 +338,9 @@ class SuggestionRow {
 /// Antrenör rozeti — branş onaylı belgeden gelir: "Yüzme · 2. Kademe Antrenör".
 String _coachLabel(Map<String, dynamic> m) {
   final level = '${m['coach_level'] ?? '?'}. Kademe Antrenör';
-  final sport =
-      (m['sports'] is Map) ? (m['sports'] as Map)['name'] as String? : null;
+  final sport = (m['sports'] is Map)
+      ? (m['sports'] as Map)['name'] as String?
+      : null;
   return (sport == null || sport.isEmpty) ? level : '$sport · $level';
 }
 
@@ -386,9 +397,7 @@ class SocialService {
         .select('profile_id')
         .inFilter('profile_id', ids)
         .eq('status', 'active');
-    return {
-      for (final r in rows as List) ((r as Map)['profile_id']) as String,
-    };
+    return {for (final r in rows as List) ((r as Map)['profile_id']) as String};
   }
 
   /// Sporcu etiketi kurala göre türetilir: kulübü varsa lisanslı, yoksa ferdi.
@@ -401,11 +410,12 @@ class SocialService {
   }
 
   PostRow _toPost(
-      Map<String, dynamic> m,
-      Map<String, int> likes,
-      Map<String, int> comments,
-      Set<String> myLikes,
-      Map<String, PostSourcePreview> sources) {
+    Map<String, dynamic> m,
+    Map<String, int> likes,
+    Map<String, int> comments,
+    Set<String> myLikes,
+    Map<String, PostSourcePreview> sources,
+  ) {
     final prof = m['profiles'];
     final club = m['clubs'];
     final id = m['id'] as String;
@@ -421,8 +431,9 @@ class SocialService {
       clubId: m['club_id'] as String?,
       clubName: club is Map ? club['name'] as String? : null,
       authorName: prof is Map ? prof['full_name'] as String? : null,
-      authorAvatarUrl:
-          prof is Map ? _publicUrl(prof['avatar_path'] as String?) : null,
+      authorAvatarUrl: prof is Map
+          ? _publicUrl(prof['avatar_path'] as String?)
+          : null,
       likeCount: likes[id] ?? 0,
       commentCount: comments[id] ?? 0,
       likedByMe: myLikes.contains(id),
@@ -434,20 +445,19 @@ class SocialService {
 
   /// Verilen gönderiler için beğeni/yorum sayıları ve "ben beğendim mi".
   Future<(Map<String, int>, Map<String, int>, Set<String>)> _stats(
-      List<String> postIds) async {
+    List<String> postIds,
+  ) async {
     if (postIds.isEmpty) {
       return (<String, int>{}, <String, int>{}, <String>{});
     }
-    final likeRows =
-        await _c.from('post_likes').select('post_id, profile_id').inFilter(
-              'post_id',
-              postIds,
-            );
-    final commentRows =
-        await _c.from('post_comments').select('post_id').inFilter(
-              'post_id',
-              postIds,
-            );
+    final likeRows = await _c
+        .from('post_likes')
+        .select('post_id, profile_id')
+        .inFilter('post_id', postIds);
+    final commentRows = await _c
+        .from('post_comments')
+        .select('post_id')
+        .inFilter('post_id', postIds);
     final likes = <String, int>{};
     final myLikes = <String>{};
     final uid = _uid;
@@ -492,8 +502,8 @@ class SocialService {
           displayName: club is Map
               ? (club['name'] as String? ?? 'Kulüp')
               : profile is Map
-                  ? (profile['full_name'] as String? ?? 'Kullanıcı')
-                  : 'Kullanıcı',
+              ? (profile['full_name'] as String? ?? 'Kullanıcı')
+              : 'Kullanıcı',
           body: source['body'] as String? ?? '',
           imageUrl: _publicUrl(source['image_path'] as String?),
         );
@@ -587,13 +597,15 @@ class SocialService {
       final m = (r as Map).cast<String, dynamic>();
       final id = m['id'] as String;
       if (followedClubs.contains(id)) continue;
-      out.add(SuggestionRow(
-        id: id,
-        name: (m['name'] as String?) ?? 'Kulüp',
-        kind: 'club',
-        subtitle: (m['city'] as String?) ?? 'Kulüp',
-        avatarUrl: _publicUrl(m['logo_path'] as String?),
-      ));
+      out.add(
+        SuggestionRow(
+          id: id,
+          name: (m['name'] as String?) ?? 'Kulüp',
+          kind: 'club',
+          subtitle: (m['city'] as String?) ?? 'Kulüp',
+          avatarUrl: _publicUrl(m['logo_path'] as String?),
+        ),
+      );
     }
 
     // Doğrulanmış kişiler (onaylı kimliği olanlar)
@@ -629,13 +641,15 @@ class SocialService {
         final m = (r as Map).cast<String, dynamic>();
         final id = m['id'] as String;
         final name = ((m['full_name'] as String?) ?? '').trim();
-        out.add(SuggestionRow(
-          id: id,
-          name: name.isEmpty ? 'Kullanıcı' : name,
-          kind: kindById[id] ?? 'person',
-          subtitle: labelById[id],
-          avatarUrl: _publicUrl(m['avatar_path'] as String?),
-        ));
+        out.add(
+          SuggestionRow(
+            id: id,
+            name: name.isEmpty ? 'Kullanıcı' : name,
+            kind: kindById[id] ?? 'person',
+            subtitle: labelById[id],
+            avatarUrl: _publicUrl(m['avatar_path'] as String?),
+          ),
+        );
       }
     }
 
@@ -674,8 +688,11 @@ class SocialService {
   /// Bildirim hedefindeki gönderi mevcut oturum ve RLS kapsamında görülebilir mi?
   Future<bool> canViewPost(String postId) async {
     if (_uid == null || postId.isEmpty) return false;
-    final row =
-        await _c.from('posts').select('id').eq('id', postId).maybeSingle();
+    final row = await _c
+        .from('posts')
+        .select('id')
+        .eq('id', postId)
+        .maybeSingle();
     return row != null;
   }
 
@@ -717,37 +734,52 @@ class SocialService {
       final dot = m.name.lastIndexOf('.');
       final ext = dot >= 0 ? m.name.substring(dot + 1).toLowerCase() : 'jpg';
       final path = '$uid/${DateTime.now().millisecondsSinceEpoch}_$i.$ext';
-      await _c.storage.from(kPostMediaBucket).uploadBinary(
-            path,
-            m.bytes,
-            fileOptions: const FileOptions(upsert: true),
-          );
+      try {
+        await _c.storage
+            .from(kPostMediaBucket)
+            .uploadBinary(
+              path,
+              m.bytes,
+              fileOptions: const FileOptions(upsert: false),
+            );
+      } catch (error) {
+        throw PostCreationException(PostCreationStage.mediaUpload, error);
+      }
       paths.add(path);
     }
 
-    final row = await _c
-        .from('posts')
-        .insert({
-          'author_profile_id': uid,
-          if (clubId != null) 'club_id': clubId,
-          'body': body,
-          if (paths.isNotEmpty) 'image_path': paths.first,
-          'kind': kind,
-          if (visibility != null) 'visibility': visibility,
-          if (teamId != null) 'team_id': teamId,
-        })
-        .select('id')
-        .single();
+    late final Map<String, dynamic> row;
+    try {
+      row = await _c
+          .from('posts')
+          .insert({
+            'author_profile_id': uid,
+            if (clubId != null) 'club_id': clubId,
+            'body': body,
+            if (paths.isNotEmpty) 'image_path': paths.first,
+            'kind': kind,
+            if (visibility != null) 'visibility': visibility,
+            if (teamId != null) 'team_id': teamId,
+          })
+          .select('id')
+          .single();
+    } catch (error) {
+      throw PostCreationException(PostCreationStage.postInsert, error);
+    }
 
     final id = row['id'] as String;
 
     // İkinci görselden itibaren galeri. Sekiz sınırı hem burada hem
     // veritabanı tetikleyicisinde var (0062).
     if (paths.length > 1) {
-      await _c.from('post_media').insert([
-        for (var i = 0; i < paths.length; i++)
-          {'post_id': id, 'media_path': paths[i], 'sort_order': i},
-      ]);
+      try {
+        await _c.from('post_media').insert([
+          for (var i = 0; i < paths.length; i++)
+            {'post_id': id, 'media_path': paths[i], 'sort_order': i},
+        ]);
+      } catch (error) {
+        throw PostCreationException(PostCreationStage.galleryInsert, error);
+      }
     }
 
     return id;
@@ -762,9 +794,10 @@ class SocialService {
     final uid = _uid;
     if (uid == null) return;
     if (liked) {
-      await _c
-          .from('post_likes')
-          .upsert({'post_id': postId, 'profile_id': uid});
+      await _c.from('post_likes').upsert({
+        'post_id': postId,
+        'profile_id': uid,
+      });
     } else {
       await _c
           .from('post_likes')
@@ -780,8 +813,10 @@ class SocialService {
     try {
       rows = await _c
           .from('post_comments')
-          .select('id, body, created_at, profile_id, parent_comment_id, '
-              'profiles!post_comments_profile_id_fkey(full_name, avatar_path)')
+          .select(
+            'id, body, created_at, profile_id, parent_comment_id, '
+            'profiles!post_comments_profile_id_fkey(full_name, avatar_path)',
+          )
           .eq('post_id', postId)
           .order('created_at');
       _commentRepliesAvailable = true;
@@ -790,8 +825,10 @@ class SocialService {
       _commentRepliesAvailable = false;
       rows = await _c
           .from('post_comments')
-          .select('id, body, created_at, profile_id, '
-              'profiles!post_comments_profile_id_fkey(full_name, avatar_path)')
+          .select(
+            'id, body, created_at, profile_id, '
+            'profiles!post_comments_profile_id_fkey(full_name, avatar_path)',
+          )
           .eq('post_id', postId)
           .order('created_at');
     }
@@ -801,19 +838,24 @@ class SocialService {
       return CommentRow(
         id: m['id'] as String,
         body: (m['body'] as String?) ?? '',
-        createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
+        createdAt:
+            DateTime.tryParse('${m['created_at']}')?.toLocal() ??
             DateTime.now(),
         profileId: m['profile_id'] as String,
         parentCommentId: m['parent_comment_id'] as String?,
         authorName: p is Map ? p['full_name'] as String? : null,
-        authorAvatarUrl:
-            p is Map ? _publicUrl(p['avatar_path'] as String?) : null,
+        authorAvatarUrl: p is Map
+            ? _publicUrl(p['avatar_path'] as String?)
+            : null,
       );
     }).toList();
   }
 
-  Future<void> addComment(String postId, String body,
-      {String? parentCommentId}) async {
+  Future<void> addComment(
+    String postId,
+    String body, {
+    String? parentCommentId,
+  }) async {
     if (parentCommentId != null && !_commentRepliesAvailable) {
       throw StateError('Yanıtlar için veritabanı güncellemesi gerekiyor.');
     }
@@ -833,7 +875,10 @@ class SocialService {
 
   // ----------------------------- takip ---------------------------------
   Future<void> setFollow(
-      String targetType, String targetId, bool follow) async {
+    String targetType,
+    String targetId,
+    bool follow,
+  ) async {
     final uid = _uid;
     if (uid == null) return;
     if (follow) {
@@ -993,7 +1038,8 @@ class SocialService {
     final row = await _c
         .from('clubs')
         .select(
-            'id, name, city, bio, logo_path, status, cover_path, brand_color, sections')
+          'id, name, city, bio, logo_path, status, cover_path, brand_color, sections',
+        )
         .eq('id', clubId)
         .maybeSingle();
     if (row == null) return null;
@@ -1075,7 +1121,9 @@ class SocialService {
       final dot = name.lastIndexOf('.');
       final ext = dot >= 0 ? name.substring(dot + 1).toLowerCase() : 'jpg';
       final path = '$uid/${kind}_${DateTime.now().millisecondsSinceEpoch}.$ext';
-      await _c.storage.from(kPostMediaBucket).uploadBinary(
+      await _c.storage
+          .from(kPostMediaBucket)
+          .uploadBinary(
             path,
             bytes,
             fileOptions: const FileOptions(upsert: true),
@@ -1112,15 +1160,17 @@ class SocialService {
       if (website != null)
         'website': website.trim().isEmpty ? null : website.trim(),
       if (primarySport != null)
-        'primary_sport':
-            primarySport.trim().isEmpty ? null : primarySport.trim(),
+        'primary_sport': primarySport.trim().isEmpty
+            ? null
+            : primarySport.trim(),
       if (position != null)
         'position': position.trim().isEmpty ? null : position.trim(),
       if (heightCm != null) 'height_cm': heightCm <= 0 ? null : heightCm,
       if (weightKg != null) 'weight_kg': weightKg <= 0 ? null : weightKg,
       if (dominantSide != null)
-        'dominant_side':
-            dominantSide.trim().isEmpty ? null : dominantSide.trim(),
+        'dominant_side': dominantSide.trim().isEmpty
+            ? null
+            : dominantSide.trim(),
     };
 
     try {
@@ -1191,13 +1241,15 @@ class SocialService {
           .inFilter('id', clubIds);
       for (final r in clubs as List) {
         final m = (r as Map).cast<String, dynamic>();
-        out.add(SuggestionRow(
-          id: m['id'] as String,
-          name: (m['name'] as String?) ?? 'Kulüp',
-          kind: 'club',
-          subtitle: (m['city'] as String?) ?? 'Kulüp',
-          avatarUrl: _publicUrl(m['logo_path'] as String?),
-        ));
+        out.add(
+          SuggestionRow(
+            id: m['id'] as String,
+            name: (m['name'] as String?) ?? 'Kulüp',
+            kind: 'club',
+            subtitle: (m['city'] as String?) ?? 'Kulüp',
+            avatarUrl: _publicUrl(m['logo_path'] as String?),
+          ),
+        );
       }
     }
     out.addAll(await _peopleByIds(profileIds));
@@ -1228,10 +1280,12 @@ class SocialService {
       labelById[pid] = k == 'coach' ? _coachLabel(m) : '';
       kindById[pid] = k == 'coach' ? 'coach' : 'athlete';
     }
-    final withClub = await _profilesWithClub(kindById.entries
-        .where((e) => e.value == 'athlete')
-        .map((e) => e.key)
-        .toList());
+    final withClub = await _profilesWithClub(
+      kindById.entries
+          .where((e) => e.value == 'athlete')
+          .map((e) => e.key)
+          .toList(),
+    );
     for (final e in kindById.entries) {
       if (e.value == 'athlete') {
         labelById[e.key] = _athleteLabel(hasClub: withClub.contains(e.key));
@@ -1257,7 +1311,7 @@ class SocialService {
 
   /// Kulübün aktif üyeleri (rolleriyle).
   Future<List<({String id, String name, String role, String? avatarUrl})>>
-      clubMembers(String clubId) async {
+  clubMembers(String clubId) async {
     final rows = await _c
         .from('club_memberships')
         .select('role, profile_id, profiles(full_name, avatar_path)')
@@ -1284,7 +1338,7 @@ class SocialService {
 
   /// Antrenörün kulüp geçmişi (kademe ve katılım tarihiyle).
   Future<List<({String clubId, String clubName, int? level, DateTime? since})>>
-      coachClubs(String profileId) async {
+  coachClubs(String profileId) async {
     final rows = await _c
         .from('club_memberships')
         .select('club_id, coach_level, created_at, clubs(name)')
@@ -1322,18 +1376,21 @@ class SocialService {
     final clubRows = await clubQuery.limit(20);
     for (final r in clubRows as List) {
       final m = (r as Map).cast<String, dynamic>();
-      out.add(SuggestionRow(
-        id: m['id'] as String,
-        name: (m['name'] as String?) ?? 'Kulüp',
-        kind: 'club',
-        subtitle: (m['city'] as String?) ?? 'Kulüp',
-        avatarUrl: _publicUrl(m['logo_path'] as String?),
-      ));
+      out.add(
+        SuggestionRow(
+          id: m['id'] as String,
+          name: (m['name'] as String?) ?? 'Kulüp',
+          kind: 'club',
+          subtitle: (m['city'] as String?) ?? 'Kulüp',
+          avatarUrl: _publicUrl(m['logo_path'] as String?),
+        ),
+      );
     }
 
     // --- Kişiler ---
-    var profQuery =
-        _c.from('profiles').select('id, full_name, username, avatar_path');
+    var profQuery = _c
+        .from('profiles')
+        .select('id, full_name, username, avatar_path');
     if (q.isNotEmpty) {
       profQuery = profQuery.or('full_name.ilike.%$q%,username.ilike.%$q%');
     }
@@ -1362,10 +1419,12 @@ class SocialService {
       }
 
       // Sporcularda etiket kulüp üyeliğine göre belirlenir.
-      final withClub = await _profilesWithClub(kindById.entries
-          .where((e) => e.value == 'athlete')
-          .map((e) => e.key)
-          .toList());
+      final withClub = await _profilesWithClub(
+        kindById.entries
+            .where((e) => e.value == 'athlete')
+            .map((e) => e.key)
+            .toList(),
+      );
       for (final e in kindById.entries) {
         if (e.value == 'athlete') {
           labelById[e.key] = _athleteLabel(hasClub: withClub.contains(e.key));
@@ -1376,14 +1435,19 @@ class SocialService {
         final id = m['id'] as String;
         final name = ((m['full_name'] as String?) ?? '').trim();
         final username = m['username'] as String?;
-        out.add(SuggestionRow(
-          id: id,
-          name: name.isEmpty ? 'Kullanıcı' : name,
-          kind: kindById[id] ?? 'person',
-          subtitle: labelById[id] ??
-              (username != null && username.isNotEmpty ? '@$username' : 'Üye'),
-          avatarUrl: _publicUrl(m['avatar_path'] as String?),
-        ));
+        out.add(
+          SuggestionRow(
+            id: id,
+            name: name.isEmpty ? 'Kullanıcı' : name,
+            kind: kindById[id] ?? 'person',
+            subtitle:
+                labelById[id] ??
+                (username != null && username.isNotEmpty
+                    ? '@$username'
+                    : 'Üye'),
+            avatarUrl: _publicUrl(m['avatar_path'] as String?),
+          ),
+        );
       }
     }
 
@@ -1410,73 +1474,78 @@ final discoverProvider = FutureProvider.autoDispose<List<PostRow>>((ref) {
 });
 
 /// Takip önerileri (akış boşken gösterilir).
-final suggestionsProvider =
-    FutureProvider.autoDispose<List<SuggestionRow>>((ref) {
+final suggestionsProvider = FutureProvider.autoDispose<List<SuggestionRow>>((
+  ref,
+) {
   if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
   return ref.watch(socialServiceProvider).suggestions();
 });
 
 /// Bir profilin sosyal bilgileri.
-final socialProfileProvider =
-    FutureProvider.autoDispose.family<SocialProfile?, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
-  return ref.watch(socialServiceProvider).profile(id);
-});
+final socialProfileProvider = FutureProvider.autoDispose
+    .family<SocialProfile?, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
+      return ref.watch(socialServiceProvider).profile(id);
+    });
 
 /// Bir kulübün sosyal bilgileri.
-final clubSocialProfileProvider =
-    FutureProvider.autoDispose.family<SocialProfile?, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
-  return ref.watch(socialServiceProvider).clubProfile(id);
-});
+final clubSocialProfileProvider = FutureProvider.autoDispose
+    .family<SocialProfile?, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(null);
+      return ref.watch(socialServiceProvider).clubProfile(id);
+    });
 
 /// Bir kişinin gönderileri.
-final authorPostsProvider =
-    FutureProvider.autoDispose.family<List<PostRow>, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).postsByAuthor(id);
-});
+final authorPostsProvider = FutureProvider.autoDispose
+    .family<List<PostRow>, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).postsByAuthor(id);
+    });
 
 /// Bir kulübün gönderileri.
-final clubPostsProvider =
-    FutureProvider.autoDispose.family<List<PostRow>, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).postsByClub(id);
-});
+final clubPostsProvider = FutureProvider.autoDispose
+    .family<List<PostRow>, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).postsByClub(id);
+    });
 
 /// Bir profili takip edenler.
-final followersProvider =
-    FutureProvider.autoDispose.family<List<SuggestionRow>, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).followers(id);
-});
+final followersProvider = FutureProvider.autoDispose
+    .family<List<SuggestionRow>, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).followers(id);
+    });
 
 /// Bir profilin takip ettikleri.
-final followingProvider =
-    FutureProvider.autoDispose.family<List<SuggestionRow>, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).following(id);
-});
+final followingProvider = FutureProvider.autoDispose
+    .family<List<SuggestionRow>, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).following(id);
+    });
 
 /// Kulübün aktif üyeleri.
-final clubMembersProvider = FutureProvider.autoDispose.family<
-    List<({String id, String name, String role, String? avatarUrl})>,
-    String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).clubMembers(id);
-});
+final clubMembersProvider = FutureProvider.autoDispose
+    .family<
+      List<({String id, String name, String role, String? avatarUrl})>,
+      String
+    >((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).clubMembers(id);
+    });
 
 /// Antrenörün kulüpleri.
-final coachClubsProvider = FutureProvider.autoDispose.family<
-    List<({String clubId, String clubName, int? level, DateTime? since})>,
-    String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).coachClubs(id);
-});
+final coachClubsProvider = FutureProvider.autoDispose
+    .family<
+      List<({String clubId, String clubName, int? level, DateTime? since})>,
+      String
+    >((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).coachClubs(id);
+    });
 
 /// Bir gönderinin yorumları.
-final postCommentsProvider =
-    FutureProvider.autoDispose.family<List<CommentRow>, String>((ref, id) {
-  if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
-  return ref.watch(socialServiceProvider).comments(id);
-});
+final postCommentsProvider = FutureProvider.autoDispose
+    .family<List<CommentRow>, String>((ref, id) {
+      if (!ref.watch(isSupabaseEnabledProvider)) return Future.value(const []);
+      return ref.watch(socialServiceProvider).comments(id);
+    });
