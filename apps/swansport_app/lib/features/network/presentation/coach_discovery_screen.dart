@@ -290,7 +290,6 @@ class _CoachDiscoveryScreenState extends ConsumerState<CoachDiscoveryScreen> {
   Widget _buildFocusChipBar(bool isDark) {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
-      physics: const BouncingScrollPhysics(),
       child: Row(
         children: List.generate(_focusChips.length, (i) {
           final isSelected = _focusChipIndex == i;

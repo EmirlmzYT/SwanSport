@@ -125,9 +125,7 @@ class _FeedScreenState extends ConsumerState<FeedScreen> {
                 await ref.read(activeFeed.future);
               },
               child: CustomScrollView(
-                physics: const BouncingScrollPhysics(
-                  parent: AlwaysScrollableScrollPhysics(),
-                ),
+                physics: const AlwaysScrollableScrollPhysics(),
                 slivers: [
                   const SliverToBoxAdapter(child: SwanHeaderSpacer()),
                   if (banner != null) SliverToBoxAdapter(child: banner),

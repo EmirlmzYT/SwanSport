@@ -427,7 +427,6 @@ class NewsCarouselCard extends StatelessWidget {
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(horizontal: SwanSpace.md),
               scrollDirection: Axis.horizontal,
-              physics: const BouncingScrollPhysics(),
               itemCount: items.length,
               separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, index) {

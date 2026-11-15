@@ -1,4 +1,5 @@
 import '../features/test_center/test_center_screen.dart';
+import 'platform_scroll_behavior.dart';
 import 'router.dart';
 import '../features/live_match/presentation/live_match_hub_screen.dart';
 import '../features/club_staff/club_staff_operations_screen.dart';
@@ -713,11 +714,7 @@ class _SwanSportAppState extends ConsumerState<SwanSportApp> {
       swanGoRouter = _router;
 
       return MaterialApp.router(
-        scrollBehavior: const MaterialScrollBehavior().copyWith(
-          physics: const BouncingScrollPhysics(
-            parent: AlwaysScrollableScrollPhysics(),
-          ),
-        ),
+        scrollBehavior: const SwanScrollBehavior(),
         title: environment.appName,
         debugShowCheckedModeBanner: false,
         routerConfig: _router,
@@ -746,11 +743,7 @@ class _SwanSportAppState extends ConsumerState<SwanSportApp> {
     swanGoRouter = null;
 
     return MaterialApp(
-      scrollBehavior: const MaterialScrollBehavior().copyWith(
-        physics: const BouncingScrollPhysics(
-          parent: AlwaysScrollableScrollPhysics(),
-        ),
-      ),
+      scrollBehavior: const SwanScrollBehavior(),
       title: environment.appName,
       debugShowCheckedModeBanner: false,
       navigatorKey: swanNavigatorKey,
