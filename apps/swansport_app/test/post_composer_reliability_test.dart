@@ -144,9 +144,13 @@ void main() {
     expect(photoButton.onPressed, isNull);
   });
 
-  testWidgets('gönderim hatasında düzenlenebilir taslak korunur',
+  testWidgets('görsel yükleme hatası kalıcı ve aşama özel gösterilir',
       (tester) async {
-    final service = _RecordingSocialService()..failCreate = true;
+    final service = _RecordingSocialService()
+      ..createError = PostCreationException(
+        PostCreationStage.mediaUpload,
+        StateError('42501 row-level security'),
+      );
     await _pumpComposer(tester, social: service);
     await tester.enterText(
         find.byType(TextField).first, 'Tekrar denenecek metin');
@@ -156,8 +160,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Tekrar denenecek metin'), findsOneWidget);
-    expect(find.byType(SnackBar), findsOneWidget);
-    expect(find.textContaining('network failure'), findsNothing);
+    expect(
+      find.text(
+        'Fotoğraf yüklenemedi. Oturumunu ve medya yükleme iznini kontrol edip tekrar dene.',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(SnackBar), findsNothing);
+    expect(find.textContaining('42501'), findsNothing);
     expect(find.text('Paylaş'), findsOneWidget);
   });
 }
@@ -244,7 +254,7 @@ class _RecordingSocialService extends SocialService {
   String? lastBody;
   String? lastClubId;
   bool holdCreate = false;
-  bool failCreate = false;
+  Object? createError;
   Completer<String>? _pending;
   bool allowPersonal = true;
   bool allowClub = true;
@@ -267,7 +277,7 @@ class _RecordingSocialService extends SocialService {
     createCalls++;
     lastBody = body;
     lastClubId = clubId;
-    if (failCreate) return Future.error(StateError('network failure'));
+    if (createError != null) return Future.error(createError!);
     if (!holdCreate) return Future.value('post-1');
     _pending = Completer<String>();
     return _pending!.future;
