@@ -102,6 +102,59 @@ void main() {
     expect(commands.calls, contains('score:session-1:1:42'));
   });
 
+  testWidgets('coach records separate participant scores without stale input',
+      (tester) async {
+    final commands = _Commands();
+    await _pump(
+      tester,
+      commands: commands,
+      participants: const [
+        SessionParticipant(athleteId: 'athlete-a', name: 'Ada'),
+        SessionParticipant(athleteId: 'athlete-b', name: 'Bora'),
+      ],
+      session: const TrainingSession(
+        id: 'session-1',
+        clubId: 'club-1',
+        kind: 'club',
+        status: 'live',
+        phase: SessionPhase.shoot,
+        currentSet: 1,
+        setCount: 3,
+        rhythm: SessionRhythm.shared,
+        protocolName: 'Takım Ölçümü',
+      ),
+      child: const SharedTrainingSessionScreen(sessionId: 'session-1'),
+    );
+
+    await tester.tap(find.text('Ada'));
+    await tester.pump();
+    await tester.enterText(find.byKey(const Key('training-score')), '18');
+    await tester.tap(find.text('Bora'));
+    await tester.pump();
+
+    expect(
+      tester
+          .widget<TextField>(find.byKey(const Key('training-score')))
+          .controller!
+          .text,
+      isEmpty,
+    );
+    expect(find.text('Bora için ölçüm'), findsOneWidget);
+
+    await tester.enterText(find.byKey(const Key('training-score')), '21');
+    await tester.tap(find.text('Seti kaydet'));
+    await tester.pumpAndSettle();
+
+    expect(
+      commands.calls,
+      contains('athlete-score:session-1:athlete-b:1:21'),
+    );
+    expect(
+      commands.calls,
+      isNot(contains('athlete-score:session-1:athlete-a:1:18')),
+    );
+  });
+
   testWidgets('result review locks the session', (tester) async {
     final commands = _Commands();
     await _pump(
@@ -159,6 +212,7 @@ Future<ProviderContainer> _pump(
   Object? protocolsError,
   TrainingSession? session,
   SessionOverview? overview,
+  List<SessionParticipant> participants = const [],
   TrainingOperationCommands? commands,
   _Navigator? navigator,
   double textScale = 1,
@@ -184,6 +238,8 @@ Future<ProviderContainer> _pump(
       sessionOverviewProvider('session-1')
           .overrideWith((ref) async => overview),
       sessionSummaryProvider('session-1').overrideWith((ref) async => const []),
+      sessionParticipantsProvider('session-1')
+          .overrideWith((ref) async => participants),
       trainingOperationCommandsProvider.overrideWithValue(
         commands ?? _Commands(),
       ),
@@ -262,6 +318,15 @@ final class _Commands implements TrainingOperationCommands {
     required num total,
   }) async =>
       calls.add('score:$sessionId:$setNo:$total');
+
+  @override
+  Future<void> submitAthleteSet({
+    required String sessionId,
+    required String athleteId,
+    required int setNo,
+    required num total,
+  }) async =>
+      calls.add('athlete-score:$sessionId:$athleteId:$setNo:$total');
 }
 
 final class _Navigator extends ProFeatureNavigatorBase {

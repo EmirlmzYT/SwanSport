@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'package:swansport_models/swansport_models.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
@@ -39,6 +40,12 @@ final class _SwanFeatureNavigator extends ProFeatureNavigatorBase {
   _SwanFeatureNavigator(this.context);
 
   final BuildContext context;
+
+  @override
+  Future<bool> openProtectedDocument(Uri uri) => launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
 
   @override
   void openTeams() => Navigator.pushNamed(context, '/teams');

@@ -64,6 +64,20 @@ void main() {
     expect(feedback.sharedAt, DateTime.utc(2026, 11, 12, 12));
   });
 
+  test('antrenör katılımcı ölçümü dar ve sunucu yetkili RPC kullanır', () {
+    final sql = File(
+      '$root/supabase/migrations/20261119100000_coach_training_measurements.sql',
+    ).readAsStringSync();
+    expect(sql, contains('submit_coach_set_score'));
+    expect(sql, contains('public.is_club_staff(v_session.club_id)'));
+    expect(sql, contains('training_session_participants'));
+    expect(sql, contains('where training_sets.locked_at is null'));
+    expect(
+      dartSrc,
+      contains("_db.rpc<void>('submit_coach_set_score'"),
+    );
+  });
+
   group('SQL ↔ Dart sözleşmesi', () {
     test('araç çalışıyor — sütunlar gerçekten okunuyor', () {
       // Boş kümeyi boş kümeyle karşılaştırıp "sorun yok" demek, bu depoda

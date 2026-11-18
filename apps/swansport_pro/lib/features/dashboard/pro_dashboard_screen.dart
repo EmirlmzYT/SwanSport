@@ -482,6 +482,28 @@ class _TodaySection extends ConsumerWidget {
             ),
           );
         }
+        final credentialsAsync = ref.watch(pendingCredentialsProvider);
+        if (credentialsAsync.isLoading) return const AsyncValue.loading();
+        if (credentialsAsync.hasError) {
+          return AsyncValue.error(
+            credentialsAsync.error!,
+            credentialsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
+        final credentialCount = credentialsAsync.valueOrNull?.length ?? 0;
+        if (credentialCount > 0) {
+          list.insert(
+            0,
+            _TodayItemCard(
+              icon: Icons.workspace_premium_outlined,
+              tone: _ItemTone.warning,
+              title: 'Mesleki Belgeler',
+              subtitle: '$credentialCount belge başvurusu karar bekliyor.',
+              actionLabel: 'İncele',
+              onTap: () => context.push(ProRoutes.platformProfessionalReview),
+            ),
+          );
+        }
         return AsyncValue.data(list);
 
       case ProWorkspace.club:

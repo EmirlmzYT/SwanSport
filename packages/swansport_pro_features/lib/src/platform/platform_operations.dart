@@ -92,7 +92,7 @@ final class SharedPlatformOperationsPanel extends ConsumerWidget {
               ),
               ClubOperationCard(
                 icon: Icons.badge_outlined,
-                title: 'Profesyonel Hesaplar',
+                title: 'Mesleki Belge Başvuruları',
                 detail: 'Bekleyen belge ve rol kapsamı',
                 onTap: host.navigator.openPlatformProfessionalReview,
                 theme: host.theme,

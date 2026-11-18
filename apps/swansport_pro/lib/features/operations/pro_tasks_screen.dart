@@ -614,6 +614,31 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
             ),
           );
         }
+        final credentialsAsync = ref.watch(pendingCredentialsProvider);
+        if (credentialsAsync.isLoading) return const AsyncValue.loading();
+        if (credentialsAsync.hasError) {
+          return AsyncValue.error(
+            credentialsAsync.error!,
+            credentialsAsync.stackTrace ?? StackTrace.current,
+          );
+        }
+        final credentialCount = credentialsAsync.valueOrNull?.length ?? 0;
+        if (credentialCount > 0) {
+          list.insert(
+            0,
+            ProTaskItem(
+              id: 'platform-professional-review',
+              icon: Icons.workspace_premium_outlined,
+              title: 'Mesleki Belge Başvuruları',
+              context: '$credentialCount belge başvurusu karar bekliyor',
+              priority: ProTaskPriority.now,
+              status: 'İnceleme Bekliyor',
+              actionLabel: 'İncele',
+              onAction: () =>
+                  context.push(ProRoutes.platformProfessionalReview),
+            ),
+          );
+        }
         return AsyncValue.data(list);
     }
   }

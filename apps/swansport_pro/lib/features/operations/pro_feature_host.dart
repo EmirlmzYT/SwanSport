@@ -35,6 +35,12 @@ final class _ProNavigator extends ProFeatureNavigatorBase {
   final BuildContext context;
 
   @override
+  Future<bool> openProtectedDocument(Uri uri) => launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+  @override
   void openTeams() => context.push('/operasyon/takimlar');
   @override
   void openRoster(TeamRouteTarget target) => context.push(

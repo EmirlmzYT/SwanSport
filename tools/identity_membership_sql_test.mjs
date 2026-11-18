@@ -34,7 +34,9 @@ export async function c1(){const f=await setup();try{
  }
  await apply(db,await sql('0097_federation_public_reads'));await apply(db,await sql('0098_public_result_adult_name'));
  f.tablesBefore=(await db.query("select tablename from pg_tables where schemaname='public' order by tablename")).rows;
- await apply(db,kind);await apply(db,gate);return f;
+ await apply(db,kind);await apply(db,gate);
+ await apply(db,await sql('20261119090000_professional_credential_review_concurrency'));
+ return f;
  }catch(e){await f.db.close();throw e;}}
 async function auth(db,p){await db.exec('reset role');await actor(db,p);await db.exec('set role authenticated');}
 async function owner(db,p=officer){await db.exec('reset role');await actor(db,p);}
@@ -89,6 +91,23 @@ test('C1: identity review is admin RPC only and verifies the document, not a dec
  await verify(db,person,'22222222220');await auth(db,person);
  assert.equal((await call(db,'my_identity_gate')).identity_verified,true);
  await assert.rejects(call(db,'_c1_has_identity',[person]),/permission denied/);
+ }finally{await db.close();}});
+
+test('professional review permits exactly one terminal decision',async()=>{
+ const {db}=await c1();try{
+  await auth(db,person);
+  const cred=(await db.query("insert into profile_credentials(profile_id,kind,sport_code,expires_on) values($1,'athlete_individual','tenis','2090-01-01') returning id",[person])).rows[0].id;
+  await auth(db,admin);
+  await assert.rejects(
+    call(db,'review_pending_credential',[cred,false,null,null,null,null,null]),
+    /Ret gerekçesi gerekli/,
+  );
+  await call(db,'review_pending_credential',[cred,true,null,null,null,null,null]);
+  await assert.rejects(
+    call(db,'review_pending_credential',[cred,false,'second decision',null,null,null,null]),
+    /zaten sonuçlandırıldı/,
+  );
+  assert.equal((await db.query('select status from profile_credentials where id=$1',[cred])).rows[0].status,'approved');
  }finally{await db.close();}});
 
 test('C1: one verified TCKN belongs to one account; old duplicate declarations remain untouched',async()=>{

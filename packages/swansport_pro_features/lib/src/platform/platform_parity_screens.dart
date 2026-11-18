@@ -137,16 +137,25 @@ final class _PlatformRssSourcesScreenState
   }
 }
 
-final class PlatformProfessionalReviewScreen extends ConsumerWidget {
+final class PlatformProfessionalReviewScreen extends ConsumerStatefulWidget {
   const PlatformProfessionalReviewScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PlatformProfessionalReviewScreen> createState() =>
+      _PlatformProfessionalReviewScreenState();
+}
+
+final class _PlatformProfessionalReviewScreenState
+    extends ConsumerState<PlatformProfessionalReviewScreen> {
+  bool _busy = false;
+
+  @override
+  Widget build(BuildContext context) {
     final host = ProFeatureHostScope.of(context);
     if (!ref.watch(swanAccessProvider).isPlatformAdmin) {
       return host.chrome.buildPage(
         context,
-        title: 'Profesyonel Hesap İncelemesi',
+        title: 'Mesleki Belge Başvuruları',
         body: const Center(child: Text('Platform yöneticisi yetkisi gerekli')),
       );
     }
@@ -154,7 +163,7 @@ final class PlatformProfessionalReviewScreen extends ConsumerWidget {
     final missingSports = ref.watch(sportlessCredentialsProvider);
     return host.chrome.buildPage(
       context,
-      title: 'Profesyonel Hesap İncelemesi',
+      title: 'Mesleki Belge Başvuruları',
       body: _platformAdminBody(
         ref,
         RefreshIndicator(
@@ -186,9 +195,11 @@ final class PlatformProfessionalReviewScreen extends ConsumerWidget {
                         children: [
                           for (final row in rows)
                             ListTile(
+                              key: ValueKey('credential-${row.id}'),
                               title: Text(row.personName ?? 'Kullanıcı'),
                               subtitle: Text(row.label),
                               trailing: const Chip(label: Text('İnceleniyor')),
+                              onTap: _busy ? null : () => _openDetail(row),
                             ),
                         ],
                       ),
@@ -214,24 +225,335 @@ final class PlatformProfessionalReviewScreen extends ConsumerWidget {
                               subtitle: Text(
                                 '${row.coachLevel ?? '?'} Kademe · branş seçilmemiş',
                               ),
+                              trailing: TextButton(
+                                onPressed:
+                                    _busy ? null : () => _assignSport(row),
+                                child: const Text('Branş ata'),
+                              ),
                             ),
                         ],
                       ),
               ),
-              const Card(
-                child: Padding(
-                  padding: EdgeInsets.all(16),
-                  child: Text(
-                    'Belge içeriği ve karar işlemleri hassastır. Ayrıntılı karar akışı mevcut doğrulama panelinde kalır; bu ekran bekleyen profesyonel kapsamı salt okunur gösterir.',
-                  ),
-                ),
+              const SizedBox(height: 24),
+              const Text(
+                'Son kararlar',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
               ),
+              ref.watch(reviewLogProvider).when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (error, _) => _ErrorState(
+                      error,
+                      () => ref.invalidate(reviewLogProvider),
+                    ),
+                    data: (rows) => rows.isEmpty
+                        ? const ListTile(title: Text('Henüz karar verilmemiş'))
+                        : Column(
+                            children: [
+                              for (final row in rows.where((r) => !r.isClub))
+                                ListTile(
+                                  leading: Icon(
+                                    row.approved
+                                        ? Icons.check_circle_outline
+                                        : Icons.cancel_outlined,
+                                  ),
+                                  title: Text(row.subject),
+                                  subtitle: Text(
+                                    [
+                                      if (row.detail != null) row.detail!,
+                                      if (row.reviewer != null) row.reviewer!,
+                                    ].join(' · '),
+                                  ),
+                                ),
+                            ],
+                          ),
+                  ),
             ],
           ),
         ),
       ),
     );
   }
+
+  Future<void> _openDetail(CredentialRow credential) async {
+    setState(() => _busy = true);
+    List<({String docType, String url})> documents;
+    try {
+      documents =
+          await ref.read(credentialDocumentsProvider(credential.id).future);
+    } catch (error) {
+      if (mounted) _showError(context, error);
+      if (mounted) setState(() => _busy = false);
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _busy = false);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => _CredentialReviewDialog(
+        credential: credential,
+        documents: documents,
+        sports: ref.read(sportsProvider).valueOrNull ?? const [],
+        onOpenDocument: (document) => _openDocument(document.url),
+        onApprove: (coachLevel, sportCode) => _decide(
+          dialogContext,
+          credential,
+          true,
+          coachLevel: coachLevel,
+          sportCode: sportCode,
+        ),
+        onReject: (note) => _decide(
+          dialogContext,
+          credential,
+          false,
+          note: note,
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openDocument(String value) async {
+    final uri = Uri.tryParse(value);
+    if (uri == null || uri.scheme != 'https') {
+      _showDocumentOpenError(context);
+      return;
+    }
+    final opened = await ProFeatureHostScope.of(context)
+        .navigator
+        .openProtectedDocument(uri);
+    if (!opened && mounted) {
+      _showDocumentOpenError(context);
+    }
+  }
+
+  Future<void> _assignSport(SportlessCredential credential) async {
+    final sports = ref.read(sportsProvider).valueOrNull ?? const <CityRow>[];
+    if (sports.isEmpty) {
+      _showError(context, StateError('Branş listesi yüklenemedi'));
+      return;
+    }
+    final code = await showDialog<String>(
+      context: context,
+      builder: (dialogContext) => SimpleDialog(
+        title: Text('${credential.name} · branş'),
+        children: [
+          for (final sport in sports)
+            SimpleDialogOption(
+              onPressed: () => Navigator.pop(dialogContext, sport.code),
+              child: Text(sport.name),
+            ),
+        ],
+      ),
+    );
+    if (code == null || !mounted || _busy) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(credentialSportAssignmentProvider)(credential.id, code);
+      ref
+        ..invalidate(sportlessCredentialsProvider)
+        ..invalidate(myCredentialsProvider);
+      if (mounted) {
+        ProFeatureHostScope.of(context).chrome.showMessage(
+              context,
+              'Branş eşlemesi güncellendi',
+              tone: ProFeatureMessageTone.success,
+            );
+      }
+    } catch (error) {
+      if (mounted) _showError(context, error);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  Future<void> _decide(
+    BuildContext dialogContext,
+    CredentialRow credential,
+    bool approve, {
+    String? note,
+    int? coachLevel,
+    String? sportCode,
+  }) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      await ref.read(credentialReviewActionProvider)(
+        credential.id,
+        approve,
+        note: note,
+        coachLevel: coachLevel,
+        sportCode: sportCode,
+      );
+      if (!mounted) return;
+      ref
+        ..invalidate(pendingCredentialsProvider)
+        ..invalidate(credentialDocumentsProvider(credential.id))
+        ..invalidate(platformStatsProvider)
+        ..invalidate(reviewLogProvider)
+        ..invalidate(sportlessCredentialsProvider)
+        ..invalidate(myCredentialsProvider);
+      if (dialogContext.mounted) Navigator.pop(dialogContext);
+      ProFeatureHostScope.of(context).chrome.showMessage(
+            context,
+            approve ? 'Belge onaylandı' : 'Belge reddedildi',
+            tone: ProFeatureMessageTone.success,
+          );
+    } catch (error) {
+      if (mounted) {
+        _showError(context, error);
+        ref
+          ..invalidate(pendingCredentialsProvider)
+          ..invalidate(reviewLogProvider);
+      }
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+}
+
+final class _CredentialReviewDialog extends StatefulWidget {
+  const _CredentialReviewDialog({
+    required this.credential,
+    required this.documents,
+    required this.sports,
+    required this.onOpenDocument,
+    required this.onApprove,
+    required this.onReject,
+  });
+
+  final CredentialRow credential;
+  final List<({String docType, String url})> documents;
+  final ValueChanged<({String docType, String url})> onOpenDocument;
+  final List<CityRow> sports;
+  final void Function(int? coachLevel, String? sportCode) onApprove;
+  final ValueChanged<String> onReject;
+
+  @override
+  State<_CredentialReviewDialog> createState() =>
+      _CredentialReviewDialogState();
+}
+
+final class _CredentialReviewDialogState
+    extends State<_CredentialReviewDialog> {
+  final _note = TextEditingController();
+  int? _coachLevel;
+  String? _sportCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _coachLevel = widget.credential.coachLevel;
+    _sportCode = widget.credential.sportCode;
+  }
+
+  @override
+  void dispose() {
+    _note.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => AlertDialog(
+        title: const Text('Başvuru ayrıntısı'),
+        content: SizedBox(
+          width: 520,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  widget.credential.personName ?? 'Kullanıcı',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(widget.credential.label),
+                if (widget.credential.isCoach) ...[
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    key: const Key('credential-coach-level'),
+                    initialValue: _coachLevel,
+                    decoration: const InputDecoration(labelText: 'Kademe'),
+                    items: [
+                      for (var level = 1; level <= 5; level++)
+                        DropdownMenuItem(
+                          value: level,
+                          child: Text('$level. Kademe'),
+                        ),
+                    ],
+                    onChanged: (value) => setState(() => _coachLevel = value),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    key: const Key('credential-sport'),
+                    initialValue: widget.sports.any((s) => s.code == _sportCode)
+                        ? _sportCode
+                        : null,
+                    decoration: const InputDecoration(labelText: 'Branş'),
+                    items: [
+                      for (final sport in widget.sports)
+                        DropdownMenuItem(
+                          value: sport.code,
+                          child: Text(sport.name),
+                        ),
+                    ],
+                    onChanged: (value) => setState(() => _sportCode = value),
+                  ),
+                ],
+                const SizedBox(height: 20),
+                Text(
+                  'Belgeler',
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                if (widget.documents.isEmpty)
+                  const Text('Bu başvuruya bağlı belge bulunamadı')
+                else
+                  for (final document in widget.documents)
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.description_outlined),
+                      title: Text(document.docType),
+                      trailing: IconButton(
+                        tooltip: 'Belgeyi aç',
+                        onPressed: () => widget.onOpenDocument(document),
+                        icon: const Icon(Icons.open_in_new),
+                      ),
+                    ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: _note,
+                  minLines: 2,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Ret gerekçesi',
+                    helperText: 'Ret için gerekçe zorunludur.',
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Kapat'),
+          ),
+          OutlinedButton(
+            onPressed: () {
+              final note = _note.text.trim();
+              if (note.isEmpty) return;
+              widget.onReject(note);
+            },
+            child: const Text('Reddet'),
+          ),
+          FilledButton(
+            onPressed: widget.credential.isCoach &&
+                    (_coachLevel == null || _sportCode == null)
+                ? null
+                : () => widget.onApprove(_coachLevel, _sportCode),
+            child: const Text('Onayla'),
+          ),
+        ],
+      );
 }
 
 final class PlatformAccessReviewScreen extends ConsumerStatefulWidget {
@@ -597,6 +919,14 @@ void _showError(BuildContext context, Object error) {
   ProFeatureHostScope.of(context).chrome.showMessage(
         context,
         classifyOperationError(error).userMessage,
+        tone: ProFeatureMessageTone.danger,
+      );
+}
+
+void _showDocumentOpenError(BuildContext context) {
+  ProFeatureHostScope.of(context).chrome.showMessage(
+        context,
+        'Belge açılamadı. Tekrar deneyin.',
         tone: ProFeatureMessageTone.danger,
       );
 }

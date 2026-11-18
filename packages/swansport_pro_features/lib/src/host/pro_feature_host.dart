@@ -108,6 +108,8 @@ abstract interface class ProFeatureNavigator {
 
   void openPlatformFederationAuthority();
 
+  Future<bool> openProtectedDocument(Uri uri);
+
   bool openPlatformWebConsole([
     PlatformWebConsoleSection section =
         PlatformWebConsoleSection.missionControl,
@@ -128,6 +130,9 @@ abstract interface class ProFeatureNavigator {
 
 /// Convenience base for hosts that do not support optional destinations.
 abstract base class ProFeatureNavigatorBase implements ProFeatureNavigator {
+  @override
+  Future<bool> openProtectedDocument(Uri uri) async => false;
+
   @override
   void openPlatformRssSources() {}
 

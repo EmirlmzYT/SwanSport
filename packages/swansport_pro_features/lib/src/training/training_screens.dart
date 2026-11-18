@@ -433,6 +433,7 @@ class SharedTrainingSessionScreen extends ConsumerStatefulWidget {
 
 class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
   final _score = TextEditingController();
+  String? _selectedAthleteId;
   late final ProDirtyStateRegistration _dirty;
 
   @override
@@ -476,6 +477,9 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
           }
           final coach =
               !value.isPersonal && ref.watch(swanAccessProvider).isClubStaff;
+          final participants = coach
+              ? ref.watch(sessionParticipantsProvider(id))
+              : const AsyncData<List<SessionParticipant>>([]);
           return ListView(
             padding: const EdgeInsets.all(16),
             children: [
@@ -493,6 +497,49 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
                 Text('Katılım kodu: ${value.joinCode}'),
               const SizedBox(height: 16),
               if (coach) ...[
+                Text(
+                  'Ölçüm yapılacak sporcu',
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+                participants.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (error, _) =>
+                      Text(classifyOperationError(error).userMessage),
+                  data: (rows) => rows.isEmpty
+                      ? const Text('Katılımcı sporcu yok.')
+                      : Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final row in rows)
+                              ChoiceChip(
+                                label: Text(row.name),
+                                selected: _selectedAthleteId == row.athleteId,
+                                onSelected: (_) =>
+                                    _selectAthlete(row.athleteId),
+                              ),
+                          ],
+                        ),
+                ),
+                if (_selectedAthleteId != null) ...[
+                  const SizedBox(height: 12),
+                  Text(
+                    '${participants.valueOrNull?.where((row) => row.athleteId == _selectedAthleteId).firstOrNull?.name ?? 'Sporcu'} için ölçüm',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  TextField(
+                    key: const Key('training-score'),
+                    controller: _score,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Set toplamı'),
+                    onChanged: (_) => _dirty.markDirty(),
+                  ),
+                  FilledButton(
+                    onPressed: () => _saveCoachScore(id, value.currentSet),
+                    child: const Text('Seti kaydet'),
+                  ),
+                ],
+                const SizedBox(height: 12),
                 FilledButton(
                   onPressed: () => _run(
                     id,
@@ -563,6 +610,33 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
             );
       }
     }
+  }
+
+  void _selectAthlete(String athleteId) {
+    if (_selectedAthleteId == athleteId) return;
+    setState(() {
+      _selectedAthleteId = athleteId;
+      _score.clear();
+      _dirty.markClean();
+    });
+  }
+
+  Future<void> _saveCoachScore(String sessionId, int setNo) async {
+    final athleteId = _selectedAthleteId;
+    final total = num.tryParse(_score.text);
+    if (athleteId == null || total == null) return;
+    await _run(
+      sessionId,
+      () => ref.read(trainingOperationCommandsProvider).submitAthleteSet(
+            sessionId: sessionId,
+            athleteId: athleteId,
+            setNo: setNo,
+            total: total,
+          ),
+    );
+    if (!mounted) return;
+    setState(() => _score.clear());
+    _dirty.markClean();
   }
 }
 

@@ -976,6 +976,66 @@ void main() {
       expect(find.byType(SharedLaunchWaitlistScreen), findsOneWidget);
     });
 
+    testWidgets('platform pending credential opens professional review',
+        (tester) async {
+      final container = ProviderContainer(
+        overrides: [
+          authSessionProvider.overrideWith(
+            (ref) => Stream.value(_makeSession('credential-admin')),
+          ),
+          swanAccessProvider.overrideWithValue(
+            const SwanAccess(
+              isPlatformAdmin: true,
+              clubRole: null,
+              coachLevel: 0,
+              athleteKind: null,
+            ),
+          ),
+          featureFlagsProvider.overrideWith(
+            (ref) async => const FeatureFlags({}),
+          ),
+          launchWaitlistSummaryProvider.overrideWith(
+            (ref) async => const LaunchWaitlistSummary(totalCount: 0),
+          ),
+          pendingCredentialsProvider.overrideWith(
+            (ref) async => const [
+              CredentialRow(
+                id: 'credential-1',
+                kind: 'coach',
+                status: 'pending',
+                personName: 'Ayşe Yılmaz',
+                coachLevel: 2,
+              ),
+            ],
+          ),
+          sportlessCredentialsProvider.overrideWith((ref) async => const []),
+          reviewLogProvider.overrideWith((ref) async => const []),
+        ],
+      );
+      addTearDown(container.dispose);
+      container.read(selectedProWorkspaceProvider.notifier).state =
+          ProWorkspace.platform;
+      final router = container.read(proRouterProvider);
+      addTearDown(router.dispose);
+
+      await tester.pumpWidget(
+        UncontrolledProviderScope(
+          container: container,
+          child: MaterialApp.router(routerConfig: router),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mesleki Belgeler'), findsOneWidget);
+      final action = find.widgetWithText(TextButton, 'İncele');
+      expect(action, findsOneWidget);
+      await tester.ensureVisible(action);
+      await tester.tap(action);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(PlatformProfessionalReviewScreen), findsOneWidget);
+    });
+
     testWidgets(
         'referee action buttons navigate to referee duties or match report',
         (tester) async {

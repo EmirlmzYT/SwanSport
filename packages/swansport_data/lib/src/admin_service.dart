@@ -76,7 +76,8 @@ class AdminPerson {
   final String? credentials;
   final String? clubName;
 
-  String get initials => name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
+  String get initials =>
+      name.trim().isEmpty ? '?' : name.trim()[0].toUpperCase();
 
   /// Alt satırda gösterilecek künye — boş alanlar atlanır.
   String get subtitle {
@@ -132,8 +133,8 @@ class ReviewLogRow {
         approved: (m['approved'] as bool?) ?? false,
         note: m['note'] as String?,
         reviewer: m['reviewer'] as String?,
-        reviewedAt:
-            DateTime.tryParse('${m['reviewed_at']}')?.toLocal() ?? DateTime.now(),
+        reviewedAt: DateTime.tryParse('${m['reviewed_at']}')?.toLocal() ??
+            DateTime.now(),
       );
 }
 
@@ -223,8 +224,7 @@ final adminPeopleProvider =
   return ref.watch(adminServiceProvider).searchPeople(q);
 });
 
-final reviewLogProvider =
-    FutureProvider.autoDispose<List<ReviewLogRow>>((ref) {
+final reviewLogProvider = FutureProvider.autoDispose<List<ReviewLogRow>>((ref) {
   if (!ref.watch(isSupabaseEnabledProvider)) {
     return Future.value(const <ReviewLogRow>[]);
   }
@@ -237,4 +237,14 @@ final sportlessCredentialsProvider =
     return Future.value(const <SportlessCredential>[]);
   }
   return ref.watch(adminServiceProvider).credentialsWithoutSport();
+});
+
+typedef CredentialSportAssignment = Future<void> Function(
+  String credentialId,
+  String sportCode,
+);
+
+final Provider<CredentialSportAssignment> credentialSportAssignmentProvider =
+    Provider<CredentialSportAssignment>((ref) {
+  return ref.watch(adminServiceProvider).setCredentialSport;
 });
