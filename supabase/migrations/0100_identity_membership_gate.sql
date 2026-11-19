@@ -236,6 +236,7 @@ create trigger c1_profile_admin_guard before insert or update on public.profiles
 drop function if exists public.review_credential(uuid,boolean,text);
 drop function if exists public.review_credential(uuid,boolean,text,int,text);
 drop function if exists public.review_credential(uuid,boolean,text,int,text,text,date);
+drop function if exists public.review_credential(uuid,boolean,text,int,text,text,date,text);
 create function public.review_credential(p_cred uuid,p_approve boolean,p_note text default null,
  p_coach_level int default null,p_sport_code text default null,p_national_id text default null,p_expires_on date default null)
 returns void language plpgsql security definer set search_path=public as $$

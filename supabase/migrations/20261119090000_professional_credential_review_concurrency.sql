@@ -1,9 +1,10 @@
--- SwanSport Pro: pending kuyruğu için iyimser karar kapısı ekler. Mevcut
--- review_credential daha sonraki iptal/düzeltme işlerinde kullanılmaya devam
--- eder; Pro kuyruğu yalnız pending satırı sonuçlandırır.
+-- SwanSport Pro: mevcut review_credential sözleşmesine opsiyonel iyimser
+-- durum kontrolü ekler. Yedi parametreli çağrılar default ile çalışmaya devam
+-- eder; Pro pending kuyruğu p_expected_status='pending' gönderir.
 set local lock_timeout = '15s';
 
 drop function if exists public.review_credential(uuid,boolean,text,int,text,text,date);
+drop function if exists public.review_credential(uuid,boolean,text,int,text,text,date,text);
 create function public.review_credential(
   p_cred uuid,
   p_approve boolean,
@@ -11,7 +12,8 @@ create function public.review_credential(
   p_coach_level int default null,
   p_sport_code text default null,
   p_national_id text default null,
-  p_expires_on date default null)
+  p_expires_on date default null,
+  p_expected_status text default null)
 returns void language plpgsql security definer set search_path=public as $$
 declare c public.profile_credentials;v_national text;
 begin
@@ -19,6 +21,12 @@ begin
  if p_approve is null then raise exception 'İnceleme kararı gerekli';end if;
  select * into c from public.profile_credentials where id=p_cred for update;
  if not found then raise exception 'Başvuru bulunamadı';end if;
+ if p_expected_status is not null and c.status::text<>p_expected_status then
+  raise exception 'Başvuru zaten sonuçlandırıldı';
+ end if;
+ if p_expected_status='pending' and not p_approve and nullif(trim(p_note),'') is null then
+  raise exception 'Ret gerekçesi gerekli';
+ end if;
  if c.kind='identity' then
   if p_approve then
    v_national:=coalesce(nullif(trim(p_national_id),''),c.verified_national_id);
@@ -39,32 +47,8 @@ begin
    expires_on=coalesce(p_expires_on,expires_on),reviewed_by=auth.uid(),reviewed_at=clock_timestamp(),note=p_note where id=c.id;
  end if;
 end $$;
-revoke all on function public.review_credential(uuid,boolean,text,int,text,text,date) from public,anon,authenticated;
-grant execute on function public.review_credential(uuid,boolean,text,int,text,text,date) to authenticated;
-
-drop function if exists public.review_pending_credential(uuid,boolean,text,int,text,text,date);
-create function public.review_pending_credential(
-  p_cred uuid,
-  p_approve boolean,
-  p_note text default null,
-  p_coach_level int default null,
-  p_sport_code text default null,
-  p_national_id text default null,
-  p_expires_on date default null)
-returns void language plpgsql security definer set search_path=public as $$
-declare c public.profile_credentials;
-begin
- if not public.is_platform_admin() then raise exception 'Yetkisiz' using errcode='42501';end if;
- if p_approve is null then raise exception 'İnceleme kararı gerekli';end if;
- if not p_approve and nullif(trim(p_note),'') is null then raise exception 'Ret gerekçesi gerekli';end if;
- select * into c from public.profile_credentials where id=p_cred for update;
- if not found then raise exception 'Başvuru bulunamadı';end if;
- if c.status<>'pending' then raise exception 'Başvuru zaten sonuçlandırıldı';end if;
- perform public.review_credential(
-   p_cred,p_approve,p_note,p_coach_level,p_sport_code,p_national_id,p_expires_on);
-end $$;
-revoke all on function public.review_pending_credential(uuid,boolean,text,int,text,text,date) from public,anon,authenticated;
-grant execute on function public.review_pending_credential(uuid,boolean,text,int,text,text,date) to authenticated;
+revoke all on function public.review_credential(uuid,boolean,text,int,text,text,date,text) from public,anon,authenticated;
+grant execute on function public.review_credential(uuid,boolean,text,int,text,text,date,text) to authenticated;
 
 create or replace function public.set_credential_sport(
   p_cred uuid,

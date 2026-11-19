@@ -7,9 +7,11 @@ import 'package:swansport_pro/features/operations/pro_feature_host.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 void main() {
-  for (final scenario in <({String name, Size size})>[
-    (name: 'mobile', size: const Size(390, 844)),
-    (name: 'wide', size: const Size(1440, 900)),
+  for (final scenario in <({String name, Size size, bool detail})>[
+    (name: 'mobile', size: const Size(390, 844), detail: false),
+    (name: 'wide', size: const Size(1440, 900), detail: false),
+    (name: 'detail_mobile', size: const Size(390, 844), detail: true),
+    (name: 'detail_wide', size: const Size(1440, 900), detail: true),
   ]) {
     testWidgets('professional review ${scenario.name} visual evidence',
         (tester) async {
@@ -53,6 +55,14 @@ void main() {
             ),
             sportlessCredentialsProvider.overrideWith((ref) async => const []),
             reviewLogProvider.overrideWith((ref) async => const []),
+            credentialDocumentsProvider('credential-1').overrideWith(
+              (ref) async => const [
+                (
+                  docType: 'coach_certificate',
+                  url: 'https://signed.invalid/credential-1',
+                ),
+              ],
+            ),
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
@@ -67,6 +77,10 @@ void main() {
         ),
       );
       await tester.pumpAndSettle();
+      if (scenario.detail) {
+        await tester.tap(find.text('Ayşe Yılmaz'));
+        await tester.pumpAndSettle();
+      }
 
       expect(tester.takeException(), isNull);
       await expectLater(

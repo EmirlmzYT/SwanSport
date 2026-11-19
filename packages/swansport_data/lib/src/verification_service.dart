@@ -510,6 +510,7 @@ class VerificationService {
     String? sportCode,
     String? nationalId,
     DateTime? expiresOn,
+    String? expectedStatus,
   }) async {
     await _c.rpc<dynamic>(
       'review_credential',
@@ -523,32 +524,7 @@ class VerificationService {
         if (nationalId != null) 'p_national_id': nationalId,
         if (expiresOn != null)
           'p_expires_on': expiresOn.toIso8601String().substring(0, 10),
-      },
-    );
-  }
-
-  /// Sonuçlanmamış Pro kuyruk satırını tek terminal kararla kapatır.
-  Future<void> reviewPendingCredential(
-    String id,
-    bool approve, {
-    String? note,
-    int? coachLevel,
-    String? sportCode,
-    String? nationalId,
-    DateTime? expiresOn,
-  }) async {
-    await _c.rpc<dynamic>(
-      'review_pending_credential',
-      params: {
-        'p_cred': id,
-        'p_approve': approve,
-        if (note != null) 'p_note': note,
-        if (coachLevel != null) 'p_coach_level': coachLevel,
-        if (sportCode != null && sportCode.isNotEmpty)
-          'p_sport_code': sportCode,
-        if (nationalId != null) 'p_national_id': nationalId,
-        if (expiresOn != null)
-          'p_expires_on': expiresOn.toIso8601String().substring(0, 10),
+        if (expectedStatus != null) 'p_expected_status': expectedStatus,
       },
     );
   }
@@ -636,7 +612,26 @@ typedef CredentialReviewAction = Future<void> Function(
 
 final Provider<CredentialReviewAction> credentialReviewActionProvider =
     Provider<CredentialReviewAction>((ref) {
-  return ref.watch(verificationServiceProvider).reviewPendingCredential;
+  final service = ref.watch(verificationServiceProvider);
+  return (
+    id,
+    approve, {
+    note,
+    coachLevel,
+    sportCode,
+    nationalId,
+    expiresOn,
+  }) =>
+      service.reviewCredential(
+        id,
+        approve,
+        note: note,
+        coachLevel: coachLevel,
+        sportCode: sportCode,
+        nationalId: nationalId,
+        expiresOn: expiresOn,
+        expectedStatus: 'pending',
+      );
 });
 
 final AutoDisposeFutureProvider<List<PendingClub>> pendingClubsProvider =

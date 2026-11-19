@@ -99,12 +99,12 @@ test('professional review permits exactly one terminal decision',async()=>{
   const cred=(await db.query("insert into profile_credentials(profile_id,kind,sport_code,expires_on) values($1,'athlete_individual','tenis','2090-01-01') returning id",[person])).rows[0].id;
   await auth(db,admin);
   await assert.rejects(
-    call(db,'review_pending_credential',[cred,false,null,null,null,null,null]),
+    call(db,'review_credential',[cred,false,null,null,null,null,null,'pending']),
     /Ret gerekçesi gerekli/,
   );
-  await call(db,'review_pending_credential',[cred,true,null,null,null,null,null]);
+  await call(db,'review_credential',[cred,true,null,null,null,null,null,'pending']);
   await assert.rejects(
-    call(db,'review_pending_credential',[cred,false,'second decision',null,null,null,null]),
+    call(db,'review_credential',[cred,false,'second decision',null,null,null,null,'pending']),
     /zaten sonuçlandırıldı/,
   );
   assert.equal((await db.query('select status from profile_credentials where id=$1',[cred])).rows[0].status,'approved');

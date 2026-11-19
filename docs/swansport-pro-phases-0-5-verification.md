@@ -4,6 +4,18 @@ Bu rapor aktif `codex/pro-phases-0-5` checkout'unda kaynak incelemesi ve yerel
 testlerle doğrulanan davranışları kaydeder. “Yerel doğrulandı” canlı Supabase,
 gerçek imzalı dosya deposu veya fiziksel cihaz kabulü anlamına gelmez.
 
+## Faz 1 sözleşme düzeltmesi
+
+Faz 0 denetimi sonrası uygulanan Mesleki Belge Başvuruları akışı ikinci bir
+karar servisi kullanmaz. Pro, App Onay Paneli ile aynı `reviewCredential` /
+`review_credential` sözleşmesini çağırır. Pro çağrısı yalnız ek olarak
+`expectedStatus: pending` gönderir; RPC satırı kilitledikten sonra beklenen
+durumu karşılaştırır. Böylece eşzamanlı ikinci karar reddedilir, fakat mevcut
+sonradan iptal/düzeltme davranışı yedi parametreli çağrılarda korunur.
+
+Yerel kabul: belge widget senaryoları 9/9, Pro rota ve dört responsive golden
+29/29, App rota/host 15/15, kimlik-üyelik SQL yetki zinciri 35/35 geçti.
+
 ## Faz 0 — Mesleki Belge Başvuruları
 
 ### Çalışan zincir
@@ -116,7 +128,8 @@ Toplu Pro features çalıştırması 69/69 geçti. SQL toplu komutunda Faz 0'ın
 strict karar uygulaması iki eski C1 yeniden-inceleme senaryosunu bozdu; bu
 gerçek regresyon teşhis edildi. Çözüm olarak mevcut `review_credential`
 yeniden-inceleme sözleşmesi korundu ve Pro bekleyen kuyruğu ayrı
-`review_pending_credential` kapısına alındı. İlgili üç SQL senaryosu tekrar
+mevcut `review_credential` RPC'sinin opsiyonel `p_expected_status` kapısına
+alındı. İlgili üç SQL senaryosu tekrar
 çalıştırıldı ve geçti.
 
 ## Faz 4 — App/Pro görev ayrımı
@@ -143,7 +156,8 @@ toplam 31/31 geçti.
 1. Başvuran App'in `/dogrulama` girişinden belge sürecini başlatır ve kendi
    `profile_credentials` durumunu okur.
 2. Platform yöneticisi Pro Panel/Görevler'den “Mesleki Belge Başvuruları”na
-   gider; belgeyi korumalı bağlantıyla açar ve strict pending RPC ile karar
+   gider; belgeyi korumalı bağlantıyla açar ve mevcut karar RPC'sinin
+   `expectedStatus: pending` kontrolüyle karar
    verir.
 3. Aynı satır/provider sözleşmesi App'te güncel sonucu gösterir. Yetkisiz Pro
    hesabı provider sorgusu yapmadan kapanır; storage ve karar yetkisi sunucuda
@@ -170,6 +184,8 @@ toplam 31/31 geçti.
 
 - Mobil 390×844: `apps/swansport_pro/test/goldens/professional_review_mobile.png`
 - Geniş web 1440×900: `apps/swansport_pro/test/goldens/professional_review_wide.png`
+- Mobil detay 390×844: `apps/swansport_pro/test/goldens/professional_review_detail_mobile.png`
+- Geniş detay 1440×900: `apps/swansport_pro/test/goldens/professional_review_detail_wide.png`
 
 Bu dosyalar deterministik Flutter render goldens'tır; otomatik testte yeniden
 karşılaştırıldı. Flutter test ortamı metni Ahem blok glifleriyle rasterladığı
@@ -178,15 +194,16 @@ ekran görüntüsü değildir.
 
 ### Değişen alanlar
 
-- `swansport_data`: korumalı belge/karar provider'ları, strict pending karar
-  servisi ve antrenör-katılımcı ölçüm komutu.
+- `swansport_data`: korumalı belge/karar provider'ları, mevcut karar servisinin
+  opsiyonel pending beklentisi ve antrenör-katılımcı ölçüm komutu.
 - `swansport_pro_features`: çalışan belge liste/detay/karar/geçmiş/branş
   eşleme ekranı; Pro antrenör katılımcı ölçümü.
 - `swansport_pro`: Panel/Görevler doğrudan hedefleri, korumalı dosya host
   köprüsü ve responsive golden kabul.
 - `swansport_app`: aynı korumalı dosya host sözleşmesi; mevcut öz-servis ve
   legacy rotalar korunmuştur.
-- Supabase: strict pending karar wrapper'ı ve dar staff ölçüm RPC'si.
+- Supabase: mevcut karar RPC'sinde opsiyonel pending kontrolü ve dar staff
+  ölçüm RPC'si.
 - Dokümantasyon/testler: parite matrisi, bu rapor, PGlite ve widget senaryoları.
 
 ### Doğrulanmayan sınırlar
