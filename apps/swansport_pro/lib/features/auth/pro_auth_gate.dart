@@ -6,6 +6,7 @@ import 'package:swansport_data/swansport_data.dart';
 import '../../app/push/pro_push_client.dart';
 import '../../workspaces/pro_workspace_controller.dart';
 import 'pro_auth_controller.dart';
+import 'pro_app_return_button.dart';
 import 'pro_login_screen.dart';
 
 class ProAuthGate extends ConsumerWidget {
@@ -239,6 +240,11 @@ class _NoProAccessScreen extends StatelessWidget {
                       foregroundColor: Colors.white,
                       minimumSize: const Size(double.infinity, 48),
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  const SizedBox(
+                    width: double.infinity,
+                    child: ProAppReturnButton(),
                   ),
                 ],
               ),

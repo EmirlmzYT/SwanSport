@@ -128,32 +128,162 @@ void main() {
 
     await tester.tap(find.text('Ada'));
     await tester.pump();
-    await tester.enterText(find.byKey(const Key('training-score')), '18');
+    await tester.enterText(
+      find.byKey(const Key('training-target-marks')),
+      '10,8',
+    );
     await tester.tap(find.text('Bora'));
     await tester.pump();
 
     expect(
       tester
-          .widget<TextField>(find.byKey(const Key('training-score')))
+          .widget<TextField>(find.byKey(const Key('training-target-marks')))
           .controller!
           .text,
       isEmpty,
     );
     expect(find.text('Bora için ölçüm'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const Key('training-score')), '21');
+    await tester.enterText(
+      find.byKey(const Key('training-target-marks')),
+      '10,9,2',
+    );
     await tester.tap(find.text('Seti kaydet'));
     await tester.pumpAndSettle();
 
     expect(
       commands.calls,
-      contains('athlete-score:session-1:athlete-b:1:21'),
+      contains('athlete-metric:session-1:athlete-b:1:target_score'),
     );
     expect(
       commands.calls,
-      isNot(contains('athlete-score:session-1:athlete-a:1:18')),
+      isNot(contains('athlete-metric:session-1:athlete-a:1:target_score')),
     );
   });
+
+  for (final caseData in <({
+    String name,
+    TrainingArchetype archetype,
+    String primary,
+    String secondary,
+    String? tertiary,
+    String? drillName,
+  })>[
+    (
+      name: 'tenis deneme sonucu',
+      archetype: TrainingArchetype.attemptDrill,
+      primary: '7',
+      secondary: '3',
+      tertiary: null,
+      drillName: 'Servis hedefi',
+    ),
+    (
+      name: 'yüzme mesafe ve süre',
+      archetype: TrainingArchetype.lapInterval,
+      primary: '100',
+      secondary: '72500',
+      tertiary: null,
+      drillName: null,
+    ),
+    (
+      name: 'kuvvet seti',
+      archetype: TrainingArchetype.strengthSet,
+      primary: '82.5',
+      secondary: '3',
+      tertiary: '8',
+      drillName: 'Koparma',
+    ),
+    (
+      name: 'jüri serisi',
+      archetype: TrainingArchetype.routineJudge,
+      primary: '5.5',
+      secondary: '8.5',
+      tertiary: '1',
+      drillName: 'Yer serisi',
+    ),
+    (
+      name: 'zihinsel çalışma',
+      archetype: TrainingArchetype.mindTactical,
+      primary: '3',
+      secondary: '1',
+      tertiary: '120',
+      drillName: 'Mat problemi',
+    ),
+    (
+      name: 'ralli sonucu',
+      archetype: TrainingArchetype.combatRally,
+      primary: '20',
+      secondary: '8',
+      tertiary: '4',
+      drillName: null,
+    ),
+  ]) {
+    testWidgets('coach records ${caseData.name} as typed metric',
+        (tester) async {
+      final commands = _Commands();
+      await _pump(
+        tester,
+        commands: commands,
+        config: TrainingProtocolConfig(
+          setCount: 3,
+          unitsPerSet: 20,
+          prepSeconds: 10,
+          shootSeconds: 120,
+          collectSeconds: 0,
+          restSeconds: 10,
+          maxUnitScore: 10,
+          entryMode: ScoreEntryMode.flexible,
+          mode: TrainingMode.technique,
+          archetype: caseData.archetype,
+        ),
+        participants: const [
+          SessionParticipant(athleteId: 'athlete-a', name: 'Ada'),
+        ],
+        session: const TrainingSession(
+          id: 'session-1',
+          clubId: 'club-1',
+          kind: 'club',
+          status: 'live',
+          phase: SessionPhase.activeDrill,
+          currentSet: 1,
+          setCount: 3,
+          rhythm: SessionRhythm.shared,
+          protocolName: 'Branş Ölçümü',
+        ),
+        child: const SharedTrainingSessionScreen(sessionId: 'session-1'),
+      );
+      await tester.tap(find.text('Ada'));
+      await tester.pump();
+      if (caseData.drillName != null) {
+        await tester.enterText(
+          find.byKey(const Key('training-drill-name')),
+          caseData.drillName!,
+        );
+      }
+      await tester.enterText(
+        find.byKey(const Key('training-metric-primary')),
+        caseData.primary,
+      );
+      await tester.enterText(
+        find.byKey(const Key('training-metric-secondary')),
+        caseData.secondary,
+      );
+      if (caseData.tertiary != null) {
+        await tester.enterText(
+          find.byKey(const Key('training-metric-tertiary')),
+          caseData.tertiary!,
+        );
+      }
+      await tester.tap(find.text('Seti kaydet'));
+      await tester.pumpAndSettle();
+      expect(
+        commands.calls,
+        contains(
+          'athlete-metric:session-1:athlete-a:1:${caseData.archetype.wireName}',
+        ),
+      );
+    });
+  }
 
   testWidgets('result review locks the session', (tester) async {
     final commands = _Commands();
@@ -211,6 +341,7 @@ Future<ProviderContainer> _pump(
   List<TrainingProtocol> protocols = const [],
   Object? protocolsError,
   TrainingSession? session,
+  TrainingProtocolConfig config = _config,
   SessionOverview? overview,
   List<SessionParticipant> participants = const [],
   TrainingOperationCommands? commands,
@@ -240,6 +371,7 @@ Future<ProviderContainer> _pump(
       sessionSummaryProvider('session-1').overrideWith((ref) async => const []),
       sessionParticipantsProvider('session-1')
           .overrideWith((ref) async => participants),
+      sessionConfigProvider('session-1').overrideWith((ref) async => config),
       trainingOperationCommandsProvider.overrideWithValue(
         commands ?? _Commands(),
       ),
@@ -324,9 +456,14 @@ final class _Commands implements TrainingOperationCommands {
     required String sessionId,
     required String athleteId,
     required int setNo,
-    required num total,
+    num? total,
+    DrillMetricPayload? metricPayload,
   }) async =>
-      calls.add('athlete-score:$sessionId:$athleteId:$setNo:$total');
+      calls.add(
+        metricPayload == null
+            ? 'athlete-score:$sessionId:$athleteId:$setNo:$total'
+            : 'athlete-metric:$sessionId:$athleteId:$setNo:${metricPayload.archetype.wireName}',
+      );
 }
 
 final class _Navigator extends ProFeatureNavigatorBase {

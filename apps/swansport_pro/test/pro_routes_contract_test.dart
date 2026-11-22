@@ -593,7 +593,7 @@ void main() {
 
       expect(footballQueryCount, 1);
       expect(basketballQueryCount, 0);
-      expect(find.textContaining('1 müsabaka sonuç onayı'), findsOneWidget);
+      expect(find.textContaining('1 müsabaka sonucu inceleme'), findsOneWidget);
 
       // Transition to basketball
       container.read(selectedFederationScopeKeyProvider.notifier).state =
@@ -601,7 +601,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(basketballQueryCount, 1);
-      expect(find.textContaining('1 müsabaka sonuç onayı'), findsOneWidget);
+      expect(find.textContaining('1 müsabaka sonucu inceleme'), findsOneWidget);
     });
 
     testWidgets(
@@ -870,7 +870,7 @@ void main() {
               clubRole: null,
               coachLevel: 0,
               athleteKind: null,
-              managedTurfFieldIds: {'field-1'},
+              managedTurfFieldIds: {'field-1', 'field-2'},
             ),
           ),
           featureFlagsProvider.overrideWith(
@@ -897,6 +897,8 @@ void main() {
       addTearDown(container.dispose);
       container.read(selectedProWorkspaceProvider.notifier).state =
           ProWorkspace.facility;
+      container.read(selectedFacilityScopeIdProvider.notifier).state =
+          'field-2';
       final router = container.read(proRouterProvider);
       addTearDown(router.dispose);
 
@@ -917,6 +919,7 @@ void main() {
       await tester.tap(inspectAction);
       await tester.pumpAndSettle();
 
+      expect(container.read(selectedFacilityScopeIdProvider), 'field-1');
       expect(find.byType(SharedManagedTurfDutiesScreen), findsOneWidget);
     });
 

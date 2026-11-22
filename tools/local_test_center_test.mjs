@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {setup} from './full_roles_seed_sql_test.mjs';
-import {assertLocalDocker,localSeed,statusKey,windowsBatchLine} from './start_local_test_center.mjs';
+import {assertLocalDocker,commandSpec,localSeed,statusKey,windowsBatchLine} from './start_local_test_center.mjs';
 const read = name => readFileSync(new URL('../'+name,import.meta.url),'utf8');
 const fixture=read('tools/local-test-center/fixture.sql');
 const source=read('supabase/seed/full_roles_test_seed.sql');
@@ -11,6 +11,15 @@ test('Windows batch arguments quote spaces and reject shell expansion/injection'
   '""npx.cmd" "--workdir" "C:\\Test Folder""');
  for(const value of ['x & calc','%PATH%','x"y','x\ny','x|y','!X!'])
   assert.throws(()=>windowsBatchLine('flutter.bat',[value]));
+});
+
+test('Windows npx uses the installed Node CLI instead of a cwd-sensitive batch wrapper',()=>{
+ const spec=commandSpec('npx.cmd',['--yes','supabase@2.121.0']);
+ if(process.platform==='win32'){
+  assert.equal(spec.command,process.execPath);
+  assert.match(spec.args[0],/node_modules[\\/]npm[\\/]bin[\\/]npx-cli\.js$/);
+  assert.deepEqual(spec.args.slice(1),['--yes','supabase@2.121.0']);
+ }
 });
 
 test('launcher refuses remote Docker and mismatched/public backend; never returns service key',()=>{

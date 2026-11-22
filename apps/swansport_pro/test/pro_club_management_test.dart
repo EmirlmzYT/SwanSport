@@ -52,6 +52,101 @@ void main() {
     expect(find.text('Aktif kulüp bulunamadı'), findsOneWidget);
   });
 
+  testWidgets(
+      'membership row opens a decision detail with required reject note',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          clubPendingApplicationsProvider.overrideWith(
+            (ref) async => [
+              ClubApplicationRow(
+                id: 'application-1',
+                clubId: 'club-1',
+                profileId: 'profile-1',
+                desiredRole: 'athlete',
+                status: 'pending',
+                createdAt: DateTime(2026, 11, 19, 10),
+                personName: 'Deniz Sporcu',
+                message: 'Kulübe katılmak istiyorum.',
+              ),
+            ],
+          ),
+          announcementsProvider.overrideWith(
+            (ref) async => const <AnnouncementRow>[],
+          ),
+          clubDocumentsProvider.overrideWith(
+            (ref) async => const <DocumentRow>[],
+          ),
+          activeClubProvider.overrideWith((ref) async => null),
+          clubIdentityProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(home: ProClubManagementScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Deniz Sporcu'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Üyelik başvurusu'), findsOneWidget);
+    expect(find.text('Kulübe katılmak istiyorum.'), findsOneWidget);
+    expect(
+        find.byKey(const Key('club-application-review-note')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('club-application-reject')));
+    await tester.pump();
+    expect(find.text('Ret gerekçesi gerekli.'), findsOneWidget);
+    expect(find.text('Üyelik başvurusu'), findsOneWidget);
+  });
+
+  testWidgets('club archive distinguishes legacy metadata from stored files', (
+    tester,
+  ) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          clubPendingApplicationsProvider.overrideWith(
+            (ref) async => const <ClubApplicationRow>[],
+          ),
+          announcementsProvider.overrideWith(
+            (ref) async => const <AnnouncementRow>[],
+          ),
+          clubDocumentsProvider.overrideWith(
+            (ref) async => [
+              DocumentRow(
+                id: 'stored',
+                name: 'Tescil belgesi',
+                kind: 'pdf',
+                createdAt: DateTime(2026, 11, 19),
+                storagePath: 'club-1/tescil.pdf',
+                version: 2,
+                validUntil: DateTime(2027, 1, 1),
+              ),
+              DocumentRow(
+                id: 'legacy',
+                name: 'Eski metadata kaydı',
+                kind: 'file',
+                createdAt: DateTime(2025),
+              ),
+            ],
+          ),
+          activeClubProvider.overrideWith((ref) async => null),
+          clubIdentityProvider.overrideWith((ref) async => null),
+        ],
+        child: const MaterialApp(
+          home: ProClubManagementScreen(initialTab: 2),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tescil belgesi'), findsOneWidget);
+    expect(find.textContaining('v2'), findsOneWidget);
+    expect(find.byTooltip('Belgeyi önizle'), findsOneWidget);
+    expect(find.text('Eski metadata kaydı'), findsOneWidget);
+    expect(find.byTooltip('Belgeyi arşivle'), findsNWidgets(2));
+  });
+
   testWidgets('club settings keep admin and coach capabilities separate', (
     tester,
   ) async {

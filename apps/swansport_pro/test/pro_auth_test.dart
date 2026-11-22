@@ -8,6 +8,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/features/auth/pro_auth_controller.dart';
 import 'package:swansport_pro/features/auth/pro_auth_gate.dart';
+import 'package:swansport_pro/features/auth/pro_app_return_button.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
 
 class FakeAccountSessionService implements AccountSessionService {
@@ -211,6 +212,30 @@ void main() {
       expect(fake.lastEmail, equals('pro@test.com'));
       expect(fake.lastPassword, equals('secret'));
     });
+
+    testWidgets('debug return fallback keeps the user on the local App', (
+      tester,
+    ) async {
+      Uri? openedUri;
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            proAppReturnLauncherProvider.overrideWithValue((uri) async {
+              openedUri = uri;
+              return true;
+            }),
+          ],
+          child: const MaterialApp(
+            home: Scaffold(body: ProAppReturnButton()),
+          ),
+        ),
+      );
+
+      await tester.tap(find.text('SwanSport App’e dön'));
+      await tester.pumpAndSettle();
+
+      expect(openedUri, Uri.parse('http://127.0.0.1:55430/'));
+    });
   });
 
   group('ProAuthGate', () {
@@ -251,6 +276,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.byType(ProLoginScreen), findsOneWidget);
+      expect(find.text('SwanSport App’e dön'), findsOneWidget);
       expect(find.text('PRO_CONTENT'), findsNothing);
     });
 
@@ -276,6 +302,7 @@ void main() {
 
         expect(find.text('PRO_CONTENT'), findsNothing);
         expect(find.textContaining('yetki bulunamadı'), findsOneWidget);
+        expect(find.text('SwanSport App’e dön'), findsOneWidget);
 
         final logoutBtn = find.text('Çıkış Yap');
         expect(logoutBtn, findsOneWidget);

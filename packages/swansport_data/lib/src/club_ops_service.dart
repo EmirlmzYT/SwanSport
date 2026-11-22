@@ -1,8 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'supabase_scope.dart';
 import 'supabase_athletes.dart';
+import 'supabase_scope.dart';
 
 /// ---------------------------------------------------------------------------
 /// Kulüp işletme verisi — tesisler, sağlık kayıtları ve belgeler.
@@ -87,6 +89,10 @@ class DocumentRow {
     required this.kind,
     required this.createdAt,
     this.sizeLabel,
+    this.storagePath,
+    this.version = 1,
+    this.validUntil,
+    this.archivedAt,
   });
 
   final String id;
@@ -94,12 +100,23 @@ class DocumentRow {
   final String kind;
   final DateTime createdAt;
   final String? sizeLabel;
+  final String? storagePath;
+  final int version;
+  final DateTime? validUntil;
+  final DateTime? archivedAt;
+
+  bool get hasFile => storagePath?.isNotEmpty ?? false;
+  bool get isArchived => archivedAt != null;
 
   factory DocumentRow.fromMap(Map<String, dynamic> m) => DocumentRow(
         id: m['id'] as String,
         name: (m['name'] as String?) ?? '',
         kind: (m['kind'] as String?) ?? 'file',
         sizeLabel: m['size_label'] as String?,
+        storagePath: m['storage_path'] as String?,
+        version: (m['version'] as num?)?.toInt() ?? 1,
+        validUntil: DateTime.tryParse('${m['valid_until'] ?? ''}'),
+        archivedAt: DateTime.tryParse('${m['archived_at'] ?? ''}')?.toLocal(),
         createdAt: DateTime.tryParse('${m['created_at']}')?.toLocal() ??
             DateTime.now(),
       );
@@ -260,6 +277,8 @@ class AttendanceStat {
 }
 
 class ClubOpsService {
+  static const clubDocumentsBucket = 'club-documents';
+
   ClubOpsService(this._c);
   final SupabaseClient _c;
 
@@ -336,8 +355,11 @@ class ClubOpsService {
   Future<List<DocumentRow>> documents(String clubId) async {
     final rows = await _c
         .from('documents')
-        .select('id, name, kind, size_label, created_at')
+        .select(
+          'id, name, kind, size_label, storage_path, version, valid_until, archived_at, created_at',
+        )
         .eq('club_id', clubId)
+        .isFilter('archived_at', null)
         .order('created_at', ascending: false);
     return (rows as List)
         .map((r) => DocumentRow.fromMap((r as Map).cast<String, dynamic>()))
@@ -354,9 +376,85 @@ class ClubOpsService {
     });
   }
 
+  Future<DocumentRow> uploadClubDocument({
+    required String clubId,
+    required String name,
+    required String fileName,
+    required Uint8List bytes,
+    DateTime? validUntil,
+    int version = 1,
+  }) async {
+    if (bytes.isEmpty || bytes.length > 10 * 1024 * 1024) {
+      throw ArgumentError('Dosya 1 bayt ile 10 MB arasında olmalı.');
+    }
+    final dot = fileName.lastIndexOf('.');
+    final ext = dot < 0 ? '' : fileName.substring(dot + 1).toLowerCase();
+    final contentType = switch (ext) {
+      'pdf' => 'application/pdf',
+      'jpg' || 'jpeg' => 'image/jpeg',
+      'png' => 'image/png',
+      _ => throw ArgumentError('Yalnız PDF, JPG veya PNG yüklenebilir.'),
+    };
+    final uid = _c.auth.currentUser?.id;
+    if (uid == null) throw StateError('Oturum bulunamadı.');
+    final safeName = fileName.replaceAll(RegExp(r'[^A-Za-z0-9._-]'), '_');
+    final path = '$clubId/${DateTime.now().microsecondsSinceEpoch}_$safeName';
+    final inserted = await _c
+        .from('documents')
+        .insert({
+          'club_id': clubId,
+          'name': name.trim(),
+          'kind': ext == 'pdf' ? 'pdf' : 'image',
+          'size_label': _sizeLabel(bytes.length),
+          'storage_path': path,
+          'version': version,
+          if (validUntil != null)
+            'valid_until': validUntil.toIso8601String().substring(0, 10),
+          'uploaded_by': uid,
+        })
+        .select(
+          'id, name, kind, size_label, storage_path, version, valid_until, archived_at, created_at',
+        )
+        .single();
+    try {
+      await _c.storage.from(clubDocumentsBucket).uploadBinary(
+            path,
+            bytes,
+            fileOptions: FileOptions(contentType: contentType, upsert: false),
+          );
+    } catch (_) {
+      await _c.from('documents').delete().eq('id', inserted['id'] as String);
+      rethrow;
+    }
+    return DocumentRow.fromMap(inserted);
+  }
+
+  Future<String> signedClubDocumentUrl(String documentId) async {
+    final row = await _c
+        .from('documents')
+        .select('storage_path, archived_at')
+        .eq('id', documentId)
+        .single();
+    if (row['archived_at'] != null) throw StateError('Belge arşivlenmiş.');
+    final path = row['storage_path'] as String?;
+    if (path == null || path.isEmpty) {
+      throw StateError('Bu eski kayda bağlı dosya bulunmuyor.');
+    }
+    return _c.storage.from(clubDocumentsBucket).createSignedUrl(path, 300);
+  }
+
+  Future<void> archiveDocument(String id) async {
+    await _c.from('documents').update(
+        {'archived_at': DateTime.now().toUtc().toIso8601String()}).eq('id', id);
+  }
+
   Future<void> removeDocument(String id) async {
     await _c.from('documents').delete().eq('id', id);
   }
+
+  static String _sizeLabel(int bytes) => bytes >= 1024 * 1024
+      ? '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB'
+      : '${(bytes / 1024).ceil()} KB';
 
   // --------------------------- tesis ↔ takvim ------------------------------
 

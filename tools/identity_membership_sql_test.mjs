@@ -273,3 +273,12 @@ test('C1: old independent rows fail the migration preflight atomically without d
  await assert.rejects(apply(db,gate),/C1 preflight/);
  assert.equal((await db.query('select club_id from athletes where id=$1',[id(999)])).rows[0].club_id,null);
  }finally{await db.close();}});
+
+test('authenticated credential reads reach the existing owner/admin RLS policy',async()=>{
+ const {db}=await c1();try{
+  await apply(db,await sql('20261121163109_restore_profile_credentials_select_grant'));
+  assert.equal((await db.query("select has_table_privilege('authenticated','public.profile_credentials','select') v")).rows[0].v,true);
+  assert.equal((await db.query("select has_table_privilege('anon','public.profile_credentials','select') v")).rows[0].v,false);
+  assert.equal((await db.query("select count(*)::int n from pg_policies where schemaname='public' and tablename='profile_credentials' and policyname='cred_own' and cmd='SELECT'")).rows[0].n,1);
+ }finally{await db.close();}
+});

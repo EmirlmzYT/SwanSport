@@ -67,11 +67,12 @@ void main() {
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: ProTheme.dark(),
-            home: const RepaintBoundary(
-              key: Key('professional-review-evidence'),
-              child: ProOperationsFeatureHost(
-                child: PlatformProfessionalReviewScreen(),
-              ),
+            builder: (context, child) => RepaintBoundary(
+              key: const Key('professional-review-evidence'),
+              child: child,
+            ),
+            home: const ProOperationsFeatureHost(
+              child: PlatformProfessionalReviewScreen(),
             ),
           ),
         ),

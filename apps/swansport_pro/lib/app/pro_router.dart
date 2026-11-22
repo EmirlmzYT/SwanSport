@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../features/account/pro_account_screen.dart';
 import '../features/calendar/pro_calendar_screen.dart';
 import '../features/dashboard/pro_dashboard_screen.dart';
+import '../features/inbox/pro_inbox_screen.dart';
 import '../features/operations/pro_club_management_screen.dart';
 import '../features/operations/pro_club_dues_screen.dart';
 import '../features/operations/pro_guardian_links_screen.dart';
@@ -192,7 +193,7 @@ final proRouterProvider = Provider<GoRouter>((ref) {
             routes: [
               GoRoute(
                 path: ProRoutes.inbox,
-                builder: (context, state) => SharedProInboxScreen(
+                builder: (context, state) => ProInboxScreen(
                   onNotificationTap: (notification) =>
                       handleProNotificationTap(context, notification),
                 ),
@@ -293,8 +294,15 @@ final proRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: ProRoutes.clubManagement,
-        builder: (context, state) => const ProOperationsGate(
-          child: ProClubManagementScreen(),
+        builder: (context, state) => ProOperationsGate(
+          child: ProClubManagementScreen(
+            initialTab: switch (state.uri.queryParameters['tab']) {
+              'announcements' => 1,
+              'documents' => 2,
+              'settings' => 3,
+              _ => 0,
+            },
+          ),
         ),
       ),
       GoRoute(
@@ -449,8 +457,10 @@ final proRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         parentNavigatorKey: _rootNavigatorKey,
         path: ProRoutes.facilityDuties,
-        builder: (context, state) => const ProFacilityOperationsGate(
-          child: SharedManagedTurfDutiesScreen(),
+        builder: (context, state) => ProFacilityOperationsGate(
+          child: SharedManagedTurfDutiesScreen(
+            initialDutyId: state.uri.queryParameters['duty'],
+          ),
         ),
       ),
       GoRoute(

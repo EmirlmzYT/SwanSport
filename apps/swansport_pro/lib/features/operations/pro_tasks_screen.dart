@@ -414,7 +414,8 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
                 priority: ProTaskPriority.now,
                 status: 'İnceleme Bekliyor',
                 actionLabel: 'İncele',
-                onAction: () => context.push(ProRoutes.clubManagement),
+                onAction: () => context
+                    .push('${ProRoutes.clubManagement}?tab=applications'),
               ),
             );
           }
@@ -547,15 +548,26 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
         if (pending.isNotEmpty) {
           list.add(
             ProTaskItem(
-              id: 'fed-pending',
-              icon: Icons.how_to_reg_outlined,
-              title: 'Müsabaka Sonuç ve Hakem Onayları',
-              context:
-                  '${pending.length} müsabaka sonuç onayı veya hakem ataması bekliyor',
+              id: 'fed-results',
+              icon: Icons.fact_check_outlined,
+              title: 'Müsabaka Sonuç İncelemesi',
+              context: '${pending.length} müsabaka sonucu inceleme bekliyor',
               priority: ProTaskPriority.now,
-              status: 'İşlem Bekliyor',
+              status: 'Sonuç Bekliyor',
               actionLabel: 'İncele',
-              onAction: () => context.push(ProRoutes.federationBulletin),
+              onAction: () => context.push(ProRoutes.federationMatches),
+            ),
+          );
+          list.add(
+            ProTaskItem(
+              id: 'fed-assignments',
+              icon: Icons.sports_outlined,
+              title: 'Hakem Atamaları',
+              context: 'Kapsamdaki müsabakaların hakem atamalarını yönetin',
+              priority: ProTaskPriority.today,
+              status: 'Atama Kontrolü',
+              actionLabel: 'Atamaları Aç',
+              onAction: () => context.push(ProRoutes.refereeAssignments),
             ),
           );
         }
@@ -582,7 +594,16 @@ class _ProTasksScreenState extends ConsumerState<ProTasksScreen> {
               priority: ProTaskPriority.today,
               status: duty.status,
               actionLabel: 'İncele',
-              onAction: () => context.push(ProRoutes.facilityDuties),
+              onAction: () {
+                ref.read(selectedFacilityScopeIdProvider.notifier).state =
+                    duty.fieldId;
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (!mounted) return;
+                  context.push(
+                    '${ProRoutes.facilityDuties}?duty=${Uri.encodeComponent(duty.id)}',
+                  );
+                });
+              },
             ),
           );
         }

@@ -17,6 +17,7 @@ const sessionContextMigration=await sql('20261112090000_training_session_context
 const feedbackMigration=await sql('20261112120000_training_feedback_visibility');
 const progressMigration=await sql('20261113090000_training_progress_visibility');
 const coachMeasurementsMigration=await sql('20261119100000_coach_training_measurements');
+const coachBranchMetricsMigration=await sql('20261119113000_coach_branch_metrics');
 test('0120 club sport projection preserves private registry ACL and denies outsider/inactive/anon',async()=>{
  const db=await setup();try{
  await db.query("update clubs set sport_code='okculuk' where id=$1",[club]);
@@ -83,6 +84,26 @@ test('coach measurement is participant-scoped, locked and staff-only',async()=>{
   await db.query('update training_sets set locked_at=now() where id=$1',[first.set_id]);
   await assert.rejects(db.query('select submit_coach_set_score($1,$2,1,20)',[match,athlete]),/onaylanmış/);
   assert.equal(Number((await db.query('select total_score from training_sets where id=$1',[first.set_id])).rows[0].total_score),18);
+ }finally{await db.close();}
+});
+test('coach branch metrics preserve every supported archetype payload',async()=>{
+ const db=await setup();try{
+  const cases=[
+   ['okculuk','target_score',target],['tenis','attempt_drill',attempt],['yuzme','lap_interval',lap],
+   ['tenis','combat_rally',rally],['halter','strength_set',newMetrics.strength_set],
+   ['cimnastik','routine_judge',newMetrics.routine_judge],['satranc','mind_tactical',newMetrics.mind_tactical],
+  ];
+  for(const [zeroBased,[sport,archetype,metric]] of cases.entries()){
+   const index=zeroBased+1;
+   const protocol=id(880+index),match=id(890+index);
+   await db.query("insert into training_protocols(id,club_id,sport_code,name,config) values($1,$2,$3,'Metric',$4)",[protocol,club,sport,config(archetype)]);
+   await db.query('insert into training_sessions(id,club_id,protocol_id) values($1,$2,$3)',[match,club,protocol]);
+   await db.query('insert into training_session_participants(session_id,athlete_id) values($1,$2)',[match,athlete]);
+   await actor(db,coach);await db.exec('set role authenticated');
+   const result=(await db.query('select submit_coach_set_metric($1,$2,1,null,$3) v',[match,athlete,metric])).rows[0].v;
+   assert.deepEqual((await db.query('select metric_payload from training_sets where id=$1',[result.set_id])).rows[0].metric_payload,metric);
+   await db.exec('reset role');
+  }
  }finally{await db.close();}
 });
 for(const [archetype,metric] of Object.entries(newMetrics)){
@@ -171,7 +192,7 @@ async function setup(){const db=new PGlite();try{
  create table faq_entries(question text,answer text,category text,audience text,feature text,route text,sort_order int);
  revoke all on club_sport_registrations from public,anon,authenticated;`);
  for(const code of catalogCodes) await db.query('insert into sports(code,name) values($1,$1) on conflict do nothing',[code]);
- await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await apply(db,feedbackMigration);await apply(db,progressMigration);await apply(db,coachMeasurementsMigration);await actor(db,player);return db;
+ await apply(db,multiBranchMigration);await apply(db,sessionContextMigration);await apply(db,feedbackMigration);await apply(db,progressMigration);await apply(db,coachMeasurementsMigration);await apply(db,coachBranchMetricsMigration);await actor(db,player);return db;
  }catch(e){await db.close();throw e;}}
 async function session(db,a='target_score',cfg={}){
  const p=id(100+Object.keys(metrics).indexOf(a));const s=id(200+Object.keys(metrics).indexOf(a));

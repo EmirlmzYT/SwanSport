@@ -433,6 +433,10 @@ class SharedTrainingSessionScreen extends ConsumerStatefulWidget {
 
 class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
   final _score = TextEditingController();
+  final _metricName = TextEditingController();
+  final _metricPrimary = TextEditingController();
+  final _metricSecondary = TextEditingController();
+  final _metricTertiary = TextEditingController();
   String? _selectedAthleteId;
   late final ProDirtyStateRegistration _dirty;
 
@@ -446,6 +450,10 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
   void dispose() {
     _dirty.dispose();
     _score.dispose();
+    _metricName.dispose();
+    _metricPrimary.dispose();
+    _metricSecondary.dispose();
+    _metricTertiary.dispose();
     super.dispose();
   }
 
@@ -463,6 +471,7 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
       );
     }
     final session = ref.watch(trainingSessionProvider(id));
+    final config = ref.watch(sessionConfigProvider(id)).valueOrNull;
     return host.chrome.buildPage(
       context,
       title: 'Antrenman Oturumu',
@@ -492,6 +501,9 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
               ),
               Text(
                 '${value.phase.label} · Set ${value.currentSet}/${value.setCount}',
+              ),
+              Text(
+                '${value.clubId.isEmpty ? 'Bireysel' : 'Kulüp'} · ${value.sportCode.isEmpty ? 'Branş belirtilmedi' : value.sportCode}',
               ),
               if (value.joinCode != null)
                 Text('Katılım kodu: ${value.joinCode}'),
@@ -527,15 +539,15 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
                     '${participants.valueOrNull?.where((row) => row.athleteId == _selectedAthleteId).firstOrNull?.name ?? 'Sporcu'} için ölçüm',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
-                  TextField(
-                    key: const Key('training-score'),
-                    controller: _score,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(labelText: 'Set toplamı'),
-                    onChanged: (_) => _dirty.markDirty(),
-                  ),
+                  _coachMetricFields(config),
                   FilledButton(
-                    onPressed: () => _saveCoachScore(id, value.currentSet),
+                    onPressed: config == null
+                        ? null
+                        : () => _saveCoachMetric(
+                              id,
+                              value.currentSet,
+                              config,
+                            ),
                     child: const Text('Seti kaydet'),
                   ),
                 ],
@@ -616,27 +628,192 @@ class _SessionState extends ConsumerState<SharedTrainingSessionScreen> {
     if (_selectedAthleteId == athleteId) return;
     setState(() {
       _selectedAthleteId = athleteId;
-      _score.clear();
+      _clearMetricDraft();
       _dirty.markClean();
     });
   }
 
-  Future<void> _saveCoachScore(String sessionId, int setNo) async {
+  Widget _coachMetricFields(TrainingProtocolConfig? config) {
+    if (config == null) return const LinearProgressIndicator();
+    final archetype = config.archetype;
+    return Column(
+      children: [
+        if (archetype == TrainingArchetype.targetScore)
+          TextField(
+            key: const Key('training-target-marks'),
+            controller: _score,
+            decoration: const InputDecoration(
+              labelText: 'Atışlar',
+              hintText: '10, 9, X, M',
+            ),
+            onChanged: (_) => _dirty.markDirty(),
+          )
+        else ...[
+          if (const {
+            TrainingArchetype.attemptDrill,
+            TrainingArchetype.strengthSet,
+            TrainingArchetype.routineJudge,
+            TrainingArchetype.mindTactical,
+          }.contains(archetype))
+            TextField(
+              key: const Key('training-drill-name'),
+              controller: _metricName,
+              decoration: InputDecoration(
+                labelText: switch (archetype) {
+                  TrainingArchetype.attemptDrill => 'Deneme adı',
+                  TrainingArchetype.strengthSet => 'Egzersiz adı',
+                  TrainingArchetype.routineJudge => 'Seri adı',
+                  TrainingArchetype.mindTactical => 'Çalışma adı',
+                  _ => 'Ad',
+                },
+              ),
+              onChanged: (_) => _dirty.markDirty(),
+            ),
+          TextField(
+            key: const Key('training-metric-primary'),
+            controller: _metricPrimary,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: switch (archetype) {
+                TrainingArchetype.attemptDrill => 'Başarılı deneme',
+                TrainingArchetype.lapInterval => 'Mesafe (metre)',
+                TrainingArchetype.combatRally => 'Ralli',
+                TrainingArchetype.strengthSet => 'Ağırlık (kg)',
+                TrainingArchetype.routineJudge => 'Zorluk puanı',
+                TrainingArchetype.mindTactical => 'Doğru çözüm',
+                _ => 'Değer',
+              },
+            ),
+            onChanged: (_) => _dirty.markDirty(),
+          ),
+          TextField(
+            key: const Key('training-metric-secondary'),
+            controller: _metricSecondary,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: switch (archetype) {
+                TrainingArchetype.attemptDrill => 'Hatalı deneme',
+                TrainingArchetype.lapInterval => 'Süre (milisaniye)',
+                TrainingArchetype.combatRally => 'Kazandıran vuruş',
+                TrainingArchetype.strengthSet => 'Tekrar',
+                TrainingArchetype.routineJudge => 'Uygulama puanı',
+                TrainingArchetype.mindTactical => 'Hatalı çözüm',
+                _ => 'İkinci değer',
+              },
+            ),
+            onChanged: (_) => _dirty.markDirty(),
+          ),
+          if (const {
+            TrainingArchetype.combatRally,
+            TrainingArchetype.strengthSet,
+            TrainingArchetype.routineJudge,
+            TrainingArchetype.mindTactical,
+          }.contains(archetype))
+            TextField(
+              key: const Key('training-metric-tertiary'),
+              controller: _metricTertiary,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: switch (archetype) {
+                  TrainingArchetype.combatRally => 'Zorlanmamış hata',
+                  TrainingArchetype.strengthSet => 'RPE (isteğe bağlı)',
+                  TrainingArchetype.routineJudge => 'Kesinti',
+                  TrainingArchetype.mindTactical => 'Süre (saniye)',
+                  _ => 'Üçüncü değer',
+                },
+              ),
+              onChanged: (_) => _dirty.markDirty(),
+            ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _saveCoachMetric(
+    String sessionId,
+    int setNo,
+    TrainingProtocolConfig config,
+  ) async {
     final athleteId = _selectedAthleteId;
-    final total = num.tryParse(_score.text);
-    if (athleteId == null || total == null) return;
+    if (athleteId == null) return;
+    DrillMetricPayload payload;
+    try {
+      payload = switch (config.archetype) {
+        TrainingArchetype.targetScore => TargetScoreMetric(
+            _score.text
+                .split(',')
+                .map((value) => value.trim().toUpperCase())
+                .where((value) => value.isNotEmpty)
+                .toList(),
+          ),
+        TrainingArchetype.attemptDrill => AttemptDrillMetric(
+            drillName: _metricName.text.trim(),
+            successful: int.parse(_metricPrimary.text),
+            faults: int.parse(_metricSecondary.text),
+            totalAttempts: int.parse(_metricPrimary.text) +
+                int.parse(_metricSecondary.text),
+          ),
+        TrainingArchetype.lapInterval => LapIntervalMetric(
+            lapNumber: setNo,
+            distanceMeters: int.parse(_metricPrimary.text),
+            splitMillis: int.parse(_metricSecondary.text),
+          ),
+        TrainingArchetype.combatRally => CombatRallyMetric(
+            rallies: int.parse(_metricPrimary.text),
+            winners: int.parse(_metricSecondary.text),
+            unforcedErrors: int.parse(_metricTertiary.text),
+          ),
+        TrainingArchetype.strengthSet => StrengthSetMetric(
+            exerciseName: _metricName.text.trim(),
+            weightKg: num.parse(_metricPrimary.text),
+            reps: int.parse(_metricSecondary.text),
+            rpe: _metricTertiary.text.trim().isEmpty
+                ? null
+                : int.parse(_metricTertiary.text),
+          ),
+        TrainingArchetype.routineJudge => RoutineJudgeMetric(
+            routineName: _metricName.text.trim(),
+            difficultyScore: num.parse(_metricPrimary.text),
+            executionScore: num.parse(_metricSecondary.text),
+            deductions: num.parse(_metricTertiary.text),
+          ),
+        TrainingArchetype.mindTactical => MindTacticalMetric(
+            taskName: _metricName.text.trim(),
+            solvedCount: int.parse(_metricPrimary.text),
+            failedCount: int.parse(_metricSecondary.text),
+            durationSeconds: int.parse(_metricTertiary.text),
+          ),
+      };
+    } catch (error) {
+      if (mounted) {
+        ProFeatureHostScope.of(context).chrome.showMessage(
+              context,
+              'Ölçüm alanlarını kontrol edin: $error',
+              tone: ProFeatureMessageTone.danger,
+            );
+      }
+      return;
+    }
     await _run(
       sessionId,
       () => ref.read(trainingOperationCommandsProvider).submitAthleteSet(
             sessionId: sessionId,
             athleteId: athleteId,
             setNo: setNo,
-            total: total,
+            metricPayload: payload,
           ),
     );
     if (!mounted) return;
-    setState(() => _score.clear());
+    setState(_clearMetricDraft);
     _dirty.markClean();
+  }
+
+  void _clearMetricDraft() {
+    _score.clear();
+    _metricName.clear();
+    _metricPrimary.clear();
+    _metricSecondary.clear();
+    _metricTertiary.clear();
   }
 }
 

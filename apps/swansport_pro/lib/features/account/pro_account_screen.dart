@@ -1,37 +1,33 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../app/pro_theme.dart';
 import '../../app/push/pro_push_client.dart';
 import '../../widgets/pro_ui_components.dart';
 import '../../workspaces/pro_workspace_controller.dart';
+import '../auth/pro_app_return_button.dart';
 import '../auth/pro_auth_controller.dart';
 
 class ProAccountScreen extends ConsumerWidget {
   const ProAccountScreen({super.key});
 
-  static final _swanSportWebUri = Uri.parse('https://swansport.pages.dev/');
-
-  Future<void> _openSwanSport(BuildContext context) async {
+  Future<void> _openSwanSport(BuildContext context, WidgetRef ref) async {
+    final appUri = ref.read(proAppReturnUriProvider);
     var opened = false;
     try {
-      opened = await launchUrl(
-        _swanSportWebUri,
-        mode: kIsWeb
-            ? LaunchMode.platformDefault
-            : LaunchMode.externalApplication,
-      );
+      opened = await ref.read(proAppReturnLauncherProvider)(appUri);
     } catch (_) {
       opened = false;
     }
     if (!opened && context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content:
-              Text('SwanSport bağlantısı açılamadı. Lütfen tekrar deneyin.'),
+        SnackBar(
+          content: Text(
+            'SwanSport bağlantısı açılamadı. Tarayıcıdan '
+            '${appUri.host}${appUri.hasPort ? ':${appUri.port}' : ''} '
+            'adresini açabilirsiniz.',
+          ),
         ),
       );
     }
@@ -319,7 +315,7 @@ class ProAccountScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 24),
                   OutlinedButton.icon(
-                    onPressed: () => _openSwanSport(context),
+                    onPressed: () => _openSwanSport(context, ref),
                     icon: const Icon(Icons.open_in_new_rounded, size: 18),
                     label: const Text("SwanSport'u Aç"),
                     style: OutlinedButton.styleFrom(

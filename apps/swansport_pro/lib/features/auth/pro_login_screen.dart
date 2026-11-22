@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../app/pro_theme.dart';
 import 'pro_auth_controller.dart';
+import 'pro_app_return_button.dart';
 
 class ProLoginScreen extends ConsumerStatefulWidget {
   const ProLoginScreen({super.key});
@@ -254,6 +255,8 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                     ],
                   ),
           ),
+          const SizedBox(height: 10),
+          const ProAppReturnButton(),
           const SizedBox(height: 18),
           const Row(
             mainAxisAlignment: MainAxisAlignment.center,

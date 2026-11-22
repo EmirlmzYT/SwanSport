@@ -32,10 +32,12 @@ final class TurfDutiesWriteCallbacks {
 /// Halı saha süreli görev delegasyonu ve nöbet yönetim ekranı.
 final class SharedManagedTurfDutiesScreen extends ConsumerWidget {
   const SharedManagedTurfDutiesScreen({
+    this.initialDutyId,
     this.writeCallbacks = const TurfDutiesWriteCallbacks(),
     super.key,
   });
 
+  final String? initialDutyId;
   final TurfDutiesWriteCallbacks writeCallbacks;
 
   @override
@@ -44,14 +46,21 @@ final class SharedManagedTurfDutiesScreen extends ConsumerWidget {
     return host.chrome.buildPage(
       context,
       title: 'Saha Görevleri & Yetkilendirme',
-      body: _ManagedTurfDutiesBody(writeCallbacks: writeCallbacks),
+      body: _ManagedTurfDutiesBody(
+        initialDutyId: initialDutyId,
+        writeCallbacks: writeCallbacks,
+      ),
     );
   }
 }
 
 final class _ManagedTurfDutiesBody extends ConsumerStatefulWidget {
-  const _ManagedTurfDutiesBody({required this.writeCallbacks});
+  const _ManagedTurfDutiesBody({
+    required this.initialDutyId,
+    required this.writeCallbacks,
+  });
 
+  final String? initialDutyId;
   final TurfDutiesWriteCallbacks writeCallbacks;
 
   @override
@@ -82,9 +91,11 @@ final class _ManagedTurfDutiesBodyState
     super.dispose();
   }
 
-  void _refresh() {
+  void _refresh({bool refreshScopes = false}) {
     ref.invalidate(turfDutiesProvider(_offset));
-    ref.invalidate(delegatedTurfFieldIdsProvider);
+    if (refreshScopes) {
+      ref.invalidate(delegatedTurfFieldIdsProvider);
+    }
   }
 
   bool _verifyFieldScope(String expectedFieldId) {
@@ -197,7 +208,7 @@ final class _ManagedTurfDutiesBodyState
       }
 
       _codeController.clear();
-      _refresh();
+      _refresh(refreshScopes: true);
 
       if (!mounted) return;
       setState(() {
@@ -231,7 +242,7 @@ final class _ManagedTurfDutiesBodyState
         await ref.read(sahaOperationsServiceProvider).revokeDuty(duty.id);
       }
 
-      _refresh();
+      _refresh(refreshScopes: true);
 
       if (!mounted) return;
       setState(() {
@@ -506,8 +517,27 @@ final class _ManagedTurfDutiesBodyState
                 );
               }
 
+              final requestedId = widget.initialDutyId;
+              final visibleItems = requestedId == null
+                  ? page.items
+                  : page.items.where((duty) => duty.id == requestedId).toList();
+              if (visibleItems.isEmpty && requestedId != null) {
+                return Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: theme.surface,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: theme.warning),
+                  ),
+                  child: Text(
+                    'İstenen saha görevi bulunamadı veya bu kapsamda erişilemiyor. Tüm görevleri görmek için görev listesinden yeniden açın.',
+                    style: TextStyle(color: theme.ink, fontSize: 14),
+                  ),
+                );
+              }
+
               return Column(
-                children: page.items
+                children: visibleItems
                     .map(
                       (duty) => _buildDutyCard(
                         theme: theme,

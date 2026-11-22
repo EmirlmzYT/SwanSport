@@ -14,11 +14,13 @@ enum InboxFilter { all, unread }
 /// operasyon bildirimlerini listeler.
 final class SharedProInboxScreen extends ConsumerStatefulWidget {
   const SharedProInboxScreen({
+    this.embedded = false,
     this.onNotificationTap,
     this.onMarkRead,
     super.key,
   });
 
+  final bool embedded;
   final void Function(NotificationRow notification)? onNotificationTap;
   final Future<void> Function(String? notificationId)? onMarkRead;
 
@@ -324,6 +326,22 @@ final class _SharedProInboxScreenState
         child: body,
       ),
     );
+
+    if (widget.embedded) {
+      return Column(
+        children: [
+          Align(
+            alignment: Alignment.centerRight,
+            child: IconButton(
+              icon: const Icon(Icons.done_all, size: 20),
+              tooltip: 'Tümünü Okundu İşaretle',
+              onPressed: _markAllRead,
+            ),
+          ),
+          Expanded(child: constrainedBody),
+        ],
+      );
+    }
 
     if (host != null) {
       return host.chrome.buildPage(

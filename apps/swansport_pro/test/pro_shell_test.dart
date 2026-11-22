@@ -13,6 +13,7 @@ import 'package:swansport_pro/features/calendar/pro_calendar_screen.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/operations/pro_tasks_screen.dart';
 import 'package:swansport_pro/shell/pro_shell.dart';
+import 'package:swansport_pro/widgets/pro_ui_components.dart';
 import 'package:swansport_pro/workspaces/pro_workspace_switcher.dart';
 
 class FakeAccountSessionService implements AccountSessionService {
@@ -119,6 +120,7 @@ void main() {
       await tester.tap(find.text('Gelen Kutusu'));
       await tester.pumpAndSettle();
       expect(find.byType(SharedProInboxScreen), findsOneWidget);
+      expect(find.byType(ProPageHeader), findsOneWidget);
 
       // Tap Hesap
       await tester.tap(find.text('Hesap'));

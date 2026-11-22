@@ -707,20 +707,22 @@ class TrainingSessionService {
         'p_metric_payload': metricPayload?.toMap() ?? const <String, Object?>{},
       });
 
-  /// Records one participant's simple set total from the coach cockpit.
+  /// Records one explicitly selected participant's set from the coach cockpit.
   /// Server-side membership, session, participant and lock checks remain the
   /// authority; the selected athlete is never inferred by the client.
   Future<void> submitAthleteSet({
     required String sessionId,
     required String athleteId,
     required int setNo,
-    required num total,
+    num? total,
+    DrillMetricPayload? metricPayload,
   }) =>
-      _db.rpc<void>('submit_coach_set_score', params: {
+      _db.rpc<void>('submit_coach_set_metric', params: {
         'p_session': sessionId,
         'p_athlete': athleteId,
         'p_set_no': setNo,
         'p_total': total,
+        'p_metric_payload': metricPayload?.toMap() ?? const <String, Object?>{},
       });
 
   Future<List<TrainingSet>> mySets(String sessionId, String athleteId) async {
@@ -980,7 +982,8 @@ abstract interface class TrainingOperationCommands {
     required String sessionId,
     required String athleteId,
     required int setNo,
-    required num total,
+    num? total,
+    DrillMetricPayload? metricPayload,
   });
   Future<int> lock(String sessionId);
 }
@@ -1031,13 +1034,15 @@ final class _ServiceTrainingOperationCommands
     required String sessionId,
     required String athleteId,
     required int setNo,
-    required num total,
+    num? total,
+    DrillMetricPayload? metricPayload,
   }) =>
       service.submitAthleteSet(
         sessionId: sessionId,
         athleteId: athleteId,
         setNo: setNo,
         total: total,
+        metricPayload: metricPayload,
       );
   @override
   Future<int> lock(String sessionId) => service.lockResults(sessionId);

@@ -10,17 +10,19 @@ class ProPageHeader extends StatelessWidget {
     this.subtitle,
     this.leading,
     this.action,
+    this.compact = false,
   });
 
   final String title;
   final String? subtitle;
   final Widget? leading;
   final Widget? action;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: EdgeInsets.symmetric(vertical: compact ? 0 : 8),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

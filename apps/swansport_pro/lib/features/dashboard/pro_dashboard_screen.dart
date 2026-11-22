@@ -423,11 +423,10 @@ class _TodaySection extends ConsumerWidget {
             _TodayItemCard(
               icon: Icons.how_to_reg_outlined,
               tone: _ItemTone.warning,
-              title: 'Sonuç & Atama Bekleyenler',
-              subtitle:
-                  '${pending.length} müsabaka sonuç girişi veya hakem ataması bekliyor.',
-              actionLabel: 'İncele',
-              onTap: () => context.go(ProRoutes.tasks),
+              title: 'Sonuç İncelemesi',
+              subtitle: '${pending.length} müsabaka sonucu inceleme bekliyor.',
+              actionLabel: 'Sonuçları Aç',
+              onTap: () => context.push(ProRoutes.federationMatches),
             ),
           );
         }

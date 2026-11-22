@@ -51,7 +51,14 @@ export function windowsBatchLine(command,args) {
  if(tokens.some(value=>/["&|<>^%!\r\n]/.test(value))) throw Error('Güvensiz Windows komut argümanı reddedildi.');
  return '"'+tokens.map(value=>'"'+value+'"').join(' ')+'"';
 }
-function commandSpec(command,args) {
+export function commandSpec(command,args) {
+ if(process.platform==='win32'&&command==='npx.cmd') {
+  return {
+   command:process.execPath,
+   args:[resolve(dirname(process.execPath),'node_modules/npm/bin/npx-cli.js'),...args],
+   verbatim:false,
+  };
+ }
  if(process.platform==='win32'&&/\.(cmd|bat)$/.test(command)) {
   return {command:'cmd.exe',args:['/d','/s','/c',windowsBatchLine(command,args)],verbatim:true};
  }

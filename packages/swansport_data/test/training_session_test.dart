@@ -68,14 +68,20 @@ void main() {
     final sql = File(
       '$root/supabase/migrations/20261119100000_coach_training_measurements.sql',
     ).readAsStringSync();
+    final metricSql = File(
+      '$root/supabase/migrations/20261119113000_coach_branch_metrics.sql',
+    ).readAsStringSync();
     expect(sql, contains('submit_coach_set_score'));
+    expect(metricSql, contains('submit_coach_set_metric'));
+    expect(metricSql, contains('public.valid_drill_metric'));
     expect(sql, contains('public.is_club_staff(v_session.club_id)'));
     expect(sql, contains('training_session_participants'));
     expect(sql, contains('where training_sets.locked_at is null'));
     expect(
       dartSrc,
-      contains("_db.rpc<void>('submit_coach_set_score'"),
+      contains("_db.rpc<void>('submit_coach_set_metric'"),
     );
+    expect(dartSrc, contains("'p_metric_payload': metricPayload?.toMap()"));
   });
 
   group('SQL ↔ Dart sözleşmesi', () {

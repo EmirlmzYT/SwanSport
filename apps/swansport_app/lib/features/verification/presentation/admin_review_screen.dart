@@ -1,17 +1,41 @@
+import 'package:flutter/foundation.dart';
 import 'package:swansport_app/app/widgets/swan_scaffold.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app/widgets/premium.dart';
 import '../../../app/widgets/swan_module_app_bar.dart';
 import '../../demo/demo_role.dart';
+import '../../test_center/test_center_screen.dart';
 import 'admin_review_widgets.dart';
 import '../../../app/widgets/swan_bottom_nav.dart';
 import '../../../app/design/swan_type.dart';
 import '../../../app/design/swan_palette.dart';
+
+final proManagementLauncherProvider =
+    Provider<Future<bool> Function(Uri)>((ref) => (uri) async {
+          try {
+            return await launchUrl(
+              uri,
+              mode: kIsWeb
+                  ? LaunchMode.platformDefault
+                  : LaunchMode.externalApplication,
+            );
+          } catch (_) {
+            return false;
+          }
+        });
+
+final _productionProfessionalReviewUri = Uri.parse(
+  'https://swansport.pages.dev/konsol/#/operasyon/platform-profesyonel-inceleme',
+);
+final _localProfessionalReviewUri = Uri.parse(
+  'http://127.0.0.1:55432/#/operasyon/platform-profesyonel-inceleme',
+);
 
 /// Platform Yönetimi — sistem yöneticisinin paneli.
 ///
@@ -44,6 +68,24 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     ref.invalidate(openReportsProvider);
     ref.invalidate(reviewLogProvider);
     ref.invalidate(sportlessCredentialsProvider);
+  }
+
+  Future<void> _openProfessionalReview() async {
+    final target = ref.read(localTestCenterRequestedProvider)
+        ? _localProfessionalReviewUri
+        : _productionProfessionalReviewUri;
+    final opened = await ref.read(proManagementLauncherProvider)(
+      target,
+    );
+    if (!opened && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Pro açılamadı; App’teki çalışan paneli kullanabilirsiniz.',
+          ),
+        ),
+      );
+    }
   }
 
   @override
@@ -178,6 +220,67 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 14, 20, 132),
       children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: (isDark ? SwanPalette.dark : SwanPalette.light).surface,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(
+              color: (isDark ? SwanPalette.dark : SwanPalette.light).line,
+            ),
+          ),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final copy = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Mesleki belge kararları SwanSport Pro’da',
+                    style: SwanType.bodySm(ink, w: FontWeight.w700),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(
+                    'Pro açılamazsa bu çalışan App paneli kullanılmaya devam eder.',
+                    style: SwanType.caption(
+                      (isDark ? SwanPalette.dark : SwanPalette.light).inkMuted,
+                    ),
+                  ),
+                ],
+              );
+              final button = FilledButton(
+                onPressed: _openProfessionalReview,
+                child: const Text('SwanSport Pro’da aç'),
+              );
+              if (constraints.maxWidth < 440) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.open_in_new_rounded, color: kTeal),
+                        const SizedBox(width: 12),
+                        Expanded(child: copy),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    button,
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  const Icon(Icons.open_in_new_rounded, color: kTeal),
+                  const SizedBox(width: 12),
+                  Expanded(child: copy),
+                  const SizedBox(width: 12),
+                  button,
+                ],
+              );
+            },
+          ),
+        ),
+        const SizedBox(height: 14),
         _statsBoard(isDark, ink),
         const SizedBox(height: 22),
         _sectionTitle('KULÜP BAŞVURULARI'),
@@ -1169,18 +1272,19 @@ class _AdminReviewScreenState extends ConsumerState<AdminReviewScreen> {
     bool isDark,
     CredentialRow c,
   ) {
+    final personName = c.personName?.trim();
     return _row(
       isDark,
       avatar: GradientAvatar(
-        initials: (c.personName ?? '?').isNotEmpty
-            ? c.personName![0].toUpperCase()
-            : '?',
+        initials: personName == null || personName.isEmpty
+            ? '?'
+            : personName[0].toUpperCase(),
         size: 42,
       ),
-      title: c.personName ?? 'Kişi',
+      title: personName == null || personName.isEmpty ? 'Kişi' : personName,
       sub: c.label,
-      onDocs: () => showAdminDocs(
-          context, ref, 'credential', c.id, c.personName ?? 'Kişi'),
+      onDocs: () =>
+          showAdminDocs(context, ref, 'credential', c.id, personName ?? 'Kişi'),
       onReject: () => _rejectCredential(c),
       onApprove: () => _approveCredential(c),
     );
