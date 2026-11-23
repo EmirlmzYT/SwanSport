@@ -229,8 +229,13 @@ class ProAppContractTest(unittest.TestCase):
         pubspec = (PRO_DIR / 'pubspec.yaml').read_text(encoding='utf-8')
 
         self.assertIn('url_launcher:', pubspec)
-        self.assertIn('https://swansport.pages.dev/', account_source)
-        self.assertIn('launchUrl', account_source)
+        return_source = (
+            PRO_DIR / 'lib' / 'features' / 'auth' / 'pro_app_return_button.dart'
+        ).read_text(encoding='utf-8')
+        self.assertIn('proAppReturnUriProvider', account_source)
+        self.assertIn('proAppReturnLauncherProvider', account_source)
+        self.assertIn('https://swansport.pages.dev/', return_source)
+        self.assertIn('launchUrl', return_source)
         self.assertNotIn('https://swansport.app', account_source)
 
 
