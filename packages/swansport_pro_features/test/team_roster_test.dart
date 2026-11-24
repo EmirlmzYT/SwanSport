@@ -109,6 +109,24 @@ void main() {
     expect(find.byType(PopupMenuButton<String>), findsNothing);
     expect(find.text('Kulüp Sporcuları'), findsNothing);
   });
+
+  testWidgets('team roster remains usable at 320px and 2x text scale',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pump(
+      tester,
+      textScale: 2,
+      roster: () async => const [
+        (id: 'membership-1', athleteId: 'athlete-1', name: 'Ada', jersey: '7'),
+      ],
+    );
+    await tester.scrollUntilVisible(find.text('Kadro Üyeleri'), 260);
+    expect(find.text('Kadro Üyeleri'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<void> _pump(
@@ -131,6 +149,7 @@ Future<void> _pump(
   TeamRosterRemoveCommand? remove,
   AthleteFromMemberCommand? createFromMember,
   _Navigator? navigator,
+  double textScale = 1,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -165,12 +184,15 @@ Future<void> _pump(
               ({required clubId, required profileId}) async => 'new-athlete',
         ),
       ],
-      child: MaterialApp(
-        home: ProFeatureHostScope(
-          navigator: navigator ?? _Navigator(),
-          chrome: const _Chrome(),
-          theme: ProFeatureThemeData.light,
-          child: SharedTeamRosterScreen(target: target),
+      child: MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+        child: MaterialApp(
+          home: ProFeatureHostScope(
+            navigator: navigator ?? _Navigator(),
+            chrome: const _Chrome(),
+            theme: ProFeatureThemeData.light,
+            child: SharedTeamRosterScreen(target: target),
+          ),
         ),
       ),
     ),

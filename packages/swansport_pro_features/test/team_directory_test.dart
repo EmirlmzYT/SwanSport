@@ -125,6 +125,22 @@ void main() {
     );
     expect(find.byTooltip('Takım Ekle'), findsNothing);
   });
+
+  testWidgets('team directory remains usable at 320px and 2x text scale',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pump(tester, textScale: 2);
+    await tester.scrollUntilVisible(
+      find.text('U16 Okçuluk'),
+      300,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('U16 Okçuluk'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 typedef _CreateTeam = Future<void> Function(
@@ -146,6 +162,7 @@ Future<void> _pump(
   _CreateTeam? createTeam,
   _Navigator? navigator,
   bool settle = true,
+  double textScale = 1,
 }) async {
   final nav = navigator ?? _Navigator();
   await tester.pumpWidget(
@@ -159,12 +176,15 @@ Future<void> _pump(
           createTeam ?? (clubId, name, {ageGroup, gender}) async {},
         ),
       ],
-      child: MaterialApp(
-        home: ProFeatureHostScope(
-          navigator: nav,
-          chrome: const _Chrome(),
-          theme: ProFeatureThemeData.light,
-          child: const SharedTeamDirectoryScreen(),
+      child: MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+        child: MaterialApp(
+          home: ProFeatureHostScope(
+            navigator: nav,
+            chrome: const _Chrome(),
+            theme: ProFeatureThemeData.light,
+            child: const SharedTeamDirectoryScreen(),
+          ),
         ),
       ),
     ),

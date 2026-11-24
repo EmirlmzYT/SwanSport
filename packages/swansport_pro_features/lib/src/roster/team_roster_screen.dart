@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
 
 import '../host/pro_feature_host.dart';
+import '../host/pro_feature_theme.dart';
 
 String _searchText(String value) =>
     value.replaceAll('I', 'ı').replaceAll('İ', 'i').toLowerCase();
@@ -120,9 +121,9 @@ class _SharedTeamRosterScreenState
         bottom: false,
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 680),
+            constraints: const BoxConstraints(maxWidth: 760),
             child: ListView(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 64),
               children: [
                 if (teams.isNotEmpty)
                   SingleChildScrollView(
@@ -135,6 +136,19 @@ class _SharedTeamRosterScreenState
                             child: ChoiceChip(
                               label: Text(team.name),
                               selected: team.id == _target.teamId,
+                              selectedColor: colors.accent,
+                              backgroundColor: colors.surface,
+                              side: BorderSide(
+                                color: team.id == _target.teamId
+                                    ? colors.accent
+                                    : colors.line,
+                              ),
+                              labelStyle: TextStyle(
+                                color: team.id == _target.teamId
+                                    ? colors.surface
+                                    : colors.inkMuted,
+                                fontWeight: FontWeight.w700,
+                              ),
                               onSelected: _busy
                                   ? null
                                   : (_) => setState(() {
@@ -151,38 +165,49 @@ class _SharedTeamRosterScreenState
                     ),
                   ),
                 const SizedBox(height: 12),
-                Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _target.teamName,
-                          style: TextStyle(
-                            color: colors.ink,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        roster.when(
-                          loading: () => const Text('Kadro yükleniyor'),
-                          error: (error, _) => Text(
-                            classifyOperationError(error).userMessage,
-                          ),
-                          data: (items) => Text('${items.length} sporcu'),
-                        ),
-                      ],
-                    ),
-                  ),
+                _RosterHero(
+                  teamName: _target.teamName,
+                  roster: roster,
+                  unlinkedCount: unlinkedIds.length,
+                  canManage: canManage,
+                  colors: colors,
                 ),
                 const SizedBox(height: 12),
                 SharedOfficialTeamRosters(teamId: _target.teamId),
+                const SizedBox(height: 16),
+                Text(
+                  'Kadro Üyeleri',
+                  style: TextStyle(
+                    color: colors.ink,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -.4,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Sporcuyu aç, hesap bağlantısını kontrol et veya kadro işlemi yap.',
+                  style: TextStyle(color: colors.inkMuted, height: 1.35),
+                ),
+                const SizedBox(height: 12),
                 TextField(
                   key: const Key('roster-search'),
-                  decoration: const InputDecoration(
-                    prefixIcon: Icon(Icons.search),
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      Icons.search_rounded,
+                      color: colors.accent,
+                    ),
                     hintText: 'Sporcu adı veya forma no ile ara',
+                    filled: true,
+                    fillColor: colors.surface,
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: colors.line),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                      borderSide: BorderSide(color: colors.accent, width: 2),
+                    ),
                   ),
                   onChanged: (value) => setState(() => _query = value),
                 ),
@@ -231,15 +256,43 @@ class _SharedTeamRosterScreenState
                         for (final item in filtered)
                           Card(
                             key: Key('roster-member-${item.athleteId}'),
+                            elevation: 0,
+                            color: colors.surface,
+                            margin: const EdgeInsets.only(bottom: 10),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: BorderSide(color: colors.line),
+                            ),
                             child: ListTile(
-                              leading: CircleAvatar(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 7,
+                              ),
+                              leading: Container(
+                                width: 44,
+                                height: 44,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: colors.accent.withValues(alpha: .1),
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
                                 child: Text(
                                   item.name.isEmpty
                                       ? '?'
                                       : item.name[0].toUpperCase(),
+                                  style: TextStyle(
+                                    color: colors.accent,
+                                    fontWeight: FontWeight.w800,
+                                  ),
                                 ),
                               ),
-                              title: Text(item.name),
+                              title: Text(
+                                item.name,
+                                style: TextStyle(
+                                  color: colors.ink,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
                               subtitle: Text(
                                 [
                                   if (item.jersey?.isNotEmpty ?? false)
@@ -312,6 +365,163 @@ class _SharedTeamRosterScreenState
       ),
     );
   }
+}
+
+class _RosterHero extends StatelessWidget {
+  const _RosterHero({
+    required this.teamName,
+    required this.roster,
+    required this.unlinkedCount,
+    required this.canManage,
+    required this.colors,
+  });
+
+  final String teamName;
+  final AsyncValue<
+          List<({String id, String athleteId, String name, String? jersey})>>
+      roster;
+  final int unlinkedCount;
+  final bool canManage;
+  final ProFeatureThemeData colors;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: colors.surface,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: colors.accent.withValues(alpha: .3)),
+          boxShadow: [
+            BoxShadow(
+              color: colors.ink.withValues(alpha: .04),
+              blurRadius: 18,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: colors.accent.withValues(alpha: .1),
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: Icon(
+                    Icons.shield_outlined,
+                    color: colors.accent,
+                    size: 27,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'AKTİF TAKIM',
+                        style: TextStyle(
+                          color: colors.accent,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: .7,
+                        ),
+                      ),
+                      const SizedBox(height: 3),
+                      Text(
+                        teamName,
+                        style: TextStyle(
+                          color: colors.ink,
+                          fontSize: 21,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _RosterMetric(
+                  icon: Icons.groups_2_outlined,
+                  label: roster.when(
+                    loading: () => 'Yükleniyor',
+                    error: (_, __) => 'Kadro alınamadı',
+                    data: (items) => '${items.length} sporcu',
+                  ),
+                  color: colors.accent,
+                  colors: colors,
+                ),
+                if (unlinkedCount > 0)
+                  _RosterMetric(
+                    icon: Icons.link_off_rounded,
+                    label: '$unlinkedCount bağlantısız',
+                    color: colors.warning,
+                    colors: colors,
+                  ),
+                _RosterMetric(
+                  icon: canManage
+                      ? Icons.admin_panel_settings_outlined
+                      : Icons.visibility_outlined,
+                  label: canManage ? 'Yönetilebilir' : 'Salt okunur',
+                  color: canManage ? colors.success : colors.inkMuted,
+                  colors: colors,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
+}
+
+class _RosterMetric extends StatelessWidget {
+  const _RosterMetric({
+    required this.icon,
+    required this.label,
+    required this.color,
+    required this.colors,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color color;
+  final ProFeatureThemeData colors;
+
+  @override
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 11, vertical: 8),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: .08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: .2)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 17, color: color),
+            const SizedBox(width: 7),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  color: colors.ink,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _AvailableAthletes extends ConsumerWidget {

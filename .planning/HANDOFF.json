@@ -1,12 +1,12 @@
 {
   "version": "1.0",
-  "timestamp": "2026-11-24T17:48:00.000Z",
+  "timestamp": "2026-11-25T00:00:00.000+03:00",
   "phase": "03",
   "phase_name": "design-overhaul-fluidity",
   "phase_dir": ".planning/phases/03-design-overhaul-fluidity",
   "plan": 2,
-  "task": 9,
-  "total_tasks": 9,
+  "task": 10,
+  "total_tasks": 10,
   "status": "complete",
   "completed_tasks": [
     {
@@ -62,6 +62,12 @@
       "name": "Yerel Supabase Test Merkezi ile Pro dashboard'u gerçek rollerle Android emülatörde doğrula",
       "status": "done",
       "progress": "Yerel Supabase migration'ları ve beş Auth fixture'ı hazırlandı. Kulüp yöneticisi hesabıyla Pro dashboard ve Yoklama rotası emulator-5554 üzerinde doğrulandı."
+    },
+    {
+      "id": 10,
+      "name": "Pro Takımlar ve Kadro ekranlarını operasyon odaklı modernize et",
+      "status": "done",
+      "progress": "Takım dizini ve kadro ayrıntısı ortak Pro görsel diliyle yenilendi; gerçek yerel takım/sporcu fixture'ı, tipli rota geçişleri ve 320px + 2x yazı ölçeği doğrulandı."
     }
   ],
   "remaining_tasks": [],
@@ -91,10 +97,12 @@
     }
   ],
   "uncommitted_files": [
-    " M packages/swansport_pro_features/lib/src/attendance/attendance_history_screen.dart",
-    " M packages/swansport_pro_features/test/attendance_operations_test.dart",
+    " M packages/swansport_pro_features/lib/src/roster/team_directory_content.dart",
+    " M packages/swansport_pro_features/lib/src/roster/team_roster_screen.dart",
+    " M packages/swansport_pro_features/test/team_directory_test.dart",
+    " M packages/swansport_pro_features/test/team_roster_test.dart",
     " M .planning/HANDOFF.json"
   ],
-  "next_action": "Pro operasyon modernizasyonuna Takım/Kadro ekranlarıyla devam et; ortak Pro chrome başlığını koru ve her akışı gerçek yerel rol fixture'ıyla Android emülatörde doğrula.",
-  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı. Canlı Yoklama ekranı Pro chrome, operasyon özeti, etkinlik/kadro kartı, sporcu kartı ve ikonlu durum seçenekleriyle modernize edildi; gerçek save_attendance_ops RPC'si HTTP 200 döndü ve attendance/attendance_op_logs satırları doğrulandı. Yoklama Geçmişi ekranı özet metrikler, erişilebilir filtreler, risk renkleri, ilerleme çubuklu sporcu kartları ve takvim kısayoluyla yenilendi. Shared attendance testleri yeni 320px + 2x yazı testi dahil 8/8, Pro rota testleri 23/23 geçti; hedef analizler temiz. Son ekran görüntüsü C:/Users/Nisa/AppData/Local/Temp/swansport-pro-attendance-history-final.png."
+  "next_action": "Pro operasyon modernizasyonuna Antrenman Listesi ve Antrenman Oluşturucu ekranlarıyla devam et; takım/kadrodan antrenmana kesintisiz tipli geçiş kur ve gerçek yerel rol fixture'ıyla Android emülatörde doğrula.",
+  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı. Canlı Yoklama ve Yoklama Geçmişi ekranları daha önce modernize edildi. Takım Dizini artık operasyon özeti, erişilebilir filtreler, arama ve duyarlı aksiyon kartları sunuyor; Kadro ekranı aktif takım özeti, yönetim durumu, bağlantısız sporcu göstergesi ve modern sporcu kartlarıyla yenilendi. Gerçek yerel [TEST] Yetişkin Futbol Takımı ve Test Sporcu verisi emülatörde doğrulandı. Takım/kadro testleri 13/13, Pro operasyon rota testleri 2/2 geçti; 320px + 2x yazı ölçeği dahil hedef analizler temiz. Son ekran görüntüleri C:/Users/Nisa/AppData/Local/Temp/swansport-pro-team-route.png ve C:/Users/Nisa/AppData/Local/Temp/swansport-pro-roster.png."
 }
