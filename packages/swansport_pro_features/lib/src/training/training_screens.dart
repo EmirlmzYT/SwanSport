@@ -28,6 +28,7 @@ class SharedTrainingListScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final host = ProFeatureHostScope.of(context);
+    final colors = host.theme;
     if (!_trainingEnabled(ref)) {
       return _disabled(host, context, 'Antrenmanlarım');
     }
@@ -43,91 +44,217 @@ class SharedTrainingListScreen extends ConsumerWidget {
           icon: const Icon(Icons.library_books_outlined),
         ),
       ],
-      body: RefreshIndicator(
-        onRefresh: () async {
-          ref
-            ..invalidate(myLiveSessionProvider)
-            ..invalidate(myTrainingHistoryProvider);
-        },
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 80),
-          children: [
-            live.when(
-              loading: () => const LinearProgressIndicator(),
-              error: (error, _) => Text(
-                classifyOperationError(error).userMessage,
-              ),
-              data: (session) => session == null
-                  ? const SizedBox.shrink()
-                  : Card(
-                      child: ListTile(
-                        leading: const Icon(Icons.play_circle_outline),
-                        title: Text(session.protocolName),
-                        subtitle: Text(
-                          '${session.phase.label} · Set ${session.currentSet}/${session.setCount}',
-                        ),
-                        trailing: const Text('Oturuma dön'),
-                        onTap: () => host.navigator.openTrainingSession(
-                          sessionId: session.id,
-                        ),
+      body: SafeArea(
+        bottom: false,
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref
+              ..invalidate(myLiveSessionProvider)
+              ..invalidate(myTrainingHistoryProvider);
+          },
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 760),
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: colors.accent.withValues(alpha: .3),
                       ),
                     ),
-            ),
-            Wrap(
-              spacing: 8,
-              children: [
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                  ),
-                  onPressed: () => _join(context, ref, host),
-                  icon: const Icon(Icons.login),
-                  label: const Text('Kodla katıl'),
-                ),
-                OutlinedButton.icon(
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                  ),
-                  onPressed: host.navigator.openTrainingProtocols,
-                  icon: const Icon(Icons.self_improvement),
-                  label: const Text('Şablon seç'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'Geçmiş',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
-            history.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => Text(
-                classifyOperationError(error).userMessage,
-              ),
-              data: (items) => items.isEmpty
-                  ? const Padding(
-                      padding: EdgeInsets.symmetric(vertical: 24),
-                      child: Text('Henüz antrenman kaydı yok.'),
-                    )
-                  : Column(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        for (final item in items)
-                          ListTile(
-                            title: Text(item.protocolName),
-                            subtitle: Text(
-                              '${item.setsDone}/${item.setCount} set · ${item.status}',
-                            ),
-                            trailing: item.totalScore == null
-                                ? null
-                                : Text('${item.totalScore}'),
-                            onTap: () => host.navigator.openTrainingResult(
-                              sessionId: item.sessionId,
-                            ),
+                        Container(
+                          width: 48,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            color: colors.accent.withValues(alpha: .1),
+                            borderRadius: BorderRadius.circular(15),
                           ),
+                          child: Icon(
+                            Icons.fitness_center_rounded,
+                            color: colors.accent,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'ANTRENMAN MERKEZİ',
+                                style: TextStyle(
+                                  color: colors.accent,
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: .7,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                'Çalışmanı planla ve takip et',
+                                style: TextStyle(
+                                  color: colors.ink,
+                                  fontSize: 21,
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -.4,
+                                ),
+                              ),
+                              const SizedBox(height: 5),
+                              Text(
+                                'Şablon seç, kodla katıl veya kaldığın oturuma dön.',
+                                style: TextStyle(
+                                  color: colors.inkMuted,
+                                  height: 1.35,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       ],
                     ),
+                  ),
+                  const SizedBox(height: 12),
+                  live.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (error, _) => Text(
+                      classifyOperationError(error).userMessage,
+                    ),
+                    data: (session) => session == null
+                        ? const SizedBox.shrink()
+                        : Card(
+                            elevation: 0,
+                            color: colors.surface,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: BorderSide(color: colors.accent),
+                            ),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                                vertical: 8,
+                              ),
+                              leading: Icon(
+                                Icons.play_circle_fill_rounded,
+                                color: colors.accent,
+                                size: 34,
+                              ),
+                              title: Text(
+                                session.protocolName,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                              subtitle: Text(
+                                '${session.phase.label} · Set ${session.currentSet}/${session.setCount}',
+                              ),
+                              trailing: Icon(
+                                Icons.arrow_forward_rounded,
+                                color: colors.accent,
+                              ),
+                              onTap: () => host.navigator.openTrainingSession(
+                                sessionId: session.id,
+                              ),
+                            ),
+                          ),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(48, 48),
+                        ),
+                        onPressed: () => _join(context, ref, host),
+                        icon: const Icon(Icons.login),
+                        label: const Text('Kodla katıl'),
+                      ),
+                      OutlinedButton.icon(
+                        style: OutlinedButton.styleFrom(
+                          minimumSize: const Size(48, 48),
+                        ),
+                        onPressed: host.navigator.openTrainingProtocols,
+                        icon: const Icon(Icons.self_improvement),
+                        label: const Text('Şablon seç'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Geçmiş',
+                    style: TextStyle(
+                      color: colors.ink,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  history.when(
+                    loading: () =>
+                        const Center(child: CircularProgressIndicator()),
+                    error: (error, _) => Text(
+                      classifyOperationError(error).userMessage,
+                    ),
+                    data: (items) => items.isEmpty
+                        ? const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 24),
+                            child: Text('Henüz antrenman kaydı yok.'),
+                          )
+                        : Column(
+                            children: [
+                              for (final item in items)
+                                Card(
+                                  elevation: 0,
+                                  color: colors.surface,
+                                  margin: const EdgeInsets.only(bottom: 10),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    side: BorderSide(color: colors.line),
+                                  ),
+                                  child: ListTile(
+                                    leading: Icon(
+                                      Icons.history_rounded,
+                                      color: colors.accent,
+                                    ),
+                                    title: Text(
+                                      item.protocolName,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    subtitle: Text(
+                                      '${item.setsDone}/${item.setCount} set · ${item.status}',
+                                    ),
+                                    trailing: item.totalScore == null
+                                        ? const Icon(
+                                            Icons.chevron_right_rounded,
+                                          )
+                                        : Text(
+                                            '${item.totalScore}',
+                                            style: TextStyle(
+                                              color: colors.accent,
+                                              fontWeight: FontWeight.w800,
+                                            ),
+                                          ),
+                                    onTap: () =>
+                                        host.navigator.openTrainingResult(
+                                      sessionId: item.sessionId,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -336,6 +463,7 @@ class _BuilderState extends ConsumerState<SharedWorkoutBuilderScreen> {
   @override
   Widget build(BuildContext context) {
     final host = ProFeatureHostScope.of(context);
+    final colors = host.theme;
     if (!_trainingEnabled(ref)) {
       return _disabled(host, context, 'Antrenman Şablonu Oluştur');
     }
@@ -346,37 +474,124 @@ class _BuilderState extends ConsumerState<SharedWorkoutBuilderScreen> {
       title: 'Antrenman Şablonu Oluştur',
       body: !allowed
           ? const Center(child: Text('Kulüp personeli erişimi gerekli.'))
-          : Form(
-              key: _form,
-              child: ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  for (final field in [
-                    (_name, 'Şablon adı', 'training-name'),
-                    (_sport, 'Branş kodu', 'training-sport'),
-                    (_sets, 'Set sayısı', 'training-sets'),
-                    (_units, 'Set başına tekrar', 'training-units'),
-                  ])
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: TextFormField(
-                        key: Key(field.$3),
-                        controller: field.$1,
-                        enabled: !_saving,
-                        decoration: InputDecoration(labelText: field.$2),
-                        onChanged: (_) => _dirty.markDirty(),
-                        validator: (value) =>
-                            value == null || value.trim().isEmpty
-                                ? 'Bu alan gerekli.'
-                                : null,
-                      ),
+          : SafeArea(
+              bottom: false,
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 680),
+                  child: Form(
+                    key: _form,
+                    child: ListView(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 64),
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: colors.surface,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: colors.accent.withValues(alpha: .3),
+                            ),
+                          ),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Icon(
+                                Icons.tune_rounded,
+                                color: colors.accent,
+                                size: 30,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'YENİ ANTRENMAN PLANI',
+                                      style: TextStyle(
+                                        color: colors.accent,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: .7,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Tekrar kullanılabilir şablon oluştur',
+                                      style: TextStyle(
+                                        color: colors.ink,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w800,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      'Branş, set ve tekrar yapısını belirle; takımın aynı planı güvenle kullansın.',
+                                      style: TextStyle(
+                                        color: colors.inkMuted,
+                                        height: 1.35,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        for (final field in [
+                          (_name, 'Şablon adı', 'training-name'),
+                          (_sport, 'Branş kodu', 'training-sport'),
+                          (_sets, 'Set sayısı', 'training-sets'),
+                          (_units, 'Set başına tekrar', 'training-units'),
+                        ])
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: TextFormField(
+                              key: Key(field.$3),
+                              controller: field.$1,
+                              enabled: !_saving,
+                              decoration: InputDecoration(
+                                labelText: field.$2,
+                                filled: true,
+                                fillColor: colors.surface,
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(color: colors.line),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(
+                                    color: colors.accent,
+                                    width: 2,
+                                  ),
+                                ),
+                              ),
+                              onChanged: (_) => _dirty.markDirty(),
+                              validator: (value) =>
+                                  value == null || value.trim().isEmpty
+                                      ? 'Bu alan gerekli.'
+                                      : null,
+                            ),
+                          ),
+                        FilledButton(
+                          key: const Key('training-builder-save'),
+                          style: FilledButton.styleFrom(
+                            minimumSize: const Size.fromHeight(52),
+                            backgroundColor: colors.accent,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+                          onPressed: _saving ? null : () => _save(club),
+                          child: Text(
+                            _saving ? 'Kaydediliyor…' : 'Şablonu kaydet',
+                          ),
+                        ),
+                      ],
                     ),
-                  FilledButton(
-                    key: const Key('training-builder-save'),
-                    onPressed: _saving ? null : () => _save(club),
-                    child: Text(_saving ? 'Kaydediliyor…' : 'Şablonu kaydet'),
                   ),
-                ],
+                ),
               ),
             ),
     );

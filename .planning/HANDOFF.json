@@ -5,8 +5,8 @@
   "phase_name": "design-overhaul-fluidity",
   "phase_dir": ".planning/phases/03-design-overhaul-fluidity",
   "plan": 2,
-  "task": 10,
-  "total_tasks": 10,
+  "task": 11,
+  "total_tasks": 11,
   "status": "complete",
   "completed_tasks": [
     {
@@ -68,6 +68,12 @@
       "name": "Pro Takımlar ve Kadro ekranlarını operasyon odaklı modernize et",
       "status": "done",
       "progress": "Takım dizini ve kadro ayrıntısı ortak Pro görsel diliyle yenilendi; gerçek yerel takım/sporcu fixture'ı, tipli rota geçişleri ve 320px + 2x yazı ölçeği doğrulandı."
+    },
+    {
+      "id": 11,
+      "name": "Pro Antrenman Listesi ve Şablon Oluşturucu ekranlarını tamamla",
+      "status": "done",
+      "progress": "Antrenman merkezi, canlı oturuma dönüş, geçmiş kartları ve şablon oluşturucu ortak Pro operasyon diliyle yenilendi; veri/yetki sözleşmeleri korunarak hedef test ve analizler geçirildi."
     }
   ],
   "remaining_tasks": [],
@@ -97,12 +103,9 @@
     }
   ],
   "uncommitted_files": [
-    " M packages/swansport_pro_features/lib/src/roster/team_directory_content.dart",
-    " M packages/swansport_pro_features/lib/src/roster/team_roster_screen.dart",
-    " M packages/swansport_pro_features/test/team_directory_test.dart",
-    " M packages/swansport_pro_features/test/team_roster_test.dart",
+    " M packages/swansport_pro_features/lib/src/training/training_screens.dart",
     " M .planning/HANDOFF.json"
   ],
-  "next_action": "Pro operasyon modernizasyonuna Antrenman Listesi ve Antrenman Oluşturucu ekranlarıyla devam et; takım/kadrodan antrenmana kesintisiz tipli geçiş kur ve gerçek yerel rol fixture'ıyla Android emülatörde doğrula.",
-  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı. Canlı Yoklama ve Yoklama Geçmişi ekranları daha önce modernize edildi. Takım Dizini artık operasyon özeti, erişilebilir filtreler, arama ve duyarlı aksiyon kartları sunuyor; Kadro ekranı aktif takım özeti, yönetim durumu, bağlantısız sporcu göstergesi ve modern sporcu kartlarıyla yenilendi. Gerçek yerel [TEST] Yetişkin Futbol Takımı ve Test Sporcu verisi emülatörde doğrulandı. Takım/kadro testleri 13/13, Pro operasyon rota testleri 2/2 geçti; 320px + 2x yazı ölçeği dahil hedef analizler temiz. Son ekran görüntüleri C:/Users/Nisa/AppData/Local/Temp/swansport-pro-team-route.png ve C:/Users/Nisa/AppData/Local/Temp/swansport-pro-roster.png."
+  "next_action": "Yeni özellik eklemeyi durdur; yayın öncesi tam workspace test/analyze, Android release build ve gerçek cihaz görsel kabul turunu çalıştır.",
+  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı. Pro dashboard, Yoklama, Yoklama Geçmişi, Takımlar, Kadro, Antrenman Listesi ve Şablon Oluşturucu ekranları ortak operasyon diliyle modernize edildi; App sosyal ürün, Pro ayrıntılı operasyon ürünü sınırı korunuyor. Antrenman paketi testleri 6/6, Pro antrenman host testleri 2/2 geçti ve hedef analiz temiz. Takım/kadro testleri 13/13 ve Pro operasyon rota testleri 2/2 daha önce geçti. Ürün geliştirme dilimi tamamlandı; kalan iş yalnız yayın öncesi geniş doğrulama/build ve fiziksel cihaz kabulüdür."
 }
