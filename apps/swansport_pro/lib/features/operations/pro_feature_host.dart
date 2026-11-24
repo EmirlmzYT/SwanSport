@@ -173,10 +173,63 @@ final class _ProChrome implements ProFeatureChrome {
     bool allowBack = true,
   }) =>
       Scaffold(
+        backgroundColor: ProTheme.background,
         appBar: AppBar(
           automaticallyImplyLeading: allowBack,
-          title: Text(title),
+          toolbarHeight: 76,
+          leadingWidth: allowBack ? 68 : null,
+          leading: allowBack
+              ? Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: Align(
+                    child: SizedBox.square(
+                      dimension: 44,
+                      child: Material(
+                        color: ProTheme.surfaceRaised,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: const BorderSide(color: ProTheme.line),
+                        ),
+                        child: IconButton(
+                          tooltip: 'Geri',
+                          color: ProTheme.ink,
+                          onPressed: () => Navigator.of(context).maybePop(),
+                          icon: const Icon(Icons.arrow_back_rounded),
+                        ),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
+          titleSpacing: allowBack ? 8 : 20,
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'SWANSPORT PRO',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: ProTheme.primary,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1.1,
+                    ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      color: ProTheme.ink,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+            ],
+          ),
           actions: actions,
+          shape: const Border(
+            bottom: BorderSide(color: ProTheme.line),
+          ),
         ),
         body: SafeArea(
           top: false,

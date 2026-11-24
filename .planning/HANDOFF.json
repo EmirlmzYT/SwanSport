@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "timestamp": "2026-11-24T17:25:00.000Z",
+  "timestamp": "2026-11-24T17:41:00.000Z",
   "phase": "03",
   "phase_name": "design-overhaul-fluidity",
   "phase_dir": ".planning/phases/03-design-overhaul-fluidity",
@@ -91,10 +91,10 @@
     }
   ],
   "uncommitted_files": [
-    " M tools/local_test_center_test.mjs",
-    " M tools/start_local_test_center.mjs",
+    " M apps/swansport_pro/lib/features/operations/pro_feature_host.dart",
+    " M packages/swansport_pro_features/lib/src/attendance/live_attendance_screen.dart",
     " M .planning/HANDOFF.json"
   ],
-  "next_action": "Pro'nun App ile ortak görsel dilini koruyarak eski operasyon ekranlarını sırayla modernize et; gerçek rol fixture'larıyla her modülü Android emülatörde doğrula.",
-  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı; kulüp yöneticisi fixture'ıyla Kulüp Paneli ve Yoklama ekranı açıldı. Windows'ta bare flutter.bat/npx.cmd çağrısı Node sürecinde bozulduğu için araç artık where.exe ile tam komut yolunu çözüyor. Test 14/14 geçti. Dashboard ekran görüntüsü C:/Users/Nisa/AppData/Local/Temp/swansport-pro-dashboard.png."
+  "next_action": "Pro operasyon modernizasyonuna Yoklama Geçmişi ve Takım/Kadro ekranlarıyla devam et; ortak Pro chrome başlığını koru ve her akışı gerçek yerel rol fixture'ıyla Android emülatörde doğrula.",
+  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı. Canlı Yoklama ekranı Pro chrome, operasyon özeti, etkinlik/kadro kartı, sporcu kartı, ikonlu durum seçenekleri ve dar ekran uyarlamasıyla modernize edildi. Kulüp yöneticisi fixture'ıyla Var -> Sunucuya kaydet akışı gerçek save_attendance_ops RPC'sinde HTTP 200 döndü; yerel attendance ve attendance_op_logs satırları doğrulandı. Shared attendance testleri 7/7, Pro rota testleri 23/23 geçti; hedef analizler temiz. Son ekran görüntüsü C:/Users/Nisa/AppData/Local/Temp/swansport-pro-modern-attendance-final.png."
 }
