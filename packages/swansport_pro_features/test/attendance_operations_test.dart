@@ -171,6 +171,34 @@ void main() {
     expect(find.text('Ada'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('attendance history remains usable at 320px and 2x text scale',
+      (tester) async {
+    tester.view.physicalSize = const Size(320, 800);
+    tester.view.devicePixelRatio = 1;
+    addTearDown(tester.view.resetPhysicalSize);
+    addTearDown(tester.view.resetDevicePixelRatio);
+    await _pumpHistory(
+      tester,
+      textScale: 2,
+      summary: () async => const [
+        AttendanceStat(
+          athleteId: 'athlete-1',
+          name: 'Ada Yılmaz',
+          present: 9,
+          absent: 1,
+          total: 10,
+          rate: 90,
+        ),
+      ],
+    );
+    await tester.scrollUntilVisible(
+      find.text('Sporcu Devam Tablosu'),
+      240,
+    );
+    expect(find.text('Sporcu Devam Tablosu'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
 }
 
 Future<ProviderContainer> _pumpLive(
@@ -256,6 +284,7 @@ Future<void> _pumpHistory(
   WidgetTester tester, {
   required Future<List<AttendanceStat>> Function() summary,
   bool settle = true,
+  double textScale = 1,
 }) async {
   await tester.pumpWidget(
     ProviderScope(
@@ -268,12 +297,15 @@ Future<void> _pumpHistory(
         ),
         attendanceSummaryProvider.overrideWith((ref) => summary()),
       ],
-      child: MaterialApp(
-        home: ProFeatureHostScope(
-          navigator: _Navigator(),
-          chrome: _Chrome(),
-          theme: ProFeatureThemeData.light,
-          child: const SharedAttendanceHistoryScreen(),
+      child: MediaQuery(
+        data: MediaQueryData(textScaler: TextScaler.linear(textScale)),
+        child: MaterialApp(
+          home: ProFeatureHostScope(
+            navigator: _Navigator(),
+            chrome: _Chrome(),
+            theme: ProFeatureThemeData.light,
+            child: const SharedAttendanceHistoryScreen(),
+          ),
         ),
       ),
     ),
