@@ -61,17 +61,26 @@ class ProFeaturesContractTest(unittest.TestCase):
         }
         self.assertEqual(dependency_names, approved)
 
-    def test_both_apps_depend_on_shared_package(self):
-        for app in ("swansport_app", "swansport_pro"):
-            content = (ROOT / "apps" / app / "pubspec.yaml").read_text(
-                encoding="utf-8"
-            )
-            dependencies = _yaml_top_level_block(content, "dependencies")
-            self.assertRegex(
-                dependencies,
-                rf"(?m)^\s{{2}}{PACKAGE_NAME}:\s*\^0\.1\.0\s*$",
-                f"{app} must depend on {PACKAGE_NAME}",
-            )
+    def test_pro_depends_on_shared_package_and_app_stays_decoupled(self):
+        pro_content = (ROOT / "apps" / "swansport_pro" / "pubspec.yaml").read_text(
+            encoding="utf-8"
+        )
+        pro_dependencies = _yaml_top_level_block(pro_content, "dependencies")
+        self.assertRegex(
+            pro_dependencies,
+            rf"(?m)^\s{{2}}{PACKAGE_NAME}:\s*\^0\.1\.0\s*$",
+            f"swansport_pro must depend on {PACKAGE_NAME}",
+        )
+
+        app_content = (ROOT / "apps" / "swansport_app" / "pubspec.yaml").read_text(
+            encoding="utf-8"
+        )
+        app_dependencies = _yaml_top_level_block(app_content, "dependencies")
+        self.assertNotRegex(
+            app_dependencies,
+            rf"(?m)^\s{{2}}{PACKAGE_NAME}:",
+            "the social app must not embed Pro presentation widgets",
+        )
 
     def test_ci_and_pro_preview_verify_shared_package_and_host_parity(self):
         ci = (ROOT / ".github" / "workflows" / "ci.yml").read_text(
@@ -88,13 +97,13 @@ class ProFeaturesContractTest(unittest.TestCase):
         self.assertIn("pro_club_panel_host_test.dart", preview)
         self.assertEqual(
             preview.count("test/pro_phase3_host_parity_test.dart"),
-            2,
-            "build_pro_production_preview.yml must run pro_phase3_host_parity_test.dart in both SwanSport and Pro host steps",
+            1,
+            "build_pro_production_preview.yml must run Phase 3 parity in the Pro host",
         )
         self.assertEqual(
             preview.count("test/pro_phase4_host_parity_test.dart"),
-            2,
-            "build_pro_production_preview.yml must run pro_phase4_host_parity_test.dart in both SwanSport and Pro host steps",
+            1,
+            "build_pro_production_preview.yml must run Phase 4 parity in the Pro host",
         )
         self.assertIn("pro_phase2_flags_sql_test.mjs", preview)
         self.assertIn("feature_flag_sync_test.dart", preview)

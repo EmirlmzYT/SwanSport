@@ -183,8 +183,8 @@ class ProAppContractTest(unittest.TestCase):
         self.assertIn('pro_club_panel_host_test.dart', content)
         self.assertEqual(
             content.count('test/pro_phase4_host_parity_test.dart'),
-            2,
-            'production preview must run Phase 4 parity tests in both hosts',
+            1,
+            'production preview must run Phase 4 parity tests in the Pro host',
         )
         self.assertIn('pro_phase2_flags_sql_test.mjs', content)
         self.assertIn('feature_flag_sync_test.dart', content)
