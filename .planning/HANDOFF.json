@@ -1,13 +1,13 @@
 {
   "version": "1.0",
-  "timestamp": "2026-11-24T03:04:44.872Z",
+  "timestamp": "2026-11-24T17:25:00.000Z",
   "phase": "03",
   "phase_name": "design-overhaul-fluidity",
   "phase_dir": ".planning/phases/03-design-overhaul-fluidity",
   "plan": 2,
-  "task": 8,
+  "task": 9,
   "total_tasks": 9,
-  "status": "paused",
+  "status": "complete",
   "completed_tasks": [
     {
       "id": 1,
@@ -54,37 +54,20 @@
     {
       "id": 8,
       "name": "WSL 2 ve Docker Desktop kurulumu",
-      "status": "in_progress",
-      "progress": "Sistem uygunluğu doğrulandı; yükseltilmiş WSL kurulum girişimi kullanıcı tarafından durduruldu ve WSL hâlâ kurulu değil."
-    }
-  ],
-  "remaining_tasks": [
-    {
-      "id": 8,
-      "name": "WSL 2 ve Docker Desktop kurulumunu tamamla",
-      "status": "not_started"
+      "status": "done",
+      "progress": "WSL 2 ve Docker Desktop 4.100.1 kuruldu; Docker Engine 29.9.3 restart sonrasında sağlıklı doğrulandı."
     },
     {
       "id": 9,
       "name": "Yerel Supabase Test Merkezi ile Pro dashboard'u gerçek rollerle Android emülatörde doğrula",
-      "status": "not_started"
+      "status": "done",
+      "progress": "Yerel Supabase migration'ları ve beş Auth fixture'ı hazırlandı. Kulüp yöneticisi hesabıyla Pro dashboard ve Yoklama rotası emulator-5554 üzerinde doğrulandı."
     }
   ],
-  "blockers": [
-    {
-      "description": "Docker Desktop ve WSL 2 kurulu değil; yerel Supabase Test Merkezi başlatılamıyor.",
-      "type": "human_action",
-      "workaround": "Yarın yönetici UAC onayıyla önce WSL 2, sonra Docker Desktop kurulmalı; yeniden başlatma gerekebilir."
-    }
-  ],
+  "remaining_tasks": [],
+  "blockers": [],
   "async_jobs": [],
-  "human_actions_pending": [
-    {
-      "action": "WSL 2 ve Docker Desktop kurulumundaki UAC pencerelerini onayla",
-      "context": "Yerel Supabase ve gerçek rol fixture'ları Docker gerektiriyor.",
-      "blocking": true
-    }
-  ],
+  "human_actions_pending": [],
   "decisions": [
     {
       "decision": "SwanSport App sosyal mobil ürün, SwanSport Pro ayrıntılı operasyon ürünü olarak ayrı tutulacak.",
@@ -108,50 +91,10 @@
     }
   ],
   "uncommitted_files": [
-    " M .gitignore",
-    " M apps/swansport_app/android/app/src/main/AndroidManifest.xml",
-    " M apps/swansport_app/ios/Runner/Info.plist",
-    " M apps/swansport_app/lib/app/design/swan_palette.dart",
-    " M apps/swansport_app/lib/app/design/swan_shape.dart",
-    " M apps/swansport_app/lib/app/design/swan_type.dart",
-    " M apps/swansport_app/lib/features/attendance/presentation/attendance_queue_banner.dart",
-    " M apps/swansport_app/lib/features/clubs/presentation/club_cockpit_screen.dart",
-    " M apps/swansport_app/lib/features/financial_management/presentation/accountant_privacy_ledger_screen.dart",
-    " M apps/swansport_app/lib/features/financial_management/presentation/closed_period_reversal_screen.dart",
-    " D apps/swansport_app/lib/features/pro_operations/swan_pro_feature_host.dart",
-    " M apps/swansport_app/pubspec.yaml",
-    " M apps/swansport_app/test/closed_period_reversal_search_pagination_test.dart",
-    " M apps/swansport_app/test/demo_cleanup_regression_test.dart",
-    " M apps/swansport_app/test/financial_management_host_parity_test.dart",
-    " M apps/swansport_app/test/pro_club_panel_host_test.dart",
-    " D apps/swansport_app/test/pro_phase3_host_parity_test.dart",
-    " D apps/swansport_app/test/pro_phase4_host_parity_test.dart",
-    " M apps/swansport_pro/android/app/src/main/AndroidManifest.xml",
-    " M apps/swansport_pro/android/app/src/main/res/values/colors.xml",
-    " M apps/swansport_pro/ios/Runner/Info.plist",
-    " M apps/swansport_pro/lib/app/pro_app.dart",
-    " M apps/swansport_pro/lib/app/pro_theme.dart",
-    " M apps/swansport_pro/lib/features/auth/pro_auth_controller.dart",
-    " M apps/swansport_pro/lib/features/auth/pro_login_screen.dart",
-    " M apps/swansport_pro/lib/features/dashboard/pro_dashboard_screen.dart",
-    " M apps/swansport_pro/lib/shell/pro_navigation.dart",
-    " M apps/swansport_pro/lib/shell/pro_shell.dart",
-    " M apps/swansport_pro/pubspec.yaml",
-    " M apps/swansport_pro/test/pro_auth_test.dart",
-    " M apps/swansport_pro/test/pro_brand_and_login_visual_test.dart",
-    " M apps/swansport_pro/test/pro_dashboard_priority_test.dart",
-    " M apps/swansport_pro/test/pro_interaction_and_focus_test.dart",
-    " M apps/swansport_pro/web/index.html",
-    " M apps/swansport_pro/web/manifest.json",
-    " M pubspec.yaml",
-    "?? apps/swansport_app/lib/app/swansport_app_preview.dart",
-    "?? apps/swansport_app/lib/features/pro_operations/swan_pro_handoff.dart",
-    "?? apps/swansport_app/test/app_pro_product_boundary_test.dart",
-    "?? apps/swansport_app/test/pro_app_handoff_test.dart",
-    "?? docs/federation-desktop-product-plan-2026-10-21.md",
-    "?? docs/project-inventory-2026-10-21.md",
-    "?? packages/swansport_product_ui/"
+    " M tools/local_test_center_test.mjs",
+    " M tools/start_local_test_center.mjs",
+    " M .planning/HANDOFF.json"
   ],
-  "next_action": "Önce wsl --status ile kurulum durumunu yeniden kontrol et; WSL yoksa yönetici onayıyla wsl --install --no-distribution çalıştır, gerekirse yeniden başlat, ardından Docker Desktop kur ve tools/start_local_test_center.mjs ile yerel test merkezini başlat.",
-  "context_notes": "Android emulator-5554 çalışıyordu ve com.swansport.pro giriş ekranı swansportpro://app/panel ile açıldı. Supabase ayarı olmadığı için güvenli önizleme modunda giriş kapalıydı. Son ekran görüntüsü C:/Users/Nisa/AppData/Local/Temp/swansport-pro-emulator.png. Hedefli App testleri 40/40, Pro testleri 30/30 geçti. Değiştirilen hedef dosyalarda analiz temiz. Tam App analyze 4513 önceden var olan info lint üretiyor. Codebase-memory grafiği 2026-10-07 tarihli ve yeni Pro dosyalarını izlemiyor; kaynak okumalarıyla doğrulandı."
+  "next_action": "Pro'nun App ile ortak görsel dilini koruyarak eski operasyon ekranlarını sırayla modernize et; gerçek rol fixture'larıyla her modülü Android emülatörde doğrula.",
+  "context_notes": "WSL 2, Docker Desktop ve yerel Supabase Test Merkezi çalışıyor. API http://127.0.0.1:55421; adb reverse tcp:55421 tcp:55421 gerekiyor. emulator-5554 üzerinde com.swansport.pro yerel Supabase'e bağlandı; kulüp yöneticisi fixture'ıyla Kulüp Paneli ve Yoklama ekranı açıldı. Windows'ta bare flutter.bat/npx.cmd çağrısı Node sürecinde bozulduğu için araç artık where.exe ile tam komut yolunu çözüyor. Test 14/14 geçti. Dashboard ekran görüntüsü C:/Users/Nisa/AppData/Local/Temp/swansport-pro-dashboard.png."
 }

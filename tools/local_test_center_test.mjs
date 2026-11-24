@@ -9,6 +9,8 @@ const source=read('supabase/seed/full_roles_test_seed.sql');
 test('Windows batch arguments quote spaces and reject shell expansion/injection',()=>{
  assert.equal(windowsBatchLine('npx.cmd',['--workdir','C:\\Test Folder']),
   '""npx.cmd" "--workdir" "C:\\Test Folder""');
+ assert.equal(windowsBatchLine('C:\\Program Files\\Flutter\\flutter.bat',['--version']),
+  '""C:\\Program Files\\Flutter\\flutter.bat" "--version""');
  for(const value of ['x & calc','%PATH%','x"y','x\ny','x|y','!X!'])
   assert.throws(()=>windowsBatchLine('flutter.bat',[value]));
 });

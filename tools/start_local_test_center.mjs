@@ -11,8 +11,14 @@ export const backend = 'http://127.0.0.1:55421';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const workdir=resolve(root,'tools/local-test-center');
 const container='supabase_db_'+project;
-const cli=process.platform==='win32'?'npx.cmd':'npx';
-const flutter=process.platform==='win32'?'flutter.bat':'flutter';
+const cli=process.platform==='win32'?resolveWindowsCommand('npx.cmd'):'npx';
+const flutter=process.platform==='win32'?resolveWindowsCommand('flutter.bat'):'flutter';
+
+function resolveWindowsCommand(command) {
+ const result=spawnSync('where.exe',[command],{encoding:'utf8'});
+ const path=result.stdout?.split(/\r?\n/).find(Boolean);
+ return result.status===0&&path ? path : command;
+}
 
 export function migrationNames(entries) {
  return entries.filter(name=>/^(?:\d{4}|\d{14})_[a-z0-9_]+\.sql$/.test(name)).sort();
