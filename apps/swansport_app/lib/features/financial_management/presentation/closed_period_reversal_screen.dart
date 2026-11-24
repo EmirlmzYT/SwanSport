@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 
-import '../../pro_operations/swan_pro_feature_host.dart';
+import '../../pro_operations/swan_pro_handoff.dart';
 
 /// Kapanmış dönem ters işlem ve mali düzeltme yönetim ekranı.
 ///
@@ -13,43 +10,17 @@ import '../../pro_operations/swan_pro_feature_host.dart';
 ///
 /// Contract anchor for module app bar static verifier:
 /// appBar: swanModuleAppBar(context, title: 'Ters İşlem ve Düzeltme')
-class ClosedPeriodReversalScreen extends ConsumerWidget {
+class ClosedPeriodReversalScreen extends StatelessWidget {
   const ClosedPeriodReversalScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final access = ref.watch(swanAccessProvider);
-    final activeClub = ref.watch(activeClubProvider).valueOrNull;
-
-    Widget content = const SwanProFeatureHost(
-      child: SharedPeriodClosingScreen(),
+  Widget build(BuildContext context) {
+    return const SwanProHandoffPage(
+      appBarTitle: 'Ters İşlem ve Düzeltme',
+      route: '/operasyon/donem-kapanisi',
+      title: 'Kapanmış dönem düzeltmeleri',
+      subtitle:
+          'Denetim izini koruyan ters kayıt ve dönem kapanışı işlemlerini SwanSport Pro’da yürüt.',
     );
-
-    if (!access.isAccountant && activeClub != null) {
-      content = ProviderScope(
-        overrides: [
-          swanAccessProvider.overrideWithValue(
-            SwanAccess(
-              isPlatformAdmin: false,
-              clubRole: activeClub.role,
-              coachLevel: 0,
-              athleteKind: null,
-              accountantClubIds: {activeClub.id},
-            ),
-          ),
-          featureFlagsProvider.overrideWith(
-            (ref) async => const FeatureFlags({
-              FeatureFlags.financeOperationsCenter,
-              FeatureFlags.periodClosing,
-            }),
-          ),
-          myClubsProvider.overrideWith((ref) async => [activeClub]),
-          financePeriodsProvider.overrideWith((ref) async => const []),
-        ],
-        child: content,
-      );
-    }
-
-    return content;
   }
 }

@@ -7,6 +7,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/features/dashboard/pro_dashboard_screen.dart';
 import 'package:swansport_pro/features/operations/pro_club_context_selector.dart';
+import 'package:swansport_pro/features/operations/pro_tasks_controller.dart';
 import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 Session _makeSession(String userId) {
@@ -48,6 +49,8 @@ void main() {
                 ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
               ]),
             ),
+            proPendingTasksCountProvider.overrideWith((ref) async => 4),
+            proUnreadNotificationsCountProvider.overrideWith((ref) async => 2),
             activeClubProvider.overrideWith(
               (ref) async => const ClubRef(
                 id: 'club-1',
@@ -65,6 +68,13 @@ void main() {
 
       expect(find.byType(ProDashboardScreen), findsOneWidget);
       expect(find.text('Kulüp Paneli'), findsOneWidget);
+      expect(
+        find.text('Takım, sporcu kadrosu ve yoklama yönetimi'),
+        findsOneWidget,
+      );
+      expect(find.text('4 bekleyen görev'), findsOneWidget);
+      expect(find.text('2 okunmamış bildirim'), findsOneWidget);
+      expect(find.text('1 yetkili kulüp'), findsOneWidget);
       // Generic standalone "Aktif" chip removed in favor of compact scope/refresh
       expect(find.text('Aktif'), findsNothing);
     });
@@ -128,6 +138,71 @@ void main() {
       final firstTaskPos = tester.getTopLeft(firstTask.first);
       // Must be above the fold (within screen height 844)
       expect(firstTaskPos.dy, lessThan(600.0));
+      expect(
+        find.text('Günün antrenman katılımını işle'),
+        findsNothing,
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('desktop panel places priorities and actions side by side',
+        (tester) async {
+      tester.view.physicalSize = const Size(1200, 900);
+      tester.view.devicePixelRatio = 1.0;
+      addTearDown(() {
+        tester.view.resetPhysicalSize();
+        tester.view.resetDevicePixelRatio();
+      });
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            authSessionProvider.overrideWith(
+              (ref) => Stream.value(_makeSession('user-dash-desktop')),
+            ),
+            swanAccessProvider.overrideWithValue(
+              const SwanAccess(
+                isPlatformAdmin: false,
+                clubRole: 'club_admin',
+                coachLevel: 0,
+                athleteKind: null,
+              ),
+            ),
+            proAuthorizedClubsProvider.overrideWithValue(
+              const AsyncData([
+                ClubRef(id: 'club-1', name: 'Kadıköy SK', role: 'club_admin'),
+              ]),
+            ),
+            activeClubProvider.overrideWith(
+              (ref) async => const ClubRef(
+                id: 'club-1',
+                name: 'Kadıköy SK',
+                role: 'club_admin',
+              ),
+            ),
+            featureFlagsProvider.overrideWith(
+              (ref) async => const FeatureFlags({
+                FeatureFlags.attendanceOperations,
+              }),
+            ),
+          ],
+          child: const MaterialApp(home: ProDashboardScreen()),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final todayPosition = tester.getTopLeft(find.text('Bugün'));
+      final actionsPosition = tester.getTopLeft(find.text('Hızlı İşlemler'));
+      expect(actionsPosition.dx, greaterThan(todayPosition.dx));
+      expect((actionsPosition.dy - todayPosition.dy).abs(), lessThan(12));
+      expect(
+        find.text('Günün antrenman katılımını işle'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Başvuru, kadro ve operasyon rollerini yönet'),
+        findsOneWidget,
+      );
       expect(tester.takeException(), isNull);
     });
 

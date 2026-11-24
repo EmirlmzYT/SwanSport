@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:swansport_product_ui/swansport_product_ui.dart';
 
 import '../app/pro_theme.dart';
 
@@ -77,7 +78,7 @@ class ProNavigationItem extends StatelessWidget {
       label: semanticLabel,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(SwanProductRadius.md),
         hoverColor: ProTheme.primary.withValues(alpha: 0.08),
         focusColor: ProTheme.primary.withValues(alpha: 0.16),
         child: ConstrainedBox(
@@ -90,7 +91,7 @@ class ProNavigationItem extends StatelessWidget {
               color: isSelected
                   ? ProTheme.primary.withValues(alpha: 0.12)
                   : Colors.transparent,
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(SwanProductRadius.md),
             ),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -138,10 +139,9 @@ class ProNavigationItem extends StatelessWidget {
                   item.label,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 10.5,
-                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? activeColor : inactiveColor,
+                  style: SwanProductType.caption(
+                    isSelected ? activeColor : inactiveColor,
+                    weight: isSelected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ],
@@ -170,20 +170,25 @@ class ProBottomNavigationBar extends StatelessWidget {
     return SafeArea(
       top: false,
       child: Container(
-        margin: const EdgeInsets.fromLTRB(10, 0, 10, 8),
+        margin: const EdgeInsets.fromLTRB(
+          SwanProductSpace.lg,
+          0,
+          SwanProductSpace.lg,
+          SwanProductSpace.sm,
+        ),
         decoration: BoxDecoration(
           color: ProTheme.surface.withValues(alpha: 0.98),
           border: Border.all(color: ProTheme.line),
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(32),
           boxShadow: const [
             BoxShadow(
-              color: Color(0x66000000),
-              blurRadius: 22,
-              offset: Offset(0, 10),
+              color: Color(0x14111827),
+              blurRadius: 28,
+              offset: Offset(0, 12),
             ),
           ],
         ),
-        padding: const EdgeInsets.symmetric(vertical: 5),
+        padding: const EdgeInsets.symmetric(vertical: SwanProductSpace.xs),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [

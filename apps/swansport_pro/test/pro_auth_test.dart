@@ -195,7 +195,10 @@ void main() {
       final fake = FakeAccountSessionService();
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [accountSessionServiceProvider.overrideWithValue(fake)],
+          overrides: [
+            isSupabaseEnabledProvider.overrideWithValue(true),
+            accountSessionServiceProvider.overrideWithValue(fake),
+          ],
           child: const MaterialApp(home: ProLoginScreen()),
         ),
       );
@@ -210,6 +213,29 @@ void main() {
 
       expect(fake.lastEmail, equals('pro@test.com'));
       expect(fake.lastPassword, equals('secret'));
+    });
+
+    testWidgets('fixture mode stays on a safe disabled preview', (
+      tester,
+    ) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: MaterialApp(home: ProLoginScreen()),
+        ),
+      );
+
+      expect(find.textContaining('Önizleme modu açık'), findsOneWidget);
+      expect(
+        tester.widget<FilledButton>(find.byType(FilledButton)).onPressed,
+        isNull,
+      );
+      expect(
+        tester.widgetList<TextField>(find.byType(TextField)).every(
+              (field) => field.enabled == false,
+            ),
+        isTrue,
+      );
+      expect(tester.takeException(), isNull);
     });
   });
 

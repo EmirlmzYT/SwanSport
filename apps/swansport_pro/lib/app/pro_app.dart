@@ -20,7 +20,7 @@ class ProApp extends ConsumerWidget {
       locale: const Locale('tr', 'TR'),
       supportedLocales: const [Locale('tr', 'TR')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
-      theme: ProTheme.dark(),
+      theme: ProTheme.light(),
       routerConfig: router,
       builder: (context, child) {
         return ProPushCoordinator(

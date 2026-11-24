@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app/design/swan_palette.dart';
@@ -13,7 +12,7 @@ import '../../../../app/navigation/swan_back_navigation.dart';
 import '../../../../app/widgets/premium.dart';
 import '../../../../app/widgets/swan_scaffold.dart';
 import '../../../../app/widgets/swan_tabs.dart';
-import '../../pro_operations/swan_pro_feature_host.dart';
+import '../../pro_operations/swan_pro_handoff.dart';
 import '../../settings/presentation/screens/club_training_sports_sheet.dart';
 import 'club_edit_sheet.dart';
 
@@ -176,8 +175,11 @@ class ClubCockpitScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: SwanSpace.md),
 
-                const SwanProFeatureHost(
-                  child: SharedClubOperationsPanel(),
+                const SwanProHandoffCard(
+                  route: '/operasyon/kulup-yonetimi',
+                  title: 'Detaylı kulüp operasyonları',
+                  subtitle:
+                      'Kadro, başvuru, yoklama, aidat ve personel işlemlerini profesyonel çalışma alanında yönet.',
                 ),
                 const SizedBox(height: SwanSpace.md),
 
@@ -1669,7 +1671,8 @@ class _AddAthleteHybridSheetState
       messenger.showSnackBar(
         SnackBar(
           content: Text(
-              '$first $last kadroya eklendi; henüz bir hesaba bağlı değil.'),
+            '$first $last kadroya eklendi; henüz bir hesaba bağlı değil.',
+          ),
         ),
       );
     } catch (e) {
@@ -1908,8 +1911,10 @@ class _AddAthleteHybridSheetState
                   const SizedBox(height: SwanSpace.lg),
                   ElevatedButton.icon(
                     onPressed: _saving ? null : _saveManualAthlete,
-                    icon: const Icon(Icons.check_circle_outline_rounded,
-                        size: 18),
+                    icon: const Icon(
+                      Icons.check_circle_outline_rounded,
+                      size: 18,
+                    ),
                     label: Text(
                       _saving ? 'Kaydediliyor...' : 'Sporcuyu Kadroya Kaydet',
                       style: SwanType.bodySm(c.onAccent, w: FontWeight.w700),
@@ -2071,7 +2076,8 @@ class _FeeReminderSheet extends StatelessWidget {
                       onPressed: () async {
                         try {
                           await Clipboard.setData(
-                              ClipboardData(text: template));
+                            ClipboardData(text: template),
+                          );
                         } catch (_) {
                           if (context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(

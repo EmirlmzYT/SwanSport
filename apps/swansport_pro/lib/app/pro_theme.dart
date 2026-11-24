@@ -1,26 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:swansport_design_system/swansport_design_system.dart';
+import 'package:swansport_product_ui/swansport_product_ui.dart';
 
 class ProTheme {
   const ProTheme._();
 
-  static const background = Color(0xFF07111F);
-  static const surface = Color(0xFF0E1B2C);
-  static const surfaceRaised = Color(0xFF14243A);
-  static const line = Color(0xFF263A55);
-  static const primary = Color(0xFF2DD4BF);
-  static const secondary = Color(0xFF38BDF8);
-  static const success = Color(0xFF10B981);
-  static const onSuccess = Color(0xFF03201D);
-  static const warning = Color(0xFFF59E0B);
-  static const onWarning = Color(0xFF1F1300);
-  static const danger = Color(0xFFEF4444);
+  static const background = SwanProductColors.lightBackground;
+  static const surface = SwanProductColors.lightSurface;
+  static const surfaceRaised = SwanProductColors.lightSurfaceAlt;
+  static const line = SwanProductColors.lightLine;
+  static const primary = SwanProductColors.accentFill;
+  static const secondary = SwanProductColors.accent;
+  static const success = SwanProductColors.success;
+  static const onSuccess = Colors.white;
+  static const warning = SwanProductColors.warning;
+  static const onWarning = Color(0xFF2A1900);
+  static const danger = SwanProductColors.danger;
   static const onDanger = Color(0xFFFFFFFF);
-  static const ink = Color(0xFFF8FAFC);
-  static const muted = Color(0xFF94A3B8);
+  static const ink = SwanProductColors.lightInk;
+  static const muted = SwanProductColors.lightInkMuted;
 
-  static ThemeData dark() {
-    final base = SwanTheme.dark();
+  static ThemeData light() {
+    final base = SwanTheme.light();
     return base.copyWith(
       scaffoldBackgroundColor: background,
       focusColor: primary.withValues(alpha: 0.16),
@@ -29,13 +30,26 @@ class ProTheme {
       splashColor: primary.withValues(alpha: 0.14),
       colorScheme: base.colorScheme.copyWith(
         primary: primary,
-        onPrimary: const Color(0xFF03201D),
+        onPrimary: Colors.white,
         secondary: secondary,
         surface: surface,
         surfaceContainer: surfaceRaised,
-        surfaceContainerHighest: const Color(0xFF1A2D46),
+        surfaceContainerHighest: surfaceRaised,
         outline: line,
         onSurface: ink,
+      ),
+      textTheme: TextTheme(
+        displayLarge: SwanProductType.display(ink),
+        headlineLarge: SwanProductType.h1(ink),
+        headlineMedium: SwanProductType.h2(ink),
+        titleLarge: SwanProductType.h3(ink),
+        bodyLarge: SwanProductType.body(ink),
+        bodyMedium: SwanProductType.bodySm(ink),
+        bodySmall: SwanProductType.caption(muted),
+        labelLarge: SwanProductType.bodySm(
+          ink,
+          weight: FontWeight.w700,
+        ),
       ),
       appBarTheme: const AppBarTheme(
         backgroundColor: background,
@@ -48,7 +62,7 @@ class ProTheme {
         color: surface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(18),
+          borderRadius: BorderRadius.circular(SwanProductRadius.md),
           side: const BorderSide(color: line),
         ),
       ),
@@ -56,34 +70,37 @@ class ProTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: surface,
-        labelStyle: const TextStyle(color: muted),
-        hintStyle: const TextStyle(color: muted),
+        labelStyle: SwanProductType.bodySm(muted),
+        hintStyle: SwanProductType.bodySm(muted),
         prefixIconColor: muted,
         suffixIconColor: muted,
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(SwanProductRadius.md),
           borderSide: const BorderSide(color: line),
         ),
         enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(SwanProductRadius.md),
           borderSide: const BorderSide(color: line),
         ),
         focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(SwanProductRadius.md),
           borderSide: const BorderSide(color: primary, width: 1.5),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           backgroundColor: primary,
-          foregroundColor: const Color(0xFF03201D),
+          foregroundColor: Colors.white,
           minimumSize: const Size(48, 50),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(SwanProductRadius.md),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w800),
+          textStyle: SwanProductType.bodySm(
+            Colors.white,
+            weight: FontWeight.w700,
+          ),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -92,7 +109,7 @@ class ProTheme {
           minimumSize: const Size(48, 48),
           side: const BorderSide(color: line),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(SwanProductRadius.md),
           ),
         ),
       ),
@@ -101,17 +118,23 @@ class ProTheme {
           foregroundColor: primary,
           minimumSize: const Size(48, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+            borderRadius: BorderRadius.circular(SwanProductRadius.md),
           ),
         ),
       ),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: surfaceRaised,
-        contentTextStyle: const TextStyle(color: ink),
+        backgroundColor: ink,
+        contentTextStyle: const TextStyle(color: Colors.white),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(SwanProductRadius.md),
+        ),
       ),
       progressIndicatorTheme: const ProgressIndicatorThemeData(color: primary),
     );
   }
+
+  /// Geçiş döneminde eski test ve çağrıları kırmadan açık ürün temasına taşır.
+  @Deprecated('Use ProTheme.light().')
+  static ThemeData dark() => light();
 }

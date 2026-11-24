@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swansport_app/features/clubs/presentation/club_cockpit_screen.dart';
+import 'package:swansport_app/features/pro_operations/swan_pro_handoff.dart';
 import 'package:swansport_data/swansport_data.dart';
-import 'package:swansport_pro_features/swansport_pro_features.dart';
 
 void main() {
-  testWidgets('SwanSport cockpit embeds the shared Phase 2 panel once',
+  testWidgets('social club cockpit hands detailed operations to Pro',
       (tester) async {
     await tester.pumpWidget(
       ProviderScope(
@@ -15,8 +15,9 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
-    expect(find.byType(SharedClubOperationsPanel), findsOneWidget);
-    expect(find.text('Kulüp Operasyonları'), findsOneWidget);
+    expect(find.byType(SwanProHandoffCard), findsOneWidget);
+    expect(find.text('Detaylı kulüp operasyonları'), findsOneWidget);
+    expect(find.text('SwanSport Pro’da aç'), findsOneWidget);
     expect(find.text('Antrenman Şablonları & Oturumlar'), findsNothing);
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:swansport_product_ui/swansport_product_ui.dart';
 
 /// SwanSport mobil renk jetonları.
 ///
@@ -97,20 +98,20 @@ class SwanPalette {
 
   /// Açık tema.
   static const light = SwanPalette._(
-    bg: Color(0xFFF4F7FA),
-    surface: Color(0xFFFFFFFF),
-    surfaceAlt: Color(0xFFF1F5F8),
-    line: Color(0xFFEAEEF3),
-    ink: Color(0xFF111827),
-    inkMuted: Color(0xFF636B77),
-    accent: Color(0xFF008C95),
-    accentSoft: Color(0x1A008C95),
+    bg: SwanProductColors.lightBackground,
+    surface: SwanProductColors.lightSurface,
+    surfaceAlt: SwanProductColors.lightSurfaceAlt,
+    line: SwanProductColors.lightLine,
+    ink: SwanProductColors.lightInk,
+    inkMuted: SwanProductColors.lightInkMuted,
+    accent: SwanProductColors.accent,
+    accentSoft: SwanProductColors.accentSoft,
     // Caption boyutundaki beyaz etiketlerde de AA kontrastı (5.39:1).
-    accentFill: Color(0xFF00767E),
-    successFill: Color(0xFF047857),
-    success: Color(0xFF10B981),
-    warning: Color(0xFFD9860B),
-    danger: Color(0xFFF43F5E),
+    accentFill: SwanProductColors.accentFill,
+    successFill: SwanProductColors.successFill,
+    success: SwanProductColors.success,
+    warning: SwanProductColors.warning,
+    danger: SwanProductColors.danger,
     isDark: false,
   );
 
@@ -119,19 +120,19 @@ class SwanPalette {
   /// Brief: *"saf siyah kullanma, çok koyu navy/charcoal"*. `bg` gerçekten
   /// lacivere çalan bir koyu — `#000000` bu dosyada hiç geçmiyor.
   static const dark = SwanPalette._(
-    bg: Color(0xFF0A111E),
-    surface: Color(0xFF1B273A),
-    surfaceAlt: Color(0xFF1A2537),
-    line: Color(0xFF233149),
-    ink: Color(0xFFFFFFFF),
-    inkMuted: Color(0xFF8A97AC),
-    accent: Color(0xFF2FBFB6),
-    accentSoft: Color(0x1A2FBFB6),
-    accentFill: Color(0xFF00767E),
-    successFill: Color(0xFF047857),
-    success: Color(0xFF10B981),
-    warning: Color(0xFFD9860B),
-    danger: Color(0xFFF43F5E),
+    bg: SwanProductColors.darkBackground,
+    surface: SwanProductColors.darkSurface,
+    surfaceAlt: SwanProductColors.darkSurfaceAlt,
+    line: SwanProductColors.darkLine,
+    ink: SwanProductColors.darkInk,
+    inkMuted: SwanProductColors.darkInkMuted,
+    accent: SwanProductColors.darkAccent,
+    accentSoft: SwanProductColors.darkAccentSoft,
+    accentFill: SwanProductColors.accentFill,
+    successFill: SwanProductColors.successFill,
+    success: SwanProductColors.success,
+    warning: SwanProductColors.warning,
+    danger: SwanProductColors.danger,
     isDark: true,
   );
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:swansport_data/swansport_data.dart';
 import 'package:swansport_pro/app/pro_theme.dart';
 import 'package:swansport_pro/features/auth/pro_login_screen.dart';
@@ -16,6 +17,8 @@ class _FakeSessionService implements AccountSessionService {
 }
 
 void main() {
+  setUpAll(() => GoogleFonts.config.allowRuntimeFetching = false);
+
   group('SwanSport Pro Etkileşim, Odak ve Görsel Kalite Sözleşmeleri', () {
     test(
         'ProTheme.dark() odak, hover ve buton dokunma boyutlarını garanti eder',
@@ -124,10 +127,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            isSupabaseEnabledProvider.overrideWithValue(true),
             accountSessionServiceProvider.overrideWithValue(fake),
           ],
           child: MaterialApp(
-            theme: ProTheme.dark(),
+            theme: ProTheme.light(),
             home: const ProLoginScreen(),
           ),
         ),

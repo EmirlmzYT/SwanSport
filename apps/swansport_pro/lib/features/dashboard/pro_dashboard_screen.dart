@@ -41,15 +41,14 @@ class ProDashboardScreen extends ConsumerWidget {
             padding: const EdgeInsets.fromLTRB(20, 22, 20, 40),
             children: [
               _WorkspaceHeader(
-                workspaceLabel: workspace.label,
+                workspace: workspace,
+                clubs: clubs,
                 onRefresh: () {
                   refreshProWorkspaceData(ref, workspace);
                 },
               ),
               const SizedBox(height: 20),
-              _TodaySection(workspace: workspace),
-              const SizedBox(height: 20),
-              _QuickActionsRow(workspace: workspace),
+              _DashboardCommandGrid(workspace: workspace),
               const SizedBox(height: 24),
               const ProSectionHeader(
                 title: 'Operasyon Yönetimi',
@@ -121,81 +120,247 @@ class ProDashboardScreen extends ConsumerWidget {
   }
 }
 
+class _DashboardCommandGrid extends StatelessWidget {
+  const _DashboardCommandGrid({required this.workspace});
+
+  final ProWorkspace workspace;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final today = _TodaySection(workspace: workspace);
+
+        if (constraints.maxWidth < 840) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              today,
+              const SizedBox(height: 20),
+              _QuickActionsRow(workspace: workspace, detailed: false),
+            ],
+          );
+        }
+
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(flex: 3, child: today),
+            const SizedBox(width: 24),
+            Expanded(
+              flex: 2,
+              child: _QuickActionsRow(workspace: workspace, detailed: true),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
 class _WorkspaceHeader extends ConsumerWidget {
   const _WorkspaceHeader({
-    required this.workspaceLabel,
+    required this.workspace,
+    required this.clubs,
     this.onRefresh,
   });
 
-  final String workspaceLabel;
+  final ProWorkspace workspace;
+  final AsyncValue<List<ClubRef>> clubs;
   final VoidCallback? onRefresh;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final pendingTasks = ref.watch(proPendingTasksCountProvider);
+    final unreadNotifications = ref.watch(proUnreadNotificationsCountProvider);
+    final isClubWorkspace = workspace.supportsClubOperations;
+
+    String countLabel(
+      AsyncValue<int> value, {
+      required String noun,
+      required String errorLabel,
+    }) {
+      if (value.isLoading && !value.hasValue) return '$noun yükleniyor';
+      if (value.hasError && !value.hasValue) return errorLabel;
+      return '${value.valueOrNull ?? 0} $noun';
+    }
+
+    final scopeLabel = isClubWorkspace
+        ? clubs.when(
+            loading: () => 'Yetki kapsamı yükleniyor',
+            error: (_, __) => 'Yetki kapsamı alınamadı',
+            data: (items) => '${items.length} yetkili kulüp',
+          )
+        : 'Rol tabanlı erişim';
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF12314A), Color(0xFF0E1B2C)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
+        color: ProTheme.surface,
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(color: ProTheme.line),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: ProTheme.primary.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(
-                color: ProTheme.primary.withValues(alpha: 0.28),
-              ),
-            ),
-            child: const Icon(
-              Icons.space_dashboard_rounded,
-              color: ProTheme.primary,
-              size: 24,
-            ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x0A101828),
+            blurRadius: 24,
+            offset: Offset(0, 8),
           ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  '$workspaceLabel Paneli',
-                  style: const TextStyle(
-                    color: ProTheme.ink,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: ProTheme.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(
+                    color: ProTheme.primary.withValues(alpha: 0.24),
                   ),
                 ),
-                const SizedBox(height: 3),
-                const Text(
-                  'Bugünkü operasyonlarını tek ekrandan yönet.',
-                  style: TextStyle(
-                    color: ProTheme.muted,
-                    fontSize: 13,
+                child: Icon(
+                  workspace.icon,
+                  color: ProTheme.primary,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      '${workspace.label} Paneli',
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      workspace.description,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: ProTheme.muted,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded),
+                color: ProTheme.muted,
+                tooltip: 'Operasyon verilerini yenile',
+                onPressed: () {
+                  ref.invalidate(proPendingTasksCountProvider);
+                  ref.invalidate(proUnreadNotificationsCountProvider);
+                  onRefresh?.call();
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                _OperationalStatusChip(
+                  icon: Icons.assignment_outlined,
+                  label: countLabel(
+                    pendingTasks,
+                    noun: 'bekleyen görev',
+                    errorLabel: 'Görev durumu alınamadı',
                   ),
+                  emphasized: (pendingTasks.valueOrNull ?? 0) > 0,
+                  onTap: () => context.go(ProRoutes.tasks),
+                ),
+                const SizedBox(width: 8),
+                _OperationalStatusChip(
+                  icon: Icons.notifications_none_rounded,
+                  label: countLabel(
+                    unreadNotifications,
+                    noun: 'okunmamış bildirim',
+                    errorLabel: 'Bildirim durumu alınamadı',
+                  ),
+                  emphasized: (unreadNotifications.valueOrNull ?? 0) > 0,
+                  onTap: () => context.go(ProRoutes.inbox),
+                ),
+                const SizedBox(width: 8),
+                _OperationalStatusChip(
+                  icon: isClubWorkspace
+                      ? Icons.apartment_rounded
+                      : Icons.verified_user_outlined,
+                  label: scopeLabel,
                 ),
               ],
             ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: ProTheme.muted),
-            tooltip: 'Yenile',
-            onPressed: () {
-              ref.invalidate(proPendingTasksCountProvider);
-              onRefresh?.call();
-            },
-          ),
         ],
+      ),
+    );
+  }
+}
+
+class _OperationalStatusChip extends StatelessWidget {
+  const _OperationalStatusChip({
+    required this.icon,
+    required this.label,
+    this.emphasized = false,
+    this.onTap,
+  });
+
+  final IconData icon;
+  final String label;
+  final bool emphasized;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final foreground = emphasized ? ProTheme.primary : ProTheme.muted;
+    final background = emphasized
+        ? ProTheme.primary.withValues(alpha: 0.08)
+        : ProTheme.background;
+    final border =
+        emphasized ? ProTheme.primary.withValues(alpha: 0.22) : ProTheme.line;
+
+    return Semantics(
+      button: onTap != null,
+      label: label,
+      child: Material(
+        color: background,
+        shape: StadiumBorder(side: BorderSide(color: border)),
+        child: InkWell(
+          onTap: onTap,
+          customBorder: const StadiumBorder(),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 17, color: foreground),
+                const SizedBox(width: 7),
+                Text(
+                  label,
+                  maxLines: 1,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: foreground,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+                if (onTap != null) ...[
+                  const SizedBox(width: 4),
+                  Icon(
+                    Icons.chevron_right_rounded,
+                    size: 16,
+                    color: foreground,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -591,9 +756,13 @@ class _TodaySection extends ConsumerWidget {
 }
 
 class _QuickActionsRow extends ConsumerWidget {
-  const _QuickActionsRow({required this.workspace});
+  const _QuickActionsRow({
+    required this.workspace,
+    required this.detailed,
+  });
 
   final ProWorkspace workspace;
+  final bool detailed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -608,11 +777,19 @@ class _QuickActionsRow extends ConsumerWidget {
           subtitle: 'En sık kullanılan çalışma alanı aksiyonları',
         ),
         const SizedBox(height: 10),
-        Wrap(
-          spacing: 10,
-          runSpacing: 10,
-          children: actions.take(5).toList(),
-        ),
+        if (detailed)
+          ...actions.take(5).map(
+                (action) => Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: action,
+                ),
+              )
+        else
+          Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: actions.take(5).toList(),
+          ),
       ],
     );
   }
@@ -630,11 +807,15 @@ class _QuickActionsRow extends ConsumerWidget {
             _QuickActionButton(
               icon: Icons.fact_check_outlined,
               label: 'Yoklama Al',
+              description: 'Günün antrenman katılımını işle',
+              detailed: detailed,
               onTap: () => context.push(ProRoutes.attendance),
             ),
             _QuickActionButton(
               icon: Icons.history_edu_outlined,
               label: 'Devam Takibi',
+              description: 'Katılım geçmişi ve devam durumunu incele',
+              detailed: detailed,
               onTap: () => context.push(ProRoutes.attendanceHistory),
             ),
           ]);
@@ -643,6 +824,8 @@ class _QuickActionsRow extends ConsumerWidget {
           _QuickActionButton(
             icon: Icons.business_center_outlined,
             label: 'Kulüp Yönetimi',
+            description: 'Başvuru, kadro ve operasyon rollerini yönet',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.clubManagement),
           ),
         );
@@ -651,6 +834,8 @@ class _QuickActionsRow extends ConsumerWidget {
             _QuickActionButton(
               icon: Icons.family_restroom_outlined,
               label: 'Veli Bağlantıları',
+              description: 'Davetleri ve sporcu-veli bağlarını takip et',
+              detailed: detailed,
               onTap: () => context.push(ProRoutes.guardianLinks),
             ),
           );
@@ -658,6 +843,8 @@ class _QuickActionsRow extends ConsumerWidget {
             _QuickActionButton(
               icon: Icons.payments_outlined,
               label: 'Aidat Takibi',
+              description: 'Bekleyen ödemeleri ve gecikmeleri incele',
+              detailed: detailed,
               onTap: () => context.push(ProRoutes.clubDues),
             ),
           );
@@ -668,16 +855,22 @@ class _QuickActionsRow extends ConsumerWidget {
           _QuickActionButton(
             icon: Icons.verified_outlined,
             label: 'Harcama Onayı',
+            description: 'Onay sırasındaki gider kayıtlarını değerlendir',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.accounting),
           ),
           _QuickActionButton(
             icon: Icons.account_balance_outlined,
             label: 'Banka Mutabakatı',
+            description: 'Eşleşmeyen banka hareketlerini uzlaştır',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.bankReconciliation),
           ),
           _QuickActionButton(
             icon: Icons.receipt_long_outlined,
             label: 'Finans Defteri',
+            description: 'Gelir, gider ve hesap hareketlerini görüntüle',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.accountingLedger),
           ),
         ]);
@@ -687,11 +880,15 @@ class _QuickActionsRow extends ConsumerWidget {
           _QuickActionButton(
             icon: Icons.newspaper_outlined,
             label: 'Bülten',
+            description: 'Resmi duyuru ve yayın akışını yönet',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.federationBulletin),
           ),
           _QuickActionButton(
             icon: Icons.leaderboard_outlined,
             label: 'Puan Durumu',
+            description: 'Lig sıralaması ve sonuç etkilerini incele',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.leagueStandings),
           ),
         ]);
@@ -701,11 +898,15 @@ class _QuickActionsRow extends ConsumerWidget {
           _QuickActionButton(
             icon: Icons.sports_soccer_outlined,
             label: 'Saha Durumu',
+            description: 'Saha kullanılabilirliği ve rezervasyonları gör',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.facility),
           ),
           _QuickActionButton(
             icon: Icons.build_circle_outlined,
             label: 'Tesis Görevleri',
+            description: 'Bakım ve saha operasyonlarını takip et',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.facilityDuties),
           ),
         ]);
@@ -715,11 +916,15 @@ class _QuickActionsRow extends ConsumerWidget {
           _QuickActionButton(
             icon: Icons.assignment_turned_in_outlined,
             label: 'Hakem Görevleri',
+            description: 'Atamaları kabul et, reddet veya ayrıntıyı aç',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.refereeDuties),
           ),
           _QuickActionButton(
             icon: Icons.sports_outlined,
             label: 'Görev Programı',
+            description: 'Kabul edilmiş müsabakaları takvimde görüntüle',
+            detailed: detailed,
             onTap: () => context.go(ProRoutes.calendar),
           ),
         ]);
@@ -729,11 +934,15 @@ class _QuickActionsRow extends ConsumerWidget {
           _QuickActionButton(
             icon: Icons.tune_outlined,
             label: 'Sistem Durumu',
+            description: 'Platform ayarları ve servis durumunu denetle',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.platformStatus),
           ),
           _QuickActionButton(
             icon: Icons.people_outline_rounded,
             label: 'Bekleme Listesi',
+            description: 'Yeni katılım başvurularını incele ve yönet',
+            detailed: detailed,
             onTap: () => context.push(ProRoutes.platformWaitlist),
           ),
         ]);
@@ -747,36 +956,74 @@ class _QuickActionButton extends StatelessWidget {
   const _QuickActionButton({
     required this.icon,
     required this.label,
+    required this.description,
+    required this.detailed,
     required this.onTap,
   });
 
   final IconData icon;
   final String label;
+  final String description;
+  final bool detailed;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: ProTheme.surface,
-      borderRadius: BorderRadius.circular(12),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        child: Container(
-          constraints: const BoxConstraints(
-            minWidth: 48,
-            minHeight: 48,
-            maxWidth: 240,
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: ProTheme.line),
-          ),
-          child: Row(
+    final iconTile = Container(
+      width: detailed ? 40 : 18,
+      height: detailed ? 40 : 18,
+      decoration: detailed
+          ? BoxDecoration(
+              color: ProTheme.primary.withValues(alpha: 0.09),
+              borderRadius: BorderRadius.circular(11),
+            )
+          : null,
+      child: Icon(icon, size: detailed ? 20 : 18, color: ProTheme.primary),
+    );
+
+    final content = detailed
+        ? Row(
+            children: [
+              iconTile,
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: ProTheme.ink,
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: ProTheme.muted,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(
+                Icons.chevron_right_rounded,
+                size: 20,
+                color: ProTheme.muted,
+              ),
+            ],
+          )
+        : Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 18, color: ProTheme.primary),
+              iconTile,
               const SizedBox(width: 8),
               Flexible(
                 child: Text(
@@ -791,6 +1038,33 @@ class _QuickActionButton extends StatelessWidget {
                 ),
               ),
             ],
+          );
+
+    return Semantics(
+      button: true,
+      label: detailed ? '$label. $description' : label,
+      child: Material(
+        color: ProTheme.surface,
+        borderRadius: BorderRadius.circular(12),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onTap,
+          child: Container(
+            width: detailed ? double.infinity : null,
+            constraints: BoxConstraints(
+              minWidth: 48,
+              minHeight: detailed ? 68 : 48,
+              maxWidth: detailed ? double.infinity : 240,
+            ),
+            padding: EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: detailed ? 12 : 10,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: ProTheme.line),
+            ),
+            child: ExcludeSemantics(child: content),
           ),
         ),
       ),

@@ -26,10 +26,11 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
+            isSupabaseEnabledProvider.overrideWithValue(true),
             accountSessionServiceProvider.overrideWithValue(fake),
           ],
           child: MaterialApp(
-            theme: ProTheme.dark(),
+            theme: ProTheme.light(),
             home: const ProLoginScreen(),
           ),
         ),
@@ -55,12 +56,31 @@ void main() {
       expect(size.height, greaterThanOrEqualTo(48.0));
     });
 
+    testWidgets('ilk native frame sıfır yükseklikte güvenle yerleşir',
+        (tester) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            isSupabaseEnabledProvider.overrideWithValue(false),
+          ],
+          child: MaterialApp(
+            theme: ProTheme.light(),
+            home: const Scaffold(
+              body: SizedBox(height: 0, child: ProLoginScreen()),
+            ),
+          ),
+        ),
+      );
+
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets(
         'ProBrand hem standart hem kompakt modda marka rozetini doğru çizer',
         (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          theme: ProTheme.dark(),
+          theme: ProTheme.light(),
           home: const Scaffold(
             body: Column(
               children: [
@@ -77,27 +97,25 @@ void main() {
       expect(find.byIcon(Icons.sports_rounded), findsNWidgets(2));
     });
 
-    test(
-        'Web ve Android splash karanlık tema (#07111F) yapılandırmasına sahiptir',
-        () {
+    test('Web ve Android splash App açık teması (#F4F7FA) ile aynıdır', () {
       final indexHtml = File('web/index.html');
       expect(indexHtml.existsSync(), isTrue);
       final indexContent = indexHtml.readAsStringSync();
-      expect(indexContent, contains('content="#07111F"'));
+      expect(indexContent, contains('content="#F4F7FA"'));
       expect(indexContent, contains('SwanSport Pro'));
 
       final manifestJson = File('web/manifest.json');
       expect(manifestJson.existsSync(), isTrue);
       final manifestContent = manifestJson.readAsStringSync();
-      expect(manifestContent, contains('"background_color": "#07111F"'));
-      expect(manifestContent, contains('"theme_color": "#07111F"'));
+      expect(manifestContent, contains('"background_color": "#F4F7FA"'));
+      expect(manifestContent, contains('"theme_color": "#F4F7FA"'));
       expect(manifestContent, contains('"name": "SwanSport Pro"'));
 
       final androidColors = File('android/app/src/main/res/values/colors.xml');
       expect(androidColors.existsSync(), isTrue);
       expect(
         androidColors.readAsStringSync(),
-        contains('<color name="pro_splash_background">#07111F</color>'),
+        contains('<color name="pro_splash_background">#F4F7FA</color>'),
       );
     });
   });

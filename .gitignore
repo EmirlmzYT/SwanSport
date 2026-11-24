@@ -49,3 +49,5 @@ __pycache__/
 
 # Yerel yedek arsivleri — depoya girmemeli (193 MB)
 *.zip
+# Widget Preview related
+.widget_preview/

@@ -11,6 +11,7 @@ workspace:
   - packages/swansport_core
   - packages/swansport_data
   - packages/swansport_design_system
+  - packages/swansport_product_ui
   - packages/swansport_models
   - packages/swansport_branch_engine
   - packages/swansport_pro_features

@@ -1,7 +1,5 @@
-import 'dart:ui' show FontFeature;
-
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+import 'package:swansport_product_ui/swansport_product_ui.dart';
 
 /// SwanSport mobil tipografi ölçeği.
 ///
@@ -19,60 +17,40 @@ import 'package:google_fonts/google_fonts.dart';
 class SwanType {
   const SwanType._();
 
-  static TextStyle _sora(double size, FontWeight w, Color c) =>
-      GoogleFonts.sora(
-        fontSize: size,
-        fontWeight: w,
-        color: c,
-        letterSpacing: -0.6,
-        height: 1.12,
-      );
-
-  static TextStyle _jakarta(double size, FontWeight w, Color c,
-          {double height = 1.4}) =>
-      GoogleFonts.plusJakartaSans(
-        fontSize: size,
-        fontWeight: w,
-        color: c,
-        height: height,
-      );
-
   /// Atletik marka imzası; ekranlarda ham font çağrısı yapılmaz.
-  static TextStyle wordmark(Color c) =>
-      _sora(28, FontWeight.w800, c).copyWith(letterSpacing: -0.5);
+  static TextStyle wordmark(Color c) => SwanProductType.wordmark(c);
 
   /// Compact navigation brand; reuses the existing 22-point type scale.
   static TextStyle navigationWordmark(Color c) =>
-      h2(c).copyWith(fontWeight: FontWeight.w600);
+      SwanProductType.navigationWordmark(c);
 
   /// 32 — hero, performans skoru. Ekranda en fazla bir tane.
-  static TextStyle display(Color c) => _sora(32, FontWeight.w800, c);
+  static TextStyle display(Color c) => SwanProductType.display(c);
 
   /// Sabit genişlikli rakamlarla kronometre; başlık font ailesi korunur.
-  static TextStyle stopwatch(Color c) =>
-      display(c).copyWith(fontFeatures: const [FontFeature.tabularFigures()]);
+  static TextStyle stopwatch(Color c) => SwanProductType.stopwatch(c);
 
   /// 28 — ekran başlığı.
-  static TextStyle h1(Color c) => _sora(28, FontWeight.w800, c);
+  static TextStyle h1(Color c) => SwanProductType.h1(c);
 
   /// 22 — bölüm başlığı.
-  static TextStyle h2(Color c) => _sora(22, FontWeight.w700, c);
+  static TextStyle h2(Color c) => SwanProductType.h2(c);
 
   /// 18 — kart/satır başlığı.
   ///
   /// Brief "çok fazla uppercase kullanma" diyor: eski `_label('HIZLI
   /// İŞLEMLER')` gibi büyük harf bölüm başlıkları buraya iniyor.
-  static TextStyle h3(Color c) => _sora(18, FontWeight.w700, c);
+  static TextStyle h3(Color c) => SwanProductType.h3(c);
 
   /// 16 — ana metin.
   static TextStyle body(Color c, {FontWeight w = FontWeight.w500}) =>
-      _jakarta(16, w, c);
+      SwanProductType.body(c, weight: w);
 
   /// 14 — ikincil metin, liste alt satırı.
   static TextStyle bodySm(Color c, {FontWeight w = FontWeight.w500}) =>
-      _jakarta(14, w, c);
+      SwanProductType.bodySm(c, weight: w);
 
   /// 12 — etiket, zaman, meta. En küçük adım; bundan aşağısı okunmuyor.
   static TextStyle caption(Color c, {FontWeight w = FontWeight.w600}) =>
-      _jakarta(12, w, c, height: 1.3);
+      SwanProductType.caption(c, weight: w);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_product_ui/swansport_product_ui.dart';
 import 'package:go_router/go_router.dart';
 import 'package:swansport_data/swansport_data.dart';
 import '../features/operations/pro_tasks_controller.dart';
@@ -282,20 +283,15 @@ class ProBrand extends StatelessWidget {
           child: Icon(
             Icons.sports_rounded,
             size: compact ? 19 : 22,
-            color: const Color(0xFF03201D),
+            color: Colors.white,
           ),
         ),
         const SizedBox(width: 10),
-        const Flexible(
+        Flexible(
           child: Text(
             'SwanSport Pro',
             overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              color: ProTheme.ink,
-              fontSize: 17,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
-            ),
+            style: SwanProductType.navigationWordmark(ProTheme.ink),
           ),
         ),
       ],

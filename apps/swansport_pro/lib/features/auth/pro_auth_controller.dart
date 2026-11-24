@@ -27,8 +27,8 @@ class ProAuthController extends StateNotifier<ProAuthState> {
   ProAuthController(
     this._sessionService, {
     Future<void> Function()? beforeSignOut,
-  }) : _beforeSignOut = beforeSignOut,
-       super(const ProAuthState());
+  })  : _beforeSignOut = beforeSignOut,
+        super(const ProAuthState());
 
   final AccountSessionService _sessionService;
   final Future<void> Function()? _beforeSignOut;
@@ -94,9 +94,9 @@ String _safeSignInErrorMessage(AuthException error) {
 
 final proAuthControllerProvider =
     StateNotifierProvider<ProAuthController, ProAuthState>((ref) {
-      final sessionService = ref.watch(accountSessionServiceProvider);
-      return ProAuthController(
-        sessionService,
-        beforeSignOut: ref.watch(proPushClientProvider).unregisterFromServer,
-      );
-    });
+  final sessionService = ref.watch(accountSessionServiceProvider);
+  return ProAuthController(
+    sessionService,
+    beforeSignOut: () => ref.read(proPushClientProvider).unregisterFromServer(),
+  );
+});

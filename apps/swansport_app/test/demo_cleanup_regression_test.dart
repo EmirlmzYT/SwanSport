@@ -85,38 +85,17 @@ void main() {
     expect(find.textContaining('GPS'), findsNothing);
   });
 
-  testWidgets('ledger paginates masked RPC records and keeps total',
+  testWidgets('social accountant route delegates masked ledger work to Pro',
       (tester) async {
-    final offsets = <int>[];
-    await tester.pumpWidget(ProviderScope(overrides: [
-      activeClubProvider.overrideWith((ref) async => club),
-      clubLedgerPageProvider.overrideWith((ref, offset) async {
-        offsets.add(offset);
-        return LedgerPage.fromRows([
-          {
-            'entry_id': '$offset',
-            'moved_on': '2026-10-06',
-            'direction': 'in',
-            'label': 'Aidat',
-            'category': 'Aidat',
-            'counterpart': '#A3F91C',
-            'account': 'Banka',
-            'amount': 500,
-            'status': 'confirmed',
-            'total_count': 51,
-          }
-        ]);
-      }),
-    ], child: const MaterialApp(home: AccountantPrivacyLedgerScreen())));
+    await tester.pumpWidget(
+      const MaterialApp(home: AccountantPrivacyLedgerScreen()),
+    );
     await tester.pumpAndSettle();
-    expect(find.textContaining('#A3F91C'), findsOneWidget);
-    expect(find.text('51 kayıt'), findsOneWidget);
-    await tester.tap(find.text('Sonraki'));
-    await tester.pumpAndSettle();
-    expect(offsets, contains(50));
-    await tester.tap(find.text('Önceki'));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('#A3F91C'), findsOneWidget);
+
+    expect(find.text('Mali operasyon defteri'), findsOneWidget);
+    expect(find.text('SwanSport Pro’da aç'), findsOneWidget);
+    expect(find.textContaining('#A3F91C'), findsNothing);
+    expect(find.text('51 kayıt'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 

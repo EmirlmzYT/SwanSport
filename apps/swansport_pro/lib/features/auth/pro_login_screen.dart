@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:swansport_data/swansport_data.dart';
+import 'package:swansport_product_ui/swansport_product_ui.dart';
 import '../../app/pro_theme.dart';
 import 'pro_auth_controller.dart';
 
@@ -23,6 +25,7 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
   }
 
   void _submit() {
+    if (!ref.read(isSupabaseEnabledProvider)) return;
     ref.read(proAuthControllerProvider.notifier).signIn(
           _emailController.text,
           _passwordController.text,
@@ -31,17 +34,14 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(proAuthControllerProvider);
+    final backendEnabled = ref.watch(isSupabaseEnabledProvider);
+    final authState = backendEnabled
+        ? ref.watch(proAuthControllerProvider)
+        : const ProAuthState();
 
     return Scaffold(
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: RadialGradient(
-            center: Alignment(-0.8, -0.8),
-            radius: 1.5,
-            colors: [Color(0xFF12314A), ProTheme.background],
-          ),
-        ),
+      body: ColoredBox(
+        color: ProTheme.background,
         child: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
@@ -50,7 +50,9 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                 padding: EdgeInsets.all(desktop ? 32 : 20),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - (desktop ? 64 : 40),
+                    minHeight: (constraints.maxHeight - (desktop ? 64 : 40))
+                        .clamp(0.0, double.infinity)
+                        .toDouble(),
                   ),
                   child: Center(
                     child: ConstrainedBox(
@@ -62,11 +64,17 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                                 const SizedBox(width: 72),
                                 SizedBox(
                                   width: 440,
-                                  child: _buildLoginCard(authState),
+                                  child: _buildLoginCard(
+                                    authState,
+                                    backendEnabled: backendEnabled,
+                                  ),
                                 ),
                               ],
                             )
-                          : _buildLoginCard(authState),
+                          : _buildLoginCard(
+                              authState,
+                              backendEnabled: backendEnabled,
+                            ),
                     ),
                   ),
                 ),
@@ -78,7 +86,10 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
     );
   }
 
-  Widget _buildLoginCard(ProAuthState authState) {
+  Widget _buildLoginCard(
+    ProAuthState authState, {
+    required bool backendEnabled,
+  }) {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -87,9 +98,9 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
         border: Border.all(color: ProTheme.line),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x66000000),
-            blurRadius: 40,
-            offset: Offset(0, 20),
+            color: Color(0x0F111827),
+            blurRadius: 28,
+            offset: Offset(0, 12),
           ),
         ],
       ),
@@ -110,26 +121,21 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
                 ),
                 child: const Icon(
                   Icons.sports_rounded,
-                  color: Color(0xFF03201D),
+                  color: Colors.white,
                 ),
               ),
               const SizedBox(width: 14),
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'SwanSport Pro',
-                      style: TextStyle(
-                        color: ProTheme.ink,
-                        fontSize: 21,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.6,
-                      ),
+                      style: SwanProductType.h2(ProTheme.ink),
                     ),
                     Text(
                       'Profesyonel Operasyon Merkezi',
-                      style: TextStyle(color: ProTheme.muted, fontSize: 12),
+                      style: SwanProductType.caption(ProTheme.muted),
                     ),
                   ],
                 ),
@@ -137,21 +143,50 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
             ],
           ),
           const SizedBox(height: 30),
-          const Text(
+          Text(
             'Tekrar hoş geldin',
-            style: TextStyle(
-              color: ProTheme.ink,
-              fontSize: 26,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.7,
-            ),
+            style: SwanProductType.h1(ProTheme.ink),
           ),
           const SizedBox(height: 7),
-          const Text(
+          Text(
             'Yetkili çalışma alanlarına devam etmek için hesabınla giriş yap.',
-            style: TextStyle(color: ProTheme.muted, height: 1.45),
+            style: SwanProductType.body(ProTheme.muted),
           ),
           const SizedBox(height: 24),
+          if (!backendEnabled) ...[
+            Container(
+              padding: const EdgeInsets.all(13),
+              decoration: BoxDecoration(
+                color: ProTheme.primary.withValues(alpha: 0.10),
+                border: Border.all(
+                  color: ProTheme.primary.withValues(alpha: 0.35),
+                ),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.visibility_outlined,
+                    color: ProTheme.primary,
+                    size: 20,
+                  ),
+                  SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'Önizleme modu açık. Giriş yapmak için geliştirme ortamına Supabase bağlantısı eklenmeli.',
+                      style: TextStyle(
+                        color: ProTheme.ink,
+                        fontSize: 13,
+                        height: 1.35,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+          ],
           if (authState.errorMessage != null) ...[
             Container(
               padding: const EdgeInsets.all(13),
@@ -189,7 +224,7 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autocorrect: false,
-            enabled: !authState.isSubmitting,
+            enabled: backendEnabled && !authState.isSubmitting,
             style: const TextStyle(color: ProTheme.ink),
             decoration: const InputDecoration(
               labelText: 'E-posta',
@@ -200,7 +235,7 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
           TextField(
             controller: _passwordController,
             obscureText: _obscurePassword,
-            enabled: !authState.isSubmitting,
+            enabled: backendEnabled && !authState.isSubmitting,
             style: const TextStyle(color: ProTheme.ink),
             onSubmitted: (_) => _submit(),
             decoration: InputDecoration(
@@ -229,14 +264,15 @@ class _ProLoginScreenState extends ConsumerState<ProLoginScreen> {
             style: FilledButton.styleFrom(
               minimumSize: const Size(double.infinity, 48),
             ),
-            onPressed: authState.isSubmitting ? null : _submit,
+            onPressed:
+                !backendEnabled || authState.isSubmitting ? null : _submit,
             child: authState.isSubmitting
                 ? const SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      color: Color(0xFF03201D),
+                      color: Colors.white,
                     ),
                   )
                 : const Row(
